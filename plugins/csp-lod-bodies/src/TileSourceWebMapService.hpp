@@ -21,7 +21,7 @@ namespace csp::lodbodies {
 /// The data of the tiles is fetched via a web map service.
 class TileSourceWebMapService : public TileSource {
  public:
-  TileSourceWebMapService();
+  TileSourceWebMapService(uint32_t resolution);
 
   TileSourceWebMapService(TileSourceWebMapService const& other) = delete;
   TileSourceWebMapService(TileSourceWebMapService&& other)      = delete;
@@ -42,8 +42,7 @@ class TileSourceWebMapService : public TileSource {
   void loadTileAsync(int level, glm::int64 patchIdx, OnLoadCallback cb) override;
   int  getPendingRequests() override;
 
-  void     setMaxLevel(uint32_t maxLevel);
-  uint32_t getMaxLevel() const;
+  uint32_t getResolution() const;
 
   void               setCacheDirectory(std::string const& cacheDirectory);
   std::string const& getCacheDirectory() const;
@@ -69,7 +68,7 @@ class TileSourceWebMapService : public TileSource {
   // that a tile cannot be downloaded (e.g. if the server is offline) - in this case no error is
   // thrown but std::nullopt is returned. In several other cases (e.g. cache directory is not
   // writable) a std::runtime_error is thrown.
-  std::optional<std::string> loadData(int level, int x, int y);
+  std::optional<std::string> loadData(int64_t patchIdx, int level, int x, int y);
 
  private:
   static std::mutex mTileSystemMutex;
@@ -78,8 +77,8 @@ class TileSourceWebMapService : public TileSource {
   std::string           mUrl;
   std::string           mCache = "cache/img";
   std::string           mLayers;
-  TileDataType          mFormat   = TileDataType::eU8Vec3;
-  uint32_t              mMaxLevel = 10;
+  TileDataType          mFormat = TileDataType::eColor;
+  uint32_t              mResolution;
 };
 } // namespace csp::lodbodies
 

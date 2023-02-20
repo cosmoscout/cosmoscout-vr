@@ -36,7 +36,7 @@ LodBody::LodBody(std::shared_ptr<cs::core::Settings> settings,
     , mGuiManager(std::move(pGuiManager))
     , mEclipseShadowReceiver(
           std::make_shared<cs::core::EclipseShadowReceiver>(mSettings, mSolarSystem, false))
-    , mPlanet(std::move(glResources))
+    , mPlanet(std::move(glResources), mPluginSettings->mTileResolutionDEM.get())
     , mShader(mSettings, mPluginSettings, mGuiManager, mEclipseShadowReceiver) {
 
   mGraphicsEngine->registerCaster(&mPlanet);
@@ -97,30 +97,41 @@ double LodBody::getHeight(glm::dvec2 lngLat) const {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void LodBody::setDEMtileSource(std::shared_ptr<TileSource> source) {
+void LodBody::setDEMtileSource(std::shared_ptr<TileSource> source, uint32_t maxLevel) {
   if (!source->isSame(mDEMtileSource.get())) {
     mPlanet.setDEMSource(source.get());
     mDEMtileSource = std::move(source);
   }
+
+  mMaxLevelDEM = maxLevel;
+
+  // Use the maximum level of both tile sources for our planet.
+  mPlanet.setMaxLevel(std::max(mMaxLevelIMG, mMaxLevelDEM));
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void LodBody::setIMGtileSource(std::shared_ptr<TileSource> source) {
+void LodBody::setIMGtileSource(std::shared_ptr<TileSource> source, uint32_t maxLevel) {
   if (source) {
     if (!source->isSame(mIMGtileSource.get())) {
       mPlanet.setIMGSource(source.get());
       mShader.pEnableTexture = true;
-      mShader.pTextureIsRGB  = (source->getDataType() == TileDataType::eU8Vec3);
       mIMGtileSource         = std::move(source);
     }
+
+    mMaxLevelIMG = maxLevel;
   } else {
     mShader.pEnableTexture = false;
     if (mIMGtileSource) {
       mPlanet.setIMGSource(nullptr);
       mIMGtileSource = nullptr;
     }
+
+    mMaxLevelIMG = 0;
   }
+
+  // Use the maximum level of both tile sources for our planet.
+  mPlanet.setMaxLevel(std::max(mMaxLevelIMG, mMaxLevelDEM));
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

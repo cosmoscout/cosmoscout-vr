@@ -31,7 +31,7 @@ class TreeManagerBase;
 /// dramatically while only low resolution tiles are on the GPU.
 class TileTextureArray {
  public:
-  explicit TileTextureArray(TileDataType dataType, int maxLayerCount);
+  explicit TileTextureArray(TileDataType dataType, int maxLayerCount, uint32_t resolution);
 
   TileTextureArray(TileTextureArray const& other) = delete;
   TileTextureArray(TileTextureArray&& other)      = delete;
@@ -75,6 +75,7 @@ class TileTextureArray {
   GLenum       mFormat;
   GLenum       mType;
   TileDataType mDataType;
+  uint32_t     mResolution;
 
   const GLint        mNumLayers;
   std::vector<GLint> mFreeLayers;
@@ -85,21 +86,20 @@ class TileTextureArray {
 /// DocTODO
 class GLResources {
  public:
-  GLResources(int maxLayersFloat32, int maxLayersUInt8, int maxLayersU8Vec3) {
-    mextureArrays[static_cast<int>(TileDataType::eFloat32)] =
-        std::make_unique<TileTextureArray>(TileDataType::eFloat32, maxLayersFloat32);
-    mextureArrays[static_cast<int>(TileDataType::eUInt8)] =
-        std::make_unique<TileTextureArray>(TileDataType::eUInt8, maxLayersUInt8);
-    mextureArrays[static_cast<int>(TileDataType::eU8Vec3)] =
-        std::make_unique<TileTextureArray>(TileDataType::eU8Vec3, maxLayersU8Vec3);
+  GLResources(int maxElevationLayers, int maxColorLayers, uint32_t elevationResolution,
+      uint32_t colorResolution) {
+    mTextureArrays[static_cast<int>(TileDataType::eElevation)] = std::make_unique<TileTextureArray>(
+        TileDataType::eElevation, maxElevationLayers, elevationResolution);
+    mTextureArrays[static_cast<int>(TileDataType::eColor)] =
+        std::make_unique<TileTextureArray>(TileDataType::eColor, maxColorLayers, colorResolution);
   }
 
   TileTextureArray& operator[](TileDataType type) {
-    return *mextureArrays.at(static_cast<int>(type));
+    return *mTextureArrays.at(static_cast<int>(type));
   }
 
  private:
-  std::array<std::unique_ptr<TileTextureArray>, 3> mextureArrays;
+  std::array<std::unique_ptr<TileTextureArray>, 2> mTextureArrays;
 };
 } // namespace csp::lodbodies
 

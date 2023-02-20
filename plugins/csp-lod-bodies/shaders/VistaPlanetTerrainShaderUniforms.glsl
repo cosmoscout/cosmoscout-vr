@@ -8,13 +8,6 @@
 // constants -------------------------------------------------------------------
 const float VP_PI = 3.1415926535897932384626433832795;
 
-// texture size
-const int   VP_TEXTURESIZE = 257;
-
-// largest integral vertex position
-const int   VP_MAXVERTEX      = 256;
-const float VP_VERTEXDISTANCE = 1.0 / VP_MAXVERTEX;
-
 // uniforms - global for a planet ----------------------------------------------
 uniform mat4  VP_matProjection;
 uniform mat4  VP_matModel;
@@ -33,36 +26,19 @@ uniform sampler2DArray VP_texIMG;
 
 // uniforms - current tile -----------------------------------------------------
 
-uniform float VP_demAverageHeight;
+// The first component contains the average height value of the tile.
+// The second component contains the maximum height difference in the tile.
+uniform vec2 VP_heightInfo;
 
 // offset (xy) and total number of patches (z) (relative to base patch)
-uniform ivec3 VP_tileOffsetScale;
-
-// offset (xy) and divisor (z) for DEM tile tex coords
-uniform ivec3 VP_demOffsetScale;
-
-// offset (xy) and divisor (z) for IMG tile tex coords
-uniform ivec3 VP_imgOffsetScale;
-
-// difference in resolution to neighbour tile (x: NE, y: NW, z: SW, w: SE)
-uniform ivec4 VP_edgeDelta;
-
-// layer of VP_texDEM the neighbour tile is stored in (x: NE, y: NW, z: SW,
-// w: SE) - only entries VP_edgeLayerDEM.I are valid where VP_edgeDelta.I != 0
-uniform ivec4 VP_edgeLayerDEM;
-
-// offset to apply to coordinates on neighbour tiles (x: NE, y: NW, z: SW,
-// w: SE)
-uniform ivec4 VP_edgeOffset;
+uniform ivec3 VP_offsetScale;
 
 // patch coordinate parameters f1, f2 (indirectly specifies base patch)
 uniform ivec2 VP_f1f2;
 
-// layer of VP_texDEM the current patch's elevation data is stored in
-uniform int VP_layerDEM;
-
-// layer of VP_texIMG the current patch's image data is stored in
-uniform int VP_layerIMG;
+// Layers of VP_texDEM and VP_texIMG where the current patch's elevation (.x) and image
+// data (.y) are stored.
+uniform ivec2 VP_dataLayers;
 
 uniform vec3 VP_corners[4];
 uniform vec3 VP_normals[4];
@@ -73,3 +49,13 @@ uniform sampler2DShadow VP_shadowMaps[5];
 uniform mat4            VP_shadowProjectionViewMatrices[5];
 uniform float           VP_shadowBias = 0.0001;
 uniform int             VP_shadowCascades;
+
+// Returns the resolution of the square-shaped image tiles.
+int VP_getResolutionIMG() {
+    return textureSize(VP_texIMG, 0).x;
+}
+
+// Returns the resolution of the square-shaped elevation tiles.
+int VP_getResolutionDEM() {
+    return textureSize(VP_texDEM, 0).x;
+}

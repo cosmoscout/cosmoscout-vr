@@ -49,7 +49,7 @@ bool loadImpl(
   // First we download the tile data to a local cache file. This will return quickly if the file is
   // already downloaded but will take some time if it needs to be fetched from the server.
   try {
-    cacheFile = source->loadData(level, x, y);
+    cacheFile = source->loadData(node->getPatchIdx(), level, x, y);
   } catch (std::exception const& e) {
     // This is not critical, the planet will just not refine any further.
     logger().debug("Tile loading failed: {}", e.what());
@@ -62,7 +62,7 @@ bool loadImpl(
   }
 
   // Now the cache file is available, try to load it with libtiff if it's elevation data.
-  if (tile->getDataType() == TileDataType::eFloat32) {
+  if (tile->getDataType() == TileDataType::eElevation) {
     TIFFSetWarningHandler(nullptr);
     auto* data = TIFFOpen(cacheFile->c_str(), "r");
     if (!data) {
@@ -74,6 +74,8 @@ bool loadImpl(
       return false;
     }
 
+    uint32_t resolution = tile->getResolution();
+
     // The elevation data can be read. For some patches (those at the international date boundary)
     // two requests are made. For those, only half of the pixels contain valid data (above or below
     // the diagonal).
@@ -81,23 +83,24 @@ bool loadImpl(
     TIFFGetField(data, TIFFTAG_IMAGELENGTH, &imagelength);
     for (int y = 0; y < imagelength; y++) {
       if (which == CopyPixels::eAll) {
-        TIFFReadScanline(data, &tile->data()[257 * y], y);
+        TIFFReadScanline(data, &tile->data()[resolution * y], y);
       } else if (which == CopyPixels::eAboveDiagonal) {
-        std::array<float, 257> tmp{};
+        std::vector<float> tmp(resolution);
         TIFFReadScanline(data, tmp.data(), y);
-        int offset = 257 * y;
-        int count  = 257 - y - 1;
+        int offset = resolution * y;
+        int count  = resolution - y - 1;
 
         // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
         std::memcpy(tile->data().data() + offset, tmp.data(), count * sizeof(float));
       } else if (which == CopyPixels::eBelowDiagonal) {
-        std::array<float, 257> tmp{};
+        std::vector<float> tmp(resolution);
         TIFFReadScanline(data, tmp.data(), y);
-        int offset = 257 * y + (257 - y);
+        int offset = resolution * y + (resolution - y);
         int count  = y;
 
         // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-        std::memcpy(tile->data().data() + offset, tmp.data() + 257 - y, count * sizeof(float));
+        std::memcpy(
+            tile->data().data() + offset, tmp.data() + resolution - y, count * sizeof(float));
       }
     }
     TIFFClose(data);
@@ -107,7 +110,7 @@ bool loadImpl(
     int width{};
     int height{};
     int bpp{};
-    int channels = tile->getDataType() == TileDataType::eU8Vec3 ? 3 : 1;
+    int channels = 3;
 
     auto* data =
         reinterpret_cast<T*>(stbi_load(cacheFile->c_str(), &width, &height, &bpp, channels));
@@ -154,10 +157,12 @@ bool loadImpl(
 
 template <typename T>
 void fillDiagonal(TileNode* node) {
-  auto tile = static_cast<Tile<T>*>(node->getTile());
-  for (int y = 1; y <= 257; y++) {
-    int pixelPos           = y * (257 - 1);
-    tile->data()[pixelPos] = (y < 257) ? tile->data()[pixelPos - 1] : tile->data()[pixelPos + 1];
+  auto     tile       = static_cast<Tile<T>*>(node->getTile());
+  uint32_t resolution = tile->getResolution();
+  for (uint32_t y = 1; y <= resolution; y++) {
+    uint32_t pixelPos = y * (resolution - 1);
+    tile->data()[pixelPos] =
+        (y < resolution) ? tile->data()[pixelPos - 1] : tile->data()[pixelPos + 1];
   }
 }
 
@@ -167,8 +172,7 @@ template <typename T>
 TileNode* loadImpl(TileSourceWebMapService* source, uint32_t level, glm::int64 patchIdx) {
   auto* node = new TileNode(); // NOLINT(cppcoreguidelines-owning-memory): TODO this is bad!
 
-  node->setTile(std::make_unique<Tile<T>>(level, patchIdx));
-  node->setChildMaxLevel(std::min(level + 1, source->getMaxLevel()));
+  node->setTile(std::make_unique<Tile<T>>(level, patchIdx, source->getResolution()));
 
   int  x{};
   int  y{};
@@ -195,50 +199,20 @@ TileNode* loadImpl(TileSourceWebMapService* source, uint32_t level, glm::int64 p
     }
   }
 
-  // TODO: the NE and NW edges of all tiles should contain the values of the
-  // respective neighbours (for tile stiching). This is done by increasing the
-  // bounding box of the request by one pixel - this works more or less in the
-  // general case, but it doesn't when we are at a base patch border of the
-  // northern hemisphere. In this case we will get empty pixels! Therefore we
-  // fill the last column and row by copying.
-  // The proper solution would load the real neighbouring tiles and copy the
-  // pixel values!
-
-  auto         tile   = static_cast<Tile<T>*>(node->getTile());
-  glm::i64vec3 baseXY = HEALPix::getBaseXY(TileId(level, patchIdx));
-  glm::int64   nSide  = HEALPix::getNSide(TileId(level, patchIdx));
-
-  // northern hemisphere
-  if (baseXY.x < 4) {
-    // at north west boundary of base patch
-    if (baseXY.z == nSide - 1) {
-      // copy second pixel row to first
-      for (int i = 0; i < 257; i++) {
-        tile->data()[i + 257] = tile->data()[i + 257 * 2];
-        tile->data()[i]       = tile->data()[i + 257 * 2];
-      }
-    }
-
-    // at north east boundary of base patch
-    if (baseXY.y == nSide - 1) {
-      // copy last pixel column to last but one
-      for (int i = 0; i < 257; i++) {
-        tile->data()[i * 257 + 255] = tile->data()[i * 257 + 254];
-        tile->data()[i * 257 + 256] = tile->data()[i * 257 + 254];
-      }
-    }
-  }
+  auto     tile       = static_cast<Tile<T>*>(node->getTile());
+  uint32_t resolution = tile->getResolution();
 
   // flip y --- that shouldn't be requiered, but somehow is how it was
   // implemented in the original databases
-  for (int i = 0; i < 257 / 2; i++) {
+  for (uint32_t i = 0; i < resolution / 2; i++) {
     // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-    std::swap_ranges(tile->data().data() + i * 257, tile->data().data() + (i + 1) * 257,
+    std::swap_ranges(tile->data().data() + i * resolution,
+        tile->data().data() + (i + 1) * resolution,
         // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-        tile->data().data() + (256 - i) * 257);
+        tile->data().data() + (resolution - 1 - i) * resolution);
   }
 
-  if (tile->getDataType() == TileDataType::eFloat32) {
+  if (tile->getDataType() == TileDataType::eElevation) {
     // Creating a MinMaxPyramid alongside the sampling beginning with a resolution of
     // 128x128
     // The MinMaxPyramid is later needed to deduce height information from this
@@ -260,20 +234,18 @@ std::mutex TileSourceWebMapService::mTileSystemMutex;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-TileSourceWebMapService::TileSourceWebMapService()
-    : mThreadPool(32) {
+TileSourceWebMapService::TileSourceWebMapService(uint32_t resolution)
+    : mThreadPool(32)
+    , mResolution(resolution) {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /* virtual */ TileNode* TileSourceWebMapService::loadTile(int level, glm::int64 patchIdx) {
-  if (mFormat == TileDataType::eFloat32) {
+  if (mFormat == TileDataType::eElevation) {
     return loadImpl<float>(this, level, patchIdx);
   }
-  if (mFormat == TileDataType::eUInt8) {
-    return loadImpl<glm::uint8>(this, level, patchIdx);
-  }
-  if (mFormat == TileDataType::eU8Vec3) {
+  if (mFormat == TileDataType::eColor) {
     return loadImpl<glm::u8vec3>(this, level, patchIdx);
   }
 
@@ -309,24 +281,23 @@ bool TileSourceWebMapService::getXY(int level, glm::int64 patchIdx, int& x, int&
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::optional<std::string> TileSourceWebMapService::loadData(int level, int x, int y) {
+std::optional<std::string> TileSourceWebMapService::loadData(
+    int64_t patchIdx, int level, int x, int y) {
 
   std::string format;
   std::string type;
 
-  if (mFormat == TileDataType::eFloat32) {
+  if (mFormat == TileDataType::eElevation) {
     format = "tiffGray";
     type   = "tiff";
-  } else if (mFormat == TileDataType::eU8Vec3) {
-    format = "pngRGB";
-    type   = "png";
   } else {
-    format = "pngGray";
+    format = "pngRGB";
     type   = "png";
   }
 
+  // We encode the layers and the tile resolution in the cache file path.
   std::stringstream cacheDir;
-  cacheDir << mCache << "/" << mLayers << "/" << level << "/" << x;
+  cacheDir << mCache << "/" << mLayers << "x" << mResolution << "/" << level << "/" << x;
 
   std::stringstream cacheFile(cacheDir.str());
   cacheFile << cacheDir.str() << "/" << y << "." << type;
@@ -334,10 +305,51 @@ std::optional<std::string> TileSourceWebMapService::loadData(int level, int x, i
 
   double size = 1.0 / (1 << level);
 
+  // Pixel centers should be aligned with the vertices of the tiles. Hence, border pixels need to be
+  // included in both of two adjacent tiles. For this, we increase the request area by half a pixel
+  // in all directions. While this works for most cases, there are some issues at the northern and
+  // southern edges of the base patches: If we try to increase the request area there, we enter an
+  // area which is undefined in the HEALPix projection. This leads to reprojection artifacts. To
+  // avoid this, we do not increase the request area at those boundaries. In fact, we even shrink
+  // the area slightly, as there are still occasional artifacts if we try to request exactly the
+  // boundary. The order of request-area-bounds-offsets is as follows: we SW, SE, NE, NW
+  glm::dvec4 offsets(size / mResolution * 0.5);
+
+  glm::i64vec3 baseXY = HEALPix::getBaseXY(TileId(level, patchIdx));
+  glm::int64   nSide  = HEALPix::getNSide(TileId(level, patchIdx));
+
+  // Northern hemisphere.
+  if (baseXY.x < 4) {
+    // We are at the north east boundary of a base patch.
+    if (baseXY.y == nSide - 1) {
+      offsets[2] *= -1.0;
+    }
+
+    // We are at the north west boundary of a base patch.
+    if (baseXY.z == nSide - 1) {
+      offsets[3] *= -1.0;
+    }
+
+  }
+  // Southern hemisphere.
+  else if (baseXY.x >= 8) {
+    // We are at the south west boundary of a base patch.
+    if (baseXY.y == 0) {
+      offsets[0] *= -1.0;
+    }
+
+    // We are at the south east boundary of a base patch.
+    if (baseXY.z == 0) {
+      offsets[1] *= -1.0;
+    }
+  }
+
   url.precision(std::numeric_limits<double>::max_digits10);
   url << mUrl << "&version=1.1.0&request=GetMap&tiled=true&layers=" << mLayers
-      << "&bbox=" << x * size << "," << y * size << "," << x * size + size << "," << y * size + size
-      << "&width=257&height=257&srs=EPSG:900914&format=" << format;
+      << "&bbox=" << x * size - offsets.x << "," << y * size - offsets.y << ","
+      << x * size + size + offsets.z << "," << y * size + size + offsets.w
+      << "&width=" << mResolution << "&height=" << mResolution
+      << "&srs=EPSG:900914&format=" << format;
 
   auto cacheFilePath(boost::filesystem::path(cacheFile.str()));
 
@@ -428,14 +440,11 @@ std::optional<std::string> TileSourceWebMapService::loadData(int level, int x, i
 int TileSourceWebMapService::getPendingRequests() {
   return static_cast<int>(mThreadPool.getPendingTaskCount() + mThreadPool.getRunningTaskCount());
 }
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void TileSourceWebMapService::setMaxLevel(uint32_t maxLevel) {
-  mMaxLevel = maxLevel;
-}
-
-uint32_t TileSourceWebMapService::getMaxLevel() const {
-  return mMaxLevel;
+uint32_t TileSourceWebMapService::getResolution() const {
+  return mResolution;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -484,7 +493,7 @@ bool TileSourceWebMapService::isSame(TileSource const* other) const {
   auto const* casted = dynamic_cast<TileSourceWebMapService const*>(other);
 
   return casted != nullptr && mUrl == casted->mUrl && mCache == casted->mCache &&
-         mLayers == casted->mLayers && mFormat == casted->mFormat && mMaxLevel == casted->mMaxLevel;
+         mLayers == casted->mLayers && mFormat == casted->mFormat;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

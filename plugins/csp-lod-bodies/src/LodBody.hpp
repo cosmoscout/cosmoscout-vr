@@ -59,13 +59,13 @@ class LodBody : public cs::scene::CelestialSurface,
   std::string const& getObjectName() const;
 
   /// Sets the tile source for elevation data.
-  void setDEMtileSource(std::shared_ptr<TileSource> source);
+  void setDEMtileSource(std::shared_ptr<TileSource> source, uint32_t maxLevel);
 
   /// Gets the current tile source for elevation data.
   std::shared_ptr<TileSource> const& getDEMtileSource() const;
 
   /// Sets the tile source for image data.
-  void setIMGtileSource(std::shared_ptr<TileSource> source);
+  void setIMGtileSource(std::shared_ptr<TileSource> source, uint32_t maxLevel);
 
   /// Gets the current tile source for image data.
   std::shared_ptr<TileSource> const& getIMGtileSource() const;
@@ -95,7 +95,11 @@ class LodBody : public cs::scene::CelestialSurface,
 
   VistaPlanet  mPlanet;
   PlanetShader mShader;
-  int          mHeightScaleConnection = -1;
+
+  uint32_t mMaxLevelDEM = 0;
+  uint32_t mMaxLevelIMG = 0;
+
+  int mHeightScaleConnection = -1;
 };
 
 } // namespace csp::lodbodies

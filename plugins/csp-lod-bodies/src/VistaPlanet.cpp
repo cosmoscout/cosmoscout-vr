@@ -28,10 +28,10 @@ namespace csp::lodbodies {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /* explicit */
-VistaPlanet::VistaPlanet(std::shared_ptr<GLResources> glResources)
+VistaPlanet::VistaPlanet(std::shared_ptr<GLResources> glResources, uint32_t tileResolution)
     : mWorldTransform(1.0)
     , mLodVisitor(mParams)
-    , mRenderer(mParams)
+    , mRenderer(mParams, tileResolution)
     , mSrcDEM(nullptr)
     , mTreeMgrDEM(mParams, glResources)
     , mSrcIMG(nullptr)
@@ -433,6 +433,18 @@ void VistaPlanet::setMinLevel(int minLevel) {
 
 int VistaPlanet::getMinLevel() const {
   return mParams.mMinLevel;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void VistaPlanet::setMaxLevel(int maxLevel) {
+  mParams.mMaxLevel = maxLevel;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+int VistaPlanet::getMaxLevel() const {
+  return mParams.mMaxLevel;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

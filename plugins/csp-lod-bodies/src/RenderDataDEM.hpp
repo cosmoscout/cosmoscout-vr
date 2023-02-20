@@ -29,14 +29,6 @@ class RenderDataDEM : public RenderData {
 
   ~RenderDataDEM() override;
 
-  int  getEdgeDelta(int idx) const;
-  void setEdgeDelta(int idx, int delta);
-  void resetEdgeDeltas();
-
-  RenderDataDEM* getEdgeRData(int idx) const;
-  void           setEdgeRData(int idx, RenderDataDEM* rdata);
-  void           resetEdgeRData();
-
   void addFlag(Flags flag);
   void subFlag(Flags flag);
   bool testFlag(Flags flag) const;
@@ -45,9 +37,7 @@ class RenderDataDEM : public RenderData {
   void       clearFlags();
 
  private:
-  std::array<glm::int8, 4>      mLodDeltas;
-  std::array<RenderDataDEM*, 4> mEdgeRData;
-  glm::uint8                    mFlags{0};
+  glm::uint8 mFlags{0};
 };
 
 RenderDataDEM::Flags operator&(RenderDataDEM::Flags lhs, RenderDataDEM::Flags rhs);

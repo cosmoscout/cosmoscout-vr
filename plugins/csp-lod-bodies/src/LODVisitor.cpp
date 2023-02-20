@@ -168,35 +168,6 @@ bool childrenAvailable(TileNode* node, TreeManagerBase* treeMgr) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// Returns the @c RenderDataDEM for tile @a tileId or (if that is
-// not available) the closest parent's render data - only @c RenderDataDEM
-// that are marked as @c RenderDataDEM::Flags::eRender are considered. If none
-// is found but there is renderdata for the tile @a tileId, this will be
-// returned.
-RenderDataDEM* findParentRData(TreeManagerBase* treeMgr, TileId tileId) {
-  auto*          rdata     = treeMgr->find<RenderDataDEM>(tileId);
-  RenderDataDEM* origRdata = rdata;
-
-  while (!rdata || !rdata->testFlag(RenderDataDEM::Flags::eRender)) {
-    if (tileId.level() == 0) {
-      break;
-    }
-
-    tileId = HEALPix::getParentTileId(tileId);
-    rdata  = treeMgr->find<RenderDataDEM>(tileId);
-  }
-
-  assert(rdata != nullptr);
-  // none of the parents is rendered - return the actual thing
-  if (origRdata && !rdata->testFlag(RenderDataDEM::Flags::eRender)) {
-    return origRdata;
-  }
-
-  return rdata;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
 } // namespace
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -312,69 +283,8 @@ bool LODVisitor::preTraverse() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void LODVisitor::postTraverse() {
-  // Determine edges with LOD change
-  // For each edge the level difference is stored and the RenderDataDEM
-  // object for the neighbour. If the level of the neighbour is lower,
-  // the RenderDataDEM of the parent (or the parent's parent or ...) will
-  // be stored.
-  for (auto* rd : mRenderDEM) {
-    auto*         rdDEM  = dynamic_cast<RenderDataDEM*>(rd);
-    TileId const& tileId = rd->getNode()->getTileId();
-
-    auto nIds = HEALPix::getNeighbourIds(tileId);
-
-    // base patch -- need to check all 4 neighbours
-    RenderDataDEM* rdNE = findParentRData(mTreeMgrDEM, nIds[0]);
-    RenderDataDEM* rdNW = findParentRData(mTreeMgrDEM, nIds[1]);
-    RenderDataDEM* rdSW = findParentRData(mTreeMgrDEM, nIds[2]);
-    RenderDataDEM* rdSE = findParentRData(mTreeMgrDEM, nIds[3]);
-
-    if (rdNE) {
-      int delta = 1;
-      if (rdNE->testFlag(RenderDataDEM::Flags::eRender)) {
-        delta = rdNE->getLevel() - tileId.level();
-      }
-      rdDEM->setEdgeDelta(0, delta);
-      rdDEM->setEdgeRData(0, rdNE);
-    }
-    if (rdNW) {
-      int delta = 1;
-      if (rdNW->testFlag(RenderDataDEM::Flags::eRender)) {
-        delta = rdNW->getLevel() - tileId.level();
-      }
-      rdDEM->setEdgeDelta(1, delta);
-      rdDEM->setEdgeRData(1, rdNW);
-    }
-    if (rdSW) {
-      int delta = 1;
-      if (rdSW->testFlag(RenderDataDEM::Flags::eRender)) {
-        delta = rdSW->getLevel() - tileId.level();
-      }
-      rdDEM->setEdgeDelta(2, delta);
-      rdDEM->setEdgeRData(2, rdSW);
-    }
-    if (rdSE) {
-      int delta = 1;
-      if (rdSE->testFlag(RenderDataDEM::Flags::eRender)) {
-        delta = rdSE->getLevel() - tileId.level();
-      }
-      rdDEM->setEdgeDelta(3, delta);
-      rdDEM->setEdgeRData(3, rdSE);
-    }
-  }
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
 bool LODVisitor::preVisitRoot(TileId const& tileId) {
   LODState& state = getLODState();
-
-  // track highest resolution nodes in this sub tree (in case there is
-  // higher resolution image data than DEM data).
-  state.mLastDEM  = nullptr;
-  state.mLastIMG  = nullptr;
-  state.mMaxLevel = 0;
 
   // fetch RenderDataDEM for visited node and mark as used in this frame
   if (mTreeMgrDEM && state.mNodeDEM) {
@@ -410,40 +320,25 @@ bool LODVisitor::preVisit(TileId const& tileId) {
   LODState& state  = getLODState();
   LODState& stateP = getLODState(tileId.level() - 1); // parent state
 
-  // track highest resolution nodes that can not be refined further (e.g.
-  // because not all 4 children are loaded) - these are NULL if parent nodes
-  // so far can all be refined
-  state.mLastDEM  = stateP.mLastDEM;
-  state.mLastIMG  = stateP.mLastIMG;
-  state.mMaxLevel = stateP.mMaxLevel;
-
   // fetch RenderDataDEM for visited node and mark as used in this frame
-  if (mTreeMgrDEM && !state.mLastDEM && state.mNodeDEM) {
+  if (mTreeMgrDEM && state.mNodeDEM) {
     auto* rd     = mTreeMgrDEM->find<RenderDataDEM>(state.mNodeDEM);
     state.mRdDEM = rd;
     state.mRdDEM->setLastFrame(mFrameCount);
   } else {
-    // copy value from parent state to ensure this matches state.mLastDEM
     state.mRdDEM = stateP.mRdDEM;
   }
 
   // fetch RenderDataImg for visited node and mark as used in this frame
-  if (mTreeMgrIMG && !state.mLastIMG && state.mNodeIMG) {
+  if (mTreeMgrIMG && state.mNodeIMG) {
     auto* rd     = mTreeMgrIMG->find<RenderDataImg>(state.mNodeIMG);
     state.mRdIMG = rd;
     state.mRdIMG->setLastFrame(mFrameCount);
   } else {
-    // copy value from parent state to ensure this matches state.mLastIMG
     state.mRdIMG = stateP.mRdIMG;
   }
 
   return visitNode(tileId);
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void LODVisitor::postVisit(TileId const& /*tileId*/) {
-  // nothing to do
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -484,31 +379,28 @@ bool LODVisitor::visitNode(TileId const& tileId) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool LODVisitor::handleRefine(TileId const& /*tileId*/) {
-  bool      result  = false;
-  LODState& state   = getLODState();
-  TileNode* nodeDEM = !state.mLastDEM ? state.mNodeDEM : nullptr;
-  TileNode* nodeIMG = !state.mLastIMG ? state.mNodeIMG : nullptr;
+  bool      result = false;
+  LODState& state  = getLODState();
 
   // test if nodes can be refined
-  bool childrenDemAvailable = nodeDEM ? childrenAvailable(nodeDEM, mTreeMgrDEM) : false;
-  bool childrenImgAvailable = nodeIMG ? childrenAvailable(nodeIMG, mTreeMgrIMG) : false;
+  bool childrenDemAvailable =
+      state.mNodeDEM ? childrenAvailable(state.mNodeDEM, mTreeMgrDEM) : false;
+  bool childrenImgAvailable =
+      state.mNodeIMG ? childrenAvailable(state.mNodeIMG, mTreeMgrIMG) : false;
 
   if (mTreeMgrDEM != nullptr && mTreeMgrIMG != nullptr) {
     // DEM and IMG data
 
     // request to load missing children
     if (!childrenDemAvailable) {
-      state.mLastDEM = state.mLastDEM ? state.mLastDEM : state.mNodeDEM;
-      addLoadChildrenDEM(nodeDEM);
+      addLoadChildrenDEM(state.mNodeDEM);
     }
 
     if (!childrenImgAvailable) {
-      state.mLastIMG = state.mLastIMG ? state.mLastIMG : state.mNodeIMG;
-      addLoadChildrenIMG(nodeIMG);
+      addLoadChildrenIMG(state.mNodeIMG);
     }
 
-    if (childrenDemAvailable || childrenImgAvailable) {
-      // at least one tree (DEM or IMG) can be refined, visit children
+    if (childrenDemAvailable && childrenImgAvailable) {
       result = true;
     } else {
       // can not refine, draw this level
@@ -521,9 +413,7 @@ bool LODVisitor::handleRefine(TileId const& /*tileId*/) {
       // tree can be refined, visit children
       result = true;
     } else {
-      // request to load missing children
-      state.mLastDEM = state.mLastDEM ? state.mLastDEM : state.mNodeDEM;
-      addLoadChildrenDEM(nodeDEM);
+      addLoadChildrenDEM(state.mNodeDEM);
 
       // can not refine, draw this level
       drawLevel();
@@ -536,7 +426,7 @@ bool LODVisitor::handleRefine(TileId const& /*tileId*/) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void LODVisitor::addLoadChildrenDEM(TileNode* node) {
-  if (node && !isLeaf(*node)) {
+  if (node && node->getLevel() < mParams->mMaxLevel) {
     TileId const& tileId = node->getTileId();
 
     for (int i = 0; i < 4; ++i) {
@@ -555,7 +445,7 @@ void LODVisitor::addLoadChildrenDEM(TileNode* node) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void LODVisitor::addLoadChildrenIMG(TileNode* node) {
-  if (node && !isLeaf(*node)) {
+  if (node && node->getLevel() < mParams->mMaxLevel) {
     TileId const& tileId = node->getTileId();
 
     for (int i = 0; i < 4; ++i) {
@@ -577,68 +467,12 @@ bool LODVisitor::testVisible(TileId const& tileId, TreeManagerBase* treeMgrDEM) 
   bool      result = false;
   LODState& state  = getLODState();
 
-  if (state.mNodeDEM) {
-    // Simple case, there is a DEM node for this level, i.e.
-    // DEM resolution is at least as high as IMG resolution.
-    // Use the bounds of the DEM node to decide visibility.
+  BoundingBox<double> const& tb = state.mRdDEM->getBounds();
 
-    BoundingBox<double> const& tb = state.mRdDEM->getBounds();
+  result = testInFrustum(mCullData.mFrustumMS, tb);
 
-    result = testInFrustum(mCullData.mFrustumMS, tb);
-
-    if (result) {
-      result = testFrontFacing(mCullData.mCamPos, mParams, tb, treeMgrDEM);
-    }
-
-    if (state.mRdIMG && state.mRdIMG->hasBounds()) {
-      state.mRdIMG->removeBounds();
-    }
-  } else {
-    BoundingBox<double> tb;
-
-    // Get MinMaxPyramid of last known DEM tile
-    auto* tileBaseDEM = state.mLastDEM->getTile();
-    if (tileBaseDEM->getDataType() == TileDataType::eFloat32) {
-      auto* tileDEM = dynamic_cast<Tile<float>*>(tileBaseDEM);
-      if (auto* pyr = tileDEM->getMinMaxPyramid()) {
-
-        auto  lvl = tileId.level();
-        float minHeight(0);
-        float maxHeight(0);
-        // Level difference to the last DEM tile:
-        auto levelDiff = std::min(7, lvl - state.mLastDEM->getLevel());
-
-        // Collect child indices of all (parent) IMG nodes without DEM
-        // They define the location of the IMG tile in the last DEM tile
-        std::vector<int> quadrants;
-        auto             cur_tileId = tileId;
-        for (int i(0); i < levelDiff; ++i) {
-          quadrants.insert(
-              quadrants.begin(), HEALPix::getChildIdxAtLevel(cur_tileId, cur_tileId.level()));
-          cur_tileId = HEALPix::getParentTileId(cur_tileId);
-        }
-
-        // Get min and max height value from the coarser DEM tile
-        minHeight = pyr->getMin(quadrants);
-        maxHeight = pyr->getMax(quadrants);
-
-        // Calculate an optimistic bounding box from the the height values in range of the
-        // IMG tile
-        tb = csp::lodbodies::calcTileBounds(
-            minHeight, maxHeight, lvl, tileId.patchIdx(), mParams->mRadii, mParams->mHeightScale);
-
-        // Save for renderBounds() in TileRenderer
-        state.mRdIMG->setBounds(tb);
-      }
-    } else {
-      logger().error("Failed to test visibility of Tile: Unknown tile template type!");
-    }
-
-    result = testInFrustum(mCullData.mFrustumMS, tb);
-
-    if (result) {
-      result = testFrontFacing(mCullData.mCamPos, mParams, tb, treeMgrDEM);
-    }
+  if (result) {
+    result = testFrontFacing(mCullData.mCamPos, mParams, tb, treeMgrDEM);
   }
 
   return result;
@@ -650,17 +484,8 @@ bool LODVisitor::testNeedRefine(TileId const& tileId) {
   bool      result = false;
   LODState& state  = getLODState();
 
-  if (state.mNodeDEM || state.mRdIMG->hasBounds()) {
-    BoundingBox<double> tb;
-
-    if (state.mNodeDEM) {
-      // simple case, there is a DEM node for this level, i.e.
-      // DEM resolution is at least as high as IMG resolution
-      tb = state.mRdDEM->getBounds();
-    } else {
-      // use calculated bounds based on minMaxPyramid
-      tb = state.mRdIMG->getBounds();
-    }
+  if (state.mNodeDEM) {
+    BoundingBox<double> tb = state.mRdDEM->getBounds();
 
     glm::dvec3 const& tbMin    = tb.getMin();
     glm::dvec3 const& tbMax    = tb.getMax();
@@ -702,11 +527,6 @@ bool LODVisitor::testNeedRefine(TileId const& tileId) {
     if (mParams->mMinLevel > tileId.level()) {
       result = true;
     }
-
-    // estimate how many more levels are necessary to achieve desired
-    // lod factor - used for the case below (no DEM node for level)
-    double const deltaLvl = std::max(0.0, std::ceil(std::log(ratio) / std::log(4.0)));
-    state.mMaxLevel       = static_cast<int>(tileId.level() + deltaLvl);
   }
 
   return result;
@@ -720,7 +540,7 @@ void LODVisitor::drawLevel() {
   if (mTreeMgrDEM) {
     // check node is available (either for this level or highest resolution
     // currently loaded) and has RenderDataDEM
-    assert(state.mLastDEM || state.mNodeDEM);
+    assert(state.mNodeDEM);
     assert(state.mRdDEM);
 
     state.mRdDEM->addFlag(RenderDataDEM::Flags::eRender);
@@ -730,7 +550,7 @@ void LODVisitor::drawLevel() {
   if (mTreeMgrIMG) {
     // check node is available (either for this level or highest resolution
     // currently loaded) and has RenderDataIMG
-    assert(state.mLastIMG || state.mNodeIMG);
+    assert(state.mNodeIMG);
     assert(state.mRdIMG);
 
     mRenderIMG.push_back(state.mRdIMG);

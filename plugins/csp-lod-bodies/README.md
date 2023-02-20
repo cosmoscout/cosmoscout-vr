@@ -16,8 +16,9 @@ This plugin can be enabled with the following configuration in your `settings.js
     ...
     "csp-lod-bodies": {
       "maxGPUTilesColor": <int>,     // The maximum allowed colored tiles.
-      "maxGPUTilesGray": <int>,      // The maximum allowed gray tiles.
       "maxGPUTilesDEM": <int>,       // The maximum allowed elevation tiles.
+      "tileResolutionDEM": <int>,    // The vertex grid resolution of the tiles.
+      "tileResolutionIMG": <int>,    // The pixel resolution which is used for the image data.
       "mapCache": <string>,          // The path to map cache folder>.
       "bodies": {
         <anchor name>: {
@@ -26,7 +27,6 @@ This plugin can be enabled with the following configuration in your `settings.js
           "imgDatasets": {
             <dataset name>: {        // The name of the data set as shown in the UI.
               "copyright": <string>, // The copyright holder of the data set (also shown in the UI).
-              "format": <string>,    // "Float32", "UInt8" or "U8Vec3".
               "url": <string>,       // The URL of the mapserver including the "SERVICE=wms" parameter.
                                      // Use "offline" to only use cached data for this dataset.
               "layers": <string>,    // A comma,seperated list of WMS layers.
@@ -37,7 +37,6 @@ This plugin can be enabled with the following configuration in your `settings.js
           "demDatasets": {
             <dataset name>: {        // The name of the data set as shown in the UI.
               "copyright": <string>, // The copyright holder of the data set (also shown in the UI).
-              "format": <string>,    // "Float32", "UInt8" or "U8Vec3".
               "url": <string>,       // The URL of the mapserver including the "SERVICE=wms" parameter.
                                      // Use "offline" to only use cached data for this dataset.
               "layers": <string>,    // A comma,seperated list of WMS layers.
@@ -163,14 +162,6 @@ MAP
     IMAGEMODE FLOAT32
     EXTENSION "tiff"
     FORMATOPTION "COMPRESS=LZW"
-  END
-
-  # This format will be requested by CosmoScout VR for monochrome imagery data.
-  OUTPUTFORMAT
-    NAME "pngGray"
-    DRIVER "GDAL/PNG"
-    IMAGEMODE BYTE
-    EXTENSION "png"
   END
 
   # This format will be requested by CosmoScout VR for color imagery data.
@@ -331,8 +322,9 @@ You will have to adjust the mapserver links according to the location of your `m
 ...
 "csp-lod-bodies": {
   "maxGPUTilesColor": 1024,
-  "maxGPUTilesGray": 1024,
   "maxGPUTilesDEM": 1024,
+  "tileResolutionDEM": 128,
+  "tileResolutionIMG": 256,
   "mapCache": "/tmp/map-cache/",
   "bodies": {
     "Earth": {
@@ -342,14 +334,12 @@ You will have to adjust the mapserver links according to the location of your `m
         "Blue Marble": {
           "copyright": "NASA",
           "url": "http://localhost/cgi-bin/mapserv?map=/storage/mapserver-datasets/meta.map&service=wms",
-          "format": "U8Vec3",
           "layers": "earth.bluemarble.rgb",
           "maxLevel": 6
         },
         "Natural Earth": {
           "copyright": "NASA",
           "url": "http://localhost/cgi-bin/mapserv?map=/storage/mapserver-datasets/meta.map&service=wms",
-          "format": "U8Vec3",
           "layers": "earth.naturalearth.rgb",
           "maxLevel": 6
         }
@@ -358,7 +348,6 @@ You will have to adjust the mapserver links according to the location of your `m
         "ETOPO1": {
           "copyright": "NOAA",
           "url": "http://localhost/cgi-bin/mapserv?map=/storage/mapserver-datasets/meta.map&service=wms",
-          "format": "Float32",
           "layers": "earth.etopo1.dem",
           "maxLevel": 6
         }

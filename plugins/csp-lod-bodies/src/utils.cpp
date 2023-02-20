@@ -61,7 +61,7 @@ double getHeight(
   int childIndex = -1;
 
   // Go down tree only if not coarse precision
-  while (child && !isLeaf(*child) && int(precision) > 1) {
+  while (child && int(precision) > 1) {
     parent = child;
 
     relative2 = relative1;
@@ -112,18 +112,17 @@ double getHeight(
   }
 
   // Check if Child Exists
-  if (child == nullptr) {
+  if (child == nullptr || child->getTileDataType() != TileDataType::eElevation) {
     return 0.0;
   }
 
-  int sizeX = TileBase::SizeX;
-  int sizeY = TileBase::SizeY;
+  uint32_t size = child->getTile()->getResolution();
 
   // Figure out flip
   std::swap(relative1.x, relative1.y);
 
-  double u = relative1.x * (sizeX - 1);
-  double v = relative1.y * (sizeY - 1);
+  double u = relative1.x * (size - 1);
+  double v = relative1.y * (size - 1);
 
   int uB = static_cast<int>(u);
   int vB = static_cast<int>(v);
@@ -131,36 +130,16 @@ double getHeight(
   double uP = u - uB;
   double vP = v - vB;
 
-  // if (uB >= sizeX - 1)
-  // {
-  //     uB = sizeX - 2;
-  //     uP = 1;
-  // }
-
-  // if (vB >= sizeY - 1)
-  // {
-  //     vB = sizeY - 2;
-  //     vP = 1;
-  // }
-
   double h{};
   double hP1{};
   double hP2{};
   double hPP{};
 
-  if (child->getTileDataType() == TileDataType::eFloat32) {
-    const auto* ptr = child->getTile()->getTypedPtr<float>();
-    h   = ptr[vB + sizeY * uB];           // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-    hP1 = ptr[vB + sizeY * (uB + 1)];     // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-    hP2 = ptr[vB + 1 + sizeY * uB];       // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-    hPP = ptr[vB + 1 + sizeY * (uB + 1)]; // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-  } else {
-    const auto* ptr = child->getTile()->getTypedPtr<unsigned char>();
-    h   = ptr[vB + sizeY * uB];           // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-    hP1 = ptr[vB + sizeY * (uB + 1)];     // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-    hP2 = ptr[vB + 1 + sizeY * uB];       // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-    hPP = ptr[vB + 1 + sizeY * (uB + 1)]; // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-  }
+  const auto* ptr = child->getTile()->getTypedPtr<float>();
+  h               = ptr[vB + size * uB]; // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+  hP1 = ptr[vB + size * (uB + 1)];       // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+  hP2 = ptr[vB + 1 + size * uB];         // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+  hPP = ptr[vB + 1 + size * (uB + 1)];   // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
 
   double interpol1 = (1.0 - uP) * h + uP * hP1;
   double interpol2 = (1.0 - uP) * hP2 + uP * hPP;
@@ -207,10 +186,6 @@ bool intersectPlanet(
   // Initialize Result to Zero
   pos = glm::dvec3(0);
 
-  // Tile sizes
-  int sizeX = TileBase::SizeX;
-  int sizeY = TileBase::SizeY;
-
   // Planet transform -> Inverse -> so we are in planet space
   glm::dmat4 planet_transform = planet->getWorldTransform();
   glm::dmat4 planet_transformnv;
@@ -255,6 +230,10 @@ bool intersectPlanet(
       return false;
     }
 
+    if (parent->getTileDataType() != TileDataType::eElevation) {
+      return false;
+    }
+
     // Sample height field of cut leaf node
     if (!isRefined(*parent)) {
       // Get entry and exit point again:
@@ -294,7 +273,10 @@ bool intersectPlanet(
       auto*     rdDEM  = planet->getTileRenderer().getTreeManagerDEM()->find<RenderDataDEM>(tileId);
       auto      tile_bounds = rdDEM->getBounds();
 
-      auto max_tile_samplings = sqrt((255.0 * 255.0) + (255.0 * 255.0));
+      // Tile sizes
+      int size = tile->getResolution();
+
+      auto max_tile_samplings = sqrt((size * size) + (size * size));
       auto max_bbox_samplings = sqrt(
           (max_tile_samplings * max_tile_samplings) + (max_tile_samplings * max_tile_samplings));
 
@@ -326,8 +308,8 @@ bool intersectPlanet(
         std::swap(HPixPt.x, HPixPt.y);
 
         // Calc coords in texture space
-        double u = HPixPt.x * (sizeX - 1);
-        double v = HPixPt.y * (sizeY - 1);
+        double u = HPixPt.x * (size - 1);
+        double v = HPixPt.y * (size - 1);
 
         int uB = static_cast<int>(u);
         int vB = static_cast<int>(v);
@@ -338,35 +320,23 @@ bool intersectPlanet(
         double hP1{};
         double hP2{};
         double hPP{};
-        if (uB >= sizeX - 1 || uB < 0) {
+        if (uB >= size - 1 || uB < 0) {
           continue;
         }
-        if (vB >= sizeY - 1 || vB < 0) {
+        if (vB >= size - 1 || vB < 0) {
           continue;
         }
 
         // Access height data
-        if (parent->getTileDataType() == TileDataType::eFloat32) {
-          const auto* ptr = parent->getTile()->getTypedPtr<float>();
-          // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-          height = ptr[vB + sizeY * uB];
-          // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-          hP1 = ptr[vB + sizeY * (uB + 1)];
-          // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-          hP2 = ptr[vB + 1 + sizeY * uB];
-          // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-          hPP = ptr[vB + 1 + sizeY * (uB + 1)];
-        } else {
-          const auto* ptr = parent->getTile()->getTypedPtr<unsigned char>();
-          // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-          height = ptr[vB + sizeY * uB];
-          // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-          hP1 = ptr[vB + sizeY * (uB + 1)];
-          // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-          hP2 = ptr[vB + 1 + sizeY * uB];
-          // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-          hPP = ptr[vB + 1 + sizeY * (uB + 1)];
-        }
+        const auto* ptr = parent->getTile()->getTypedPtr<float>();
+        // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+        height = ptr[vB + size * uB];
+        // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+        hP1 = ptr[vB + size * (uB + 1)];
+        // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+        hP2 = ptr[vB + 1 + size * uB];
+        // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+        hPP = ptr[vB + 1 + size * (uB + 1)];
 
         double interpol1 = (1.0 - uP) * height + uP * hP1;
         double interpol2 = (1.0 - uP) * hP2 + uP * hPP;
