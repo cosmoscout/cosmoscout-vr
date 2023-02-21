@@ -188,6 +188,10 @@ void main() {
     debugColor = vec4(1.0, 0.0, 0.0, 0.5);
   }
 
+#if $ENABLE_HDR
+  debugColor.rgb *= uSunDirIlluminance.w;
+#endif
+
   fragColor.rgb = mix(fragColor.rgb, debugColor.rgb, debugColor.a);
 #endif
 
