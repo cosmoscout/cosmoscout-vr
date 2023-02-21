@@ -436,7 +436,7 @@ class CS_CORE_EXPORT Settings {
     utils::DefaultProperty<float> pFocalLength{24.F};
 
     /// The amount of ambient light. This should be in the range 0-1.
-    utils::DefaultProperty<float> pAmbientBrightness{std::pow(0.25F, 10.F)};
+    utils::DefaultProperty<float> pAmbientBrightness{0.F};
 
     /// The amount of artifical glare. Has no effect if HDR rendering is disabled. This should be in
     /// the range 0-1. A value of zero disables the glare.

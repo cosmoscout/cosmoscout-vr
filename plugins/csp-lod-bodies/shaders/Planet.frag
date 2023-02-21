@@ -126,45 +126,36 @@ void main() {
   luminance *= VP_getShadow(fsIn.position);
 #endif
 
+// To make the amount of ambient brightness perceptually linear in HDR mode we have to reduce small
+// values a lot.
+#if $ENABLE_HDR
+  float ambient = pow(ambientBrightness, VP_E);
+  float f_r = BRDF_HDR(N, L, V);
+#else
   float ambient = ambientBrightness;
-#if $ENABLE_LIGHTING
-  // hill shading / pseudo ambient occlusion
-  const float hillShadingIntensity = 0.5;
-  ambient *= mix(1.0, max(0, dot(idealNormal, surfaceNormal)), hillShadingIntensity);
-  luminance *= max(0.0, cos_i);
+  float f_r = BRDF_NON_HDR(N, L, V);
 #endif
 
-#if ($ENABLE_HDR && $ENABLE_LIGHTING)
-  if (cos_i < 0) {
-    luminance *= 0;
-  } else {
-    float f_r = BRDF_HDR(N, L, V);
-    if (f_r < 0 || isnan(f_r) || isinf(f_r)) {
-      luminance *= 0;
-    } else {
-      luminance *= f_r * vec3(uSunDirIlluminance.w);
-      luminance *= getEclipseShadow(fsIn.position);
-    }
-  }
-  fragColor.rgb /= $AVG_LINEAR_IMG_INTENSITY;
-  fragColor.rgb *= luminance;
-#elif $ENABLE_HDR
-  luminance *= vec3(uSunDirIlluminance.w);
-  fragColor.rgb /= $AVG_LINEAR_IMG_INTENSITY;
-  fragColor.rgb *= luminance;
-#elif $ENABLE_LIGHTING
-  if (cos_i < 0) {
-    luminance *= 0;
-  } else {
-    float f_r = BRDF_NON_HDR(N, L, V);
+#if $ENABLE_LIGHTING
+  luminance *= max(0.0, cos_i);
+
+  if (cos_i > 0) {
     if (f_r < 0 || isnan(f_r) || isinf(f_r)) {
       luminance *= 0;
     } else {
       luminance *= f_r * getEclipseShadow(fsIn.position);
     }
   }
-  fragColor.rgb =
-      mix(fragColor.rgb * ambient, fragColor.rgb, max(max(luminance.r, luminance.g), luminance.b));
+  fragColor.rgb = mix(fragColor.rgb * luminance, fragColor.rgb, ambient);
+
+  // hill shading / pseudo ambient occlusion
+  const float hillShadingIntensity = 0.99;
+  float hillShading = mix(1.0, max(0, dot(idealNormal, surfaceNormal)), hillShadingIntensity);
+  fragColor.rgb *= hillShading;
+#endif
+
+#if $ENABLE_HDR
+  fragColor.rgb *= uSunDirIlluminance.w / $AVG_LINEAR_IMG_INTENSITY;
 #endif
 
 #if $SHOW_TILE_BORDER

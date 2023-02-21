@@ -1252,12 +1252,10 @@ void Application::registerGuiCallbacks() {
 
   // Adjusts the amount of ambient lighting.
   mGuiManager->getGui()->registerCallback("graphics.setAmbientLight",
-      "Sets the amount of ambient light.", std::function([this](double val) {
-        mSettings->mGraphics.pAmbientBrightness = static_cast<float>(std::pow(val, 10.0));
-      }));
-  mSettings->mGraphics.pAmbientBrightness.connect([this](float val) {
-    mGuiManager->setSliderValue("graphics.setAmbientLight", std::pow(val, 0.1F));
-  });
+      "Sets the amount of ambient light.",
+      std::function([this](double val) { mSettings->mGraphics.pAmbientBrightness = val; }));
+  mSettings->mGraphics.pAmbientBrightness.connect(
+      [this](float val) { mGuiManager->setSliderValue("graphics.setAmbientLight", val); });
 
   // Adjusts the exposure range for auto exposure.
   mGuiManager->getGui()->registerCallback("graphics.setExposureRange",
