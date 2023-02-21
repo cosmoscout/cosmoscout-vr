@@ -305,7 +305,7 @@ void Stars::setStarFiguresTexture(std::string const& filename) {
 bool Stars::Do() {
   // Add a lower bound to the scene brightness value so that we can show the stars with the
   // mLuminanceMultiplicator even if we are in full daylight.
-  float sceneBrightness = (1.0 - mApproximateSceneBrightness) + 0.001F;
+  float sceneBrightness = (1.F - mApproximateSceneBrightness) + 0.001F;
 
   // Start are not visible with a low luminance multiplicator
   if (mLuminanceMultiplicator * sceneBrightness < 0.005F) {
