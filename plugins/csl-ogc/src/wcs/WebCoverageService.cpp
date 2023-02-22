@@ -24,8 +24,9 @@ namespace csl::ogc {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 WebCoverageService::WebCoverageService(std::string url, CacheMode cacheMode, std::string cacheDir)
-    : WebServiceBase(std::move(url), cacheMode, std::move(cacheDir), parseTitle(), "WCS", "2.0.1",
+    : WebServiceBase(std::move(url), cacheMode, std::move(cacheDir), "WCS", "2.0.1",
           {"wcs:Capabilities"}) {
+  setTitle(parseTitle());
   parseCoverages();
 }
 

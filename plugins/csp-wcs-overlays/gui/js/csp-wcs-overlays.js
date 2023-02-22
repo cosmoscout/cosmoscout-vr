@@ -21,7 +21,7 @@
     init() {
       this._coverageSelect = document.querySelector(`[data-callback="wcsOverlays.setCoverage"]`);
 
-      this._infoWindow = CosmoScout.gui.loadTemplateContent("wcsOverlays-infoWindow");
+      this._infoWindow = CosmoScout.gui.loadTemplateContent("wcsOverlays-infoWindow-template");
       document.getElementById("cosmoscout").appendChild(this._infoWindow);
       this._defaultBoundsLabel = document.getElementById("wcsOverlays-defaultBounds");
       this._defaultBoundsGoTo  = document.querySelector(
@@ -69,7 +69,7 @@
         snap: true,
         format: {
           to(value) {
-            return CosmoScout.utils.beautifyNumber(value);
+            return CosmoScout.utils.formatNumber(value);
           },
           from(value) {
             return Number(parseFloat(value));
