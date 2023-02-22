@@ -58,6 +58,8 @@ target_include_directories(csl-ogc PUBLIC
 # install plugin -----------------------------------------------------------------------------------
 
 install(TARGETS csl-ogc DESTINATION "lib")
+install(DIRECTORY "${GDAL_ROOT_DIR}/bin" DESTINATION "${CMAKE_INSTALL_PREFIX}")
+install(DIRECTORY "${GDAL_ROOT_DIR}/lib" DESTINATION "${CMAKE_INSTALL_PREFIX}")
 
 # export header ------------------------------------------------------------------------------------
 
