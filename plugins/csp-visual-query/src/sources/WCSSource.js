@@ -11,7 +11,7 @@ class WCSSourceComponent extends Rete.Component {
 
     constructor() {
       // This name must match the WCSSourceNode::sName defined in WCSSource.cpp.
-      super("WCS Source");
+      super("WCSSource");
   
       // This specifies the submenu from which this node can be created in the node editor.
       this.category = "Sources";
@@ -25,7 +25,7 @@ class WCSSourceComponent extends Rete.Component {
       // output of this node. The second parameter is shown as name on the node. The last
       // parameter references a socket type which has been registered with the node factory
       // before. It is required that the class is called <NAME>Component.
-      let output = new Rete.Output();
+      let output = new Rete.Output('scalar-field', 'WCS Dataset', CosmoScout.socketTypes['WCS Scalar Field']);
       node.addOutput(output)
   
       return node;

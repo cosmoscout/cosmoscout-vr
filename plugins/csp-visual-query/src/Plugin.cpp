@@ -118,6 +118,8 @@ void Plugin::setupNodeEditor(uint16_t port) {
   // The name of the socket will be used by the custom nodes when defining their inputs and outputs.
   //factory.registerSocketType("Number Value", "#b08ab3");
 
+  factory.registerSocketType("WCS Scalar Field", "#b08ab3");
+
   // Now, we register our custom node types. Any parameter given to this method, will later be
   // passed to the constructor of the node instances. For more information, see the documentation of
   // NodeFactory::registerNodeType().
