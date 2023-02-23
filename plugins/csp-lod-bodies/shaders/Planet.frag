@@ -127,9 +127,8 @@ void main() {
   luminance *= VP_getShadow(fsIn.position);
 #endif
 
-// To make the amount of ambient brightness perceptually linear in HDR mode we have to reduce small
-// values a lot.
 #if $ENABLE_HDR
+  // Make the amount of ambient brightness perceptually linear in HDR mode.
   float ambient = pow(ambientBrightness, VP_E);
   float f_r = BRDF_HDR(N, L, V);
 #else
@@ -149,11 +148,13 @@ void main() {
   }
   fragColor.rgb = mix(fragColor.rgb * luminance, fragColor.rgb, ambient);
 
-  // hill shading / pseudo ambient occlusion
+  // Add some hill shading (pseudo ambient occlusion).
   fragColor.rgb *= mix(1.0, max(0, dot(idealNormal, surfaceNormal)), ambientOcclusion);
 #endif
 
 #if $ENABLE_HDR
+  // In HDR-mode, we have to add the sun's luminance and divide by the average intensity of the
+  // texture map.
   fragColor.rgb *= uSunDirIlluminance.w / $AVG_LINEAR_IMG_INTENSITY;
 #endif
 
@@ -179,6 +180,7 @@ void main() {
   }
 
 #if $ENABLE_HDR
+  // Make sure that the color overlays are visible in HDR mode.
   debugColor.rgb *= uSunDirIlluminance.w;
 #endif
 
