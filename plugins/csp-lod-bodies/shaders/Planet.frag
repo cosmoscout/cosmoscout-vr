@@ -14,6 +14,7 @@ uniform float heightMax;
 uniform float slopeMin;
 uniform float slopeMax;
 uniform float ambientBrightness;
+uniform float ambientOcclusion;
 uniform float texGamma;
 uniform vec4  uSunDirIlluminance;
 
@@ -149,9 +150,7 @@ void main() {
   fragColor.rgb = mix(fragColor.rgb * luminance, fragColor.rgb, ambient);
 
   // hill shading / pseudo ambient occlusion
-  const float hillShadingIntensity = 0.99;
-  float hillShading = mix(1.0, max(0, dot(idealNormal, surfaceNormal)), hillShadingIntensity);
-  fragColor.rgb *= hillShading;
+  fragColor.rgb *= mix(1.0, max(0, dot(idealNormal, surfaceNormal)), ambientOcclusion);
 #endif
 
 #if $ENABLE_HDR

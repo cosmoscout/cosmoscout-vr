@@ -438,6 +438,9 @@ class CS_CORE_EXPORT Settings {
     /// The amount of ambient light. This should be in the range 0-1.
     utils::DefaultProperty<float> pAmbientBrightness{0.F};
 
+    /// The amount of ambient occlusion. This should be in the range 0-1.
+    utils::DefaultProperty<float> pAmbientOcclusion{0.5F};
+
     /// The amount of artifical glare. Has no effect if HDR rendering is disabled. This should be in
     /// the range 0-1. A value of zero disables the glare.
     utils::DefaultProperty<float> pGlareIntensity{0.1F};

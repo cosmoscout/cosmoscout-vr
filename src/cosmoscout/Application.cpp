@@ -1257,6 +1257,13 @@ void Application::registerGuiCallbacks() {
   mSettings->mGraphics.pAmbientBrightness.connect(
       [this](float val) { mGuiManager->setSliderValue("graphics.setAmbientLight", val); });
 
+  // Adjusts the amount of ambient occlusion.
+  mGuiManager->getGui()->registerCallback("graphics.setAmbientOcclusion",
+      "Sets the amount of ambient occlusion.",
+      std::function([this](double val) { mSettings->mGraphics.pAmbientOcclusion = val; }));
+  mSettings->mGraphics.pAmbientOcclusion.connect(
+      [this](float val) { mGuiManager->setSliderValue("graphics.setAmbientOcclusion", val); });
+
   // Adjusts the exposure range for auto exposure.
   mGuiManager->getGui()->registerCallback("graphics.setExposureRange",
       "Sets the minimum and maximum value in [EV] for auto-exposure.",
@@ -1686,6 +1693,7 @@ void Application::unregisterGuiCallbacks() {
   mGuiManager->getGui()->unregisterCallback("core.reloadPlugin");
   mGuiManager->getGui()->unregisterCallback("core.unloadPlugin");
   mGuiManager->getGui()->unregisterCallback("graphics.setAmbientLight");
+  mGuiManager->getGui()->unregisterCallback("graphics.setAmbientOcclusion");
   mGuiManager->getGui()->unregisterCallback("graphics.setEnableCascadesDebug");
   mGuiManager->getGui()->unregisterCallback("graphics.setEnableLighting");
   mGuiManager->getGui()->unregisterCallback("graphics.setEnableShadowFreeze");

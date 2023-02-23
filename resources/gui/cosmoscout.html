@@ -267,6 +267,15 @@ SPDX-License-Identifier: MIT
                       </div>
                     </div>
                   </div>
+                  <div class="row">
+                    <div class="col-5">
+                      Ambient Occlusion
+                    </div>
+                    <div class="col-7">
+                      <div data-callback="graphics.setAmbientOcclusion">
+                      </div>
+                    </div>
+                  </div>
 
                   <hr class="mt-2">
 
@@ -913,6 +922,7 @@ SPDX-License-Identifier: MIT
       CosmoScout.gui.initSlider("graphics.setExposureCompensation", -10, 10, 0.5, [0]);
       CosmoScout.gui.initSlider("graphics.setExposureAdaptionSpeed", 0, 20, 0.1, [3]);
       CosmoScout.gui.initSlider("graphics.setAmbientLight", 0.0, 1.0, 0.001, [0.0]);
+      CosmoScout.gui.initSlider("graphics.setAmbientOcclusion", 0.0, 1.0, 0.001, [0.5]);
       CosmoScout.gui.initSlider("graphics.setExposureRange", -30.0, 30, 0.1, [-14, 9]);
       CosmoScout.gui.initSlider("graphics.setGlareIntensity", 0.0, 1, 0.01, [0.1]);
       CosmoScout.gui.initSlider("graphics.setGlareQuality", 0, 5, 1, [0]);
