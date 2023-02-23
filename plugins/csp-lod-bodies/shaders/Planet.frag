@@ -162,10 +162,11 @@ void main() {
   // color area by level
   const float minLevel   = 1;
   const float maxLevel   = 15;
-  const float brightness = 0.5;
+  const float brightness = 0.3;
+  const float alpha      = 0.5;
 
   float level      = clamp(log2(float(VP_offsetScale.z)), minLevel, maxLevel);
-  vec4  debugColor = vec4(heat((level - minLevel) / (maxLevel - minLevel)), 0.5);
+  vec4  debugColor = vec4(heat((level - minLevel) / (maxLevel - minLevel)), alpha);
   debugColor.rgb   = mix(debugColor.rgb, vec3(1), brightness);
 
   // Create a red border around each tile. As the outer-most vertex is the bottom of the skirt, we
@@ -176,12 +177,13 @@ void main() {
   if (fsIn.vertexPosition.x < edgeWidth || fsIn.vertexPosition.y < edgeWidth ||
       fsIn.vertexPosition.x > maxVertex - edgeWidth || 
       fsIn.vertexPosition.y > maxVertex - edgeWidth) {
-    debugColor = vec4(1.0, 0.0, 0.0, 0.5);
+    debugColor = vec4(1.0, 0.0, 0.0, alpha);
   }
 
 #if $ENABLE_HDR
   // Make sure that the color overlays are visible in HDR mode.
-  debugColor.rgb *= uSunDirIlluminance.w;
+  debugColor.rgb = SRGBtoLINEAR(debugColor.rgb);
+  debugColor.rgb *= uSunDirIlluminance.w / VP_PI / $AVG_LINEAR_IMG_INTENSITY;
 #endif
 
   fragColor.rgb = mix(fragColor.rgb, debugColor.rgb, debugColor.a);
