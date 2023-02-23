@@ -405,7 +405,9 @@ std::optional<std::string> TileSourceWebMapService::loadData(
     request.perform();
 
     auto contentType = curlpp::Info<CURLINFO_CONTENT_TYPE, std::string>::get(request);
-    fail = !cs::utils::contains(contentType, "image/png") && !cs::utils::contains(contentType, "image/tiff");
+
+    fail = !cs::utils::contains(contentType, "image/png") &&
+           !cs::utils::contains(contentType, "image/tiff");
   }
 
   if (fail) {
