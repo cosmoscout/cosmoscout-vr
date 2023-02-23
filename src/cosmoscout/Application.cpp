@@ -1252,15 +1252,17 @@ void Application::registerGuiCallbacks() {
 
   // Adjusts the amount of ambient lighting.
   mGuiManager->getGui()->registerCallback("graphics.setAmbientLight",
-      "Sets the amount of ambient light.",
-      std::function([this](double val) { mSettings->mGraphics.pAmbientBrightness = val; }));
+      "Sets the amount of ambient light.", std::function([this](double val) {
+        mSettings->mGraphics.pAmbientBrightness = static_cast<float>(val);
+      }));
   mSettings->mGraphics.pAmbientBrightness.connect(
       [this](float val) { mGuiManager->setSliderValue("graphics.setAmbientLight", val); });
 
   // Adjusts the amount of ambient occlusion.
   mGuiManager->getGui()->registerCallback("graphics.setAmbientOcclusion",
-      "Sets the amount of ambient occlusion.",
-      std::function([this](double val) { mSettings->mGraphics.pAmbientOcclusion = val; }));
+      "Sets the amount of ambient occlusion.", std::function([this](double val) {
+        mSettings->mGraphics.pAmbientOcclusion = static_cast<float>(val);
+      }));
   mSettings->mGraphics.pAmbientOcclusion.connect(
       [this](float val) { mGuiManager->setSliderValue("graphics.setAmbientOcclusion", val); });
 
