@@ -14,6 +14,7 @@ uniform float heightMax;
 uniform float slopeMin;
 uniform float slopeMax;
 uniform float ambientBrightness;
+uniform float ambientOcclusion;
 uniform float texGamma;
 uniform vec4  uSunDirIlluminance;
 
@@ -126,55 +127,46 @@ void main() {
   luminance *= VP_getShadow(fsIn.position);
 #endif
 
+#if $ENABLE_HDR
+  // Make the amount of ambient brightness perceptually linear in HDR mode.
+  float ambient = pow(ambientBrightness, VP_E);
+  float f_r = BRDF_HDR(N, L, V);
+#else
   float ambient = ambientBrightness;
-#if $ENABLE_LIGHTING
-  // hill shading / pseudo ambient occlusion
-  const float hillShadingIntensity = 0.5;
-  ambient *= mix(1.0, max(0, dot(idealNormal, surfaceNormal)), hillShadingIntensity);
-  luminance *= max(0.0, cos_i);
+  float f_r = BRDF_NON_HDR(N, L, V);
 #endif
 
-#if ($ENABLE_HDR && $ENABLE_LIGHTING)
-  if (cos_i < 0) {
-    luminance *= 0;
-  } else {
-    float f_r = BRDF_HDR(N, L, V);
-    if (f_r < 0 || isnan(f_r) || isinf(f_r)) {
-      luminance *= 0;
-    } else {
-      luminance *= f_r * vec3(uSunDirIlluminance.w);
-      luminance *= getEclipseShadow(fsIn.position);
-    }
-  }
-  fragColor.rgb /= $AVG_LINEAR_IMG_INTENSITY;
-  fragColor.rgb *= luminance;
-#elif $ENABLE_HDR
-  luminance *= vec3(uSunDirIlluminance.w);
-  fragColor.rgb /= $AVG_LINEAR_IMG_INTENSITY;
-  fragColor.rgb *= luminance;
-#elif $ENABLE_LIGHTING
-  if (cos_i < 0) {
-    luminance *= 0;
-  } else {
-    float f_r = BRDF_NON_HDR(N, L, V);
+#if $ENABLE_LIGHTING
+  luminance *= max(0.0, cos_i);
+
+  if (cos_i > 0) {
     if (f_r < 0 || isnan(f_r) || isinf(f_r)) {
       luminance *= 0;
     } else {
       luminance *= f_r * getEclipseShadow(fsIn.position);
     }
   }
-  fragColor.rgb =
-      mix(fragColor.rgb * ambient, fragColor.rgb, max(max(luminance.r, luminance.g), luminance.b));
+  fragColor.rgb = mix(fragColor.rgb * luminance, fragColor.rgb, ambient);
+
+  // Add some hill shading (pseudo ambient occlusion).
+  fragColor.rgb *= mix(1.0, max(0, dot(idealNormal, surfaceNormal)), ambientOcclusion);
+#endif
+
+#if $ENABLE_HDR
+  // In HDR-mode, we have to add the sun's luminance and divide by the average intensity of the
+  // texture map.
+  fragColor.rgb *= uSunDirIlluminance.w / $AVG_LINEAR_IMG_INTENSITY;
 #endif
 
 #if $SHOW_TILE_BORDER
   // color area by level
   const float minLevel   = 1;
   const float maxLevel   = 15;
-  const float brightness = 0.5;
+  const float brightness = 0.3;
+  const float alpha      = 0.5;
 
   float level      = clamp(log2(float(VP_offsetScale.z)), minLevel, maxLevel);
-  vec4  debugColor = vec4(heat((level - minLevel) / (maxLevel - minLevel)), 0.5);
+  vec4  debugColor = vec4(heat((level - minLevel) / (maxLevel - minLevel)), alpha);
   debugColor.rgb   = mix(debugColor.rgb, vec3(1), brightness);
 
   // Create a red border around each tile. As the outer-most vertex is the bottom of the skirt, we
@@ -185,8 +177,14 @@ void main() {
   if (fsIn.vertexPosition.x < edgeWidth || fsIn.vertexPosition.y < edgeWidth ||
       fsIn.vertexPosition.x > maxVertex - edgeWidth || 
       fsIn.vertexPosition.y > maxVertex - edgeWidth) {
-    debugColor = vec4(1.0, 0.0, 0.0, 0.5);
+    debugColor = vec4(1.0, 0.0, 0.0, alpha);
   }
+
+#if $ENABLE_HDR
+  // Make sure that the color overlays are visible in HDR mode.
+  debugColor.rgb = SRGBtoLINEAR(debugColor.rgb);
+  debugColor.rgb *= uSunDirIlluminance.w / VP_PI / $AVG_LINEAR_IMG_INTENSITY;
+#endif
 
   fragColor.rgb = mix(fragColor.rgb, debugColor.rgb, debugColor.a);
 #endif

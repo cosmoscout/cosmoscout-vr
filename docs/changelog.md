@@ -16,6 +16,7 @@ SPDX-License-Identifier: CC-BY-4.0
 #### New Features
 
 * The `csp-timings` plugin now also shows the number of generated samples and primitives in the user interface.
+* A new "Ambient Occlusion" slider in the user interface can be used to control the amount of slope shading on the terrain.
 
 #### Other Changes
 

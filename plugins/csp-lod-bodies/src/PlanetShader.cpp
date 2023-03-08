@@ -231,6 +231,9 @@ void PlanetShader::bind() {
   loc = mShader.GetUniformLocation("ambientBrightness");
   mShader.SetUniform(loc, mSettings->mGraphics.pAmbientBrightness.get());
 
+  loc = mShader.GetUniformLocation("ambientOcclusion");
+  mShader.SetUniform(loc, mSettings->mGraphics.pAmbientOcclusion.get());
+
   loc = mShader.GetUniformLocation("texGamma");
   mShader.SetUniform(loc, mPluginSettings->mTextureGamma.get());
 

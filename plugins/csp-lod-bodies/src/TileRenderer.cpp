@@ -178,11 +178,13 @@ void TileRenderer::preRenderTiles(cs::graphics::ShadowMap* shadowMap) {
   // bind textures with tile data
   if (glDEM) {
     glActiveTexture(texUnitNameDEM);
+    glBindTexture(GL_TEXTURE_2D, 0);
     glBindTexture(GL_TEXTURE_2D_ARRAY, glDEM->getTextureId());
   }
 
   if (glIMG) {
     glActiveTexture(texUnitNameIMG);
+    glBindTexture(GL_TEXTURE_2D, 0);
     glBindTexture(GL_TEXTURE_2D_ARRAY, glIMG->getTextureId());
   }
 

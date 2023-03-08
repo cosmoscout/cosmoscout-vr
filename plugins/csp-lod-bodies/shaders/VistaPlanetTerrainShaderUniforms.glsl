@@ -6,7 +6,8 @@
 // SPDX-License-Identifier: MIT
 
 // constants -------------------------------------------------------------------
-const float VP_PI = 3.1415926535897932384626433832795;
+const float VP_PI = 3.141592653;
+const float VP_E  = 2.718281828;
 
 // uniforms - global for a planet ----------------------------------------------
 uniform mat4  VP_matProjection;
