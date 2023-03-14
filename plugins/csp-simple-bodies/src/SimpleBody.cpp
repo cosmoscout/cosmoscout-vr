@@ -101,7 +101,8 @@ in vec3 vSunDirection;
 // outputs
 layout(location = 0) out vec3 oColor;
 
-const float PI = 3.141592653589793;
+const float PI = 3.141592654;
+const float E  = 2.718281828;
 
 vec3 SRGBtoLINEAR(vec3 srgbIn)
 {
@@ -157,12 +158,17 @@ void main()
     oColor = texture(uSurfaceTexture, vTexCoords).rgb;
 
     #ifdef ENABLE_HDR
+      // Make the amount of ambient brightness perceptually linear in HDR mode.
+      float ambient = pow(uAmbientBrightness, E);
       oColor = SRGBtoLINEAR(oColor) * uSunIlluminance / PI;
+    #else
+      float ambient = uAmbientBrightness;
+      oColor = oColor * uSunIlluminance;
     #endif
 
     #ifdef ENABLE_LIGHTING
-      float light = orenNayar(normalize(vNormal), normalize(vSunDirection), -normalize(vPosition));
-      oColor *= mix(vec3(uAmbientBrightness), getEclipseShadow(vPosition), light);
+      vec3 light = getEclipseShadow(vPosition) * orenNayar(normalize(vNormal), normalize(vSunDirection), -normalize(vPosition));
+      oColor = mix(oColor * light, oColor, ambient);
     #endif
 }
 )";

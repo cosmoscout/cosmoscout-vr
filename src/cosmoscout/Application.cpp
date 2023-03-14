@@ -1253,11 +1253,18 @@ void Application::registerGuiCallbacks() {
   // Adjusts the amount of ambient lighting.
   mGuiManager->getGui()->registerCallback("graphics.setAmbientLight",
       "Sets the amount of ambient light.", std::function([this](double val) {
-        mSettings->mGraphics.pAmbientBrightness = static_cast<float>(std::pow(val, 10.0));
+        mSettings->mGraphics.pAmbientBrightness = static_cast<float>(val);
       }));
-  mSettings->mGraphics.pAmbientBrightness.connect([this](float val) {
-    mGuiManager->setSliderValue("graphics.setAmbientLight", std::pow(val, 0.1F));
-  });
+  mSettings->mGraphics.pAmbientBrightness.connect(
+      [this](float val) { mGuiManager->setSliderValue("graphics.setAmbientLight", val); });
+
+  // Adjusts the amount of ambient occlusion.
+  mGuiManager->getGui()->registerCallback("graphics.setAmbientOcclusion",
+      "Sets the amount of ambient occlusion.", std::function([this](double val) {
+        mSettings->mGraphics.pAmbientOcclusion = static_cast<float>(val);
+      }));
+  mSettings->mGraphics.pAmbientOcclusion.connect(
+      [this](float val) { mGuiManager->setSliderValue("graphics.setAmbientOcclusion", val); });
 
   // Adjusts the exposure range for auto exposure.
   mGuiManager->getGui()->registerCallback("graphics.setExposureRange",
@@ -1688,6 +1695,7 @@ void Application::unregisterGuiCallbacks() {
   mGuiManager->getGui()->unregisterCallback("core.reloadPlugin");
   mGuiManager->getGui()->unregisterCallback("core.unloadPlugin");
   mGuiManager->getGui()->unregisterCallback("graphics.setAmbientLight");
+  mGuiManager->getGui()->unregisterCallback("graphics.setAmbientOcclusion");
   mGuiManager->getGui()->unregisterCallback("graphics.setEnableCascadesDebug");
   mGuiManager->getGui()->unregisterCallback("graphics.setEnableLighting");
   mGuiManager->getGui()->unregisterCallback("graphics.setEnableShadowFreeze");

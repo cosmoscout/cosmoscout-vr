@@ -12,6 +12,7 @@
 #include "logger.hpp"
 
 #include "../../../src/cs-utils/filesystem.hpp"
+#include "../../../src/cs-utils/utils.hpp"
 
 #include <boost/filesystem.hpp>
 #include <curlpp/Easy.hpp>
@@ -404,7 +405,9 @@ std::optional<std::string> TileSourceWebMapService::loadData(
     request.perform();
 
     auto contentType = curlpp::Info<CURLINFO_CONTENT_TYPE, std::string>::get(request);
-    fail             = contentType != "image/png" && contentType != "image/tiff";
+
+    fail = !cs::utils::contains(contentType, "image/png") &&
+           !cs::utils::contains(contentType, "image/tiff");
   }
 
   if (fail) {

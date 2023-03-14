@@ -16,6 +16,14 @@ SPDX-License-Identifier: CC-BY-4.0
 #### New Features
 
 * The `csp-timings` plugin now also shows the number of generated samples and primitives in the user interface.
+* A new "Ambient Occlusion" slider in the user interface can be used to control the amount of slope shading on the terrain.
+
+#### Other Changes
+
+* In order to improve the rendering performance, the stars of `csp-stars` are not drawn anymore if the observer is on the day-side of a planet with an atmosphere.
+
+#### Refactoring
+
 * The `csp-lod-bodies` plugin has received some major refactoring. Here are the main changes:
   * The terrain tiles are not stitched together anymore, instead, skirt polygons are drawn around the tiles to hide any seams.
   * The resolution of the tile's elevation and image data are now configurable (via the new `tileResolutionDEM` and `tileResolutionIMG` settings keys).
