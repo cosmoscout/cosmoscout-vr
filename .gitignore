@@ -37,6 +37,7 @@
 !/plugins/csp-stars
 !/plugins/csp-timings
 !/plugins/csp-trajectories
+!/plugins/csp-visual-query
 !/plugins/csp-web-api
 !/plugins/csp-wcs-overlays
 !/plugins/csp-wms-overlays

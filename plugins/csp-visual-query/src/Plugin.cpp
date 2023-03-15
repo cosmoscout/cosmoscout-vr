@@ -14,6 +14,7 @@
 
 #include "logger.hpp"
 #include "sources/WCSSource.hpp"
+#include "output/Render.hpp"
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -118,13 +119,15 @@ void Plugin::setupNodeEditor(uint16_t port) {
   // The name of the socket will be used by the custom nodes when defining their inputs and outputs.
   //factory.registerSocketType("Number Value", "#b08ab3");
 
-  factory.registerSocketType("WCS Scalar Field", "#b08ab3");
+  factory.registerSocketType("GreyScaleGeoTexture", "#ffff00");
+  factory.registerSocketType("WCSScalarField", "#b08ab3");
 
   // Now, we register our custom node types. Any parameter given to this method, will later be
   // passed to the constructor of the node instances. For more information, see the documentation of
   // NodeFactory::registerNodeType().
   factory.registerNodeType<WCSSource>();
-  
+  factory.registerNodeType<Render>();
+
   // Finally, create the node editor. It will start the server so that we can now open a web browser
   // and navigate to localhost:<port>.
   mNodeEditor = std::make_unique<csl::nodeeditor::NodeEditor>(port, factory);

@@ -24,7 +24,7 @@ class Render : public csl::nodeeditor::Node {
 
   /// New instances of this node are created by the node factory.
   
-  explicit Render();
+  Render();
   ~Render() override;
 
   /// Each node must override this. It simply returns the static sName.
