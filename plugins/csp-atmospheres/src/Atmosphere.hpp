@@ -5,53 +5,99 @@
 // SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
 // SPDX-License-Identifier: MIT
 
-#ifndef CSP_ATMOSPHERE_HPP
-#define CSP_ATMOSPHERE_HPP
+#ifndef CSP_ATMOSPHERES_ATMOSPHERE_HPP
+#define CSP_ATMOSPHERES_ATMOSPHERE_HPP
 
-#include "../../../src/cs-scene/CelestialObject.hpp"
-#include "AtmosphereRenderer.hpp"
 #include "Plugin.hpp"
+
+#include <VistaKernel/GraphicsManager/VistaOpenGLDraw.h>
+#include <VistaOGLExt/VistaGLSLShader.h>
 
 namespace cs::core {
 class SolarSystem;
-}
+class GraphicsEngine;
+class EclipseShadowReceiver;
+} // namespace cs::core
+
+namespace cs::graphics {
+class HDRBuffer;
+} // namespace cs::graphics
 
 namespace csp::atmospheres {
 
-/// This is a wrapper around a AtmosphereRenderer, adding SPICE based positioning.
-class Atmosphere {
+class ModelBase;
+
+/// This class draws a configurable atmosphere. It will be attached to the celestial object
+/// identified by the objectName given to the constructor.
+class Atmosphere : public IVistaOpenGLDraw {
  public:
-  Atmosphere(std::shared_ptr<Plugin::Settings> pluginSettings,
-      std::shared_ptr<cs::core::Settings>      settings,
-      std::shared_ptr<cs::core::SolarSystem> solarSystem, std::string objectName);
-  ~Atmosphere();
+  explicit Atmosphere(std::shared_ptr<Plugin::Settings> pluginSettings,
+      std::shared_ptr<cs::core::Settings>               allSettings,
+      std::shared_ptr<cs::core::SolarSystem>            solarSystem,
+      std::shared_ptr<cs::core::GraphicsEngine> graphicsEngine, std::string objectName);
 
-  Atmosphere(Atmosphere const& other) = delete;
-  Atmosphere(Atmosphere&& other)      = delete;
+  ~Atmosphere() override;
 
-  Atmosphere& operator=(Atmosphere const& other) = delete;
-  Atmosphere& operator=(Atmosphere&& other) = delete;
-
-  /// Configures the internal renderer according to the given values.
+  /// Reconfigures the atmosphere and the atmospheric model according to the given settings.
   void configure(Plugin::Settings::Atmosphere const& settings);
 
-  /// Access the internal AtmosphereRender to configure atmosphere parameters.
-  AtmosphereRenderer&       getRenderer();
-  AtmosphereRenderer const& getRenderer() const;
-
-  /// This is called once a frame by the plugin. It updates the EclipseShadowReceiver.
+  /// If the body this is attached to is visible, this will update the transformation of the
+  /// atmosphere according to the current observer position. It will also update the
+  /// pApproximateSceneBrightness property of the graphics engine in this case.
   void update();
 
+  bool Do() override;
+  bool GetBoundingBox(VistaBoundingBox& bb) override;
+
  private:
+  void updateShader();
+
   std::shared_ptr<Plugin::Settings>                mPluginSettings;
   std::shared_ptr<cs::core::Settings>              mAllSettings;
   std::shared_ptr<cs::core::SolarSystem>           mSolarSystem;
+  std::shared_ptr<cs::core::GraphicsEngine>        mGraphicsEngine;
   std::string                                      mObjectName;
-  std::shared_ptr<cs::core::EclipseShadowReceiver> mEclipseShadowReceiver;
-  AtmosphereRenderer                               mRenderer;
   std::unique_ptr<VistaOpenGLNode>                 mAtmosphereNode;
+  std::shared_ptr<cs::graphics::HDRBuffer>         mHDRBuffer;
+  std::shared_ptr<cs::core::EclipseShadowReceiver> mEclipseShadowReceiver;
+  std::unique_ptr<VistaTexture>                    mCloudTexture;
+
+  glm::dvec3                   mRadii          = glm::dvec3(1.0, 1.0, 1.0);
+  glm::dmat4                   mWorldTransform = glm::dmat4(1.0);
+  Plugin::Settings::Atmosphere mSettings;
+
+  int mEnableHDRConnection = -1;
+
+  VistaGLSLShader mAtmoShader;
+
+  struct GBufferData {
+    std::unique_ptr<VistaTexture> mDepthBuffer;
+    std::unique_ptr<VistaTexture> mColorBuffer;
+  };
+
+  std::unordered_map<VistaViewport*, GBufferData> mGBufferData;
+
+  bool       mShaderDirty    = true;
+  double     mSunIlluminance = 1.0;
+  glm::dvec3 mSunDirection   = glm::dvec3(1.0, 0.0, 0.0);
+
+  struct {
+    uint32_t sunDir                           = 0;
+    uint32_t sunIlluminance                   = 0;
+    uint32_t depthBuffer                      = 0;
+    uint32_t colorBuffer                      = 0;
+    uint32_t waterLevel                       = 0;
+    uint32_t cloudTexture                     = 0;
+    uint32_t cloudAltitude                    = 0;
+    uint32_t inverseModelViewMatrix           = 0;
+    uint32_t inverseModelViewProjectionMatrix = 0;
+    uint32_t inverseProjectionMatrix          = 0;
+    uint32_t modelMatrix                      = 0;
+  } mUniforms;
+
+  std::unique_ptr<ModelBase> mModel;
 };
 
 } // namespace csp::atmospheres
 
-#endif // CSP_ATMOSPHERE_HPP
+#endif // CSP_ATMOSPHERES_ATMOSPHERE_HPP

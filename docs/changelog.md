@@ -29,6 +29,21 @@ SPDX-License-Identifier: CC-BY-4.0
   * The resolution of the tile's elevation and image data are now configurable (via the new `tileResolutionDEM` and `tileResolutionIMG` settings keys).
   * It is not required anymore to set the `format` of the terrain data sources anymore.
   * There's a new `autoLodRange` option for setting the LoD-Factor range which is used if auto-lod is enabled.
+* The `csp-atmospheres` plugin received a major refactoring. Here are the main changes:
+  * It is now possible to add alternative atmospheric models to CosmoScout VR. As an example, the [excellent scattering model by Eric Bruneton](https://github.com/ebruneton/precomputed_atmospheric_scattering) has been included.
+  * The attributes `enableWater`, `waterLevel`, `enableClouds`, and `cloudAltitude` are now stored per planet. Enabling water on Earth will not flood Mars anymore.
+  * `waterLevel` and `cloudAltitude` are now given in meters, not relative to the atmosphere height anymore.
+  * `cloudAltitude` can now be configured at runtime in the user interface.
+  * In non-HDR mode, the atmosphere now performs filmic tonemapping which results in much less over-exposure around the Sun during sunset or sunrise.
+  * The shaders are now loaded from files and not compiled into the binary.
+  * No support for light shafts anymore. While not impossible, it would be pretty difficult to implement this properly with Eric Bruneton's model given that we use cascaded shadow maps. Furthermore, this feature used to have a terrible performance anyways.
+  * No graphical tests of the atmosphere anymore. With the new architecture, it's not possible anymore to render an atmosphere without CosmoScout's core classes.
+
+#### Other Changes
+
+* In order to improve the rendering performance, the stars of `csp-stars` are not drawn anymore if the observer is on the day-side of a planet with an atmosphere.
+* The default exposure and glare values as well as the glare-slider mapping have been tweaked for a better appearance of the atmospheres in HDR mode.
+* The default star rendering mode has been changed to `eSmoothDisc`
 
 #### Bug Fixes
 

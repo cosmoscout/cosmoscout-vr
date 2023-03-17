@@ -280,6 +280,7 @@
   ],
   "spiceKernel": "../share/config/spice/simple.txt",
   "graphics": {
+    "enableHDR": true,
     "eclipseShadowMaps": {
       "Earth": {},
       "Moon": {},
@@ -736,35 +737,42 @@
     },
     "csp-atmospheres": {
       "atmospheres": {
-        "Mars": {
-          "atmosphereHeight": 0.03,
-          "mieAnisotropy": 0.76,
-          "mieHeight": 0.00144509,
-          "mieScatteringB": 52.66,
-          "mieScatteringG": 52.66,
-          "mieScatteringR": 52.66,
-          "rayleighAnisotropy": 0,
-          "rayleighHeight": 0.00317919,
-          "rayleighScatteringB": 19.89,
-          "rayleighScatteringG": 46.71,
-          "rayleighScatteringR": 69.2,
-          "sunIntensity": 12
-        },
         "Earth": {
-          "atmosphereHeight": 0.015,
-          "mieAnisotropy": 0.76,
-          "mieHeight": 0.000188679,
-          "mieScatteringB": 133.56,
-          "mieScatteringG": 133.56,
-          "mieScatteringR": 133.56,
-          "rayleighAnisotropy": 0,
-          "rayleighHeight": 0.001257862,
-          "rayleighScatteringB": 210.516,
-          "rayleighScatteringG": 85.86,
-          "rayleighScatteringR": 36.89,
-          "sunIntensity": 15,
-          "cloudHeight": 0.001,
-          "cloudTexture": "../share/resources/textures/earth-clouds.jpg"
+          "height": 80000,
+          "model": "Bruneton",
+          "cloudTexture": "../share/resources/textures/earth-clouds.jpg",
+          "modelSettings": {
+            "sunAngularRadius": 0.004675,
+            "rayleigh": 1.24062e-6,
+            "rayleighScaleHeight": 8000.0,
+            "mieScaleHeight": 1200.0,
+            "mieAngstromAlpha": 0.0,
+            "mieAngstromBeta": 5.328e-3,
+            "mieSingleScatteringAlbedo": 0.9,
+            "miePhaseFunctionG": 0.8,
+            "groundAlbedo": 0.1,
+            "useOzone": true
+          }
+        },
+        "Mars": {
+          "height": 100000,
+          "model": "CosmoScoutVR",
+          "modelSettings": {
+            "mieAnisotropy": 0.76,
+            "mieHeight": 1200,
+            "mieScattering": [
+              4.0e-5,
+              4.0e-5,
+              4.0e-5
+            ],
+            "rayleighAnisotropy": 0,
+            "rayleighHeight": 11000,
+            "rayleighScattering": [
+              19.981e-6,
+              13.57e-6,
+              5.75e-6
+            ]
+          }
         }
       }
     },

@@ -127,7 +127,7 @@ static const char* sVertexShader = R"(
 
   void main()
   {
-    vTexcoords  = vec2((gl_VertexID << 1) & 2, gl_VertexID & 2);
+    vTexcoords  = vec2(gl_VertexID & 2, (gl_VertexID << 1) & 2);
     gl_Position = vec4(vTexcoords * 2.0 - 1.0, 0.0, 1.0);
   }
 )";
@@ -280,7 +280,7 @@ static const char* sFragmentShader = R"(
       }
 
       // To make sure that we do not add energy, we divide by the total weight.
-      color = mix(color, glare/totalWeight, uGlareIntensity);
+      color = mix(color, glare/totalWeight, pow(uGlareIntensity, 2.0));
     }
 
     // Filmic
@@ -531,17 +531,11 @@ bool ToneMappingNode::ToneMappingNode::Do() {
   mHDRBuffer->getDepthAttachment()->Bind(GL_TEXTURE1);
   mHDRBuffer->getGlareMipMap()->Bind(GL_TEXTURE2);
 
-  glPushAttrib(GL_ENABLE_BIT);
-  glDisable(GL_BLEND);
-  glDisable(GL_CULL_FACE);
-
   mShader->Bind();
   mShader->SetUniform(mUniforms.exposure, exposure);
   mShader->SetUniform(mUniforms.glareIntensity, mGlareIntensity);
 
   glDrawArrays(GL_TRIANGLES, 0, 3);
-
-  glPopAttrib();
 
   return true;
 }
