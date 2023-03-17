@@ -86,7 +86,7 @@ GLuint Model::getShader() const {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-GLuint Model::setUniforms(GLuint program, GLuint startTextureUnit) const {
+GLuint Model::setUniforms(GLuint /*program*/, GLuint startTextureUnit) const {
   return startTextureUnit;
 }
 

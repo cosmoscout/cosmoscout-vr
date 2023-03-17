@@ -209,7 +209,7 @@ void Atmosphere::update() {
 
     // update brightness value -------------------------------------------------
     // This is a crude approximation of the overall scene brightness due to
-    // atmospheric scattering, camera position and the sun's position.
+    // atmospheric scattering, camera position and the Sun's position.
     // It may be used for fake HDR effects such as dimming stars.
 
     // some required positions and directions
@@ -226,7 +226,7 @@ void Atmosphere::update() {
     // [noon ... midnight] -> [1 ... -1]
     double daySide = glm::dot(-toPlanet, glm::dvec3(mSunDirection));
 
-    // limit brightness when on night side (also in dusk an dawn time)
+    // limit brightness when on night side (also in dusk and dawn time)
     daySide = std::pow(std::min(1.0, std::max(0.0, daySide + 1.0)), 50.0);
 
     // reduce brightness in outer space

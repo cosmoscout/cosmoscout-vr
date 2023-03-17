@@ -34,7 +34,7 @@ SPDX-License-Identifier: CC-BY-4.0
   * The attributes `enableWater`, `waterLevel`, `enableClouds`, and `cloudAltitude` are now stored per planet. Enabling water on Earth will not flood Mars anymore.
   * `waterLevel` and `cloudAltitude` are now given in meters, not relative to the atmosphere height anymore.
   * `cloudAltitude` can now be configured at runtime in the user interface.
-  * In non-HDR mode, the atmosphere now performs filmic tonemapping which results in much less over-exposure around the sun during sunset or sunrise.
+  * In non-HDR mode, the atmosphere now performs filmic tonemapping which results in much less over-exposure around the Sun during sunset or sunrise.
   * The shaders are now loaded from files and not compiled into the binary.
   * No support for light shafts anymore. While not impossible, it would be pretty difficult to implement this properly with Eric Bruneton's model given that we use cascaded shadow maps. Furthermore, this feature used to have a terrible performance anyways.
   * No graphical tests of the atmosphere anymore. With the new architecture, it's not possible anymore to render an atmosphere without CosmoScout's core classes.

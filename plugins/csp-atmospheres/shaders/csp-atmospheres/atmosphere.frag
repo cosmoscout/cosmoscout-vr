@@ -105,8 +105,8 @@ float sRGBtoLinear(float c) {
 // -------------------------------------------------------------------------------------------------
 
 // Compute intersections of a ray with a sphere. Two T parameters are returned -- if no intersection
-// is found, the first will larger than the second. The T parameters can be nagative. In this case,
-// the intersections are behind the origin (in negative ray direction).
+// is found, the first will be larger than the second. The T parameters can be nagative. In this
+// case, the intersections are behind the origin (in negative ray direction).
 vec2 intersectSphere(vec3 rayOrigin, vec3 rayDir, float radius) {
   float b   = dot(rayOrigin, rayDir);
   float c   = dot(rayOrigin, rayOrigin) - radius * radius;

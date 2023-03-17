@@ -127,7 +127,7 @@ void Plugin::init() {
 
   mGuiManager->getGui()->registerCallback("atmosphere.setEnableWater",
       "Enables or disables rendering of a water surface.", std::function([this](bool enable) {
-        if (mActiveAtmosphere != "") {
+        if (!mActiveAtmosphere.empty()) {
           auto& settings        = mPluginSettings->mAtmospheres.at(mActiveAtmosphere);
           settings.mEnableWater = enable;
           mAtmospheres.at(mActiveAtmosphere)->configure(settings);
@@ -136,7 +136,7 @@ void Plugin::init() {
 
   mGuiManager->getGui()->registerCallback("atmosphere.setWaterLevel",
       "Sets the height of the water surface in meters.", std::function([this](double value) {
-        if (mActiveAtmosphere != "") {
+        if (!mActiveAtmosphere.empty()) {
           auto& settings       = mPluginSettings->mAtmospheres.at(mActiveAtmosphere);
           settings.mWaterLevel = static_cast<float>(value);
           mAtmospheres.at(mActiveAtmosphere)->configure(settings);
@@ -145,7 +145,7 @@ void Plugin::init() {
 
   mGuiManager->getGui()->registerCallback("atmosphere.setEnableClouds",
       "Enables or disables rendering of a cloud layer.", std::function([this](bool enable) {
-        if (mActiveAtmosphere != "") {
+        if (!mActiveAtmosphere.empty()) {
           auto& settings         = mPluginSettings->mAtmospheres.at(mActiveAtmosphere);
           settings.mEnableClouds = enable;
           mAtmospheres.at(mActiveAtmosphere)->configure(settings);
@@ -154,7 +154,7 @@ void Plugin::init() {
 
   mGuiManager->getGui()->registerCallback("atmosphere.setCloudAltitude",
       "Higher values create a more realistic atmosphere.", std::function([this](double value) {
-        if (mActiveAtmosphere != "") {
+        if (!mActiveAtmosphere.empty()) {
           auto& settings          = mPluginSettings->mAtmospheres.at(mActiveAtmosphere);
           settings.mCloudAltitude = static_cast<float>(value);
           mAtmospheres.at(mActiveAtmosphere)->configure(settings);

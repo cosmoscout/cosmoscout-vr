@@ -36,7 +36,7 @@ class Atmosphere : public IVistaOpenGLDraw {
       std::shared_ptr<cs::core::SolarSystem>            solarSystem,
       std::shared_ptr<cs::core::GraphicsEngine> graphicsEngine, std::string objectName);
 
-  ~Atmosphere();
+  ~Atmosphere() override;
 
   /// Reconfigures the atmosphere and the atmospheric model according to the given settings.
   void configure(Plugin::Settings::Atmosphere const& settings);
