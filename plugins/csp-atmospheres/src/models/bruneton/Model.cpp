@@ -44,8 +44,8 @@ constexpr Luminance LUMINANCE_MODE    = Luminance::PRECOMPUTED;
 // summed and averaged in each bin (e.g. the value for 360nm is the average
 // of the ASTM G-173 values for all wavelengths between 360 and 370nm).
 // Values in W.m^-2.
-constexpr int    LAMBDA_MIN           = 360;
-constexpr int    LAMBDA_MAX           = 830;
+constexpr int                    LAMBDA_MIN       = 360;
+constexpr int                    LAMBDA_MAX       = 830;
 constexpr std::array<double, 48> SOLAR_IRRADIANCE = {1.11776, 1.14259, 1.01249, 1.14716, 1.72765,
     1.73054, 1.6887, 1.61253, 1.91198, 2.03474, 2.02042, 2.02212, 1.93377, 1.95809, 1.91686, 1.8298,
     1.8685, 1.8931, 1.85149, 1.8504, 1.8341, 1.8345, 1.8147, 1.78158, 1.7533, 1.6965, 1.68194,
