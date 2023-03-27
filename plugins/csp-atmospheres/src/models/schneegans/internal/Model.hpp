@@ -134,8 +134,8 @@ parameter):
 <p>The concrete API definition is the following:
 */
 
-#ifndef CSP_ATMOSPHERES_MODELS_BRUNETON_INTERNAL_MODEL_HPP
-#define CSP_ATMOSPHERES_MODELS_BRUNETON_INTERNAL_MODEL_HPP
+#ifndef CSP_ATMOSPHERES_MODELS_SCHNEEGANS_INTERNAL_MODEL_HPP
+#define CSP_ATMOSPHERES_MODELS_SCHNEEGANS_INTERNAL_MODEL_HPP
 
 #include <GL/glew.h>
 #include <array>
@@ -143,15 +143,35 @@ parameter):
 #include <string>
 #include <vector>
 
-namespace csp::atmospheres::models::bruneton::internal {
+namespace csp::atmospheres::models::schneegans::internal {
+
+class PhaseFunction {
+ public:
+  PhaseFunction(std::vector<double> values)
+      : mValues(std::move(values)) {
+  }
+
+  double get(double angle) const {
+    double index = angle / M_PI * (mValues.size() - 1);
+
+    size_t upper = std::ceil(index);
+    size_t lower = std::floor(index);
+
+    double alpha = index - lower;
+
+    return mValues[lower] * (1.0 - alpha) + mValues[upper] * alpha;
+  }
+
+ private:
+  std::vector<double> mValues;
+};
 
 // An atmosphere layer of width 'width' (in m), and whose density is defined as
 //   'exp_term' * exp('exp_scale' * h) + 'linear_term' * h + 'constant_term',
 // clamped to [0,1], and where h is the altitude (in m). 'exp_term' and
 // 'constant_term' are unitless, while 'exp_scale' and 'linear_term' are in
 // m^-1.
-class DensityProfileLayer {
- public:
+struct DensityProfileLayer {
   DensityProfileLayer()
       : DensityProfileLayer(0.0, 0.0, 0.0, 0.0, 0.0) {
   }
@@ -168,6 +188,12 @@ class DensityProfileLayer {
   double exp_scale;
   double linear_term;
   double constant_term;
+};
+
+struct Component {
+  std::vector<double>              mExtinctionSpectrum;
+  std::vector<PhaseFunction>       mPhaseFunctionSpectrum;
+  std::vector<DensityProfileLayer> mLayers;
 };
 
 class Model {
@@ -320,6 +346,6 @@ class Model {
   GLuint                                  full_screen_quad_vbo_;
 };
 
-} // namespace csp::atmospheres::models::bruneton::internal
+} // namespace csp::atmospheres::models::schneegans::internal
 
-#endif // CSP_ATMOSPHERES_MODELS_BRUNETON_INTERNAL_MODEL_HPP
+#endif // CSP_ATMOSPHERES_MODELS_SCHNEEGANS_INTERNAL_MODEL_HPP

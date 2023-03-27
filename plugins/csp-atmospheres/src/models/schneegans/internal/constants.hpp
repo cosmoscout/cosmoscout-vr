@@ -25,10 +25,10 @@ needed to convert the spectral radiance samples computed by our algorithm to
 sRGB luminance values).
 */
 
-#ifndef CSP_ATMOSPHERES_MODELS_BRUNETON_INTERNAL_CONSTANTS_HPP
-#define CSP_ATMOSPHERES_MODELS_BRUNETON_INTERNAL_CONSTANTS_HPP
+#ifndef CSP_ATMOSPHERES_MODELS_SCHNEEGANS_INTERNAL_CONSTANTS_HPP
+#define CSP_ATMOSPHERES_MODELS_SCHNEEGANS_INTERNAL_CONSTANTS_HPP
 
-namespace csp::atmospheres::models::bruneton::internal {
+namespace csp::atmospheres::models::schneegans::internal {
 
 // Low impact on preprocssing time, resolution seems suitable for CosmoScout VR.
 constexpr int TRANSMITTANCE_TEXTURE_WIDTH  = 256;
@@ -450,4 +450,4 @@ constexpr double XYZ_TO_SRGB[9] = {
 
 } // namespace csp::atmospheres::models::bruneton::internal
 
-#endif // CSP_ATMOSPHERES_MODELS_BRUNETON_INTERNAL_CONSTANTS_HPP
+#endif // CSP_ATMOSPHERES_MODELS_SCHNEEGANS_INTERNAL_CONSTANTS_HPP

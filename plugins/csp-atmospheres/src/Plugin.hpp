@@ -32,7 +32,7 @@ class Plugin : public cs::core::PluginBase {
       ///   general a better performance than the CosmoScoutVR model. However, under specific
       ///   circumstances it may exhibit more artifacts due to limited floating point precision in
       ///   the precomputed textures.
-      enum class Model { eCosmoScoutVR, eBruneton };
+      enum class Model { eCosmoScoutVR, eSchneegans, eBruneton };
 
       /// This defines which model should be used by the atmosphere.
       cs::utils::DefaultProperty<Model> mModel{Model::eCosmoScoutVR};

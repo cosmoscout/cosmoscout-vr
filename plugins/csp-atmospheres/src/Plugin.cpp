@@ -36,6 +36,8 @@ void from_json(nlohmann::json const& j, Plugin::Settings::Atmosphere::Model& o) 
   auto s = j.get<std::string>();
   if (s == "CosmoScoutVR") {
     o = Plugin::Settings::Atmosphere::Model::eCosmoScoutVR;
+  } else if (s == "Schneegans") {
+    o = Plugin::Settings::Atmosphere::Model::eSchneegans;
   } else if (s == "Bruneton") {
     o = Plugin::Settings::Atmosphere::Model::eBruneton;
   } else {
@@ -48,6 +50,9 @@ void to_json(nlohmann::json& j, Plugin::Settings::Atmosphere::Model o) {
   switch (o) {
   case Plugin::Settings::Atmosphere::Model::eCosmoScoutVR:
     j = "CosmoScoutVR";
+    break;
+  case Plugin::Settings::Atmosphere::Model::eSchneegans:
+    j = "Schneegans";
     break;
   case Plugin::Settings::Atmosphere::Model::eBruneton:
     j = "Bruneton";
