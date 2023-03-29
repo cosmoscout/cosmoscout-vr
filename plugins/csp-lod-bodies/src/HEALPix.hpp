@@ -198,7 +198,7 @@ class HEALPix {
   static TileId getParentTileId(TileId const& childId);
 
  private:
-  static std::array<HEALPixLevel, 20> const sLevels;
+  static std::array<HEALPixLevel, 30> const sLevels;
 };
 } // namespace csp::lodbodies
 
