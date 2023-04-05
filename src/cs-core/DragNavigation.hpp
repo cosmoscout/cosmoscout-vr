@@ -61,7 +61,7 @@ class CS_CORE_EXPORT DragNavigation {
   bool       mDoRollCorrection            = false;
   bool       mDoKineticSmoothOut          = false;
   double     mTargetAngle                 = 0.0;
-  float      mCurrentAngleDiff            = 0.F;
+  double     mCurrentAngleDiff            = 0.0;
   glm::dvec3 mCurrentAxis                 = glm::dvec3(1.0, 0.0, 0.0);
 
   glm::dvec3 mStartIntersection = glm::dvec3(0.0);

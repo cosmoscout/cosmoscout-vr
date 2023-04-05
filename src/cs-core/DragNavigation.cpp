@@ -83,14 +83,12 @@ void DragNavigation::update() {
       tmp[2][1], tmp[3][1], tmp[0][2], tmp[1][2], tmp[2][2], tmp[3][2], tmp[0][3], tmp[1][3],
       tmp[2][3], tmp[3][3]);
 
-  const glm::dvec3 rotationCenter(0.0, 0.0, 0.0);
-
   // The current ray transform in observer space is used to determine
   // the amount of rotation which is required
   glm::dvec3 rayDir = glm::normalize(
       (startObserverTransform * pickTransform * glm::dvec4(0.0, 0.0, -1.0, 0.0)).xyz());
   glm::dvec3 rayOrigin = pickTransform[3].xyz() * mSolarSystem->getObserver().getScale();
-  rayOrigin            = (startObserverTransform * glm::vec4(rayOrigin, 1.0)).xyz();
+  rayOrigin            = (startObserverTransform * glm::dvec4(rayOrigin, 1.0)).xyz();
 
   // store observer transform when dragging started
   if (!mInputManager->pButtons[0].get() && !mInputManager->pButtons[1].get()) {
@@ -122,8 +120,7 @@ void DragNavigation::update() {
 
     // if no planet is currently under the pointer or if we picked too close
     // too the horizon we will 'grab the sky' instead
-    if (pickedPlanet &&
-        glm::dot(rayDir, glm::normalize(mStartIntersection - rotationCenter)) >= -0.05F) {
+    if (pickedPlanet && glm::dot(rayDir, glm::normalize(mStartIntersection)) >= -0.05) {
       mDraggingPlanet = false;
     }
 
@@ -137,7 +134,7 @@ void DragNavigation::update() {
     return;
   }
 
-  float const smoothThreshold = 0.8F;
+  double const smoothThreshold = 0.8;
 
   if (mInputManager->pButtons[0].get() || mInputManager->pButtons[1].get()) {
     glm::dvec3 end_vec;
@@ -154,15 +151,15 @@ void DragNavigation::update() {
       // size. This works well in most cases, however, if the target body is a rather extreme
       // ellipsoid, this actually changes the observer altitude which is not-so-nice. But for most
       // bodies in the Solar System this method works well.
-      double radius = glm::length(mStartIntersection - rotationCenter);
+      double radius = glm::length(mStartIntersection);
 
       // Coefficient of the nearest hit-point along the ray
-      auto t = IntersectSphere(rayOrigin, rayDir, rotationCenter, radius);
+      auto t = IntersectSphere(rayOrigin, rayDir, glm::dvec3(0.0), radius);
 
       // we do not want to drag something behind us
-      if (t && *t > 0) {
-        end_vec          = glm::normalize((rayOrigin + (*t * rayDir)) - rotationCenter);
-        start_vec        = glm::normalize(mStartIntersection - rotationCenter);
+      if (t && t.value() > 0.0) {
+        end_vec          = glm::normalize((rayOrigin + (t.value() * rayDir)));
+        start_vec        = glm::normalize(mStartIntersection);
         bPerformRotation = true;
       }
     } else {
@@ -182,9 +179,8 @@ void DragNavigation::update() {
         // The rotation axis is perpendicular to the start and the end position vectors
         mCurrentAxis = glm::normalize(currentAxis);
 
-        // The final amount of camera rotation around camlanetCenter
-        double dot         = glm::min(1.0, glm::dot(start_vec, end_vec));
-        double targetAngle = -1.0 * std::acos(dot);
+        // The final amount of camera rotation around planet center
+        double targetAngle = -2.0 * std::asin(0.5 * glm::length(start_vec - end_vec));
 
         // reduce rotation speed close to planet
         if (!mDraggingPlanet && !mLocalRotation && mSolarSystem->pActiveObject.get()) {
@@ -202,10 +198,10 @@ void DragNavigation::update() {
           targetAngle *= fac * 4;
         }
 
-        float const epsilon = 0.001F;
+        double const epsilon = 0.001;
         // Prepare an animated rotation approaching target angle
         mDoKineticSmoothOut = std::abs(targetAngle - mTargetAngle) > epsilon;
-        mCurrentAngleDiff += static_cast<float>(targetAngle - mTargetAngle);
+        mCurrentAngleDiff += targetAngle - mTargetAngle;
         mTargetAngle = targetAngle;
       } else {
         mTargetAngle        = 0;
@@ -219,10 +215,10 @@ void DragNavigation::update() {
       mStartObserverRot = observerRot;
 
       // Prepare smoothing out remaining angle diff
-      if (mCurrentAngleDiff != 0.F) {
+      if (mCurrentAngleDiff != 0.0) {
         // Reduce inertia a little.
         mTargetAngle      = mCurrentAngleDiff * 0.5;
-        mCurrentAngleDiff = 0.F;
+        mCurrentAngleDiff = 0.0;
       }
 
       // Smooth out remaining rotation do be done
@@ -231,22 +227,22 @@ void DragNavigation::update() {
     }
   } else {
     // Prepare smoothing out remaining angle diff
-    if (mCurrentAngleDiff != 0.F) {
+    if (mCurrentAngleDiff != 0.0) {
       if (mDoKineticSmoothOut) {
         // Reduce inertia a little.
-        mTargetAngle = mCurrentAngleDiff * 0.5F;
+        mTargetAngle = mCurrentAngleDiff * 0.5;
       } else {
-        mTargetAngle = 0.F;
+        mTargetAngle = 0.0;
       }
-      mCurrentAngleDiff = 0.F;
+      mCurrentAngleDiff = 0.0;
     }
 
     // Smooth out remaining rotation do be done
     mTargetAngle = smoothThreshold * mTargetAngle;
 
-    float const epsilon = 0.001F;
+    double const epsilon = 0.001;
     if (std::abs(mTargetAngle) < epsilon) {
-      mTargetAngle      = 0.F;
+      mTargetAngle      = 0.0;
       mLocalRotation    = false;
       mDoRollCorrection = false;
     }
@@ -258,9 +254,7 @@ void DragNavigation::update() {
   // apply observer position change if rotating planet
   if (!mLocalRotation) {
     glm::dvec3 newObserverPos =
-        (glm::translate(rotationCenter) * glm::rotate(mTargetAngle, mCurrentAxis) *
-            glm::translate(-rotationCenter) * glm::dvec4(mStartObserverPos, 1.0))
-            .xyz();
+        (glm::rotate(mTargetAngle, mCurrentAxis) * glm::dvec4(mStartObserverPos, 1.0)).xyz();
     mSolarSystem->getObserver().setPosition(newObserverPos);
   }
 
@@ -284,7 +278,7 @@ void DragNavigation::update() {
 
       double const epsilon = 0.999;
       if (glm::dot(normal, y) > epsilon ||
-          (glm::dot(normal, y) > 0 &&
+          (glm::dot(normal, y) > 0.0 &&
               std::abs(glm::dot(glm::normalize(glm::cross(y, normal)), x)) > epsilon)) {
         mDoRollCorrection = true;
       }
