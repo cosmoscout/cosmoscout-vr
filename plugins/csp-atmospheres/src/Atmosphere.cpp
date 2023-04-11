@@ -179,17 +179,17 @@ void Atmosphere::updateShader() {
 
   mAtmoShader.Link();
 
-  mUniforms.sunDir                           = mAtmoShader.GetUniformLocation("uSunDir");
-  mUniforms.sunIlluminance                   = mAtmoShader.GetUniformLocation("uSunIlluminance");
-  mUniforms.depthBuffer                      = mAtmoShader.GetUniformLocation("uDepthBuffer");
-  mUniforms.colorBuffer                      = mAtmoShader.GetUniformLocation("uColorBuffer");
-  mUniforms.waterLevel                       = mAtmoShader.GetUniformLocation("uWaterLevel");
-  mUniforms.cloudTexture                     = mAtmoShader.GetUniformLocation("uCloudTexture");
-  mUniforms.cloudAltitude                    = mAtmoShader.GetUniformLocation("uCloudAltitude");
-  mUniforms.inverseModelViewMatrix           = mAtmoShader.GetUniformLocation("uMatInvMV");
-  mUniforms.inverseModelViewProjectionMatrix = mAtmoShader.GetUniformLocation("uMatInvMVP");
-  mUniforms.inverseProjectionMatrix          = mAtmoShader.GetUniformLocation("uMatInvP");
-  mUniforms.modelMatrix                      = mAtmoShader.GetUniformLocation("uMatM");
+  mUniforms.sunDir                  = mAtmoShader.GetUniformLocation("uSunDir");
+  mUniforms.sunIlluminance          = mAtmoShader.GetUniformLocation("uSunIlluminance");
+  mUniforms.depthBuffer             = mAtmoShader.GetUniformLocation("uDepthBuffer");
+  mUniforms.colorBuffer             = mAtmoShader.GetUniformLocation("uColorBuffer");
+  mUniforms.waterLevel              = mAtmoShader.GetUniformLocation("uWaterLevel");
+  mUniforms.cloudTexture            = mAtmoShader.GetUniformLocation("uCloudTexture");
+  mUniforms.cloudAltitude           = mAtmoShader.GetUniformLocation("uCloudAltitude");
+  mUniforms.inverseModelViewMatrix  = mAtmoShader.GetUniformLocation("uMatInvMV");
+  mUniforms.inverseProjectionMatrix = mAtmoShader.GetUniformLocation("uMatInvP");
+  mUniforms.scaleMatrix             = mAtmoShader.GetUniformLocation("uMatScale");
+  mUniforms.modelMatrix             = mAtmoShader.GetUniformLocation("uMatM");
 
   // We bind the eclipse shadow map to texture unit 3. The color and depth buffer are bound to 0 and
   // 1, 2 is used for the cloud map.
@@ -204,7 +204,7 @@ void Atmosphere::update() {
   if (object && object->getIsBodyVisible() && mPluginSettings->mEnable.get()) {
     mSunIlluminance = mSolarSystem->getSunIlluminance(object->getObserverRelativePosition());
     mSunDirection   = mSolarSystem->getSunDirection(object->getObserverRelativePosition());
-    mWorldTransform = object->getObserverRelativeTransform();
+    mObserverRelativeTransformation = object->getObserverRelativeTransform();
     mEclipseShadowReceiver->update(*object);
 
     // update brightness value -------------------------------------------------
@@ -275,24 +275,35 @@ bool Atmosphere::Do() {
   }
 
   // get matrices and related values -----------------------------------------
-  glm::mat4 matM(
-      glm::mat4(mWorldTransform) * glm::mat4(static_cast<float>(mRadii[0] / mRadii[0]), 0, 0, 0, 0,
-                                       static_cast<float>(mRadii[1] / mRadii[0]), 0, 0, 0, 0,
-                                       static_cast<float>(mRadii[2] / mRadii[0]), 0, 0, 0, 0, 1));
 
-  std::array<GLfloat, 16> glMatMV{};
-  glGetFloatv(GL_MODELVIEW_MATRIX, glMatMV.data());
-  glm::mat4 matMV(glm::make_mat4x4(glMatMV.data()) * matM);
-
-  auto matInvMV = glm::inverse(matMV);
-
-  std::array<GLfloat, 16> glMatP{};
+  std::array<GLfloat, 16> glMatV{}, glMatP{};
+  glGetFloatv(GL_MODELVIEW_MATRIX, glMatV.data());
   glGetFloatv(GL_PROJECTION_MATRIX, glMatP.data());
-  glm::mat4 matInvP = glm::inverse(glm::make_mat4x4(glMatP.data()));
-  glm::mat4 matInvMVP(matInvMV * matInvP);
 
-  glm::vec3 sunDir =
-      glm::normalize(glm::vec3(glm::inverse(mWorldTransform) * glm::vec4(mSunDirection, 0)));
+  // The atmosphere code works on spherical atmospheres. In order to support atmospheres around
+  // ellipsoidal bodies, we apply a non-uniform scale to the atmosphere.
+  glm::dmat4 matEllipsoid(
+      1, 0, 0, 0, 0, mRadii[1] / mRadii[0], 0, 0, 0, 0, mRadii[2] / mRadii[0], 0, 0, 0, 0, 1);
+  glm::dmat4 matInverseEllipsoid(
+      1, 0, 0, 0, 0, mRadii[0] / mRadii[1], 0, 0, 0, 0, mRadii[0] / mRadii[2], 0, 0, 0, 0, 1);
+
+  // We apply this non-uniform scaling to the observer-relative transformation of the planet.
+  glm::dmat4 matM        = mObserverRelativeTransformation * matEllipsoid;
+  glm::dmat4 matV        = glm::make_mat4x4(glMatV.data());
+  glm::dmat4 matInvV     = glm::inverse(matV);
+  glm::dmat4 matInvWorld = glm::inverse(mObserverRelativeTransformation);
+  glm::dmat4 matInvMV    = matInverseEllipsoid * matInvWorld * matInvV;
+  glm::mat4  matInvP     = glm::inverse(glm::make_mat4x4(glMatP.data()));
+
+  // Reconstructing the frame-buffer depth in the atmosphere shader is a bit involved as a simple
+  // multiplication with matInvP would lead to coordinates in observer-relative coordinates which
+  // are not non-uniformly scaled. To fix this, we have to create a matrix which applies this
+  // non-uniform scaling to the reconstructed observer-relative coordinates.
+  glm::dmat4 matScale = matV * mObserverRelativeTransformation * matInvMV;
+  matScale            = glm::scale(matScale, glm::dvec3(mSolarSystem->getObserver().getScale()));
+  matScale[3]         = glm::vec4(0.0);
+
+  glm::vec3 sunDir = glm::normalize(glm::vec3(matInvWorld * glm::vec4(mSunDirection, 0)));
 
   // set uniforms ------------------------------------------------------------
   mAtmoShader.Bind();
@@ -326,11 +337,11 @@ bool Atmosphere::Do() {
     mAtmoShader.SetUniform(mUniforms.cloudAltitude, mSettings.mCloudAltitude.get());
   }
 
-  glUniformMatrix4fv(mUniforms.inverseModelViewMatrix, 1, GL_FALSE, glm::value_ptr(matInvMV));
   glUniformMatrix4fv(
-      mUniforms.inverseModelViewProjectionMatrix, 1, GL_FALSE, glm::value_ptr(matInvMVP));
+      mUniforms.inverseModelViewMatrix, 1, GL_FALSE, glm::value_ptr(glm::mat4(matInvMV)));
+  glUniformMatrix4fv(mUniforms.scaleMatrix, 1, GL_FALSE, glm::value_ptr(glm::mat4(matScale)));
   glUniformMatrix4fv(mUniforms.inverseProjectionMatrix, 1, GL_FALSE, glm::value_ptr(matInvP));
-  glUniformMatrix4fv(mUniforms.modelMatrix, 1, GL_FALSE, glm::value_ptr(matM));
+  glUniformMatrix4fv(mUniforms.modelMatrix, 1, GL_FALSE, glm::value_ptr(glm::mat4(matM)));
 
   // Initialize eclipse shadow-related uniforms and textures.
   mEclipseShadowReceiver->preRender();

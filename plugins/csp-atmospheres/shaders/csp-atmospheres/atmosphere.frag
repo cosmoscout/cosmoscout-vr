@@ -30,7 +30,8 @@ uniform sampler2D uDepthBuffer;
 uniform vec3  uSunDir;
 uniform float uSunIlluminance;
 uniform mat4 uMatM;
-uniform mat4  uMatInvMVP;
+uniform mat4 uMatScale;
+uniform mat4  uMatInvP;
 uniform float uWaterLevel;
 uniform sampler2D uCloudTexture;
 uniform float     uCloudAltitude;
@@ -209,8 +210,12 @@ float getSurfaceDistance(vec3 rayOrigin, vec3 rayDir) {
   // So we add a minimum threshold here.
   depth = max(depth, 0.0000001);
 
-  vec4  position = uMatInvMVP * vec4(2.0 * vsIn.texcoords - 1, 2 * depth - 1, 1);
-  float depthMS  = length(rayOrigin - position.xyz / position.w);
+  // We compute the observer-centric distance to the current pixel. uMatScale is required to apply
+  // the non-uniform scale of the ellipsoidal atmosphere to the reconstructed position.
+  vec4 fragDir = uMatInvP * vec4(2.0 * vsIn.texcoords - 1, 2 * depth - 1, 1);
+  fragDir /= fragDir.w;
+  fragDir       = uMatScale * fragDir;
+  float depthMS = length(fragDir.xyz);
 
   // Fade to an analytical sphere on the far end of the depth buffer.
   const float START_DEPTH_FADE = 0.001;
