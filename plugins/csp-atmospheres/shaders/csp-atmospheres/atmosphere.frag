@@ -240,7 +240,7 @@ float getSurfaceDistance(vec3 rayOrigin, vec3 rayDir) {
 // Returns a hard-coded color scale for a given ocean depth. Could be configurable in future.
 vec4 getWaterShade(float d) {
   const float steps[5]  = float[](0.0, 50.0, 100.0, 500.0, 2000.0);
-  const vec4  colors[5] = vec4[](vec4(1, 1, 1, 0.0), vec4(0.2, 0.8, 0.9, 0.0),
+  const vec4  colors[5] = vec4[](vec4(0.8, 0.8, 1, 0.0), vec4(0.3, 0.4, 0.6, 0.3),
       vec4(0.2, 0.3, 0.4, 0.4), vec4(0.1, 0.2, 0.3, 0.8), vec4(0.03, 0.05, 0.1, 0.95));
   for (int i = 0; i < 4; ++i) {
     if (d <= steps[i + 1])
@@ -396,31 +396,40 @@ void main() {
 
   if (hitsOcean && surfaceDistance > waterIntersections.x) {
 
-    // Clamp the ray end to the ocean floor.
+    // Clamp the ray start to the camera position and the ray end to the ocean floor.
+    waterIntersections.x = max(waterIntersections.x, 0);
     waterIntersections.y = min(waterIntersections.y, surfaceDistance);
-
-    // Compute a simple specular highlight.
-    vec3  surfacePoint = vsIn.rayOrigin + rayDir * waterIntersections.x;
-    vec3  normal       = normalize(surfacePoint);
-    float specular     = pow(max(dot(rayDir, reflect(uSunDir, normal)), 0.0), 10) * 0.2;
-    specular += pow(max(dot(rayDir, reflect(uSunDir, normal)), 0.0), 50) * 0.2;
-
-    // In HDR-mode, we need to use the uSunIlluminance for the specular reflection.
-#if ENABLE_HDR
-    specular *= uSunIlluminance / PI;
-#endif
 
     // Compute a water color based on the depth.
     float depth = waterIntersections.y - waterIntersections.x;
     vec4  water = getWaterShade(depth);
 
-    // Also draw eclipse shadows onto the water surface.
-    vec3 eclipseShadow = getEclipseShadow((uMatM * vec4(surfacePoint, 1.0)).xyz);
-    oColor             = mix(oColor, water.rgb, water.a) + water.a * specular * eclipseShadow;
+    // Looking down onto the ocean.
+    if (waterIntersections.x > 0) {
 
-    // The atmosphere now actually end at the ocean surface.
-    surfaceDistance = waterIntersections.x;
-    hitsSurface     = true;
+      // Compute a simple specular highlight.
+      vec3  surfacePoint = vsIn.rayOrigin + rayDir * waterIntersections.x;
+      vec3  normal       = normalize(surfacePoint);
+      float specular     = pow(max(dot(rayDir, reflect(uSunDir, normal)), 0.0), 10) * 0.2;
+      specular += pow(max(dot(rayDir, reflect(uSunDir, normal)), 0.0), 50) * 0.2;
+
+      // In HDR-mode, we need to use the uSunIlluminance for the specular reflection.
+#if ENABLE_HDR
+      specular *= uSunIlluminance / PI;
+#endif
+
+      // Also draw eclipse shadows onto the water surface.
+      vec3 eclipseShadow = getEclipseShadow((uMatM * vec4(surfacePoint, 1.0)).xyz);
+      oColor             = mix(oColor, water.rgb, water.a) + water.a * specular * eclipseShadow;
+
+      // The atmosphere now actually end at the ocean surface.
+      surfaceDistance = waterIntersections.x;
+      hitsSurface     = true;
+
+    } else {
+      oColor = mix(oColor, water.rgb, water.a);
+      return;
+    }
   }
 #endif
 
