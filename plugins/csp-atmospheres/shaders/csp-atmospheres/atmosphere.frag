@@ -57,7 +57,7 @@ vec3 GetSunAndSkyIlluminance(vec3 p, vec3 sunDirection, out vec3 skyIlluminance)
 
 // -------------------------------------------------------------------------------------------------
 
-// This will be replaced by the eclipse shdaer code.
+// This will be replaced by the eclipse shader code.
 // ECLIPSE_SHADER_SNIPPET
 
 // -------------------------------------------------------------------------------------------------
@@ -264,7 +264,7 @@ float getCloudDensity(vec3 rayOrigin, vec3 rayDir, float tIntersection) {
 }
 
 // Computes the color of the clouds along the ray described by the input parameters. The cloud color
-// is computed intersecting 10 nested cloud layers. Each layer contributes a tenth of the final
+// is computed by intersecting 10 nested cloud layers. Each layer contributes a tenth of the final
 // cloud density in order to create a fake volumetric appearance. The density is faded to zero close
 // to mountains in order to prevent any hard seams.
 // The color of the clouds is computed based on the sun and sky light which reaches the top layer of
