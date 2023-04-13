@@ -43,6 +43,7 @@ class Plugin : public cs::core::PluginBase {
       /// These parameters are model-agnostic.
       double                            mHeight; ///< In meters.
       cs::utils::DefaultProperty<bool>  mEnableWater{false};
+      cs::utils::DefaultProperty<bool>  mEnableWaves{true};
       cs::utils::DefaultProperty<float> mWaterLevel{0.F}; ///< In meters.
       cs::utils::DefaultProperty<bool>  mEnableClouds{true};
       std::optional<std::string>        mCloudTexture;          ///< Path to the cloud texture.

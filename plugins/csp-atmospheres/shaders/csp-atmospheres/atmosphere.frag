@@ -507,6 +507,7 @@ void main() {
       vec3 oceanSurface = vsIn.rayOrigin + rayDir * oceanIntersections.x;
       vec3 idealNormal  = normalize(oceanSurface);
 
+#if ENABLE_WAVES
       const float WAVE_SPEED        = 0.2;
       const float WAVE_SCALE        = 0.01;
       const float WAVE_STRENGTH     = 0.2;
@@ -533,6 +534,10 @@ void main() {
       // precise enough). Hence, we simply use the 3D noise wave to modulate the ideal surface
       // normal. This is pretty hacky but results in a surprisingly wavy normal!
       vec3 normal = normalize(mix(idealNormal, wave, WAVE_STRENGTH * waveFade));
+#else
+      vec3  normal   = idealNormal;
+      float waveFade = 0;
+#endif
 
       // Now compute the reflected view ray. If this is reflected into the ocean sphere, we reflect
       // it once mor up into the sky.

@@ -141,6 +141,7 @@ void Atmosphere::configure(Plugin::Settings::Atmosphere const& settings) {
     }
 
     if (mSettings.mHeight != settings.mHeight || mSettings.mEnableWater != settings.mEnableWater ||
+        mSettings.mEnableWaves != settings.mEnableWaves ||
         mSettings.mEnableClouds != settings.mEnableClouds) {
       mShaderDirty = true;
     }
@@ -165,6 +166,7 @@ void Atmosphere::updateShader() {
   cs::utils::replaceString(
       sFrag, "ENABLE_CLOUDS", std::to_string(mSettings.mEnableClouds.get() && mCloudTexture));
   cs::utils::replaceString(sFrag, "ENABLE_WATER", std::to_string(mSettings.mEnableWater.get()));
+  cs::utils::replaceString(sFrag, "ENABLE_WAVES", std::to_string(mSettings.mEnableWaves.get()));
   cs::utils::replaceString(sFrag, "ENABLE_HDR", std::to_string(mHDRBuffer != nullptr));
   cs::utils::replaceString(sFrag, "HDR_SAMPLES",
       mHDRBuffer == nullptr ? "0" : std::to_string(mHDRBuffer->getMultiSamples()));
