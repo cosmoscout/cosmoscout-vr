@@ -179,7 +179,7 @@ void DragNavigation::update() {
         // The rotation axis is perpendicular to the start and the end position vectors
         mCurrentAxis = glm::normalize(currentAxis);
 
-        // The final amount of camera rotation around planet center
+        // The final amount of camera rotation around the body center
         double targetAngle = -2.0 * std::asin(0.5 * glm::length(start_vec - end_vec));
 
         // reduce rotation speed close to planet
