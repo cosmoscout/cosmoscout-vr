@@ -137,14 +137,14 @@ void DragNavigation::update() {
   double const smoothThreshold = 0.8;
 
   if (mInputManager->pButtons[0].get() || mInputManager->pButtons[1].get()) {
-    glm::dvec3 end_vec;
-    glm::dvec3 start_vec;
+    glm::dvec3 endVec;
+    glm::dvec3 startVec;
     bool       bPerformRotation = false;
     mLocalRotation              = mInputManager->pButtons[1].get();
 
     if (mLocalRotation) {
-      start_vec        = mStartRayDir;
-      end_vec          = rayDir;
+      startVec         = mStartRayDir;
+      endVec           = rayDir;
       bPerformRotation = true;
     } else if (mDraggingPlanet) {
       // The radius is used to rotate the camera around the target body on a sphere of this exact
@@ -158,13 +158,13 @@ void DragNavigation::update() {
 
       // we do not want to drag something behind us
       if (t && t.value() > 0.0) {
-        end_vec          = glm::normalize((rayOrigin + (t.value() * rayDir)));
-        start_vec        = glm::normalize(mStartIntersection);
+        endVec           = glm::normalize((rayOrigin + (t.value() * rayDir)));
+        startVec         = glm::normalize(mStartIntersection);
         bPerformRotation = true;
       }
     } else {
-      start_vec        = rayDir;
-      end_vec          = mStartRayDir;
+      startVec         = rayDir;
+      endVec           = mStartRayDir;
       bPerformRotation = true;
     }
 
@@ -172,7 +172,7 @@ void DragNavigation::update() {
     if (bPerformRotation && !mInputManager->pActiveNode.get() &&
         !mInputManager->pActiveGuiItem.get()) {
       // Rotation angle computations:
-      glm::dvec3 currentAxis = glm::cross(start_vec, end_vec);
+      glm::dvec3 currentAxis = glm::cross(startVec, endVec);
 
       // Only if the vectors are not co-linear
       if (glm::length(currentAxis) > 0) {
@@ -180,7 +180,7 @@ void DragNavigation::update() {
         mCurrentAxis = glm::normalize(currentAxis);
 
         // The final amount of camera rotation around the body center
-        double targetAngle = -2.0 * std::asin(0.5 * glm::length(start_vec - end_vec));
+        double targetAngle = -2.0 * std::asin(0.5 * glm::length(startVec - endVec));
 
         // reduce rotation speed close to planet
         if (!mDraggingPlanet && !mLocalRotation && mSolarSystem->pActiveObject.get()) {
