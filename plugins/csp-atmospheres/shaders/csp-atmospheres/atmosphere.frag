@@ -556,8 +556,8 @@ void main() {
       // away we blend to a more soft specular which is supposed to look like the accumulation of
       // many small reflections of the Sun.
       float specularIntensity = clamp(dot(rayDir, reflect(uSunDir, normal)), 0, 1);
-      float softSpecular      = pow(specularIntensity, 100) * 0.0001;
-      float hardSpecular      = pow(specularIntensity, 1000) * 0.001;
+      float softSpecular      = pow(specularIntensity, 200) * 0.0001;
+      float hardSpecular      = pow(specularIntensity, 2000) * 0.002;
       vec3  eclipseShadow     = getEclipseShadow((uMatM * vec4(oceanSurface, 1.0)).xyz);
       oceanSurfaceColor.rgb += mix(softSpecular, hardSpecular, waveFade) * uSunLuminance *
                                transmittance * eclipseShadow *
