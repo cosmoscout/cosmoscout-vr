@@ -44,7 +44,7 @@ class Atmosphere : public IVistaOpenGLDraw {
   /// If the body this is attached to is visible, this will update the transformation of the
   /// atmosphere according to the current observer position. It will also update the
   /// pApproximateSceneBrightness property of the graphics engine in this case.
-  void update();
+  void update(double time);
 
   bool Do() override;
   bool GetBoundingBox(VistaBoundingBox& bb) override;
@@ -79,11 +79,15 @@ class Atmosphere : public IVistaOpenGLDraw {
 
   bool       mShaderDirty    = true;
   double     mSunIlluminance = 1.0;
+  double     mSunLuminance   = 1.0;
   glm::dvec3 mSunDirection   = glm::dvec3(1.0, 0.0, 0.0);
+  double     mTime           = 0.0;
 
   struct {
     uint32_t sunDir                  = 0;
     uint32_t sunIlluminance          = 0;
+    uint32_t sunLuminance            = 0;
+    uint32_t time                    = 0;
     uint32_t depthBuffer             = 0;
     uint32_t colorBuffer             = 0;
     uint32_t waterLevel              = 0;

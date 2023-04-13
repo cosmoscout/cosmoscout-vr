@@ -3,6 +3,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
+// SPDX-FileCopyrightText: Copyright (c) 2014 David Hoskins.
+// SPDX-FileCopyrightText: Copyright (c) 2013 Nikita Miropolskiy
 // SPDX-License-Identifier: MIT
 
 #version 330
@@ -29,9 +31,12 @@ uniform sampler2D uDepthBuffer;
 
 uniform vec3  uSunDir;
 uniform float uSunIlluminance;
+uniform float uSunLuminance;
+uniform float uTime;
 uniform mat4 uMatM;
 uniform mat4 uMatScale;
-uniform mat4  uMatInvP;
+uniform mat4 uMatInvP;
+uniform mat4  uMatInvMV;
 uniform float uWaterLevel;
 uniform sampler2D uCloudTexture;
 uniform float     uCloudAltitude;
@@ -59,6 +64,89 @@ vec3 GetSunAndSkyIlluminance(vec3 p, vec3 sunDirection, out vec3 skyIlluminance)
 
 // This will be replaced by the eclipse shader code.
 // ECLIPSE_SHADER_SNIPPET
+
+// -------------------------------------------------------------------------------------------------
+
+// These noise algorithms are based on implementations by various authors from
+// shadertoy.com, which are all available under the MIT License. See the respective links
+// in the comments below.
+
+// Hash function
+// MIT License, https://www.shadertoy.com/view/4djSRW
+// Copyright (c) 2014 David Hoskins.
+
+// 3 out, 3 in...
+vec3 hash33(vec3 p3) {
+  p3 = fract(p3 * vec3(.1031, .1030, .0973));
+  p3 += dot(p3, p3.yxz + 33.33);
+  return fract((p3.xxy + p3.yxx) * p3.zyx);
+}
+
+// 3D Simplex Noise
+// MIT License, https://www.shadertoy.com/view/XsX3zB
+// Copyright (c) 2013 Nikita Miropolskiy
+float simplex3D(vec3 p) {
+
+  // skew constants for 3D simplex functions
+  const float F3 = 0.3333333;
+  const float G3 = 0.1666667;
+
+  // 1. find current tetrahedron T and it's four vertices
+  // s, s+i1, s+i2, s+1.0 - absolute skewed (integer) coordinates of T vertices
+  // x, x1, x2, x3 - unskewed coordinates of p relative to each of T vertice
+
+  // calculate s and x
+  vec3 s = floor(p + dot(p, vec3(F3)));
+  vec3 x = p - s + dot(s, vec3(G3));
+
+  // calculate i1 and i2
+  vec3 e  = step(vec3(0.0), x - x.yzx);
+  vec3 i1 = e * (1.0 - e.zxy);
+  vec3 i2 = 1.0 - e.zxy * (1.0 - e);
+
+  // x1, x2, x3
+  vec3 x1 = x - i1 + G3;
+  vec3 x2 = x - i2 + 2.0 * G3;
+  vec3 x3 = x - 1.0 + 3.0 * G3;
+
+  // 2. find four surflets and store them in d
+  vec4 w, d;
+
+  // calculate surflet weights
+  w.x = dot(x, x);
+  w.y = dot(x1, x1);
+  w.z = dot(x2, x2);
+  w.w = dot(x3, x3);
+
+  // w fades from 0.6 at the center of the surflet to 0.0 at the margin
+  w = max(0.6 - w, 0.0);
+
+  // calculate surflet components
+  d.x = dot(-0.5 + hash33(s), x);
+  d.y = dot(-0.5 + hash33(s + i1), x1);
+  d.z = dot(-0.5 + hash33(s + i2), x2);
+  d.w = dot(-0.5 + hash33(s + 1.0), x3);
+
+  // multiply d by w^4
+  w *= w;
+  w *= w;
+  d *= w;
+
+  // 3. return the sum of the four surflets
+  return dot(d, vec4(52.0)) * 0.5 + 0.5;
+}
+
+// Directional artifacts can be reduced by rotating each octave
+float simplex3DFractal(vec3 m) {
+
+  // const matrices for 3D rotation
+  const mat3 rot1 = mat3(-0.37, 0.36, 0.85, -0.14, -0.93, 0.34, 0.92, 0.01, 0.4);
+  const mat3 rot2 = mat3(-0.55, -0.39, 0.74, 0.33, -0.91, -0.24, 0.77, 0.12, 0.63);
+  const mat3 rot3 = mat3(-0.71, 0.52, -0.47, -0.08, -0.72, -0.68, -0.7, -0.45, 0.56);
+
+  return 0.5333333 * simplex3D(m * rot1) + 0.2666667 * simplex3D(2.0 * m * rot2) +
+         0.1333333 * simplex3D(4.0 * m * rot3) + 0.0666667 * simplex3D(8.0 * m);
+}
 
 // -------------------------------------------------------------------------------------------------
 
@@ -238,10 +326,10 @@ float getSurfaceDistance(vec3 rayOrigin, vec3 rayDir) {
 // -------------------------------------------------------------------------------------------------
 
 // Returns a hard-coded color scale for a given ocean depth. Could be configurable in future.
-vec4 getWaterShade(float d) {
+vec4 getOceanShade(float d) {
   const float steps[5]  = float[](0.0, 50.0, 100.0, 500.0, 2000.0);
   const vec4  colors[5] = vec4[](vec4(0.8, 0.8, 1, 0.0), vec4(0.3, 0.4, 0.6, 0.3),
-      vec4(0.2, 0.3, 0.4, 0.4), vec4(0.1, 0.2, 0.3, 0.8), vec4(0.03, 0.05, 0.1, 0.95));
+      vec4(0.2, 0.3, 0.4, 0.4), vec4(0.1, 0.2, 0.3, 0.8), vec4(0.03, 0.05, 0.1, 1.0));
   for (int i = 0; i < 4; ++i) {
     if (d <= steps[i + 1])
       return mix(colors[i], colors[i + 1], vec4(d - steps[i]) / (steps[i + 1] - steps[i]));
@@ -368,8 +456,12 @@ float getCloudShadow(vec3 rayOrigin, vec3 rayDir) {
 void main() {
   vec3 rayDir = normalize(vsIn.rayDir);
 
-  // Get the planet / background color without any atmosphere.
+// Get the planet / background color without any atmosphere.
+#if ENABLE_HDR
   oColor = getFramebufferColor();
+#else
+  oColor = sRGBtoLinear(getFramebufferColor());
+#endif
 
   // If the ray does not actually hit the atmosphere or the exit is already behind camera, we do not
   // have to modify the color any further.
@@ -387,47 +479,107 @@ void main() {
   // The ray hits an object if the distance to the depth buffer is smaller than the ray exit.
   bool hitsSurface = surfaceDistance < atmosphereIntersections.y;
 
+  // If the ray hits a water surface, we do not need to compute it's illumination.
+  bool computeIllumination = true;
+
 #if ENABLE_WATER
 
   // We hit a water body if the ocean sphere is intersected and if the nearest surface is farther
   // away than the closest ocean sphere intersection (e.g. the ocean floor).
-  vec2 waterIntersections = intersectOceansphere(vsIn.rayOrigin, rayDir);
-  bool hitsOcean = waterIntersections.y > 0.0 && waterIntersections.x < waterIntersections.y;
+  vec2 oceanIntersections = intersectOceansphere(vsIn.rayOrigin, rayDir);
+  bool hitsOcean = oceanIntersections.y > 0.0 && oceanIntersections.x < oceanIntersections.y;
 
-  if (hitsOcean && surfaceDistance > waterIntersections.x) {
+  if (hitsOcean && surfaceDistance > oceanIntersections.x) {
 
     // Clamp the ray start to the camera position and the ray end to the ocean floor.
-    waterIntersections.x = max(waterIntersections.x, 0);
-    waterIntersections.y = min(waterIntersections.y, surfaceDistance);
+    oceanIntersections.x = max(oceanIntersections.x, 0);
+    oceanIntersections.y = min(oceanIntersections.y, surfaceDistance);
 
     // Compute a water color based on the depth.
-    float depth = waterIntersections.y - waterIntersections.x;
-    vec4  water = getWaterShade(depth);
+    float depth      = oceanIntersections.y - oceanIntersections.x;
+    vec4  oceanColor = getOceanShade(depth);
+    oColor           = mix(oColor, oColor * oceanColor.rgb, oceanColor.a);
 
     // Looking down onto the ocean.
-    if (waterIntersections.x > 0) {
+    if (oceanIntersections.x > 0) {
 
-      // Compute a simple specular highlight.
-      vec3  surfacePoint = vsIn.rayOrigin + rayDir * waterIntersections.x;
-      vec3  normal       = normalize(surfacePoint);
-      float specular     = pow(max(dot(rayDir, reflect(uSunDir, normal)), 0.0), 10) * 0.2;
-      specular += pow(max(dot(rayDir, reflect(uSunDir, normal)), 0.0), 50) * 0.2;
+      vec3 oceanSurface = vsIn.rayOrigin + rayDir * oceanIntersections.x;
+      vec3 idealNormal  = normalize(oceanSurface);
 
-      // In HDR-mode, we need to use the uSunIlluminance for the specular reflection.
-#if ENABLE_HDR
-      specular *= uSunIlluminance / PI;
+      const float WAVE_SPEED        = 0.2;
+      const float WAVE_SCALE        = 0.01;
+      const float WAVE_STRENGTH     = 0.2;
+      const float WAVE_MAX_DISTANCE = 10e4;
+
+      // We compute three noise fields moving in three different directions.
+      vec3 wave =
+          vec3(simplex3DFractal(oceanSurface * WAVE_SCALE + vec3(0.0, 0.0, uTime * WAVE_SPEED)),
+              simplex3DFractal(oceanSurface * WAVE_SCALE + vec3(0.0, uTime * WAVE_SPEED, 0.0)),
+              simplex3DFractal(oceanSurface * WAVE_SCALE + vec3(uTime * WAVE_SPEED, 0.0, 0.0)));
+
+      // The wave components are in [0...1]. With this we bring them into [-1...1] and apply some
+      // smoothing.
+      wave = sin((wave - 0.5) * PI);
+
+      // As the waves poduce a very noise aliasing pattern when seen from a large distance, we will
+      // gradually hide them at large distances.
+      float waveFade =
+          pow(1 - clamp(distance(oceanSurface, vsIn.rayOrigin) / WAVE_MAX_DISTANCE, 0, 1), 4);
+
+      // Intuitively, we should have accumulated all three noise fields to get a height field of the
+      // waves. Then we should have computed the gradient of the height field to get the ocean
+      // surface normal. However, computing the gradient is pretty expensive (dFdx amd dFdy are not
+      // precise enough). Hence, we simply use the 3D noise wave to modulate the ideal surface
+      // normal. This is pretty hacky but results in a surprisingly wavy normal!
+      vec3 normal = normalize(mix(idealNormal, wave, WAVE_STRENGTH * waveFade));
+
+      // Now compute the reflected view ray. If this is reflected into the ocean sphere, we reflect
+      // it once mor up into the sky.
+      vec3 reflection = reflect(rayDir, normal);
+      if (dot(reflection, idealNormal) < 0.0) {
+        reflection = reflect(reflection, idealNormal);
+      }
+
+      // Now get the sky color into the direction of the reflected view ray!
+      vec3 transmittance;
+      vec3 skyColor = GetSkyLuminance(oceanSurface, reflection, uSunDir, transmittance);
+
+#if !ENABLE_HDR
+      // In non-HDR mode, we need to apply tone mapping to the sky color.
+      skyColor = tonemap(skyColor / uSunIlluminance);
 #endif
 
-      // Also draw eclipse shadows onto the water surface.
-      vec3 eclipseShadow = getEclipseShadow((uMatM * vec4(surfacePoint, 1.0)).xyz);
-      oColor             = mix(oColor, water.rgb, water.a) + water.a * specular * eclipseShadow;
+      // We mix this into to ocean color using the Schlick approximation.
+      float n  = 1.333;
+      float r0 = pow(n / (1.0 + n), 2.0);
+      float f  = r0 + (1.0 - r0) * pow(1.0 - clamp(dot(-rayDir, normal), 0.0, 1.0), 5.0);
+      oColor   = mix(oColor, skyColor, f);
 
-      // The atmosphere now actually end at the ocean surface.
-      surfaceDistance = waterIntersections.x;
-      hitsSurface     = true;
+      // Now add a specular highlight for the Sun. This is not physically based but produces quite
+      // pleasing results. If we are close to the waves, we use a hard specular, if we are farther
+      // away we blend to a more soft specular which is supposed to look like the accumulation of
+      // many small reflections of the Sun.
+      float specularIntensity = clamp(dot(rayDir, reflect(uSunDir, normal)), 0, 1);
+      float softSpecular      = pow(specularIntensity, 100) * 0.0001;
+      float hardSpecular      = pow(specularIntensity, 1000) * 0.001;
+      vec3 specular = mix(softSpecular, hardSpecular, waveFade) * uSunLuminance * transmittance * f;
+
+#if !ENABLE_HDR
+      // In non-HDR mode, we need to apply tone mapping to the specular color.
+      specular = tonemap(specular / uSunIlluminance);
+#endif
+
+      vec3 eclipseShadow = getEclipseShadow((uMatM * vec4(oceanSurface, 1.0)).xyz);
+      oColor += oceanColor.a * specular * eclipseShadow *
+                pow(smoothstep(0, 1, dot(uSunDir, idealNormal)), 0.2);
+
+      // The atmosphere now actually ends at the ocean surface.
+      surfaceDistance     = oceanIntersections.x;
+      hitsSurface         = true;
+      computeIllumination = false;
 
     } else {
-      oColor = mix(oColor, water.rgb, water.a);
+      // Under water. This part could be improved in the future!
       return;
     }
   }
@@ -464,11 +616,12 @@ void main() {
     // atmosphere will be drawn later, it only can assume that it is in direct sun light. However,
     // if there is an atmosphere, actually less light reaches the surface. So we have to divide by
     // the direct sun illuminance and multiply by the attenuated illuminance.
+    vec3 illumination = computeIllumination ? illuminance / uSunIlluminance : vec3(1.0);
+
 #if ENABLE_HDR
-    oColor = transmittance * cloudShadow * oColor * illuminance / uSunIlluminance +
-             inScatter * eclipseShadow;
+    oColor = transmittance * cloudShadow * oColor * illumination + inScatter * eclipseShadow;
 #else
-    oColor = transmittance * cloudShadow * sRGBtoLinear(oColor) * illuminance / uSunIlluminance +
+    oColor            = transmittance * cloudShadow * oColor * illumination +
              tonemap(eclipseShadow * inScatter / uSunIlluminance);
 #endif
 
@@ -488,8 +641,7 @@ void main() {
 #if ENABLE_HDR
     oColor = transmittance * oColor + inScatter * eclipseShadow;
 #else
-    oColor =
-        transmittance * sRGBtoLinear(oColor) + tonemap(inScatter * eclipseShadow / uSunIlluminance);
+    oColor = transmittance * oColor + tonemap(inScatter * eclipseShadow / uSunIlluminance);
 #endif
   }
 

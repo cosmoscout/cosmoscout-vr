@@ -11,6 +11,7 @@
 #include "../../../src/cs-core/GraphicsEngine.hpp"
 #include "../../../src/cs-core/GuiManager.hpp"
 #include "../../../src/cs-core/SolarSystem.hpp"
+#include "../../../src/cs-core/TimeControl.hpp"
 #include "../../../src/cs-utils/logger.hpp"
 #include "logger.hpp"
 
@@ -200,7 +201,7 @@ void Plugin::deInit() {
 
 void Plugin::update() {
   for (auto const& atmosphere : mAtmospheres) {
-    atmosphere.second->update();
+    atmosphere.second->update(mTimeControl->pSimulationTime.get());
   }
 }
 

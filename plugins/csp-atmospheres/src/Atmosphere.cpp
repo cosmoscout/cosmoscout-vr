@@ -181,6 +181,8 @@ void Atmosphere::updateShader() {
 
   mUniforms.sunDir                  = mAtmoShader.GetUniformLocation("uSunDir");
   mUniforms.sunIlluminance          = mAtmoShader.GetUniformLocation("uSunIlluminance");
+  mUniforms.sunLuminance            = mAtmoShader.GetUniformLocation("uSunLuminance");
+  mUniforms.time                    = mAtmoShader.GetUniformLocation("uTime");
   mUniforms.depthBuffer             = mAtmoShader.GetUniformLocation("uDepthBuffer");
   mUniforms.colorBuffer             = mAtmoShader.GetUniformLocation("uColorBuffer");
   mUniforms.waterLevel              = mAtmoShader.GetUniformLocation("uWaterLevel");
@@ -198,11 +200,13 @@ void Atmosphere::updateShader() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Atmosphere::update() {
+void Atmosphere::update(double time) {
   auto object = mSolarSystem->getObject(mObjectName);
 
   if (object && object->getIsBodyVisible() && mPluginSettings->mEnable.get()) {
+    mTime           = time;
     mSunIlluminance = mSolarSystem->getSunIlluminance(object->getObserverRelativePosition());
+    mSunLuminance   = mSolarSystem->getSunLuminance();
     mSunDirection   = mSolarSystem->getSunDirection(object->getObserverRelativePosition());
     mObserverRelativeTransformation = object->getObserverRelativeTransform();
     mEclipseShadowReceiver->update(*object);
@@ -309,7 +313,11 @@ bool Atmosphere::Do() {
   mAtmoShader.Bind();
 
   mAtmoShader.SetUniform(mUniforms.sunIlluminance, static_cast<float>(mSunIlluminance));
+  mAtmoShader.SetUniform(mUniforms.sunLuminance, static_cast<float>(mSunLuminance));
   mAtmoShader.SetUniform(mUniforms.sunDir, sunDir[0], sunDir[1], sunDir[2]);
+
+  // The noise shader does not like huge numbers. So we rather loop the time.
+  mAtmoShader.SetUniform(mUniforms.time, static_cast<float>(std::fmod(mTime, 1.0e4)));
 
   if (mHDRBuffer) {
     mHDRBuffer->doPingPong();
