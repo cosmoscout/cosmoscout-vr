@@ -456,12 +456,8 @@ float getCloudShadow(vec3 rayOrigin, vec3 rayDir) {
 void main() {
   vec3 rayDir = normalize(vsIn.rayDir);
 
-// Get the planet / background color without any atmosphere.
-#if ENABLE_HDR
+  // Get the planet / background color without any atmosphere.
   oColor = getFramebufferColor();
-#else
-  oColor = sRGBtoLinear(getFramebufferColor());
-#endif
 
   // If the ray does not actually hit the atmosphere or the exit is already behind camera, we do not
   // have to modify the color any further.
@@ -476,11 +472,17 @@ void main() {
     return;
   }
 
+  // Always operate in linear color space.
+#if !ENABLE_HDR
+  oColor = sRGBtoLinear(oColor);
+#endif
+
   // The ray hits an object if the distance to the depth buffer is smaller than the ray exit.
   bool hitsSurface = surfaceDistance < atmosphereIntersections.y;
+  bool underWater  = false;
 
-  // If the ray hits a water surface, we do not need to compute it's illumination.
-  bool computeIllumination = true;
+  vec4 oceanWaterShade   = vec4(0.0);
+  vec4 oceanSurfaceColor = vec4(0.0);
 
 #if ENABLE_WATER
 
@@ -496,9 +498,8 @@ void main() {
     oceanIntersections.y = min(oceanIntersections.y, surfaceDistance);
 
     // Compute a water color based on the depth.
-    float depth      = oceanIntersections.y - oceanIntersections.x;
-    vec4  oceanColor = getOceanShade(depth);
-    oColor           = mix(oColor, oColor * oceanColor.rgb, oceanColor.a);
+    float depth     = oceanIntersections.y - oceanIntersections.x;
+    oceanWaterShade = getOceanShade(depth);
 
     // Looking down onto the ocean.
     if (oceanIntersections.x > 0) {
@@ -544,16 +545,11 @@ void main() {
       vec3 transmittance;
       vec3 skyColor = GetSkyLuminance(oceanSurface, reflection, uSunDir, transmittance);
 
-#if !ENABLE_HDR
-      // In non-HDR mode, we need to apply tone mapping to the sky color.
-      skyColor = tonemap(skyColor / uSunIlluminance);
-#endif
-
-      // We mix this into to ocean color using the Schlick approximation.
-      float n  = 1.333;
-      float r0 = pow(n / (1.0 + n), 2.0);
-      float f  = r0 + (1.0 - r0) * pow(1.0 - clamp(dot(-rayDir, normal), 0.0, 1.0), 5.0);
-      oColor   = mix(oColor, skyColor, f);
+      // We later mix this into to ocean color using the Schlick approximation.
+      float n           = 1.333;
+      float r0          = pow(n / (1.0 + n), 2.0);
+      float alpha       = r0 + (1.0 - r0) * pow(1.0 - clamp(dot(-rayDir, normal), 0.0, 1.0), 5.0);
+      oceanSurfaceColor = vec4(skyColor, alpha * oceanWaterShade.a);
 
       // Now add a specular highlight for the Sun. This is not physically based but produces quite
       // pleasing results. If we are close to the waves, we use a hard specular, if we are farther
@@ -562,30 +558,27 @@ void main() {
       float specularIntensity = clamp(dot(rayDir, reflect(uSunDir, normal)), 0, 1);
       float softSpecular      = pow(specularIntensity, 100) * 0.0001;
       float hardSpecular      = pow(specularIntensity, 1000) * 0.001;
-      vec3 specular = mix(softSpecular, hardSpecular, waveFade) * uSunLuminance * transmittance * f;
+      vec3  eclipseShadow     = getEclipseShadow((uMatM * vec4(oceanSurface, 1.0)).xyz);
+      oceanSurfaceColor.rgb += mix(softSpecular, hardSpecular, waveFade) * uSunLuminance *
+                               transmittance * eclipseShadow *
+                               pow(smoothstep(0, 1, dot(uSunDir, idealNormal)), 0.2);
 
 #if !ENABLE_HDR
-      // In non-HDR mode, we need to apply tone mapping to the specular color.
-      specular = tonemap(specular / uSunIlluminance);
+      // In non-HDR mode, we need to apply tone mapping to the ocean color.
+      oceanSurfaceColor.rgb = tonemap(oceanSurfaceColor.rgb / uSunIlluminance);
 #endif
 
-      vec3 eclipseShadow = getEclipseShadow((uMatM * vec4(oceanSurface, 1.0)).xyz);
-      oColor += oceanColor.a * specular * eclipseShadow *
-                pow(smoothstep(0, 1, dot(uSunDir, idealNormal)), 0.2);
-
       // The atmosphere now actually ends at the ocean surface.
-      surfaceDistance     = oceanIntersections.x;
-      hitsSurface         = true;
-      computeIllumination = false;
+      surfaceDistance = oceanIntersections.x;
+      hitsSurface     = true;
 
     } else {
-      // Under water. This part could be improved in the future!
-      return;
+      underWater = true;
     }
   }
 #endif
 
-  vec3 eclipseShadow;
+  vec3 eclipseShadow, transmittance, inScatter;
 
   // Retrieving the actual color contribution from the atmosphere is separated into two cases:
   // Either the ray hits something inside the atmosphere (e.g. we are looking towards the ground) or
@@ -594,9 +587,9 @@ void main() {
 
     // If the ray hits the ground, we have to compute the amount of light reaching the ground as
     // well as how much of the reflected light is attenuated on its path to the observer.
-    vec3 skyIlluminance, transmittance;
+    vec3 skyIlluminance;
     vec3 surfacePoint = vsIn.rayOrigin + rayDir * surfaceDistance;
-    vec3 inScatter   = GetSkyLuminanceToPoint(vsIn.rayOrigin, surfacePoint, uSunDir, transmittance);
+    inScatter        = GetSkyLuminanceToPoint(vsIn.rayOrigin, surfacePoint, uSunDir, transmittance);
     vec3 illuminance = GetSunAndSkyIlluminance(surfacePoint, uSunDir, skyIlluminance);
     illuminance += skyIlluminance;
 
@@ -616,20 +609,14 @@ void main() {
     // atmosphere will be drawn later, it only can assume that it is in direct sun light. However,
     // if there is an atmosphere, actually less light reaches the surface. So we have to divide by
     // the direct sun illuminance and multiply by the attenuated illuminance.
-    vec3 illumination = computeIllumination ? illuminance / uSunIlluminance : vec3(1.0);
+    oColor = cloudShadow * oColor * illuminance / uSunIlluminance;
 
-#if ENABLE_HDR
-    oColor = transmittance * cloudShadow * oColor * illumination + inScatter * eclipseShadow;
-#else
-    oColor            = transmittance * cloudShadow * oColor * illumination +
-             tonemap(eclipseShadow * inScatter / uSunIlluminance);
-#endif
+    oceanSurfaceColor.rgb *= cloudShadow;
 
   } else {
 
     // If the ray leaves the atmosphere unblocked, we only need to compute the luminance of the sky.
-    vec3 transmittance;
-    vec3 inScatter = GetSkyLuminance(vsIn.rayOrigin, rayDir, uSunDir, transmittance);
+    inScatter = GetSkyLuminance(vsIn.rayOrigin, rayDir, uSunDir, transmittance);
 
     // We also incorporate eclipse shadows. However, we only evaluate at the ray exit point. There
     // is no actual shadow volume in the atmosphere.
@@ -637,24 +624,41 @@ void main() {
         vsIn.rayOrigin + rayDir * (atmosphereIntersections.x > 0.0 ? atmosphereIntersections.x
                                                                    : atmosphereIntersections.y);
     eclipseShadow = getEclipseShadow((uMatM * vec4(exitPoint, 1.0)).xyz);
-
-#if ENABLE_HDR
-    oColor = transmittance * oColor + inScatter * eclipseShadow;
-#else
-    oColor = transmittance * oColor + tonemap(inScatter * eclipseShadow / uSunIlluminance);
-#endif
   }
+
+  inScatter *= eclipseShadow;
+
+#if !ENABLE_HDR
+  inScatter = tonemap(inScatter / uSunIlluminance);
+#endif
+
+#if ENABLE_WATER
+  if (!underWater) {
+    oColor = mix(oColor, oColor * oceanWaterShade.rgb, oceanWaterShade.a);
+    oColor = mix(oColor, oceanSurfaceColor.rgb, oceanSurfaceColor.a);
+  }
+#endif
+
+  oColor = transmittance * oColor + inScatter;
+
+#if ENABLE_WATER
+  if (underWater) {
+    oColor = mix(oColor, oColor * oceanWaterShade.rgb, oceanWaterShade.a);
+  }
+#endif
 
 // Last, but not least, add the clouds.
 #if ENABLE_CLOUDS
-  vec4 cloudColor = getCloudColor(vsIn.rayOrigin, rayDir, uSunDir, surfaceDistance);
-  cloudColor.rgb *= eclipseShadow;
+  if (!underWater) {
+    vec4 cloudColor = getCloudColor(vsIn.rayOrigin, rayDir, uSunDir, surfaceDistance);
+    cloudColor.rgb *= eclipseShadow;
 
 #if !ENABLE_HDR
-  cloudColor.rgb = tonemap(cloudColor.rgb / uSunIlluminance);
+    cloudColor.rgb = tonemap(cloudColor.rgb / uSunIlluminance);
 #endif
 
-  oColor = mix(oColor, cloudColor.rgb, cloudColor.a);
+    oColor = mix(oColor, cloudColor.rgb, cloudColor.a);
+  }
 #endif
 
 // If HDR-mode is disabled, we have to convert to sRGB color space.
