@@ -7,7 +7,7 @@
 // SPDX-FileCopyrightText: Copyright (c) 2013 Nikita Miropolskiy
 // SPDX-License-Identifier: MIT
 
-#version 330
+#version 430
 
 // inputs
 in VaryingStruct {
