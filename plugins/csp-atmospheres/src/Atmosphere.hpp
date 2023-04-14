@@ -64,6 +64,7 @@ class Atmosphere : public IVistaOpenGLDraw {
 
   glm::dvec3                   mRadii                          = glm::dvec3(1.0, 1.0, 1.0);
   glm::dmat4                   mObserverRelativeTransformation = glm::dmat4(1.0);
+  double                       mSceneScale                     = 1.0;
   Plugin::Settings::Atmosphere mSettings;
 
   int mEnableHDRConnection = -1;

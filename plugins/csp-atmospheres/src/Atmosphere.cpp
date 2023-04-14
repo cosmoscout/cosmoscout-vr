@@ -211,6 +211,7 @@ void Atmosphere::update(double time) {
     mSunLuminance   = mSolarSystem->getSunLuminance();
     mSunDirection   = mSolarSystem->getSunDirection(object->getObserverRelativePosition());
     mObserverRelativeTransformation = object->getObserverRelativeTransform();
+    mSceneScale                     = mSolarSystem->getObserver().getScale();
     mEclipseShadowReceiver->update(*object);
 
     // update brightness value -------------------------------------------------
@@ -306,7 +307,7 @@ bool Atmosphere::Do() {
   // are not non-uniformly scaled. To fix this, we have to create a matrix which applies this
   // non-uniform scaling to the reconstructed observer-relative coordinates.
   glm::dmat4 matScale = matV * mObserverRelativeTransformation * matInvMV;
-  matScale            = glm::scale(matScale, glm::dvec3(mSolarSystem->getObserver().getScale()));
+  matScale            = glm::scale(matScale, glm::dvec3(mSceneScale));
   matScale[3]         = glm::vec4(0.0);
 
   glm::vec3 sunDir = glm::normalize(glm::vec3(matInvWorld * glm::vec4(mSunDirection, 0)));
