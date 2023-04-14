@@ -3,8 +3,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
-// SPDX-FileCopyrightText: Copyright (c) 2014 David Hoskins.
-// SPDX-FileCopyrightText: Copyright (c) 2013 Nikita Miropolskiy
+// SPDX-FileCopyrightText: 2014 David Hoskins
+// SPDX-FileCopyrightText: 2013 Nikita Miropolskiy
 // SPDX-License-Identifier: MIT
 
 #version 430
