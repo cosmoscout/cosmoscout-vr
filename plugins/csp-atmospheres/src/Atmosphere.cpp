@@ -283,7 +283,8 @@ bool Atmosphere::Do() {
 
   // get matrices and related values -----------------------------------------
 
-  std::array<GLfloat, 16> glMatV{}, glMatP{};
+  std::array<GLfloat, 16> glMatV{};
+  std::array<GLfloat, 16> glMatP{};
   glGetFloatv(GL_MODELVIEW_MATRIX, glMatV.data());
   glGetFloatv(GL_PROJECTION_MATRIX, glMatP.data());
 

@@ -300,7 +300,7 @@ float getSurfaceDistance(vec3 rayOrigin, vec3 rayDir) {
   // We compute the observer-centric distance to the current pixel. uMatScale is required to apply
   // the non-uniform scale of the ellipsoidal atmosphere to the reconstructed position.
   vec4 fragDir = uMatInvP * vec4(2.0 * vsIn.texcoords - 1, 2 * depth - 1, 1);
-  fragDir /= fragDir.w;
+  fragDir      /= fragDir.w;
   fragDir       = uMatScale * fragDir;
   float depthMS = length(fragDir.xyz);
 
@@ -522,14 +522,14 @@ void main() {
       // smoothing.
       wave = sin((wave - 0.5) * PI);
 
-      // As the waves poduce a very noise aliasing pattern when seen from a large distance, we will
+      // As the waves produce a very noise aliasing pattern when seen from a large distance, we will
       // gradually hide them at large distances.
       float waveFade =
           pow(1 - clamp(distance(oceanSurface, vsIn.rayOrigin) / WAVE_MAX_DISTANCE, 0, 1), 4);
 
       // Intuitively, we should have accumulated all three noise fields to get a height field of the
       // waves. Then we should have computed the gradient of the height field to get the ocean
-      // surface normal. However, computing the gradient is pretty expensive (dFdx amd dFdy are not
+      // surface normal. However, computing the gradient is pretty expensive (dFdx and dFdy are not
       // precise enough). Hence, we simply use the 3D noise wave to modulate the ideal surface
       // normal. This is pretty hacky but results in a surprisingly wavy normal!
       vec3 normal = normalize(mix(idealNormal, wave, WAVE_STRENGTH * waveFade));
@@ -539,7 +539,7 @@ void main() {
 #endif
 
       // Now compute the reflected view ray. If this is reflected into the ocean sphere, we reflect
-      // it once mor up into the sky.
+      // it once more up into the sky.
       vec3 reflection = reflect(rayDir, normal);
       if (dot(reflection, idealNormal) < 0.0) {
         reflection = reflect(reflection, idealNormal);
