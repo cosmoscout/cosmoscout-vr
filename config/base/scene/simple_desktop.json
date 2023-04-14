@@ -19,12 +19,12 @@
     ]
   },
   "sceneScale": {
-    "minScale": 5,
-    "maxScale": 100000000000000000,
-    "closeVisualDistance": 5,
-    "farVisualDistance": 5,
-    "closeRealDistance": 1.7,
-    "farRealDistance": 1000000,
+    "minScale": 1.0,
+    "maxScale": 1e17,
+    "closeVisualDistance": 5.0,
+    "farVisualDistance": 5.0,
+    "closeRealDistance": 1.0,
+    "farRealDistance": 1.0,
     "lockWeight": 0.1,
     "trackWeight": 0.0002,
     "minObjectSize": 10000.0

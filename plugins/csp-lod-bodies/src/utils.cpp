@@ -276,8 +276,8 @@ bool intersectPlanet(
       // Tile sizes
       int size = tile->getResolution();
 
-      auto max_tile_samplings = sqrt((size * size) + (size * size));
-      auto max_bbox_samplings = sqrt(
+      auto max_tile_samplings = std::sqrt((size * size) + (size * size));
+      auto max_bbox_samplings = std::sqrt(
           (max_tile_samplings * max_tile_samplings) + (max_tile_samplings * max_tile_samplings));
 
       auto step_factor =

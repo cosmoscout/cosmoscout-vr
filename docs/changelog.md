@@ -18,10 +18,6 @@ SPDX-License-Identifier: CC-BY-4.0
 * The `csp-timings` plugin now also shows the number of generated samples and primitives in the user interface.
 * A new "Ambient Occlusion" slider in the user interface can be used to control the amount of slope shading on the terrain.
 
-#### Other Changes
-
-* In order to improve the rendering performance, the stars of `csp-stars` are not drawn anymore if the observer is on the day-side of a planet with an atmosphere.
-
 #### Refactoring
 
 * The `csp-lod-bodies` plugin has received some major refactoring. Here are the main changes:
@@ -41,6 +37,11 @@ SPDX-License-Identifier: CC-BY-4.0
 
 #### Other Changes
 
+* A couple of changes and fixes were added in order to support much higher resolution map data:
+  * Increased maximum HEALPix depth from 20 to 30. This reduces our minimum tile size from about 13 m to 13 mm.
+  * Improved the scene scaling of the default configuration to allow for a smoother navigation close to the surface.
+  * Fixed an issue which led to an accumulated error in the rotation quaternion of the observer.
+  * Fixed an issue which caused precision issues for very small movements of the click-and-drag navigation.
 * In order to improve the rendering performance, the stars of `csp-stars` are not drawn anymore if the observer is on the day-side of a planet with an atmosphere.
 * The default exposure and glare values as well as the glare-slider mapping have been tweaked for a better appearance of the atmospheres in HDR mode.
 * The default star rendering mode has been changed to `eSmoothDisc`
