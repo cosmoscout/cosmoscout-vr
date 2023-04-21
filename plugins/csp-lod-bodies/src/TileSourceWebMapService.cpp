@@ -87,32 +87,34 @@ bool loadImpl(
       return false;
     }
     int tiffReturn{};
-    for (int y = 0; y < imagelength; y++) {
-      if (which == CopyPixels::eAll) {
-        tiffReturn = TIFFReadScanline(data, &tile->data()[resolution * y], y);
-      } else if (which == CopyPixels::eAboveDiagonal) {
-        std::vector<float> tmp(resolution);
-        tiffReturn = TIFFReadScanline(data, tmp.data(), y);
-        int offset = resolution * y;
-        int count  = resolution - y - 1;
+    if (TIFFGetField(data, TIFFTAG_IMAGELENGTH, &imagelength)) {
+      for (int y = 0; y < imagelength; y++) {
+        if (which == CopyPixels::eAll) {
+          tiffReturn = TIFFReadScanline(data, &tile->data()[resolution * y], y);
+        } else if (which == CopyPixels::eAboveDiagonal) {
+          std::vector<float> tmp(resolution);
+          tiffReturn = TIFFReadScanline(data, tmp.data(), y);
+          int offset = resolution * y;
+          int count  = resolution - y - 1;
 
-        // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-        std::memcpy(tile->data().data() + offset, tmp.data(), count * sizeof(float));
-      } else if (which == CopyPixels::eBelowDiagonal) {
-        std::vector<float> tmp(resolution);
-        tiffReturn = TIFFReadScanline(data, tmp.data(), y);
-        int offset = resolution * y + (resolution - y);
-        int count  = y;
+          // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+          std::memcpy(tile->data().data() + offset, tmp.data(), count * sizeof(float));
+        } else if (which == CopyPixels::eBelowDiagonal) {
+          std::vector<float> tmp(resolution);
+          tiffReturn = TIFFReadScanline(data, tmp.data(), y);
+          int offset = resolution * y + (resolution - y);
+          int count  = y;
 
-        // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-        std::memcpy(
-            tile->data().data() + offset, tmp.data() + resolution - y, count * sizeof(float));
+          // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+          std::memcpy(
+              tile->data().data() + offset, tmp.data() + resolution - y, count * sizeof(float));
+        }
       }
-    }
-    if (tiffReturn == -1) {
-      logger().debug("TIFFReadScanline failed: Removing invalid cache file '{}'.", *cacheFile);
-      boost::filesystem::remove(*cacheFile);
-      return false;
+      if (tiffReturn == -1) {
+        logger().debug("TIFFReadScanline failed: Removing invalid cache file '{}'.", *cacheFile);
+        boost::filesystem::remove(*cacheFile);
+        return false;
+      }
     }
     TIFFClose(data);
   } else {
