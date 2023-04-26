@@ -81,13 +81,18 @@ bool loadImpl(
     // two requests are made. For those, only half of the pixels contain valid data (above or below
     // the diagonal).
     int imagelength{};
-    TIFFGetField(data, TIFFTAG_IMAGELENGTH, &imagelength);
+    if (TIFFGetField(data, TIFFTAG_IMAGELENGTH, &imagelength) == 0) {
+      logger().debug("TIFFGetField failed: Removing invalid cache file '{}'.", *cacheFile);
+      boost::filesystem::remove(*cacheFile);
+      return false;
+    }
+    int tiffReturn{};
     for (int y = 0; y < imagelength; y++) {
       if (which == CopyPixels::eAll) {
-        TIFFReadScanline(data, &tile->data()[resolution * y], y);
+        tiffReturn = TIFFReadScanline(data, &tile->data()[resolution * y], y);
       } else if (which == CopyPixels::eAboveDiagonal) {
         std::vector<float> tmp(resolution);
-        TIFFReadScanline(data, tmp.data(), y);
+        tiffReturn = TIFFReadScanline(data, tmp.data(), y);
         int offset = resolution * y;
         int count  = resolution - y - 1;
 
@@ -95,7 +100,7 @@ bool loadImpl(
         std::memcpy(tile->data().data() + offset, tmp.data(), count * sizeof(float));
       } else if (which == CopyPixels::eBelowDiagonal) {
         std::vector<float> tmp(resolution);
-        TIFFReadScanline(data, tmp.data(), y);
+        tiffReturn = TIFFReadScanline(data, tmp.data(), y);
         int offset = resolution * y + (resolution - y);
         int count  = y;
 
@@ -104,6 +109,12 @@ bool loadImpl(
             tile->data().data() + offset, tmp.data() + resolution - y, count * sizeof(float));
       }
     }
+    if (tiffReturn == -1) {
+      logger().debug("TIFFReadScanline failed: Removing invalid cache file '{}'.", *cacheFile);
+      boost::filesystem::remove(*cacheFile);
+      return false;
+    }
+
     TIFFClose(data);
   } else {
 
