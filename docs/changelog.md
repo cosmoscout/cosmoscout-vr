@@ -17,6 +17,7 @@ SPDX-License-Identifier: CC-BY-4.0
 
 * The `csp-timings` plugin now also shows the number of generated samples and primitives in the user interface.
 * A new "Ambient Occlusion" slider in the user interface can be used to control the amount of slope shading on the terrain.
+* The water surface shader of `csp-atmospheres` has been improved significantly. It now reflects the sky and features some beautiful waves. The waves can be disabled as they are quite demanding in terms of GPU power. Both, the reflections and the waves are not physically based in any way; they are mostly intended for presentation purposes.
 
 #### Refactoring
 
@@ -42,6 +43,7 @@ SPDX-License-Identifier: CC-BY-4.0
   * Improved the scene scaling of the default configuration to allow for a smoother navigation close to the surface.
   * Fixed an issue which led to an accumulated error in the rotation quaternion of the observer.
   * Fixed an issue which caused precision issues for very small movements of the click-and-drag navigation.
+  * The world-space depth reconstruction in the atmosphere shader now operates relative to the camera, resulting in a much higher precision if the user is close to the surface. This will allow us to create a very dense media, for example for under-water scenes.
 * In order to improve the rendering performance, the stars of `csp-stars` are not drawn anymore if the observer is on the day-side of a planet with an atmosphere.
 * The default exposure and glare values as well as the glare-slider mapping have been tweaked for a better appearance of the atmospheres in HDR mode.
 * The default star rendering mode has been changed to `eSmoothDisc`
