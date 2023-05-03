@@ -8,9 +8,9 @@
 # install platform dependent files -----------------------------------------------------------------
 if (WIN32)
   install(FILES "spice/simple-windows.txt"            DESTINATION "share/config/spice" RENAME "simple.txt")
-  install(FILES "scene/simple_openvr.json"            DESTINATION "share/config")
+  install(FILES "scene/simple_hmd.json"               DESTINATION "share/config")
   install(FILES "scripts/start.bat"                   DESTINATION "bin")
-  install(FILES "scripts/openvr.bat"                  DESTINATION "bin")
+  install(FILES "scripts/hmd.bat"                     DESTINATION "bin")
 
   if (COSMOSCOUT_UNIT_TESTS)
     install(FILES "scripts/run_tests.bat" DESTINATION "bin")
