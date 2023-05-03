@@ -13,14 +13,14 @@ set CURRENT_DIR=%cd%
 cd "%SCRIPT_DIR%"
 
 rem Scene config file can be passed as first parameter.
-set SETTINGS=../share/config/simple_openvr.json
+set SETTINGS=../share/config/simple_hmd.json
 IF NOT "%1"=="" (
   SET SETTINGS=%1
   SHIFT
 )
 
 rem Vista ini can be passed as second parameter.
-set VISTA_INI=vista_openvr.ini
+set VISTA_INI=vista_hmd.ini
 IF NOT "%1"=="" (
   SET VISTA_INI=%1
   SHIFT
