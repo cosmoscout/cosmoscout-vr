@@ -33,9 +33,22 @@ namespace csp::timings {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void from_json(nlohmann::json const& j, Plugin::Settings& o) {
+  cs::core::Settings::deserialize(j, "useLocalGui", o.mUseLocalGui);
+}
+
+void to_json(nlohmann::json& j, Plugin::Settings const& o) {
+  cs::core::Settings::serialize(j, "useLocalGui", o.mUseLocalGui);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void Plugin::init() {
 
   logger().info("Loading plugin...");
+
+  mOnLoadConnection = mAllSettings->onLoad().connect([this]() { onLoad(); });
+  mOnSaveConnection = mAllSettings->onSave().connect([this]() { onSave(); });
 
   // The {mainUIZoom} will be ignored when loading the file from disc. This basically prevents all
   // other WebViews to be affected by the pMainUIScale factor. Why that is, is explained in the
@@ -56,9 +69,22 @@ void Plugin::init() {
   mGuiItem->setCanScroll(false);
   mGuiItem->setIsEnabled(false);
 
-  // Add it to the local GUI area. This ensures that the statistics are drawn on each screen in a
-  // clustered setup.
-  mGuiManager->getLocalGuiArea().addItem(mGuiItem.get());
+  // If we add it to the local GUI area, the statistics are drawn on each screen in a clustered setup.
+  mPluginSettings.mUseLocalGui.connectAndTouch([this](bool useLocal) {
+    // Remove the statistic GUI item first in case it was added before. We don't exactly know whether
+    // it was attached locally or globally, so we just attempt to remove it in both cases.
+    if (mGuiManager->hasGlobalGuiArea()) {
+      mGuiManager->getGlobalGuiArea().removeItem(mGuiItem.get());
+    }
+
+    mGuiManager->getLocalGuiArea().removeItem(mGuiItem.get());
+
+    if (useLocal || !mGuiManager->hasGlobalGuiArea()) {
+      mGuiManager->getLocalGuiArea().addItem(mGuiItem.get());
+    } else {
+      mGuiManager->getGlobalGuiArea().addItem(mGuiItem.get());
+    }
+  });
 
   // Add the sidebar user settings tab to the CosmoScout user interface.
   mGuiManager->addSettingsSectionToSideBarFromHTML(
@@ -111,6 +137,9 @@ void Plugin::init() {
   mGuiManager->getGui()->registerCallback("timings.setEnableStatistics",
       "Shows or hides the on-screen timer statistics.",
       std::function([this](bool enable) { mEnableStatistics = enable; }));
+
+  // Load settings.
+  onLoad();
 
   logger().info("Loading done.");
 }
@@ -304,13 +333,34 @@ void Plugin::deInit() {
   mGuiManager->getGui()->unregisterCallback("timings.setEnableRecording");
   mGuiManager->getGui()->unregisterCallback("timings.setEnableStatistics");
 
-  // Remove the statistic GUI item.
+  // Remove the statistic GUI item. We don't exactly know whether it was attached locally or
+  // globally, so we just attempt to remove it in both cases.
+  if (mGuiManager->hasGlobalGuiArea()) {
+    mGuiManager->getGlobalGuiArea().removeItem(mGuiItem.get());
+  }
   mGuiManager->getLocalGuiArea().removeItem(mGuiItem.get());
 
   // Disconnect any signals.
   cs::utils::FrameStats::get().pEnableMeasurements.disconnect(mFrameTimingConnection);
 
+  mAllSettings->onLoad().disconnect(mOnLoadConnection);
+  mAllSettings->onSave().disconnect(mOnSaveConnection);
+
   logger().info("Unloading done.");
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Plugin::onLoad() {
+
+  // Read settings from JSON.
+  from_json(mAllSettings->mPlugins.at("csp-timings"), mPluginSettings);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Plugin::onSave() {
+  mAllSettings->mPlugins["csp-timings"] = mPluginSettings;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
