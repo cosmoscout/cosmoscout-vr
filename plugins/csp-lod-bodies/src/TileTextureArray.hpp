@@ -19,7 +19,7 @@ namespace csp::lodbodies {
 
 class TileNode;
 class RenderData;
-class TreeManagerBase;
+class TreeManager;
 
 /// Responsible for handling tile data that is uploaded the GPU and for balancing additional upload
 /// requests.

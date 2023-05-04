@@ -140,11 +140,11 @@ class VistaPlanet : public cs::graphics::ShadowCaster {
   LODVisitor       mLodVisitor;
   TileRenderer     mRenderer;
 
-  TileSource*             mSrcDEM;
-  TreeManager<RenderData> mTreeMgrDEM;
+  TileSource* mSrcDEM;
+  TreeManager mTreeMgrDEM;
 
-  TileSource*             mSrcIMG;
-  TreeManager<RenderData> mTreeMgrIMG;
+  TileSource* mSrcIMG;
+  TreeManager mTreeMgrIMG;
 
   // global statistics
   double      mLastFrameClock;

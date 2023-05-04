@@ -10,7 +10,7 @@
 #include "PlanetParameters.hpp"
 #include "RenderData.hpp"
 #include "TileTextureArray.hpp"
-#include "TreeManagerBase.hpp"
+#include "TreeManager.hpp"
 #include "logger.hpp"
 
 #include <VistaBase/VistaStreamUtils.h>
@@ -87,7 +87,7 @@ bool testInFrustum(Frustum const& frustum, BoundingBox<double> const& tb) {
 // Returns true if one the eight tile bbox corner points is not occluded by a proxy sphere.
 // Culls tiles behind the horizon.
 bool testFrontFacing(glm::dvec3 const& camPos, PlanetParameters const* params,
-    BoundingBox<double> const& tb, TreeManagerBase* treeMgrDEM) {
+    BoundingBox<double> const& tb, TreeManager* treeMgrDEM) {
   assert(treeMgrDEM != nullptr);
 
   // Get minimum height of all base patches (needed for radius of proxy culling sphere)
@@ -145,7 +145,7 @@ bool testFrontFacing(glm::dvec3 const& camPos, PlanetParameters const* params,
 
 // Tests if @a node can be refined, which is the case if all 4
 // children are present and uploaded to the GPU.
-bool childrenAvailable(TileNode* node, TreeManagerBase* treeMgr) {
+bool childrenAvailable(TileNode* node, TreeManager* treeMgr) {
   for (int i = 0; i < 4; ++i) {
     TileNode* child = node->getChild(i);
 
@@ -154,7 +154,7 @@ bool childrenAvailable(TileNode* node, TreeManagerBase* treeMgr) {
       return false;
     }
 
-    RenderData* rd = treeMgr->findRData(child);
+    RenderData* rd = treeMgr->find(child);
 
     // child is not on GPU -> can not refine
     if (!rd || rd->getTexLayer() < 0) {
@@ -173,7 +173,7 @@ bool childrenAvailable(TileNode* node, TreeManagerBase* treeMgr) {
 
 /* explicit */
 LODVisitor::LODVisitor(
-    PlanetParameters const& params, TreeManagerBase* treeMgrDEM, TreeManagerBase* treeMgrIMG)
+    PlanetParameters const& params, TreeManager* treeMgrDEM, TreeManager* treeMgrIMG)
     : TileVisitor<LODVisitor>(treeMgrDEM ? treeMgrDEM->getTree() : nullptr,
           treeMgrIMG ? treeMgrIMG->getTree() : nullptr)
     , mParams(&params)
@@ -196,7 +196,7 @@ LODVisitor::LODVisitor(
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void LODVisitor::setTreeManagerDEM(TreeManagerBase* treeMgr) {
+void LODVisitor::setTreeManagerDEM(TreeManager* treeMgr) {
   // unset tree from OLD tree manager
   if (mTreeMgrDEM) {
     setTreeDEM(nullptr);
@@ -217,7 +217,7 @@ void LODVisitor::setTreeManagerDEM(TreeManagerBase* treeMgr) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void LODVisitor::setTreeManagerIMG(TreeManagerBase* treeMgr) {
+void LODVisitor::setTreeManagerIMG(TreeManager* treeMgr) {
   // unset tree from OLD tree manager
   if (mTreeMgrIMG) {
     setTreeIMG(nullptr);
@@ -287,7 +287,7 @@ bool LODVisitor::preVisitRoot(TileId const& tileId) {
 
   // fetch RenderData for visited node and mark as used in this frame
   if (mTreeMgrDEM && state.mNodeDEM) {
-    auto* rd     = mTreeMgrDEM->find<RenderData>(state.mNodeDEM);
+    auto* rd     = mTreeMgrDEM->find(state.mNodeDEM);
     state.mRdDEM = rd;
     state.mRdDEM->setLastFrame(mFrameCount);
   } else {
@@ -296,7 +296,7 @@ bool LODVisitor::preVisitRoot(TileId const& tileId) {
 
   // fetch RenderData for visited node and mark as used in this frame
   if (mTreeMgrIMG && state.mNodeIMG) {
-    auto* rd     = mTreeMgrIMG->find<RenderData>(state.mNodeIMG);
+    auto* rd     = mTreeMgrIMG->find(state.mNodeIMG);
     state.mRdIMG = rd;
     state.mRdIMG->setLastFrame(mFrameCount);
   } else {
@@ -321,7 +321,7 @@ bool LODVisitor::preVisit(TileId const& tileId) {
 
   // fetch RenderData for visited node and mark as used in this frame
   if (mTreeMgrDEM && state.mNodeDEM) {
-    auto* rd     = mTreeMgrDEM->find<RenderData>(state.mNodeDEM);
+    auto* rd     = mTreeMgrDEM->find(state.mNodeDEM);
     state.mRdDEM = rd;
     state.mRdDEM->setLastFrame(mFrameCount);
   } else {
@@ -330,7 +330,7 @@ bool LODVisitor::preVisit(TileId const& tileId) {
 
   // fetch RenderData for visited node and mark as used in this frame
   if (mTreeMgrIMG && state.mNodeIMG) {
-    auto* rd     = mTreeMgrIMG->find<RenderData>(state.mNodeIMG);
+    auto* rd     = mTreeMgrIMG->find(state.mNodeIMG);
     state.mRdIMG = rd;
     state.mRdIMG->setLastFrame(mFrameCount);
   } else {
@@ -434,7 +434,7 @@ void LODVisitor::addLoadChildrenDEM(TileNode* node) {
       } else {
         // mark child as used to avoid it being removed while waiting
         // for its siblings to be loaded
-        RenderData* rd = mTreeMgrDEM->findRData(node->getChild(i));
+        RenderData* rd = mTreeMgrDEM->find(node->getChild(i));
         rd->setLastFrame(mFrameCount);
       }
     }
@@ -453,7 +453,7 @@ void LODVisitor::addLoadChildrenIMG(TileNode* node) {
       } else {
         // mark child as used to avoid it being removed while waiting
         // for its siblings to be loaded
-        RenderData* rd = mTreeMgrIMG->findRData(node->getChild(i));
+        RenderData* rd = mTreeMgrIMG->find(node->getChild(i));
         rd->setLastFrame(mFrameCount);
       }
     }
@@ -462,7 +462,7 @@ void LODVisitor::addLoadChildrenIMG(TileNode* node) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool LODVisitor::testVisible(TileId const& tileId, TreeManagerBase* treeMgrDEM) {
+bool LODVisitor::testVisible(TileId const& tileId, TreeManager* treeMgrDEM) {
   bool      result = false;
   LODState& state  = getLODState();
 
@@ -557,13 +557,13 @@ void LODVisitor::drawLevel() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-TreeManagerBase* LODVisitor::getTreeManagerDEM() const {
+TreeManager* LODVisitor::getTreeManagerDEM() const {
   return mTreeMgrDEM;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-TreeManagerBase* LODVisitor::getTreeManagerIMG() const {
+TreeManager* LODVisitor::getTreeManagerIMG() const {
   return mTreeMgrIMG;
 }
 

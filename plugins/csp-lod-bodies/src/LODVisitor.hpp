@@ -19,20 +19,20 @@
 namespace csp::lodbodies {
 
 struct PlanetParameters;
-class TreeManagerBase;
+class TreeManager;
 
 /// Specialization of TileVisitor that determines the necessary level of detail for tiles and
 /// produces lists of tiles to load and draw respectively.
 class LODVisitor : public TileVisitor<LODVisitor> {
  public:
-  explicit LODVisitor(PlanetParameters const& params, TreeManagerBase* treeMgrDEM = nullptr,
-      TreeManagerBase* treeMgrIMG = nullptr);
+  explicit LODVisitor(PlanetParameters const& params, TreeManager* treeMgrDEM = nullptr,
+      TreeManager* treeMgrIMG = nullptr);
 
-  TreeManagerBase* getTreeManagerDEM() const;
-  void             setTreeManagerDEM(TreeManagerBase* treeMgr);
+  TreeManager* getTreeManagerDEM() const;
+  void         setTreeManagerDEM(TreeManager* treeMgr);
 
-  TreeManagerBase* getTreeManagerIMG() const;
-  void             setTreeManagerIMG(TreeManagerBase* treeMgr);
+  TreeManager* getTreeManagerIMG() const;
+  void         setTreeManagerIMG(TreeManager* treeMgr);
 
   int  getFrameCount() const;
   void setFrameCount(int frameCount);
@@ -126,7 +126,7 @@ class LODVisitor : public TileVisitor<LODVisitor> {
 
   /// Returns whether the currently visited node is potentially visible. Tests if the node's
   /// bounding box intersects the camera frustum.
-  bool testVisible(TileId const& tileId, TreeManagerBase* treeMgrDEM_);
+  bool testVisible(TileId const& tileId, TreeManager* treeMgrDEM_);
 
   /// Returns whether the currently visited node should be refined, i.e. if it's children should be
   /// used to achieve desired resolution. Estimates the screen space size (in pixels) of the node
@@ -140,8 +140,8 @@ class LODVisitor : public TileVisitor<LODVisitor> {
   static std::size_t const sMaxStackDepth = 32;
 
   PlanetParameters const* mParams;
-  TreeManagerBase*        mTreeMgrDEM;
-  TreeManagerBase*        mTreeMgrIMG;
+  TreeManager*            mTreeMgrDEM;
+  TreeManager*            mTreeMgrIMG;
 
   glm::ivec4 mViewport;
   glm::dmat4 mMatVM;

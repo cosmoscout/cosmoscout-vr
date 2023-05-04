@@ -152,9 +152,9 @@ double getHeight(
 
 bool intersectTileBounds(TileNode const* tileNode, VistaPlanet const* planet,
     glm::dvec4 const& origin, glm::dvec4 const& direction, double& minDist, double& maxDist) {
-  TileBase* tile   = tileNode->getTile();
-  auto      tileId = tile->getTileId();
-  auto*     rdDEM  = planet->getTileRenderer().getTreeManagerDEM()->find<RenderData>(tileId);
+  TileBase*           tile        = tileNode->getTile();
+  auto                tileId      = tile->getTileId();
+  auto*               rdDEM       = planet->getTileRenderer().getTreeManagerDEM()->find(tileId);
   BoundingBox<double> tile_bounds = rdDEM->getBounds();
   std::array dMin{tile_bounds.getMin()[0], tile_bounds.getMin()[1], tile_bounds.getMin()[2]};
   std::array dMax{tile_bounds.getMax()[0], tile_bounds.getMax()[1], tile_bounds.getMax()[2]};
@@ -268,9 +268,9 @@ bool intersectPlanet(
       //        |        \   /     |
       //        |         \/       |
       // BboxMin--------------------
-      TileBase* tile   = parent->getTile();
-      auto      tileId = tile->getTileId();
-      auto*     rdDEM  = planet->getTileRenderer().getTreeManagerDEM()->find<RenderData>(tileId);
+      TileBase* tile        = parent->getTile();
+      auto      tileId      = tile->getTileId();
+      auto*     rdDEM       = planet->getTileRenderer().getTreeManagerDEM()->find(tileId);
       auto      tile_bounds = rdDEM->getBounds();
 
       // Tile sizes

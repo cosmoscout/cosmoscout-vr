@@ -25,7 +25,7 @@ namespace csp::lodbodies {
 struct PlanetParameters;
 class TileNode;
 class RenderData;
-class TreeManagerBase;
+class TreeManager;
 
 /// Renders tiles with elevation (DEM) and optionally image (IMG) data.
 class TileRenderer {
@@ -39,11 +39,11 @@ class TileRenderer {
   TileRenderer& operator=(TileRenderer const& other) = delete;
   TileRenderer& operator=(TileRenderer&& other) = delete;
 
-  TreeManagerBase* getTreeManagerDEM() const;
-  void             setTreeManagerDEM(TreeManagerBase* treeMgr);
+  TreeManager* getTreeManagerDEM() const;
+  void         setTreeManagerDEM(TreeManager* treeMgr);
 
-  TreeManagerBase* getTreeManagerIMG() const;
-  void             setTreeManagerIMG(TreeManagerBase* treeMgr);
+  TreeManager* getTreeManagerIMG() const;
+  void         setTreeManagerIMG(TreeManager* treeMgr);
 
   /// Set the shader for rendering terrain tiles. Initially (or when shader is nullptr) a
   /// default shader is used. The shader must declare certain inputs and uniforms detailed below.
@@ -103,8 +103,8 @@ class TileRenderer {
   static std::unique_ptr<VistaGLSLShader> makeProgBounds();
 
   PlanetParameters const* mParams;
-  TreeManagerBase*        mTreeMgrDEM;
-  TreeManagerBase*        mTreeMgrIMG;
+  TreeManager*            mTreeMgrDEM;
+  TreeManager*            mTreeMgrIMG;
 
   glm::dmat4 mMatM;
   glm::mat4  mMatV;

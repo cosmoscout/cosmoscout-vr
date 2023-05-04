@@ -8,7 +8,7 @@
 #include "TileTextureArray.hpp"
 
 #include "RenderData.hpp"
-#include "TreeManagerBase.hpp"
+#include "TreeManager.hpp"
 
 #include <VistaBase/VistaStreamUtils.h>
 

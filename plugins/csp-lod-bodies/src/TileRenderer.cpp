@@ -11,7 +11,7 @@
 #include "PlanetParameters.hpp"
 #include "RenderData.hpp"
 #include "TileTextureArray.hpp"
-#include "TreeManagerBase.hpp"
+#include "TreeManager.hpp"
 
 #include "../../../src/cs-graphics/Shadows.hpp"
 #include "../../../src/cs-utils/convert.hpp"
@@ -517,25 +517,25 @@ std::unique_ptr<VistaGLSLShader> TileRenderer::makeProgBounds() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-TreeManagerBase* TileRenderer::getTreeManagerDEM() const {
+TreeManager* TileRenderer::getTreeManagerDEM() const {
   return mTreeMgrDEM;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void TileRenderer::setTreeManagerDEM(TreeManagerBase* treeMgr) {
+void TileRenderer::setTreeManagerDEM(TreeManager* treeMgr) {
   mTreeMgrDEM = treeMgr;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-TreeManagerBase* TileRenderer::getTreeManagerIMG() const {
+TreeManager* TileRenderer::getTreeManagerIMG() const {
   return mTreeMgrIMG;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void TileRenderer::setTreeManagerIMG(TreeManagerBase* treeMgr) {
+void TileRenderer::setTreeManagerIMG(TreeManager* treeMgr) {
   mTreeMgrIMG = treeMgr;
 }
 

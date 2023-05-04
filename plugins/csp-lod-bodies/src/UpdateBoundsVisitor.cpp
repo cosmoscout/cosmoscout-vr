@@ -9,15 +9,14 @@
 
 #include "PlanetParameters.hpp"
 #include "RenderData.hpp"
-#include "TreeManagerBase.hpp"
+#include "TreeManager.hpp"
 
 namespace csp::lodbodies {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /* explicit */
-UpdateBoundsVisitor::UpdateBoundsVisitor(
-    TreeManagerBase* treeMgrDEM, PlanetParameters const& params)
+UpdateBoundsVisitor::UpdateBoundsVisitor(TreeManager* treeMgrDEM, PlanetParameters const& params)
     : TileVisitor<UpdateBoundsVisitor>(treeMgrDEM->getTree(), nullptr)
     , mTreeMgrDEM(treeMgrDEM)
     , mParams(&params) {
@@ -37,7 +36,7 @@ bool UpdateBoundsVisitor::preVisitRoot(TileId const& tileId) {
 
   if (node) {
     TileBase* tile  = node->getTile();
-    auto*     rdDEM = mTreeMgrDEM->find<RenderData>(tileId);
+    auto*     rdDEM = mTreeMgrDEM->find(tileId);
 
     rdDEM->setBounds(calcTileBounds(*tile, mParams->mRadii, mParams->mHeightScale));
 
@@ -52,7 +51,7 @@ bool UpdateBoundsVisitor::preVisitRoot(TileId const& tileId) {
 bool UpdateBoundsVisitor::preVisit(TileId const& tileId) {
   TileNode* node  = getState().mNodeDEM;
   TileBase* tile  = node->getTile();
-  auto*     rdDEM = mTreeMgrDEM->find<RenderData>(tileId);
+  auto*     rdDEM = mTreeMgrDEM->find(tileId);
 
   rdDEM->setBounds(calcTileBounds(*tile, mParams->mRadii, mParams->mHeightScale));
 

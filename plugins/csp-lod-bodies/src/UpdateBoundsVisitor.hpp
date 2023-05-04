@@ -13,12 +13,12 @@
 namespace csp::lodbodies {
 
 struct PlanetParameters;
-class TreeManagerBase;
+class TreeManager;
 
 /// DocTODO isn't used anywhere in the project.
 class UpdateBoundsVisitor : public TileVisitor<UpdateBoundsVisitor> {
  public:
-  explicit UpdateBoundsVisitor(TreeManagerBase* treeMgrDEM, PlanetParameters const& params);
+  explicit UpdateBoundsVisitor(TreeManager* treeMgrDEM, PlanetParameters const& params);
 
  protected:
   bool preTraverse() override;
@@ -27,7 +27,7 @@ class UpdateBoundsVisitor : public TileVisitor<UpdateBoundsVisitor> {
 
   friend class TileVisitor<UpdateBoundsVisitor>;
 
-  TreeManagerBase*        mTreeMgrDEM;
+  TreeManager*            mTreeMgrDEM;
   PlanetParameters const* mParams;
 };
 

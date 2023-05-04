@@ -309,14 +309,14 @@ void VistaPlanet::updateTileBounds() {
 void VistaPlanet::updateTileTrees(int frameCount) {
   // update DEM tree
   if (mSrcDEM) {
-    cs::utils::FrameStats::ScopedTimer timer("Upload DEM", cs::utils::FrameStats::TimerMode::eCPU);
+    cs::utils::FrameStats::ScopedTimer timer("DEM Upload", cs::utils::FrameStats::TimerMode::eCPU);
     mTreeMgrDEM.setFrameCount(frameCount);
     mTreeMgrDEM.update();
   }
 
   // update IMG tree
   if (mSrcIMG) {
-    cs::utils::FrameStats::ScopedTimer timer("Upload IMG", cs::utils::FrameStats::TimerMode::eCPU);
+    cs::utils::FrameStats::ScopedTimer timer("IMG Upload", cs::utils::FrameStats::TimerMode::eCPU);
     mTreeMgrIMG.setFrameCount(frameCount);
     mTreeMgrIMG.update();
   }
