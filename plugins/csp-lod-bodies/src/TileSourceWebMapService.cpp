@@ -122,7 +122,7 @@ bool loadImpl(
     int width{};
     int height{};
     int bpp{};
-    int channels = 3;
+    int channels = 4;
 
     auto* data =
         reinterpret_cast<T*>(stbi_load(cacheFile->c_str(), &width, &height, &bpp, channels));
@@ -258,7 +258,7 @@ TileSourceWebMapService::TileSourceWebMapService(uint32_t resolution)
     return loadImpl<float>(this, level, patchIdx);
   }
   if (mFormat == TileDataType::eColor) {
-    return loadImpl<glm::u8vec3>(this, level, patchIdx);
+    return loadImpl<glm::u8vec4>(this, level, patchIdx);
   }
 
   throw std::domain_error(fmt::format("Unsupported format: {}!", mFormat));

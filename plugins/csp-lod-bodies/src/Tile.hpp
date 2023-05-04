@@ -59,7 +59,7 @@ struct DataTypeTrait<float> {
 };
 
 template <>
-struct DataTypeTrait<glm::u8vec3> {
+struct DataTypeTrait<glm::u8vec4> {
   static TileDataType const value = TileDataType::eColor;
 };
 } // namespace detail

@@ -29,7 +29,7 @@ GLenum getInternalFormat(TileDataType dataType) {
     break;
 
   case TileDataType::eColor:
-    result = GL_RGB8;
+    result = GL_RGBA8;
     break;
   }
 
@@ -43,7 +43,7 @@ GLenum getFormat(TileDataType dataType) {
   case TileDataType::eElevation:
     return GL_RED;
   case TileDataType::eColor:
-    return GL_RGB;
+    return GL_RGBA;
   }
 
   return GL_NONE;
