@@ -7,6 +7,7 @@
 
 #include "VistaPlanet.hpp"
 
+#include "../../../src/cs-utils/FrameStats.hpp"
 #include "../../../src/cs-utils/utils.hpp"
 #include "TileSource.hpp"
 #include "UpdateBoundsVisitor.hpp"
@@ -90,19 +91,39 @@ void VistaPlanet::draw() {
   updateStatistics(frameCount);
 
   // update bounding boxes
-  updateTileBounds();
+  {
+    cs::utils::FrameStats::ScopedTimer timer(
+        "Update Tile Bounds", cs::utils::FrameStats::TimerMode::eCPU);
+    updateTileBounds();
+  }
 
   // integrate newly loaded tiles/remove unused tiles
-  updateTileTrees(frameCount);
+  {
+    cs::utils::FrameStats::ScopedTimer timer(
+        "Update Tile Trees", cs::utils::FrameStats::TimerMode::eCPU);
+    updateTileTrees(frameCount);
+  }
 
   // determine tiles to draw and load
-  traverseTileTrees(frameCount, mWorldTransform, matV, matP, viewport);
+  {
+    cs::utils::FrameStats::ScopedTimer timer(
+        "Traverse Tile Trees", cs::utils::FrameStats::TimerMode::eCPU);
+    traverseTileTrees(frameCount, mWorldTransform, matV, matP, viewport);
+  }
 
   // pass requests to load tiles to TreeManagers
-  processLoadRequests();
+  {
+    cs::utils::FrameStats::ScopedTimer timer(
+        "Rrocess Load Requests", cs::utils::FrameStats::TimerMode::eCPU);
+    processLoadRequests();
+  }
 
   // render
-  renderTiles(frameCount, mWorldTransform, matV, matP, mShadowMap);
+  {
+    cs::utils::FrameStats::ScopedTimer timer(
+        "Render Tiles", cs::utils::FrameStats::TimerMode::eCPU);
+    renderTiles(frameCount, mWorldTransform, matV, matP, mShadowMap);
+  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -288,12 +309,14 @@ void VistaPlanet::updateTileBounds() {
 void VistaPlanet::updateTileTrees(int frameCount) {
   // update DEM tree
   if (mSrcDEM) {
+    cs::utils::FrameStats::ScopedTimer timer("Upload DEM", cs::utils::FrameStats::TimerMode::eCPU);
     mTreeMgrDEM.setFrameCount(frameCount);
     mTreeMgrDEM.update();
   }
 
   // update IMG tree
   if (mSrcIMG) {
+    cs::utils::FrameStats::ScopedTimer timer("Upload IMG", cs::utils::FrameStats::TimerMode::eCPU);
     mTreeMgrIMG.setFrameCount(frameCount);
     mTreeMgrIMG.update();
   }
