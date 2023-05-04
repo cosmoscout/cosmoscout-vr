@@ -10,8 +10,8 @@
 
 #include "../../../src/cs-core/PluginBase.hpp"
 #include "../../../src/cs-gui/GuiItem.hpp"
-#include "../../../src/cs-utils/FrameStats.hpp"
 #include "../../../src/cs-utils/DefaultProperty.hpp"
+#include "../../../src/cs-utils/FrameStats.hpp"
 
 #include <fstream>
 #include <list>

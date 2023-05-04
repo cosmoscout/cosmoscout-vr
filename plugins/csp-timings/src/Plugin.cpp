@@ -69,10 +69,11 @@ void Plugin::init() {
   mGuiItem->setCanScroll(false);
   mGuiItem->setIsEnabled(false);
 
-  // If we add it to the local GUI area, the statistics are drawn on each screen in a clustered setup.
+  // If we add it to the local GUI area, the statistics are drawn on each screen in a clustered
+  // setup.
   mPluginSettings.mUseLocalGui.connectAndTouch([this](bool useLocal) {
-    // Remove the statistic GUI item first in case it was added before. We don't exactly know whether
-    // it was attached locally or globally, so we just attempt to remove it in both cases.
+    // Remove the statistic GUI item first in case it was added before. We don't exactly know
+    // whether it was attached locally or globally, so we just attempt to remove it in both cases.
     if (mGuiManager->hasGlobalGuiArea()) {
       mGuiManager->getGlobalGuiArea().removeItem(mGuiItem.get());
     }
