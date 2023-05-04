@@ -23,8 +23,8 @@ namespace csp::timings {
 class Plugin : public cs::core::PluginBase {
  public:
   struct Settings {
-    // If the statistics are shown on the local GUI area, the are drawn on each screen in a
-    // clustered setup.
+    /// If the statistics are shown on the local GUI area, they are drawn on each screen in a
+    /// clustered setup.
     cs::utils::DefaultProperty<bool> mUseLocalGui{false};
   };
 
