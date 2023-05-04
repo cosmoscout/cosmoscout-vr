@@ -166,7 +166,7 @@ void TreeManagerBase::update() {
   merge();
 
   // upload tiles to GPU
-  getTileTextureArray().processQueue(20);
+  getTileTextureArray().processQueue(5);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

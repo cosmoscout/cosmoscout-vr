@@ -25,6 +25,7 @@ SPDX-License-Identifier: CC-BY-4.0
   * The terrain tiles are not stitched together anymore, instead, skirt polygons are drawn around the tiles to hide any seams.
   * The resolution of the tile's elevation and image data are now configurable (via the new `tileResolutionDEM` and `tileResolutionIMG` settings keys).
   * The image channel now uses RGBA instead of RGB internally in order to improve graphics performance thanks to proper four-byte alignment.
+  * The number of maximum tile uploads to the GPU has been reduced from 20 to 5 per channel in order to reduce performance drops during tile loading.
   * It is not required anymore to set the `format` of the terrain data sources anymore.
   * There's a new `autoLodRange` option for setting the LoD-Factor range which is used if auto-lod is enabled.
 * The `csp-atmospheres` plugin received a major refactoring. Here are the main changes:
