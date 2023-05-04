@@ -18,7 +18,9 @@ There are no configuration options, so this is all you need to do:
   ...
   "plugins": {
     ...
-    "csp-timings": {},
+    "csp-timings": {
+      "useLocalGui": true
+    },
     ...
   }
 }
