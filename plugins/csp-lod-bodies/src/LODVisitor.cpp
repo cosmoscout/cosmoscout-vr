@@ -8,8 +8,7 @@
 #include "LODVisitor.hpp"
 
 #include "PlanetParameters.hpp"
-#include "RenderDataDEM.hpp"
-#include "RenderDataImg.hpp"
+#include "RenderData.hpp"
 #include "TileTextureArray.hpp"
 #include "TreeManagerBase.hpp"
 #include "logger.hpp"
@@ -286,18 +285,18 @@ bool LODVisitor::preTraverse() {
 bool LODVisitor::preVisitRoot(TileId const& tileId) {
   LODState& state = getLODState();
 
-  // fetch RenderDataDEM for visited node and mark as used in this frame
+  // fetch RenderData for visited node and mark as used in this frame
   if (mTreeMgrDEM && state.mNodeDEM) {
-    auto* rd     = mTreeMgrDEM->find<RenderDataDEM>(state.mNodeDEM);
+    auto* rd     = mTreeMgrDEM->find<RenderData>(state.mNodeDEM);
     state.mRdDEM = rd;
     state.mRdDEM->setLastFrame(mFrameCount);
   } else {
     state.mRdDEM = nullptr;
   }
 
-  // fetch RenderDataImg for visited node and mark as used in this frame
+  // fetch RenderData for visited node and mark as used in this frame
   if (mTreeMgrIMG && state.mNodeIMG) {
-    auto* rd     = mTreeMgrIMG->find<RenderDataImg>(state.mNodeIMG);
+    auto* rd     = mTreeMgrIMG->find<RenderData>(state.mNodeIMG);
     state.mRdIMG = rd;
     state.mRdIMG->setLastFrame(mFrameCount);
   } else {
@@ -320,18 +319,18 @@ bool LODVisitor::preVisit(TileId const& tileId) {
   LODState& state  = getLODState();
   LODState& stateP = getLODState(tileId.level() - 1); // parent state
 
-  // fetch RenderDataDEM for visited node and mark as used in this frame
+  // fetch RenderData for visited node and mark as used in this frame
   if (mTreeMgrDEM && state.mNodeDEM) {
-    auto* rd     = mTreeMgrDEM->find<RenderDataDEM>(state.mNodeDEM);
+    auto* rd     = mTreeMgrDEM->find<RenderData>(state.mNodeDEM);
     state.mRdDEM = rd;
     state.mRdDEM->setLastFrame(mFrameCount);
   } else {
     state.mRdDEM = stateP.mRdDEM;
   }
 
-  // fetch RenderDataImg for visited node and mark as used in this frame
+  // fetch RenderData for visited node and mark as used in this frame
   if (mTreeMgrIMG && state.mNodeIMG) {
-    auto* rd     = mTreeMgrIMG->find<RenderDataImg>(state.mNodeIMG);
+    auto* rd     = mTreeMgrIMG->find<RenderData>(state.mNodeIMG);
     state.mRdIMG = rd;
     state.mRdIMG->setLastFrame(mFrameCount);
   } else {
@@ -539,17 +538,16 @@ void LODVisitor::drawLevel() {
 
   if (mTreeMgrDEM) {
     // check node is available (either for this level or highest resolution
-    // currently loaded) and has RenderDataDEM
+    // currently loaded) and has RenderData
     assert(state.mNodeDEM);
     assert(state.mRdDEM);
 
-    state.mRdDEM->addFlag(RenderDataDEM::Flags::eRender);
     mRenderDEM.push_back(state.mRdDEM);
   }
 
   if (mTreeMgrIMG) {
     // check node is available (either for this level or highest resolution
-    // currently loaded) and has RenderDataIMG
+    // currently loaded) and has RenderData
     assert(state.mNodeIMG);
     assert(state.mRdIMG);
 

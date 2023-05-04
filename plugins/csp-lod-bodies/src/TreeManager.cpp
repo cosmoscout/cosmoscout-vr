@@ -14,8 +14,8 @@ namespace csp::lodbodies {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <>
-/* virtual */ RenderData* TreeManager<RenderDataDEM>::allocateRenderData(TileNode* node) {
-  RenderDataDEM* rdata = mPool.construct();
+/* virtual */ RenderData* TreeManager<RenderData>::allocateRenderData(TileNode* node) {
+  RenderData* rdata = mPool.construct();
 
   // init rdata
   rdata->setNode(node);

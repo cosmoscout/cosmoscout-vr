@@ -9,7 +9,7 @@
 
 #include "HEALPix.hpp"
 
-#include "RenderDataDEM.hpp"
+#include "RenderData.hpp"
 #include "VistaPlanet.hpp"
 
 #include "../../../src/cs-utils/convert.hpp"
@@ -154,7 +154,7 @@ bool intersectTileBounds(TileNode const* tileNode, VistaPlanet const* planet,
     glm::dvec4 const& origin, glm::dvec4 const& direction, double& minDist, double& maxDist) {
   TileBase* tile   = tileNode->getTile();
   auto      tileId = tile->getTileId();
-  auto*     rdDEM  = planet->getTileRenderer().getTreeManagerDEM()->find<RenderDataDEM>(tileId);
+  auto*     rdDEM  = planet->getTileRenderer().getTreeManagerDEM()->find<RenderData>(tileId);
   BoundingBox<double> tile_bounds = rdDEM->getBounds();
   std::array dMin{tile_bounds.getMin()[0], tile_bounds.getMin()[1], tile_bounds.getMin()[2]};
   std::array dMax{tile_bounds.getMax()[0], tile_bounds.getMax()[1], tile_bounds.getMax()[2]};
@@ -270,7 +270,7 @@ bool intersectPlanet(
       // BboxMin--------------------
       TileBase* tile   = parent->getTile();
       auto      tileId = tile->getTileId();
-      auto*     rdDEM  = planet->getTileRenderer().getTreeManagerDEM()->find<RenderDataDEM>(tileId);
+      auto*     rdDEM  = planet->getTileRenderer().getTreeManagerDEM()->find<RenderData>(tileId);
       auto      tile_bounds = rdDEM->getBounds();
 
       // Tile sizes

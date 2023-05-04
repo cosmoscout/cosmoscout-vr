@@ -25,8 +25,6 @@ namespace csp::lodbodies {
 struct PlanetParameters;
 class TileNode;
 class RenderData;
-class RenderDataDEM;
-class RenderDataImg;
 class TreeManagerBase;
 
 /// Renders tiles with elevation (DEM) and optionally image (IMG) data.
@@ -86,7 +84,7 @@ class TileRenderer {
   void preRenderTiles(cs::graphics::ShadowMap* shadowMap);
   void renderTiles(
       std::vector<RenderData*> const& renderDEM, std::vector<RenderData*> const& renderIMG);
-  void renderTile(RenderDataDEM* rdDEM, RenderDataImg* rdIMG, UniformLocs const& locs);
+  void renderTile(RenderData* rdDEM, RenderData* rdIMG, UniformLocs const& locs);
   void postRenderTiles(cs::graphics::ShadowMap* shadowMap);
 
   void preRenderBounds();

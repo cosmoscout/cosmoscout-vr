@@ -24,8 +24,7 @@ namespace csp::lodbodies {
 class TileBase;
 class TileNode;
 class TileSource;
-class RenderDataDEM;
-class RenderDataImg;
+class RenderData;
 class TerrainShader;
 
 /// Renders a planet from databases of hierarchical tiles.
@@ -141,11 +140,11 @@ class VistaPlanet : public cs::graphics::ShadowCaster {
   LODVisitor       mLodVisitor;
   TileRenderer     mRenderer;
 
-  TileSource*                mSrcDEM;
-  TreeManager<RenderDataDEM> mTreeMgrDEM;
+  TileSource*             mSrcDEM;
+  TreeManager<RenderData> mTreeMgrDEM;
 
-  TileSource*                mSrcIMG;
-  TreeManager<RenderDataImg> mTreeMgrIMG;
+  TileSource*             mSrcIMG;
+  TreeManager<RenderData> mTreeMgrIMG;
 
   // global statistics
   double      mLastFrameClock;

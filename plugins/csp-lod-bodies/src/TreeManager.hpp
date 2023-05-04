@@ -8,8 +8,7 @@
 #ifndef CSP_LOD_BODIES_TREEMANAGER_HPP
 #define CSP_LOD_BODIES_TREEMANAGER_HPP
 
-#include "RenderDataDEM.hpp"
-#include "RenderDataImg.hpp"
+#include "RenderData.hpp"
 #include "TreeManagerBase.hpp"
 
 #include <boost/cast.hpp>
@@ -42,7 +41,7 @@ class TreeManager : public TreeManagerBase {
 };
 
 template <>
-/* virtual */ RenderData* TreeManager<RenderDataDEM>::allocateRenderData(TileNode* node);
+/* virtual */ RenderData* TreeManager<RenderData>::allocateRenderData(TileNode* node);
 
 template <typename RDataT>
 /* explicit */

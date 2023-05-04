@@ -9,8 +9,7 @@
 
 #include "HEALPix.hpp"
 #include "PlanetParameters.hpp"
-#include "RenderDataDEM.hpp"
-#include "RenderDataImg.hpp"
+#include "RenderData.hpp"
 #include "TileTextureArray.hpp"
 #include "TreeManagerBase.hpp"
 
@@ -250,9 +249,8 @@ void TileRenderer::renderTiles(
   // iterate over both std::vector<RenderData*>s together
   for (size_t i(0); i < renderDEM.size(); ++i) {
     // get data associated with nodes
-    auto*          rdDEM = dynamic_cast<RenderDataDEM*>(renderDEM[i]);
-    RenderDataImg* rdIMG =
-        i < renderIMG.size() ? dynamic_cast<RenderDataImg*>(renderIMG[i]) : nullptr;
+    auto*       rdDEM = renderDEM[i];
+    RenderData* rdIMG = i < renderIMG.size() ? renderIMG[i] : nullptr;
 
     // count cases of data not being on GPU ...
     if (rdDEM->getTexLayer() < 0) {
@@ -280,19 +278,11 @@ void TileRenderer::renderTiles(
     vstr::warnp() << "Some tiles were not available on the GPU (" << missingDEM << " / "
                   << missingIMG << "  DEM/IMG)." << std::endl;
   }
-
-  // Iterate over std::vector<RenderData*>s a second time, reset edge deltas and flags.
-  // Cannot be done during rendering because a TileNode/RenderData may
-  // appear multiple times in renderDEM/renderIMG.
-  for (auto* it : renderDEM) {
-    auto* rdDEM = dynamic_cast<RenderDataDEM*>(it);
-    rdDEM->clearFlags();
-  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void TileRenderer::renderTile(RenderDataDEM* rdDEM, RenderDataImg* rdIMG, UniformLocs const& locs) {
+void TileRenderer::renderTile(RenderData* rdDEM, RenderData* rdIMG, UniformLocs const& locs) {
   VistaGLSLShader& shader = mProgTerrain->mShader;
   TileId const&    idDEM  = rdDEM->getTileId();
 

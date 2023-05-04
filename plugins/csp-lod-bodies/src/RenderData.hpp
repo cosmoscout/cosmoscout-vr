@@ -17,6 +17,8 @@ namespace csp::lodbodies {
 /// The base class for all render data of a single TileNode.
 class RenderData {
  public:
+  explicit RenderData(TileNode* node = nullptr);
+
   RenderData(RenderData const& other) = delete;
   RenderData(RenderData&& other)      = default;
 
@@ -44,7 +46,6 @@ class RenderData {
   bool                       hasBounds() const;
 
  protected:
-  explicit RenderData(TileNode* node = nullptr);
   BoundingBox<double> mTb;
   bool                mHasBounds{};
 

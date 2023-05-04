@@ -19,8 +19,6 @@
 namespace csp::lodbodies {
 
 struct PlanetParameters;
-class RenderDataDEM;
-class RenderDataImg;
 class TreeManagerBase;
 
 /// Specialization of TileVisitor that determines the necessary level of detail for tiles and
@@ -97,8 +95,8 @@ class LODVisitor : public TileVisitor<LODVisitor> {
   /// State tracked during traversal of the tile quad trees.
   class LODState : public TileVisitor<LODVisitor>::StateBase {
    public:
-    RenderDataDEM* mRdDEM{};
-    RenderDataImg* mRdIMG{};
+    RenderData* mRdDEM{};
+    RenderData* mRdIMG{};
   };
 
   bool preTraverse() override;

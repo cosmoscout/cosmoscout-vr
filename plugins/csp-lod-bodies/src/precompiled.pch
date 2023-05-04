@@ -24,8 +24,6 @@
 #include "TileTextureArray.hpp"
 #include "TileDataType.hpp"
 #include "RenderData.hpp"
-#include "RenderDataDEM.hpp"
-#include "RenderDataImg.hpp"
 #include "TreeManagerBase.hpp"
 #include "PlanetParameters.hpp"
 #include "HEALPix.hpp"
