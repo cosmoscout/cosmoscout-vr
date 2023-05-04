@@ -34,7 +34,6 @@ class TileNode {
   TileId const& getTileId() const;
 
   std::type_info const& getTileTypeId() const;
-  TileDataType          getTileDataType() const;
 
   /// Returns the tile owned by this, or NULL if there is no such tile.
   TileBase* getTile() const;

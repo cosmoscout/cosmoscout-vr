@@ -112,7 +112,7 @@ double getHeight(
   }
 
   // Check if Child Exists
-  if (child == nullptr || child->getTileDataType() != TileDataType::eElevation) {
+  if (child == nullptr) {
     return 0.0;
   }
 
@@ -227,10 +227,6 @@ bool intersectPlanet(
     intersected_tiles.erase(intersected_tiles.begin());
 
     if (parent == nullptr) {
-      return false;
-    }
-
-    if (parent->getTileDataType() != TileDataType::eElevation) {
       return false;
     }
 
