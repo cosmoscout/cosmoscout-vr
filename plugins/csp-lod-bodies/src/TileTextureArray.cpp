@@ -100,7 +100,7 @@ void TileTextureArray::releaseGPU(RenderData* rdata) {
   if (rdata->getTexLayer() >= 0) {
     releaseLayer(rdata);
   } else {
-    // Tile is not uploaded, could be in the queue?
+    // TileData is not uploaded, could be in the queue?
     // XXX TODO Linear search, but mUploadQueue is usually small and
     //          this case should be rare
 
@@ -243,7 +243,7 @@ void TileTextureArray::allocateLayer(RenderData* rdata) {
   assert(rdata->getTexLayer() < 0);
 
   TileNode* node = rdata->getNode();
-  TileBase* tile = node->getTile();
+  TileBase* tile = node->getTileData();
 
   int layer = mFreeLayers.back();
   mFreeLayers.pop_back();

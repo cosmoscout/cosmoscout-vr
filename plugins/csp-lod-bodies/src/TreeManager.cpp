@@ -287,7 +287,7 @@ RenderData* TreeManager::allocateRenderData(TileNode* node) {
   rdata->setNode(node);
   rdata->setLastFrame(0);
 
-  rdata->setBounds(calcTileBounds(*node->getTile(), mParams->mRadii, mParams->mHeightScale));
+  rdata->setBounds(calcTileBounds(*node->getTileData(), mParams->mRadii, mParams->mHeightScale));
 
   return rdata;
 }
@@ -357,7 +357,7 @@ void TreeManager::merge() {
 
   for (auto& node : mergeNodes) {
     assert(node != nullptr);
-    assert(node->getTile() != nullptr);
+    assert(node->getTileData() != nullptr);
 
     if (insertNode(&mTree, node)) {
       mPendingTiles.erase(node->getTileId());

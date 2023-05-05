@@ -44,7 +44,7 @@ enum class CopyPixels { eAll, eAboveDiagonal, eBelowDiagonal };
 template <typename T>
 bool loadImpl(
     TileSourceWebMapService* source, TileNode* node, int level, int x, int y, CopyPixels which) {
-  auto                       tile = static_cast<Tile<T>*>(node->getTile());
+  auto                       tile = static_cast<TileData<T>*>(node->getTileData());
   std::optional<std::string> cacheFile;
 
   // First we download the tile data to a local cache file. This will return quickly if the file is
@@ -169,7 +169,7 @@ bool loadImpl(
 
 template <typename T>
 void fillDiagonal(TileNode* node) {
-  auto     tile       = static_cast<Tile<T>*>(node->getTile());
+  auto     tile       = static_cast<TileData<T>*>(node->getTileData());
   uint32_t resolution = tile->getResolution();
   for (uint32_t y = 1; y <= resolution; y++) {
     uint32_t pixelPos = y * (resolution - 1);
@@ -184,7 +184,7 @@ template <typename T>
 TileNode* loadImpl(TileSourceWebMapService* source, uint32_t level, glm::int64 patchIdx) {
   auto* node = new TileNode(); // NOLINT(cppcoreguidelines-owning-memory): TODO this is bad!
 
-  node->setTile(std::make_unique<Tile<T>>(level, patchIdx, source->getResolution()));
+  node->setTileData(std::make_unique<TileData<T>>(level, patchIdx, source->getResolution()));
 
   int  x{};
   int  y{};
@@ -211,7 +211,7 @@ TileNode* loadImpl(TileSourceWebMapService* source, uint32_t level, glm::int64 p
     }
   }
 
-  auto     tile       = static_cast<Tile<T>*>(node->getTile());
+  auto     tile       = static_cast<TileData<T>*>(node->getTileData());
   uint32_t resolution = tile->getResolution();
 
   // flip y --- that shouldn't be requiered, but somehow is how it was
@@ -229,7 +229,7 @@ TileNode* loadImpl(TileSourceWebMapService* source, uint32_t level, glm::int64 p
     // 128x128
     // The MinMaxPyramid is later needed to deduce height information from this
     // coarser level DEM tile to deeper level IMG tiles
-    auto* demTile = reinterpret_cast<Tile<float>*>(tile);
+    auto* demTile = reinterpret_cast<TileData<float>*>(tile);
     demTile->setMinMaxPyramid(std::make_unique<MinMaxPyramid>(demTile));
   }
 

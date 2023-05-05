@@ -93,7 +93,7 @@ BoundingBox<double> calcTileBounds(
     TileBase const& tile, glm::dvec3 const& radii, double heightScale) {
   switch (tile.getDataType()) {
   case TileDataType::eElevation: {
-    auto const& casted_tile = dynamic_cast<Tile<float> const&>(tile);
+    auto const& casted_tile = dynamic_cast<TileData<float> const&>(tile);
     return calcTileBounds(casted_tile.getMinMaxPyramid()->getMin(),
         casted_tile.getMinMaxPyramid()->getMax(), casted_tile.getLevel(), casted_tile.getPatchIdx(),
         radii, heightScale);

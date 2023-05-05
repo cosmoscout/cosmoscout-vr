@@ -12,7 +12,7 @@
 
 namespace csp::lodbodies {
 
-/// Contains an enumeration of data types that can be stored in a Tile.
+/// Contains an enumeration of data types that can be stored in a tile.
 enum class TileDataType { eElevation = 0, eColor = 1 };
 
 } // namespace csp::lodbodies

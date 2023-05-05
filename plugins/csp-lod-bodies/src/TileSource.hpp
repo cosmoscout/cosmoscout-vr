@@ -47,15 +47,11 @@ class TileSource {
   virtual TileDataType getDataType() const = 0;
 
   /// Loads a node with given level and patchIx synchronously (i.e. the call blocks until data is
-  /// loaded). Optionally the node to store data in is passed as node - it must own a Tile of
-  /// correct type or not own a tile at all (in which case a new one is allocated). If node is
-  /// a nullptr a new node is allocated.
+  /// loaded).
   virtual TileNode* loadTile(int level, glm::int64 patchIdx) = 0;
 
   /// Loads a node with given level and patchIdx asynchronously (i.e. the call returns immediately).
-  /// Optionally the node to store data in is passed as node - it must own a Tile of correct type or
-  /// not own a tile at all (in which case a new one is allocated). If node is a nullptr a new node
-  /// is allocated. Once the node is loaded the given OnLoadCallack is invoked.
+  /// Once the node is loaded the given OnLoadCallack is invoked.
   virtual void loadTileAsync(int level, glm::int64 patchIdx, OnLoadCallback cb) = 0;
 
   /// Returns the number of currently active async requests.

@@ -116,7 +116,7 @@ double getHeight(
     return 0.0;
   }
 
-  uint32_t size = child->getTile()->getResolution();
+  uint32_t size = child->getTileData()->getResolution();
 
   // Figure out flip
   std::swap(relative1.x, relative1.y);
@@ -135,7 +135,7 @@ double getHeight(
   double hP2{};
   double hPP{};
 
-  const auto* ptr = child->getTile()->getTypedPtr<float>();
+  const auto* ptr = child->getTileData()->getTypedPtr<float>();
   h               = ptr[vB + size * uB]; // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
   hP1 = ptr[vB + size * (uB + 1)];       // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
   hP2 = ptr[vB + 1 + size * uB];         // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
@@ -152,7 +152,7 @@ double getHeight(
 
 bool intersectTileBounds(TileNode const* tileNode, VistaPlanet const* planet,
     glm::dvec4 const& origin, glm::dvec4 const& direction, double& minDist, double& maxDist) {
-  TileBase*           tile        = tileNode->getTile();
+  TileBase*           tile        = tileNode->getTileData();
   auto                tileId      = tile->getTileId();
   auto*               rdDEM       = planet->getTileRenderer().getTreeManagerDEM()->find(tileId);
   BoundingBox<double> tile_bounds = rdDEM->getBounds();
@@ -231,7 +231,7 @@ bool intersectPlanet(
     }
 
     // Sample height field of cut leaf node
-    if (!isRefined(*parent)) {
+    if (!parent->isRefined()) {
       // Get entry and exit point again:
       double min_dist{};
       double max_dist{};
@@ -264,7 +264,7 @@ bool intersectPlanet(
       //        |        \   /     |
       //        |         \/       |
       // BboxMin--------------------
-      TileBase* tile        = parent->getTile();
+      TileBase* tile        = parent->getTileData();
       auto      tileId      = tile->getTileId();
       auto*     rdDEM       = planet->getTileRenderer().getTreeManagerDEM()->find(tileId);
       auto      tile_bounds = rdDEM->getBounds();
@@ -324,7 +324,7 @@ bool intersectPlanet(
         }
 
         // Access height data
-        const auto* ptr = parent->getTile()->getTypedPtr<float>();
+        const auto* ptr = parent->getTileData()->getTypedPtr<float>();
         // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
         height = ptr[vB + size * uB];
         // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)

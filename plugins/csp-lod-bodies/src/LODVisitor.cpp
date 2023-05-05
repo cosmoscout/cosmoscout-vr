@@ -93,8 +93,8 @@ bool testFrontFacing(glm::dvec3 const& camPos, PlanetParameters const* params,
   // Get minimum height of all base patches (needed for radius of proxy culling sphere)
   auto minHeight(std::numeric_limits<float>::max());
   for (int i(0); i < TileQuadTree::sNumRoots; ++i) {
-    auto*       tile       = treeMgrDEM->getTree()->getRoot(i)->getTile();
-    auto const& castedTile = dynamic_cast<Tile<float> const&>(*tile);
+    auto*       tile       = treeMgrDEM->getTree()->getRoot(i)->getTileData();
+    auto const& castedTile = dynamic_cast<TileData<float> const&>(*tile);
     minHeight              = std::min(minHeight, castedTile.getMinMaxPyramid()->getMin());
   }
 

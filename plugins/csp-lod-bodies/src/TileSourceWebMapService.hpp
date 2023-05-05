@@ -9,7 +9,7 @@
 #define CSP_LOD_BODIES_TILESOURCEWMS_HPP
 
 #include "../../../src/cs-utils/ThreadPool.hpp"
-#include "Tile.hpp"
+#include "TileData.hpp"
 #include "TileSource.hpp"
 
 #include <cstdio>

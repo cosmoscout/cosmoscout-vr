@@ -289,9 +289,9 @@ void TileRenderer::renderTile(RenderData* rdDEM, RenderData* rdIMG, UniformLocs 
   auto  baseXY        = HEALPix::getBaseXY(idDEM);
   auto  tileOS        = glm::ivec3(baseXY.y, baseXY.z, HEALPix::getNSide(idDEM));
   auto  patchF1F2     = glm::ivec2(HEALPix::getF1(idDEM), HEALPix::getF2(idDEM));
-  float averageHeight = rdDEM->getNode()->getTile()->getMinMaxPyramid()->getAverage();
-  float minHeight     = rdDEM->getNode()->getTile()->getMinMaxPyramid()->getMin();
-  float maxHeight     = rdDEM->getNode()->getTile()->getMinMaxPyramid()->getMax();
+  float averageHeight = rdDEM->getNode()->getTileData()->getMinMaxPyramid()->getAverage();
+  float minHeight     = rdDEM->getNode()->getTileData()->getMinMaxPyramid()->getMin();
+  float maxHeight     = rdDEM->getNode()->getTileData()->getMinMaxPyramid()->getMax();
 
   // update uniforms
   shader.SetUniform(locs.heightInfo, averageHeight, maxHeight - minHeight);
@@ -489,7 +489,7 @@ std::unique_ptr<VistaBufferObject> TileRenderer::makeIBOBounds() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// Sets up the VertexArrayObject for rendering bounds of a Tile
+// Sets up the VertexArrayObject for rendering bounds of a tile.
 std::unique_ptr<VistaVertexArrayObject> TileRenderer::makeVAOBounds(
     VistaBufferObject* vbo, VistaBufferObject* ibo) {
   auto result = std::make_unique<VistaVertexArrayObject>();

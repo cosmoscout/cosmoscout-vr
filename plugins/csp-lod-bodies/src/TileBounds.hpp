@@ -9,7 +9,7 @@
 #define CSP_LOD_BODIES_TILEBOUNDS_HPP
 
 #include "BoundingBox.hpp"
-#include "Tile.hpp"
+#include "TileData.hpp"
 
 namespace csp::lodbodies {
 

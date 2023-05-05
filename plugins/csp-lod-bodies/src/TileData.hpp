@@ -5,8 +5,8 @@
 // SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
 // SPDX-License-Identifier: MIT
 
-#ifndef CSP_LOD_BODIES_TILE_HPP
-#define CSP_LOD_BODIES_TILE_HPP
+#ifndef CSP_LOD_BODIES_TILE_DATA_HPP
+#define CSP_LOD_BODIES_TILE_DATA_HPP
 
 #include "TileBase.hpp"
 
@@ -14,19 +14,19 @@ namespace csp::lodbodies {
 
 /// Concrete class storing data samples of the template argument type T.
 template <typename T>
-class Tile : public TileBase {
+class TileData : public TileBase {
  public:
   using value_type = T;
 
-  explicit Tile(int level, glm::int64 patchIdx, uint32_t resolution);
+  explicit TileData(int level, glm::int64 patchIdx, uint32_t resolution);
 
-  Tile(Tile const& other) = delete;
-  Tile(Tile&& other)      = delete;
+  TileData(TileData const& other) = delete;
+  TileData(TileData&& other)      = delete;
 
-  Tile& operator=(Tile const& other) = delete;
-  Tile& operator=(Tile&& other) = delete;
+  TileData& operator=(TileData const& other) = delete;
+  TileData& operator=(TileData&& other) = delete;
 
-  ~Tile() override;
+  ~TileData() override;
 
   static TileDataType getStaticDataType();
 
@@ -44,10 +44,10 @@ class Tile : public TileBase {
 namespace detail {
 
 /// DataTypeTrait<T> is used to map from a type T to the corresponding TileDataType enum value.
-/// To support additional data types stored in a Tile add a specialization. Do not forget to add a
-/// definition of the static member in Tile.cpp! Only declare base template, define explicit
+/// To support additional data types stored in a TileData add a specialization. Do not forget to add
+/// a definition of the static member in TileData.cpp! Only declare base template, define explicit
 /// specializations for supported types below - this causes a convenient compile error if an attempt
-/// is made to instantiate Tile<T> with an unsupported type T
+/// is made to instantiate TileData<T> with an unsupported type T
 template <typename T>
 struct DataTypeTrait;
 
@@ -63,39 +63,39 @@ struct DataTypeTrait<glm::u8vec4> {
 } // namespace detail
 
 template <typename T>
-Tile<T>::Tile(int level, glm::int64 patchIdx, uint32_t resolution)
+TileData<T>::TileData(int level, glm::int64 patchIdx, uint32_t resolution)
     : TileBase(level, patchIdx, resolution)
     , mData(resolution * resolution) {
 }
 
 template <typename T>
-Tile<T>::~Tile() = default;
+TileData<T>::~TileData() = default;
 
 template <typename T>
-TileDataType Tile<T>::getStaticDataType() {
+TileDataType TileData<T>::getStaticDataType() {
   return detail::DataTypeTrait<T>::value;
 }
 
 template <typename T>
-TileDataType Tile<T>::getDataType() const {
+TileDataType TileData<T>::getDataType() const {
   return getStaticDataType();
 }
 
 template <typename T>
-void const* Tile<T>::getDataPtr() const {
+void const* TileData<T>::getDataPtr() const {
   return static_cast<void const*>(mData.data());
 }
 
 template <typename T>
-std::vector<T> const& Tile<T>::data() const {
+std::vector<T> const& TileData<T>::data() const {
   return mData;
 }
 
 template <typename T>
-std::vector<T>& Tile<T>::data() {
+std::vector<T>& TileData<T>::data() {
   return mData;
 }
 
 } // namespace csp::lodbodies
 
-#endif // CSP_LOD_BODIES_TILE_HPP
+#endif // CSP_LOD_BODIES_TILE_DATA_HPP
