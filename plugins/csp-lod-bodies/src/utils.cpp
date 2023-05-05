@@ -9,7 +9,7 @@
 
 #include "HEALPix.hpp"
 
-#include "RenderData.hpp"
+#include "TileDataBase.hpp"
 #include "VistaPlanet.hpp"
 
 #include "../../../src/cs-utils/convert.hpp"
@@ -100,7 +100,7 @@ double getHeight(
     if (child == nullptr && precision == HeightSamplePrecision::eFine) {
       std::vector<TileId> requested;
 
-      requested.push_back(HEALPix::getChildTileId(parent->getTileId(), childIndex));
+      requested.push_back(HEALPix::getChildTileId(parent->getTileData()->getTileId(), childIndex));
 
       planet->getTileRenderer().getTreeManagerDEM()->request(requested);
 
@@ -152,10 +152,8 @@ double getHeight(
 
 bool intersectTileBounds(TileNode const* tileNode, VistaPlanet const* planet,
     glm::dvec4 const& origin, glm::dvec4 const& direction, double& minDist, double& maxDist) {
-  TileBase*           tile        = tileNode->getTileData();
-  auto                tileId      = tile->getTileId();
-  auto*               rdDEM       = planet->getTileRenderer().getTreeManagerDEM()->find(tileId);
-  BoundingBox<double> tile_bounds = rdDEM->getBounds();
+  TileDataBase*       tile        = tileNode->getTileData();
+  BoundingBox<double> tile_bounds = tile->getBounds();
   std::array dMin{tile_bounds.getMin()[0], tile_bounds.getMin()[1], tile_bounds.getMin()[2]};
   std::array dMax{tile_bounds.getMax()[0], tile_bounds.getMax()[1], tile_bounds.getMax()[2]};
 
@@ -264,10 +262,8 @@ bool intersectPlanet(
       //        |        \   /     |
       //        |         \/       |
       // BboxMin--------------------
-      TileBase* tile        = parent->getTileData();
-      auto      tileId      = tile->getTileId();
-      auto*     rdDEM       = planet->getTileRenderer().getTreeManagerDEM()->find(tileId);
-      auto      tile_bounds = rdDEM->getBounds();
+      TileDataBase* tile        = parent->getTileData();
+      auto          tile_bounds = tile->getBounds();
 
       // Tile sizes
       int size = tile->getResolution();
@@ -295,8 +291,8 @@ bool intersectPlanet(
             cs::utils::convert::cartesianToLngLatHeight(sampleCartesian, planet->getRadii());
 
         // Calc correct HPix coordinate for child patch in relation to base batch
-        int        base   = HEALPix::getBasePatch(parent->getTileId());
-        auto       scale  = HEALPix::getPatchOffsetScale(parent->getTileId());
+        int        base   = HEALPix::getBasePatch(parent->getTileData()->getTileId());
+        auto       scale  = HEALPix::getPatchOffsetScale(parent->getTileData()->getTileId());
         glm::dvec2 HPixPt = HEALPix::convertBaseLngLat2XY(base, sampleLngLatHeight.xy());
         HPixPt            = (HPixPt - glm::dvec2(scale[0], scale[1])) / scale[2];
 

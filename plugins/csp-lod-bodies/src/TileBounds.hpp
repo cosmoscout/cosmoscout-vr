@@ -18,7 +18,7 @@ namespace csp::lodbodies {
 ///
 /// Assumes that tile stores elevation data (i.e. a single scalar) and has valid min/max values set.
 BoundingBox<double> calcTileBounds(
-    TileBase const& tile, glm::dvec3 const& radii, double heightScale);
+    TileDataBase const& tile, glm::dvec3 const& radii, double heightScale);
 
 BoundingBox<double> calcTileBounds(double tmin, double tmax, int tileLevel, glm::int64 patchIdx,
     glm::dvec3 const& radii, double heightScale);

@@ -24,7 +24,7 @@ namespace csp::lodbodies {
 
 struct PlanetParameters;
 class TileNode;
-class RenderData;
+class TileDataBase;
 class TreeManager;
 
 /// Renders tiles with elevation (DEM) and optionally image (IMG) data.
@@ -58,7 +58,7 @@ class TileRenderer {
   void setProjection(glm::mat4 const& m);
 
   /// Render the elevation and image tiles in reqDEM and reqIMG respectively.
-  void render(std::vector<RenderData*> const& reqDEM, std::vector<RenderData*> const& reqIMG,
+  void render(std::vector<TileDataBase*> const& reqDEM, std::vector<TileDataBase*> const& reqIMG,
       cs::graphics::ShadowMap* shadowMap);
 
   /// Enable or disable drawing of tile bounding boxes.
@@ -83,12 +83,13 @@ class TileRenderer {
 
   void preRenderTiles(cs::graphics::ShadowMap* shadowMap);
   void renderTiles(
-      std::vector<RenderData*> const& renderDEM, std::vector<RenderData*> const& renderIMG);
-  void renderTile(RenderData* rdDEM, RenderData* rdIMG, UniformLocs const& locs);
+      std::vector<TileDataBase*> const& renderDEM, std::vector<TileDataBase*> const& renderIMG);
+  void renderTile(TileDataBase* rdDEM, TileDataBase* rdIMG, UniformLocs const& locs);
   void postRenderTiles(cs::graphics::ShadowMap* shadowMap);
 
   void preRenderBounds();
-  void renderBounds(std::vector<RenderData*> const& reqDEM, std::vector<RenderData*> const& reqIMG);
+  void renderBounds(
+      std::vector<TileDataBase*> const& reqDEM, std::vector<TileDataBase*> const& reqIMG);
   static void postRenderBounds();
 
   static std::unique_ptr<VistaBufferObject>      makeVBOTerrain();

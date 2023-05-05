@@ -18,7 +18,7 @@
 namespace csp::lodbodies {
 
 class TileNode;
-class RenderData;
+class TileDataBase;
 class TreeManager;
 
 /// Responsible for handling tile data that is uploaded the GPU and for balancing additional upload
@@ -42,10 +42,10 @@ class TileTextureArray {
   ~TileTextureArray();
 
   /// Requests that data for the tile associated with rdata be uploaded to the GPU.
-  void allocateGPU(RenderData* rdata);
+  void allocateGPU(TileDataBase* rdata);
 
   /// Release GPU resources allocated for the tile associated with rdata.
-  void releaseGPU(RenderData* rdata);
+  void releaseGPU(TileDataBase* rdata);
 
   /// Process up to maxItems upload requests.
   void processQueue(int maxItems);
@@ -64,8 +64,8 @@ class TileTextureArray {
   void allocateTexture(TileDataType dataType);
   void releaseTexture();
 
-  void allocateLayer(RenderData* rdata);
-  void releaseLayer(RenderData* rdata);
+  void allocateLayer(TileDataBase* rdata);
+  void releaseLayer(TileDataBase* rdata);
 
   void        preUpload();
   static void postUpload();
@@ -80,7 +80,7 @@ class TileTextureArray {
   const GLint        mNumLayers;
   std::vector<GLint> mFreeLayers;
 
-  std::vector<RenderData*> mUploadQueue;
+  std::vector<TileDataBase*> mUploadQueue;
 };
 
 /// DocTODO

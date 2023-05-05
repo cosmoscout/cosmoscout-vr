@@ -27,7 +27,7 @@ void TileQuadTree::setRoot(int idx, TileNode* root) {
 
 bool insertNode(TileQuadTree* tree, TileNode* node) {
   bool          result = true;
-  TileId const& tileId = node->getTileId();
+  TileId const& tileId = node->getTileData()->getTileId();
 
   if (tileId.level() == 0) {
     assert(tree->getRoot(HEALPix::getRootIdx(tileId)) == nullptr);
@@ -62,13 +62,13 @@ bool removeNode(TileQuadTree* tree, TileNode* node) {
   // node must either have a parent or be a root of the tree (otherwise node
   // is not in tree or the data structure is corrupt).
   if (parent) {
-    int childIdx = HEALPix::getChildIdx(node->getTileId());
+    int childIdx = HEALPix::getChildIdx(node->getTileData()->getTileId());
     assert(parent->getChild(childIdx) == node);
 
     parent->setChild(childIdx, nullptr);
     result = true;
   } else {
-    int childIdx = HEALPix::getChildIdx(node->getTileId());
+    int childIdx = HEALPix::getChildIdx(node->getTileData()->getTileId());
     assert(tree->getRoot(childIdx) == node);
 
     tree->setRoot(childIdx, nullptr);

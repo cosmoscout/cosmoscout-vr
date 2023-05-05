@@ -8,7 +8,6 @@
 #include "LODVisitor.hpp"
 
 #include "PlanetParameters.hpp"
-#include "RenderData.hpp"
 #include "TileTextureArray.hpp"
 #include "TreeManager.hpp"
 #include "logger.hpp"
@@ -154,7 +153,7 @@ bool childrenAvailable(TileNode* node, TreeManager* treeMgr) {
       return false;
     }
 
-    RenderData* rd = treeMgr->find(child);
+    TileDataBase* rd = child->getTileData();
 
     // child is not on GPU -> can not refine
     if (!rd || rd->getTexLayer() < 0) {
@@ -285,18 +284,18 @@ bool LODVisitor::preTraverse() {
 bool LODVisitor::preVisitRoot(TileId const& tileId) {
   LODState& state = getLODState();
 
-  // fetch RenderData for visited node and mark as used in this frame
+  // fetch tile data for visited node and mark as used in this frame
   if (mTreeMgrDEM && state.mNodeDEM) {
-    auto* rd     = mTreeMgrDEM->find(state.mNodeDEM);
+    auto* rd     = state.mNodeDEM->getTileData();
     state.mRdDEM = rd;
     state.mRdDEM->setLastFrame(mFrameCount);
   } else {
     state.mRdDEM = nullptr;
   }
 
-  // fetch RenderData for visited node and mark as used in this frame
+  // fetch tile data for visited node and mark as used in this frame
   if (mTreeMgrIMG && state.mNodeIMG) {
-    auto* rd     = mTreeMgrIMG->find(state.mNodeIMG);
+    auto* rd     = state.mNodeIMG->getTileData();
     state.mRdIMG = rd;
     state.mRdIMG->setLastFrame(mFrameCount);
   } else {
@@ -319,18 +318,18 @@ bool LODVisitor::preVisit(TileId const& tileId) {
   LODState& state  = getLODState();
   LODState& stateP = getLODState(tileId.level() - 1); // parent state
 
-  // fetch RenderData for visited node and mark as used in this frame
+  // fetch tile data for visited node and mark as used in this frame
   if (mTreeMgrDEM && state.mNodeDEM) {
-    auto* rd     = mTreeMgrDEM->find(state.mNodeDEM);
+    auto* rd     = state.mNodeDEM->getTileData();
     state.mRdDEM = rd;
     state.mRdDEM->setLastFrame(mFrameCount);
   } else {
     state.mRdDEM = stateP.mRdDEM;
   }
 
-  // fetch RenderData for visited node and mark as used in this frame
+  // fetch tile data for visited node and mark as used in this frame
   if (mTreeMgrIMG && state.mNodeIMG) {
-    auto* rd     = mTreeMgrIMG->find(state.mNodeIMG);
+    auto* rd     = state.mNodeIMG->getTileData();
     state.mRdIMG = rd;
     state.mRdIMG->setLastFrame(mFrameCount);
   } else {
@@ -425,8 +424,8 @@ bool LODVisitor::handleRefine(TileId const& /*tileId*/) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void LODVisitor::addLoadChildrenDEM(TileNode* node) {
-  if (node && node->getLevel() < mParams->mMaxLevel) {
-    TileId const& tileId = node->getTileId();
+  if (node && node->getTileData()->getLevel() < mParams->mMaxLevel) {
+    TileId const& tileId = node->getTileData()->getTileId();
 
     for (int i = 0; i < 4; ++i) {
       if (!node->getChild(i)) {
@@ -434,7 +433,7 @@ void LODVisitor::addLoadChildrenDEM(TileNode* node) {
       } else {
         // mark child as used to avoid it being removed while waiting
         // for its siblings to be loaded
-        RenderData* rd = mTreeMgrDEM->find(node->getChild(i));
+        TileDataBase* rd = node->getChild(i)->getTileData();
         rd->setLastFrame(mFrameCount);
       }
     }
@@ -444,8 +443,8 @@ void LODVisitor::addLoadChildrenDEM(TileNode* node) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void LODVisitor::addLoadChildrenIMG(TileNode* node) {
-  if (node && node->getLevel() < mParams->mMaxLevel) {
-    TileId const& tileId = node->getTileId();
+  if (node && node->getTileData()->getLevel() < mParams->mMaxLevel) {
+    TileId const& tileId = node->getTileData()->getTileId();
 
     for (int i = 0; i < 4; ++i) {
       if (!node->getChild(i)) {
@@ -453,7 +452,7 @@ void LODVisitor::addLoadChildrenIMG(TileNode* node) {
       } else {
         // mark child as used to avoid it being removed while waiting
         // for its siblings to be loaded
-        RenderData* rd = mTreeMgrIMG->find(node->getChild(i));
+        TileDataBase* rd = node->getChild(i)->getTileData();
         rd->setLastFrame(mFrameCount);
       }
     }
@@ -538,7 +537,7 @@ void LODVisitor::drawLevel() {
 
   if (mTreeMgrDEM) {
     // check node is available (either for this level or highest resolution
-    // currently loaded) and has RenderData
+    // currently loaded) and has data
     assert(state.mNodeDEM);
     assert(state.mRdDEM);
 
@@ -547,7 +546,7 @@ void LODVisitor::drawLevel() {
 
   if (mTreeMgrIMG) {
     // check node is available (either for this level or highest resolution
-    // currently loaded) and has RenderData
+    // currently loaded) and has data
     assert(state.mNodeIMG);
     assert(state.mRdIMG);
 
@@ -653,13 +652,13 @@ std::vector<TileId> const& LODVisitor::getLoadIMG() const {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::vector<RenderData*> const& LODVisitor::getRenderDEM() const {
+std::vector<TileDataBase*> const& LODVisitor::getRenderDEM() const {
   return mRenderDEM;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::vector<RenderData*> const& LODVisitor::getRenderIMG() const {
+std::vector<TileDataBase*> const& LODVisitor::getRenderIMG() const {
   return mRenderIMG;
 }
 

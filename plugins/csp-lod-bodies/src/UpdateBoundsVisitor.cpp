@@ -8,7 +8,7 @@
 #include "UpdateBoundsVisitor.hpp"
 
 #include "PlanetParameters.hpp"
-#include "RenderData.hpp"
+#include "TileBounds.hpp"
 #include "TreeManager.hpp"
 
 namespace csp::lodbodies {
@@ -35,10 +35,9 @@ bool UpdateBoundsVisitor::preVisitRoot(TileId const& tileId) {
   TileNode* node   = getState().mNodeDEM;
 
   if (node) {
-    TileBase* tile  = node->getTileData();
-    auto*     rdDEM = mTreeMgrDEM->find(tileId);
+    auto* rdDEM = node->getTileData();
 
-    rdDEM->setBounds(calcTileBounds(*tile, mParams->mRadii, mParams->mHeightScale));
+    rdDEM->setBounds(calcTileBounds(*rdDEM, mParams->mRadii, mParams->mHeightScale));
 
     result = true;
   }
@@ -50,10 +49,9 @@ bool UpdateBoundsVisitor::preVisitRoot(TileId const& tileId) {
 
 bool UpdateBoundsVisitor::preVisit(TileId const& tileId) {
   TileNode* node  = getState().mNodeDEM;
-  TileBase* tile  = node->getTileData();
-  auto*     rdDEM = mTreeMgrDEM->find(tileId);
+  auto*     rdDEM = node->getTileData();
 
-  rdDEM->setBounds(calcTileBounds(*tile, mParams->mRadii, mParams->mHeightScale));
+  rdDEM->setBounds(calcTileBounds(*rdDEM, mParams->mRadii, mParams->mHeightScale));
 
   return true;
 }

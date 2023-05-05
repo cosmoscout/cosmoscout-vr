@@ -8,6 +8,7 @@
 #ifndef CSP_LOD_BODIES_TILEBASE_HPP
 #define CSP_LOD_BODIES_TILEBASE_HPP
 
+#include "BoundingBox.hpp"
 #include "MinMaxPyramid.hpp"
 #include "TileDataType.hpp"
 #include "TileId.hpp"
@@ -20,15 +21,15 @@ namespace csp::lodbodies {
 /// Abstract base class for data tiles in the HEALPix scheme. A tile stores data samples for a
 /// HEALPix patch at a given subdivision level. Actual data is held by classes derived from this
 /// one.
-class TileBase {
+class TileDataBase {
  public:
-  virtual ~TileBase() = default;
+  virtual ~TileDataBase() = default;
 
-  TileBase(TileBase const& other) = delete;
-  TileBase(TileBase&& other)      = default;
+  TileDataBase(TileDataBase const& other) = delete;
+  TileDataBase(TileDataBase&& other)      = default;
 
-  TileBase& operator=(TileBase const& other) = delete;
-  TileBase& operator=(TileBase&& other) = default;
+  TileDataBase& operator=(TileDataBase const& other) = delete;
+  TileDataBase& operator=(TileDataBase&& other) = default;
 
   /// Returns the enum value for the data type stored in this tile.
   virtual TileDataType getDataType() const = 0;
@@ -40,34 +41,44 @@ class TileBase {
   /// Returns read only pointer to data stored in this tile.
   virtual void const* getDataPtr() const = 0;
 
+  int           getLevel() const;
+  glm::int64    getPatchIdx() const;
   TileId const& getTileId() const;
-  void          setTileId(TileId const& tileId);
 
   /// Returns the resolution given to the tile at construction time.
   uint32_t getResolution() const;
 
-  /// The level of subdivision of the tile.
-  int  getLevel() const;
-  void setLevel(int level);
+  int  getTexLayer() const;
+  void setTexLayer(int layer);
 
-  glm::int64 getPatchIdx() const;
-  void       setPatchIdx(glm::int64 patchIdx);
+  int  getLastFrame() const;
+  void setLastFrame(int frame);
+  int  getAge(int frame) const;
+
+  BoundingBox<double> const& getBounds() const;
+  void                       setBounds(BoundingBox<double> const& tb);
+  void                       removeBounds();
+  bool                       hasBounds() const;
 
   MinMaxPyramid* getMinMaxPyramid() const;
   void           setMinMaxPyramid(std::unique_ptr<MinMaxPyramid> pyramid);
 
  protected:
-  explicit TileBase(int level, glm::int64 patchIdx, uint32_t resolution);
+  explicit TileDataBase(TileId const& tileId, uint32_t resolution);
 
-  TileId mTileId;
+  BoundingBox<double> mTb;
+  bool                mHasBounds{};
 
  private:
+  TileId                         mTileId{};
   std::unique_ptr<MinMaxPyramid> mMinMaxPyramid;
   uint32_t                       mResolution;
+  int                            mTexLayer{};
+  int                            mLastFrame{};
 };
 
 template <typename T>
-T const* TileBase::getTypedPtr() const {
+T const* TileDataBase::getTypedPtr() const {
   return static_cast<T const*>(getDataPtr());
 }
 

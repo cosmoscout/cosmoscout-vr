@@ -17,19 +17,16 @@
 #include <unordered_set>
 #include <vector>
 
-#include <boost/cast.hpp>
-#include <boost/pool/object_pool.hpp>
-
 namespace csp::lodbodies {
 
 struct PlanetParameters;
 class TileNode;
 class TileSource;
-class RenderData;
+class TileDataBase;
 class GLResources;
 class TileTextureArray;
 
-/// Manages a TileQuadTree and TileNode requested from a TileSource as well as data (RenderData)
+/// Manages a TileQuadTree and TileNode requested from a TileSource as well as data (TileDataBase)
 /// associated with each TileNode.
 ///
 /// Tiles to load from the configured TileSource are passed in with a call to request and previously
@@ -87,22 +84,6 @@ class TreeManager {
   int  getFrameCount() const;
   void setFrameCount(int frameCount);
 
-  /// Looks up RenderData associated with node node, returns nullptr if no data is associated with
-  /// the node.
-  RenderData const* find(TileNode const* node) const;
-
-  /// Looks up RenderData associated with node node, returns nullptr if no data is associated with
-  /// the node.
-  RenderData* find(TileNode const* node);
-
-  /// Looks up RenderData associated with node node, returns nullptr if no data is associated with
-  /// the node.
-  RenderData const* find(TileId const& tileId) const;
-
-  /// Looks up RenderData associated with node node, returns nullptr if no data is associated with
-  /// the node.
-  RenderData* find(TileId const& tileId);
-
   /// Returns a pointer to the TileTextureArray used by this to manage texture data. This is an
   /// internal interface for use by TileRenderer.
   TileTextureArray& getTileTextureArray() const;
@@ -114,7 +95,7 @@ class TreeManager {
   std::size_t getNodeCountGPU() const;
 
  private:
-  using RDMapValue = std::unordered_map<TileId, RenderData*>::value_type;
+  using RDMapValue = std::unordered_map<TileId, TileNode*>::value_type;
   using AgeStore   = std::vector<RDMapValue*>;
 
   struct AgeLess;
@@ -135,13 +116,7 @@ class TreeManager {
   void onNodeInserted(TileNode* node);
 
   /// Helper function to free resources associated with rdata.
-  void releaseResources(RenderData* rdata);
-
-  /// Allocates and returns data to be associated with node.
-  RenderData* allocateRenderData(TileNode* node);
-
-  /// Releases the data associated with a node, which was previously returned by allocateRenderData.
-  void releaseRenderData(RenderData* rdata);
+  void releaseResources(TileDataBase* rdata);
 
   /// Remove nodes from the managed TileQuadTree that have not been used for a number of frames.
   /// Sort tiles by age (frames since last use, see TreeManager::AgeLess for details) and
@@ -156,12 +131,10 @@ class TreeManager {
   /// tree it is deleted (see TreeManager::mergeUnmerged).
   void merge();
 
-  boost::object_pool<RenderData> mPool;
-
-  PlanetParameters const*                 mParams;
-  std::shared_ptr<GLResources>            mGlMgr;
-  std::unordered_map<TileId, RenderData*> mRdMap;
-  AgeStore                                mAgeStore;
+  PlanetParameters const*               mParams;
+  std::shared_ptr<GLResources>          mGlMgr;
+  std::unordered_map<TileId, TileNode*> mRdMap;
+  AgeStore                              mAgeStore;
 
   TileQuadTree mTree;
   TileSource*  mSrc;

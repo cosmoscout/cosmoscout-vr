@@ -21,10 +21,10 @@ class VistaSystem;
 
 namespace csp::lodbodies {
 
-class TileBase;
+class TileDataBase;
 class TileNode;
 class TileSource;
-class RenderData;
+class TileDataBase;
 class TerrainShader;
 
 /// Renders a planet from databases of hierarchical tiles.

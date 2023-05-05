@@ -9,8 +9,8 @@
 #define CSP_LOD_BODIES_LODVISITOR_HPP
 
 #include "Frustum.hpp"
-#include "RenderData.hpp"
 #include "TileBounds.hpp"
+#include "TileDataBase.hpp"
 #include "TileId.hpp"
 #include "TileVisitor.hpp"
 
@@ -71,10 +71,10 @@ class LODVisitor : public TileVisitor<LODVisitor> {
   std::vector<TileId> const& getLoadIMG() const;
 
   /// Returns the elevation tiles that should be rendered.
-  std::vector<RenderData*> const& getRenderDEM() const;
+  std::vector<TileDataBase*> const& getRenderDEM() const;
 
   /// Returns the image tiles that should be rendered.
-  std::vector<RenderData*> const& getRenderIMG() const;
+  std::vector<TileDataBase*> const& getRenderIMG() const;
 
  private:
   /// Struct storing information relevant for LOD selection.
@@ -95,8 +95,8 @@ class LODVisitor : public TileVisitor<LODVisitor> {
   /// State tracked during traversal of the tile quad trees.
   class LODState : public TileVisitor<LODVisitor>::StateBase {
    public:
-    RenderData* mRdDEM{};
-    RenderData* mRdIMG{};
+    TileDataBase* mRdDEM{};
+    TileDataBase* mRdIMG{};
   };
 
   bool preTraverse() override;
@@ -152,10 +152,10 @@ class LODVisitor : public TileVisitor<LODVisitor> {
   std::vector<LODState> mStack;
   int                   mStackTop;
 
-  std::vector<TileId>      mLoadDEM;
-  std::vector<TileId>      mLoadIMG;
-  std::vector<RenderData*> mRenderDEM;
-  std::vector<RenderData*> mRenderIMG;
+  std::vector<TileId>        mLoadDEM;
+  std::vector<TileId>        mLoadIMG;
+  std::vector<TileDataBase*> mRenderDEM;
+  std::vector<TileDataBase*> mRenderIMG;
 
   int  mFrameCount;
   bool mUpdateLOD;

@@ -156,7 +156,6 @@ void TileVisitor<DerivedT>::visit() {
       TileNode* rootDEM = mTreeDEM->getRoot(i);
       TileNode* rootIMG = mTreeIMG ? mTreeIMG->getRoot(i) : nullptr;
 
-      // if (i==7)
       visitRoot(rootDEM, rootIMG, TileId(0, i));
     }
   }

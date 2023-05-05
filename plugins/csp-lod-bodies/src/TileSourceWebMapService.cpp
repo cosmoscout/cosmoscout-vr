@@ -50,7 +50,7 @@ bool loadImpl(
   // First we download the tile data to a local cache file. This will return quickly if the file is
   // already downloaded but will take some time if it needs to be fetched from the server.
   try {
-    cacheFile = source->loadData(node->getPatchIdx(), level, x, y);
+    cacheFile = source->loadData(tile->getPatchIdx(), level, x, y);
   } catch (std::exception const& e) {
     // This is not critical, the planet will just not refine any further.
     logger().debug("Tile loading failed: {}", e.what());
@@ -182,9 +182,11 @@ void fillDiagonal(TileNode* node) {
 
 template <typename T>
 TileNode* loadImpl(TileSourceWebMapService* source, uint32_t level, glm::int64 patchIdx) {
+  auto  data = std::make_unique<TileData<T>>(TileId(level, patchIdx), source->getResolution());
   auto* node = new TileNode(); // NOLINT(cppcoreguidelines-owning-memory): TODO this is bad!
+  node->setTileData(std::move(data));
 
-  node->setTileData(std::make_unique<TileData<T>>(level, patchIdx, source->getResolution()));
+  // TODO: calcTileBounds(*node->getTile(), mParams->mRadii, mParams->mHeightScale)
 
   int  x{};
   int  y{};

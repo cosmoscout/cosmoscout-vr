@@ -8,17 +8,17 @@
 #ifndef CSP_LOD_BODIES_TILE_DATA_HPP
 #define CSP_LOD_BODIES_TILE_DATA_HPP
 
-#include "TileBase.hpp"
+#include "TileDataBase.hpp"
 
 namespace csp::lodbodies {
 
 /// Concrete class storing data samples of the template argument type T.
 template <typename T>
-class TileData : public TileBase {
+class TileData : public TileDataBase {
  public:
   using value_type = T;
 
-  explicit TileData(int level, glm::int64 patchIdx, uint32_t resolution);
+  explicit TileData(TileId const& tileId, uint32_t resolution);
 
   TileData(TileData const& other) = delete;
   TileData(TileData&& other)      = delete;
@@ -63,8 +63,8 @@ struct DataTypeTrait<glm::u8vec4> {
 } // namespace detail
 
 template <typename T>
-TileData<T>::TileData(int level, glm::int64 patchIdx, uint32_t resolution)
-    : TileBase(level, patchIdx, resolution)
+TileData<T>::TileData(TileId const& tileId, uint32_t resolution)
+    : TileDataBase(tileId, resolution)
     , mData(resolution * resolution) {
 }
 

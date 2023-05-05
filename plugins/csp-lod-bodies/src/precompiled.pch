@@ -23,7 +23,6 @@
 #include "TileId.hpp"
 #include "TileTextureArray.hpp"
 #include "TileDataType.hpp"
-#include "RenderData.hpp"
 #include "TreeManager.hpp"
 #include "PlanetParameters.hpp"
 #include "HEALPix.hpp"

@@ -8,7 +8,7 @@
 #ifndef CSP_LOD_BODIES_TILENODE_HPP
 #define CSP_LOD_BODIES_TILENODE_HPP
 
-#include "TileBase.hpp"
+#include "TileDataBase.hpp"
 
 namespace csp::lodbodies {
 
@@ -18,8 +18,8 @@ class TileNode {
 
  public:
   explicit TileNode();
-  explicit TileNode(TileBase* tile);
-  explicit TileNode(std::unique_ptr<TileBase>&& tile);
+  explicit TileNode(TileDataBase* tile);
+  explicit TileNode(std::unique_ptr<TileDataBase>&& tile);
 
   virtual ~TileNode() = default;
 
@@ -29,16 +29,12 @@ class TileNode {
   TileNode& operator=(TileNode const& other) = delete;
   TileNode& operator=(TileNode&& other) = default;
 
-  int           getLevel() const;
-  glm::int64    getPatchIdx() const;
-  TileId const& getTileId() const;
-
   /// Returns the tile data owned by this, or NULL if there is no such tile.
-  TileBase* getTileData() const;
+  TileDataBase* getTileData() const;
 
   /// Sets the tile data to be owned by this. Exclusive ownership of the tile is taken by this and
   /// when this TileNode is destroyed the tile is destroyed as well.
-  void setTileData(std::unique_ptr<TileBase> tile);
+  void setTileData(std::unique_ptr<TileDataBase> tile);
 
   /// Returns the child at childIdx (must be in [0, 3]).
   TileNode* getChild(int childIdx) const;
@@ -55,7 +51,7 @@ class TileNode {
  private:
   void setParent(TileNode* parent);
 
-  std::unique_ptr<TileBase>                mTileData;
+  std::unique_ptr<TileDataBase>            mTileData;
   TileNode*                                mParent{nullptr};
   std::array<std::unique_ptr<TileNode>, 4> mChildren;
 };

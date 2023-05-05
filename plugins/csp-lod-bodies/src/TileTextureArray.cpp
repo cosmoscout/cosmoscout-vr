@@ -7,7 +7,7 @@
 
 #include "TileTextureArray.hpp"
 
-#include "RenderData.hpp"
+#include "TileDataBase.hpp"
 #include "TreeManager.hpp"
 
 #include <VistaBase/VistaStreamUtils.h>
@@ -88,7 +88,7 @@ TileTextureArray::~TileTextureArray() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void TileTextureArray::allocateGPU(RenderData* rdata) {
+void TileTextureArray::allocateGPU(TileDataBase* rdata) {
   assert(rdata->getTexLayer() < 0);
 
   mUploadQueue.push_back(rdata);
@@ -96,7 +96,7 @@ void TileTextureArray::allocateGPU(RenderData* rdata) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void TileTextureArray::releaseGPU(RenderData* rdata) {
+void TileTextureArray::releaseGPU(TileDataBase* rdata) {
   if (rdata->getTexLayer() >= 0) {
     releaseLayer(rdata);
   } else {
@@ -141,7 +141,7 @@ void TileTextureArray::processQueue(int maxItems) {
       break;
     }
 
-    RenderData* rdata = mUploadQueue.back();
+    TileDataBase* rdata = mUploadQueue.back();
 
     // rdata could be NULL if a tile is removed before it is ever
     // uploaded to the GPU, c.f. releaseGPU
@@ -238,12 +238,9 @@ void TileTextureArray::releaseTexture() {
 
 // Uploads tile data from the node associated with @a rdata to the GPU.
 // @note May only be called after a call to @c preUpload.
-void TileTextureArray::allocateLayer(RenderData* rdata) {
+void TileTextureArray::allocateLayer(TileDataBase* rdata) {
   assert(!mFreeLayers.empty());
   assert(rdata->getTexLayer() < 0);
-
-  TileNode* node = rdata->getNode();
-  TileBase* tile = node->getTileData();
 
   int layer = mFreeLayers.back();
   mFreeLayers.pop_back();
@@ -252,7 +249,7 @@ void TileTextureArray::allocateLayer(RenderData* rdata) {
   GLint const   xoffset = 0;
   GLint const   yoffset = 0;
   GLsizei const depth   = 1;
-  GLvoid const* data    = tile->getDataPtr();
+  GLvoid const* data    = rdata->getDataPtr();
 
   glTexSubImage3D(GL_TEXTURE_2D_ARRAY, level, xoffset, yoffset, layer, mResolution, mResolution,
       depth, mFormat, mType, data);
@@ -262,7 +259,7 @@ void TileTextureArray::allocateLayer(RenderData* rdata) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void TileTextureArray::releaseLayer(RenderData* rdata) {
+void TileTextureArray::releaseLayer(TileDataBase* rdata) {
   assert(rdata->getTexLayer() >= 0);
 
   // simply mark the layer as available and record that rdata is not

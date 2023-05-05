@@ -8,7 +8,7 @@
 #include "TreeManager.hpp"
 
 #include "PlanetParameters.hpp"
-#include "RenderData.hpp"
+#include "TileDataBase.hpp"
 #include "TileSource.hpp"
 #include "TileTextureArray.hpp"
 
@@ -71,8 +71,8 @@ bool TreeManager::AgeLess::operator()(RDMapValue const* lhs, RDMapValue const* r
   // tile level - this ensure that child nodes are always sorted
   // after parent nodes
 
-  int ageLHS = lhs->second->getAge(mFrame);
-  int ageRHS = rhs->second->getAge(mFrame);
+  int ageLHS = lhs->second->getTileData()->getAge(mFrame);
+  int ageRHS = rhs->second->getTileData()->getAge(mFrame);
 
   if (ageLHS == ageRHS) {
     return lhs->first.level() < rhs->first.level();
@@ -173,7 +173,7 @@ void TreeManager::clear() {
   auto rdEnd = mRdMap.end();
 
   for (; rdIt != rdEnd; ++rdIt) {
-    releaseResources(rdIt->second);
+    releaseResources(rdIt->second->getTileData());
   }
 
   mRdMap.clear();
@@ -182,44 +182,6 @@ void TreeManager::clear() {
   for (int i = 0; i < TileQuadTree::sNumRoots; ++i) {
     mTree.setRoot(i, nullptr);
   }
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-RenderData const* TreeManager::find(TileNode const* node) const {
-  return find(node->getTileId());
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-RenderData* TreeManager::find(TileNode const* node) {
-  return find(node->getTileId());
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-RenderData const* TreeManager::find(TileId const& tileId) const {
-  RenderData const* result = nullptr;
-  auto              rdIt   = mRdMap.find(tileId);
-
-  if (rdIt != mRdMap.end()) {
-    result = rdIt->second;
-  }
-
-  return result;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-RenderData* TreeManager::find(TileId const& tileId) {
-  RenderData* result = nullptr;
-  auto        rdIt   = mRdMap.find(tileId);
-
-  if (rdIt != mRdMap.end()) {
-    result = rdIt->second;
-  }
-
-  return result;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -237,13 +199,13 @@ std::size_t TreeManager::getNodeCountGPU() const {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void TreeManager::onNodeLoaded(TileSource* source, int level, glm::int64 patchIdx, TileNode* node) {
+
   std::unique_lock<std::mutex> lck(mLoadedMtx);
   if (node && source == mSrc) {
     // Only add node to list of loaded nodes, actual insertion into the
     // quad-tree is done in merge().
     // This ensures that the tree is not modified at unpredictable moments
     // in time (for example while a traversal is in progress).
-
     mLoadedNodes.push_back(node);
   } else {
     // source has changed or loading failed, discard node
@@ -255,16 +217,16 @@ void TreeManager::onNodeLoaded(TileSource* source, int level, glm::int64 patchId
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void TreeManager::onNodeInserted(TileNode* node) {
-  RenderData* rdata = allocateRenderData(node);
+  TileDataBase* rdata = node->getTileData();
 
   if (node->getParent()) {
-    RenderData* rdataP = find(node->getParent());
+    TileDataBase* rdataP = node->getParent()->getTileData();
     assert(rdataP != nullptr);
 
     rdata->setLastFrame(rdataP->getLastFrame());
   }
 
-  auto res = mRdMap.insert(RDMapValue(node->getTileId(), rdata));
+  auto res = mRdMap.insert(RDMapValue(node->getTileData()->getTileId(), node));
   assert(res.second);
 
   getTileTextureArray().allocateGPU(rdata);
@@ -273,29 +235,8 @@ void TreeManager::onNodeInserted(TileNode* node) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void TreeManager::releaseResources(RenderData* rdata) {
+void TreeManager::releaseResources(TileDataBase* rdata) {
   getTileTextureArray().releaseGPU(rdata);
-  releaseRenderData(rdata);
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-RenderData* TreeManager::allocateRenderData(TileNode* node) {
-  RenderData* rdata = mPool.construct();
-
-  // init rdata
-  rdata->setNode(node);
-  rdata->setLastFrame(0);
-
-  rdata->setBounds(calcTileBounds(*node->getTileData(), mParams->mRadii, mParams->mHeightScale));
-
-  return rdata;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void TreeManager::releaseRenderData(RenderData* rdata) {
-  mPool.destroy(rdata);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -309,10 +250,11 @@ void TreeManager::prune() {
     RDMapValue* value = mAgeStore.back();
 
     // remove unnused nodes, but never root nodes
-    if (value->second->getAge(mFrameCount) > maxNodeAge && value->first.level() > 0) {
-      TileNode* node = value->second->getNode();
+    if (value->second->getTileData()->getAge(mFrameCount) > maxNodeAge &&
+        value->first.level() > 0) {
+      TileNode* node = value->second;
 
-      releaseResources(value->second);
+      releaseResources(value->second->getTileData());
 
       if (!removeNode(&mTree, node)) {
         vstr::errp() << "[TreeManager::prune] [" << mName << "] Failed to remove node "
@@ -357,10 +299,10 @@ void TreeManager::merge() {
 
   for (auto& node : mergeNodes) {
     assert(node != nullptr);
-    assert(node->getTileData() != nullptr);
+    assert(node->getTile() != nullptr);
 
     if (insertNode(&mTree, node)) {
-      mPendingTiles.erase(node->getTileId());
+      mPendingTiles.erase(node->getTileData()->getTileId());
       onNodeInserted(node);
 
       ++merged;
@@ -382,13 +324,13 @@ void TreeManager::merge() {
     if (insertNode(&mTree, node)) {
       // insert succeeded, remove from pending and unmerged and
       // associate render data with node
-      mPendingTiles.erase(node->getTileId());
+      mPendingTiles.erase(node->getTileData()->getTileId());
       mUnmergedNodes.erase(mUnmergedNodes.begin() + i);
 
       onNodeInserted(node);
     } else if ((mFrameCount - mUnmergedNodes[i].mFrame) > maxUnmergedAge) {
       // node is waiting for too long to be merged - discard it
-      mPendingTiles.erase(node->getTileId());
+      mPendingTiles.erase(node->getTileData()->getTileId());
       mUnmergedNodes.erase(mUnmergedNodes.begin() + i);
 
       delete node; // NOLINT(cppcoreguidelines-owning-memory): TODO where does it get created?
