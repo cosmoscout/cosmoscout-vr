@@ -30,9 +30,6 @@ class TileBase {
   TileBase& operator=(TileBase const& other) = delete;
   TileBase& operator=(TileBase&& other) = default;
 
-  /// Returns std::type_info for the data type stored in this tile.
-  virtual std::type_info const& getTypeId() const = 0;
-
   /// Returns the enum value for the data type stored in this tile.
   virtual TileDataType getDataType() const = 0;
 

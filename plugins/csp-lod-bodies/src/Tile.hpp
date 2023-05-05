@@ -28,11 +28,9 @@ class Tile : public TileBase {
 
   ~Tile() override;
 
-  static std::type_info const& getStaticTypeId();
-  static TileDataType          getStaticDataType();
+  static TileDataType getStaticDataType();
 
-  std::type_info const& getTypeId() const override;
-  TileDataType          getDataType() const override;
+  TileDataType getDataType() const override;
 
   void const* getDataPtr() const override;
 
@@ -74,18 +72,8 @@ template <typename T>
 Tile<T>::~Tile() = default;
 
 template <typename T>
-std::type_info const& Tile<T>::getStaticTypeId() {
-  return typeid(T);
-}
-
-template <typename T>
 TileDataType Tile<T>::getStaticDataType() {
   return detail::DataTypeTrait<T>::value;
-}
-
-template <typename T>
-std::type_info const& Tile<T>::getTypeId() const {
-  return getStaticTypeId();
 }
 
 template <typename T>
