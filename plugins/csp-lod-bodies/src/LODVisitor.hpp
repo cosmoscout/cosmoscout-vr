@@ -28,6 +28,8 @@ class LODVisitor : public TileVisitor<LODVisitor> {
   explicit LODVisitor(PlanetParameters const& params, TreeManager* treeMgrDEM = nullptr,
       TreeManager* treeMgrIMG = nullptr);
 
+  void queueRecomputeTileBounds();
+
   TreeManager* getTreeManagerDEM() const;
   void         setTreeManagerDEM(TreeManager* treeMgr);
 
@@ -100,10 +102,9 @@ class LODVisitor : public TileVisitor<LODVisitor> {
   };
 
   bool preTraverse() override;
+  void postTraverse() override;
 
   bool preVisitRoot(TileId const& tileId) override;
-  void postVisitRoot(TileId const& tileId) override;
-
   bool preVisit(TileId const& tileId) override;
 
   void             pushState() override;
@@ -142,6 +143,7 @@ class LODVisitor : public TileVisitor<LODVisitor> {
   PlanetParameters const* mParams;
   TreeManager*            mTreeMgrDEM;
   TreeManager*            mTreeMgrIMG;
+  bool                    mRecomputeTileBounds = false;
 
   glm::ivec4 mViewport;
   glm::dmat4 mMatVM;

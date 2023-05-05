@@ -195,6 +195,12 @@ LODVisitor::LODVisitor(
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void LODVisitor::queueRecomputeTileBounds() {
+  mRecomputeTileBounds = true;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void LODVisitor::setTreeManagerDEM(TreeManager* treeMgr) {
   // unset tree from OLD tree manager
   if (mTreeMgrDEM) {
@@ -281,6 +287,12 @@ bool LODVisitor::preTraverse() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void LODVisitor::postTraverse() {
+  mRecomputeTileBounds = false;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 bool LODVisitor::preVisitRoot(TileId const& tileId) {
   LODState& state = getLODState();
 
@@ -303,12 +315,6 @@ bool LODVisitor::preVisitRoot(TileId const& tileId) {
   }
 
   return visitNode(tileId);
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void LODVisitor::postVisitRoot(TileId const& /*tileId*/) {
-  // nothing to do
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -355,6 +361,14 @@ bool LODVisitor::visitNode(TileId const& tileId) {
   //          handleRefine() for details.
   //      Else:
   //          draw this level
+
+  LODState& state = getLODState();
+
+  if (state.mNodeDEM && (!state.mRdDEM->hasBounds() || mRecomputeTileBounds)) {
+    auto bounds =
+        calcTileBounds(*state.mNodeDEM->getTileData(), mParams->mRadii, mParams->mHeightScale);
+    state.mRdDEM->setBounds(bounds);
+  }
 
   bool result  = false;
   bool visible = testVisible(tileId, mTreeMgrDEM);

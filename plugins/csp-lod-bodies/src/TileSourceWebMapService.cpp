@@ -186,8 +186,6 @@ TileNode* loadImpl(TileSourceWebMapService* source, uint32_t level, glm::int64 p
   auto* node = new TileNode(); // NOLINT(cppcoreguidelines-owning-memory): TODO this is bad!
   node->setTileData(std::move(data));
 
-  // TODO: calcTileBounds(*node->getTile(), mParams->mRadii, mParams->mHeightScale)
-
   int  x{};
   int  y{};
   bool onDiag = csp::lodbodies::TileSourceWebMapService::getXY(level, patchIdx, x, y);

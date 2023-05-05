@@ -10,7 +10,6 @@
 #include "../../../src/cs-utils/FrameStats.hpp"
 #include "../../../src/cs-utils/utils.hpp"
 #include "TileSource.hpp"
-#include "UpdateBoundsVisitor.hpp"
 
 #include <VistaBase/VistaStreamUtils.h>
 #include <VistaKernel/DisplayManager/VistaDisplayManager.h>
@@ -89,13 +88,6 @@ void VistaPlanet::draw() {
 
   // collect/print statistics
   updateStatistics(frameCount);
-
-  // update bounding boxes
-  {
-    cs::utils::FrameStats::ScopedTimer timer(
-        "Update Tile Bounds", cs::utils::FrameStats::TimerMode::eCPU);
-    updateTileBounds();
-  }
 
   // integrate newly loaded tiles/remove unused tiles
   {
@@ -294,18 +286,6 @@ void VistaPlanet::updateStatistics(int frameCount) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void VistaPlanet::updateTileBounds() {
-  if ((mFlags & sFlagTileBoundsInvalid) != 0) {
-    // rebuild bounding boxes
-    UpdateBoundsVisitor ubVisitor(&mTreeMgrDEM, mParams);
-    ubVisitor.visit();
-
-    mFlags &= ~sFlagTileBoundsInvalid;
-  }
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
 void VistaPlanet::updateTileTrees(int frameCount) {
   // update DEM tree
   if (mSrcDEM) {
@@ -409,9 +389,10 @@ glm::ivec4 VistaPlanet::getViewport() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void VistaPlanet::setRadii(glm::dvec3 const& radii) {
-  mParams.mRadii = radii;
-
-  mFlags |= sFlagTileBoundsInvalid;
+  if (mParams.mRadii != radii) {
+    mParams.mRadii = radii;
+    mLodVisitor.queueRecomputeTileBounds();
+  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -423,9 +404,10 @@ glm::dvec3 const& VistaPlanet::getRadii() const {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void VistaPlanet::setHeightScale(float scale) {
-  mParams.mHeightScale = scale;
-
-  mFlags |= sFlagTileBoundsInvalid;
+  if (mParams.mHeightScale != scale) {
+    mParams.mHeightScale = scale;
+    mLodVisitor.queueRecomputeTileBounds();
+  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

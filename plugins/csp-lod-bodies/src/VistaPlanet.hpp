@@ -118,7 +118,6 @@ class VistaPlanet : public cs::graphics::ShadowCaster {
 
  private:
   void updateStatistics(int frameCount);
-  void updateTileBounds();
   void updateTileTrees(int frameCount);
   void traverseTileTrees(int frameCount, glm::dmat4 const& matM, glm::mat4 const& matV,
       glm::mat4 const& matP, glm::ivec4 const& viewport);
@@ -130,8 +129,7 @@ class VistaPlanet : public cs::graphics::ShadowCaster {
   static glm::mat4  getProjectionMatrix();
   static glm::ivec4 getViewport();
 
-  static glm::uint8 const sFlagTileBoundsInvalid = 0x01;
-  static bool             sGlewInitialized;
+  static bool sGlewInitialized;
 
   glm::dmat4 mWorldTransform;
   bool       mEnabled = false;
