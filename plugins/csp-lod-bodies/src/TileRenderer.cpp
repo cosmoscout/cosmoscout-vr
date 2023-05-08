@@ -264,14 +264,14 @@ void TileRenderer::renderTiles(
 
 void TileRenderer::renderTile(TileNode* rdDEM, TileNode* rdIMG, UniformLocs const& locs) {
   VistaGLSLShader& shader = mProgTerrain->mShader;
-  TileId const&    idDEM  = rdDEM->getTileData()->getTileId();
+  TileId const&    idDEM  = rdDEM->getTileId();
 
   auto  baseXY        = HEALPix::getBaseXY(idDEM);
   auto  tileOS        = glm::ivec3(baseXY.y, baseXY.z, HEALPix::getNSide(idDEM));
   auto  patchF1F2     = glm::ivec2(HEALPix::getF1(idDEM), HEALPix::getF2(idDEM));
-  float averageHeight = rdDEM->getTileData()->getMinMaxPyramid()->getAverage();
-  float minHeight     = rdDEM->getTileData()->getMinMaxPyramid()->getMin();
-  float maxHeight     = rdDEM->getTileData()->getMinMaxPyramid()->getMax();
+  float averageHeight = rdDEM->getMinMaxPyramid()->getAverage();
+  float minHeight     = rdDEM->getMinMaxPyramid()->getMin();
+  float maxHeight     = rdDEM->getMinMaxPyramid()->getMax();
 
   // update uniforms
   shader.SetUniform(locs.heightInfo, averageHeight, maxHeight - minHeight);
@@ -353,8 +353,8 @@ void TileRenderer::renderBounds(
     std::vector<TileNode*> const& reqDEM, std::vector<TileNode*> const& reqIMG) {
   auto renderBounds = [this](std::vector<TileNode*> const& req) {
     for (auto const& it : req) {
-      if (it->getTileData()->hasBounds()) {
-        BoundingBox<double> const& tb = it->getTileData()->getBounds();
+      if (it->hasBounds()) {
+        BoundingBox<double> const& tb = it->getBounds();
 
         std::array<glm::dvec4, 8> cornersWorldSpace = {
             glm::dvec4(tb.getMin().x, tb.getMin().y, tb.getMin().z, 1.0),

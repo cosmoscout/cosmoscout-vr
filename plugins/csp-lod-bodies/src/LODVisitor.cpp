@@ -92,9 +92,8 @@ bool testFrontFacing(glm::dvec3 const& camPos, PlanetParameters const* params,
   // Get minimum height of all base patches (needed for radius of proxy culling sphere)
   auto minHeight(std::numeric_limits<float>::max());
   for (int i(0); i < TileQuadTree::sNumRoots; ++i) {
-    auto*       tile       = treeMgrDEM->getTree()->getRoot(i)->getTileData();
-    auto const& castedTile = dynamic_cast<TileData<float> const&>(*tile);
-    minHeight              = std::min(minHeight, castedTile.getMinMaxPyramid()->getMin());
+    auto* tile = treeMgrDEM->getTree()->getRoot(i);
+    minHeight  = std::min(minHeight, tile->getMinMaxPyramid()->getMin());
   }
 
   double dProxyRadius = std::min(params->mRadii.x, std::min(params->mRadii.y, params->mRadii.z)) +
@@ -300,7 +299,7 @@ bool LODVisitor::preVisitRoot(TileId const& tileId) {
   if (mTreeMgrDEM && state.mNodeDEM) {
     auto* rd     = state.mNodeDEM->getTileData();
     state.mRdDEM = rd;
-    state.mRdDEM->setLastFrame(mFrameCount);
+    state.mNodeDEM->setLastFrame(mFrameCount);
   } else {
     state.mRdDEM = nullptr;
   }
@@ -309,7 +308,7 @@ bool LODVisitor::preVisitRoot(TileId const& tileId) {
   if (mTreeMgrIMG && state.mNodeIMG) {
     auto* rd     = state.mNodeIMG->getTileData();
     state.mRdIMG = rd;
-    state.mRdIMG->setLastFrame(mFrameCount);
+    state.mNodeIMG->setLastFrame(mFrameCount);
   } else {
     state.mRdIMG = nullptr;
   }
@@ -328,7 +327,7 @@ bool LODVisitor::preVisit(TileId const& tileId) {
   if (mTreeMgrDEM && state.mNodeDEM) {
     auto* rd     = state.mNodeDEM->getTileData();
     state.mRdDEM = rd;
-    state.mRdDEM->setLastFrame(mFrameCount);
+    state.mNodeDEM->setLastFrame(mFrameCount);
   } else {
     state.mRdDEM = stateP.mRdDEM;
   }
@@ -337,7 +336,7 @@ bool LODVisitor::preVisit(TileId const& tileId) {
   if (mTreeMgrIMG && state.mNodeIMG) {
     auto* rd     = state.mNodeIMG->getTileData();
     state.mRdIMG = rd;
-    state.mRdIMG->setLastFrame(mFrameCount);
+    state.mNodeIMG->setLastFrame(mFrameCount);
   } else {
     state.mRdIMG = stateP.mRdIMG;
   }
@@ -364,10 +363,9 @@ bool LODVisitor::visitNode(TileId const& tileId) {
 
   LODState& state = getLODState();
 
-  if (state.mNodeDEM && (!state.mRdDEM->hasBounds() || mRecomputeTileBounds)) {
-    auto bounds =
-        calcTileBounds(*state.mNodeDEM->getTileData(), mParams->mRadii, mParams->mHeightScale);
-    state.mRdDEM->setBounds(bounds);
+  if (state.mNodeDEM && (!state.mNodeDEM->hasBounds() || mRecomputeTileBounds)) {
+    auto bounds = calcTileBounds(*state.mNodeDEM, mParams->mRadii, mParams->mHeightScale);
+    state.mNodeDEM->setBounds(bounds);
   }
 
   bool result  = false;
@@ -438,8 +436,8 @@ bool LODVisitor::handleRefine(TileId const& /*tileId*/) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void LODVisitor::addLoadChildrenDEM(TileNode* node) {
-  if (node && node->getTileData()->getLevel() < mParams->mMaxLevel) {
-    TileId const& tileId = node->getTileData()->getTileId();
+  if (node && node->getLevel() < mParams->mMaxLevel) {
+    TileId const& tileId = node->getTileId();
 
     for (int i = 0; i < 4; ++i) {
       if (!node->getChild(i)) {
@@ -447,8 +445,7 @@ void LODVisitor::addLoadChildrenDEM(TileNode* node) {
       } else {
         // mark child as used to avoid it being removed while waiting
         // for its siblings to be loaded
-        TileDataBase* rd = node->getChild(i)->getTileData();
-        rd->setLastFrame(mFrameCount);
+        node->getChild(i)->setLastFrame(mFrameCount);
       }
     }
   }
@@ -457,8 +454,8 @@ void LODVisitor::addLoadChildrenDEM(TileNode* node) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void LODVisitor::addLoadChildrenIMG(TileNode* node) {
-  if (node && node->getTileData()->getLevel() < mParams->mMaxLevel) {
-    TileId const& tileId = node->getTileData()->getTileId();
+  if (node && node->getLevel() < mParams->mMaxLevel) {
+    TileId const& tileId = node->getTileId();
 
     for (int i = 0; i < 4; ++i) {
       if (!node->getChild(i)) {
@@ -466,8 +463,7 @@ void LODVisitor::addLoadChildrenIMG(TileNode* node) {
       } else {
         // mark child as used to avoid it being removed while waiting
         // for its siblings to be loaded
-        TileDataBase* rd = node->getChild(i)->getTileData();
-        rd->setLastFrame(mFrameCount);
+        node->getChild(i)->setLastFrame(mFrameCount);
       }
     }
   }
@@ -479,7 +475,7 @@ bool LODVisitor::testVisible(TileId const& tileId, TreeManager* treeMgrDEM) {
   bool      result = false;
   LODState& state  = getLODState();
 
-  BoundingBox<double> const& tb = state.mRdDEM->getBounds();
+  BoundingBox<double> const& tb = state.mNodeDEM->getBounds();
 
   result = testInFrustum(mCullData.mFrustumMS, tb);
 
@@ -497,7 +493,7 @@ bool LODVisitor::testNeedRefine(TileId const& tileId) {
   LODState& state  = getLODState();
 
   if (state.mNodeDEM) {
-    BoundingBox<double> tb = state.mRdDEM->getBounds();
+    BoundingBox<double> tb = state.mNodeDEM->getBounds();
 
     glm::dvec3 const& tbMin    = tb.getMin();
     glm::dvec3 const& tbMax    = tb.getMax();

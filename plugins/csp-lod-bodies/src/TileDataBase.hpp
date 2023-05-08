@@ -48,40 +48,18 @@ class TileDataBase {
   /// Returns pointer to data stored in this tile.
   virtual void* getDataPtr() = 0;
 
-  int           getLevel() const;
-  glm::int64    getPatchIdx() const;
-  TileId const& getTileId() const;
-
   /// Returns the resolution given to the tile at construction time.
   uint32_t getResolution() const;
 
   int  getTexLayer() const;
   void setTexLayer(int layer);
 
-  int  getLastFrame() const;
-  void setLastFrame(int frame);
-  int  getAge(int frame) const;
-
-  BoundingBox<double> const& getBounds() const;
-  void                       setBounds(BoundingBox<double> const& tb);
-  void                       removeBounds();
-  bool                       hasBounds() const;
-
-  MinMaxPyramid* getMinMaxPyramid() const;
-  void           setMinMaxPyramid(std::unique_ptr<MinMaxPyramid> pyramid);
-
  protected:
-  explicit TileDataBase(TileId const& tileId, uint32_t resolution);
-
-  BoundingBox<double> mTb;
-  bool                mHasBounds{};
+  explicit TileDataBase(uint32_t resolution);
 
  private:
-  TileId                         mTileId{};
-  std::unique_ptr<MinMaxPyramid> mMinMaxPyramid;
-  uint32_t                       mResolution;
-  int                            mTexLayer{};
-  int                            mLastFrame{};
+  uint32_t mResolution;
+  int      mTexLayer{-1};
 };
 
 template <typename T>

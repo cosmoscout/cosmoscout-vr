@@ -8,7 +8,7 @@
 #include "TreeManager.hpp"
 
 #include "PlanetParameters.hpp"
-#include "TileDataBase.hpp"
+#include "TileData.hpp"
 #include "TileSource.hpp"
 #include "TileTextureArray.hpp"
 
@@ -71,11 +71,11 @@ bool TreeManager::AgeLess::operator()(TileNode const* lhs, TileNode const* rhs) 
   // tile level - this ensure that child nodes are always sorted
   // after parent nodes
 
-  int ageLHS = lhs->getTileData()->getAge(mFrame);
-  int ageRHS = rhs->getTileData()->getAge(mFrame);
+  int ageLHS = lhs->getAge(mFrame);
+  int ageRHS = rhs->getAge(mFrame);
 
   if (ageLHS == ageRHS) {
-    return lhs->getTileData()->getLevel() < rhs->getTileData()->getLevel();
+    return lhs->getLevel() < rhs->getLevel();
   }
 
   return ageLHS < ageRHS;
@@ -198,19 +198,25 @@ std::size_t TreeManager::getNodeCountGPU() const {
 void TreeManager::onNodeLoaded(
     TileSource* source, int level, glm::int64 patchIdx, std::unique_ptr<TileDataBase> tileData) {
 
-  std::unique_lock<std::mutex> lck(mLoadedMtx);
-
   if (tileData && source == mSrc) {
-    auto* node = new TileNode(); // NOLINT(cppcoreguidelines-owning-memory): TODO this is bad!
+    auto* node = new TileNode(TileId(level, patchIdx)); // NOLINT(cppcoreguidelines-owning-memory)
+
+    if (tileData->getDataType() == TileDataType::eElevation) {
+      auto demdata = dynamic_cast<TileData<float>*>(tileData.get());
+      node->setMinMaxPyramid(std::make_unique<MinMaxPyramid>(demdata));
+    }
+
     node->setTileData(std::move(tileData));
 
     // Only add node to list of loaded nodes, actual insertion into the
     // quad-tree is done in merge().
     // This ensures that the tree is not modified at unpredictable moments
     // in time (for example while a traversal is in progress).
+    std::unique_lock<std::mutex> lck(mLoadedMtx);
     mLoadedNodes.push_back(node);
   } else {
     // source has changed or loading failed, discard node
+    std::unique_lock<std::mutex> lck(mLoadedMtx);
     mPendingTiles.erase(TileId(level, patchIdx));
   }
 }
@@ -221,10 +227,10 @@ void TreeManager::onNodeInserted(TileNode* node) {
   TileDataBase* rdata = node->getTileData();
 
   if (node->getParent()) {
-    TileDataBase* rdataP = node->getParent()->getTileData();
-    assert(rdataP != nullptr);
+    TileNode* parent = node->getParent();
+    assert(parent != nullptr);
 
-    rdata->setLastFrame(rdataP->getLastFrame());
+    node->setLastFrame(parent->getLastFrame());
   }
 
   mNodes.push_back(node);
@@ -249,8 +255,7 @@ void TreeManager::prune() {
     TileNode* node = mNodes.back();
 
     // remove unnused nodes, but never root nodes
-    if (node->getTileData()->getAge(mFrameCount) > maxNodeAge &&
-        node->getTileData()->getLevel() > 0) {
+    if (node->getAge(mFrameCount) > maxNodeAge && node->getLevel() > 0) {
       releaseResources(node->getTileData());
 
       if (!removeNode(&mTree, node)) {
@@ -298,7 +303,7 @@ void TreeManager::merge() {
     assert(node->getTile() != nullptr);
 
     if (insertNode(&mTree, node)) {
-      mPendingTiles.erase(node->getTileData()->getTileId());
+      mPendingTiles.erase(node->getTileId());
       onNodeInserted(node);
 
       ++merged;
@@ -320,13 +325,13 @@ void TreeManager::merge() {
     if (insertNode(&mTree, node)) {
       // insert succeeded, remove from pending and unmerged and
       // associate render data with node
-      mPendingTiles.erase(node->getTileData()->getTileId());
+      mPendingTiles.erase(node->getTileId());
       mUnmergedNodes.erase(mUnmergedNodes.begin() + i);
 
       onNodeInserted(node);
     } else if ((mFrameCount - mUnmergedNodes[i].mFrame) > maxUnmergedAge) {
       // node is waiting for too long to be merged - discard it
-      mPendingTiles.erase(node->getTileData()->getTileId());
+      mPendingTiles.erase(node->getTileId());
       mUnmergedNodes.erase(mUnmergedNodes.begin() + i);
 
       delete node; // NOLINT(cppcoreguidelines-owning-memory): TODO where does it get created?

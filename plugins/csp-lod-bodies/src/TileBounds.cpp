@@ -90,13 +90,11 @@ BoundingBox<double> calcTileBounds(double tmin, double tmax, int tileLevel, glm:
 // @note Assumes that @a tile stores elevation data (i.e. a single scalar) and
 // has valid min/max values set.
 BoundingBox<double> calcTileBounds(
-    TileDataBase const& tile, glm::dvec3 const& radii, double heightScale) {
-  switch (tile.getDataType()) {
+    TileNode const& tile, glm::dvec3 const& radii, double heightScale) {
+  switch (tile.getTileData()->getDataType()) {
   case TileDataType::eElevation: {
-    auto const& casted_tile = dynamic_cast<TileData<float> const&>(tile);
-    return calcTileBounds(casted_tile.getMinMaxPyramid()->getMin(),
-        casted_tile.getMinMaxPyramid()->getMax(), casted_tile.getLevel(), casted_tile.getPatchIdx(),
-        radii, heightScale);
+    return calcTileBounds(tile.getMinMaxPyramid()->getMin(), tile.getMinMaxPyramid()->getMax(),
+        tile.getLevel(), tile.getPatchIdx(), radii, heightScale);
     break;
   }
 

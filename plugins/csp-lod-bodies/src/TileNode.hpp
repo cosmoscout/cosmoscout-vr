@@ -17,9 +17,8 @@ namespace csp::lodbodies {
 class TileNode {
 
  public:
-  explicit TileNode();
-  explicit TileNode(TileDataBase* tile);
-  explicit TileNode(std::unique_ptr<TileDataBase>&& tile);
+  explicit TileNode() = default;
+  explicit TileNode(TileId const& tileId);
 
   virtual ~TileNode() = default;
 
@@ -45,15 +44,37 @@ class TileNode {
 
   TileNode* getParent() const;
 
+  int           getLevel() const;
+  glm::int64    getPatchIdx() const;
+  TileId const& getTileId() const;
+
+  int  getLastFrame() const;
+  void setLastFrame(int frame);
+  int  getAge(int frame) const;
+
+  BoundingBox<double> const& getBounds() const;
+  void                       setBounds(BoundingBox<double> const& tb);
+  void                       removeBounds();
+  bool                       hasBounds() const;
+
+  MinMaxPyramid* getMinMaxPyramid() const;
+  void           setMinMaxPyramid(std::unique_ptr<MinMaxPyramid> pyramid);
+
   /// Returns if the node is refined, i.e. if its children are loaded.
   bool isRefined() const;
 
  private:
-  void setParent(TileNode* parent);
-
-  std::unique_ptr<TileDataBase>            mTileData;
+  void                                     setParent(TileNode* parent);
+  TileId                                   mTileId{};
   TileNode*                                mParent{nullptr};
   std::array<std::unique_ptr<TileNode>, 4> mChildren;
+
+  std::unique_ptr<TileDataBase> mTileData;
+
+  std::unique_ptr<MinMaxPyramid> mMinMaxPyramid;
+  BoundingBox<double>            mTb;
+  bool                           mHasBounds{false};
+  int                            mLastFrame{-1};
 };
 
 } // namespace csp::lodbodies

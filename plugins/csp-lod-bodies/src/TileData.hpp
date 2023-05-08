@@ -18,7 +18,7 @@ class TileData : public TileDataBase {
  public:
   using value_type = T;
 
-  explicit TileData(TileId const& tileId, uint32_t resolution);
+  explicit TileData(uint32_t resolution);
 
   TileData(TileData const& other) = delete;
   TileData(TileData&& other)      = delete;
@@ -64,8 +64,8 @@ struct DataTypeTrait<glm::u8vec4> {
 } // namespace detail
 
 template <typename T>
-TileData<T>::TileData(TileId const& tileId, uint32_t resolution)
-    : TileDataBase(tileId, resolution)
+TileData<T>::TileData(uint32_t resolution)
+    : TileDataBase(resolution)
     , mData(resolution * resolution) {
 }
 

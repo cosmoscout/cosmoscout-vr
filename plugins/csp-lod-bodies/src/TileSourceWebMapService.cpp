@@ -42,14 +42,14 @@ enum class CopyPixels { eAll, eAboveDiagonal, eBelowDiagonal };
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-bool loadImpl(TileSourceWebMapService* source, TileDataBase* tile, int level, int x, int y,
-    CopyPixels which) {
+bool loadImpl(TileSourceWebMapService* source, TileDataBase* tile, glm::int64 patchIdx, int level,
+    int x, int y, CopyPixels which) {
   std::optional<std::string> cacheFile;
 
   // First we download the tile data to a local cache file. This will return quickly if the file is
   // already downloaded but will take some time if it needs to be fetched from the server.
   try {
-    cacheFile = source->loadData(tile->getPatchIdx(), level, x, y);
+    cacheFile = source->loadData(patchIdx, level, x, y);
   } catch (std::exception const& e) {
     // This is not critical, the planet will just not refine any further.
     logger().debug("Tile loading failed: {}", e.what());
@@ -182,26 +182,26 @@ void fillDiagonal(TileDataBase* tile) {
 template <typename T>
 std::unique_ptr<TileDataBase> loadImpl(
     TileSourceWebMapService* source, uint32_t level, glm::int64 patchIdx) {
-  auto tile = std::make_unique<TileData<T>>(TileId(level, patchIdx), source->getResolution());
+  auto tile = std::make_unique<TileData<T>>(source->getResolution());
 
   int  x{};
   int  y{};
   bool onDiag = csp::lodbodies::TileSourceWebMapService::getXY(level, patchIdx, x, y);
   if (onDiag) {
-    if (!loadImpl<T>(source, tile.get(), level, x, y, CopyPixels::eBelowDiagonal)) {
+    if (!loadImpl<T>(source, tile.get(), patchIdx, level, x, y, CopyPixels::eBelowDiagonal)) {
       return nullptr;
     }
 
     x += 4 * (1 << level);
     y -= 4 * (1 << level);
 
-    if (!loadImpl<T>(source, tile.get(), level, x, y, CopyPixels::eAboveDiagonal)) {
+    if (!loadImpl<T>(source, tile.get(), patchIdx, level, x, y, CopyPixels::eAboveDiagonal)) {
       return nullptr;
     }
 
     fillDiagonal<T>(tile.get());
   } else {
-    if (!loadImpl<T>(source, tile.get(), level, x, y, CopyPixels::eAll)) {
+    if (!loadImpl<T>(source, tile.get(), patchIdx, level, x, y, CopyPixels::eAll)) {
       return nullptr;
     }
   }
@@ -216,15 +216,6 @@ std::unique_ptr<TileDataBase> loadImpl(
     std::swap_ranges(data + i * resolution, data + (i + 1) * resolution,
         // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
         data + (resolution - 1 - i) * resolution);
-  }
-
-  if (tile->getDataType() == TileDataType::eElevation) {
-    // Creating a MinMaxPyramid alongside the sampling beginning with a resolution of
-    // 128x128
-    // The MinMaxPyramid is later needed to deduce height information from this
-    // coarser level DEM tile to deeper level IMG tiles
-    auto demTile = dynamic_cast<TileData<float>*>(tile.get());
-    tile->setMinMaxPyramid(std::make_unique<MinMaxPyramid>(demTile));
   }
 
   return tile;
