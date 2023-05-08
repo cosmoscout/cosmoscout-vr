@@ -52,7 +52,7 @@ std::size_t const preAllocIONodeCount = 200;
 struct TreeManager::AgeLess {
   explicit AgeLess(int frame);
 
-  bool operator()(RDMapValue const* lhs, RDMapValue const* rhs) const;
+  bool operator()(TileNode const* lhs, TileNode const* rhs) const;
 
   int mFrame;
 };
@@ -66,16 +66,16 @@ TreeManager::AgeLess::AgeLess(int frame)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool TreeManager::AgeLess::operator()(RDMapValue const* lhs, RDMapValue const* rhs) const {
+bool TreeManager::AgeLess::operator()(TileNode const* lhs, TileNode const* rhs) const {
   // sort by age (frames since last use), in case of a tie use
   // tile level - this ensure that child nodes are always sorted
   // after parent nodes
 
-  int ageLHS = lhs->second->getTileData()->getAge(mFrame);
-  int ageRHS = rhs->second->getTileData()->getAge(mFrame);
+  int ageLHS = lhs->getTileData()->getAge(mFrame);
+  int ageRHS = rhs->getTileData()->getAge(mFrame);
 
   if (ageLHS == ageRHS) {
-    return lhs->first.level() < rhs->first.level();
+    return lhs->getTileData()->getLevel() < rhs->getTileData()->getLevel();
   }
 
   return ageLHS < ageRHS;
@@ -98,8 +98,7 @@ TreeManager::TreeManager(PlanetParameters const& params, std::shared_ptr<GLResou
     , mSrc()
     , mFrameCount(0)
     , mAsyncLoading(true) {
-  mRdMap.reserve(preAllocNodeCount);
-  mAgeStore.reserve(preAllocNodeCount);
+  mNodes.reserve(preAllocNodeCount);
 
   mUnmergedNodes.reserve(preAllocIONodeCount);
   mLoadedNodes.reserve(preAllocIONodeCount);
@@ -169,15 +168,14 @@ void TreeManager::clear() {
   mPendingTiles.clear();
   mLoadedNodes.clear();
 
-  auto rdIt  = mRdMap.begin();
-  auto rdEnd = mRdMap.end();
+  auto rdIt  = mNodes.begin();
+  auto rdEnd = mNodes.end();
 
   for (; rdIt != rdEnd; ++rdIt) {
-    releaseResources(rdIt->second->getTileData());
+    releaseResources((*rdIt)->getTileData());
   }
 
-  mRdMap.clear();
-  mAgeStore.clear();
+  mNodes.clear();
 
   for (int i = 0; i < TileQuadTree::sNumRoots; ++i) {
     mTree.setRoot(i, nullptr);
@@ -187,7 +185,7 @@ void TreeManager::clear() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 std::size_t TreeManager::getNodeCount() const {
-  return mRdMap.size();
+  return mNodes.size();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -226,11 +224,9 @@ void TreeManager::onNodeInserted(TileNode* node) {
     rdata->setLastFrame(rdataP->getLastFrame());
   }
 
-  auto res = mRdMap.insert(RDMapValue(node->getTileData()->getTileId(), node));
-  assert(res.second);
+  mNodes.push_back(node);
 
   getTileTextureArray().allocateGPU(rdata);
-  mAgeStore.push_back(&(*res.first));
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -243,27 +239,24 @@ void TreeManager::releaseResources(TileDataBase* rdata) {
 
 void TreeManager::prune() {
   // sort by age, oldest nodes at the back
-  std::sort(mAgeStore.begin(), mAgeStore.end(), AgeLess(mFrameCount));
+  std::sort(mNodes.begin(), mNodes.end(), AgeLess(mFrameCount));
   int count = 0;
 
-  while (!mAgeStore.empty()) {
-    RDMapValue* value = mAgeStore.back();
+  while (!mNodes.empty()) {
+    TileNode* node = mNodes.back();
 
     // remove unnused nodes, but never root nodes
-    if (value->second->getTileData()->getAge(mFrameCount) > maxNodeAge &&
-        value->first.level() > 0) {
-      TileNode* node = value->second;
-
-      releaseResources(value->second->getTileData());
+    if (node->getTileData()->getAge(mFrameCount) > maxNodeAge &&
+        node->getTileData()->getLevel() > 0) {
+      releaseResources(node->getTileData());
 
       if (!removeNode(&mTree, node)) {
-        vstr::errp() << "[TreeManager::prune] [" << mName << "] Failed to remove node "
-                     << value->first << " @ " << node << "!" << std::endl;
+        vstr::errp() << "[TreeManager::prune] [" << mName << "] Failed to remove node " << node
+                     << "!" << std::endl;
       }
 
       // remove entries for node from internal data structures
-      mRdMap.erase(value->first);
-      mAgeStore.pop_back();
+      mNodes.pop_back();
       ++count;
     } else {
       // The node at the back of mAgeStore can not be removed - stop

@@ -13,7 +13,6 @@
 
 #include <mutex>
 #include <string>
-#include <unordered_map>
 #include <unordered_set>
 #include <vector>
 
@@ -37,11 +36,9 @@ class TileTextureArray;
 /// time it was used - other classes mark nodes as used (e.g. LODVisitor when testing visibility of
 /// a node).
 ///
-/// In order to quickly find "old" nodes a vector of pointers (AgeStore) to the entries of the
-/// RenderDataMap is used (this is possible because unordered_map guarantees that pointers to values
-/// do not change, even when rehashing occurs). The AgeStore is sorted so that the oldest nodes are
-/// at the back and those are removed if their age exceeds a certain threshold (see
-/// TreeManager::prune).
+/// In order to quickly find "old" nodes a vector of node pointers is used. The vector is sorted so
+/// that the oldest nodes are at the back and those are removed if their age exceeds a certain
+/// threshold (see TreeManager::prune).
 class TreeManager {
  public:
   explicit TreeManager(PlanetParameters const& params, std::shared_ptr<GLResources> glResources);
@@ -95,9 +92,6 @@ class TreeManager {
   std::size_t getNodeCountGPU() const;
 
  private:
-  using RDMapValue = std::unordered_map<TileId, TileNode*>::value_type;
-  using AgeStore   = std::vector<RDMapValue*>;
-
   struct AgeLess;
 
   /// Tracks a node and the frame it was loaded in - for nodes that can not immediately be merged.
@@ -131,10 +125,9 @@ class TreeManager {
   /// tree it is deleted (see TreeManager::mergeUnmerged).
   void merge();
 
-  PlanetParameters const*               mParams;
-  std::shared_ptr<GLResources>          mGlMgr;
-  std::unordered_map<TileId, TileNode*> mRdMap;
-  AgeStore                              mAgeStore;
+  PlanetParameters const*      mParams;
+  std::shared_ptr<GLResources> mGlMgr;
+  std::vector<TileNode*>       mNodes;
 
   TileQuadTree mTree;
   TileSource*  mSrc;
