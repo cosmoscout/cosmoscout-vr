@@ -73,10 +73,10 @@ class LODVisitor : public TileVisitor<LODVisitor> {
   std::vector<TileId> const& getLoadIMG() const;
 
   /// Returns the elevation tiles that should be rendered.
-  std::vector<TileDataBase*> const& getRenderDEM() const;
+  std::vector<TileNode*> const& getRenderDEM() const;
 
   /// Returns the image tiles that should be rendered.
-  std::vector<TileDataBase*> const& getRenderIMG() const;
+  std::vector<TileNode*> const& getRenderIMG() const;
 
  private:
   /// Struct storing information relevant for LOD selection.
@@ -154,10 +154,10 @@ class LODVisitor : public TileVisitor<LODVisitor> {
   std::vector<LODState> mStack;
   int                   mStackTop;
 
-  std::vector<TileId>        mLoadDEM;
-  std::vector<TileId>        mLoadIMG;
-  std::vector<TileDataBase*> mRenderDEM;
-  std::vector<TileDataBase*> mRenderIMG;
+  std::vector<TileId>    mLoadDEM;
+  std::vector<TileId>    mLoadIMG;
+  std::vector<TileNode*> mRenderDEM;
+  std::vector<TileNode*> mRenderIMG;
 
   int  mFrameCount;
   bool mUpdateLOD;

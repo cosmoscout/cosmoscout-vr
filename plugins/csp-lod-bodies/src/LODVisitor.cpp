@@ -555,7 +555,7 @@ void LODVisitor::drawLevel() {
     assert(state.mNodeDEM);
     assert(state.mRdDEM);
 
-    mRenderDEM.push_back(state.mRdDEM);
+    mRenderDEM.push_back(state.mNodeDEM);
   }
 
   if (mTreeMgrIMG) {
@@ -564,7 +564,7 @@ void LODVisitor::drawLevel() {
     assert(state.mNodeIMG);
     assert(state.mRdIMG);
 
-    mRenderIMG.push_back(state.mRdIMG);
+    mRenderIMG.push_back(state.mNodeIMG);
   }
 }
 
@@ -666,13 +666,13 @@ std::vector<TileId> const& LODVisitor::getLoadIMG() const {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::vector<TileDataBase*> const& LODVisitor::getRenderDEM() const {
+std::vector<TileNode*> const& LODVisitor::getRenderDEM() const {
   return mRenderDEM;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::vector<TileDataBase*> const& LODVisitor::getRenderIMG() const {
+std::vector<TileNode*> const& LODVisitor::getRenderIMG() const {
   return mRenderIMG;
 }
 

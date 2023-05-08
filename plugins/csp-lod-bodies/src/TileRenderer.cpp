@@ -9,7 +9,7 @@
 
 #include "HEALPix.hpp"
 #include "PlanetParameters.hpp"
-#include "TileDataBase.hpp"
+#include "TileNode.hpp"
 #include "TileTextureArray.hpp"
 #include "TreeManager.hpp"
 
@@ -136,8 +136,8 @@ TerrainShader* TileRenderer::getTerrainShader() const {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void TileRenderer::render(std::vector<TileDataBase*> const& reqDEM,
-    std::vector<TileDataBase*> const& reqIMG, cs::graphics::ShadowMap* shadowMap) {
+void TileRenderer::render(std::vector<TileNode*> const& reqDEM,
+    std::vector<TileNode*> const& reqIMG, cs::graphics::ShadowMap* shadowMap) {
 
   if (!reqDEM.empty()) {
     preRenderTiles(shadowMap);
@@ -233,7 +233,7 @@ void TileRenderer::preRenderTiles(cs::graphics::ShadowMap* shadowMap) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void TileRenderer::renderTiles(
-    std::vector<TileDataBase*> const& renderDEM, std::vector<TileDataBase*> const& renderIMG) {
+    std::vector<TileNode*> const& renderDEM, std::vector<TileNode*> const& renderIMG) {
   VistaGLSLShader& shader = mProgTerrain->mShader;
 
   // query uniform locations once and store in locs
@@ -243,14 +243,15 @@ void TileRenderer::renderTiles(
   locs.f1f2        = shader.GetUniformLocation("VP_f1f2");
   locs.dataLayers  = shader.GetUniformLocation("VP_dataLayers");
 
-  // iterate over both std::vector<TileDataBase*>s together
+  // iterate over both std::vector<TileNode*>s together
   for (size_t i(0); i < renderDEM.size(); ++i) {
     // get data associated with nodes
-    auto*         rdDEM = renderDEM[i];
-    TileDataBase* rdIMG = i < renderIMG.size() ? renderIMG[i] : nullptr;
+    auto*     rdDEM = renderDEM[i];
+    TileNode* rdIMG = i < renderIMG.size() ? renderIMG[i] : nullptr;
 
     // Do not attempt to draw tiles with missing data.
-    if (rdDEM->getTexLayer() < 0 || (rdIMG && rdIMG->getTexLayer() < 0)) {
+    if (rdDEM->getTileData()->getTexLayer() < 0 ||
+        (rdIMG && rdIMG->getTileData()->getTexLayer() < 0)) {
       continue;
     }
 
@@ -261,22 +262,23 @@ void TileRenderer::renderTiles(
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void TileRenderer::renderTile(TileDataBase* rdDEM, TileDataBase* rdIMG, UniformLocs const& locs) {
+void TileRenderer::renderTile(TileNode* rdDEM, TileNode* rdIMG, UniformLocs const& locs) {
   VistaGLSLShader& shader = mProgTerrain->mShader;
-  TileId const&    idDEM  = rdDEM->getTileId();
+  TileId const&    idDEM  = rdDEM->getTileData()->getTileId();
 
   auto  baseXY        = HEALPix::getBaseXY(idDEM);
   auto  tileOS        = glm::ivec3(baseXY.y, baseXY.z, HEALPix::getNSide(idDEM));
   auto  patchF1F2     = glm::ivec2(HEALPix::getF1(idDEM), HEALPix::getF2(idDEM));
-  float averageHeight = rdDEM->getMinMaxPyramid()->getAverage();
-  float minHeight     = rdDEM->getMinMaxPyramid()->getMin();
-  float maxHeight     = rdDEM->getMinMaxPyramid()->getMax();
+  float averageHeight = rdDEM->getTileData()->getMinMaxPyramid()->getAverage();
+  float minHeight     = rdDEM->getTileData()->getMinMaxPyramid()->getMin();
+  float maxHeight     = rdDEM->getTileData()->getMinMaxPyramid()->getMax();
 
   // update uniforms
   shader.SetUniform(locs.heightInfo, averageHeight, maxHeight - minHeight);
   shader.SetUniform(locs.offsetScale, 3, 1, glm::value_ptr(tileOS));
   shader.SetUniform(locs.f1f2, 2, 1, glm::value_ptr(patchF1F2));
-  glUniform2i(locs.dataLayers, rdDEM->getTexLayer(), rdIMG ? rdIMG->getTexLayer() : 0);
+  glUniform2i(locs.dataLayers, rdDEM->getTileData()->getTexLayer(),
+      rdIMG ? rdIMG->getTileData()->getTexLayer() : 0);
 
   // order of components: N, W, S, E
   std::array<glm::dvec2, 4> cornersLngLat = HEALPix::getCornersLngLat(idDEM);
@@ -348,11 +350,11 @@ void TileRenderer::preRenderBounds() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void TileRenderer::renderBounds(
-    std::vector<TileDataBase*> const& reqDEM, std::vector<TileDataBase*> const& reqIMG) {
-  auto renderBounds = [this](std::vector<TileDataBase*> const& req) {
+    std::vector<TileNode*> const& reqDEM, std::vector<TileNode*> const& reqIMG) {
+  auto renderBounds = [this](std::vector<TileNode*> const& req) {
     for (auto const& it : req) {
-      if (it->hasBounds()) {
-        BoundingBox<double> const& tb = it->getBounds();
+      if (it->getTileData()->hasBounds()) {
+        BoundingBox<double> const& tb = it->getTileData()->getBounds();
 
         std::array<glm::dvec4, 8> cornersWorldSpace = {
             glm::dvec4(tb.getMin().x, tb.getMin().y, tb.getMin().z, 1.0),
