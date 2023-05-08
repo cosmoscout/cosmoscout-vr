@@ -243,40 +243,19 @@ void TileRenderer::renderTiles(
   locs.f1f2        = shader.GetUniformLocation("VP_f1f2");
   locs.dataLayers  = shader.GetUniformLocation("VP_dataLayers");
 
-  int missingDEM = 0;
-  int missingIMG = 0;
-
   // iterate over both std::vector<TileDataBase*>s together
   for (size_t i(0); i < renderDEM.size(); ++i) {
     // get data associated with nodes
     auto*         rdDEM = renderDEM[i];
     TileDataBase* rdIMG = i < renderIMG.size() ? renderIMG[i] : nullptr;
 
-    // count cases of data not being on GPU ...
-    if (rdDEM->getTexLayer() < 0) {
-      ++missingDEM;
-    }
-
-    if (rdIMG && rdIMG->getTexLayer() < 0) {
-      ++missingIMG;
-    }
-
-    // ... but do not attempt to draw
+    // Do not attempt to draw tiles with missing data.
     if (rdDEM->getTexLayer() < 0 || (rdIMG && rdIMG->getTexLayer() < 0)) {
       continue;
     }
 
     // render
     renderTile(rdDEM, rdIMG, locs);
-  }
-
-  if (missingDEM || missingIMG) {
-    // The only time this is "expected" to happen is after a texture had
-    // to be resized - otherwise it suggests a bug in the resource
-    // handling
-    vstr::warnp() << "[TileRenderer::renderTiles]" << std::endl;
-    vstr::warnp() << "Some tiles were not available on the GPU (" << missingDEM << " / "
-                  << missingIMG << "  DEM/IMG)." << std::endl;
   }
 }
 
