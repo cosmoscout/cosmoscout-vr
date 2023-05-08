@@ -18,7 +18,6 @@
 
 namespace csp::lodbodies {
 
-struct PlanetParameters;
 class TileNode;
 class TileSource;
 class TileDataBase;
@@ -41,7 +40,7 @@ class TileTextureArray;
 /// threshold (see TreeManager::prune).
 class TreeManager {
  public:
-  explicit TreeManager(PlanetParameters const& params, std::shared_ptr<GLResources> glResources);
+  explicit TreeManager(std::shared_ptr<GLResources> glResources);
 
   TreeManager(TreeManager const& other) = delete;
   TreeManager(TreeManager&& other)      = delete;
@@ -125,7 +124,6 @@ class TreeManager {
   /// tree it is deleted (see TreeManager::mergeUnmerged).
   void merge();
 
-  PlanetParameters const*      mParams;
   std::shared_ptr<GLResources> mGlMgr;
   std::vector<TileNode*>       mNodes;
 

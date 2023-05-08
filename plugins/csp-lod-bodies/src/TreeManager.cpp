@@ -92,14 +92,13 @@ TreeManager::NodeAge::NodeAge(TileNode* node, int frame)
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /* explicit */
-TreeManager::TreeManager(PlanetParameters const& params, std::shared_ptr<GLResources> glResources)
-    : mParams(&params)
-    , mGlMgr(std::move(glResources))
+TreeManager::TreeManager(std::shared_ptr<GLResources> glResources)
+    : mGlMgr(std::move(glResources))
     , mSrc()
     , mFrameCount(0)
     , mAsyncLoading(true) {
-  mNodes.reserve(preAllocNodeCount);
 
+  mNodes.reserve(preAllocNodeCount);
   mUnmergedNodes.reserve(preAllocIONodeCount);
   mLoadedNodes.reserve(preAllocIONodeCount);
 }
