@@ -37,7 +37,7 @@ class TileSourceWebMapService : public TileSource {
   void fini() override {
   }
 
-  TileNode* loadTile(int level, glm::int64 patchIdx) override;
+  std::unique_ptr<TileDataBase> loadTile(int level, glm::int64 patchIdx) override;
 
   void loadTileAsync(int level, glm::int64 patchIdx, OnLoadCallback cb) override;
   int  getPendingRequests() override;

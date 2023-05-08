@@ -38,8 +38,15 @@ class TileDataBase {
   template <typename T>
   T const* getTypedPtr() const;
 
+  /// Returns pointer to data stored in this tile as T*.
+  template <typename T>
+  T* getTypedPtr();
+
   /// Returns read only pointer to data stored in this tile.
   virtual void const* getDataPtr() const = 0;
+
+  /// Returns pointer to data stored in this tile.
+  virtual void* getDataPtr() = 0;
 
   int           getLevel() const;
   glm::int64    getPatchIdx() const;
@@ -80,6 +87,11 @@ class TileDataBase {
 template <typename T>
 T const* TileDataBase::getTypedPtr() const {
   return static_cast<T const*>(getDataPtr());
+}
+
+template <typename T>
+T* TileDataBase::getTypedPtr() {
+  return static_cast<T*>(getDataPtr());
 }
 
 } // namespace csp::lodbodies

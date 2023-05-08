@@ -102,7 +102,8 @@ class TreeManager {
   };
 
   /// Used as a callback for the TileSource to call when a node is loaded.
-  void onNodeLoaded(TileSource* source, int level, glm::int64 patchIdx, TileNode* node);
+  void onNodeLoaded(
+      TileSource* source, int level, glm::int64 patchIdx, std::unique_ptr<TileDataBase> tileData);
 
   /// Helper function to handle processing after node is successfully inserted into the managed
   /// TileQuadTree.

@@ -42,9 +42,8 @@ enum class CopyPixels { eAll, eAboveDiagonal, eBelowDiagonal };
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-bool loadImpl(
-    TileSourceWebMapService* source, TileNode* node, int level, int x, int y, CopyPixels which) {
-  auto                       tile = static_cast<TileData<T>*>(node->getTileData());
+bool loadImpl(TileSourceWebMapService* source, TileDataBase* tile, int level, int x, int y,
+    CopyPixels which) {
   std::optional<std::string> cacheFile;
 
   // First we download the tile data to a local cache file. This will return quickly if the file is
@@ -61,6 +60,8 @@ bool loadImpl(
   if (!cacheFile) {
     return false;
   }
+
+  T* tileData = tile->getTypedPtr<T>();
 
   // Now the cache file is available, try to load it with libtiff if it's elevation data.
   if (tile->getDataType() == TileDataType::eElevation) {
@@ -89,7 +90,7 @@ bool loadImpl(
     int tiffReturn{};
     for (int y = 0; y < imagelength; y++) {
       if (which == CopyPixels::eAll) {
-        tiffReturn = TIFFReadScanline(data, &tile->data()[resolution * y], y);
+        tiffReturn = TIFFReadScanline(data, &tileData[resolution * y], y);
       } else if (which == CopyPixels::eAboveDiagonal) {
         std::vector<float> tmp(resolution);
         tiffReturn = TIFFReadScanline(data, tmp.data(), y);
@@ -97,7 +98,7 @@ bool loadImpl(
         int count  = resolution - y - 1;
 
         // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-        std::memcpy(tile->data().data() + offset, tmp.data(), count * sizeof(float));
+        std::memcpy(tileData + offset, tmp.data(), count * sizeof(float));
       } else if (which == CopyPixels::eBelowDiagonal) {
         std::vector<float> tmp(resolution);
         tiffReturn = TIFFReadScanline(data, tmp.data(), y);
@@ -105,8 +106,7 @@ bool loadImpl(
         int count  = y;
 
         // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-        std::memcpy(
-            tile->data().data() + offset, tmp.data() + resolution - y, count * sizeof(float));
+        std::memcpy(tileData + offset, tmp.data() + resolution - y, count * sizeof(float));
       }
     }
     if (tiffReturn == -1) {
@@ -140,14 +140,14 @@ bool loadImpl(
     // two requests are made. For those, only half of the pixels contain valid data (above or below
     // the diagonal).
     if (which == CopyPixels::eAll) {
-      std::memcpy(tile->data().data(), data, channels * width * height);
+      std::memcpy(tileData, data, channels * width * height);
     } else if (which == CopyPixels::eAboveDiagonal) {
       for (int y = 0; y < height; ++y) {
         int offset = width * y;
         int count  = channels * (width - y - 1);
 
         // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-        std::memcpy(tile->data().data() + offset, data + offset, count);
+        std::memcpy(tileData + offset, data + offset, count);
       }
     } else if (which == CopyPixels::eBelowDiagonal) {
       for (int y = 0; y < height; ++y) {
@@ -155,7 +155,7 @@ bool loadImpl(
         int count  = channels * y;
 
         // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-        std::memcpy(tile->data().data() + offset, data + offset, count);
+        std::memcpy(tileData + offset, data + offset, count);
       }
     }
 
@@ -168,60 +168,54 @@ bool loadImpl(
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-void fillDiagonal(TileNode* node) {
-  auto     tile       = static_cast<TileData<T>*>(node->getTileData());
+void fillDiagonal(TileDataBase* tile) {
   uint32_t resolution = tile->getResolution();
+  T*       data       = tile->getTypedPtr<T>();
   for (uint32_t y = 1; y <= resolution; y++) {
     uint32_t pixelPos = y * (resolution - 1);
-    tile->data()[pixelPos] =
-        (y < resolution) ? tile->data()[pixelPos - 1] : tile->data()[pixelPos + 1];
+    data[pixelPos]    = (y < resolution) ? data[pixelPos - 1] : data[pixelPos + 1];
   }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-TileNode* loadImpl(TileSourceWebMapService* source, uint32_t level, glm::int64 patchIdx) {
-  auto  data = std::make_unique<TileData<T>>(TileId(level, patchIdx), source->getResolution());
-  auto* node = new TileNode(); // NOLINT(cppcoreguidelines-owning-memory): TODO this is bad!
-  node->setTileData(std::move(data));
+std::unique_ptr<TileDataBase> loadImpl(
+    TileSourceWebMapService* source, uint32_t level, glm::int64 patchIdx) {
+  auto tile = std::make_unique<TileData<T>>(TileId(level, patchIdx), source->getResolution());
 
   int  x{};
   int  y{};
   bool onDiag = csp::lodbodies::TileSourceWebMapService::getXY(level, patchIdx, x, y);
   if (onDiag) {
-    if (!loadImpl<T>(source, node, level, x, y, CopyPixels::eBelowDiagonal)) {
-      delete node; // NOLINT(cppcoreguidelines-owning-memory): TODO this is bad!
+    if (!loadImpl<T>(source, tile.get(), level, x, y, CopyPixels::eBelowDiagonal)) {
       return nullptr;
     }
 
     x += 4 * (1 << level);
     y -= 4 * (1 << level);
 
-    if (!loadImpl<T>(source, node, level, x, y, CopyPixels::eAboveDiagonal)) {
-      delete node; // NOLINT(cppcoreguidelines-owning-memory): TODO this is bad!
+    if (!loadImpl<T>(source, tile.get(), level, x, y, CopyPixels::eAboveDiagonal)) {
       return nullptr;
     }
 
-    fillDiagonal<T>(node);
+    fillDiagonal<T>(tile.get());
   } else {
-    if (!loadImpl<T>(source, node, level, x, y, CopyPixels::eAll)) {
-      delete node; // NOLINT(cppcoreguidelines-owning-memory): TODO this is bad!
+    if (!loadImpl<T>(source, tile.get(), level, x, y, CopyPixels::eAll)) {
       return nullptr;
     }
   }
 
-  auto     tile       = static_cast<TileData<T>*>(node->getTileData());
   uint32_t resolution = tile->getResolution();
+  T*       data       = tile->template getTypedPtr<T>();
 
   // flip y --- that shouldn't be requiered, but somehow is how it was
   // implemented in the original databases
   for (uint32_t i = 0; i < resolution / 2; i++) {
     // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-    std::swap_ranges(tile->data().data() + i * resolution,
-        tile->data().data() + (i + 1) * resolution,
+    std::swap_ranges(data + i * resolution, data + (i + 1) * resolution,
         // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-        tile->data().data() + (resolution - 1 - i) * resolution);
+        data + (resolution - 1 - i) * resolution);
   }
 
   if (tile->getDataType() == TileDataType::eElevation) {
@@ -229,11 +223,11 @@ TileNode* loadImpl(TileSourceWebMapService* source, uint32_t level, glm::int64 p
     // 128x128
     // The MinMaxPyramid is later needed to deduce height information from this
     // coarser level DEM tile to deeper level IMG tiles
-    auto* demTile = reinterpret_cast<TileData<float>*>(tile);
-    demTile->setMinMaxPyramid(std::make_unique<MinMaxPyramid>(demTile));
+    auto demTile = dynamic_cast<TileData<float>*>(tile.get());
+    tile->setMinMaxPyramid(std::make_unique<MinMaxPyramid>(demTile));
   }
 
-  return node;
+  return tile;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -253,7 +247,8 @@ TileSourceWebMapService::TileSourceWebMapService(uint32_t resolution)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-/* virtual */ TileNode* TileSourceWebMapService::loadTile(int level, glm::int64 patchIdx) {
+/* virtual */ std::unique_ptr<TileDataBase> TileSourceWebMapService::loadTile(
+    int level, glm::int64 patchIdx) {
   if (mFormat == TileDataType::eElevation) {
     return loadImpl<float>(this, level, patchIdx);
   }
@@ -444,8 +439,8 @@ std::optional<std::string> TileSourceWebMapService::loadData(
 /* virtual */ void TileSourceWebMapService::loadTileAsync(
     int level, glm::int64 patchIdx, OnLoadCallback cb) {
   mThreadPool.enqueue([=]() {
-    auto* n = loadTile(level, patchIdx);
-    cb(this, level, patchIdx, n);
+    auto tile = loadTile(level, patchIdx);
+    cb(this, level, patchIdx, std::move(tile));
   });
 }
 

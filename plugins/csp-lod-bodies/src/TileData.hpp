@@ -33,6 +33,7 @@ class TileData : public TileDataBase {
   TileDataType getDataType() const override;
 
   void const* getDataPtr() const override;
+  void*       getDataPtr() override;
 
   std::vector<T> const& data() const;
   std::vector<T>&       data();
@@ -84,6 +85,11 @@ TileDataType TileData<T>::getDataType() const {
 template <typename T>
 void const* TileData<T>::getDataPtr() const {
   return static_cast<void const*>(mData.data());
+}
+
+template <typename T>
+void* TileData<T>::getDataPtr() {
+  return static_cast<void*>(mData.data());
 }
 
 template <typename T>

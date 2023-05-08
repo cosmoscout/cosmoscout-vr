@@ -138,10 +138,10 @@ void TreeManager::request(std::vector<TileId> const& tileIds) {
 
       if (mAsyncLoading) {
         mSrc->loadTileAsync(iIt->level(), iIt->patchIdx(),
-            [this](auto a, auto b, auto c, auto d) { onNodeLoaded(a, b, c, d); });
+            [this](auto a, auto b, auto c, auto d) { onNodeLoaded(a, b, c, std::move(d)); });
       } else {
-        TileNode* node = mSrc->loadTile(iIt->level(), iIt->patchIdx());
-        onNodeLoaded(mSrc, iIt->level(), iIt->patchIdx(), node);
+        auto tileData = mSrc->loadTile(iIt->level(), iIt->patchIdx());
+        onNodeLoaded(mSrc, iIt->level(), iIt->patchIdx(), std::move(tileData));
       }
     }
   }
@@ -195,10 +195,15 @@ std::size_t TreeManager::getNodeCountGPU() const {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void TreeManager::onNodeLoaded(TileSource* source, int level, glm::int64 patchIdx, TileNode* node) {
+void TreeManager::onNodeLoaded(
+    TileSource* source, int level, glm::int64 patchIdx, std::unique_ptr<TileDataBase> tileData) {
 
   std::unique_lock<std::mutex> lck(mLoadedMtx);
-  if (node && source == mSrc) {
+
+  if (tileData && source == mSrc) {
+    auto* node = new TileNode(); // NOLINT(cppcoreguidelines-owning-memory): TODO this is bad!
+    node->setTileData(std::move(tileData));
+
     // Only add node to list of loaded nodes, actual insertion into the
     // quad-tree is done in merge().
     // This ensures that the tree is not modified at unpredictable moments
@@ -207,7 +212,6 @@ void TreeManager::onNodeLoaded(TileSource* source, int level, glm::int64 patchId
   } else {
     // source has changed or loading failed, discard node
     mPendingTiles.erase(TileId(level, patchIdx));
-    delete node; // NOLINT(cppcoreguidelines-owning-memory): TODO where does it get created?
   }
 }
 
