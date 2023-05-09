@@ -83,34 +83,27 @@ class LODVisitor : public TileVisitor<LODVisitor> {
   bool preTraverse() override;
   void postTraverse() override;
 
-  bool preVisitRoot(TileId const& tileId) override;
-  bool preVisit(TileId const& tileId) override;
-
-  void             pushState() override;
-  void             popState() override;
-  StateBase&       getState() override;
-  StateBase const& getState() const override;
+  bool preVisitRoot(TileNode* root) override;
+  bool preVisit(TileNode* node) override;
 
   /// Visit the node with given the tileId. Returns whether children should be visited.
-  bool visitNode(TileId const& tileId);
+  bool visitNode(TileNode* node);
 
   /// Handle the case where the node with given the tileId should be refined. Tests whether
   /// refinement is possible (i.e. whether data is loaded) and returns whether children should be
   /// visited.
-  bool handleRefine(TileId const& tileId);
+  bool handleRefine(TileNode* node);
 
   void addLoadChildren(TileNode* node);
 
   /// Returns whether the currently visited node is potentially visible. Tests if the node's
   /// bounding box intersects the camera frustum.
-  bool testVisible(TileId const& tileId);
+  bool testVisible(TileNode* node);
 
   /// Returns whether the currently visited node should be refined, i.e. if it's children should be
   /// used to achieve desired resolution. Estimates the screen space size (in pixels) of the node
   /// and compares that with the desired LOD factor.
-  bool testNeedRefine(TileId const& tileId);
-
-  void drawLevel();
+  bool testNeedRefine(TileNode* node);
 
   friend class TileVisitor<LODVisitor>;
 
@@ -125,9 +118,6 @@ class LODVisitor : public TileVisitor<LODVisitor> {
   glm::dmat4 mMatP;
   LODData    mLodData;
   CullData   mCullData;
-
-  std::vector<StateBase> mStack;
-  int                    mStackTop;
 
   std::vector<TileId>    mLoadNodes;
   std::vector<TileNode*> mRenderNodes;

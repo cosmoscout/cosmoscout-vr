@@ -180,15 +180,12 @@ LODVisitor::LODVisitor(PlanetParameters const& params, TreeManager* treeMgr)
     , mMatP()
     , mLodData()
     , mCullData()
-    , mStackTop(-1)
     , mFrameCount(0)
     , mUpdateLOD(true)
     , mUpdateCulling(true) {
 
   mLoadNodes.reserve(PreAllocSize);
   mRenderNodes.reserve(PreAllocSize);
-
-  mStack.resize(sMaxStackDepth);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -220,7 +217,6 @@ bool LODVisitor::preTraverse() {
   // clear load/render lists
   mLoadNodes.clear();
   mRenderNodes.clear();
-  mStackTop = -1;
 
   // make sure root nodes are present
   for (int i = 0; i < TileQuadTree::sNumRoots; ++i) {
@@ -241,34 +237,21 @@ void LODVisitor::postTraverse() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool LODVisitor::preVisitRoot(TileId const& tileId) {
-  StateBase& state = getState();
-
-  // fetch tile data for visited node and mark as used in this frame
-  if (state.mNode) {
-    state.mNode->setLastFrame(mFrameCount);
-  }
-
-  return visitNode(tileId);
+bool LODVisitor::preVisitRoot(TileNode* root) {
+  root->setLastFrame(mFrameCount);
+  return visitNode(root);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool LODVisitor::preVisit(TileId const& tileId) {
-
-  StateBase& state = getState();
-
-  // fetch tile data for visited node and mark as used in this frame
-  if (state.mNode) {
-    state.mNode->setLastFrame(mFrameCount);
-  }
-
-  return visitNode(tileId);
+bool LODVisitor::preVisit(TileNode* node) {
+  node->setLastFrame(mFrameCount);
+  return visitNode(node);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool LODVisitor::visitNode(TileId const& tileId) {
+bool LODVisitor::visitNode(TileNode* node) {
   // Determine if the current node is visible (using the DEM node).
   // This is done by testing for an intersection between the camera
   // frustum and the DEM node's bounding box.
@@ -283,25 +266,23 @@ bool LODVisitor::visitNode(TileId const& tileId) {
   //      Else:
   //          draw this level
 
-  StateBase& state = getState();
-
-  if (state.mNode && (!state.mNode->hasBounds() || mRecomputeTileBounds)) {
-    auto bounds = calcTileBounds(*state.mNode, mParams->mRadii, mParams->mHeightScale);
-    state.mNode->setBounds(bounds);
+  if (!node->hasBounds() || mRecomputeTileBounds) {
+    auto bounds = calcTileBounds(*node, mParams->mRadii, mParams->mHeightScale);
+    node->setBounds(bounds);
   }
 
   bool result  = false;
-  bool visible = testVisible(tileId);
+  bool visible = testVisible(node);
 
   if (visible) {
     // should this node be refined to achieve desired resolution?
-    bool needRefine = testNeedRefine(tileId);
+    bool needRefine = testNeedRefine(node);
 
     if (needRefine) {
-      result = handleRefine(tileId);
+      result = handleRefine(node);
     } else {
       // resolution is sufficient
-      drawLevel();
+      mRenderNodes.push_back(node);
     }
   }
 
@@ -310,16 +291,12 @@ bool LODVisitor::visitNode(TileId const& tileId) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool LODVisitor::handleRefine(TileId const& /*tileId*/) {
-  StateBase& state = getState();
-
-  // test if nodes can be refined
-  bool hasChildren = state.mNode ? childrenAvailable(state.mNode, mTreeMgr) : false;
+bool LODVisitor::handleRefine(TileNode* node) {
 
   // request to load missing children
-  if (!hasChildren) {
-    addLoadChildren(state.mNode);
-    drawLevel();
+  if (!childrenAvailable(node, mTreeMgr)) {
+    addLoadChildren(node);
+    mRenderNodes.push_back(node);
     return false;
   }
 
@@ -346,11 +323,10 @@ void LODVisitor::addLoadChildren(TileNode* node) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool LODVisitor::testVisible(TileId const& tileId) {
-  bool       result = false;
-  StateBase& state  = getState();
+bool LODVisitor::testVisible(TileNode* node) {
+  bool result = false;
 
-  BoundingBox<double> const& tb = state.mNode->getBounds();
+  BoundingBox<double> const& tb = node->getBounds();
 
   result = testInFrustum(mCullData.mFrustumMS, tb);
 
@@ -363,68 +339,50 @@ bool LODVisitor::testVisible(TileId const& tileId) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool LODVisitor::testNeedRefine(TileId const& tileId) {
-  bool       result = false;
-  StateBase& state  = getState();
+bool LODVisitor::testNeedRefine(TileNode* node) {
 
-  if (state.mNode) {
-    BoundingBox<double> tb = state.mNode->getBounds();
-
-    glm::dvec3 const& tbMin    = tb.getMin();
-    glm::dvec3 const& tbMax    = tb.getMax();
-    glm::dvec3        tbCenter = 0.5 * (tbMin + tbMax);
-
-    // A tile is refined if the solid angle it occupies when seen from the
-    // camera is above a given threshold. To estimate the solid angle, the
-    // angles between the vector from the camera to the bounding box center
-    // and all vectors from the camera to all eight corners of the bounding
-    // box are calculated and the maximum of those is taken.
-
-    // 8 corners of tile's bounding box
-    std::array<glm::dvec3, 8> tbDirs = {
-        {glm::normalize(glm::dvec3(tbMin.x, tbMin.y, tbMin.z) - mCullData.mCamPos),
-            glm::normalize(glm::dvec3(tbMax.x, tbMin.y, tbMin.z) - mCullData.mCamPos),
-            glm::normalize(glm::dvec3(tbMax.x, tbMin.y, tbMax.z) - mCullData.mCamPos),
-            glm::normalize(glm::dvec3(tbMin.x, tbMin.y, tbMax.z) - mCullData.mCamPos),
-            glm::normalize(glm::dvec3(tbMin.x, tbMax.y, tbMin.z) - mCullData.mCamPos),
-            glm::normalize(glm::dvec3(tbMax.x, tbMax.y, tbMin.z) - mCullData.mCamPos),
-            glm::normalize(glm::dvec3(tbMax.x, tbMax.y, tbMax.z) - mCullData.mCamPos),
-            glm::normalize(glm::dvec3(tbMin.x, tbMax.y, tbMax.z) - mCullData.mCamPos)}};
-
-    glm::dvec3 centerDir = glm::normalize(tbCenter - mCullData.mCamPos);
-
-    double maxAngle(0.0);
-
-    for (auto& tbDir : tbDirs) {
-      maxAngle = std::max(std::acos(std::min(1.0, glm::dot(tbDir, centerDir))), maxAngle);
-    }
-
-    // calculate field of view
-    double fov =
-        std::max(mLodData.mFrustumES.getHorizontalFOV(), mLodData.mFrustumES.getVerticalFOV());
-
-    double ratio = maxAngle / fov * mParams->mLodFactor;
-
-    result = ratio > 10.0;
-
-    if (mParams->mMinLevel > tileId.level()) {
-      result = true;
-    }
+  if (mParams->mMinLevel > node->getLevel()) {
+    return true;
   }
 
-  return result;
-}
+  BoundingBox<double> tb = node->getBounds();
 
-////////////////////////////////////////////////////////////////////////////////////////////////////
+  glm::dvec3 const& tbMin    = tb.getMin();
+  glm::dvec3 const& tbMax    = tb.getMax();
+  glm::dvec3        tbCenter = 0.5 * (tbMin + tbMax);
 
-void LODVisitor::drawLevel() {
-  StateBase& state = getState();
+  // A tile is refined if the solid angle it occupies when seen from the
+  // camera is above a given threshold. To estimate the solid angle, the
+  // angles between the vector from the camera to the bounding box center
+  // and all vectors from the camera to all eight corners of the bounding
+  // box are calculated and the maximum of those is taken.
 
-  // check node is available (either for this level or highest resolution
-  // currently loaded) and has data
-  assert(state.mNode);
+  // 8 corners of tile's bounding box
+  std::array<glm::dvec3, 8> tbDirs = {
+      {glm::normalize(glm::dvec3(tbMin.x, tbMin.y, tbMin.z) - mCullData.mCamPos),
+          glm::normalize(glm::dvec3(tbMax.x, tbMin.y, tbMin.z) - mCullData.mCamPos),
+          glm::normalize(glm::dvec3(tbMax.x, tbMin.y, tbMax.z) - mCullData.mCamPos),
+          glm::normalize(glm::dvec3(tbMin.x, tbMin.y, tbMax.z) - mCullData.mCamPos),
+          glm::normalize(glm::dvec3(tbMin.x, tbMax.y, tbMin.z) - mCullData.mCamPos),
+          glm::normalize(glm::dvec3(tbMax.x, tbMax.y, tbMin.z) - mCullData.mCamPos),
+          glm::normalize(glm::dvec3(tbMax.x, tbMax.y, tbMax.z) - mCullData.mCamPos),
+          glm::normalize(glm::dvec3(tbMin.x, tbMax.y, tbMax.z) - mCullData.mCamPos)}};
 
-  mRenderNodes.push_back(state.mNode);
+  glm::dvec3 centerDir = glm::normalize(tbCenter - mCullData.mCamPos);
+
+  double maxAngle(0.0);
+
+  for (auto& tbDir : tbDirs) {
+    maxAngle = std::max(std::acos(std::min(1.0, glm::dot(tbDir, centerDir))), maxAngle);
+  }
+
+  // calculate field of view
+  double fov =
+      std::max(mLodData.mFrustumES.getHorizontalFOV(), mLodData.mFrustumES.getVerticalFOV());
+
+  double ratio = maxAngle / fov * mParams->mLodFactor;
+
+  return ratio > 10.0;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -509,37 +467,6 @@ std::vector<TileId> const& LODVisitor::getLoadNodes() const {
 
 std::vector<TileNode*> const& LODVisitor::getRenderNodes() const {
   return mRenderNodes;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void LODVisitor::pushState() {
-  mStackTop += 1;
-
-  // check that stack does not overflow
-  assert(mStackTop < static_cast<int>(sMaxStackDepth));
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void LODVisitor::popState() {
-  mStackTop -= 1;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-LODVisitor::StateBase& LODVisitor::getState() {
-  // check that stack is valid
-  assert(mStackTop >= 0);
-  return mStack.at(mStackTop);
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-LODVisitor::StateBase const& LODVisitor::getState() const {
-  // check that stack is valid
-  assert(mStackTop >= 0);
-  return mStack.at(mStackTop);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
