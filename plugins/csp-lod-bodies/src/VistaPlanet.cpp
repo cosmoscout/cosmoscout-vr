@@ -38,8 +38,7 @@ VistaPlanet::VistaPlanet(std::shared_ptr<GLResources> glResources, uint32_t tile
     , mSumDrawTiles(0)
     , mSumLoadTiles(0)
     , mMaxDrawTiles(0)
-    , mMaxLoadTiles(0)
-    , mFlags(0) {
+    , mMaxLoadTiles(0) {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -118,8 +118,8 @@ class VistaPlanet : public cs::graphics::ShadowCaster {
   void renderTiles(int frameCount, glm::dmat4 const& matM, glm::mat4 const& matV,
       glm::mat4 const& matP, cs::graphics::ShadowMap* shadowMap);
 
-  glm::mat4         getViewMatrix() const;
-  static glm::mat4  getProjectionMatrix();
+  glm::mat4        getViewMatrix() const;
+  static glm::mat4 getProjectionMatrix();
 
   static bool sGlewInitialized;
 
@@ -141,8 +141,6 @@ class VistaPlanet : public cs::graphics::ShadowCaster {
 
   std::size_t mMaxDrawTiles;
   std::size_t mMaxLoadTiles;
-
-  glm::uint8 mFlags;
 };
 } // namespace csp::lodbodies
 #endif // CSP_LOD_BODIES_VISTAPLANET_HPP
