@@ -32,30 +32,19 @@ class LODVisitor : public TileVisitor<LODVisitor> {
   int  getFrameCount() const;
   void setFrameCount(int frameCount);
 
-  glm::ivec4 const& getViewport() const;
-  void              setViewport(glm::ivec4 const& vp);
-
   glm::dmat4 const& getModelview() const;
   void              setModelview(glm::dmat4 const& m);
 
   glm::dmat4 const& getProjection() const;
   void              setProjection(glm::dmat4 const& m);
 
-  /// Controls whether updates to the level of detail (LOD) decisions are made. When disabled
-  /// previous decisions will be reused.
+  /// Controls whether the tree cut should be modified. When disabled previous decisions will be
+  /// reused.
   ///
   /// This must have been enabled for at least one frame before it can be disabled, otherwise
   /// internal data is not correctly initialized!
   void setUpdateLOD(bool enable);
   bool getUpdateLOD() const;
-
-  /// Controls whether updates to the culling decisions are mode. When disabled previous decisions
-  /// will be reused.
-  ///
-  /// This must have been enabled for at least one frame before it can be disabled, otherwise
-  /// internal data is not correctly initialized!
-  void setUpdateCulling(bool enable);
-  bool getUpdateCulling() const;
 
   /// Returns the nodes that should be loaded. The parent tiles of these have been
   /// determined to not provide sufficient resolution.
@@ -65,16 +54,9 @@ class LODVisitor : public TileVisitor<LODVisitor> {
   std::vector<TileNode*> const& getRenderNodes() const;
 
  private:
-  /// Struct storing information relevant for LOD selection.
-  struct LODData {
-    glm::dmat4 mMatVM;
-    glm::dmat4 mMatP;
-    Frustum    mFrustumES; // frustum in eye space
-    glm::ivec4 mViewport;
-  };
-
-  /// Struct storing information relevant for frustum culling.
-  struct CullData {
+  /// Struct storing camera information.
+  struct CameraData {
+    Frustum        mFrustumES; // frustum in eye space
     Frustum        mFrustumMS; // frustum in model space
     glm::f64mat3x3 mMatN;
     glm::dvec3     mCamPos;
@@ -113,18 +95,15 @@ class LODVisitor : public TileVisitor<LODVisitor> {
   TreeManager*            mTreeMgr;
   bool                    mRecomputeTileBounds = false;
 
-  glm::ivec4 mViewport;
   glm::dmat4 mMatVM;
   glm::dmat4 mMatP;
-  LODData    mLodData;
-  CullData   mCullData;
+  CameraData mCameraData;
 
   std::vector<TileId>    mLoadNodes;
   std::vector<TileNode*> mRenderNodes;
 
   int  mFrameCount;
   bool mUpdateLOD;
-  bool mUpdateCulling;
 };
 
 } // namespace csp::lodbodies

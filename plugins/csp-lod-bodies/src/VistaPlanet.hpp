@@ -112,15 +112,14 @@ class VistaPlanet : public cs::graphics::ShadowCaster {
  private:
   void updateStatistics(int frameCount);
   void updateTileTrees(int frameCount);
-  void traverseTileTrees(int frameCount, glm::dmat4 const& matM, glm::mat4 const& matV,
-      glm::mat4 const& matP, glm::ivec4 const& viewport);
+  void traverseTileTrees(
+      int frameCount, glm::dmat4 const& matM, glm::mat4 const& matV, glm::mat4 const& matP);
   void processLoadRequests();
   void renderTiles(int frameCount, glm::dmat4 const& matM, glm::mat4 const& matV,
       glm::mat4 const& matP, cs::graphics::ShadowMap* shadowMap);
 
   glm::mat4         getViewMatrix() const;
   static glm::mat4  getProjectionMatrix();
-  static glm::ivec4 getViewport();
 
   static bool sGlewInitialized;
 

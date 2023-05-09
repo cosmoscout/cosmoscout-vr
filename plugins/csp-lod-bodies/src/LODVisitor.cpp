@@ -175,14 +175,11 @@ LODVisitor::LODVisitor(PlanetParameters const& params, TreeManager* treeMgr)
     : TileVisitor<LODVisitor>(treeMgr->getTree())
     , mParams(&params)
     , mTreeMgr(treeMgr)
-    , mViewport()
     , mMatVM()
     , mMatP()
-    , mLodData()
-    , mCullData()
+    , mCameraData()
     , mFrameCount(0)
-    , mUpdateLOD(true)
-    , mUpdateCulling(true) {
+    , mUpdateLOD(true) {
 
   mLoadNodes.reserve(PreAllocSize);
   mRenderNodes.reserve(PreAllocSize);
@@ -201,17 +198,11 @@ bool LODVisitor::preTraverse() {
 
   // update derived matrices from mMatP, mMatVM
   if (mUpdateLOD) {
-    mLodData.mMatVM = mMatVM;
-    mLodData.mMatP  = mMatP;
-    mLodData.mFrustumES.setFromMatrix(mMatP);
-    mLodData.mViewport = mViewport;
-  }
-
-  if (mUpdateCulling) {
-    mCullData.mFrustumMS.setFromMatrix(mMatP * mMatVM);
-    mCullData.mMatN   = glm::inverseTranspose(glm::f64mat3x3(mMatVM));
-    auto v4CamPos     = glm::inverse(mMatVM)[3];
-    mCullData.mCamPos = glm::dvec3(v4CamPos[0], v4CamPos[1], v4CamPos[2]);
+    mCameraData.mFrustumES.setFromMatrix(mMatP);
+    mCameraData.mFrustumMS.setFromMatrix(mMatP * mMatVM);
+    mCameraData.mMatN   = glm::inverseTranspose(glm::f64mat3x3(mMatVM));
+    auto v4CamPos       = glm::inverse(mMatVM)[3];
+    mCameraData.mCamPos = glm::dvec3(v4CamPos[0], v4CamPos[1], v4CamPos[2]);
   }
 
   // clear load/render lists
@@ -328,10 +319,10 @@ bool LODVisitor::testVisible(TileNode* node) {
 
   BoundingBox<double> const& tb = node->getBounds();
 
-  result = testInFrustum(mCullData.mFrustumMS, tb);
+  result = testInFrustum(mCameraData.mFrustumMS, tb);
 
   if (result) {
-    result = testFrontFacing(mCullData.mCamPos, mParams, tb, mTreeMgr);
+    result = testFrontFacing(mCameraData.mCamPos, mParams, tb, mTreeMgr);
   }
 
   return result;
@@ -359,16 +350,16 @@ bool LODVisitor::testNeedRefine(TileNode* node) {
 
   // 8 corners of tile's bounding box
   std::array<glm::dvec3, 8> tbDirs = {
-      {glm::normalize(glm::dvec3(tbMin.x, tbMin.y, tbMin.z) - mCullData.mCamPos),
-          glm::normalize(glm::dvec3(tbMax.x, tbMin.y, tbMin.z) - mCullData.mCamPos),
-          glm::normalize(glm::dvec3(tbMax.x, tbMin.y, tbMax.z) - mCullData.mCamPos),
-          glm::normalize(glm::dvec3(tbMin.x, tbMin.y, tbMax.z) - mCullData.mCamPos),
-          glm::normalize(glm::dvec3(tbMin.x, tbMax.y, tbMin.z) - mCullData.mCamPos),
-          glm::normalize(glm::dvec3(tbMax.x, tbMax.y, tbMin.z) - mCullData.mCamPos),
-          glm::normalize(glm::dvec3(tbMax.x, tbMax.y, tbMax.z) - mCullData.mCamPos),
-          glm::normalize(glm::dvec3(tbMin.x, tbMax.y, tbMax.z) - mCullData.mCamPos)}};
+      {glm::normalize(glm::dvec3(tbMin.x, tbMin.y, tbMin.z) - mCameraData.mCamPos),
+          glm::normalize(glm::dvec3(tbMax.x, tbMin.y, tbMin.z) - mCameraData.mCamPos),
+          glm::normalize(glm::dvec3(tbMax.x, tbMin.y, tbMax.z) - mCameraData.mCamPos),
+          glm::normalize(glm::dvec3(tbMin.x, tbMin.y, tbMax.z) - mCameraData.mCamPos),
+          glm::normalize(glm::dvec3(tbMin.x, tbMax.y, tbMin.z) - mCameraData.mCamPos),
+          glm::normalize(glm::dvec3(tbMax.x, tbMax.y, tbMin.z) - mCameraData.mCamPos),
+          glm::normalize(glm::dvec3(tbMax.x, tbMax.y, tbMax.z) - mCameraData.mCamPos),
+          glm::normalize(glm::dvec3(tbMin.x, tbMax.y, tbMax.z) - mCameraData.mCamPos)}};
 
-  glm::dvec3 centerDir = glm::normalize(tbCenter - mCullData.mCamPos);
+  glm::dvec3 centerDir = glm::normalize(tbCenter - mCameraData.mCamPos);
 
   double maxAngle(0.0);
 
@@ -378,7 +369,7 @@ bool LODVisitor::testNeedRefine(TileNode* node) {
 
   // calculate field of view
   double fov =
-      std::max(mLodData.mFrustumES.getHorizontalFOV(), mLodData.mFrustumES.getVerticalFOV());
+      std::max(mCameraData.mFrustumES.getHorizontalFOV(), mCameraData.mFrustumES.getVerticalFOV());
 
   double ratio = maxAngle / fov * mParams->mLodFactor;
 
@@ -395,18 +386,6 @@ int LODVisitor::getFrameCount() const {
 
 void LODVisitor::setFrameCount(int frameCount) {
   mFrameCount = frameCount;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-glm::ivec4 const& LODVisitor::getViewport() const {
-  return mViewport;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void LODVisitor::setViewport(glm::ivec4 const& vp) {
-  mViewport = vp;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -443,18 +422,6 @@ void LODVisitor::setUpdateLOD(bool enable) {
 
 bool LODVisitor::getUpdateLOD() const {
   return mUpdateLOD;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void LODVisitor::setUpdateCulling(bool enable) {
-  mUpdateCulling = enable;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-bool LODVisitor::getUpdateCulling() const {
-  return mUpdateCulling;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -54,10 +54,8 @@ LodBody::LodBody(std::shared_ptr<cs::core::Settings> settings,
   mPluginSettings->mEnableBounds.connectAndTouch(
       [this](bool val) { mPlanet.getTileRenderer().setDrawBounds(val); });
 
-  mPluginSettings->mEnableTilesFreeze.connectAndTouch([this](bool val) {
-    mPlanet.getLODVisitor().setUpdateLOD(!val);
-    mPlanet.getLODVisitor().setUpdateCulling(!val);
-  });
+  mPluginSettings->mEnableTilesFreeze.connectAndTouch(
+      [this](bool val) { mPlanet.getLODVisitor().setUpdateLOD(!val); });
 
   // Add to scenegraph.
   VistaSceneGraph* pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();

@@ -72,9 +72,8 @@ void VistaPlanet::draw() {
   int frameCount = GetVistaSystem()->GetFrameLoop()->GetFrameCount();
 
   // get matrices and viewport
-  glm::mat4  matV     = getViewMatrix();
-  glm::mat4  matP     = getProjectionMatrix();
-  glm::ivec4 viewport = getViewport();
+  glm::mat4 matV = getViewMatrix();
+  glm::mat4 matP = getProjectionMatrix();
 
   // collect/print statistics
   updateStatistics(frameCount);
@@ -90,7 +89,7 @@ void VistaPlanet::draw() {
   {
     cs::utils::FrameStats::ScopedTimer timer(
         "Traverse Tile Trees", cs::utils::FrameStats::TimerMode::eCPU);
-    traverseTileTrees(frameCount, mWorldTransform, matV, matP, viewport);
+    traverseTileTrees(frameCount, mWorldTransform, matV, matP);
   }
 
   // pass requests to load tiles to TreeManagers
@@ -119,9 +118,8 @@ void VistaPlanet::drawForShadowMap() {
   int          frameCount = GetVistaSystem()->GetFrameLoop()->GetFrameCount();
   glm::dmat4   matV       = getViewMatrix();
   glm::fmat4x4 matP       = getProjectionMatrix();
-  glm::ivec4   viewport   = getViewport();
 
-  traverseTileTrees(frameCount, mWorldTransform, matV, matP, viewport);
+  traverseTileTrees(frameCount, mWorldTransform, matV, matP);
 
   renderTiles(frameCount, mWorldTransform, matV, matP, nullptr);
 }
@@ -240,13 +238,12 @@ void VistaPlanet::updateTileTrees(int frameCount) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void VistaPlanet::traverseTileTrees(int frameCount, glm::dmat4 const& matM, glm::mat4 const& matV,
-    glm::mat4 const& matP, glm::ivec4 const& viewport) {
+void VistaPlanet::traverseTileTrees(
+    int frameCount, glm::dmat4 const& matM, glm::mat4 const& matV, glm::mat4 const& matP) {
   // update per-frame information of LODVisitor
   mLodVisitor.setFrameCount(frameCount);
   mLodVisitor.setModelview(glm::dmat4(matV) * matM);
   mLodVisitor.setProjection(matP);
-  mLodVisitor.setViewport(viewport);
 
   // traverse quad trees and determine nodes to render and load
   // respectively
@@ -305,15 +302,6 @@ glm::mat4 VistaPlanet::getProjectionMatrix() {
   glGetFloatv(GL_PROJECTION_MATRIX, glMat.data());
 
   return glm::make_mat4x4(glMat.data());
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-glm::ivec4 VistaPlanet::getViewport() {
-  std::array<GLint, 4> glVP{};
-  glGetIntegerv(GL_VIEWPORT, glVP.data());
-
-  return glm::make_vec4(glVP.data());
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
