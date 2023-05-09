@@ -86,13 +86,13 @@ bool testInFrustum(Frustum const& frustum, BoundingBox<double> const& tb) {
 // Returns true if one the eight tile bbox corner points is not occluded by a proxy sphere.
 // Culls tiles behind the horizon.
 bool testFrontFacing(glm::dvec3 const& camPos, PlanetParameters const* params,
-    BoundingBox<double> const& tb, TreeManager* treeMgrDEM) {
-  assert(treeMgrDEM != nullptr);
+    BoundingBox<double> const& tb, TreeManager* treeMgr) {
+  assert(treeMgr != nullptr);
 
   // Get minimum height of all base patches (needed for radius of proxy culling sphere)
   auto minHeight(std::numeric_limits<float>::max());
   for (int i(0); i < TileQuadTree::sNumRoots; ++i) {
-    auto* tile = treeMgrDEM->getTree()->getRoot(i);
+    auto* tile = treeMgr->getTree()->getRoot(i);
     minHeight  = std::min(minHeight, tile->getMinMaxPyramid()->getMin());
   }
 
@@ -152,10 +152,11 @@ bool childrenAvailable(TileNode* node, TreeManager* treeMgr) {
       return false;
     }
 
-    TileDataBase* rd = child->getTileData();
+    auto dem = child->getTileData(TileDataType::eElevation);
+    auto img = child->getTileData(TileDataType::eColor);
 
     // child is not on GPU -> can not refine
-    if (!rd || rd->getTexLayer() < 0) {
+    if (dem->getTexLayer() < 0 || (img && img->getTexLayer() < 0)) {
       return false;
     }
   }
@@ -170,13 +171,10 @@ bool childrenAvailable(TileNode* node, TreeManager* treeMgr) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /* explicit */
-LODVisitor::LODVisitor(
-    PlanetParameters const& params, TreeManager* treeMgrDEM, TreeManager* treeMgrIMG)
-    : TileVisitor<LODVisitor>(treeMgrDEM ? treeMgrDEM->getTree() : nullptr,
-          treeMgrIMG ? treeMgrIMG->getTree() : nullptr)
+LODVisitor::LODVisitor(PlanetParameters const& params, TreeManager* treeMgr)
+    : TileVisitor<LODVisitor>(treeMgr->getTree())
     , mParams(&params)
-    , mTreeMgrDEM(nullptr)
-    , mTreeMgrIMG(nullptr)
+    , mTreeMgr(treeMgr)
     , mViewport()
     , mMatVM()
     , mMatP()
@@ -186,8 +184,9 @@ LODVisitor::LODVisitor(
     , mFrameCount(0)
     , mUpdateLOD(true)
     , mUpdateCulling(true) {
-  setTreeManagerDEM(treeMgrDEM);
-  setTreeManagerIMG(treeMgrIMG);
+
+  mLoadNodes.reserve(PreAllocSize);
+  mRenderNodes.reserve(PreAllocSize);
 
   mStack.resize(sMaxStackDepth);
 }
@@ -196,45 +195,6 @@ LODVisitor::LODVisitor(
 
 void LODVisitor::queueRecomputeTileBounds() {
   mRecomputeTileBounds = true;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void LODVisitor::setTreeManagerDEM(TreeManager* treeMgr) {
-  // unset tree from OLD tree manager
-  if (mTreeMgrDEM) {
-    setTreeDEM(nullptr);
-  }
-
-  mStack.clear();
-  mStack.resize(sMaxStackDepth);
-
-  mTreeMgrDEM = treeMgr;
-
-  // set tree from NEW tree manager
-  if (mTreeMgrDEM) {
-    setTreeDEM(mTreeMgrDEM->getTree());
-    mLoadDEM.reserve(PreAllocSize);
-    mRenderDEM.reserve(PreAllocSize);
-  }
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void LODVisitor::setTreeManagerIMG(TreeManager* treeMgr) {
-  // unset tree from OLD tree manager
-  if (mTreeMgrIMG) {
-    setTreeIMG(nullptr);
-  }
-
-  mTreeMgrIMG = treeMgr;
-
-  // set tree from NEW tree manager
-  if (mTreeMgrIMG) {
-    setTreeIMG(mTreeMgrIMG->getTree());
-    mLoadIMG.reserve(PreAllocSize);
-    mRenderIMG.reserve(PreAllocSize);
-  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -258,26 +218,15 @@ bool LODVisitor::preTraverse() {
   }
 
   // clear load/render lists
-  mLoadDEM.clear();
-  mLoadIMG.clear();
-  mRenderDEM.clear();
-  mRenderIMG.clear();
+  mLoadNodes.clear();
+  mRenderNodes.clear();
   mStackTop = -1;
 
   // make sure root nodes are present
   for (int i = 0; i < TileQuadTree::sNumRoots; ++i) {
-    if (mTreeDEM) {
-      if (!mTreeDEM->getRoot(i)) {
-        mLoadDEM.emplace_back(0, i);
-        result = false;
-      }
-    }
-
-    if (mTreeIMG) {
-      if (!mTreeIMG->getRoot(i)) {
-        mLoadIMG.emplace_back(0, i);
-        result = false;
-      }
+    if (!mTree->getRoot(i)) {
+      mLoadNodes.emplace_back(0, i);
+      result = false;
     }
   }
 
@@ -293,24 +242,11 @@ void LODVisitor::postTraverse() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool LODVisitor::preVisitRoot(TileId const& tileId) {
-  LODState& state = getLODState();
+  StateBase& state = getState();
 
   // fetch tile data for visited node and mark as used in this frame
-  if (mTreeMgrDEM && state.mNodeDEM) {
-    auto* rd     = state.mNodeDEM->getTileData();
-    state.mRdDEM = rd;
-    state.mNodeDEM->setLastFrame(mFrameCount);
-  } else {
-    state.mRdDEM = nullptr;
-  }
-
-  // fetch tile data for visited node and mark as used in this frame
-  if (mTreeMgrIMG && state.mNodeIMG) {
-    auto* rd     = state.mNodeIMG->getTileData();
-    state.mRdIMG = rd;
-    state.mNodeIMG->setLastFrame(mFrameCount);
-  } else {
-    state.mRdIMG = nullptr;
+  if (state.mNode) {
+    state.mNode->setLastFrame(mFrameCount);
   }
 
   return visitNode(tileId);
@@ -320,25 +256,11 @@ bool LODVisitor::preVisitRoot(TileId const& tileId) {
 
 bool LODVisitor::preVisit(TileId const& tileId) {
 
-  LODState& state  = getLODState();
-  LODState& stateP = getLODState(tileId.level() - 1); // parent state
+  StateBase& state = getState();
 
   // fetch tile data for visited node and mark as used in this frame
-  if (mTreeMgrDEM && state.mNodeDEM) {
-    auto* rd     = state.mNodeDEM->getTileData();
-    state.mRdDEM = rd;
-    state.mNodeDEM->setLastFrame(mFrameCount);
-  } else {
-    state.mRdDEM = stateP.mRdDEM;
-  }
-
-  // fetch tile data for visited node and mark as used in this frame
-  if (mTreeMgrIMG && state.mNodeIMG) {
-    auto* rd     = state.mNodeIMG->getTileData();
-    state.mRdIMG = rd;
-    state.mNodeIMG->setLastFrame(mFrameCount);
-  } else {
-    state.mRdIMG = stateP.mRdIMG;
+  if (state.mNode) {
+    state.mNode->setLastFrame(mFrameCount);
   }
 
   return visitNode(tileId);
@@ -361,15 +283,15 @@ bool LODVisitor::visitNode(TileId const& tileId) {
   //      Else:
   //          draw this level
 
-  LODState& state = getLODState();
+  StateBase& state = getState();
 
-  if (state.mNodeDEM && (!state.mNodeDEM->hasBounds() || mRecomputeTileBounds)) {
-    auto bounds = calcTileBounds(*state.mNodeDEM, mParams->mRadii, mParams->mHeightScale);
-    state.mNodeDEM->setBounds(bounds);
+  if (state.mNode && (!state.mNode->hasBounds() || mRecomputeTileBounds)) {
+    auto bounds = calcTileBounds(*state.mNode, mParams->mRadii, mParams->mHeightScale);
+    state.mNode->setBounds(bounds);
   }
 
   bool result  = false;
-  bool visible = testVisible(tileId, mTreeMgrDEM);
+  bool visible = testVisible(tileId);
 
   if (visible) {
     // should this node be refined to achieve desired resolution?
@@ -389,59 +311,30 @@ bool LODVisitor::visitNode(TileId const& tileId) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool LODVisitor::handleRefine(TileId const& /*tileId*/) {
-  bool      result = false;
-  LODState& state  = getLODState();
+  StateBase& state = getState();
 
   // test if nodes can be refined
-  bool childrenDemAvailable =
-      state.mNodeDEM ? childrenAvailable(state.mNodeDEM, mTreeMgrDEM) : false;
-  bool childrenImgAvailable =
-      state.mNodeIMG ? childrenAvailable(state.mNodeIMG, mTreeMgrIMG) : false;
+  bool hasChildren = state.mNode ? childrenAvailable(state.mNode, mTreeMgr) : false;
 
-  if (mTreeMgrDEM != nullptr && mTreeMgrIMG != nullptr) {
-    // DEM and IMG data
-
-    // request to load missing children
-    if (!childrenDemAvailable) {
-      addLoadChildrenDEM(state.mNodeDEM);
-    }
-
-    if (!childrenImgAvailable) {
-      addLoadChildrenIMG(state.mNodeIMG);
-    }
-
-    if (childrenDemAvailable && childrenImgAvailable) {
-      result = true;
-    } else {
-      // can not refine, draw this level
-      drawLevel();
-    }
-  } else if (mTreeMgrDEM != nullptr && mTreeMgrIMG == nullptr) {
-    // DEM data only
-
-    if (childrenDemAvailable) {
-      // tree can be refined, visit children
-      result = true;
-    } else {
-      addLoadChildrenDEM(state.mNodeDEM);
-
-      // can not refine, draw this level
-      drawLevel();
-    }
+  // request to load missing children
+  if (!hasChildren) {
+    addLoadChildren(state.mNode);
+    drawLevel();
+    return false;
   }
 
-  return result;
+  return true;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void LODVisitor::addLoadChildrenDEM(TileNode* node) {
+void LODVisitor::addLoadChildren(TileNode* node) {
   if (node && node->getLevel() < mParams->mMaxLevel) {
     TileId const& tileId = node->getTileId();
 
     for (int i = 0; i < 4; ++i) {
       if (!node->getChild(i)) {
-        mLoadDEM.push_back(HEALPix::getChildTileId(tileId, i));
+        mLoadNodes.push_back(HEALPix::getChildTileId(tileId, i));
       } else {
         // mark child as used to avoid it being removed while waiting
         // for its siblings to be loaded
@@ -453,34 +346,16 @@ void LODVisitor::addLoadChildrenDEM(TileNode* node) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void LODVisitor::addLoadChildrenIMG(TileNode* node) {
-  if (node && node->getLevel() < mParams->mMaxLevel) {
-    TileId const& tileId = node->getTileId();
+bool LODVisitor::testVisible(TileId const& tileId) {
+  bool       result = false;
+  StateBase& state  = getState();
 
-    for (int i = 0; i < 4; ++i) {
-      if (!node->getChild(i)) {
-        mLoadIMG.push_back(HEALPix::getChildTileId(tileId, i));
-      } else {
-        // mark child as used to avoid it being removed while waiting
-        // for its siblings to be loaded
-        node->getChild(i)->setLastFrame(mFrameCount);
-      }
-    }
-  }
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-bool LODVisitor::testVisible(TileId const& tileId, TreeManager* treeMgrDEM) {
-  bool      result = false;
-  LODState& state  = getLODState();
-
-  BoundingBox<double> const& tb = state.mNodeDEM->getBounds();
+  BoundingBox<double> const& tb = state.mNode->getBounds();
 
   result = testInFrustum(mCullData.mFrustumMS, tb);
 
   if (result) {
-    result = testFrontFacing(mCullData.mCamPos, mParams, tb, treeMgrDEM);
+    result = testFrontFacing(mCullData.mCamPos, mParams, tb, mTreeMgr);
   }
 
   return result;
@@ -489,11 +364,11 @@ bool LODVisitor::testVisible(TileId const& tileId, TreeManager* treeMgrDEM) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool LODVisitor::testNeedRefine(TileId const& tileId) {
-  bool      result = false;
-  LODState& state  = getLODState();
+  bool       result = false;
+  StateBase& state  = getState();
 
-  if (state.mNodeDEM) {
-    BoundingBox<double> tb = state.mNodeDEM->getBounds();
+  if (state.mNode) {
+    BoundingBox<double> tb = state.mNode->getBounds();
 
     glm::dvec3 const& tbMin    = tb.getMin();
     glm::dvec3 const& tbMax    = tb.getMax();
@@ -543,37 +418,13 @@ bool LODVisitor::testNeedRefine(TileId const& tileId) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void LODVisitor::drawLevel() {
-  LODState& state = getLODState();
+  StateBase& state = getState();
 
-  if (mTreeMgrDEM) {
-    // check node is available (either for this level or highest resolution
-    // currently loaded) and has data
-    assert(state.mNodeDEM);
-    assert(state.mRdDEM);
+  // check node is available (either for this level or highest resolution
+  // currently loaded) and has data
+  assert(state.mNode);
 
-    mRenderDEM.push_back(state.mNodeDEM);
-  }
-
-  if (mTreeMgrIMG) {
-    // check node is available (either for this level or highest resolution
-    // currently loaded) and has data
-    assert(state.mNodeIMG);
-    assert(state.mRdIMG);
-
-    mRenderIMG.push_back(state.mNodeIMG);
-  }
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-TreeManager* LODVisitor::getTreeManagerDEM() const {
-  return mTreeMgrDEM;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-TreeManager* LODVisitor::getTreeManagerIMG() const {
-  return mTreeMgrIMG;
+  mRenderNodes.push_back(state.mNode);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -650,26 +501,14 @@ bool LODVisitor::getUpdateCulling() const {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::vector<TileId> const& LODVisitor::getLoadDEM() const {
-  return mLoadDEM;
+std::vector<TileId> const& LODVisitor::getLoadNodes() const {
+  return mLoadNodes;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::vector<TileId> const& LODVisitor::getLoadIMG() const {
-  return mLoadIMG;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-std::vector<TileNode*> const& LODVisitor::getRenderDEM() const {
-  return mRenderDEM;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-std::vector<TileNode*> const& LODVisitor::getRenderIMG() const {
-  return mRenderIMG;
+std::vector<TileNode*> const& LODVisitor::getRenderNodes() const {
+  return mRenderNodes;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -703,21 +542,6 @@ LODVisitor::StateBase const& LODVisitor::getState() const {
   return mStack.at(mStackTop);
 }
 
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-LODVisitor::LODState& LODVisitor::getLODState(int level /*= -1*/) {
-  // check that stack is valid
-  assert(mStackTop >= 0);
-  return mStack.at(level >= 0 ? level : mStackTop);
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-LODVisitor::LODState const& LODVisitor::getLODState(int level /*= -1*/) const {
-  // check that stack is valid
-  assert(mStackTop >= 0);
-  return mStack.at(level >= 0 ? level : mStackTop);
-}
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 } // namespace csp::lodbodies

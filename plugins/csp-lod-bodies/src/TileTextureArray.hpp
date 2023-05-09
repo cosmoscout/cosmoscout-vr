@@ -41,6 +41,8 @@ class TileTextureArray {
 
   ~TileTextureArray();
 
+  TileDataType getDataType() const;
+
   /// Requests that data for the tile associated with rdata be uploaded to the GPU.
   void allocateGPU(TileDataBase* rdata);
 
@@ -84,22 +86,16 @@ class TileTextureArray {
 };
 
 /// DocTODO
-class GLResources {
+class GLResources : public PerDataType<std::unique_ptr<TileTextureArray>> {
  public:
   GLResources(int maxElevationLayers, int maxColorLayers, uint32_t elevationResolution,
-      uint32_t colorResolution) {
-    mTextureArrays[static_cast<int>(TileDataType::eElevation)] = std::make_unique<TileTextureArray>(
-        TileDataType::eElevation, maxElevationLayers, elevationResolution);
-    mTextureArrays[static_cast<int>(TileDataType::eColor)] =
-        std::make_unique<TileTextureArray>(TileDataType::eColor, maxColorLayers, colorResolution);
+      uint32_t colorResolution)
+      : PerDataType<std::unique_ptr<TileTextureArray>>(
+            {std::make_unique<TileTextureArray>(
+                 TileDataType::eElevation, maxElevationLayers, elevationResolution),
+                std::make_unique<TileTextureArray>(
+                    TileDataType::eColor, maxColorLayers, colorResolution)}) {
   }
-
-  TileTextureArray& operator[](TileDataType type) {
-    return *mTextureArrays.at(static_cast<int>(type));
-  }
-
- private:
-  std::array<std::unique_ptr<TileTextureArray>, 2> mTextureArrays;
 };
 } // namespace csp::lodbodies
 

@@ -59,19 +59,12 @@ class TileVisitor {
  public:
   using DerivedType = DerivedT;
 
-  explicit TileVisitor(TileQuadTree* treeDEM, TileQuadTree* treeIMG = nullptr);
+  explicit TileVisitor(TileQuadTree* tree);
 
   /// Start traversal of the trees passed to the constructor.
   void visit();
 
-  void          setTreeDEM(TileQuadTree* tree);
-  TileQuadTree* getTreeDEM() const;
-
-  void          setTreeIMG(TileQuadTree* tree);
-  TileQuadTree* getTreeIMG() const;
-
-  TileNode* getNodeDEM() const;
-  TileNode* getNodeIMG() const;
+  TileNode* getNode() const;
 
   TileId const& getTileId() const;
   int           getLevel() const;
@@ -81,8 +74,7 @@ class TileVisitor {
   class StateBase {
    public:
     std::array<bool, 4> mChildren{};
-    TileNode*           mNodeDEM{};
-    TileNode*           mNodeIMG{};
+    TileNode*           mNode{};
     TileId              mTileId;
   };
 
@@ -90,8 +82,8 @@ class TileVisitor {
   DerivedType&       self();
   DerivedType const& self() const;
 
-  void visitRoot(TileNode* rootDEM, TileNode* rootIMG, TileId tileId);
-  void visitLevel(TileNode* nodeDEM, TileNode* nodeIMG, TileId tileId);
+  void visitRoot(TileNode* root, TileId tileId);
+  void visitLevel(TileNode* node, TileId tileId);
 
   /// Called before visiting the first root node. Returns if traversal should commence or
   /// not.
@@ -137,15 +129,13 @@ class TileVisitor {
   virtual StateBase&       getState();
   virtual StateBase const& getState() const;
 
-  TileQuadTree* mTreeDEM;
-  TileQuadTree* mTreeIMG;
+  TileQuadTree* mTree;
   StateBase     mDummyState;
 };
 
 template <typename DerivedT>
-TileVisitor<DerivedT>::TileVisitor(TileQuadTree* treeDEM, TileQuadTree* treeIMG)
-    : mTreeDEM(treeDEM)
-    , mTreeIMG(treeIMG)
+TileVisitor<DerivedT>::TileVisitor(TileQuadTree* tree)
+    : mTree(tree)
     , mDummyState() {
 }
 
@@ -153,10 +143,8 @@ template <typename DerivedT>
 void TileVisitor<DerivedT>::visit() {
   if (self().preTraverse()) {
     for (int i = 0; i < TileQuadTree::sNumRoots; ++i) {
-      TileNode* rootDEM = mTreeDEM->getRoot(i);
-      TileNode* rootIMG = mTreeIMG ? mTreeIMG->getRoot(i) : nullptr;
-
-      visitRoot(rootDEM, rootIMG, TileId(0, i));
+      TileNode* root = mTree->getRoot(i);
+      visitRoot(root, TileId(0, i));
     }
   }
 
@@ -164,33 +152,8 @@ void TileVisitor<DerivedT>::visit() {
 }
 
 template <typename DerivedT>
-void TileVisitor<DerivedT>::setTreeDEM(TileQuadTree* tree) {
-  mTreeDEM = tree;
-}
-
-template <typename DerivedT>
-TileQuadTree* TileVisitor<DerivedT>::getTreeDEM() const {
-  return mTreeDEM;
-}
-
-template <typename DerivedT>
-void TileVisitor<DerivedT>::setTreeIMG(TileQuadTree* tree) {
-  mTreeIMG = tree;
-}
-
-template <typename DerivedT>
-TileQuadTree* TileVisitor<DerivedT>::getTreeIMG() const {
-  return mTreeIMG;
-}
-
-template <typename DerivedT>
-TileNode* TileVisitor<DerivedT>::getNodeDEM() const {
-  return self().getState().mNodeDEM;
-}
-
-template <typename DerivedT>
-TileNode* TileVisitor<DerivedT>::getNodeIMG() const {
-  return self().getState().mNodeIMG;
+TileNode* TileVisitor<DerivedT>::getNode() const {
+  return self().getState().mNode;
 }
 
 template <typename DerivedT>
@@ -219,11 +182,10 @@ typename TileVisitor<DerivedT>::DerivedType const& TileVisitor<DerivedT>::self()
 }
 
 template <typename DerivedT>
-void TileVisitor<DerivedT>::visitRoot(TileNode* rootDEM, TileNode* rootIMG, TileId tileId) {
+void TileVisitor<DerivedT>::visitRoot(TileNode* root, TileId tileId) {
   // check that nodes have expected level - if this triggers the trees are
   // corrupted
-  assert(rootDEM == NULL || rootDEM->getLevel() == tileId.level());
-  assert(rootIMG == NULL || rootIMG->getLevel() == tileId.level());
+  assert(root == NULL || root->getLevel() == tileId.level());
 
   // push & init state
   self().pushState();
@@ -232,8 +194,7 @@ void TileVisitor<DerivedT>::visitRoot(TileNode* rootDEM, TileNode* rootIMG, Tile
   state.mChildren[1] = true;
   state.mChildren[2] = true;
   state.mChildren[3] = true;
-  state.mNodeDEM     = rootDEM;
-  state.mNodeIMG     = rootIMG;
+  state.mNode        = root;
   state.mTileId      = tileId;
 
   if (self().preVisitRoot(tileId)) {
@@ -242,12 +203,11 @@ void TileVisitor<DerivedT>::visitRoot(TileNode* rootDEM, TileNode* rootIMG, Tile
         continue;
       }
 
-      TileNode* childDEM = rootDEM ? rootDEM->getChild(i) : nullptr;
-      TileNode* childIMG = rootIMG ? rootIMG->getChild(i) : nullptr;
+      TileNode* child = root ? root->getChild(i) : nullptr;
 
-      if (childDEM || childIMG) {
+      if (child) {
         TileId childId = HEALPix::getChildTileId(tileId, i);
-        visitLevel(childDEM, childIMG, childId);
+        visitLevel(child, childId);
       }
     }
   }
@@ -257,11 +217,10 @@ void TileVisitor<DerivedT>::visitRoot(TileNode* rootDEM, TileNode* rootIMG, Tile
 }
 
 template <typename DerivedT>
-void TileVisitor<DerivedT>::visitLevel(TileNode* nodeDEM, TileNode* nodeIMG, TileId tileId) {
+void TileVisitor<DerivedT>::visitLevel(TileNode* node, TileId tileId) {
   // check that nodes have expected level - if this triggers the trees are
   // corrupted
-  assert(nodeDEM == NULL || nodeDEM->getLevel() == tileId.level());
-  assert(nodeIMG == NULL || nodeIMG->getLevel() == tileId.level());
+  assert(node == NULL || node->getLevel() == tileId.level());
 
   // push & init state
   self().pushState();
@@ -270,8 +229,7 @@ void TileVisitor<DerivedT>::visitLevel(TileNode* nodeDEM, TileNode* nodeIMG, Til
   state.mChildren[1] = true;
   state.mChildren[2] = true;
   state.mChildren[3] = true;
-  state.mNodeDEM     = nodeDEM;
-  state.mNodeIMG     = nodeIMG;
+  state.mNode        = node;
   state.mTileId      = tileId;
 
   if (self().preVisit(tileId)) {
@@ -280,12 +238,11 @@ void TileVisitor<DerivedT>::visitLevel(TileNode* nodeDEM, TileNode* nodeIMG, Til
         continue;
       }
 
-      TileNode* childDEM = nodeDEM ? nodeDEM->getChild(i) : nullptr;
-      TileNode* childIMG = nodeIMG ? nodeIMG->getChild(i) : nullptr;
+      TileNode* child = node ? node->getChild(i) : nullptr;
 
-      if (childDEM || childIMG) {
+      if (child) {
         TileId childId = HEALPix::getChildTileId(tileId, i);
-        visitLevel(childDEM, childIMG, childId);
+        visitLevel(child, childId);
       }
     }
   }

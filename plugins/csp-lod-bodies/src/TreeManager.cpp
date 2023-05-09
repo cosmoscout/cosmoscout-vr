@@ -93,8 +93,7 @@ TreeManager::NodeAge::NodeAge(TileNode* node, int frame)
 
 /* explicit */
 TreeManager::TreeManager(std::shared_ptr<GLResources> glResources)
-    : mGlMgr(std::move(glResources))
-    , mSrc()
+    : mGLResources(std::move(glResources))
     , mFrameCount(0)
     , mAsyncLoading(true) {
 
@@ -105,17 +104,12 @@ TreeManager::TreeManager(std::shared_ptr<GLResources> glResources)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void TreeManager::setSource(TileSource* src) {
+void TreeManager::setSource(TileDataType type, TileSource* src) {
   // remove all existing nodes
-  std::unique_lock<std::mutex> lck(mLoadedMtx);
   clear();
-  mSrc = src;
-}
 
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-TileSource* TreeManager::getSource() const {
-  return mSrc;
+  std::unique_lock<std::mutex> lck(mSourcesMtx);
+  mTileDataSources.set(type, src);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -125,23 +119,24 @@ void TreeManager::request(std::vector<TileId> const& tileIds) {
   // set (those are tiles that have already been requesed from the tile
   // source), otherwise put the tile in mPendingTiles and ask the source to
   // load the tile.
-  // In the case of async loading, register @c onNodeLoaded as the callback
+  // In the case of async loading, register @c onDataLoaded as the callback
   // that the source invokes when the tile is ready.
-  std::unique_lock<std::mutex> lck(mLoadedMtx);
+  std::unique_lock<std::mutex> lck(mPendingMtx);
 
-  auto iIt  = tileIds.begin();
-  auto iEnd = tileIds.end();
+  for (auto const& tileId : tileIds) {
+    if (mPendingTiles.count(tileId) == 0) {
+      mPendingTiles[tileId] = new TileNode(tileId);
 
-  for (; iIt != iEnd; ++iIt) {
-    if (mPendingTiles.count(*iIt) == 0) {
-      mPendingTiles.insert(*iIt);
-
-      if (mAsyncLoading) {
-        mSrc->loadTileAsync(iIt->level(), iIt->patchIdx(),
-            [this](auto a, auto b, auto c, auto d) { onNodeLoaded(a, b, c, std::move(d)); });
-      } else {
-        auto tileData = mSrc->loadTile(iIt->level(), iIt->patchIdx());
-        onNodeLoaded(mSrc, iIt->level(), iIt->patchIdx(), std::move(tileData));
+      for (auto const& src : mTileDataSources.mChannels) {
+        if (src) {
+          if (mAsyncLoading) {
+            src->loadTileAsync(
+                tileId, [this](auto id, auto data) { onDataLoaded(id, std::move(data)); });
+          } else {
+            auto tileData = src->loadTile(tileId);
+            onDataLoaded(tileId, std::move(tileData));
+          }
+        }
       }
     }
   }
@@ -158,20 +153,26 @@ void TreeManager::update() {
   merge();
 
   // upload tiles to GPU
-  getTileTextureArray().processQueue(5);
+  for (auto const& textureArray : mGLResources->mChannels) {
+    textureArray->processQueue(5);
+  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void TreeManager::clear() {
-  mPendingTiles.clear();
-  mLoadedNodes.clear();
+  {
+    std::unique_lock<std::mutex> lck(mLoadedMtx);
+    mLoadedNodes.clear();
+  }
 
-  auto rdIt  = mNodes.begin();
-  auto rdEnd = mNodes.end();
+  {
+    std::unique_lock<std::mutex> lck(mPendingMtx);
+    mPendingTiles.clear();
+  }
 
-  for (; rdIt != rdEnd; ++rdIt) {
-    releaseResources((*rdIt)->getTileData());
+  for (auto* node : mNodes) {
+    releaseResources(node);
   }
 
   mNodes.clear();
@@ -183,49 +184,59 @@ void TreeManager::clear() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::size_t TreeManager::getNodeCount() const {
-  return mNodes.size();
-}
+void TreeManager::onDataLoaded(TileId const& tileId, std::unique_ptr<TileDataBase> tileData) {
 
-////////////////////////////////////////////////////////////////////////////////////////////////////
+  // If tile loading failed, discard the data.
+  if (!tileData) {
+    std::unique_lock<std::mutex> lck(mPendingMtx);
+    mPendingTiles.erase(tileId);
+    return;
+  }
 
-std::size_t TreeManager::getNodeCountGPU() const {
-  return getTileTextureArray().getUsedLayerCount();
-}
+  TileNode* node{};
 
-////////////////////////////////////////////////////////////////////////////////////////////////////
+  {
+    std::unique_lock<std::mutex> lck(mPendingMtx);
 
-void TreeManager::onNodeLoaded(
-    TileSource* source, int level, glm::int64 patchIdx, std::unique_ptr<TileDataBase> tileData) {
-
-  if (tileData && source == mSrc) {
-    auto* node = new TileNode(TileId(level, patchIdx)); // NOLINT(cppcoreguidelines-owning-memory)
-
-    if (tileData->getDataType() == TileDataType::eElevation) {
-      auto demdata = dynamic_cast<TileData<float>*>(tileData.get());
-      node->setMinMaxPyramid(std::make_unique<MinMaxPyramid>(demdata));
+    // If the data is not need the tile anymore, discard it.
+    auto it = mPendingTiles.find(tileId);
+    if (it == mPendingTiles.end()) {
+      return;
     }
 
-    node->setTileData(std::move(tileData));
+    node = it->second;
+  }
 
+  if (tileData->getDataType() == TileDataType::eElevation) {
+    auto demdata = dynamic_cast<TileData<float>*>(tileData.get());
+    node->setMinMaxPyramid(std::make_unique<MinMaxPyramid>(demdata));
+  }
+
+  node->setTileData(std::move(tileData));
+
+  auto dem = node->getTileData(TileDataType::eElevation);
+  auto img = node->getTileData(TileDataType::eColor);
+
+  bool hasColorChannel = false;
+
+  {
+    std::unique_lock<std::mutex> lck(mSourcesMtx);
+    hasColorChannel = mTileDataSources.get(TileDataType::eColor);
+  }
+
+  if (dem && (img || !hasColorChannel)) {
     // Only add node to list of loaded nodes, actual insertion into the
     // quad-tree is done in merge().
     // This ensures that the tree is not modified at unpredictable moments
     // in time (for example while a traversal is in progress).
     std::unique_lock<std::mutex> lck(mLoadedMtx);
     mLoadedNodes.push_back(node);
-  } else {
-    // source has changed or loading failed, discard node
-    std::unique_lock<std::mutex> lck(mLoadedMtx);
-    mPendingTiles.erase(TileId(level, patchIdx));
   }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void TreeManager::onNodeInserted(TileNode* node) {
-  TileDataBase* rdata = node->getTileData();
-
   if (node->getParent()) {
     TileNode* parent = node->getParent();
     assert(parent != nullptr);
@@ -235,13 +246,23 @@ void TreeManager::onNodeInserted(TileNode* node) {
 
   mNodes.push_back(node);
 
-  getTileTextureArray().allocateGPU(rdata);
+  for (auto const& res : mGLResources->mChannels) {
+    auto data = node->getTileData(res->getDataType());
+    if (data) {
+      res->allocateGPU(data);
+    }
+  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void TreeManager::releaseResources(TileDataBase* rdata) {
-  getTileTextureArray().releaseGPU(rdata);
+void TreeManager::releaseResources(TileNode* node) {
+  for (auto const& res : mGLResources->mChannels) {
+    auto data = node->getTileData(res->getDataType());
+    if (data) {
+      res->releaseGPU(data);
+    }
+  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -256,11 +277,10 @@ void TreeManager::prune() {
 
     // remove unnused nodes, but never root nodes
     if (node->getAge(mFrameCount) > maxNodeAge && node->getLevel() > 0) {
-      releaseResources(node->getTileData());
+      releaseResources(node);
 
       if (!removeNode(&mTree, node)) {
-        vstr::errp() << "[TreeManager::prune] [" << mName << "] Failed to remove node " << node
-                     << "!" << std::endl;
+        vstr::errp() << "[TreeManager::prune] Failed to remove node " << node << "!" << std::endl;
       }
 
       // remove entries for node from internal data structures
@@ -276,8 +296,8 @@ void TreeManager::prune() {
 
   if (count > 0) {
 #if !defined(NDEBUG) && !defined(VISTAPLANET_NO_VERBOSE)
-    vstr::outi() << "[TreeManager::prune] [" << mName << "] nodes removed/kept " << count << " / "
-                 << mRdMap.size() << std::endl;
+    vstr::outi() << "[TreeManager::prune] nodes removed/kept " << count << " / " << mRdMap.size()
+                 << std::endl;
 #endif
   }
 }
@@ -355,8 +375,8 @@ void TreeManager::merge() {
 
   if (merged > 0 || unmerged > 0) {
 #if !defined(NDEBUG) && !defined(VISTAPLANET_NO_VERBOSE)
-    vstr::outi() << "[TreeManager::merge] [" << mName << "] nodes merged/unmerged " << merged
-                 << " / " << unmerged << std::endl;
+    vstr::outi() << "[TreeManager::merge] nodes merged/unmerged " << merged << " / " << unmerged
+                 << std::endl;
 #endif
   }
 }
@@ -369,14 +389,8 @@ TileQuadTree* TreeManager::getTree() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::string const& TreeManager::getName() const {
-  return mName;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void TreeManager::setName(std::string const& name) {
-  mName = name;
+std::shared_ptr<GLResources> const& TreeManager::getGLResources() const {
+  return mGLResources;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -389,12 +403,6 @@ int TreeManager::getFrameCount() const {
 
 void TreeManager::setFrameCount(int frameCount) {
   mFrameCount = frameCount;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-TileTextureArray& TreeManager::getTileTextureArray() const {
-  return (*mGlMgr)[mSrc->getDataType()];
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -29,7 +29,8 @@ class TileNode {
   TileNode& operator=(TileNode&& other) = default;
 
   /// Returns the tile data owned by this, or NULL if there is no such tile.
-  TileDataBase* getTileData() const;
+  TileDataBase*                                     getTileData(TileDataType type) const;
+  PerDataType<std::unique_ptr<TileDataBase>> const& getTileData() const;
 
   /// Sets the tile data to be owned by this. Exclusive ownership of the tile is taken by this and
   /// when this TileNode is destroyed the tile is destroyed as well.
@@ -69,7 +70,7 @@ class TileNode {
   TileNode*                                mParent{nullptr};
   std::array<std::unique_ptr<TileNode>, 4> mChildren;
 
-  std::unique_ptr<TileDataBase> mTileData;
+  PerDataType<std::unique_ptr<TileDataBase>> mTileData;
 
   std::unique_ptr<MinMaxPyramid> mMinMaxPyramid;
   BoundingBox<double>            mTb;

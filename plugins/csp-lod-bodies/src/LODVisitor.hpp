@@ -25,16 +25,9 @@ class TreeManager;
 /// produces lists of tiles to load and draw respectively.
 class LODVisitor : public TileVisitor<LODVisitor> {
  public:
-  explicit LODVisitor(PlanetParameters const& params, TreeManager* treeMgrDEM = nullptr,
-      TreeManager* treeMgrIMG = nullptr);
+  explicit LODVisitor(PlanetParameters const& params, TreeManager* treeMgr);
 
   void queueRecomputeTileBounds();
-
-  TreeManager* getTreeManagerDEM() const;
-  void         setTreeManagerDEM(TreeManager* treeMgr);
-
-  TreeManager* getTreeManagerIMG() const;
-  void         setTreeManagerIMG(TreeManager* treeMgr);
 
   int  getFrameCount() const;
   void setFrameCount(int frameCount);
@@ -64,19 +57,12 @@ class LODVisitor : public TileVisitor<LODVisitor> {
   void setUpdateCulling(bool enable);
   bool getUpdateCulling() const;
 
-  /// Returns the elevation tiles that should be loaded. The parent tiles of these have been
+  /// Returns the nodes that should be loaded. The parent tiles of these have been
   /// determined to not provide sufficient resolution.
-  std::vector<TileId> const& getLoadDEM() const;
+  std::vector<TileId> const& getLoadNodes() const;
 
-  /// Returns the image tile that should be loaded. The parent tiles of these have been determined
-  /// to not provide sufficient resolution.
-  std::vector<TileId> const& getLoadIMG() const;
-
-  /// Returns the elevation tiles that should be rendered.
-  std::vector<TileNode*> const& getRenderDEM() const;
-
-  /// Returns the image tiles that should be rendered.
-  std::vector<TileNode*> const& getRenderIMG() const;
+  /// Returns the nodes that should be rendered.
+  std::vector<TileNode*> const& getRenderNodes() const;
 
  private:
   /// Struct storing information relevant for LOD selection.
@@ -94,13 +80,6 @@ class LODVisitor : public TileVisitor<LODVisitor> {
     glm::dvec3     mCamPos;
   };
 
-  /// State tracked during traversal of the tile quad trees.
-  class LODState : public TileVisitor<LODVisitor>::StateBase {
-   public:
-    TileDataBase* mRdDEM{};
-    TileDataBase* mRdIMG{};
-  };
-
   bool preTraverse() override;
   void postTraverse() override;
 
@@ -111,8 +90,6 @@ class LODVisitor : public TileVisitor<LODVisitor> {
   void             popState() override;
   StateBase&       getState() override;
   StateBase const& getState() const override;
-  LODState&        getLODState(int level = -1);
-  LODState const&  getLODState(int level = -1) const;
 
   /// Visit the node with given the tileId. Returns whether children should be visited.
   bool visitNode(TileId const& tileId);
@@ -122,12 +99,11 @@ class LODVisitor : public TileVisitor<LODVisitor> {
   /// visited.
   bool handleRefine(TileId const& tileId);
 
-  void addLoadChildrenDEM(TileNode* node);
-  void addLoadChildrenIMG(TileNode* node);
+  void addLoadChildren(TileNode* node);
 
   /// Returns whether the currently visited node is potentially visible. Tests if the node's
   /// bounding box intersects the camera frustum.
-  bool testVisible(TileId const& tileId, TreeManager* treeMgrDEM_);
+  bool testVisible(TileId const& tileId);
 
   /// Returns whether the currently visited node should be refined, i.e. if it's children should be
   /// used to achieve desired resolution. Estimates the screen space size (in pixels) of the node
@@ -141,8 +117,7 @@ class LODVisitor : public TileVisitor<LODVisitor> {
   static std::size_t const sMaxStackDepth = 32;
 
   PlanetParameters const* mParams;
-  TreeManager*            mTreeMgrDEM;
-  TreeManager*            mTreeMgrIMG;
+  TreeManager*            mTreeMgr;
   bool                    mRecomputeTileBounds = false;
 
   glm::ivec4 mViewport;
@@ -151,13 +126,11 @@ class LODVisitor : public TileVisitor<LODVisitor> {
   LODData    mLodData;
   CullData   mCullData;
 
-  std::vector<LODState> mStack;
-  int                   mStackTop;
+  std::vector<StateBase> mStack;
+  int                    mStackTop;
 
-  std::vector<TileId>    mLoadDEM;
-  std::vector<TileId>    mLoadIMG;
-  std::vector<TileNode*> mRenderDEM;
-  std::vector<TileNode*> mRenderIMG;
+  std::vector<TileId>    mLoadNodes;
+  std::vector<TileNode*> mRenderNodes;
 
   int  mFrameCount;
   bool mUpdateLOD;

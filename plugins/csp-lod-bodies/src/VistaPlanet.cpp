@@ -30,12 +30,9 @@ namespace csp::lodbodies {
 /* explicit */
 VistaPlanet::VistaPlanet(std::shared_ptr<GLResources> glResources, uint32_t tileResolution)
     : mWorldTransform(1.0)
-    , mLodVisitor(mParams)
-    , mRenderer(mParams, tileResolution)
-    , mSrcDEM(nullptr)
-    , mTreeMgrDEM(glResources)
-    , mSrcIMG(nullptr)
-    , mTreeMgrIMG(std::move(glResources))
+    , mTreeMgr(std::move(glResources))
+    , mLodVisitor(mParams, &mTreeMgr)
+    , mRenderer(mParams, &mTreeMgr, tileResolution)
     , mLastFrameClock(GetVistaSystem()->GetFrameClock())
     , mSumFrameClock(0.0)
     , mSumDrawTiles(0)
@@ -43,8 +40,6 @@ VistaPlanet::VistaPlanet(std::shared_ptr<GLResources> glResources, uint32_t tile
     , mMaxDrawTiles(0)
     , mMaxLoadTiles(0)
     , mFlags(0) {
-  mTreeMgrDEM.setName("DEM");
-  mTreeMgrIMG.setName("IMG");
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -52,15 +47,10 @@ VistaPlanet::VistaPlanet(std::shared_ptr<GLResources> glResources, uint32_t tile
 /* virtual */
 VistaPlanet::~VistaPlanet() {
   // clear tree managers
-  mTreeMgrDEM.clear();
-  mTreeMgrIMG.clear();
+  mTreeMgr.clear();
 
-  if (mSrcDEM) {
-    mSrcDEM->fini();
-  }
-
-  if (mSrcIMG) {
-    mSrcIMG->fini();
+  for (auto* src : mTileDataSources.mChannels) {
+    src->fini();
   }
 
 #if !defined(NDEBUG) && !defined(VISTAPLANET_NO_VERBOSE)
@@ -174,72 +164,30 @@ TerrainShader* VistaPlanet::getTerrainShader() const {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void VistaPlanet::setDEMSource(TileSource* srcDEM) {
+void VistaPlanet::setDataSource(TileDataType type, TileSource* src) {
   // Don't do anything if nothing changed.
-  if (mSrcDEM == srcDEM) {
+  if (mTileDataSources.get(type) == src) {
     return;
   }
 
   // shut down old source
-  if (mSrcDEM) {
-    mSrcDEM->fini();
-
-    mLodVisitor.setTreeManagerDEM(nullptr);
-    mRenderer.setTreeManagerDEM(nullptr);
-    mTreeMgrDEM.setSource(nullptr);
+  if (mTileDataSources.get(type)) {
+    mTileDataSources.get(type)->fini();
+    mTreeMgr.setSource(type, nullptr);
   }
-
-  mSrcDEM = srcDEM;
+  mTileDataSources.set(type, src);
 
   // init new source
-  if (mSrcDEM) {
-    mSrcDEM->init();
-
-    mTreeMgrDEM.setSource(mSrcDEM);
-    mLodVisitor.setTreeManagerDEM(&mTreeMgrDEM);
-    mRenderer.setTreeManagerDEM(&mTreeMgrDEM);
+  if (src) {
+    src->init();
+    mTreeMgr.setSource(type, src);
   }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-TileSource* VistaPlanet::getDEMSource() const {
-  return mSrcDEM;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void VistaPlanet::setIMGSource(TileSource* srcIMG) {
-  // Don't do anything if nothing changed.
-  if (mSrcIMG == srcIMG) {
-    return;
-  }
-
-  // shut down old source
-  if (mSrcIMG) {
-    mSrcIMG->fini();
-
-    mLodVisitor.setTreeManagerIMG(nullptr);
-    mRenderer.setTreeManagerIMG(nullptr);
-    mTreeMgrIMG.setSource(nullptr);
-  }
-
-  mSrcIMG = srcIMG;
-
-  // init new source
-  if (mSrcIMG) {
-    mSrcIMG->init();
-
-    mTreeMgrIMG.setSource(mSrcIMG);
-    mLodVisitor.setTreeManagerIMG(&mTreeMgrIMG);
-    mRenderer.setTreeManagerIMG(&mTreeMgrIMG);
-  }
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-TileSource* VistaPlanet::getIMGSource() const {
-  return mSrcIMG;
+TileSource* VistaPlanet::getDataSource(TileDataType type) const {
+  return mTileDataSources.get(type);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -250,16 +198,14 @@ void VistaPlanet::updateStatistics(int frameCount) {
   mLastFrameClock   = frameClock;
 
   // update statistics
-  mMaxDrawTiles = std::max(mMaxDrawTiles,
-      std::max(mLodVisitor.getRenderDEM().size(), mLodVisitor.getRenderIMG().size()));
-  mMaxLoadTiles =
-      std::max(mMaxLoadTiles, mLodVisitor.getLoadDEM().size() + mLodVisitor.getLoadIMG().size());
+  mMaxDrawTiles = std::max(mMaxDrawTiles, mLodVisitor.getRenderNodes().size());
+  mMaxLoadTiles = std::max(mMaxLoadTiles, mLodVisitor.getLoadNodes().size());
 
   // running sums of frame time, tiles to draw, and tiles to load
   // used below to calculate averages every 60 frames
   mSumFrameClock += frameT;
-  mSumDrawTiles += std::max(mLodVisitor.getRenderDEM().size(), mLodVisitor.getRenderIMG().size());
-  mSumLoadTiles += mLodVisitor.getLoadDEM().size() + mLodVisitor.getLoadIMG().size();
+  mSumDrawTiles += mLodVisitor.getRenderNodes().size();
+  mSumLoadTiles += mLodVisitor.getLoadNodes().size();
 
   // print and reset statistics every 60 frames
   if (frameCount % 60 == 0) {
@@ -287,19 +233,9 @@ void VistaPlanet::updateStatistics(int frameCount) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void VistaPlanet::updateTileTrees(int frameCount) {
-  // update DEM tree
-  if (mSrcDEM) {
-    cs::utils::FrameStats::ScopedTimer timer("DEM Upload", cs::utils::FrameStats::TimerMode::eCPU);
-    mTreeMgrDEM.setFrameCount(frameCount);
-    mTreeMgrDEM.update();
-  }
-
-  // update IMG tree
-  if (mSrcIMG) {
-    cs::utils::FrameStats::ScopedTimer timer("IMG Upload", cs::utils::FrameStats::TimerMode::eCPU);
-    mTreeMgrIMG.setFrameCount(frameCount);
-    mTreeMgrIMG.update();
-  }
+  cs::utils::FrameStats::ScopedTimer timer("Upload Tiles", cs::utils::FrameStats::TimerMode::eCPU);
+  mTreeMgr.setFrameCount(frameCount);
+  mTreeMgr.update();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -320,13 +256,7 @@ void VistaPlanet::traverseTileTrees(int frameCount, glm::dmat4 const& matM, glm:
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void VistaPlanet::processLoadRequests() {
-  if (mSrcDEM) {
-    mTreeMgrDEM.request(mLodVisitor.getLoadDEM());
-  }
-
-  if (mSrcIMG) {
-    mTreeMgrIMG.request(mLodVisitor.getLoadIMG());
-  }
+  mTreeMgr.request(mLodVisitor.getLoadNodes());
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -338,7 +268,7 @@ void VistaPlanet::renderTiles(int frameCount, glm::dmat4 const& matM, glm::mat4 
   mRenderer.setModel(matM);
   mRenderer.setView(matV);
   mRenderer.setProjection(matP);
-  mRenderer.render(mLodVisitor.getRenderDEM(), mLodVisitor.getRenderIMG(), shadowMap);
+  mRenderer.render(mLodVisitor.getRenderNodes(), shadowMap);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

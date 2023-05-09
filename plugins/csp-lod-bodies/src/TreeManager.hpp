@@ -51,20 +51,12 @@ class TreeManager {
   virtual ~TreeManager() = default;
 
   /// Set tile source src to use.
-  void setSource(TileSource* src);
-
-  /// Returns currently used tile source.
-  TileSource* getSource() const;
+  void setSource(TileDataType type, TileSource* src);
 
   /// Returns pointer to the TileQuadTree managed by this.
   TileQuadTree* getTree();
 
-  /// Sets a name for this in order to distinguish it from other instances The name is used in
-  /// debug/information messages for example.
-  void setName(std::string const& name);
-
-  /// Returns the name for this instance.
-  std::string const& getName() const;
+  std::shared_ptr<GLResources> const& getGLResources() const;
 
   /// Request data tiles with indices tileIds to be loaded and queued to be merged into the quad
   /// tree (with a subsequent call to update).
@@ -80,16 +72,6 @@ class TreeManager {
   int  getFrameCount() const;
   void setFrameCount(int frameCount);
 
-  /// Returns a pointer to the TileTextureArray used by this to manage texture data. This is an
-  /// internal interface for use by TileRenderer.
-  TileTextureArray& getTileTextureArray() const;
-
-  /// Returns the number of nodes in the tree managed by this.
-  std::size_t getNodeCount() const;
-
-  /// Returns the number of nodes uploaded to the GPU.
-  std::size_t getNodeCountGPU() const;
-
  private:
   struct AgeLess;
 
@@ -102,15 +84,14 @@ class TreeManager {
   };
 
   /// Used as a callback for the TileSource to call when a node is loaded.
-  void onNodeLoaded(
-      TileSource* source, int level, glm::int64 patchIdx, std::unique_ptr<TileDataBase> tileData);
+  void onDataLoaded(TileId const& tileId, std::unique_ptr<TileDataBase> tileData);
 
   /// Helper function to handle processing after node is successfully inserted into the managed
   /// TileQuadTree.
   void onNodeInserted(TileNode* node);
 
-  /// Helper function to free resources associated with rdata.
-  void releaseResources(TileDataBase* rdata);
+  /// Helper function to free resources associated with node.
+  void releaseResources(TileNode* node);
 
   /// Remove nodes from the managed TileQuadTree that have not been used for a number of frames.
   /// Sort tiles by age (frames since last use, see TreeManager::AgeLess for details) and
@@ -125,21 +106,22 @@ class TreeManager {
   /// tree it is deleted (see TreeManager::mergeUnmerged).
   void merge();
 
-  std::shared_ptr<GLResources> mGlMgr;
+  std::shared_ptr<GLResources> mGLResources;
   std::vector<TileNode*>       mNodes;
 
-  TileQuadTree mTree;
-  TileSource*  mSrc;
+  TileQuadTree             mTree;
+  PerDataType<TileSource*> mTileDataSources;
 
-  std::unordered_set<TileId> mPendingTiles;
-  std::vector<NodeAge>       mUnmergedNodes;
+  std::unordered_map<TileId, TileNode*> mPendingTiles;
+  std::vector<NodeAge>                  mUnmergedNodes;
+  std::vector<TileNode*>                mLoadedNodes;
 
-  std::mutex             mLoadedMtx;
-  std::vector<TileNode*> mLoadedNodes;
+  std::mutex mSourcesMtx;
+  std::mutex mLoadedMtx;
+  std::mutex mPendingMtx;
 
-  std::string mName;
-  int         mFrameCount;
-  bool        mAsyncLoading;
+  int  mFrameCount;
+  bool mAsyncLoading;
 };
 
 } // namespace csp::lodbodies

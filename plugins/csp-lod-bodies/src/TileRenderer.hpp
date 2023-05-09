@@ -29,7 +29,8 @@ class TreeManager;
 /// Renders tiles with elevation (DEM) and optionally image (IMG) data.
 class TileRenderer {
  public:
-  explicit TileRenderer(PlanetParameters const& params, uint32_t tileResolution);
+  explicit TileRenderer(
+      PlanetParameters const& params, TreeManager* treeMgr, uint32_t tileResolution);
   virtual ~TileRenderer() = default;
 
   TileRenderer(TileRenderer const& other) = delete;
@@ -38,11 +39,7 @@ class TileRenderer {
   TileRenderer& operator=(TileRenderer const& other) = delete;
   TileRenderer& operator=(TileRenderer&& other) = delete;
 
-  TreeManager* getTreeManagerDEM() const;
-  void         setTreeManagerDEM(TreeManager* treeMgr);
-
-  TreeManager* getTreeManagerIMG() const;
-  void         setTreeManagerIMG(TreeManager* treeMgr);
+  TreeManager* getTreeManager() const;
 
   /// Set the shader for rendering terrain tiles. Initially (or when shader is nullptr) a
   /// default shader is used. The shader must declare certain inputs and uniforms detailed below.
@@ -56,9 +53,8 @@ class TileRenderer {
   void setView(glm::mat4 const& m);
   void setProjection(glm::mat4 const& m);
 
-  /// Render the elevation and image tiles in reqDEM and reqIMG respectively.
-  void render(std::vector<TileNode*> const& reqDEM, std::vector<TileNode*> const& reqIMG,
-      cs::graphics::ShadowMap* shadowMap);
+  /// Render the given nodes.
+  void render(std::vector<TileNode*> const& nodes, cs::graphics::ShadowMap* shadowMap);
 
   /// Enable or disable drawing of tile bounding boxes.
   void setDrawBounds(bool enable);
@@ -81,13 +77,12 @@ class TileRenderer {
   };
 
   void preRenderTiles(cs::graphics::ShadowMap* shadowMap);
-  void renderTiles(
-      std::vector<TileNode*> const& renderDEM, std::vector<TileNode*> const& renderIMG);
-  void renderTile(TileNode* rdDEM, TileNode* rdIMG, UniformLocs const& locs);
+  void renderTiles(std::vector<TileNode*> const& nodes);
+  void renderTile(TileNode* node, UniformLocs const& locs);
   void postRenderTiles(cs::graphics::ShadowMap* shadowMap);
 
-  void preRenderBounds();
-  void renderBounds(std::vector<TileNode*> const& reqDEM, std::vector<TileNode*> const& reqIMG);
+  void        preRenderBounds();
+  void        renderBounds(std::vector<TileNode*> const& nodes);
   static void postRenderBounds();
 
   static std::unique_ptr<VistaBufferObject>      makeVBOTerrain();
@@ -102,8 +97,7 @@ class TileRenderer {
   static std::unique_ptr<VistaGLSLShader> makeProgBounds();
 
   PlanetParameters const* mParams;
-  TreeManager*            mTreeMgrDEM;
-  TreeManager*            mTreeMgrIMG;
+  TreeManager*            mTreeMgr;
 
   glm::dmat4 mMatM;
   glm::mat4  mMatV;

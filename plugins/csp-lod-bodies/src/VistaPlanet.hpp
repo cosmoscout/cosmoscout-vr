@@ -71,19 +71,12 @@ class VistaPlanet : public cs::graphics::ShadowCaster {
   /// Returns the currently active shader for terrain rendering.
   TerrainShader* getTerrainShader() const;
 
-  /// Sets the tile source for elevation data. This class does not take ownership of the passed in
-  /// object.
-  void setDEMSource(TileSource* srcDEM);
+  /// Sets the tile source for the given channel. This class does not take ownership of the passed
+  /// in object.
+  void setDataSource(TileDataType type, TileSource* src);
 
-  /// Returns the currently active source for elevation data.
-  TileSource* getDEMSource() const;
-
-  /// Set the tile source for image data. This class does not take ownership of the passed in
-  /// object.
-  void setIMGSource(TileSource* srcIMG);
-
-  /// Returns the currently active source for image data.
-  TileSource* getIMGSource() const;
+  /// Returns the currently active source for the given channel.
+  TileSource* getDataSource(TileDataType type) const;
 
   /// Set planet radii. This is a potentially expensive operation since it invalidates
   /// the cached bounding volume for all tiles and requires recalculating them.
@@ -135,14 +128,11 @@ class VistaPlanet : public cs::graphics::ShadowCaster {
   bool       mEnabled = false;
 
   PlanetParameters mParams;
+  TreeManager      mTreeMgr;
   LODVisitor       mLodVisitor;
   TileRenderer     mRenderer;
 
-  TileSource* mSrcDEM;
-  TreeManager mTreeMgrDEM;
-
-  TileSource* mSrcIMG;
-  TreeManager mTreeMgrIMG;
+  PerDataType<TileSource*> mTileDataSources;
 
   // global statistics
   double      mLastFrameClock;

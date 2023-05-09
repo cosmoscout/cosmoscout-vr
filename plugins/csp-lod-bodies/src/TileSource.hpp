@@ -21,8 +21,7 @@ class TileDataBase;
 class TileSource {
  public:
   /// Type of the callback functor that can be passed to loadTileAsync.
-  using OnLoadCallback =
-      std::function<void(TileSource*, int, glm::int64, std::unique_ptr<TileDataBase>)>;
+  using OnLoadCallback = std::function<void(TileId, std::unique_ptr<TileDataBase>)>;
 
   TileSource() = default;
 
@@ -49,11 +48,11 @@ class TileSource {
 
   /// Loads a node with given level and patchIx synchronously (i.e. the call blocks until data is
   /// loaded).
-  virtual std::unique_ptr<TileDataBase> loadTile(int level, glm::int64 patchIdx) = 0;
+  virtual std::unique_ptr<TileDataBase> loadTile(TileId const& tileId) = 0;
 
   /// Loads a node with given level and patchIdx asynchronously (i.e. the call returns immediately).
   /// Once the node is loaded the given OnLoadCallack is invoked.
-  virtual void loadTileAsync(int level, glm::int64 patchIdx, OnLoadCallback cb) = 0;
+  virtual void loadTileAsync(TileId const& tileId, OnLoadCallback cb) = 0;
 
   /// Returns the number of currently active async requests.
   virtual int getPendingRequests() = 0;

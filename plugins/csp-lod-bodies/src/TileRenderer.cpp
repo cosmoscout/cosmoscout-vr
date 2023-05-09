@@ -59,10 +59,10 @@ std::unique_ptr<VistaGLSLShader>        TileRenderer::mProgBounds;
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /* explicit */
-TileRenderer::TileRenderer(PlanetParameters const& params, uint32_t tileResolution)
+TileRenderer::TileRenderer(
+    PlanetParameters const& params, TreeManager* treeMgr, uint32_t tileResolution)
     : mParams(&params)
-    , mTreeMgrDEM(nullptr)
-    , mTreeMgrIMG(nullptr)
+    , mTreeMgr(treeMgr)
     , mMatM()
     , mMatV()
     , mMatP()
@@ -136,27 +136,26 @@ TerrainShader* TileRenderer::getTerrainShader() const {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void TileRenderer::render(std::vector<TileNode*> const& reqDEM,
-    std::vector<TileNode*> const& reqIMG, cs::graphics::ShadowMap* shadowMap) {
+void TileRenderer::render(std::vector<TileNode*> const& nodes, cs::graphics::ShadowMap* shadowMap) {
 
-  if (!reqDEM.empty()) {
+  if (!nodes.empty()) {
     preRenderTiles(shadowMap);
-    renderTiles(reqDEM, reqIMG);
+    renderTiles(nodes);
     postRenderTiles(shadowMap);
-  }
 
-  if (mEnableDrawBounds && !reqDEM.empty()) {
-    preRenderBounds();
-    renderBounds(reqDEM, reqIMG);
-    postRenderBounds();
+    if (mEnableDrawBounds) {
+      preRenderBounds();
+      renderBounds(nodes);
+      postRenderBounds();
+    }
   }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void TileRenderer::preRenderTiles(cs::graphics::ShadowMap* shadowMap) {
-  TileTextureArray* glDEM = mTreeMgrDEM ? &mTreeMgrDEM->getTileTextureArray() : nullptr;
-  TileTextureArray* glIMG = mTreeMgrIMG ? &mTreeMgrIMG->getTileTextureArray() : nullptr;
+  auto const& glDEM = mTreeMgr->getGLResources()->get(TileDataType::eElevation);
+  auto const& glIMG = mTreeMgr->getGLResources()->get(TileDataType::eColor);
 
   // setup OpenGL state
   glPushAttrib(GL_COLOR_BUFFER_BIT | GL_CURRENT_BIT | GL_ENABLE_BIT | GL_LIGHTING_BIT |
@@ -232,8 +231,7 @@ void TileRenderer::preRenderTiles(cs::graphics::ShadowMap* shadowMap) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void TileRenderer::renderTiles(
-    std::vector<TileNode*> const& renderDEM, std::vector<TileNode*> const& renderIMG) {
+void TileRenderer::renderTiles(std::vector<TileNode*> const& nodes) {
   VistaGLSLShader& shader = mProgTerrain->mShader;
 
   // query uniform locations once and store in locs
@@ -244,44 +242,45 @@ void TileRenderer::renderTiles(
   locs.dataLayers  = shader.GetUniformLocation("VP_dataLayers");
 
   // iterate over both std::vector<TileNode*>s together
-  for (size_t i(0); i < renderDEM.size(); ++i) {
+  for (auto* node : nodes) {
     // get data associated with nodes
-    auto*     rdDEM = renderDEM[i];
-    TileNode* rdIMG = i < renderIMG.size() ? renderIMG[i] : nullptr;
+    auto dem = node->getTileData(TileDataType::eElevation);
+    auto img = node->getTileData(TileDataType::eColor);
 
     // Do not attempt to draw tiles with missing data.
-    if (rdDEM->getTileData()->getTexLayer() < 0 ||
-        (rdIMG && rdIMG->getTileData()->getTexLayer() < 0)) {
+    if (dem->getTexLayer() < 0 || (img && img->getTexLayer() < 0)) {
       continue;
     }
 
     // render
-    renderTile(rdDEM, rdIMG, locs);
+    renderTile(node, locs);
   }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void TileRenderer::renderTile(TileNode* rdDEM, TileNode* rdIMG, UniformLocs const& locs) {
+void TileRenderer::renderTile(TileNode* node, UniformLocs const& locs) {
   VistaGLSLShader& shader = mProgTerrain->mShader;
-  TileId const&    idDEM  = rdDEM->getTileId();
+  TileId const&    tileId = node->getTileId();
 
-  auto  baseXY        = HEALPix::getBaseXY(idDEM);
-  auto  tileOS        = glm::ivec3(baseXY.y, baseXY.z, HEALPix::getNSide(idDEM));
-  auto  patchF1F2     = glm::ivec2(HEALPix::getF1(idDEM), HEALPix::getF2(idDEM));
-  float averageHeight = rdDEM->getMinMaxPyramid()->getAverage();
-  float minHeight     = rdDEM->getMinMaxPyramid()->getMin();
-  float maxHeight     = rdDEM->getMinMaxPyramid()->getMax();
+  auto  baseXY        = HEALPix::getBaseXY(tileId);
+  auto  tileOS        = glm::ivec3(baseXY.y, baseXY.z, HEALPix::getNSide(tileId));
+  auto  patchF1F2     = glm::ivec2(HEALPix::getF1(tileId), HEALPix::getF2(tileId));
+  float averageHeight = node->getMinMaxPyramid()->getAverage();
+  float minHeight     = node->getMinMaxPyramid()->getMin();
+  float maxHeight     = node->getMinMaxPyramid()->getMax();
 
   // update uniforms
   shader.SetUniform(locs.heightInfo, averageHeight, maxHeight - minHeight);
   shader.SetUniform(locs.offsetScale, 3, 1, glm::value_ptr(tileOS));
   shader.SetUniform(locs.f1f2, 2, 1, glm::value_ptr(patchF1F2));
-  glUniform2i(locs.dataLayers, rdDEM->getTileData()->getTexLayer(),
-      rdIMG ? rdIMG->getTileData()->getTexLayer() : 0);
+
+  auto dem = node->getTileData(TileDataType::eElevation);
+  auto img = node->getTileData(TileDataType::eColor);
+  glUniform2i(locs.dataLayers, dem ? dem->getTexLayer() : 0, img ? img->getTexLayer() : 0);
 
   // order of components: N, W, S, E
-  std::array<glm::dvec2, 4> cornersLngLat = HEALPix::getCornersLngLat(idDEM);
+  std::array<glm::dvec2, 4> cornersLngLat = HEALPix::getCornersLngLat(tileId);
   std::array<glm::dvec3, 4> corners{};
   std::array<glm::dvec3, 4> normals{};
   std::array<glm::fvec3, 4> cornersWorldSpace{};
@@ -349,40 +348,34 @@ void TileRenderer::preRenderBounds() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void TileRenderer::renderBounds(
-    std::vector<TileNode*> const& reqDEM, std::vector<TileNode*> const& reqIMG) {
-  auto renderBounds = [this](std::vector<TileNode*> const& req) {
-    for (auto const& it : req) {
-      if (it->hasBounds()) {
-        BoundingBox<double> const& tb = it->getBounds();
+void TileRenderer::renderBounds(std::vector<TileNode*> const& nodes) {
+  for (auto const& it : nodes) {
+    if (it->hasBounds()) {
+      BoundingBox<double> const& tb = it->getBounds();
 
-        std::array<glm::dvec4, 8> cornersWorldSpace = {
-            glm::dvec4(tb.getMin().x, tb.getMin().y, tb.getMin().z, 1.0),
-            glm::dvec4(tb.getMax().x, tb.getMin().y, tb.getMin().z, 1.0),
-            glm::dvec4(tb.getMax().x, tb.getMin().y, tb.getMax().z, 1.0),
-            glm::dvec4(tb.getMin().x, tb.getMin().y, tb.getMax().z, 1.0),
+      std::array<glm::dvec4, 8> cornersWorldSpace = {
+          glm::dvec4(tb.getMin().x, tb.getMin().y, tb.getMin().z, 1.0),
+          glm::dvec4(tb.getMax().x, tb.getMin().y, tb.getMin().z, 1.0),
+          glm::dvec4(tb.getMax().x, tb.getMin().y, tb.getMax().z, 1.0),
+          glm::dvec4(tb.getMin().x, tb.getMin().y, tb.getMax().z, 1.0),
 
-            glm::dvec4(tb.getMin().x, tb.getMax().y, tb.getMin().z, 1.0),
-            glm::dvec4(tb.getMax().x, tb.getMax().y, tb.getMin().z, 1.0),
-            glm::dvec4(tb.getMax().x, tb.getMax().y, tb.getMax().z, 1.0),
-            glm::dvec4(tb.getMin().x, tb.getMax().y, tb.getMax().z, 1.0)};
+          glm::dvec4(tb.getMin().x, tb.getMax().y, tb.getMin().z, 1.0),
+          glm::dvec4(tb.getMax().x, tb.getMax().y, tb.getMin().z, 1.0),
+          glm::dvec4(tb.getMax().x, tb.getMax().y, tb.getMax().z, 1.0),
+          glm::dvec4(tb.getMin().x, tb.getMax().y, tb.getMax().z, 1.0)};
 
-        std::array<glm::fvec3, 8> controlPointsViewSpace{};
-        for (int i(0); i < 8; ++i) {
-          controlPointsViewSpace.at(i) =
-              glm::fvec3(glm::dmat4(mMatV) * mMatM * cornersWorldSpace.at(i));
-        }
-
-        glUniform3fv(glGetUniformLocation(mProgBounds->GetProgram(), "VP_corners"), 8,
-            glm::value_ptr(controlPointsViewSpace[0]));
-
-        glDrawElements(GL_LINES, 24, GL_UNSIGNED_INT, nullptr);
+      std::array<glm::fvec3, 8> controlPointsViewSpace{};
+      for (int i(0); i < 8; ++i) {
+        controlPointsViewSpace.at(i) =
+            glm::fvec3(glm::dmat4(mMatV) * mMatM * cornersWorldSpace.at(i));
       }
-    }
-  };
 
-  renderBounds(reqDEM);
-  renderBounds(reqIMG);
+      glUniform3fv(glGetUniformLocation(mProgBounds->GetProgram(), "VP_corners"), 8,
+          glm::value_ptr(controlPointsViewSpace[0]));
+
+      glDrawElements(GL_LINES, 24, GL_UNSIGNED_INT, nullptr);
+    }
+  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -498,26 +491,8 @@ std::unique_ptr<VistaGLSLShader> TileRenderer::makeProgBounds() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-TreeManager* TileRenderer::getTreeManagerDEM() const {
-  return mTreeMgrDEM;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void TileRenderer::setTreeManagerDEM(TreeManager* treeMgr) {
-  mTreeMgrDEM = treeMgr;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-TreeManager* TileRenderer::getTreeManagerIMG() const {
-  return mTreeMgrIMG;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void TileRenderer::setTreeManagerIMG(TreeManager* treeMgr) {
-  mTreeMgrIMG = treeMgr;
+TreeManager* TileRenderer::getTreeManager() const {
+  return mTreeMgr;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

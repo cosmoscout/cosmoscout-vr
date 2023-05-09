@@ -91,19 +91,12 @@ BoundingBox<double> calcTileBounds(double tmin, double tmax, int tileLevel, glm:
 // has valid min/max values set.
 BoundingBox<double> calcTileBounds(
     TileNode const& tile, glm::dvec3 const& radii, double heightScale) {
-  switch (tile.getTileData()->getDataType()) {
-  case TileDataType::eElevation: {
+
+  if (tile.getMinMaxPyramid()) {
     return calcTileBounds(tile.getMinMaxPyramid()->getMin(), tile.getMinMaxPyramid()->getMax(),
         tile.getLevel(), tile.getPatchIdx(), radii, heightScale);
-    break;
   }
 
-  default:
-    // do nothing - this only works for DEM tiles
-    break;
-  }
-
-  // silence compiler warning about missing return
   return BoundingBox<double>();
 }
 

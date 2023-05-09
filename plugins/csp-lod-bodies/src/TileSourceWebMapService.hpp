@@ -37,9 +37,9 @@ class TileSourceWebMapService : public TileSource {
   void fini() override {
   }
 
-  std::unique_ptr<TileDataBase> loadTile(int level, glm::int64 patchIdx) override;
+  std::unique_ptr<TileDataBase> loadTile(TileId const& tileId) override;
 
-  void loadTileAsync(int level, glm::int64 patchIdx, OnLoadCallback cb) override;
+  void loadTileAsync(TileId const& tileId, OnLoadCallback cb) override;
   int  getPendingRequests() override;
 
   uint32_t getResolution() const;
@@ -60,7 +60,7 @@ class TileSourceWebMapService : public TileSource {
 
   /// These can be used to pre-populate the local cache, returns true if the tile is on the diagonal
   /// of base patch 4 (the one which is cut in two halves).
-  static bool getXY(int level, glm::int64 patchIdx, int& x, int& y);
+  static bool getXY(TileId const& tileId, int& x, int& y);
 
   // This downloads the tile with the given coordinates from the MapServer. It is stored in the
   // local map cache and the resulting file name is returned. If the tile is already present in the
@@ -68,10 +68,10 @@ class TileSourceWebMapService : public TileSource {
   // that a tile cannot be downloaded (e.g. if the server is offline) - in this case no error is
   // thrown but std::nullopt is returned. In several other cases (e.g. cache directory is not
   // writable) a std::runtime_error is thrown.
-  std::optional<std::string> loadData(int64_t patchIdx, int level, int x, int y);
+  std::optional<std::string> loadData(TileId const& tileId, int x, int y);
 
  private:
-  static std::mutex mTileSystemMutex;
+  static std::mutex mFileSystemMutex;
 
   cs::utils::ThreadPool mThreadPool;
   std::string           mUrl;
