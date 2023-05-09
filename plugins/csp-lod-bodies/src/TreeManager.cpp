@@ -323,10 +323,12 @@ void TreeManager::merge() {
     assert(node->getTile() != nullptr);
 
     if (insertNode(&mTree, node)) {
-      mPendingTiles.erase(node->getTileId());
       onNodeInserted(node);
-
       ++merged;
+
+      std::unique_lock<std::mutex> lck(mPendingMtx);
+      mPendingTiles.erase(node->getTileId());
+
       node = nullptr;
     } else {
       // keep track of nodes that could not be inserted, e.g. because
