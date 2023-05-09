@@ -14,7 +14,7 @@ namespace csp::lodbodies {
 
 /// Contains an enumeration of data types that can be stored in a tile.
 enum class TileDataType { eElevation = 0, eColor = 1 };
-const size_t TileDataTypeCount = 2;
+const std::size_t TileDataTypeCount = 2;
 
 template <typename T>
 struct PerDataType {
