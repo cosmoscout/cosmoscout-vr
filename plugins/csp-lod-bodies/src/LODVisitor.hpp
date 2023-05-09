@@ -71,13 +71,6 @@ class LODVisitor : public TileVisitor<LODVisitor> {
   /// Visit the node with given the tileId. Returns whether children should be visited.
   bool visitNode(TileNode* node);
 
-  /// Handle the case where the node with given the tileId should be refined. Tests whether
-  /// refinement is possible (i.e. whether data is loaded) and returns whether children should be
-  /// visited.
-  bool handleRefine(TileNode* node);
-
-  void addLoadChildren(TileNode* node);
-
   /// Returns whether the currently visited node is potentially visible. Tests if the node's
   /// bounding box intersects the camera frustum.
   bool testVisible(TileNode* node);

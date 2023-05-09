@@ -261,54 +261,45 @@ bool LODVisitor::visitNode(TileNode* node) {
     node->setBounds(bounds);
   }
 
-  bool result  = false;
   bool visible = testVisible(node);
 
-  if (visible) {
-    // should this node be refined to achieve desired resolution?
-    bool needRefine = testNeedRefine(node);
-
-    if (needRefine) {
-      result = handleRefine(node);
-    } else {
-      // resolution is sufficient
-      mRenderNodes.push_back(node);
-    }
+  // Node is not visible, do not traverse further.
+  if (!visible) {
+    return false;
   }
 
-  return result;
-}
+  // should this node be refined to achieve desired resolution?
+  bool needRefine = node->getLevel() < mParams->mMaxLevel && testNeedRefine(node);
 
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-bool LODVisitor::handleRefine(TileNode* node) {
-
-  // request to load missing children
-  if (!childrenAvailable(node, mTreeMgr)) {
-    addLoadChildren(node);
+  // resolution is sufficient
+  if (!needRefine) {
     mRenderNodes.push_back(node);
     return false;
   }
 
-  return true;
-}
+  bool canRefine = childrenAvailable(node, mTreeMgr);
 
-////////////////////////////////////////////////////////////////////////////////////////////////////
+  // Draw all children if they are available.
+  if (canRefine) {
+    return true;
+  }
 
-void LODVisitor::addLoadChildren(TileNode* node) {
-  if (node && node->getLevel() < mParams->mMaxLevel) {
-    TileId const& tileId = node->getTileId();
+  // request to load missing children
+  TileId const& tileId = node->getTileId();
 
-    for (int i = 0; i < 4; ++i) {
-      if (!node->getChild(i)) {
-        mLoadNodes.push_back(HEALPix::getChildTileId(tileId, i));
-      } else {
-        // mark child as used to avoid it being removed while waiting
-        // for its siblings to be loaded
-        node->getChild(i)->setLastFrame(mFrameCount);
-      }
+  for (int i = 0; i < 4; ++i) {
+    if (!node->getChild(i)) {
+      mLoadNodes.push_back(HEALPix::getChildTileId(tileId, i));
+    } else {
+      // mark child as used to avoid it being removed while waiting
+      // for its siblings to be loaded
+      node->getChild(i)->setLastFrame(mFrameCount);
     }
   }
+
+  // Draw this node until all children are loaded.
+  mRenderNodes.push_back(node);
+  return false;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
