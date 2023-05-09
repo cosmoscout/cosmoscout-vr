@@ -180,8 +180,8 @@ void fillDiagonal(TileDataBase* tile) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-std::unique_ptr<TileDataBase> loadImpl(TileSourceWebMapService* source, TileId const& tileId) {
-  auto tile = std::make_unique<TileData<T>>(source->getResolution());
+std::shared_ptr<TileDataBase> loadImpl(TileSourceWebMapService* source, TileId const& tileId) {
+  auto tile = std::make_shared<TileData<T>>(source->getResolution());
 
   int  x{};
   int  y{};
@@ -237,7 +237,7 @@ TileSourceWebMapService::TileSourceWebMapService(uint32_t resolution)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-/* virtual */ std::unique_ptr<TileDataBase> TileSourceWebMapService::loadTile(
+/* virtual */ std::shared_ptr<TileDataBase> TileSourceWebMapService::loadTile(
     TileId const& tileId) {
   if (mFormat == TileDataType::eElevation) {
     return loadImpl<float>(this, tileId);

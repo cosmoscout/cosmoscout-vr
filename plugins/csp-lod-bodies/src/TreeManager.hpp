@@ -84,7 +84,7 @@ class TreeManager {
   };
 
   /// Used as a callback for the TileSource to call when a node is loaded.
-  void onDataLoaded(TileId const& tileId, std::unique_ptr<TileDataBase> tileData);
+  void onDataLoaded(TileId const& tileId, std::shared_ptr<TileDataBase> tileData);
 
   /// Helper function to handle processing after node is successfully inserted into the managed
   /// TileQuadTree.

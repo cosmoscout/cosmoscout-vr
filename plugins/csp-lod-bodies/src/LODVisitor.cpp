@@ -229,14 +229,12 @@ void LODVisitor::postTraverse() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool LODVisitor::preVisitRoot(TileNode* root) {
-  root->setLastFrame(mFrameCount);
   return visitNode(root);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool LODVisitor::preVisit(TileNode* node) {
-  node->setLastFrame(mFrameCount);
   return visitNode(node);
 }
 
@@ -256,6 +254,7 @@ bool LODVisitor::visitNode(TileNode* node) {
   //          handleRefine() for details.
   //      Else:
   //          draw this level
+  node->setLastFrame(mFrameCount);
 
   if (!node->hasBounds() || mRecomputeTileBounds) {
     auto bounds = calcTileBounds(*node, mParams->mRadii, mParams->mHeightScale);

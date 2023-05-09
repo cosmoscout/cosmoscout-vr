@@ -43,11 +43,11 @@ class TileTextureArray {
 
   TileDataType getDataType() const;
 
-  /// Requests that data for the tile associated with rdata be uploaded to the GPU.
-  void allocateGPU(TileDataBase* rdata);
+  /// Requests that data for the tile associated with data be uploaded to the GPU.
+  void allocateGPU(std::shared_ptr<TileDataBase> data);
 
-  /// Release GPU resources allocated for the tile associated with rdata.
-  void releaseGPU(TileDataBase* rdata);
+  /// Release GPU resources allocated for the tile associated with data.
+  void releaseGPU(std::shared_ptr<TileDataBase> const& data);
 
   /// Process up to maxItems upload requests.
   void processQueue(int maxItems);
@@ -66,8 +66,8 @@ class TileTextureArray {
   void allocateTexture(TileDataType dataType);
   void releaseTexture();
 
-  void allocateLayer(TileDataBase* rdata);
-  void releaseLayer(TileDataBase* rdata);
+  void allocateLayer(std::shared_ptr<TileDataBase> const& data);
+  void releaseLayer(std::shared_ptr<TileDataBase> const& data);
 
   void        preUpload();
   static void postUpload();
@@ -82,7 +82,7 @@ class TileTextureArray {
   const GLint        mNumLayers;
   std::vector<GLint> mFreeLayers;
 
-  std::vector<TileDataBase*> mUploadQueue;
+  std::vector<std::shared_ptr<TileDataBase>> mUploadQueue;
 };
 
 /// DocTODO

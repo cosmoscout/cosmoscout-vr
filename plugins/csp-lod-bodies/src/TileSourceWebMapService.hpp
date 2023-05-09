@@ -37,7 +37,7 @@ class TileSourceWebMapService : public TileSource {
   void fini() override {
   }
 
-  std::unique_ptr<TileDataBase> loadTile(TileId const& tileId) override;
+  std::shared_ptr<TileDataBase> loadTile(TileId const& tileId) override;
 
   void loadTileAsync(TileId const& tileId, OnLoadCallback cb) override;
   int  getPendingRequests() override;
