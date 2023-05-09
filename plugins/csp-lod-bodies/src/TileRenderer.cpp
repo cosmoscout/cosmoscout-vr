@@ -241,18 +241,7 @@ void TileRenderer::renderTiles(std::vector<TileNode*> const& nodes) {
   locs.f1f2        = shader.GetUniformLocation("VP_f1f2");
   locs.dataLayers  = shader.GetUniformLocation("VP_dataLayers");
 
-  // iterate over both std::vector<TileNode*>s together
   for (auto* node : nodes) {
-    // get data associated with nodes
-    auto dem = node->getTileData(TileDataType::eElevation);
-    auto img = node->getTileData(TileDataType::eColor);
-
-    // Do not attempt to draw tiles with missing data.
-    if (dem->getTexLayer() < 0 || (img && img->getTexLayer() < 0)) {
-      continue;
-    }
-
-    // render
     renderTile(node, locs);
   }
 }
@@ -260,6 +249,14 @@ void TileRenderer::renderTiles(std::vector<TileNode*> const& nodes) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void TileRenderer::renderTile(TileNode* node, UniformLocs const& locs) {
+  auto const& dem = node->getTileData(TileDataType::eElevation);
+  auto const& img = node->getTileData(TileDataType::eColor);
+
+  // Do not attempt to draw tiles with missing data.
+  if (dem->getTexLayer() < 0 || (img && img->getTexLayer() < 0)) {
+    return;
+  }
+
   VistaGLSLShader& shader = mProgTerrain->mShader;
   TileId const&    tileId = node->getTileId();
 
@@ -275,9 +272,7 @@ void TileRenderer::renderTile(TileNode* node, UniformLocs const& locs) {
   shader.SetUniform(locs.offsetScale, 3, 1, glm::value_ptr(tileOS));
   shader.SetUniform(locs.f1f2, 2, 1, glm::value_ptr(patchF1F2));
 
-  auto dem = node->getTileData(TileDataType::eElevation);
-  auto img = node->getTileData(TileDataType::eColor);
-  glUniform2i(locs.dataLayers, dem ? dem->getTexLayer() : 0, img ? img->getTexLayer() : 0);
+  glUniform2i(locs.dataLayers, dem->getTexLayer(), img ? img->getTexLayer() : 0);
 
   // order of components: N, W, S, E
   std::array<glm::dvec2, 4> cornersLngLat = HEALPix::getCornersLngLat(tileId);
