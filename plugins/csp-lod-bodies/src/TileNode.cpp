@@ -7,12 +7,19 @@
 
 #include "TileNode.hpp"
 
+#include "HEALPix.hpp"
+
 namespace csp::lodbodies {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 TileNode::TileNode(TileId const& tileId)
     : mTileId(tileId) {
+
+  auto baseXY      = HEALPix::getBaseXY(mTileId);
+  mTileOffsetScale = glm::ivec3(baseXY.y, baseXY.z, HEALPix::getNSide(mTileId));
+  mTileF1F2        = glm::ivec2(HEALPix::getF1(mTileId), HEALPix::getF2(mTileId));
+  mCornersLngLat   = HEALPix::getCornersLngLat(mTileId);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -145,6 +152,24 @@ MinMaxPyramid* TileNode::getMinMaxPyramid() const {
 
 void TileNode::setMinMaxPyramid(std::unique_ptr<MinMaxPyramid> pyramid) {
   mMinMaxPyramid = std::move(pyramid);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+glm::ivec3 const& TileNode::getTileOffsetScale() const {
+  return mTileOffsetScale;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+glm::ivec2 const& TileNode::getTileF1F2() const {
+  return mTileF1F2;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+std::array<glm::dvec2, 4> const& TileNode::getCornersLngLat() const {
+  return mCornersLngLat;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

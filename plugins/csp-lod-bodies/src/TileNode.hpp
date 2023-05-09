@@ -17,7 +17,6 @@ namespace csp::lodbodies {
 class TileNode {
 
  public:
-  explicit TileNode() = default;
   explicit TileNode(TileId const& tileId);
 
   virtual ~TileNode() = default;
@@ -61,6 +60,10 @@ class TileNode {
   MinMaxPyramid* getMinMaxPyramid() const;
   void           setMinMaxPyramid(std::unique_ptr<MinMaxPyramid> pyramid);
 
+  glm::ivec3 const&                getTileOffsetScale() const;
+  glm::ivec2 const&                getTileF1F2() const;
+  std::array<glm::dvec2, 4> const& getCornersLngLat() const;
+
   /// Returns if the node is refined, i.e. if its children are loaded.
   bool isRefined() const;
 
@@ -75,7 +78,12 @@ class TileNode {
   std::unique_ptr<MinMaxPyramid> mMinMaxPyramid;
   BoundingBox<double>            mTb;
   bool                           mHasBounds{false};
-  int                            mLastFrame{-1};
+
+  glm::ivec3                mTileOffsetScale;
+  glm::ivec2                mTileF1F2;
+  std::array<glm::dvec2, 4> mCornersLngLat;
+
+  int mLastFrame{-1};
 };
 
 } // namespace csp::lodbodies

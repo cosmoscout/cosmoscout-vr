@@ -100,6 +100,7 @@ class TileRenderer {
   TreeManager*            mTreeMgr;
 
   glm::dmat4 mMatM;
+  glm::dmat4 mMatN;
   glm::mat4  mMatV;
   glm::mat4  mMatP;
 

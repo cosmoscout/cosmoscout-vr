@@ -7,7 +7,6 @@
 
 #include "TileRenderer.hpp"
 
-#include "HEALPix.hpp"
 #include "PlanetParameters.hpp"
 #include "TileNode.hpp"
 #include "TileTextureArray.hpp"
@@ -258,30 +257,24 @@ void TileRenderer::renderTile(TileNode* node, UniformLocs const& locs) {
   }
 
   VistaGLSLShader& shader = mProgTerrain->mShader;
-  TileId const&    tileId = node->getTileId();
 
-  auto  baseXY        = HEALPix::getBaseXY(tileId);
-  auto  tileOS        = glm::ivec3(baseXY.y, baseXY.z, HEALPix::getNSide(tileId));
-  auto  patchF1F2     = glm::ivec2(HEALPix::getF1(tileId), HEALPix::getF2(tileId));
   float averageHeight = node->getMinMaxPyramid()->getAverage();
   float minHeight     = node->getMinMaxPyramid()->getMin();
   float maxHeight     = node->getMinMaxPyramid()->getMax();
 
   // update uniforms
   shader.SetUniform(locs.heightInfo, averageHeight, maxHeight - minHeight);
-  shader.SetUniform(locs.offsetScale, 3, 1, glm::value_ptr(tileOS));
-  shader.SetUniform(locs.f1f2, 2, 1, glm::value_ptr(patchF1F2));
+  shader.SetUniform(locs.offsetScale, 3, 1, glm::value_ptr(node->getTileOffsetScale()));
+  shader.SetUniform(locs.f1f2, 2, 1, glm::value_ptr(node->getTileF1F2()));
 
   glUniform2i(locs.dataLayers, dem->getTexLayer(), img ? img->getTexLayer() : 0);
 
   // order of components: N, W, S, E
-  std::array<glm::dvec2, 4> cornersLngLat = HEALPix::getCornersLngLat(tileId);
+  auto const&               cornersLngLat = node->getCornersLngLat();
   std::array<glm::dvec3, 4> corners{};
   std::array<glm::dvec3, 4> normals{};
   std::array<glm::fvec3, 4> cornersWorldSpace{};
   std::array<glm::fvec3, 4> normalsWorldSpace{};
-
-  glm::dmat4 matNormal = glm::transpose(glm::inverse(mMatM));
 
   // Convert tile corners to camera-relative coordinates in double precision.
   for (int i(0); i < 4; ++i) {
@@ -290,7 +283,7 @@ void TileRenderer::renderTile(TileNode* node, UniformLocs const& locs) {
     cornersWorldSpace.at(i) = glm::fvec3(mMatM * glm::dvec4(corners.at(i), 1.0));
 
     normals.at(i)           = cs::utils::convert::lngLatToNormal(cornersLngLat.at(i));
-    normalsWorldSpace.at(i) = glm::fvec3(matNormal * glm::dvec4(normals.at(i), 0.0));
+    normalsWorldSpace.at(i) = glm::fvec3(mMatN * glm::dvec4(normals.at(i), 0.0));
   }
 
   glUniform3fv(glGetUniformLocation(shader.GetProgram(), "VP_corners"), 9,
@@ -500,6 +493,7 @@ void TileRenderer::setFrameCount(int frameCount) {
 
 void TileRenderer::setModel(glm::dmat4 const& m) {
   mMatM = m;
+  mMatN = glm::transpose(glm::inverse(mMatM));
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
