@@ -104,13 +104,13 @@ bool LODVisitor::visitNode(TileNode* node) {
     node->setBounds(bounds);
   }
 
+  // Mark this node as used to prevent it from being removed.
+  node->setLastFrame(mFrameCount);
+
   // Node is not visible, do not traverse further.
   if (!testInFrustum(node) || !testFrontFacing(node)) {
     return false;
   }
-
-  // As this node is visible, we mark is as used to prevent it from being removed.
-  node->setLastFrame(mFrameCount);
 
   // If no refinement is required, we can directly render the node and stop the traversal.
   bool needRefine = node->getLevel() < mParams->mMaxLevel && testNeedRefine(node);
