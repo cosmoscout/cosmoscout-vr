@@ -105,7 +105,7 @@ bool LODVisitor::visitNode(TileNode* node) {
   }
 
   // Node is not visible, do not traverse further.
-  if (!testInFrustum(node) || testFrontFacing(node)) {
+  if (!testInFrustum(node) || !testFrontFacing(node)) {
     return false;
   }
 
