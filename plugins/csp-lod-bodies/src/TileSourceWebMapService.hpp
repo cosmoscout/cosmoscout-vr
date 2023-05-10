@@ -64,7 +64,7 @@ class TileSourceWebMapService : public TileSource {
 
   // This downloads the tile with the given coordinates from the MapServer. It is stored in the
   // local map cache and the resulting file name is returned. If the tile is already present in the
-  // map cache, no request is made and the cahce file name is returned immediately. It may happen
+  // map cache, no request is made and the cache file name is returned immediately. It may happen
   // that a tile cannot be downloaded (e.g. if the server is offline) - in this case no error is
   // thrown but std::nullopt is returned. In several other cases (e.g. cache directory is not
   // writable) a std::runtime_error is thrown.
