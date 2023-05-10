@@ -8,13 +8,10 @@
 #ifndef CSP_LOD_BODIES_TILEVISITOR_HPP
 #define CSP_LOD_BODIES_TILEVISITOR_HPP
 
-#include "HEALPix.hpp"
-#include "TileId.hpp"
-#include "TileQuadTree.hpp"
-
 namespace csp::lodbodies {
 
 class TileNode;
+class TileQuadTree;
 
 /// Base class template for TileQuadTree visitors. It is a base class template that should be
 /// instantiated with the deriving class as template argument, i.e.:
@@ -54,21 +51,14 @@ class TileNode;
 ///
 /// If the "callback" functions (pre/postTraverse, pre/postVisit) are protected or private in
 /// DerivedT make TileVisitor a friend class so that it can call these functions.
-template <typename DerivedT>
 class TileVisitor {
  public:
-  using DerivedType = DerivedT;
-
   explicit TileVisitor(TileQuadTree* tree);
 
   /// Start traversal of the trees passed to the constructor.
   void visit();
 
  protected:
-  /// Convenience access to members of DerivedType.
-  DerivedType&       self();
-  DerivedType const& self() const;
-
   void visitRoot(TileNode* root);
   void visitLevel(TileNode* node);
 
@@ -113,97 +103,6 @@ class TileVisitor {
 
   TileQuadTree* mTree;
 };
-
-template <typename DerivedT>
-TileVisitor<DerivedT>::TileVisitor(TileQuadTree* tree)
-    : mTree(tree) {
-}
-
-template <typename DerivedT>
-void TileVisitor<DerivedT>::visit() {
-  if (self().preTraverse()) {
-    for (int i = 0; i < TileQuadTree::sNumRoots; ++i) {
-      TileNode* root = mTree->getRoot(i);
-      visitRoot(root);
-    }
-  }
-
-  self().postTraverse();
-}
-
-template <typename DerivedT>
-typename TileVisitor<DerivedT>::DerivedType& TileVisitor<DerivedT>::self() {
-  return *static_cast<DerivedType*>(this);
-}
-
-template <typename DerivedT>
-typename TileVisitor<DerivedT>::DerivedType const& TileVisitor<DerivedT>::self() const {
-  return *static_cast<DerivedType const*>(this);
-}
-
-template <typename DerivedT>
-void TileVisitor<DerivedT>::visitRoot(TileNode* root) {
-
-  if (self().preVisitRoot(root)) {
-    for (int i = 0; i < 4; ++i) {
-      TileNode* child = root ? root->getChild(i) : nullptr;
-
-      if (child) {
-        visitLevel(child);
-      }
-    }
-  }
-
-  self().postVisitRoot(root);
-}
-
-template <typename DerivedT>
-void TileVisitor<DerivedT>::visitLevel(TileNode* node) {
-  if (self().preVisit(node)) {
-    for (int i = 0; i < 4; ++i) {
-      TileNode* child = node ? node->getChild(i) : nullptr;
-
-      if (child) {
-        visitLevel(child);
-      }
-    }
-  }
-
-  self().postVisit(node);
-}
-
-template <typename DerivedT>
-bool TileVisitor<DerivedT>::preTraverse() {
-  // default impl - start traversal
-  return true;
-}
-
-template <typename DerivedT>
-void TileVisitor<DerivedT>::postTraverse() {
-  // default impl - empty
-}
-
-template <typename DerivedT>
-bool TileVisitor<DerivedT>::preVisitRoot(TileNode* /*root*/) {
-  // default impl - do not visit children
-  return false;
-}
-
-template <typename DerivedT>
-void TileVisitor<DerivedT>::postVisitRoot(TileNode* /*root*/) {
-  // default impl - empty
-}
-
-template <typename DerivedT>
-bool TileVisitor<DerivedT>::preVisit(TileNode* /*node*/) {
-  // default impl - do not visit children
-  return false;
-}
-
-template <typename DerivedT>
-void TileVisitor<DerivedT>::postVisit(TileNode* /*node*/) {
-  // default impl - empty
-}
 
 } // namespace csp::lodbodies
 

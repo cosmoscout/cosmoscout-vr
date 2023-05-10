@@ -23,7 +23,7 @@ class TreeManager;
 
 /// Specialization of TileVisitor that determines the necessary level of detail for tiles and
 /// produces lists of tiles to load and draw respectively.
-class LODVisitor : public TileVisitor<LODVisitor> {
+class LODVisitor : public TileVisitor {
  public:
   explicit LODVisitor(PlanetParameters const& params, TreeManager* treeMgr);
 
@@ -79,10 +79,6 @@ class LODVisitor : public TileVisitor<LODVisitor> {
   /// used to achieve desired resolution. Estimates the screen space size (in pixels) of the node
   /// and compares that with the desired LOD factor.
   bool testNeedRefine(TileNode* node);
-
-  friend class TileVisitor<LODVisitor>;
-
-  static std::size_t const sMaxStackDepth = 32;
 
   PlanetParameters const* mParams;
   TreeManager*            mTreeMgr;

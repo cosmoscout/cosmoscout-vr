@@ -7,6 +7,7 @@
 
 #include "LODVisitor.hpp"
 
+#include "HEALPix.hpp"
 #include "PlanetParameters.hpp"
 #include "TileTextureArray.hpp"
 #include "TreeManager.hpp"
@@ -172,7 +173,7 @@ bool childrenAvailable(TileNode* node, TreeManager* treeMgr) {
 
 /* explicit */
 LODVisitor::LODVisitor(PlanetParameters const& params, TreeManager* treeMgr)
-    : TileVisitor<LODVisitor>(treeMgr->getTree())
+    : TileVisitor(treeMgr->getTree())
     , mParams(&params)
     , mTreeMgr(treeMgr)
     , mMatVM()
