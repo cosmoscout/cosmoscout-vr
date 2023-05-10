@@ -65,7 +65,7 @@ class TileNode {
   std::array<glm::dvec2, 4> const& getCornersLngLat() const;
 
   /// Returns if the node is refined, i.e. if its children are loaded.
-  bool isRefined() const;
+  bool childrenAvailable() const;
 
  private:
   void                                     setParent(TileNode* parent);

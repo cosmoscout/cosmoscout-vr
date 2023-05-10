@@ -29,144 +29,6 @@ std::size_t const PreAllocSize = 200;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// Returns if the tile bounds @a tb intersect the @a frustum.
-// For each plane of the @a frustum determine if any corner of the
-// bounding box is inside the plane's halfspace. If all corners are
-// outside one halfspace the bounding box is outside the frustum
-// and the algorithm stops early.
-// TODO There is potential for optimization here, the paper
-// "Optimized View Frustum Culling - Algorithms for Bounding Boxes"
-// http://www.cse.chalmers.se/~uffe/vfc_bbox.pdf
-// contains ideas (for example how to avoid testing all 8 corners).
-bool testInFrustum(Frustum const& frustum, BoundingBox<double> const& tb) {
-  bool result = true;
-
-  glm::dvec3 const& tbMin = tb.getMin();
-  glm::dvec3 const& tbMax = tb.getMax();
-
-  // 8 corners of tile's bounding box
-  std::array<glm::dvec3, 8> tbPnts = {
-      {glm::dvec3(tbMin[0], tbMin[1], tbMin[2]), glm::dvec3(tbMax[0], tbMin[1], tbMin[2]),
-          glm::dvec3(tbMax[0], tbMin[1], tbMax[2]), glm::dvec3(tbMin[0], tbMin[1], tbMax[2]),
-
-          glm::dvec3(tbMin[0], tbMax[1], tbMin[2]), glm::dvec3(tbMax[0], tbMax[1], tbMin[2]),
-          glm::dvec3(tbMax[0], tbMax[1], tbMax[2]), glm::dvec3(tbMin[0], tbMax[1], tbMax[2])}};
-
-  // loop over planes of frustum
-  auto pIt  = frustum.getPlanes().begin();
-  auto pEnd = frustum.getPlanes().end();
-
-  for (std::size_t i = 0; pIt != pEnd; ++pIt, ++i) {
-    glm::dvec3 const normal(*pIt);
-    double const     d       = -(*pIt)[3];
-    bool             outside = true;
-
-    // test if any BB corner is inside the halfspace defined
-    // by the current plane
-    for (auto const& tbPnt : tbPnts) {
-      if (glm::dot(normal, tbPnt) >= d) {
-        // corner j is inside - stop testing
-        outside = false;
-        break;
-      }
-    }
-
-    // if all corners are outside the halfspace, the bounding box
-    // is outside - stop testing
-    if (outside) {
-      result = false;
-      break;
-    }
-  }
-
-  return result;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-// Returns true if one the eight tile bbox corner points is not occluded by a proxy sphere.
-// Culls tiles behind the horizon.
-bool testFrontFacing(glm::dvec3 const& camPos, PlanetParameters const* params,
-    BoundingBox<double> const& tb, TreeManager* treeMgr) {
-  assert(treeMgr != nullptr);
-
-  // Get minimum height of all base patches (needed for radius of proxy culling sphere)
-  auto minHeight(std::numeric_limits<float>::max());
-  for (int i(0); i < TileQuadTree::sNumRoots; ++i) {
-    auto* tile = treeMgr->getTree()->getRoot(i);
-    minHeight  = std::min(minHeight, tile->getMinMaxPyramid()->getMin());
-  }
-
-  double dProxyRadius = std::min(params->mRadii.x, std::min(params->mRadii.y, params->mRadii.z)) +
-                        (minHeight * params->mHeightScale);
-
-  glm::dvec3 const& tbMin = tb.getMin();
-  glm::dvec3 const& tbMax = tb.getMax();
-
-  // 8 corners of tile's bounding box
-  std::array<glm::dvec3, 8> tbPnts = {
-      {glm::dvec3(tbMin[0], tbMin[1], tbMin[2]), glm::dvec3(tbMax[0], tbMin[1], tbMin[2]),
-          glm::dvec3(tbMax[0], tbMin[1], tbMax[2]), glm::dvec3(tbMin[0], tbMin[1], tbMax[2]),
-
-          glm::dvec3(tbMin[0], tbMax[1], tbMin[2]), glm::dvec3(tbMax[0], tbMax[1], tbMin[2]),
-          glm::dvec3(tbMax[0], tbMax[1], tbMax[2]), glm::dvec3(tbMin[0], tbMax[1], tbMax[2])}};
-
-  // Simple ray-sphere intersection test for every corner point
-  for (auto const& tbPnt : tbPnts) {
-    double     dRayLength = glm::length(tbPnt - camPos);
-    glm::dvec3 vRayDir    = (tbPnt - camPos) / dRayLength;
-    double     b          = glm::dot(camPos, vRayDir);
-    double     c          = glm::dot(camPos, camPos) - dProxyRadius * dProxyRadius;
-    double     fDet       = b * b - c;
-    // No intersection between corner and camera position: Tile visible!:
-    if (fDet < 0.0) {
-      return true;
-    }
-
-    fDet = std::sqrt(fDet);
-    // Both intersection points are behind the camera but tile is in front
-    // (presumes tiles to be frustum culled already!!!)
-    // E.g. While travelling in a deep crater and looking above
-    if ((-b - fDet) < 0.0 && (-b + fDet) < 0.0) {
-      return true;
-    }
-
-    // Tile in front of planet:
-    if (dRayLength < -b - fDet) {
-      return true;
-    }
-  }
-
-  return false;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-// Tests if @a node can be refined, which is the case if all 4
-// children are present and uploaded to the GPU.
-bool childrenAvailable(TileNode* node, TreeManager* treeMgr) {
-  for (int i = 0; i < 4; ++i) {
-    TileNode* child = node->getChild(i);
-
-    // child is not loaded -> can not refine
-    if (child == nullptr) {
-      return false;
-    }
-
-    auto dem = child->getTileData(TileDataType::eElevation);
-    auto img = child->getTileData(TileDataType::eColor);
-
-    // child is not on GPU -> can not refine
-    if (dem->getTexLayer() < 0 || (img && img->getTexLayer() < 0)) {
-      return false;
-    }
-  }
-
-  return true;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
 } // namespace
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -195,7 +57,18 @@ void LODVisitor::queueRecomputeTileBounds() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool LODVisitor::preTraverse() {
-  bool result = true;
+
+  // clear load/render lists
+  mLoadNodes.clear();
+  mRenderNodes.clear();
+
+  // make sure root nodes are present
+  for (int i = 0; i < TileQuadTree::sNumRoots; ++i) {
+    if (!mTree->getRoot(i)) {
+      mLoadNodes.emplace_back(0, i);
+      return false;
+    }
+  }
 
   // update derived matrices from mMatP, mMatVM
   if (mUpdateLOD) {
@@ -206,19 +79,17 @@ bool LODVisitor::preTraverse() {
     mCameraData.mCamPos = glm::dvec3(v4CamPos[0], v4CamPos[1], v4CamPos[2]);
   }
 
-  // clear load/render lists
-  mLoadNodes.clear();
-  mRenderNodes.clear();
-
-  // make sure root nodes are present
-  for (int i = 0; i < TileQuadTree::sNumRoots; ++i) {
-    if (!mTree->getRoot(i)) {
-      mLoadNodes.emplace_back(0, i);
-      result = false;
-    }
+  // Get minimum height of all base patches (needed for radius of proxy culling sphere)
+  auto minHeight(std::numeric_limits<float>::max());
+  for (int i(0); i < TileQuadTree::sNumRoots; ++i) {
+    auto* tile = mTreeMgr->getTree()->getRoot(i);
+    minHeight  = std::min(minHeight, tile->getMinMaxPyramid()->getMin());
   }
 
-  return result;
+  mHorizonCullRadius = std::min(mParams->mRadii.x, std::min(mParams->mRadii.y, mParams->mRadii.z)) +
+                       (minHeight * mParams->mHeightScale);
+
+  return true;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -262,7 +133,7 @@ bool LODVisitor::visitNode(TileNode* node) {
     node->setBounds(bounds);
   }
 
-  bool visible = testVisible(node);
+  bool visible = testInFrustum(node) && testFrontFacing(node);
 
   // Node is not visible, do not traverse further.
   if (!visible) {
@@ -278,10 +149,8 @@ bool LODVisitor::visitNode(TileNode* node) {
     return false;
   }
 
-  bool canRefine = childrenAvailable(node, mTreeMgr);
-
   // Draw all children if they are available.
-  if (canRefine) {
+  if (node->childrenAvailable()) {
     return true;
   }
 
@@ -305,23 +174,7 @@ bool LODVisitor::visitNode(TileNode* node) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool LODVisitor::testVisible(TileNode* node) {
-  bool result = false;
-
-  BoundingBox<double> const& tb = node->getBounds();
-
-  result = testInFrustum(mCameraData.mFrustumMS, tb);
-
-  if (result) {
-    result = testFrontFacing(mCameraData.mCamPos, mParams, tb, mTreeMgr);
-  }
-
-  return result;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-bool LODVisitor::testNeedRefine(TileNode* node) {
+bool LODVisitor::testNeedRefine(TileNode* node) const {
 
   if (mParams->mMinLevel > node->getLevel()) {
     return true;
@@ -425,6 +278,97 @@ std::vector<TileId> const& LODVisitor::getLoadNodes() const {
 
 std::vector<TileNode*> const& LODVisitor::getRenderNodes() const {
   return mRenderNodes;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+bool LODVisitor::testInFrustum(TileNode* node) const {
+  BoundingBox<double> const& tb = node->getBounds();
+
+  glm::dvec3 const& tbMin = tb.getMin();
+  glm::dvec3 const& tbMax = tb.getMax();
+
+  // 8 corners of tile's bounding box
+  std::array<glm::dvec3, 8> tbPnts = {
+      {glm::dvec3(tbMin[0], tbMin[1], tbMin[2]), glm::dvec3(tbMax[0], tbMin[1], tbMin[2]),
+          glm::dvec3(tbMax[0], tbMin[1], tbMax[2]), glm::dvec3(tbMin[0], tbMin[1], tbMax[2]),
+
+          glm::dvec3(tbMin[0], tbMax[1], tbMin[2]), glm::dvec3(tbMax[0], tbMax[1], tbMin[2]),
+          glm::dvec3(tbMax[0], tbMax[1], tbMax[2]), glm::dvec3(tbMin[0], tbMax[1], tbMax[2])}};
+
+  // loop over planes of frustum
+  auto pIt  = mCameraData.mFrustumMS.getPlanes().begin();
+  auto pEnd = mCameraData.mFrustumMS.getPlanes().end();
+
+  for (std::size_t i = 0; pIt != pEnd; ++pIt, ++i) {
+    glm::dvec3 const normal(*pIt);
+    double const     d       = -(*pIt)[3];
+    bool             outside = true;
+
+    // test if any BB corner is inside the halfspace defined
+    // by the current plane
+    for (auto const& tbPnt : tbPnts) {
+      if (glm::dot(normal, tbPnt) >= d) {
+        // corner j is inside - stop testing
+        outside = false;
+        break;
+      }
+    }
+
+    // if all corners are outside the halfspace, the bounding box
+    // is outside - stop testing
+    if (outside) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+bool LODVisitor::testFrontFacing(TileNode* node) const {
+
+  BoundingBox<double> const& tb    = node->getBounds();
+  glm::dvec3 const&          tbMin = tb.getMin();
+  glm::dvec3 const&          tbMax = tb.getMax();
+
+  // 8 corners of tile's bounding box
+  std::array<glm::dvec3, 8> tbPnts = {
+      {glm::dvec3(tbMin[0], tbMin[1], tbMin[2]), glm::dvec3(tbMax[0], tbMin[1], tbMin[2]),
+          glm::dvec3(tbMax[0], tbMin[1], tbMax[2]), glm::dvec3(tbMin[0], tbMin[1], tbMax[2]),
+
+          glm::dvec3(tbMin[0], tbMax[1], tbMin[2]), glm::dvec3(tbMax[0], tbMax[1], tbMin[2]),
+          glm::dvec3(tbMax[0], tbMax[1], tbMax[2]), glm::dvec3(tbMin[0], tbMax[1], tbMax[2])}};
+
+  // Simple ray-sphere intersection test for every corner point
+  for (auto const& tbPnt : tbPnts) {
+    double     dRayLength = glm::length(tbPnt - mCameraData.mCamPos);
+    glm::dvec3 vRayDir    = (tbPnt - mCameraData.mCamPos) / dRayLength;
+    double     b          = glm::dot(mCameraData.mCamPos, vRayDir);
+    double     c          = glm::dot(mCameraData.mCamPos, mCameraData.mCamPos) -
+               mHorizonCullRadius * mHorizonCullRadius;
+    double fDet = b * b - c;
+    // No intersection between corner and camera position: Tile visible!:
+    if (fDet < 0.0) {
+      return true;
+    }
+
+    fDet = std::sqrt(fDet);
+    // Both intersection points are behind the camera but tile is in front
+    // (presumes tiles to be frustum culled already!!!)
+    // E.g. While travelling in a deep crater and looking above
+    if ((-b - fDet) < 0.0 && (-b + fDet) < 0.0) {
+      return true;
+    }
+
+    // Tile in front of planet:
+    if (dRayLength < -b - fDet) {
+      return true;
+    }
+  }
+
+  return false;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

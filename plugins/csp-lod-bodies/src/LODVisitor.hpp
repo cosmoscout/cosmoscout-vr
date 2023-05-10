@@ -71,14 +71,22 @@ class LODVisitor : public TileVisitor {
   /// Visit the node with given the tileId. Returns whether children should be visited.
   bool visitNode(TileNode* node);
 
-  /// Returns whether the currently visited node is potentially visible. Tests if the node's
-  /// bounding box intersects the camera frustum.
-  bool testVisible(TileNode* node);
-
   /// Returns whether the currently visited node should be refined, i.e. if it's children should be
   /// used to achieve desired resolution. Estimates the screen space size (in pixels) of the node
   /// and compares that with the desired LOD factor.
-  bool testNeedRefine(TileNode* node);
+  bool testNeedRefine(TileNode* node) const;
+
+  // Returns if the tile bounds @a tb intersect the @a frustum. For each plane of the @a frustum
+  // determine if any corner of the bounding box is inside the plane's halfspace. If all corners are
+  // outside one halfspace the bounding box is outside the frustum and the algorithm stops early.
+  // TODO There is potential for optimization here, the paper "Optimized View Frustum Culling -
+  // Algorithms for Bounding Boxes" http://www.cse.chalmers.se/~uffe/vfc_bbox.pdf contains ideas
+  // (for example how to avoid testing all 8 corners).
+  bool testInFrustum(TileNode* node) const;
+
+  // Returns true if one the eight tile bbox corner points is not occluded by a proxy sphere.
+  // Culls tiles behind the horizon.
+  bool testFrontFacing(TileNode* node) const;
 
   PlanetParameters const* mParams;
   TreeManager*            mTreeMgr;
@@ -87,6 +95,7 @@ class LODVisitor : public TileVisitor {
   glm::dmat4 mMatVM;
   glm::dmat4 mMatP;
   CameraData mCameraData;
+  double     mHorizonCullRadius;
 
   std::vector<TileId>    mLoadNodes;
   std::vector<TileNode*> mRenderNodes;

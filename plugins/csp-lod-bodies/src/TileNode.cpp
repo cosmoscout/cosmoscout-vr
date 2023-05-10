@@ -76,8 +76,24 @@ void TileNode::setParent(TileNode* parent) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool TileNode::isRefined() const {
-  return mChildren[0] && mChildren[1] && mChildren[2] && mChildren[3];
+bool TileNode::childrenAvailable() const {
+  for (int i = 0; i < 4; ++i) {
+
+    // child is not loaded -> can not refine
+    if (!mChildren[i]) {
+      return false;
+    }
+
+    auto dem = mChildren[i]->getTileData(TileDataType::eElevation);
+    auto img = mChildren[i]->getTileData(TileDataType::eColor);
+
+    // child is not on GPU -> can not refine
+    if (dem->getTexLayer() < 0 || (img && img->getTexLayer() < 0)) {
+      return false;
+    }
+  }
+
+  return true;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

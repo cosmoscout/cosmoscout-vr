@@ -227,7 +227,7 @@ bool intersectPlanet(
     }
 
     // Sample height field of cut leaf node
-    if (!parent->isRefined()) {
+    if (!parent->childrenAvailable()) {
       // Get entry and exit point again:
       double min_dist{};
       double max_dist{};
