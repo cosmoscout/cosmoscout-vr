@@ -7,7 +7,7 @@
 
 #include "TileTextureArray.hpp"
 
-#include "TileDataBase.hpp"
+#include "BaseTileData.hpp"
 #include "TreeManager.hpp"
 
 #include <VistaBase/VistaStreamUtils.h>
@@ -94,7 +94,7 @@ TileDataType TileTextureArray::getDataType() const {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void TileTextureArray::allocateGPU(std::shared_ptr<TileDataBase> data) {
+void TileTextureArray::allocateGPU(std::shared_ptr<BaseTileData> data) {
   assert(rdata->getTexLayer() < 0);
 
   mUploadQueue.push_back(std::move(data));
@@ -102,7 +102,7 @@ void TileTextureArray::allocateGPU(std::shared_ptr<TileDataBase> data) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void TileTextureArray::releaseGPU(std::shared_ptr<TileDataBase> const& data) {
+void TileTextureArray::releaseGPU(std::shared_ptr<BaseTileData> const& data) {
 
   if (data->getTexLayer() >= 0) {
     releaseLayer(data);
@@ -244,7 +244,7 @@ void TileTextureArray::releaseTexture() {
 
 // Uploads tile data from the node associated with @a data to the GPU.
 // @note May only be called after a call to @c preUpload.
-void TileTextureArray::allocateLayer(std::shared_ptr<TileDataBase> const& data) {
+void TileTextureArray::allocateLayer(std::shared_ptr<BaseTileData> const& data) {
   assert(!mFreeLayers.empty());
   assert(data->getTexLayer() < 0);
 
@@ -265,7 +265,7 @@ void TileTextureArray::allocateLayer(std::shared_ptr<TileDataBase> const& data) 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void TileTextureArray::releaseLayer(std::shared_ptr<TileDataBase> const& data) {
+void TileTextureArray::releaseLayer(std::shared_ptr<BaseTileData> const& data) {
   assert(data->getTexLayer() >= 0);
 
   // simply mark the layer as available and record that data is not

@@ -42,7 +42,7 @@ enum class CopyPixels { eAll, eAboveDiagonal, eBelowDiagonal };
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-bool loadImpl(TileSourceWebMapService* source, TileDataBase* tile, TileId const& tileId, int x,
+bool loadImpl(TileSourceWebMapService* source, BaseTileData* tile, TileId const& tileId, int x,
     int y, CopyPixels which) {
   std::optional<std::string> cacheFile;
 
@@ -168,7 +168,7 @@ bool loadImpl(TileSourceWebMapService* source, TileDataBase* tile, TileId const&
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-void fillDiagonal(TileDataBase* tile) {
+void fillDiagonal(BaseTileData* tile) {
   uint32_t resolution = tile->getResolution();
   T*       data       = tile->getTypedPtr<T>();
   for (uint32_t y = 1; y <= resolution; y++) {
@@ -180,7 +180,7 @@ void fillDiagonal(TileDataBase* tile) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-std::shared_ptr<TileDataBase> loadImpl(TileSourceWebMapService* source, TileId const& tileId) {
+std::shared_ptr<BaseTileData> loadImpl(TileSourceWebMapService* source, TileId const& tileId) {
   auto tile = std::make_shared<TileData<T>>(source->getResolution());
 
   int  x{};
@@ -237,7 +237,7 @@ TileSourceWebMapService::TileSourceWebMapService(uint32_t resolution)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-/* virtual */ std::shared_ptr<TileDataBase> TileSourceWebMapService::loadTile(
+/* virtual */ std::shared_ptr<BaseTileData> TileSourceWebMapService::loadTile(
     TileId const& tileId) {
   if (mFormat == TileDataType::eElevation) {
     return loadImpl<float>(this, tileId);

@@ -8,13 +8,13 @@
 #ifndef CSP_LOD_BODIES_TILE_DATA_HPP
 #define CSP_LOD_BODIES_TILE_DATA_HPP
 
-#include "TileDataBase.hpp"
+#include "BaseTileData.hpp"
 
 namespace csp::lodbodies {
 
 /// Concrete class storing data samples of the template argument type T.
 template <typename T>
-class TileData : public TileDataBase {
+class TileData : public BaseTileData {
  public:
   using value_type = T;
 
@@ -65,7 +65,7 @@ struct DataTypeTrait<glm::u8vec4> {
 
 template <typename T>
 TileData<T>::TileData(uint32_t resolution)
-    : TileDataBase(resolution)
+    : BaseTileData(resolution)
     , mData(resolution * resolution) {
 }
 

@@ -184,7 +184,7 @@ void TreeManager::clear() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void TreeManager::onDataLoaded(TileId const& tileId, std::shared_ptr<TileDataBase> tileData) {
+void TreeManager::onDataLoaded(TileId const& tileId, std::shared_ptr<BaseTileData> tileData) {
 
   // If tile loading failed, discard the data.
   if (!tileData) {

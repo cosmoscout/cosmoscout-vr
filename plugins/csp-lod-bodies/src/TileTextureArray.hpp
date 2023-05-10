@@ -18,7 +18,7 @@
 namespace csp::lodbodies {
 
 class TileNode;
-class TileDataBase;
+class BaseTileData;
 class TreeManager;
 
 /// Responsible for handling tile data that is uploaded the GPU and for balancing additional upload
@@ -44,10 +44,10 @@ class TileTextureArray {
   TileDataType getDataType() const;
 
   /// Requests that data for the tile associated with data be uploaded to the GPU.
-  void allocateGPU(std::shared_ptr<TileDataBase> data);
+  void allocateGPU(std::shared_ptr<BaseTileData> data);
 
   /// Release GPU resources allocated for the tile associated with data.
-  void releaseGPU(std::shared_ptr<TileDataBase> const& data);
+  void releaseGPU(std::shared_ptr<BaseTileData> const& data);
 
   /// Process up to maxItems upload requests.
   void processQueue(int maxItems);
@@ -66,8 +66,8 @@ class TileTextureArray {
   void allocateTexture(TileDataType dataType);
   void releaseTexture();
 
-  void allocateLayer(std::shared_ptr<TileDataBase> const& data);
-  void releaseLayer(std::shared_ptr<TileDataBase> const& data);
+  void allocateLayer(std::shared_ptr<BaseTileData> const& data);
+  void releaseLayer(std::shared_ptr<BaseTileData> const& data);
 
   void        preUpload();
   static void postUpload();
@@ -82,7 +82,7 @@ class TileTextureArray {
   const GLint        mNumLayers;
   std::vector<GLint> mFreeLayers;
 
-  std::vector<std::shared_ptr<TileDataBase>> mUploadQueue;
+  std::vector<std::shared_ptr<BaseTileData>> mUploadQueue;
 };
 
 /// DocTODO

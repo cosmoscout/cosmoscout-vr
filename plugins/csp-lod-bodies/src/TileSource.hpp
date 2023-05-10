@@ -13,7 +13,7 @@
 
 namespace csp::lodbodies {
 
-class TileDataBase;
+class BaseTileData;
 
 /// Base class/interface for sources of tile data. Defines interfaces for synchronous (blocking) and
 /// asynchronous (non-blocking) loading of tiles, optionally allocating objects as needed or reusing
@@ -21,7 +21,7 @@ class TileDataBase;
 class TileSource {
  public:
   /// Type of the callback functor that can be passed to loadTileAsync.
-  using OnLoadCallback = std::function<void(TileId, std::shared_ptr<TileDataBase>)>;
+  using OnLoadCallback = std::function<void(TileId, std::shared_ptr<BaseTileData>)>;
 
   TileSource() = default;
 
@@ -48,7 +48,7 @@ class TileSource {
 
   /// Loads a node with given level and patchIx synchronously (i.e. the call blocks until data is
   /// loaded).
-  virtual std::shared_ptr<TileDataBase> loadTile(TileId const& tileId) = 0;
+  virtual std::shared_ptr<BaseTileData> loadTile(TileId const& tileId) = 0;
 
   /// Loads a node with given level and patchIdx asynchronously (i.e. the call returns immediately).
   /// Once the node is loaded the given OnLoadCallack is invoked.

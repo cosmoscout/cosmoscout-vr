@@ -5,7 +5,7 @@
 // SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
 // SPDX-License-Identifier: MIT
 
-#include "TileDataBase.hpp"
+#include "BaseTileData.hpp"
 
 #include "TileNode.hpp"
 
@@ -14,25 +14,25 @@ namespace csp::lodbodies {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /* explicit */
-TileDataBase::TileDataBase(uint32_t resolution)
+BaseTileData::BaseTileData(uint32_t resolution)
     : mResolution(resolution) {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-int TileDataBase::getTexLayer() const {
+int BaseTileData::getTexLayer() const {
   return mTexLayer;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void TileDataBase::setTexLayer(int layer) {
+void BaseTileData::setTexLayer(int layer) {
   mTexLayer = layer;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-uint32_t TileDataBase::getResolution() const {
+uint32_t BaseTileData::getResolution() const {
   return mResolution;
 }
 

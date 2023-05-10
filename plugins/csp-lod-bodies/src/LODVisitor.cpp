@@ -9,6 +9,7 @@
 
 #include "HEALPix.hpp"
 #include "PlanetParameters.hpp"
+#include "TileBounds.hpp"
 #include "TileTextureArray.hpp"
 #include "TreeManager.hpp"
 #include "logger.hpp"

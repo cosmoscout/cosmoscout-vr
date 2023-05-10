@@ -24,19 +24,19 @@ TileNode::TileNode(TileId const& tileId)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::shared_ptr<TileDataBase> const& TileNode::getTileData(TileDataType type) const {
+std::shared_ptr<BaseTileData> const& TileNode::getTileData(TileDataType type) const {
   return mTileData.get(type);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-PerDataType<std::shared_ptr<TileDataBase>> const& TileNode::getTileData() const {
+PerDataType<std::shared_ptr<BaseTileData>> const& TileNode::getTileData() const {
   return mTileData;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void TileNode::setTileData(std::shared_ptr<TileDataBase> tile) {
+void TileNode::setTileData(std::shared_ptr<BaseTileData> tile) {
   mTileData.set(tile->getDataType(), std::move(tile));
 }
 

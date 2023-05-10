@@ -5,8 +5,8 @@
 // SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
 // SPDX-License-Identifier: MIT
 
-#ifndef CSP_LOD_BODIES_TILEBASE_HPP
-#define CSP_LOD_BODIES_TILEBASE_HPP
+#ifndef CSP_LOD_BODIES_BASE_TILE_DATA_HPP
+#define CSP_LOD_BODIES_BASE_TILE_DATA_HPP
 
 #include "BoundingBox.hpp"
 #include "MinMaxPyramid.hpp"
@@ -21,15 +21,15 @@ namespace csp::lodbodies {
 /// Abstract base class for data tiles in the HEALPix scheme. A tile stores data samples for a
 /// HEALPix patch at a given subdivision level. Actual data is held by classes derived from this
 /// one.
-class TileDataBase {
+class BaseTileData {
  public:
-  virtual ~TileDataBase() = default;
+  virtual ~BaseTileData() = default;
 
-  TileDataBase(TileDataBase const& other) = delete;
-  TileDataBase(TileDataBase&& other)      = default;
+  BaseTileData(BaseTileData const& other) = delete;
+  BaseTileData(BaseTileData&& other)      = default;
 
-  TileDataBase& operator=(TileDataBase const& other) = delete;
-  TileDataBase& operator=(TileDataBase&& other) = default;
+  BaseTileData& operator=(BaseTileData const& other) = delete;
+  BaseTileData& operator=(BaseTileData&& other) = default;
 
   /// Returns the enum value for the data type stored in this tile.
   virtual TileDataType getDataType() const = 0;
@@ -55,7 +55,7 @@ class TileDataBase {
   void setTexLayer(int layer);
 
  protected:
-  explicit TileDataBase(uint32_t resolution);
+  explicit BaseTileData(uint32_t resolution);
 
  private:
   uint32_t mResolution;
@@ -63,15 +63,15 @@ class TileDataBase {
 };
 
 template <typename T>
-T const* TileDataBase::getTypedPtr() const {
+T const* BaseTileData::getTypedPtr() const {
   return static_cast<T const*>(getDataPtr());
 }
 
 template <typename T>
-T* TileDataBase::getTypedPtr() {
+T* BaseTileData::getTypedPtr() {
   return static_cast<T*>(getDataPtr());
 }
 
 } // namespace csp::lodbodies
 
-#endif // CSP_LOD_BODIES_TILEBASE_HPP
+#endif // CSP_LOD_BODIES_BASE_TILE_DATA_HPP

@@ -9,7 +9,7 @@
 
 #include "HEALPix.hpp"
 
-#include "TileDataBase.hpp"
+#include "BaseTileData.hpp"
 #include "VistaPlanet.hpp"
 
 #include "../../../src/cs-utils/convert.hpp"

@@ -9,8 +9,6 @@
 #define CSP_LOD_BODIES_LODVISITOR_HPP
 
 #include "Frustum.hpp"
-#include "TileBounds.hpp"
-#include "TileDataBase.hpp"
 #include "TileId.hpp"
 #include "TileVisitor.hpp"
 

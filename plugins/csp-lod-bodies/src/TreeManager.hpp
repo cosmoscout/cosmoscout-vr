@@ -20,11 +20,11 @@ namespace csp::lodbodies {
 
 class TileNode;
 class TileSource;
-class TileDataBase;
+class BaseTileData;
 class GLResources;
 class TileTextureArray;
 
-/// Manages a TileQuadTree and TileNode requested from a TileSource as well as data (TileDataBase)
+/// Manages a TileQuadTree and TileNode requested from a TileSource as well as data (BaseTileData)
 /// associated with each TileNode.
 ///
 /// Tiles to load from the configured TileSource are passed in with a call to request and previously
@@ -84,7 +84,7 @@ class TreeManager {
   };
 
   /// Used as a callback for the TileSource to call when a node is loaded.
-  void onDataLoaded(TileId const& tileId, std::shared_ptr<TileDataBase> tileData);
+  void onDataLoaded(TileId const& tileId, std::shared_ptr<BaseTileData> tileData);
 
   /// Helper function to handle processing after node is successfully inserted into the managed
   /// TileQuadTree.

@@ -8,7 +8,7 @@
 #ifndef CSP_LOD_BODIES_TILENODE_HPP
 #define CSP_LOD_BODIES_TILENODE_HPP
 
-#include "TileDataBase.hpp"
+#include "BaseTileData.hpp"
 
 namespace csp::lodbodies {
 
@@ -28,12 +28,12 @@ class TileNode {
   TileNode& operator=(TileNode&& other) = default;
 
   /// Returns the tile data owned by this, or NULL if there is no such tile.
-  std::shared_ptr<TileDataBase> const&              getTileData(TileDataType type) const;
-  PerDataType<std::shared_ptr<TileDataBase>> const& getTileData() const;
+  std::shared_ptr<BaseTileData> const&              getTileData(TileDataType type) const;
+  PerDataType<std::shared_ptr<BaseTileData>> const& getTileData() const;
 
   /// Sets the tile data to be owned by this. Exclusive ownership of the tile is taken by this and
   /// when this TileNode is destroyed the tile is destroyed as well.
-  void setTileData(std::shared_ptr<TileDataBase> tile);
+  void setTileData(std::shared_ptr<BaseTileData> tile);
 
   /// Returns the child at childIdx (must be in [0, 3]).
   TileNode* getChild(int childIdx) const;
@@ -73,7 +73,7 @@ class TileNode {
   TileNode*                                mParent{nullptr};
   std::array<std::unique_ptr<TileNode>, 4> mChildren;
 
-  PerDataType<std::shared_ptr<TileDataBase>> mTileData;
+  PerDataType<std::shared_ptr<BaseTileData>> mTileData;
 
   std::unique_ptr<MinMaxPyramid> mMinMaxPyramid;
   BoundingBox<double>            mTb;
