@@ -66,7 +66,6 @@ TileRenderer::TileRenderer(
     , mMatV()
     , mMatP()
     , mProgTerrain(nullptr)
-    , mFrameCount(0)
     , mEnableDrawBounds(false)
     , mEnableWireframe(false)
     , mEnableFaceCulling(true)
@@ -481,12 +480,6 @@ std::unique_ptr<VistaGLSLShader> TileRenderer::makeProgBounds() {
 
 TreeManager* TileRenderer::getTreeManager() const {
   return mTreeMgr;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void TileRenderer::setFrameCount(int frameCount) {
-  mFrameCount = frameCount;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

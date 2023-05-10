@@ -18,9 +18,8 @@
 
 namespace csp::lodbodies {
 
-/// Abstract base class for data tiles in the HEALPix scheme. A tile stores data samples for a
-/// HEALPix patch at a given subdivision level. Actual data is held by classes derived from this
-/// one.
+/// Abstract base class for data tiles. This is used to access data for single tile. Actual data is
+/// held by classes derived from this one.
 class BaseTileData {
  public:
   virtual ~BaseTileData() = default;
@@ -51,6 +50,8 @@ class BaseTileData {
   /// Returns the resolution given to the tile at construction time.
   uint32_t getResolution() const;
 
+  /// Once uploaded to the GPU, this will return the layer in the 3D texture array this data is
+  /// stored in.
   int  getTexLayer() const;
   void setTexLayer(int layer);
 

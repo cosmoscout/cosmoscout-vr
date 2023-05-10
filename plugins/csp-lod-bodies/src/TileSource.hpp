@@ -46,11 +46,10 @@ class TileSource {
   /// Returns the enum value for the data type stored in tiles produced by this TileSource.
   virtual TileDataType getDataType() const = 0;
 
-  /// Loads a node with given level and patchIx synchronously (i.e. the call blocks until data is
-  /// loaded).
+  /// Loads a node with given tileId synchronously (i.e. the call blocks until data is loaded).
   virtual std::shared_ptr<BaseTileData> loadTile(TileId const& tileId) = 0;
 
-  /// Loads a node with given level and patchIdx asynchronously (i.e. the call returns immediately).
+  /// Loads a node with given tileId asynchronously (i.e. the call returns immediately).
   /// Once the node is loaded the given OnLoadCallack is invoked.
   virtual void loadTileAsync(TileId const& tileId, OnLoadCallback cb) = 0;
 

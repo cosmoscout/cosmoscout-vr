@@ -27,12 +27,11 @@ class TileNode {
   TileNode& operator=(TileNode const& other) = delete;
   TileNode& operator=(TileNode&& other) = default;
 
-  /// Returns the tile data owned by this, or NULL if there is no such tile.
+  /// Returns the tile data assigned to this. Can be null.
   std::shared_ptr<BaseTileData> const&              getTileData(TileDataType type) const;
   PerDataType<std::shared_ptr<BaseTileData>> const& getTileData() const;
 
-  /// Sets the tile data to be owned by this. Exclusive ownership of the tile is taken by this and
-  /// when this TileNode is destroyed the tile is destroyed as well.
+  /// Assigns data to this tile.
   void setTileData(std::shared_ptr<BaseTileData> tile);
 
   /// Returns the child at childIdx (must be in [0, 3]).
@@ -60,6 +59,8 @@ class TileNode {
   MinMaxPyramid* getMinMaxPyramid() const;
   void           setMinMaxPyramid(std::unique_ptr<MinMaxPyramid> pyramid);
 
+  /// These are computed based on the TileId given to the constructor and are required by the
+  /// TileRender.
   glm::ivec3 const&                getTileOffsetScale() const;
   glm::ivec2 const&                getTileF1F2() const;
   std::array<glm::dvec2, 4> const& getCornersLngLat() const;
@@ -68,17 +69,20 @@ class TileNode {
   bool childrenAvailable() const;
 
  private:
-  void                                     setParent(TileNode* parent);
   TileId                                   mTileId{};
   TileNode*                                mParent{nullptr};
   std::array<std::unique_ptr<TileNode>, 4> mChildren;
 
+  // The actual data for the tile node is stored here. It uses a shared pointer as it is also stored
+  // in the upload queue of the TileTextureArray.
   PerDataType<std::shared_ptr<BaseTileData>> mTileData;
 
+  // These are used for visibility checks.
   std::unique_ptr<MinMaxPyramid> mMinMaxPyramid;
   BoundingBox<double>            mTb;
   bool                           mHasBounds{false};
 
+  // These are precomputed at construction time and are required during rendering.
   glm::ivec3                mTileOffsetScale;
   glm::ivec2                mTileF1F2;
   std::array<glm::dvec2, 4> mCornersLngLat;

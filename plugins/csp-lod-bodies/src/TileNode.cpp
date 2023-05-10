@@ -16,6 +16,7 @@ namespace csp::lodbodies {
 TileNode::TileNode(TileId const& tileId)
     : mTileId(tileId) {
 
+  // Precompute some values required during rendering.
   auto baseXY      = HEALPix::getBaseXY(mTileId);
   mTileOffsetScale = glm::ivec3(baseXY.y, baseXY.z, HEALPix::getNSide(mTileId));
   mTileF1F2        = glm::ivec2(HEALPix::getF1(mTileId), HEALPix::getF2(mTileId));
@@ -49,16 +50,10 @@ TileNode* TileNode::getChild(int childIdx) const {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void TileNode::setChild(int childIdx, TileNode* child) {
-  // unset OLD parent
-  if (mChildren.at(childIdx)) {
-    mChildren.at(childIdx)->setParent(nullptr);
-  }
-
   mChildren.at(childIdx).reset(child);
 
-  // set NEW parent
-  if (mChildren.at(childIdx)) {
-    mChildren.at(childIdx)->setParent(this);
+  if (child) {
+    child->mParent = this;
   }
 }
 
@@ -70,16 +65,9 @@ TileNode* TileNode::getParent() const {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void TileNode::setParent(TileNode* parent) {
-  mParent = parent;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
 bool TileNode::childrenAvailable() const {
   for (int i = 0; i < 4; ++i) {
 
-    // child is not loaded -> can not refine
     if (!mChildren[i]) {
       return false;
     }
@@ -87,7 +75,8 @@ bool TileNode::childrenAvailable() const {
     auto dem = mChildren[i]->getTileData(TileDataType::eElevation);
     auto img = mChildren[i]->getTileData(TileDataType::eColor);
 
-    // child is not on GPU -> can not refine
+    // The child is available if the elevation and the image channel are uploaded. If there is no
+    // image data, it also does not need to be uploaded.
     if (dem->getTexLayer() < 0 || (img && img->getTexLayer() < 0)) {
       return false;
     }

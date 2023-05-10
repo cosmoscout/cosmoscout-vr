@@ -102,7 +102,7 @@ void VistaPlanet::draw() {
   {
     cs::utils::FrameStats::ScopedTimer timer(
         "Render Tiles", cs::utils::FrameStats::TimerMode::eCPU);
-    renderTiles(frameCount, mWorldTransform, matV, matP, mShadowMap);
+    renderTiles(mWorldTransform, matV, matP, mShadowMap);
   }
 }
 
@@ -120,7 +120,7 @@ void VistaPlanet::drawForShadowMap() {
 
   traverseTileTrees(frameCount, mWorldTransform, matV, matP);
 
-  renderTiles(frameCount, mWorldTransform, matV, matP, nullptr);
+  renderTiles(mWorldTransform, matV, matP, nullptr);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -257,10 +257,9 @@ void VistaPlanet::processLoadRequests() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void VistaPlanet::renderTiles(int frameCount, glm::dmat4 const& matM, glm::mat4 const& matV,
-    glm::mat4 const& matP, cs::graphics::ShadowMap* shadowMap) {
+void VistaPlanet::renderTiles(glm::dmat4 const& matM, glm::mat4 const& matV, glm::mat4 const& matP,
+    cs::graphics::ShadowMap* shadowMap) {
   // update per-frame information of TileRenderer
-  mRenderer.setFrameCount(frameCount);
   mRenderer.setModel(matM);
   mRenderer.setView(matV);
   mRenderer.setProjection(matP);

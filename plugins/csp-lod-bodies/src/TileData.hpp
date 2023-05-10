@@ -45,10 +45,9 @@ class TileData : public BaseTileData {
 namespace detail {
 
 /// DataTypeTrait<T> is used to map from a type T to the corresponding TileDataType enum value.
-/// To support additional data types stored in a TileData add a specialization. Do not forget to add
-/// a definition of the static member in TileData.cpp! Only declare base template, define explicit
-/// specializations for supported types below - this causes a convenient compile error if an attempt
-/// is made to instantiate TileData<T> with an unsupported type T
+/// To support additional data types stored in a TileData add a specialization. Only declare base
+/// template, define explicit specializations for supported types below - this causes a convenient
+/// compile error if an attempt is made to instantiate TileData<T> with an unsupported type T
 template <typename T>
 struct DataTypeTrait;
 

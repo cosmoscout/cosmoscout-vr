@@ -25,16 +25,16 @@ class LODVisitor : public TileVisitor {
  public:
   explicit LODVisitor(PlanetParameters const& params, TreeManager* treeMgr);
 
+  /// If called, node bounds will be recomputed during the next traversal. This should be called
+  /// whenever the planet radius or the elevation scale has been changed.
   void queueRecomputeTileBounds();
 
-  int  getFrameCount() const;
+  /// Used to compute the age of unused tiles.
   void setFrameCount(int frameCount);
 
-  glm::dmat4 const& getModelview() const;
-  void              setModelview(glm::dmat4 const& m);
-
-  glm::dmat4 const& getProjection() const;
-  void              setProjection(glm::dmat4 const& m);
+  /// These are required for frustum culling and level-of-detail selection.
+  void setModelview(glm::dmat4 const& m);
+  void setProjection(glm::dmat4 const& m);
 
   /// Controls whether the tree cut should be modified. When disabled previous decisions will be
   /// reused.
@@ -66,7 +66,7 @@ class LODVisitor : public TileVisitor {
   bool preVisitRoot(TileNode* root) override;
   bool preVisit(TileNode* node) override;
 
-  /// Visit the node with given the tileId. Returns whether children should be visited.
+  /// Visit the given node. Returns whether children should be visited.
   bool visitNode(TileNode* node);
 
   /// Returns whether the currently visited node should be refined, i.e. if it's children should be
@@ -74,9 +74,10 @@ class LODVisitor : public TileVisitor {
   /// and compares that with the desired LOD factor.
   bool testNeedRefine(TileNode* node) const;
 
-  // Returns if the tile bounds @a tb intersect the @a frustum. For each plane of the @a frustum
+  // Returns if the tile bounds intersect the current frustum. For each plane of the frustum
   // determine if any corner of the bounding box is inside the plane's halfspace. If all corners are
   // outside one halfspace the bounding box is outside the frustum and the algorithm stops early.
+  //
   // TODO There is potential for optimization here, the paper "Optimized View Frustum Culling -
   // Algorithms for Bounding Boxes" http://www.cse.chalmers.se/~uffe/vfc_bbox.pdf contains ideas
   // (for example how to avoid testing all 8 corners).

@@ -24,8 +24,7 @@ class BaseTileData;
 class GLResources;
 class TileTextureArray;
 
-/// Manages a TileQuadTree and TileNode requested from a TileSource as well as data (BaseTileData)
-/// associated with each TileNode.
+/// Manages a TileQuadTree of TileNodes requested from a TileSource.
 ///
 /// Tiles to load from the configured TileSource are passed in with a call to request and previously
 /// (asynchronously) loaded tiles are merged into the TileQuadTree with a call to update.
@@ -50,7 +49,7 @@ class TreeManager {
 
   virtual ~TreeManager() = default;
 
-  /// Set tile source src to use.
+  /// Set tile source to use.
   void setSource(TileDataType type, TileSource* src);
 
   /// Returns pointer to the TileQuadTree managed by this.
@@ -69,7 +68,6 @@ class TreeManager {
   /// Removes all nodes from the tree and frees data associated with them.
   void clear();
 
-  int  getFrameCount() const;
   void setFrameCount(int frameCount);
 
  private:
@@ -100,10 +98,9 @@ class TreeManager {
 
   /// Merge nodes loaded since the last merge into the managed TileQuadTree. It is possible that a
   /// loaded node can not be inserted into the tree, for example because its parent has been removed
-  /// in the meantime. These "unmerged" nodes are kept around in unmergedNodes_ (see
-  /// TreeManager::storeUnmerged) for a few frames, in case the parent node is loaded in the
-  /// meantime. If this "grace period" has expired and the node still cannot be inserted into the
-  /// tree it is deleted (see TreeManager::mergeUnmerged).
+  /// in the meantime. These "unmerged" nodes are kept around in mUnmergedNodes for a few frames, in
+  /// case the parent node is loaded in the meantime. If this "grace period" has expired and the
+  /// node still cannot be inserted into the tree it is deleted.
   void merge();
 
   std::shared_ptr<GLResources> mGLResources;

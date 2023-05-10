@@ -48,7 +48,6 @@ class TileRenderer {
   /// Returns the currently set shader for rendering terrain tiles.
   TerrainShader* getTerrainShader() const;
 
-  void setFrameCount(int frameCount);
   void setModel(glm::dmat4 const& m);
   void setView(glm::mat4 const& m);
   void setProjection(glm::mat4 const& m);
@@ -114,7 +113,6 @@ class TileRenderer {
   static std::unique_ptr<VistaVertexArrayObject> mVaoBounds;
   static std::unique_ptr<VistaGLSLShader>        mProgBounds;
 
-  int  mFrameCount;
   bool mEnableDrawBounds;
   bool mEnableWireframe;
   bool mEnableFaceCulling;
