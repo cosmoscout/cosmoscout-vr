@@ -5,8 +5,8 @@
 // SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
 // SPDX-License-Identifier: MIT
 
-#ifndef CSP_LOD_BODIES_TREEMANAGEr_HPP
-#define CSP_LOD_BODIES_TREEMANAGEr_HPP
+#ifndef CSP_LOD_BODIES_TREEMANAGER_HPP
+#define CSP_LOD_BODIES_TREEMANAGER_HPP
 
 #include "TileId.hpp"
 #include "TileQuadTree.hpp"
@@ -123,4 +123,4 @@ class TreeManager {
 
 } // namespace csp::lodbodies
 
-#endif // CSP_LOD_BODIES_TREEMANAGEr_HPP
+#endif // CSP_LOD_BODIES_TREEMANAGER_HPP
