@@ -100,7 +100,6 @@ class SimpleBody : public cs::scene::CelestialSurface,
     uint32_t projectionMatrix  = 0;
     uint32_t surfaceTexture    = 0;
     uint32_t radii             = 0;
-
     uint32_t ringTexture       = 0;
     uint32_t ringRadii         = 0;
   } mUniforms;
