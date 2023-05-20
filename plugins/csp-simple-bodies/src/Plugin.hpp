@@ -13,6 +13,7 @@
 
 #include <map>
 #include <string>
+#include <optional>
 
 namespace csp::simplebodies {
 
@@ -27,6 +28,19 @@ class Plugin : public cs::core::PluginBase {
     struct SimpleBody {
       std::string                      mTexture;
       cs::utils::DefaultProperty<bool> mPrimeMeridianInCenter{true};
+
+      struct Ring {
+        /// The path to the texture. The texture should represent a cross section of the ring.
+        std::string mTexture;
+
+        /// The distance from the planets center to where the rings start in meter.
+        double mInnerRadius{};
+
+        /// The distance from the planets center to where the rings end in meter.
+        double mOuterRadius{};
+      };
+
+      std::optional<Ring> mRing;
     };
 
     std::map<std::string, SimpleBody> mSimpleBodies;

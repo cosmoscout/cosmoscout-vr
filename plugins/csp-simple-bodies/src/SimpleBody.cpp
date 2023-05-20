@@ -12,6 +12,7 @@
 #include "../../../src/cs-graphics/TextureLoader.hpp"
 #include "../../../src/cs-utils/FrameStats.hpp"
 #include "../../../src/cs-utils/utils.hpp"
+#include "logger.hpp"
 
 #include <VistaKernel/GraphicsManager/VistaSceneGraph.h>
 #include <VistaKernel/GraphicsManager/VistaTransformNode.h>
@@ -47,6 +48,7 @@ out vec2 vTexCoords;
 out vec3 vNormal;
 out vec3 vPosition;
 out vec3 vCenter;
+out vec3 vNorth;
 out vec2 vLngLat;
 out vec3 vSunDirection;
 
@@ -75,6 +77,7 @@ void main() {
   vPosition = toCartesian(vLngLat);
   vNormal       = (uMatModel * vec4(geodeticSurfaceNormal(vLngLat), 0.0)).xyz;
   vPosition     = (uMatModel * vec4(vPosition, 1.0)).xyz;
+  vNorth        = (uMatModel * vec4(0.0, 1.0, 0.0, 0.0)).xyz;
   vSunDirection = (uMatModel * vec4(uSunDirection, 0.0)).xyz;
   vCenter       = (uMatModel * vec4(0.0, 0.0, 0.0, 1.0)).xyz;
   gl_Position   = uMatProjection * uMatView * vec4(vPosition, 1);
@@ -88,6 +91,11 @@ uniform sampler2D uSurfaceTexture;
 uniform float uAmbientBrightness;
 uniform float uSunIlluminance;
 
+#ifdef HAS_RING
+  uniform sampler2D uRingTexture;
+  uniform vec2 uRingRadii;
+#endif
+
 ECLIPSE_SHADER_SNIPPET
 
 // inputs
@@ -95,6 +103,7 @@ in vec2 vTexCoords;
 in vec3 vNormal;
 in vec3 vPosition;
 in vec3 vCenter;
+in vec3 vNorth;
 in vec2 vLngLat;
 in vec3 vSunDirection;
 
@@ -153,8 +162,38 @@ float orenNayar(vec3 N, vec3 L, vec3 V) {
   return max(0, (L1 + L2) * cos_theta_i);
 }
     
-void main()
-{
+float getRingShadow() {
+  #ifdef HAS_RING
+    vec3 ringNormal = normalize(vNorth);
+    vec3 sunNormal = normalize(vSunDirection);
+
+    float sunAngle = dot(ringNormal, sunNormal);
+    // float posAngle = dot(ringNormal, normalize(vPosition));
+
+    if (sunAngle == 0 /*|| (sunAngle > 0.0 && posAngle > 0.0) || (sunAngle < 0.0 && posAngle < 0.0)*/) {
+      return 1.0;
+    }
+
+    float t = (dot(ringNormal, vCenter) - dot(ringNormal, vPosition)) / dot(ringNormal, sunNormal);
+    vec3 intersect = vPosition + (sunNormal * t);
+    float dist = length(vCenter - intersect);
+
+    if (dist < uRingRadii.x || dist > uRingRadii.y) {
+      return 1.0;
+    }
+
+    float pos = (dist - uRingRadii.x) / (uRingRadii.y - uRingRadii.x);
+    #ifdef ENABLE_HDR
+      return (1.0 - texture(uRingTexture, vec2(pos, 0.5)).a) * 0.5;
+    #else
+      return (1.0 - texture(uRingTexture, vec2(pos, 0.5)).a) * 2.0;
+    #endif
+  #else
+    return 1.0;
+  #endif
+}
+
+void main() {
     oColor = texture(uSurfaceTexture, vTexCoords).rgb;
 
     #ifdef ENABLE_HDR
@@ -167,7 +206,7 @@ void main()
     #endif
 
     #ifdef ENABLE_LIGHTING
-      vec3 light = getEclipseShadow(vPosition) * orenNayar(normalize(vNormal), normalize(vSunDirection), -normalize(vPosition));
+      vec3 light = getRingShadow() * getEclipseShadow(vPosition) * orenNayar(normalize(vNormal), normalize(vSunDirection), -normalize(vPosition));
       oColor = mix(oColor * light, oColor, ambient);
     #endif
 }
@@ -249,6 +288,10 @@ SimpleBody::~SimpleBody() {
 void SimpleBody::configure(Plugin::Settings::SimpleBody const& settings) {
   if (mSimpleBodySettings.mTexture != settings.mTexture) {
     mTexture = cs::graphics::TextureLoader::loadFromFile(settings.mTexture);
+  }
+
+  if (settings.mRing && mSimpleBodySettings.mRing->mTexture != settings.mRing->mTexture) {
+    mRingTexture = cs::graphics::TextureLoader::loadFromFile(settings.mRing->mTexture);
   }
 
   if (mSimpleBodySettings.mPrimeMeridianInCenter != settings.mPrimeMeridianInCenter) {
@@ -355,6 +398,10 @@ bool SimpleBody::Do() {
       defines += "#define PRIME_MERIDIAN_IN_CENTER\n";
     }
 
+    if (mSimpleBodySettings.mRing) {
+      defines += "#define HAS_RING\n";
+    }
+
     std::string vert = defines + SPHERE_VERT;
     std::string frag = defines + SPHERE_FRAG;
 
@@ -373,6 +420,11 @@ bool SimpleBody::Do() {
     mUniforms.projectionMatrix  = mShader.GetUniformLocation("uMatProjection");
     mUniforms.surfaceTexture    = mShader.GetUniformLocation("uSurfaceTexture");
     mUniforms.radii             = mShader.GetUniformLocation("uRadii");
+
+    if (mSimpleBodySettings.mRing) {
+      mUniforms.ringTexture = mShader.GetUniformLocation("uRingTexture");
+      mUniforms.ringRadii   = mShader.GetUniformLocation("uRingRadii");
+    }
 
     // We bind the eclipse shadow map to texture unit 1.
     mEclipseShadowReceiver.init(&mShader, 1);
@@ -437,6 +489,14 @@ bool SimpleBody::Do() {
   mShader.SetUniform(mUniforms.surfaceTexture, 0);
   mTexture->Bind(GL_TEXTURE0);
 
+  if (mSimpleBodySettings.mRing) {
+    mShader.SetUniform(mUniforms.ringRadii,
+        static_cast<float>(mSimpleBodySettings.mRing->mInnerRadius * parent->getScale() / mSolarSystem->getObserver().getScale()),
+        static_cast<float>(mSimpleBodySettings.mRing->mOuterRadius * parent->getScale() / mSolarSystem->getObserver().getScale()));
+    mShader.SetUniform(mUniforms.ringTexture, 1);
+    mRingTexture->Bind(GL_TEXTURE1);
+  }
+
   // Initialize eclipse shadow-related uniforms and textures.
   mEclipseShadowReceiver.preRender();
 
@@ -451,6 +511,11 @@ bool SimpleBody::Do() {
 
   // Clean up.
   mTexture->Unbind(GL_TEXTURE0);
+
+  if (mSimpleBodySettings.mRing) {
+    mRingTexture->Unbind();
+  }
+
   mShader.Release();
 
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrapMode);
