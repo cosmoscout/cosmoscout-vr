@@ -19,6 +19,7 @@ SPDX-License-Identifier: CC-BY-4.0
 * The `csp-timings` plugin now shows the timings in the world-space gui-area per default. The old behavior can be restored with `"useLocalGui": true` in the plugin's settings.
 * A new "Ambient Occlusion" slider in the user interface can be used to control the amount of slope shading on the terrain.
 * The water surface shader of `csp-atmospheres` has been improved significantly. It now reflects the sky and features some beautiful waves. The waves can be disabled as they are quite demanding in terms of GPU power. Both, the reflections and the waves are not physically based in any way; they are mostly intended for presentation purposes.
+* Bodies in `csp-simple-bodies` can now be shaded by a ring. 
 
 #### Refactoring
 
