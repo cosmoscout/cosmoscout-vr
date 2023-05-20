@@ -160,7 +160,7 @@ float orenNayar(vec3 N, vec3 L, vec3 V) {
   return max(0, (L1 + L2) * cos_theta_i);
 }
 
-// Calculates the shading by planetary rings. This is done in x steps:
+// Calculates the shading by planetary rings. This is done in 3 steps:
 // 1. Calculate the intersection between a ray from the fragment to the Sun and the ring plane.
 // 2. If an intersection exists check if it falls within the ring.
 // 3. If it falls within the ring, we get the brightness from the ring texture.
