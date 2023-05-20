@@ -113,8 +113,7 @@ layout(location = 0) out vec3 oColor;
 const float PI = 3.141592654;
 const float E  = 2.718281828;
 
-vec3 SRGBtoLINEAR(vec3 srgbIn)
-{
+vec3 SRGBtoLINEAR(vec3 srgbIn) {
   vec3 bLess = step(vec3(0.04045),srgbIn);
   return mix( srgbIn/vec3(12.92), pow((srgbIn+vec3(0.055))/vec3(1.055),vec3(2.4)), bLess );
 }
@@ -148,8 +147,7 @@ float orenNayar(vec3 N, vec3 L, vec3 V) {
   float C2 = 0.45 * sigma_term;
   if (cos_diff_phi >= 0) {
     C2 *= sin(alpha);
-  }
-  else {
+  } else {
     C2 *= sin(alpha) - pow(beta_1, 3);
   }
   
@@ -161,32 +159,59 @@ float orenNayar(vec3 N, vec3 L, vec3 V) {
   
   return max(0, (L1 + L2) * cos_theta_i);
 }
-    
+
+// Calculates the shading by planetary rings. This is done in x steps:
+// 1. Calculate the intersection between a ray from the fragment to the Sun and the ring plane.
+// 2. If an intersection exists check if it falls within the ring.
+// 3. If it falls within the ring, we get the brightness from the ring texture.
+//
+//                 o o o                   \ /
+//             o           o             -- O --
+//           o               o             / \
+// -------  o                 o  -------
+//           o               o
+//             o           o
+//                 o o o
+//
 float getRingShadow() {
   #ifdef HAS_RING
+    // The up direction of the ring plane.
     vec3 ringNormal = normalize(vNorth);
+
+    // The normalized direction of the sun.
     vec3 sunNormal = normalize(vSunDirection);
 
+    // If the ray is parallel to the ring, we don't draw a shadow.
     float sunAngle = dot(ringNormal, sunNormal);
-    // float posAngle = dot(ringNormal, normalize(vPosition));
-
-    if (sunAngle == 0 /*|| (sunAngle > 0.0 && posAngle > 0.0) || (sunAngle < 0.0 && posAngle < 0.0)*/) {
+    if (sunAngle == 0) {
       return 1.0;
     }
 
+    // The distance along the ray from the fragment to the intersection.
     float t = (dot(ringNormal, vCenter) - dot(ringNormal, vPosition)) / dot(ringNormal, sunNormal);
-    vec3 intersect = vPosition + (sunNormal * t);
-    float dist = length(vCenter - intersect);
 
+    // If the distance is negative, the ray intersects the ring away from the Sun.
+    if (t < 0.0) {
+      return 1.0;
+    }
+
+    // The exact point of intersection with the ring plane.
+    vec3 intersect = vPosition + (sunNormal * t);
+
+    // The distance from the bodies center. If it is outside the ring radii, we don't have a shadow.
+    float dist = length(vCenter - intersect);
     if (dist < uRingRadii.x || dist > uRingRadii.y) {
       return 1.0;
     }
 
-    float pos = (dist - uRingRadii.x) / (uRingRadii.y - uRingRadii.x);
+    // Convert the distance to the texture coordinate.
+    float texPosition = (dist - uRingRadii.x) / (uRingRadii.y - uRingRadii.x);
+
+    // We apply the same shading logic as in the rings plugin.
     #ifdef ENABLE_HDR
-      return (1.0 - texture(uRingTexture, vec2(pos, 0.5)).a) * 0.5;
+      return (1.0 - texture(uRingTexture, vec2(texPosition, 0.5)).a) * 0.5;
     #else
-      return (1.0 - texture(uRingTexture, vec2(pos, 0.5)).a) * 2.0;
+      return (1.0 - texture(uRingTexture, vec2(texPosition, 0.5)).a) * 2.0;
     #endif
   #else
     return 1.0;
@@ -426,8 +451,8 @@ bool SimpleBody::Do() {
       mUniforms.ringRadii   = mShader.GetUniformLocation("uRingRadii");
     }
 
-    // We bind the eclipse shadow map to texture unit 1.
-    mEclipseShadowReceiver.init(&mShader, 1);
+    // We bind the eclipse shadow map to texture unit 2.
+    mEclipseShadowReceiver.init(&mShader, 2);
 
     mShaderDirty = false;
   }
