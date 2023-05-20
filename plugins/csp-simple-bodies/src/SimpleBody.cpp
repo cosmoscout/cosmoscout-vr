@@ -516,8 +516,10 @@ bool SimpleBody::Do() {
 
   if (mSimpleBodySettings.mRing) {
     mShader.SetUniform(mUniforms.ringRadii,
-        static_cast<float>(mSimpleBodySettings.mRing->mInnerRadius * parent->getScale() / mSolarSystem->getObserver().getScale()),
-        static_cast<float>(mSimpleBodySettings.mRing->mOuterRadius * parent->getScale() / mSolarSystem->getObserver().getScale()));
+        static_cast<float>(mSimpleBodySettings.mRing->mInnerRadius * parent->getScale() /
+                           mSolarSystem->getObserver().getScale()),
+        static_cast<float>(mSimpleBodySettings.mRing->mOuterRadius * parent->getScale() /
+                           mSolarSystem->getObserver().getScale()));
     mShader.SetUniform(mUniforms.ringTexture, 1);
     mRingTexture->Bind(GL_TEXTURE1);
   }
