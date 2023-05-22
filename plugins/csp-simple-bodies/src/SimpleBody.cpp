@@ -12,7 +12,6 @@
 #include "../../../src/cs-graphics/TextureLoader.hpp"
 #include "../../../src/cs-utils/FrameStats.hpp"
 #include "../../../src/cs-utils/utils.hpp"
-#include "logger.hpp"
 
 #include <VistaKernel/GraphicsManager/VistaSceneGraph.h>
 #include <VistaKernel/GraphicsManager/VistaTransformNode.h>
@@ -206,13 +205,7 @@ float getRingShadow() {
 
     // Convert the distance to the texture coordinate.
     float texPosition = (dist - uRingRadii.x) / (uRingRadii.y - uRingRadii.x);
-
-    // We apply the same shading logic as in the rings plugin.
-    #ifdef ENABLE_HDR
-      return (1.0 - texture(uRingTexture, vec2(texPosition, 0.5)).a) * 0.5;
-    #else
-      return (1.0 - texture(uRingTexture, vec2(texPosition, 0.5)).a) * 2.0;
-    #endif
+    return 1.0 - texture(uRingTexture, vec2(texPosition, 0.5)).a;
   #else
     return 1.0;
   #endif
