@@ -34,10 +34,10 @@ class Plugin : public cs::core::PluginBase {
         std::string mTexture;
 
         /// The distance from the planet's center to where the ring starts in meters.
-        double mInnerRadius{};
+        double mInnerRadius;
 
         /// The distance from the planet's center to where the ring ends in meters.
-        double mOuterRadius{};
+        double mOuterRadius;
       };
 
       std::optional<Ring> mRing;
