@@ -23,10 +23,10 @@ class TreeManager;
 /// produces lists of tiles to load and draw respectively.
 class LODVisitor : public TileVisitor {
  public:
-  explicit LODVisitor(PlanetParameters const& params, TreeManager* treeMgr);
+  LODVisitor(PlanetParameters const& params, TreeManager* treeMgr);
 
   /// If called, node bounds will be recomputed during the next traversal. This should be called
-  /// whenever the planet radius or the elevation scale has been changed.
+  /// whenever the body radius or the elevation scale has been changed.
   void queueRecomputeTileBounds();
 
   /// Used to compute the age of unused tiles.

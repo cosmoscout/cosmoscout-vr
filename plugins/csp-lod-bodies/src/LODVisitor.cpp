@@ -60,7 +60,7 @@ bool LODVisitor::preTraverse() {
     mCameraData.mFrustumMS.setFromMatrix(mMatP * mMatVM);
     mCameraData.mMatN   = glm::inverseTranspose(glm::f64mat3x3(mMatVM));
     auto v4CamPos       = glm::inverse(mMatVM)[3];
-    mCameraData.mCamPos = glm::dvec3(v4CamPos[0], v4CamPos[1], v4CamPos[2]);
+    mCameraData.mCamPos = glm::dvec3(v4CamPos.x, v4CamPos.y, v4CamPos.z);
   }
 
   // Get minimum height of all base patches (needed for radius of proxy culling sphere).
@@ -240,7 +240,7 @@ bool LODVisitor::testInFrustum(TileNode* node) const {
   glm::dvec3 const& tbMax = tb.getMax();
 
   // 8 corners of tile's bounding box.
-  std::array<glm::dvec3, 8> tbPnts = {
+  std::array<glm::dvec3, 8> tbPoints = {
       {glm::dvec3(tbMin[0], tbMin[1], tbMin[2]), glm::dvec3(tbMax[0], tbMin[1], tbMin[2]),
           glm::dvec3(tbMax[0], tbMin[1], tbMax[2]), glm::dvec3(tbMin[0], tbMin[1], tbMax[2]),
 
@@ -248,17 +248,15 @@ bool LODVisitor::testInFrustum(TileNode* node) const {
           glm::dvec3(tbMax[0], tbMax[1], tbMax[2]), glm::dvec3(tbMin[0], tbMax[1], tbMax[2])}};
 
   // Loop over planes of frustum.
-  auto pIt  = mCameraData.mFrustumMS.getPlanes().begin();
-  auto pEnd = mCameraData.mFrustumMS.getPlanes().end();
 
-  for (std::size_t i = 0; pIt != pEnd; ++pIt, ++i) {
-    glm::dvec3 const normal(*pIt);
-    double const     d       = -(*pIt)[3];
+  for (const auto& plane : mCameraData.mFrustumMS.getPlanes()) {
+    glm::dvec3 const normal(plane);
+    double const     d       = -plane.w;
     bool             outside = true;
 
     // Test if any BB corner is inside the halfspace defined by the current plane.
-    for (auto const& tbPnt : tbPnts) {
-      if (glm::dot(normal, tbPnt) >= d) {
+    for (auto const& tbPoint : tbPoints) {
+      if (glm::dot(normal, tbPoint) >= d) {
         // Corner j is inside - stop testing.
         outside = false;
         break;
@@ -282,7 +280,7 @@ bool LODVisitor::testFrontFacing(TileNode* node) const {
   glm::dvec3 const& tbMax = node->getBounds().getMax();
 
   // 8 corners of tile's bounding box.
-  std::array<glm::dvec3, 8> tbPnts = {
+  std::array<glm::dvec3, 8> tbPoints = {
       {glm::dvec3(tbMin[0], tbMin[1], tbMin[2]), glm::dvec3(tbMax[0], tbMin[1], tbMin[2]),
           glm::dvec3(tbMax[0], tbMin[1], tbMax[2]), glm::dvec3(tbMin[0], tbMin[1], tbMax[2]),
 
@@ -290,9 +288,9 @@ bool LODVisitor::testFrontFacing(TileNode* node) const {
           glm::dvec3(tbMax[0], tbMax[1], tbMax[2]), glm::dvec3(tbMin[0], tbMax[1], tbMax[2])}};
 
   // Simple ray-sphere intersection test for every corner point.
-  for (auto const& tbPnt : tbPnts) {
-    double     dRayLength = glm::length(tbPnt - mCameraData.mCamPos);
-    glm::dvec3 vRayDir    = (tbPnt - mCameraData.mCamPos) / dRayLength;
+  for (auto const& tbPoint : tbPoints) {
+    double     dRayLength = glm::length(tbPoint - mCameraData.mCamPos);
+    glm::dvec3 vRayDir    = (tbPoint - mCameraData.mCamPos) / dRayLength;
     double     b          = glm::dot(mCameraData.mCamPos, vRayDir);
     double     c          = glm::dot(mCameraData.mCamPos, mCameraData.mCamPos) -
                mHorizonCullRadius * mHorizonCullRadius;
