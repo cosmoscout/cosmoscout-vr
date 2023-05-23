@@ -186,6 +186,7 @@ bool LODVisitor::testNeedRefine(TileNode* node) const {
 
   double ratio = maxAngle / fov * mParams->mLodFactor;
 
+  // The magic number is chosen to bring the configured LoD factor into a sensible range.
   return ratio > 10.0;
 }
 
