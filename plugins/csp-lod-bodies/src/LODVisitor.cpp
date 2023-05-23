@@ -242,11 +242,11 @@ bool LODVisitor::testInFrustum(TileNode* node) const {
 
   // 8 corners of tile's bounding box.
   std::array<glm::dvec3, 8> tbPoints = {
-      {glm::dvec3(tbMin[0], tbMin[1], tbMin[2]), glm::dvec3(tbMax[0], tbMin[1], tbMin[2]),
-          glm::dvec3(tbMax[0], tbMin[1], tbMax[2]), glm::dvec3(tbMin[0], tbMin[1], tbMax[2]),
+      {glm::dvec3(tbMin.x, tbMin.y, tbMin.z), glm::dvec3(tbMax.x, tbMin.y, tbMin.z),
+          glm::dvec3(tbMax.x, tbMin.y, tbMax.z), glm::dvec3(tbMin.x, tbMin.y, tbMax.z),
 
-          glm::dvec3(tbMin[0], tbMax[1], tbMin[2]), glm::dvec3(tbMax[0], tbMax[1], tbMin[2]),
-          glm::dvec3(tbMax[0], tbMax[1], tbMax[2]), glm::dvec3(tbMin[0], tbMax[1], tbMax[2])}};
+          glm::dvec3(tbMin.x, tbMax.y, tbMin.z), glm::dvec3(tbMax.x, tbMax.y, tbMin.z),
+          glm::dvec3(tbMax.x, tbMax.y, tbMax.z), glm::dvec3(tbMin.x, tbMax.y, tbMax.z)}};
 
   // Loop over planes of frustum.
 
@@ -282,11 +282,11 @@ bool LODVisitor::testFrontFacing(TileNode* node) const {
 
   // 8 corners of tile's bounding box.
   std::array<glm::dvec3, 8> tbPoints = {
-      {glm::dvec3(tbMin[0], tbMin[1], tbMin[2]), glm::dvec3(tbMax[0], tbMin[1], tbMin[2]),
-          glm::dvec3(tbMax[0], tbMin[1], tbMax[2]), glm::dvec3(tbMin[0], tbMin[1], tbMax[2]),
+      {glm::dvec3(tbMin.x, tbMin.y, tbMin.z), glm::dvec3(tbMax.x, tbMin.y, tbMin.z),
+          glm::dvec3(tbMax.x, tbMin.y, tbMax.z), glm::dvec3(tbMin.x, tbMin.y, tbMax.z),
 
-          glm::dvec3(tbMin[0], tbMax[1], tbMin[2]), glm::dvec3(tbMax[0], tbMax[1], tbMin[2]),
-          glm::dvec3(tbMax[0], tbMax[1], tbMax[2]), glm::dvec3(tbMin[0], tbMax[1], tbMax[2])}};
+          glm::dvec3(tbMin.x, tbMax.y, tbMin.z), glm::dvec3(tbMax.x, tbMax.y, tbMin.z),
+          glm::dvec3(tbMax.x, tbMax.y, tbMax.z), glm::dvec3(tbMin.x, tbMax.y, tbMax.z)}};
 
   // Simple ray-sphere intersection test for every corner point.
   for (auto const& tbPoint : tbPoints) {
