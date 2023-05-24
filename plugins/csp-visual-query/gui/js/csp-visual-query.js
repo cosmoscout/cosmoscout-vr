@@ -7,8 +7,8 @@
 
 (() => {
   /**
-  * Visual Query Api
-  */
+   * Visual Query Api
+   */
   class VisualQueryApi extends IApi {
     /**
      * @inheritDoc

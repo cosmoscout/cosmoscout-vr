@@ -18,8 +18,7 @@ const std::string Render::sName = "Render";
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 std::string Render::sSource() {
-  return cs::utils::filesystem::loadToString(
-      "../share/resources/nodes/csp-visual-query/Render.js");
+  return cs::utils::filesystem::loadToString("../share/resources/nodes/csp-visual-query/Render.js");
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -54,7 +53,6 @@ void Render::process() {
   json["value"] = readInput<double>("number", 0.0);
   sendMessageToJS(json);
 }
-
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 

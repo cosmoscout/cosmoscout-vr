@@ -16,14 +16,14 @@ class Render : public csl::nodeeditor::Node {
  public:
   // static interface ------------------------------------------------------------------------------
 
-  static const std::string         sName;
-  static std::string               sSource();
+  static const std::string       sName;
+  static std::string             sSource();
   static std::unique_ptr<Render> sCreate();
 
   // instance interface ----------------------------------------------------------------------------
 
   /// New instances of this node are created by the node factory.
-  
+
   Render();
   ~Render() override;
 
@@ -41,4 +41,4 @@ class Render : public csl::nodeeditor::Node {
 
 } // namespace csp::visualquery
 
-#endif // CSP_VISUAL_QUERY_Render_HPP
+#endif // CSP_VISUAL_QUERY_RENDER_HPP

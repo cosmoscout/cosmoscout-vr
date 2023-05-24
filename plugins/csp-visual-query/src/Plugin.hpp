@@ -20,7 +20,7 @@ namespace csp::visualquery {
 /// Your plugin description here!
 class Plugin : public cs::core::PluginBase {
  public:
- struct Settings {
+  struct Settings {
     /// The port where the server should listen on. For example 9999.
     cs::utils::Property<uint16_t> mPort;
 
@@ -38,7 +38,6 @@ class Plugin : public cs::core::PluginBase {
   void onLoad();
   void onSave();
   void setupNodeEditor(uint16_t port);
-
 
   Settings                                     mPluginSettings;
   std::unique_ptr<csl::nodeeditor::NodeEditor> mNodeEditor;

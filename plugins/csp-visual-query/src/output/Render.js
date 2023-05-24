@@ -23,9 +23,9 @@ class RenderComponent extends Rete.Component {
     // unique amongst all sockets. It is also used in the RenderNode::process() to read the
     // input of this node. The second parameter is shown as name on the node. The last parameter
     // references a socket type which has been registered with the node factory before.
-    let input = new Rete.Input('grey-scale-geo-texture', "Map Overlay", CosmoScout.socketTypes['GreyScaleGeoTexture']);
+    let input = new Rete.Input(
+        'grey-scale-geo-texture', "Map Overlay", CosmoScout.socketTypes['GreyScaleGeoTexture']);
     node.addInput(input);
-
 
     // Add the number display. The name parameter must be unique amongst all controls of this
     // node. The RenderControl class is defined further below.
@@ -59,15 +59,14 @@ class RenderControl extends Rete.Control {
   setValue(val) {
     if (!this.transferFunctionEditor) {
       this.transferFunctionEditor = CosmoScout.transferFunctionEditor.create(
-        document.getElementById("csp-visual-query.tfEditor"),
-        (tf) => this._transferFunction = tf,
-        {
-          width: 450,
-          height: 120,
-          defaultFunction: "HeatLight.json",
-          fitToData: true,
-          numberBins: 32
-        });
+          document.getElementById("csp-visual-query.tfEditor"), (tf) => this._transferFunction = tf,
+          {
+            width: 450,
+            height: 120,
+            defaultFunction: "HeatLight.json",
+            fitToData: true,
+            numberBins: 32
+          });
     }
     // Each node container gets the id "#node-<id>". This way we can select elements inside the
     // node using a selector. Here we select the p element with the class "display-value" as
@@ -79,5 +78,3 @@ class RenderControl extends Rete.Control {
     return this._transferFunction;
   }
 }
-  
-  

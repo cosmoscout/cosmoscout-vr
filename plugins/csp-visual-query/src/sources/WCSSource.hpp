@@ -16,14 +16,14 @@ class WCSSource : public csl::nodeeditor::Node {
  public:
   // static interface ------------------------------------------------------------------------------
 
-  static const std::string         sName;
-  static std::string               sSource();
+  static const std::string          sName;
+  static std::string                sSource();
   static std::unique_ptr<WCSSource> sCreate();
 
   // instance interface ----------------------------------------------------------------------------
 
   /// New instances of this node are created by the node factory.
-  
+
   explicit WCSSource();
   ~WCSSource() override;
 

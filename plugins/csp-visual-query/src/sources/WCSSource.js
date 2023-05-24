@@ -25,10 +25,10 @@ class WCSSourceComponent extends Rete.Component {
     // output of this node. The second parameter is shown as name on the node. The last
     // parameter references a socket type which has been registered with the node factory
     // before. It is required that the class is called <NAME>Component.
-    let output = new Rete.Output('scalar-field', 'WCS Dataset', CosmoScout.socketTypes['WCSScalarField']);
+    let output =
+        new Rete.Output('scalar-field', 'WCS Dataset', CosmoScout.socketTypes['WCSScalarField']);
     node.addOutput(output)
 
     return node;
   }
 }
-  

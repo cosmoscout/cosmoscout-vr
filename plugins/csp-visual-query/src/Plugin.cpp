@@ -13,8 +13,8 @@
 #include "../../../src/cs-core/Settings.hpp"
 
 #include "logger.hpp"
-#include "sources/WCSSource.hpp"
 #include "output/Render.hpp"
+#include "sources/WCSSource.hpp"
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -88,7 +88,7 @@ void Plugin::update() {
 void Plugin::onLoad() {
   // Read settings from JSON.
   from_json(mAllSettings->mPlugins.at("csp-visual-query"), mPluginSettings);
-   // If there is a graph defined in the settings, we give this to the node editor.
+  // If there is a graph defined in the settings, we give this to the node editor.
   if (mPluginSettings.mGraph.has_value()) {
     try {
       mNodeEditor->fromJSON(mPluginSettings.mGraph.value());
@@ -117,7 +117,7 @@ void Plugin::setupNodeEditor(uint16_t port) {
   // First, we register the available socket types. For now, this only requires a unique name and a
   // color which will be used by the sockets. In this simple example, we only have number sockets.
   // The name of the socket will be used by the custom nodes when defining their inputs and outputs.
-  //factory.registerSocketType("Number Value", "#b08ab3");
+  // factory.registerSocketType("Number Value", "#b08ab3");
 
   factory.registerSocketType("GreyScaleGeoTexture", "#ffff00");
   factory.registerSocketType("WCSScalarField", "#b08ab3");
@@ -134,6 +134,5 @@ void Plugin::setupNodeEditor(uint16_t port) {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-
 
 } // namespace csp::visualquery
