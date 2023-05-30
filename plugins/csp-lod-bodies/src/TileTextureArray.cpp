@@ -7,8 +7,8 @@
 
 #include "TileTextureArray.hpp"
 
-#include "RenderData.hpp"
-#include "TreeManagerBase.hpp"
+#include "BaseTileData.hpp"
+#include "TreeManager.hpp"
 
 #include <VistaBase/VistaStreamUtils.h>
 
@@ -29,7 +29,7 @@ GLenum getInternalFormat(TileDataType dataType) {
     break;
 
   case TileDataType::eColor:
-    result = GL_RGB8;
+    result = GL_RGBA8;
     break;
   }
 
@@ -43,7 +43,7 @@ GLenum getFormat(TileDataType dataType) {
   case TileDataType::eElevation:
     return GL_RED;
   case TileDataType::eColor:
-    return GL_RGB;
+    return GL_RGBA;
   }
 
   return GL_NONE;
@@ -88,28 +88,34 @@ TileTextureArray::~TileTextureArray() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void TileTextureArray::allocateGPU(RenderData* rdata) {
-  assert(rdata->getTexLayer() < 0);
-
-  mUploadQueue.push_back(rdata);
+TileDataType TileTextureArray::getDataType() const {
+  return mDataType;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void TileTextureArray::releaseGPU(RenderData* rdata) {
-  if (rdata->getTexLayer() >= 0) {
-    releaseLayer(rdata);
+void TileTextureArray::allocateGPU(std::shared_ptr<BaseTileData> data) {
+  assert(rdata->getTexLayer() < 0);
+
+  mUploadQueue.push_back(std::move(data));
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void TileTextureArray::releaseGPU(std::shared_ptr<BaseTileData> const& data) {
+
+  if (data->getTexLayer() >= 0) {
+    releaseLayer(data);
   } else {
-    // Tile is not uploaded, could be in the queue?
+    // TileData is not uploaded, could be in the queue?
     // XXX TODO Linear search, but mUploadQueue is usually small and
     //          this case should be rare
-
-    auto rIt = std::find(mUploadQueue.begin(), mUploadQueue.end(), rdata);
+    auto rIt = std::find(mUploadQueue.begin(), mUploadQueue.end(), data);
 
     // avoid erasing an element in the middle of std::vector,
     // just invalidate the pointer and skip NULL entries when uploading
     if (rIt != mUploadQueue.end()) {
-      *rIt = nullptr;
+      rIt->reset();
     }
   }
 }
@@ -141,12 +147,12 @@ void TileTextureArray::processQueue(int maxItems) {
       break;
     }
 
-    RenderData* rdata = mUploadQueue.back();
+    auto data = mUploadQueue.back();
 
-    // rdata could be NULL if a tile is removed before it is ever
+    // data could be NULL if a tile is removed before it is ever
     // uploaded to the GPU, c.f. releaseGPU
-    if (rdata != nullptr) {
-      allocateLayer(rdata);
+    if (data) {
+      allocateLayer(data);
       ++count;
     }
 
@@ -236,14 +242,11 @@ void TileTextureArray::releaseTexture() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// Uploads tile data from the node associated with @a rdata to the GPU.
+// Uploads tile data from the node associated with @a data to the GPU.
 // @note May only be called after a call to @c preUpload.
-void TileTextureArray::allocateLayer(RenderData* rdata) {
+void TileTextureArray::allocateLayer(std::shared_ptr<BaseTileData> const& data) {
   assert(!mFreeLayers.empty());
-  assert(rdata->getTexLayer() < 0);
-
-  TileNode* node = rdata->getNode();
-  TileBase* tile = node->getTile();
+  assert(data->getTexLayer() < 0);
 
   int layer = mFreeLayers.back();
   mFreeLayers.pop_back();
@@ -252,23 +255,23 @@ void TileTextureArray::allocateLayer(RenderData* rdata) {
   GLint const   xoffset = 0;
   GLint const   yoffset = 0;
   GLsizei const depth   = 1;
-  GLvoid const* data    = tile->getDataPtr();
+  GLvoid const* pixels  = data->getDataPtr();
 
   glTexSubImage3D(GL_TEXTURE_2D_ARRAY, level, xoffset, yoffset, layer, mResolution, mResolution,
-      depth, mFormat, mType, data);
+      depth, mFormat, mType, pixels);
 
-  rdata->setTexLayer(layer);
+  data->setTexLayer(layer);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void TileTextureArray::releaseLayer(RenderData* rdata) {
-  assert(rdata->getTexLayer() >= 0);
+void TileTextureArray::releaseLayer(std::shared_ptr<BaseTileData> const& data) {
+  assert(data->getTexLayer() >= 0);
 
-  // simply mark the layer as available and record that rdata is not
+  // simply mark the layer as available and record that data is not
   // currently on the GPU (i.e. set the texture layer to an invalid value)
-  mFreeLayers.push_back(rdata->getTexLayer());
-  rdata->setTexLayer(-1);
+  mFreeLayers.push_back(data->getTexLayer());
+  data->setTexLayer(-1);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
