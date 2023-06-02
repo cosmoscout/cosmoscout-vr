@@ -119,5 +119,3 @@ Official Plugins | Description | Screenshot
 Some badges in this README.md are from [shields.io](https://shields.io). The documentation of CosmoScout VR also uses icons from [simpleicons.org](https://simpleicons.org/).
 
 <p align="center"><img src ="docs/img/hr.svg"/></p>
-
-Ignacio's Copy
