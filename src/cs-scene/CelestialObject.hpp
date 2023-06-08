@@ -58,6 +58,10 @@ class CS_SCENE_EXPORT CelestialObject : public CelestialAnchor {
   glm::dvec3 const& getRadii() const;
   void              setRadii(glm::dvec3 value);
 
+  /// Returns true if the radii of the object were set with setRadii() above to a different value
+  /// than [0.0, 0.0, 0.0].
+  bool hasCustomRadii() const;
+
   /// An approximate radius of the body in meters. This will serve as a basis for visibility
   /// calculation. If set to 0.0 (the default), getIsBodyVisible() will always return true.
   double getBodyCullingRadius() const;
@@ -164,8 +168,8 @@ class CS_SCENE_EXPORT CelestialObject : public CelestialAnchor {
   mutable std::shared_ptr<CelestialSurface>    mSurface;
   mutable std::shared_ptr<IntersectableObject> mIntersectable;
 
-  // This is mutable because the celestial will try to get its radii from SPICE in the first call to
-  // the otherwise const method getRadii().
+  // This is mutable because the celestial object will try to get its radii from SPICE in the first
+  // call to the otherwise const method getRadii().
   mutable glm::dvec3 mRadiiFromSPICE = glm::dvec3(-1.0);
 
   // These members are mutable as they have to be changed in the const update() method. They do not
