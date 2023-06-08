@@ -54,10 +54,8 @@ LodBody::LodBody(std::shared_ptr<cs::core::Settings> settings,
   mPluginSettings->mEnableBounds.connectAndTouch(
       [this](bool val) { mPlanet.getTileRenderer().setDrawBounds(val); });
 
-  mPluginSettings->mEnableTilesFreeze.connectAndTouch([this](bool val) {
-    mPlanet.getLODVisitor().setUpdateLOD(!val);
-    mPlanet.getLODVisitor().setUpdateCulling(!val);
-  });
+  mPluginSettings->mEnableTilesFreeze.connectAndTouch(
+      [this](bool val) { mPlanet.getLODVisitor().setUpdateLOD(!val); });
 
   // Add to scenegraph.
   VistaSceneGraph* pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
@@ -99,7 +97,7 @@ double LodBody::getHeight(glm::dvec2 lngLat) const {
 
 void LodBody::setDEMtileSource(std::shared_ptr<TileSource> source, uint32_t maxLevel) {
   if (!source->isSame(mDEMtileSource.get())) {
-    mPlanet.setDEMSource(source.get());
+    mPlanet.setDataSource(TileDataType::eElevation, source.get());
     mDEMtileSource = std::move(source);
   }
 
@@ -114,7 +112,7 @@ void LodBody::setDEMtileSource(std::shared_ptr<TileSource> source, uint32_t maxL
 void LodBody::setIMGtileSource(std::shared_ptr<TileSource> source, uint32_t maxLevel) {
   if (source) {
     if (!source->isSame(mIMGtileSource.get())) {
-      mPlanet.setIMGSource(source.get());
+      mPlanet.setDataSource(TileDataType::eColor, source.get());
       mShader.pEnableTexture = true;
       mIMGtileSource         = std::move(source);
     }
@@ -123,7 +121,7 @@ void LodBody::setIMGtileSource(std::shared_ptr<TileSource> source, uint32_t maxL
   } else {
     mShader.pEnableTexture = false;
     if (mIMGtileSource) {
-      mPlanet.setIMGSource(nullptr);
+      mPlanet.setDataSource(TileDataType::eColor, nullptr);
       mIMGtileSource = nullptr;
     }
 

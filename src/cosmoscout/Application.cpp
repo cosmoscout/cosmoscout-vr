@@ -500,14 +500,16 @@ void Application::FrameUpdate() {
     }
 
     // Update the individual plugins.
-    for (auto const& plugin : mPlugins) {
-      cs::utils::FrameStats::ScopedTimer timer(
-          "Update " + plugin.first, cs::utils::FrameStats::TimerMode::eBoth);
+    {
+      cs::utils::FrameStats::ScopedTimer timer("Update Plugins");
+      for (auto const& plugin : mPlugins) {
+        cs::utils::FrameStats::ScopedTimer timer("Update " + plugin.first);
 
-      try {
-        plugin.second.mPlugin->update();
-      } catch (std::runtime_error const& e) {
-        logger().warn("Failed to update plugin '{}': {}", plugin.first, e.what());
+        try {
+          plugin.second.mPlugin->update();
+        } catch (std::runtime_error const& e) {
+          logger().warn("Failed to update plugin '{}': {}", plugin.first, e.what());
+        }
       }
     }
 

@@ -10,6 +10,7 @@
 
 #include "../../../src/cs-core/PluginBase.hpp"
 #include "../../../src/cs-gui/GuiItem.hpp"
+#include "../../../src/cs-utils/DefaultProperty.hpp"
 #include "../../../src/cs-utils/FrameStats.hpp"
 
 #include <fstream>
@@ -21,6 +22,12 @@ namespace csp::timings {
 /// timing statistics. This plugin can also be used to export recorded time series to CSV files.
 class Plugin : public cs::core::PluginBase {
  public:
+  struct Settings {
+    /// If the statistics are shown on the local GUI area, they are drawn on each screen in a
+    /// clustered setup.
+    cs::utils::DefaultProperty<bool> mUseLocalGui{false};
+  };
+
   void init() override;
   void deInit() override;
   void update() override;
@@ -40,6 +47,11 @@ class Plugin : public cs::core::PluginBase {
     uint32_t mEnd;
   };
 
+  void onLoad();
+  void onSave();
+
+  Settings mPluginSettings;
+
   /// This store the statistics GUI element.
   std::unique_ptr<cs::gui::GuiItem> mGuiItem;
 
@@ -56,7 +68,9 @@ class Plugin : public cs::core::PluginBase {
   /// Sample queries do not support nesting.
   std::vector<int64_t> mTimestamps;
 
-  int mFrameTimingConnection;
+  int mOnLoadConnection      = -1;
+  int mOnSaveConnection      = -1;
+  int mFrameTimingConnection = -1;
 };
 
 } // namespace csp::timings

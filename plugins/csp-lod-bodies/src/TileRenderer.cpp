@@ -7,12 +7,10 @@
 
 #include "TileRenderer.hpp"
 
-#include "HEALPix.hpp"
 #include "PlanetParameters.hpp"
-#include "RenderDataDEM.hpp"
-#include "RenderDataImg.hpp"
+#include "TileNode.hpp"
 #include "TileTextureArray.hpp"
-#include "TreeManagerBase.hpp"
+#include "TreeManager.hpp"
 
 #include "../../../src/cs-graphics/Shadows.hpp"
 #include "../../../src/cs-utils/convert.hpp"
@@ -60,15 +58,14 @@ std::unique_ptr<VistaGLSLShader>        TileRenderer::mProgBounds;
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /* explicit */
-TileRenderer::TileRenderer(PlanetParameters const& params, uint32_t tileResolution)
+TileRenderer::TileRenderer(
+    PlanetParameters const& params, TreeManager* treeMgr, uint32_t tileResolution)
     : mParams(&params)
-    , mTreeMgrDEM(nullptr)
-    , mTreeMgrIMG(nullptr)
+    , mTreeMgr(treeMgr)
     , mMatM()
     , mMatV()
     , mMatP()
     , mProgTerrain(nullptr)
-    , mFrameCount(0)
     , mEnableDrawBounds(false)
     , mEnableWireframe(false)
     , mEnableFaceCulling(true)
@@ -137,27 +134,26 @@ TerrainShader* TileRenderer::getTerrainShader() const {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void TileRenderer::render(std::vector<RenderData*> const& reqDEM,
-    std::vector<RenderData*> const& reqIMG, cs::graphics::ShadowMap* shadowMap) {
+void TileRenderer::render(std::vector<TileNode*> const& nodes, cs::graphics::ShadowMap* shadowMap) {
 
-  if (!reqDEM.empty()) {
+  if (!nodes.empty()) {
     preRenderTiles(shadowMap);
-    renderTiles(reqDEM, reqIMG);
+    renderTiles(nodes);
     postRenderTiles(shadowMap);
-  }
 
-  if (mEnableDrawBounds && !reqDEM.empty()) {
-    preRenderBounds();
-    renderBounds(reqDEM, reqIMG);
-    postRenderBounds();
+    if (mEnableDrawBounds) {
+      preRenderBounds();
+      renderBounds(nodes);
+      postRenderBounds();
+    }
   }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void TileRenderer::preRenderTiles(cs::graphics::ShadowMap* shadowMap) {
-  TileTextureArray* glDEM = mTreeMgrDEM ? &mTreeMgrDEM->getTileTextureArray() : nullptr;
-  TileTextureArray* glIMG = mTreeMgrIMG ? &mTreeMgrIMG->getTileTextureArray() : nullptr;
+  auto const& glDEM = mTreeMgr->getGLResources()->get(TileDataType::eElevation);
+  auto const& glIMG = mTreeMgr->getGLResources()->get(TileDataType::eColor);
 
   // setup OpenGL state
   glPushAttrib(GL_COLOR_BUFFER_BIT | GL_CURRENT_BIT | GL_ENABLE_BIT | GL_LIGHTING_BIT |
@@ -233,8 +229,7 @@ void TileRenderer::preRenderTiles(cs::graphics::ShadowMap* shadowMap) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void TileRenderer::renderTiles(
-    std::vector<RenderData*> const& renderDEM, std::vector<RenderData*> const& renderIMG) {
+void TileRenderer::renderTiles(std::vector<TileNode*> const& nodes) {
   VistaGLSLShader& shader = mProgTerrain->mShader;
 
   // query uniform locations once and store in locs
@@ -244,79 +239,41 @@ void TileRenderer::renderTiles(
   locs.f1f2        = shader.GetUniformLocation("VP_f1f2");
   locs.dataLayers  = shader.GetUniformLocation("VP_dataLayers");
 
-  int missingDEM = 0;
-  int missingIMG = 0;
-
-  // iterate over both std::vector<RenderData*>s together
-  for (size_t i(0); i < renderDEM.size(); ++i) {
-    // get data associated with nodes
-    auto*          rdDEM = dynamic_cast<RenderDataDEM*>(renderDEM[i]);
-    RenderDataImg* rdIMG =
-        i < renderIMG.size() ? dynamic_cast<RenderDataImg*>(renderIMG[i]) : nullptr;
-
-    // count cases of data not being on GPU ...
-    if (rdDEM->getTexLayer() < 0) {
-      ++missingDEM;
-    }
-
-    if (rdIMG && rdIMG->getTexLayer() < 0) {
-      ++missingIMG;
-    }
-
-    // ... but do not attempt to draw
-    if (rdDEM->getTexLayer() < 0 || (rdIMG && rdIMG->getTexLayer() < 0)) {
-      continue;
-    }
-
-    // render
-    renderTile(rdDEM, rdIMG, locs);
-  }
-
-  if (missingDEM || missingIMG) {
-    // The only time this is "expected" to happen is after a texture had
-    // to be resized - otherwise it suggests a bug in the resource
-    // handling
-    vstr::warnp() << "[TileRenderer::renderTiles]" << std::endl;
-    vstr::warnp() << "Some tiles were not available on the GPU (" << missingDEM << " / "
-                  << missingIMG << "  DEM/IMG)." << std::endl;
-  }
-
-  // Iterate over std::vector<RenderData*>s a second time, reset edge deltas and flags.
-  // Cannot be done during rendering because a TileNode/RenderData may
-  // appear multiple times in renderDEM/renderIMG.
-  for (auto* it : renderDEM) {
-    auto* rdDEM = dynamic_cast<RenderDataDEM*>(it);
-    rdDEM->clearFlags();
+  for (auto* node : nodes) {
+    renderTile(node, locs);
   }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void TileRenderer::renderTile(RenderDataDEM* rdDEM, RenderDataImg* rdIMG, UniformLocs const& locs) {
-  VistaGLSLShader& shader = mProgTerrain->mShader;
-  TileId const&    idDEM  = rdDEM->getTileId();
+void TileRenderer::renderTile(TileNode* node, UniformLocs const& locs) {
+  auto const& dem = node->getTileData(TileDataType::eElevation);
+  auto const& img = node->getTileData(TileDataType::eColor);
 
-  auto  baseXY        = HEALPix::getBaseXY(idDEM);
-  auto  tileOS        = glm::ivec3(baseXY.y, baseXY.z, HEALPix::getNSide(idDEM));
-  auto  patchF1F2     = glm::ivec2(HEALPix::getF1(idDEM), HEALPix::getF2(idDEM));
-  float averageHeight = rdDEM->getNode()->getTile()->getMinMaxPyramid()->getAverage();
-  float minHeight     = rdDEM->getNode()->getTile()->getMinMaxPyramid()->getMin();
-  float maxHeight     = rdDEM->getNode()->getTile()->getMinMaxPyramid()->getMax();
+  // Do not attempt to draw tiles with missing data.
+  if (dem->getTexLayer() < 0 || (img && img->getTexLayer() < 0)) {
+    return;
+  }
+
+  VistaGLSLShader& shader = mProgTerrain->mShader;
+
+  float averageHeight = node->getMinMaxPyramid()->getAverage();
+  float minHeight     = node->getMinMaxPyramid()->getMin();
+  float maxHeight     = node->getMinMaxPyramid()->getMax();
 
   // update uniforms
   shader.SetUniform(locs.heightInfo, averageHeight, maxHeight - minHeight);
-  shader.SetUniform(locs.offsetScale, 3, 1, glm::value_ptr(tileOS));
-  shader.SetUniform(locs.f1f2, 2, 1, glm::value_ptr(patchF1F2));
-  glUniform2i(locs.dataLayers, rdDEM->getTexLayer(), rdIMG ? rdIMG->getTexLayer() : 0);
+  shader.SetUniform(locs.offsetScale, 3, 1, glm::value_ptr(node->getTileOffsetScale()));
+  shader.SetUniform(locs.f1f2, 2, 1, glm::value_ptr(node->getTileF1F2()));
+
+  glUniform2i(locs.dataLayers, dem->getTexLayer(), img ? img->getTexLayer() : 0);
 
   // order of components: N, W, S, E
-  std::array<glm::dvec2, 4> cornersLngLat = HEALPix::getCornersLngLat(idDEM);
+  auto const&               cornersLngLat = node->getCornersLngLat();
   std::array<glm::dvec3, 4> corners{};
   std::array<glm::dvec3, 4> normals{};
   std::array<glm::fvec3, 4> cornersWorldSpace{};
   std::array<glm::fvec3, 4> normalsWorldSpace{};
-
-  glm::dmat4 matNormal = glm::transpose(glm::inverse(mMatM));
 
   // Convert tile corners to camera-relative coordinates in double precision.
   for (int i(0); i < 4; ++i) {
@@ -325,7 +282,7 @@ void TileRenderer::renderTile(RenderDataDEM* rdDEM, RenderDataImg* rdIMG, Unifor
     cornersWorldSpace.at(i) = glm::fvec3(mMatM * glm::dvec4(corners.at(i), 1.0));
 
     normals.at(i)           = cs::utils::convert::lngLatToNormal(cornersLngLat.at(i));
-    normalsWorldSpace.at(i) = glm::fvec3(matNormal * glm::dvec4(normals.at(i), 0.0));
+    normalsWorldSpace.at(i) = glm::fvec3(mMatN * glm::dvec4(normals.at(i), 0.0));
   }
 
   glUniform3fv(glGetUniformLocation(shader.GetProgram(), "VP_corners"), 9,
@@ -378,40 +335,34 @@ void TileRenderer::preRenderBounds() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void TileRenderer::renderBounds(
-    std::vector<RenderData*> const& reqDEM, std::vector<RenderData*> const& reqIMG) {
-  auto renderBounds = [this](std::vector<RenderData*> const& req) {
-    for (auto const& it : req) {
-      if (it->hasBounds()) {
-        BoundingBox<double> const& tb = it->getBounds();
+void TileRenderer::renderBounds(std::vector<TileNode*> const& nodes) {
+  for (auto const& it : nodes) {
+    if (it->hasBounds()) {
+      BoundingBox<double> const& tb = it->getBounds();
 
-        std::array<glm::dvec4, 8> cornersWorldSpace = {
-            glm::dvec4(tb.getMin().x, tb.getMin().y, tb.getMin().z, 1.0),
-            glm::dvec4(tb.getMax().x, tb.getMin().y, tb.getMin().z, 1.0),
-            glm::dvec4(tb.getMax().x, tb.getMin().y, tb.getMax().z, 1.0),
-            glm::dvec4(tb.getMin().x, tb.getMin().y, tb.getMax().z, 1.0),
+      std::array<glm::dvec4, 8> cornersWorldSpace = {
+          glm::dvec4(tb.getMin().x, tb.getMin().y, tb.getMin().z, 1.0),
+          glm::dvec4(tb.getMax().x, tb.getMin().y, tb.getMin().z, 1.0),
+          glm::dvec4(tb.getMax().x, tb.getMin().y, tb.getMax().z, 1.0),
+          glm::dvec4(tb.getMin().x, tb.getMin().y, tb.getMax().z, 1.0),
 
-            glm::dvec4(tb.getMin().x, tb.getMax().y, tb.getMin().z, 1.0),
-            glm::dvec4(tb.getMax().x, tb.getMax().y, tb.getMin().z, 1.0),
-            glm::dvec4(tb.getMax().x, tb.getMax().y, tb.getMax().z, 1.0),
-            glm::dvec4(tb.getMin().x, tb.getMax().y, tb.getMax().z, 1.0)};
+          glm::dvec4(tb.getMin().x, tb.getMax().y, tb.getMin().z, 1.0),
+          glm::dvec4(tb.getMax().x, tb.getMax().y, tb.getMin().z, 1.0),
+          glm::dvec4(tb.getMax().x, tb.getMax().y, tb.getMax().z, 1.0),
+          glm::dvec4(tb.getMin().x, tb.getMax().y, tb.getMax().z, 1.0)};
 
-        std::array<glm::fvec3, 8> controlPointsViewSpace{};
-        for (int i(0); i < 8; ++i) {
-          controlPointsViewSpace.at(i) =
-              glm::fvec3(glm::dmat4(mMatV) * mMatM * cornersWorldSpace.at(i));
-        }
-
-        glUniform3fv(glGetUniformLocation(mProgBounds->GetProgram(), "VP_corners"), 8,
-            glm::value_ptr(controlPointsViewSpace[0]));
-
-        glDrawElements(GL_LINES, 24, GL_UNSIGNED_INT, nullptr);
+      std::array<glm::fvec3, 8> controlPointsViewSpace{};
+      for (int i(0); i < 8; ++i) {
+        controlPointsViewSpace.at(i) =
+            glm::fvec3(glm::dmat4(mMatV) * mMatM * cornersWorldSpace.at(i));
       }
-    }
-  };
 
-  renderBounds(reqDEM);
-  renderBounds(reqIMG);
+      glUniform3fv(glGetUniformLocation(mProgBounds->GetProgram(), "VP_corners"), 8,
+          glm::value_ptr(controlPointsViewSpace[0]));
+
+      glDrawElements(GL_LINES, 24, GL_UNSIGNED_INT, nullptr);
+    }
+  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -499,7 +450,7 @@ std::unique_ptr<VistaBufferObject> TileRenderer::makeIBOBounds() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// Sets up the VertexArrayObject for rendering bounds of a Tile
+// Sets up the VertexArrayObject for rendering bounds of a tile.
 std::unique_ptr<VistaVertexArrayObject> TileRenderer::makeVAOBounds(
     VistaBufferObject* vbo, VistaBufferObject* ibo) {
   auto result = std::make_unique<VistaVertexArrayObject>();
@@ -527,38 +478,15 @@ std::unique_ptr<VistaGLSLShader> TileRenderer::makeProgBounds() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-TreeManagerBase* TileRenderer::getTreeManagerDEM() const {
-  return mTreeMgrDEM;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void TileRenderer::setTreeManagerDEM(TreeManagerBase* treeMgr) {
-  mTreeMgrDEM = treeMgr;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-TreeManagerBase* TileRenderer::getTreeManagerIMG() const {
-  return mTreeMgrIMG;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void TileRenderer::setTreeManagerIMG(TreeManagerBase* treeMgr) {
-  mTreeMgrIMG = treeMgr;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void TileRenderer::setFrameCount(int frameCount) {
-  mFrameCount = frameCount;
+TreeManager* TileRenderer::getTreeManager() const {
+  return mTreeMgr;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void TileRenderer::setModel(glm::dmat4 const& m) {
   mMatM = m;
+  mMatN = glm::transpose(glm::inverse(mMatM));
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
