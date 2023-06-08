@@ -40,6 +40,8 @@ class Plugin : public cs::core::PluginBase {
         TerrainProjectionType::eHybrid};
 
     /// Specifies the amount of detail of the planet's surface. Should be in the range 1-100.
+    /// This only reflects the LoD factor if auto-LoD is disabled. If auto-LoD is enabled, this will
+    /// not be updated.
     cs::utils::DefaultProperty<float> mLODFactor{15.F};
 
     /// If set to true, the level-of-detail will be chosen automatically based on the current
@@ -161,7 +163,7 @@ class Plugin : public cs::core::PluginBase {
   std::shared_ptr<Settings>                       mPluginSettings = std::make_shared<Settings>();
   std::shared_ptr<GLResources>                    mGLResources;
   std::map<std::string, std::shared_ptr<LodBody>> mLodBodies;
-  float                                           mNonAutoLod{};
+  float                                           mAutoLod{};
 
   int mActiveObjectConnection = -1;
   int mOnLoadConnection       = -1;

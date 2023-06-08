@@ -196,8 +196,12 @@ void Plugin::init() {
       "Specifies the amount of detail of the planet's surface. Should be in the range 1-100.",
       std::function(
           [this](double value) { mPluginSettings->mLODFactor = static_cast<float>(value); }));
-  mPluginSettings->mLODFactor.connectAndTouch(
-      [this](float value) { mGuiManager->setSliderValue("lodBodies.setTerrainLod", value); });
+  mPluginSettings->mLODFactor.connectAndTouch([this](float value) {
+    for (auto&& body : mLodBodies) {
+      body.second->setLODFactor(value);
+    }
+    mGuiManager->setSliderValue("lodBodies.setTerrainLod", value);
+  });
 
   mGuiManager->getGui()->registerCallback("lodBodies.setEnableAutoTerrainLod",
       "If set to true, the level-of-detail will be chosen automatically based on the current "
@@ -360,22 +364,15 @@ void Plugin::init() {
             "CosmoScout.sidebar.setTabEnabled", "Body Settings", tabEnabled);
       });
 
-  mNonAutoLod = mPluginSettings->mLODFactor.get();
+  mAutoLod = mPluginSettings->mLODFactor.get();
 
+  // If auto-LoD gets enabled, the auto-LoD factor gets initialized with the current manual LoD
+  // factor. If it is disabled, we reset the slider position to the manual LoD.
   mPluginSettings->mAutoLOD.connect([this](bool enabled) {
     if (enabled) {
-      mNonAutoLod = mPluginSettings->mLODFactor.get();
+      mAutoLod = mPluginSettings->mLODFactor.get();
     } else {
-      mPluginSettings->mLODFactor = mNonAutoLod;
-      mGuiManager->getGui()->callJavascript(
-          "CosmoScout.gui.setSliderValue", "lodBodies.setTerrainLod", false, mNonAutoLod);
-    }
-  });
-
-  mPluginSettings->mLODFactor.connect([this](float value) {
-    if (mPluginSettings->mAutoLOD()) {
-      mGuiManager->getGui()->callJavascript(
-          "CosmoScout.gui.setSliderValue", "lodBodies.setTerrainLod", false, value);
+      mGuiManager->setSliderValue("lodBodies.setTerrainLod", mPluginSettings->mLODFactor.get());
     }
   });
 
@@ -458,14 +455,21 @@ void Plugin::update() {
     double maxTime = mPluginSettings->mAutoLODFrameTimeRange.get().y;
 
     if (cs::utils::FrameStats::get().pFrameTime.get() > maxTime) {
-      mPluginSettings->mLODFactor = static_cast<float>(std::max(minLODFactor,
-          mPluginSettings->mLODFactor.get() -
+      mAutoLod = static_cast<float>(std::max(minLODFactor,
+          mAutoLod -
               std::min(1.0, 0.1 * (cs::utils::FrameStats::get().pFrameTime.get() - maxTime))));
     } else if (cs::utils::FrameStats::get().pFrameTime.get() < minTime) {
-      mPluginSettings->mLODFactor = static_cast<float>(std::min(maxLODFactor,
-          mPluginSettings->mLODFactor.get() +
+      mAutoLod = static_cast<float>(std::min(maxLODFactor,
+          mAutoLod +
               std::min(1.0, 0.02 * (minTime - cs::utils::FrameStats::get().pFrameTime.get()))));
     }
+
+    // Apply the computed LoD factor.
+    for (auto&& body : mLodBodies) {
+      body.second->setLODFactor(mAutoLod);
+    }
+
+    mGuiManager->setSliderValue("lodBodies.setTerrainLod", mAutoLod);
   }
 
   for (auto const& [name, body] : mLodBodies) {
