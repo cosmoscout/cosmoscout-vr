@@ -250,6 +250,16 @@ cmake "${CMAKE_FLAGS[@]}" -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" -DCMAKE_UNITY_BU
       -DOPENSG_BUILD_TESTS=Off -DCMAKE_BUILD_TYPE=$BUILD_TYPE "$EXTERNALS_DIR/opensg-1.8"
 cmake --build . --target install --parallel "$(nproc)"
 
+# OpenVR ------------------------------------------------------------------------------------------
+
+echo ""
+echo "Building and installing OpenVR ..."
+echo ""
+
+cmake -E copy_directory "$EXTERNALS_DIR/openvr/bin/linux64" "$INSTALL_DIR/bin"
+cmake -E copy_directory "$EXTERNALS_DIR/openvr/lib/linux64" "$INSTALL_DIR/lib"
+cmake -E copy_directory "$EXTERNALS_DIR/openvr/headers"     "$INSTALL_DIR/include/openvr"
+
 # vista --------------------------------------------------------------------------------------------
 
 echo ""
@@ -259,6 +269,7 @@ echo ""
 cmake -E make_directory "$BUILD_DIR/vista" && cd "$BUILD_DIR/vista"
 cmake "${CMAKE_FLAGS[@]}" -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" -DCMAKE_UNITY_BUILD=$UNITY_BUILD \
       -DVISTA_USE_PRECOMPILED_HEADERS=$PRECOMPILED_HEADERS \
+      -DVISTACORELIBS_USE_OPENVR=On -DVISTADRIVERS_BUILD_OPENVR=On -DOPENVR_ROOT_DIR="$INSTALL_DIR" \
       -DCMAKE_CXX_FLAGS="-std=c++11" -DVISTADRIVERS_BUILD_3DCSPACENAVIGATOR=On \
       -DVISTACORELIBS_USE_INFINITE_REVERSE_PROJECTION=On \
       -DVISTADEMO_ENABLED=Off -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DOPENSG_ROOT_DIR="$INSTALL_DIR" \
