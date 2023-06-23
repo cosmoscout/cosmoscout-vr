@@ -59,7 +59,7 @@ void CelestialObject::setExistenceAsStrings(std::array<std::string, 2> value) {
 
 glm::dvec3 const& CelestialObject::getRadii() const {
 
-  // If no radii were given to the object, we try once to get the from SPICE.
+  // If no radii were given to the object, we try once to get them from SPICE.
   if (mRadii == glm::dvec3(0.0) && mRadiiFromSPICE == glm::dvec3(-1.0)) {
     // get target id code
     SpiceInt     id{};
@@ -103,6 +103,12 @@ glm::dvec3 const& CelestialObject::getRadii() const {
 
 void CelestialObject::setRadii(glm::dvec3 value) {
   mRadii = std::move(value);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+bool CelestialObject::hasCustomRadii() const {
+  return mRadii != glm::dvec3(0.0);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

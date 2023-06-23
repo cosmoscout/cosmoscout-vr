@@ -110,14 +110,31 @@ void to_json(nlohmann::json&                                                    
     cs::core::Settings::serialize(i, "center", object->getCenterName());
     cs::core::Settings::serialize(i, "frame", object->getFrameName());
     cs::core::Settings::serialize(i, "existence", object->getExistenceAsStrings());
-    cs::core::Settings::serialize(i, "position", object->getPosition());
-    cs::core::Settings::serialize(i, "rotation", object->getRotation());
-    cs::core::Settings::serialize(i, "size", object->getScale());
-    cs::core::Settings::serialize(i, "radii", object->getRadii());
-    cs::core::Settings::serialize(i, "bodyCullingRadius", object->getBodyCullingRadius());
-    cs::core::Settings::serialize(i, "orbitCullingRadius", object->getOrbitCullingRadius());
-    cs::core::Settings::serialize(i, "trackable", object->getIsTrackable());
-    cs::core::Settings::serialize(i, "collidable", object->getIsCollidable());
+
+    if (object->getPosition() != glm::dvec3(0.0, 0.0, 0.0)) {
+      cs::core::Settings::serialize(i, "position", object->getPosition());
+    }
+    if (object->getRotation() != glm::dquat(1.0, 0.0, 0.0, 0.0)) {
+      cs::core::Settings::serialize(i, "rotation", object->getRotation());
+    }
+    if (object->getScale() != 1.0) {
+      cs::core::Settings::serialize(i, "scale", object->getScale());
+    }
+    if (object->hasCustomRadii()) {
+      cs::core::Settings::serialize(i, "radii", object->getRadii());
+    }
+    if (object->getBodyCullingRadius() != 0) {
+      cs::core::Settings::serialize(i, "bodyCullingRadius", object->getBodyCullingRadius());
+    }
+    if (object->getOrbitCullingRadius() != 0) {
+      cs::core::Settings::serialize(i, "orbitCullingRadius", object->getOrbitCullingRadius());
+    }
+    if (!object->getIsTrackable()) {
+      cs::core::Settings::serialize(i, "trackable", object->getIsTrackable());
+    }
+    if (!object->getIsCollidable()) {
+      cs::core::Settings::serialize(i, "collidable", object->getIsCollidable());
+    }
 
     j[name] = i;
   }
