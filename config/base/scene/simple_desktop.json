@@ -715,8 +715,8 @@
     }
   },
   "plugins": {
-    "csp-timings": {},
-    "csp-stars": {
+    "#csp-timings": {},
+    "#csp-stars": {
       "celestialGridTexture": "../share/resources/textures/celestial_grid.png",
       "starFiguresTexture": "../share/resources/textures/constellation_figures.png",
       "celestialGridColor": [
@@ -735,7 +735,7 @@
       "hipparcosCatalog": "../share/download/stars/hip_main.dat",
       "tycho2Catalog": "../share/download/stars/tyc2_main.dat"
     },
-    "csp-atmospheres": {
+    "#csp-atmospheres": {
       "atmospheres": {
         "Earth": {
           "height": 80000,
@@ -776,7 +776,7 @@
         }
       }
     },
-    "csp-measurement-tools": {},
+    "#csp-measurement-tools": {},
     "csp-simple-bodies": {
       "bodies": {
         "Sun": {
@@ -895,7 +895,7 @@
         }
       }
     },
-    "csp-rings": {
+    "#csp-rings": {
       "rings": {
         "Saturn": {
           "texture": "../share/resources/textures/saturn-rings.png",
@@ -904,7 +904,26 @@
         }
       }
     },
-    "csp-anchor-labels": {
+    "csp-wfs-overlays": {
+      "enabled": true,
+      "wfs": [
+        "https://maps.dwd.de/geoserver/dwd/wfs",
+        "https://geoservice.dlr.de/eoc/basemap/wfs"
+      ]
+    },
+    "csp-wms-overlays": {
+      "maxTextureSize": 1024,
+      "preFetch": 1,
+      "bodies": {
+        "Earth": {
+          "wms": [
+            "https://maps.dwd.de/geoserver/dwd/wms",
+            "https://geotest.eoc.dlr.de/eoc/atmosphere/wms"
+          ]
+        }
+      }
+    },
+    "#csp-anchor-labels": {
       "enabled": true,
       "enableDepthOverlap": true,
       "ignoreOverlapThreshold": 0.1,
@@ -922,7 +941,7 @@
         "Barycenter"
       ]
     },
-    "csp-trajectories": {
+    "#csp-trajectories": {
       "trajectories": {
         "Sun": {
           "color": [
@@ -1352,7 +1371,7 @@
       }
     },
     "csp-fly-to-locations": {},
-    "csp-minimap": {
+    "#csp-minimap": {
       "defaultMap": {
         "projection": "equirectangular",
         "type": "wms",
@@ -1390,7 +1409,7 @@
         }
       }
     },
-    "csp-vr-accessibility": {
+    "#csp-vr-accessibility": {
       "grid": {
         "enabled": false,
         "size": 0.5,
