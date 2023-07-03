@@ -19,6 +19,9 @@
 #include "../../../src/cs-core/Settings.hpp"
 #include "../../../src/cs-scene/CelestialSurface.hpp"
 #include "../../../src/cs-scene/IntersectableObject.hpp"
+
+#include <memory>
+
 #include "Plugin.hpp"
 
 namespace cs::core {
@@ -79,6 +82,8 @@ class SimpleBody : public cs::scene::CelestialSurface,
   VistaBufferObject             mSphereVBO;
   VistaBufferObject             mSphereIBO;
 
+  std::unique_ptr<VistaTexture> mRingTexture;
+
   cs::core::EclipseShadowReceiver mEclipseShadowReceiver;
 
   bool mShaderDirty = true;
@@ -95,6 +100,8 @@ class SimpleBody : public cs::scene::CelestialSurface,
     uint32_t projectionMatrix  = 0;
     uint32_t surfaceTexture    = 0;
     uint32_t radii             = 0;
+    uint32_t ringTexture       = 0;
+    uint32_t ringRadii         = 0;
   } mUniforms;
 
   static const char* SPHERE_VERT;

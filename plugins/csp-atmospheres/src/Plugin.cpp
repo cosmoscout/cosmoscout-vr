@@ -11,6 +11,7 @@
 #include "../../../src/cs-core/GraphicsEngine.hpp"
 #include "../../../src/cs-core/GuiManager.hpp"
 #include "../../../src/cs-core/SolarSystem.hpp"
+#include "../../../src/cs-core/TimeControl.hpp"
 #include "../../../src/cs-utils/logger.hpp"
 #include "logger.hpp"
 
@@ -67,6 +68,7 @@ void from_json(nlohmann::json const& j, Plugin::Settings::Atmosphere& o) {
   cs::core::Settings::deserialize(j, "model", o.mModel);
   cs::core::Settings::deserialize(j, "modelSettings", o.mModelSettings);
   cs::core::Settings::deserialize(j, "enableWater", o.mEnableWater);
+  cs::core::Settings::deserialize(j, "enableWaves", o.mEnableWaves);
   cs::core::Settings::deserialize(j, "waterLevel", o.mWaterLevel);
   cs::core::Settings::deserialize(j, "enableClouds", o.mEnableClouds);
   cs::core::Settings::deserialize(j, "cloudTexture", o.mCloudTexture);
@@ -78,6 +80,7 @@ void to_json(nlohmann::json& j, Plugin::Settings::Atmosphere const& o) {
   cs::core::Settings::serialize(j, "model", o.mModel);
   cs::core::Settings::serialize(j, "modelSettings", o.mModelSettings);
   cs::core::Settings::serialize(j, "enableWater", o.mEnableWater);
+  cs::core::Settings::serialize(j, "enableWaves", o.mEnableWaves);
   cs::core::Settings::serialize(j, "waterLevel", o.mWaterLevel);
   cs::core::Settings::serialize(j, "enableClouds", o.mEnableClouds);
   cs::core::Settings::serialize(j, "cloudTexture", o.mCloudTexture);
@@ -121,6 +124,7 @@ void Plugin::init() {
 
             auto settings = mPluginSettings->mAtmospheres.at(atmosphere.first);
             mGuiManager->setCheckboxValue("atmosphere.setEnableWater", settings.mEnableWater.get());
+            mGuiManager->setCheckboxValue("atmosphere.setEnableWaves", settings.mEnableWaves.get());
             mGuiManager->setSliderValue("atmosphere.setWaterLevel", settings.mWaterLevel.get());
             mGuiManager->setCheckboxValue(
                 "atmosphere.setEnableClouds", settings.mEnableClouds.get());
@@ -135,6 +139,16 @@ void Plugin::init() {
         if (!mActiveAtmosphere.empty()) {
           auto& settings        = mPluginSettings->mAtmospheres.at(mActiveAtmosphere);
           settings.mEnableWater = enable;
+          mAtmospheres.at(mActiveAtmosphere)->configure(settings);
+        }
+      }));
+
+  mGuiManager->getGui()->registerCallback("atmosphere.setEnableWaves",
+      "Enables or disables rendering of waves on the water surface.",
+      std::function([this](bool enable) {
+        if (!mActiveAtmosphere.empty()) {
+          auto& settings        = mPluginSettings->mAtmospheres.at(mActiveAtmosphere);
+          settings.mEnableWaves = enable;
           mAtmospheres.at(mActiveAtmosphere)->configure(settings);
         }
       }));
@@ -205,7 +219,7 @@ void Plugin::deInit() {
 
 void Plugin::update() {
   for (auto const& atmosphere : mAtmospheres) {
-    atmosphere.second->update();
+    atmosphere.second->update(mTimeControl->pSimulationTime.get());
   }
 }
 

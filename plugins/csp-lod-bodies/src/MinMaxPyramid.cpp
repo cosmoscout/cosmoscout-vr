@@ -6,7 +6,7 @@
 // SPDX-License-Identifier: MIT
 
 #include "MinMaxPyramid.hpp"
-#include "Tile.hpp"
+#include "TileData.hpp"
 
 namespace csp::lodbodies {
 
@@ -16,7 +16,7 @@ namespace csp::lodbodies {
 // tested before using it agin :)                                                                 //
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-MinMaxPyramid::MinMaxPyramid(Tile<float>* tile)
+MinMaxPyramid::MinMaxPyramid(TileData<float>* tile)
     : mTileResolution(tile->getResolution())
     , mLevels(static_cast<uint32_t>(std::log2(mTileResolution)) - 1)
     , mMinPyramid(mLevels)

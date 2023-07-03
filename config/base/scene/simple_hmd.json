@@ -839,7 +839,12 @@
           "texture": "../share/resources/textures/callisto.jpg"
         },
         "Saturn": {
-          "texture": "../share/resources/textures/saturn.jpg"
+          "texture": "../share/resources/textures/saturn.jpg",
+          "ring": {
+            "texture": "../share/resources/textures/saturn-rings.png",
+            "innerRadius": 67000000,
+            "outerRadius": 140210000
+          }
         },
         "Mimas": {
           "texture": "../share/resources/textures/mimas.jpg",

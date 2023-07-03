@@ -5,70 +5,103 @@
 // SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
 // SPDX-License-Identifier: MIT
 
-#include "TileBase.hpp"
+#include "TileVisitor.hpp"
+
+#include "HEALPix.hpp"
+#include "TileId.hpp"
+#include "TileQuadTree.hpp"
 
 namespace csp::lodbodies {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-/* explicit */
-TileBase::TileBase(int level, glm::int64 patchIdx, uint32_t resolution)
-    : mTileId(level, patchIdx)
-    , mResolution(resolution) {
+TileVisitor::TileVisitor(TileQuadTree* tree)
+    : mTree(tree) {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-TileId const& TileBase::getTileId() const {
-  return mTileId;
+void TileVisitor::visit() {
+  if (preTraverse()) {
+    for (int i = 0; i < TileQuadTree::sNumRoots; ++i) {
+      TileNode* root = mTree->getRoot(i);
+      visitRoot(root);
+    }
+  }
+
+  postTraverse();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void TileBase::setTileId(TileId const& tileId) {
-  mTileId = tileId;
+void TileVisitor::visitRoot(TileNode* root) {
+
+  if (preVisitRoot(root)) {
+    for (int i = 0; i < 4; ++i) {
+      TileNode* child = root ? root->getChild(i) : nullptr;
+
+      if (child) {
+        visitLevel(child);
+      }
+    }
+  }
+
+  postVisitRoot(root);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-uint32_t TileBase::getResolution() const {
-  return mResolution;
+void TileVisitor::visitLevel(TileNode* node) {
+  if (preVisit(node)) {
+    for (int i = 0; i < 4; ++i) {
+      TileNode* child = node ? node->getChild(i) : nullptr;
+
+      if (child) {
+        visitLevel(child);
+      }
+    }
+  }
+
+  postVisit(node);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-int TileBase::getLevel() const {
-  return mTileId.level();
+bool TileVisitor::preTraverse() {
+  // default impl - start traversal
+  return true;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void TileBase::setLevel(int level) {
-  mTileId.level(level);
+void TileVisitor::postTraverse() {
+  // default impl - empty
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-glm::int64 TileBase::getPatchIdx() const {
-  return mTileId.patchIdx();
+bool TileVisitor::preVisitRoot(TileNode* /*root*/) {
+  // default impl - do not visit children
+  return false;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void TileBase::setPatchIdx(glm::int64 patchIdx) {
-  mTileId.patchIdx(patchIdx);
+void TileVisitor::postVisitRoot(TileNode* /*root*/) {
+  // default impl - empty
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-MinMaxPyramid* TileBase::getMinMaxPyramid() const {
-  return mMinMaxPyramid.get();
+bool TileVisitor::preVisit(TileNode* /*node*/) {
+  // default impl - do not visit children
+  return false;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void TileBase::setMinMaxPyramid(std::unique_ptr<MinMaxPyramid> pyramid) {
-  mMinMaxPyramid = std::move(pyramid);
+void TileVisitor::postVisit(TileNode* /*node*/) {
+  // default impl - empty
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

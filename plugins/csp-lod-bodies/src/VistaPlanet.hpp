@@ -21,11 +21,10 @@ class VistaSystem;
 
 namespace csp::lodbodies {
 
-class TileBase;
+class BaseTileData;
 class TileNode;
 class TileSource;
-class RenderDataDEM;
-class RenderDataImg;
+class BaseTileData;
 class TerrainShader;
 
 /// Renders a planet from databases of hierarchical tiles.
@@ -72,19 +71,12 @@ class VistaPlanet : public cs::graphics::ShadowCaster {
   /// Returns the currently active shader for terrain rendering.
   TerrainShader* getTerrainShader() const;
 
-  /// Sets the tile source for elevation data. This class does not take ownership of the passed in
-  /// object.
-  void setDEMSource(TileSource* srcDEM);
+  /// Sets the tile source for the given channel. This class does not take ownership of the passed
+  /// in object.
+  void setDataSource(TileDataType type, TileSource* src);
 
-  /// Returns the currently active source for elevation data.
-  TileSource* getDEMSource() const;
-
-  /// Set the tile source for image data. This class does not take ownership of the passed in
-  /// object.
-  void setIMGSource(TileSource* srcIMG);
-
-  /// Returns the currently active source for image data.
-  TileSource* getIMGSource() const;
+  /// Returns the currently active source for the given channel.
+  TileSource* getDataSource(TileDataType type) const;
 
   /// Set planet radii. This is a potentially expensive operation since it invalidates
   /// the cached bounding volume for all tiles and requires recalculating them.
@@ -119,33 +111,27 @@ class VistaPlanet : public cs::graphics::ShadowCaster {
 
  private:
   void updateStatistics(int frameCount);
-  void updateTileBounds();
   void updateTileTrees(int frameCount);
-  void traverseTileTrees(int frameCount, glm::dmat4 const& matM, glm::mat4 const& matV,
-      glm::mat4 const& matP, glm::ivec4 const& viewport);
+  void traverseTileTrees(
+      int frameCount, glm::dmat4 const& matM, glm::mat4 const& matV, glm::mat4 const& matP);
   void processLoadRequests();
-  void renderTiles(int frameCount, glm::dmat4 const& matM, glm::mat4 const& matV,
-      glm::mat4 const& matP, cs::graphics::ShadowMap* shadowMap);
+  void renderTiles(glm::dmat4 const& matM, glm::mat4 const& matV, glm::mat4 const& matP,
+      cs::graphics::ShadowMap* shadowMap);
 
-  glm::mat4         getViewMatrix() const;
-  static glm::mat4  getProjectionMatrix();
-  static glm::ivec4 getViewport();
+  glm::mat4        getViewMatrix() const;
+  static glm::mat4 getProjectionMatrix();
 
-  static glm::uint8 const sFlagTileBoundsInvalid = 0x01;
-  static bool             sGlewInitialized;
+  static bool sGlewInitialized;
 
   glm::dmat4 mWorldTransform;
   bool       mEnabled = false;
 
   PlanetParameters mParams;
+  TreeManager      mTreeMgr;
   LODVisitor       mLodVisitor;
   TileRenderer     mRenderer;
 
-  TileSource*                mSrcDEM;
-  TreeManager<RenderDataDEM> mTreeMgrDEM;
-
-  TileSource*                mSrcIMG;
-  TreeManager<RenderDataImg> mTreeMgrIMG;
+  PerDataType<TileSource*> mTileDataSources;
 
   // global statistics
   double      mLastFrameClock;
@@ -155,8 +141,6 @@ class VistaPlanet : public cs::graphics::ShadowCaster {
 
   std::size_t mMaxDrawTiles;
   std::size_t mMaxLoadTiles;
-
-  glm::uint8 mFlags;
 };
 } // namespace csp::lodbodies
 #endif // CSP_LOD_BODIES_VISTAPLANET_HPP

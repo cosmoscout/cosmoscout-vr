@@ -198,7 +198,15 @@ class HEALPix {
   static TileId getParentTileId(TileId const& childId);
 
  private:
-  static std::array<HEALPixLevel, 20> const sLevels;
+  // The maximum depth of the HEALPix tree limits the resolution we can display data at. For Earth,
+  // the base patches have a edge length of about 7000 km. Hence the edge length at level i is about
+  //
+  // r = 7000 km / 2^i
+  //
+  // The HEALPix code seems to be limited to 30 levels. This results in a minimum tile size of about
+  // 13 mm. If, for example, each tile has a resolution of 256 data points, the minimum spacing of
+  // adjacent vertices would be about 0.05 mm.
+  static std::array<HEALPixLevel, 30> const sLevels;
 };
 } // namespace csp::lodbodies
 

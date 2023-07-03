@@ -16,17 +16,18 @@ SPDX-License-Identifier: CC-BY-4.0
 #### New Features
 
 * The `csp-timings` plugin now also shows the number of generated samples and primitives in the user interface.
+* The `csp-timings` plugin now shows the timings in the world-space gui-area per default. The old behavior can be restored with `"useLocalGui": true` in the plugin's settings.
 * A new "Ambient Occlusion" slider in the user interface can be used to control the amount of slope shading on the terrain.
-
-#### Other Changes
-
-* In order to improve the rendering performance, the stars of `csp-stars` are not drawn anymore if the observer is on the day-side of a planet with an atmosphere.
+* The water surface shader of `csp-atmospheres` has been improved significantly. It now reflects the sky and features some beautiful waves. The waves can be disabled as they are quite demanding in terms of GPU power. Both, the reflections and the waves are not physically based in any way; they are mostly intended for presentation purposes.
+* Bodies in `csp-simple-bodies` can now be shaded by a ring. 
 
 #### Refactoring
 
 * The `csp-lod-bodies` plugin has received some major refactoring. Here are the main changes:
   * The terrain tiles are not stitched together anymore, instead, skirt polygons are drawn around the tiles to hide any seams.
   * The resolution of the tile's elevation and image data are now configurable (via the new `tileResolutionDEM` and `tileResolutionIMG` settings keys).
+  * The image channel now uses RGBA instead of RGB internally in order to improve graphics performance thanks to proper four-byte alignment.
+  * The number of maximum tile uploads to the GPU has been reduced from 20 to 5 per channel in order to reduce performance drops during tile loading.
   * It is not required anymore to set the `format` of the terrain data sources anymore.
   * There's a new `autoLodRange` option for setting the LoD-Factor range which is used if auto-lod is enabled.
 * The `csp-atmospheres` plugin received a major refactoring. Here are the main changes:
@@ -41,13 +42,21 @@ SPDX-License-Identifier: CC-BY-4.0
 
 #### Other Changes
 
+* A couple of changes and fixes were added in order to support much higher resolution map data:
+  * Increased maximum HEALPix depth from 20 to 30. This reduces our minimum tile size from about 13 m to 13 mm.
+  * Improved the scene scaling of the default configuration to allow for a smoother navigation close to the surface.
+  * Fixed an issue which led to an accumulated error in the rotation quaternion of the observer.
+  * Fixed an issue which caused precision issues for very small movements of the click-and-drag navigation.
+  * The world-space depth reconstruction in the atmosphere shader now operates relative to the camera, resulting in a much higher precision if the user is close to the surface. This will allow us to create a very dense media, for example for under-water scenes.
 * In order to improve the rendering performance, the stars of `csp-stars` are not drawn anymore if the observer is on the day-side of a planet with an atmosphere.
 * The default exposure and glare values as well as the glare-slider mapping have been tweaked for a better appearance of the atmospheres in HDR mode.
 * The default star rendering mode has been changed to `eSmoothDisc`
+* When saving the scene with `CosmoScout.callbacks.core.save(...)`, optional properties of the celestial objects are not written anymore. This also fixes a warning about the Barycenter having no radii.
 
 #### Bug Fixes
 
 * The user interface now avoids rerenders of components that did not change. This lead to the whole UI rerendering most of the time. 
+* There were some scenarios where corrupt tiff files in the map-cache directory weren't removed. Appropriate error handling has been added.
 
 
 ## [v1.7.0](https://github.com/cosmoscout/cosmoscout-vr/releases)
