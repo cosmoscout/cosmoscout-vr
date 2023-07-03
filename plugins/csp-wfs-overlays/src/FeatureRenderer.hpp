@@ -19,20 +19,21 @@
 namespace csp::wfsoverlays { 
   class FeatureRenderer : public IVistaOpenGLDraw {
     public:
-      FeatureRenderer(WFSFeatureCollection collection, std::shared_ptr<cs::core::SolarSystem> solarSystem); // Constructor
+      FeatureRenderer(std::shared_ptr<GeometryBase> feature, std::shared_ptr<cs::core::SolarSystem> solarSystem); // Base Constructor (I'll have to change it)
       glm::vec3 getCoordinates(int i) const;
       bool Do() override;
       bool GetBoundingBox(VistaBoundingBox& bb) override;
     private:
-    std::vector<glm::vec3> coordinates;
-    std::unique_ptr<VistaOpenGLNode> mGLNode;
-    std::shared_ptr<cs::core::SolarSystem> mSolarSystem;
+      std::vector<glm::vec3> coordinates;
+      std::unique_ptr<VistaOpenGLNode> mGLNode;
+      std::shared_ptr<cs::core::SolarSystem> mSolarSystem;
+      std::string mType;
 
-    unsigned int VAO;
-    unsigned int shaderProgram;
+      unsigned int VAO;
+      unsigned int shaderProgram;
 
-    static const char* FEATURE_VERT;
-    static const char* FEATURE_FRAG;
+      static const char* FEATURE_VERT;
+      static const char* FEATURE_FRAG;
   };
 }
 
