@@ -126,23 +126,24 @@ bool Model::init(
     logger().error("Failed to parse atmosphere parameters: {}", e.what());
   }
 
-  // Maximum number density of ozone molecules, in m^-3 (computed so at to get
-  // 300 Dobson units of ozone - for this we divide 300 DU by the integral of
-  // the ozone density profile defined below, which is equal to 15km).
-  double maxOzoneNumberDensity = 300.0 * DOBSON_UNIT / 15000.0;
-  double maxSunZenithAngle     = (HALF_PRECISION ? 102.0 : 120.0) / 180.0 * glm::pi<double>();
-
+  auto                          layer = settings.mComponents[0].mLayers[0];
   internal::DensityProfileLayer rayleighLayer(
-      0.0, 1.0, -1.0 / settings.mRayleighScaleHeight, 0.0, 0.0);
-  internal::DensityProfileLayer mieLayer(0.0, 1.0, -1.0 / settings.mMieScaleHeight, 0.0, 0.0);
+      layer.mWidth, layer.mExpTerm, layer.mExpScale, layer.mLinearTerm, layer.mConstantTerm);
+  layer = settings.mComponents[1].mLayers[0];
+  internal::DensityProfileLayer mieLayer(
+      layer.mWidth, layer.mExpTerm, layer.mExpScale, layer.mLinearTerm, layer.mConstantTerm);
 
   // Density profile increasing linearly from 0 to 1 between 10 and 25km, and
   // decreasing linearly from 1 to 0 between 25 and 40km. This is an approximate
   // profile from http://www.kln.ac.lk/science/Chemistry/Teaching_Resources/
   // Documents/Introduction%20to%20atmospheric%20chemistry.pdf (page 10).
   std::vector<internal::DensityProfileLayer> ozoneDensity;
-  ozoneDensity.emplace_back(25000.0, 0.0, 0.0, 1.0 / 15000.0, -2.0 / 3.0);
-  ozoneDensity.emplace_back(0.0, 0.0, 0.0, -1.0 / 15000.0, 8.0 / 3.0);
+  layer = settings.mComponents[2].mLayers[0];
+  ozoneDensity.emplace_back(
+      layer.mWidth, layer.mExpTerm, layer.mExpScale, layer.mLinearTerm, layer.mConstantTerm);
+  layer = settings.mComponents[2].mLayers[1];
+  ozoneDensity.emplace_back(
+      layer.mWidth, layer.mExpTerm, layer.mExpScale, layer.mLinearTerm, layer.mConstantTerm);
 
   std::vector<double> wavelengths;
   std::vector<double> solarIrradiance;
@@ -152,25 +153,35 @@ bool Model::init(
   std::vector<double> absorptionExtinction;
   std::vector<double> groundAlbedo;
 
+  // Maximum number density of ozone molecules, in m^-3 (computed so at to get
+  // 300 Dobson units of ozone - for this we divide 300 DU by the integral of
+  // the ozone density profile defined below, which is equal to 15km).
+  double maxOzoneNumberDensity      = 300.0 * DOBSON_UNIT / 15000.0;
+  double mRayleigh                  = 1.24062e-6;
+  double mMieScaleHeight            = 1200.0;
+  double mMieAngstromAlpha          = 0.0;
+  double mMieAngstromBeta           = 5.328e-3;
+  double mMieSingleScatteringAlbedo = 0.9;
+  double mMiePhaseFunctionG         = 0.8;
+
   for (int l = LAMBDA_MIN; l <= LAMBDA_MAX; l += 10) {
     double lambda = static_cast<double>(l) * 1e-3; // micro-meters
-    double mie    = settings.mMieAngstromBeta / settings.mMieScaleHeight *
-                 pow(lambda, -settings.mMieAngstromAlpha);
+    double mie    = mMieAngstromBeta / mMieScaleHeight * pow(lambda, -mMieAngstromAlpha);
     wavelengths.push_back(l);
     solarIrradiance.push_back(SOLAR_IRRADIANCE[(l - LAMBDA_MIN) / 10]);
-    rayleighScattering.push_back(settings.mRayleigh * pow(lambda, -4));
-    mieScattering.push_back(mie * settings.mMieSingleScatteringAlbedo);
+    rayleighScattering.push_back(mRayleigh * pow(lambda, -4));
+    mieScattering.push_back(mie * mMieSingleScatteringAlbedo);
     mieExtinction.push_back(mie);
     absorptionExtinction.push_back(
-        settings.mUseOzone.get()
-            ? maxOzoneNumberDensity * OZONE_CROSS_SECTION[(l - LAMBDA_MIN) / 10]
-            : 0.0);
+        maxOzoneNumberDensity * OZONE_CROSS_SECTION[(l - LAMBDA_MIN) / 10]);
     groundAlbedo.push_back(settings.mGroundAlbedo.get());
   }
 
+  double maxSunZenithAngle = (HALF_PRECISION ? 102.0 : 120.0) / 180.0 * glm::pi<double>();
+
   mModel.reset(new internal::Model(wavelengths, solarIrradiance, settings.mSunAngularRadius,
       planetRadius, atmosphereRadius, {rayleighLayer}, rayleighScattering, {mieLayer},
-      mieScattering, mieExtinction, settings.mMiePhaseFunctionG, ozoneDensity, absorptionExtinction,
+      mieScattering, mieExtinction, mMiePhaseFunctionG, ozoneDensity, absorptionExtinction,
       groundAlbedo, maxSunZenithAngle, 1.0, LUMINANCE_MODE == PRECOMPUTED ? 15 : 3,
       COMBINED_TEXTURES, HALF_PRECISION));
 

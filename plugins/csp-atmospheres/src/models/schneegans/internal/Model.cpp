@@ -1093,4 +1093,4 @@ void Model::Precompute(GLuint fbo, GLuint delta_irradiance_texture,
   glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, 0, 0);
 }
 
-} // namespace csp::atmospheres::models::bruneton::internal
+} // namespace csp::atmospheres::models::schneegans::internal
