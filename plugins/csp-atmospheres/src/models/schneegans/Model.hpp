@@ -21,6 +21,8 @@ namespace csp::atmospheres::models::schneegans {
 class Model : public ModelBase {
  public:
   struct Settings {
+    enum class Config { eCustom, eCostaMars, eCostaEarth, eCollienne };
+
     struct Layer {
       double mWidth;
       double mExpTerm;
@@ -38,6 +40,7 @@ class Model : public ModelBase {
     double                             mSunAngularRadius = 0.004675;
     std::vector<Component>             mComponents;
     cs::utils::DefaultProperty<double> mGroundAlbedo{0.1};
+    cs::utils::DefaultProperty<Config> mConfig{Config::eCustom};
   };
 
   /// Whenever the model parameters are changed, this method needs to be called. It will return true

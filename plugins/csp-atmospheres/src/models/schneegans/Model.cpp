@@ -9,6 +9,7 @@
 #include "Model.hpp"
 
 #include "../../logger.hpp"
+#include "internal/CSVLoader.hpp"
 
 #include <glm/gtc/constants.hpp>
 
@@ -16,11 +17,46 @@ namespace csp::atmospheres::models::schneegans {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void from_json(nlohmann::json const& j, Model::Settings::Config& o) {
+  auto s = j.get<std::string>();
+  if (s == "Custom") {
+    o = Model::Settings::Config::eCustom;
+  } else if (s == "CostaMars") {
+    o = Model::Settings::Config::eCostaMars;
+  } else if (s == "CostaEarth") {
+    o = Model::Settings::Config::eCostaEarth;
+  } else if (s == "Collienne") {
+    o = Model::Settings::Config::eCollienne;
+  } else {
+    throw std::runtime_error("Failed to parse Model::Settings::Config! Only 'Custom', 'CostaMars', "
+                             "'CostaEarth', or 'Collienne' are allowed.");
+  }
+}
+
+void to_json(nlohmann::json& j, Model::Settings::Config o) {
+  switch (o) {
+  case Model::Settings::Config::eCustom:
+    j = "Custom";
+    break;
+  case Model::Settings::Config::eCostaMars:
+    j = "CostaMars";
+    break;
+  case Model::Settings::Config::eCostaEarth:
+    j = "CostaEarth";
+    break;
+  case Model::Settings::Config::eCollienne:
+    j = "Collienne";
+    break;
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 // The parameterization and comments below are based on the demo application by Eric Bruneton. The
 // original source code can be found here:
 // https://github.com/ebruneton/precomputed_atmospheric_scattering/blob/master/atmosphere/demo/demo.cc
 
-enum Luminance {
+enum class Luminance {
   // Render the spectral radiance at kLambdaR, kLambdaG, kLambdaB.
   NONE,
   // Render the sRGB luminance, using an approximate (on the fly) conversion
@@ -35,9 +71,8 @@ enum Luminance {
   PRECOMPUTED
 };
 
-constexpr bool      HALF_PRECISION    = false;
-constexpr bool      COMBINED_TEXTURES = true;
-constexpr Luminance LUMINANCE_MODE    = Luminance::PRECOMPUTED;
+constexpr bool HALF_PRECISION    = false;
+constexpr bool COMBINED_TEXTURES = true;
 
 // Values from "Reference Solar Spectral Irradiance: ASTM G-173", ETR column
 // (see http://rredc.nrel.gov/solar/spectra/am1.5/ASTMG173/ASTMG173.html),
@@ -102,12 +137,14 @@ void to_json(nlohmann::json& j, Model::Settings::Component const& o) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void from_json(nlohmann::json const& j, Model::Settings& o) {
+  cs::core::Settings::deserialize(j, "config", o.mConfig);
   cs::core::Settings::deserialize(j, "sunAngularRadius", o.mSunAngularRadius);
   cs::core::Settings::deserialize(j, "components", o.mComponents);
   cs::core::Settings::deserialize(j, "groundAlbedo", o.mGroundAlbedo);
 }
 
 void to_json(nlohmann::json& j, Model::Settings const& o) {
+  cs::core::Settings::serialize(j, "config", o.mConfig);
   cs::core::Settings::serialize(j, "sunAngularRadius", o.mSunAngularRadius);
   cs::core::Settings::serialize(j, "components", o.mComponents);
   cs::core::Settings::serialize(j, "groundAlbedo", o.mGroundAlbedo);
@@ -152,29 +189,116 @@ bool Model::init(
   std::vector<double> mieExtinction;
   std::vector<double> absorptionExtinction;
   std::vector<double> groundAlbedo;
+  std::string         glslDefines;
+  Luminance           luminanceMode      = Luminance::PRECOMPUTED;
+  double              mMiePhaseFunctionG = 0.8;
 
-  // Maximum number density of ozone molecules, in m^-3 (computed so at to get
-  // 300 Dobson units of ozone - for this we divide 300 DU by the integral of
-  // the ozone density profile defined below, which is equal to 15km).
-  double maxOzoneNumberDensity      = 300.0 * DOBSON_UNIT / 15000.0;
-  double mRayleigh                  = 1.24062e-6;
-  double mMieScaleHeight            = 1200.0;
-  double mMieAngstromAlpha          = 0.0;
-  double mMieAngstromBeta           = 5.328e-3;
-  double mMieSingleScatteringAlbedo = 0.9;
-  double mMiePhaseFunctionG         = 0.8;
+  if (settings.mConfig.get() == Settings::Config::eCollienne) {
+    glslDefines = "#define CONFIG_TYPE_COLLIENNE";
 
-  for (int l = LAMBDA_MIN; l <= LAMBDA_MAX; l += 10) {
-    double lambda = static_cast<double>(l) * 1e-3; // micro-meters
-    double mie    = mMieAngstromBeta / mMieScaleHeight * pow(lambda, -mMieAngstromAlpha);
-    wavelengths.push_back(l);
-    solarIrradiance.push_back(SOLAR_IRRADIANCE[(l - LAMBDA_MIN) / 10]);
-    rayleighScattering.push_back(mRayleigh * pow(lambda, -4));
-    mieScattering.push_back(mie * mMieSingleScatteringAlbedo);
-    mieExtinction.push_back(mie);
-    absorptionExtinction.push_back(
-        maxOzoneNumberDensity * OZONE_CROSS_SECTION[(l - LAMBDA_MIN) / 10]);
-    groundAlbedo.push_back(settings.mGroundAlbedo.get());
+    luminanceMode = Luminance::APPROXIMATE;
+
+    wavelengths.push_back(internal::Model::kLambdaB);
+    wavelengths.push_back(internal::Model::kLambdaG);
+    wavelengths.push_back(internal::Model::kLambdaR);
+
+    for (auto l : wavelengths) {
+      solarIrradiance.push_back(SOLAR_IRRADIANCE[(l - LAMBDA_MIN) / 10] * 0.43);
+
+      constexpr double kMieAngstromAlpha          = 0.0;
+      constexpr double kMieAngstromBeta           = 5.328e-3;
+      constexpr double kMieSingleScatteringAlbedo = 0.9;
+      constexpr double kMieScaleHeight            = 11.1e3; // dust scale height
+
+      double mie = kMieAngstromBeta / kMieScaleHeight * pow(l, -kMieAngstromAlpha);
+      mieScattering.push_back(mie * kMieSingleScatteringAlbedo);
+      mieExtinction.push_back(mie);
+      absorptionExtinction.push_back(0.0);
+      groundAlbedo.push_back(0.1);
+    }
+
+    rayleighScattering.push_back(5.75e-6);
+    rayleighScattering.push_back(13.57e-6);
+    rayleighScattering.push_back(19.918e-6);
+
+  } else if (settings.mConfig.get() == Settings::Config::eCostaMars) {
+    glslDefines = "#define CONFIG_TYPE_COSTA";
+
+    luminanceMode = Luminance::APPROXIMATE;
+
+    wavelengths.push_back(internal::Model::kLambdaB);
+    wavelengths.push_back(internal::Model::kLambdaG);
+    wavelengths.push_back(internal::Model::kLambdaR);
+
+    internal::CSVLoader::ExtinctionSpectrum spectrum;
+    internal::CSVLoader::readExtinction(
+        "../share/resources/data/csp-atmospheres/MieExtinctionSpectrum.csv", &spectrum);
+
+    for (auto l : wavelengths) {
+
+      // watt / m^2
+      solarIrradiance.push_back(SOLAR_IRRADIANCE[(l - LAMBDA_MIN) / 10] * 0.43);
+
+      float n0 = 3e8;
+      n0 /= 11.1e3; // dust scale height
+      double mieCrossSectionExt =
+          spectrum.Cext[internal::CSVLoader::getIndex(l, spectrum.wavelengths)] * n0; // area m^2
+      double mieCrossSectionSca =
+          spectrum.Csca[internal::CSVLoader::getIndex(l, spectrum.wavelengths)] * n0;
+      mieScattering.push_back(mieCrossSectionSca);
+      mieExtinction.push_back(mieCrossSectionExt); // m^-1
+
+      absorptionExtinction.push_back(0.0);
+      groundAlbedo.push_back(0.1);
+    }
+
+    rayleighScattering.push_back(1.2871e-6);
+    rayleighScattering.push_back(3.056e-6);
+    rayleighScattering.push_back(7.6406e-6);
+
+  } else {
+    glslDefines = "#define CONFIG_TYPE_CUSTOM";
+
+    // Maximum number density of ozone molecules, in m^-3 (computed so at to get
+    // 300 Dobson units of ozone - for this we divide 300 DU by the integral of
+    // the ozone density profile defined below, which is equal to 15km).
+    double maxOzoneNumberDensity = 0; // 300.0 * DOBSON_UNIT / 15000.0;
+    double mRayleigh             = 0; // 1.24062e-6;
+
+    internal::CSVLoader::ExtinctionSpectrum spectrum;
+    internal::CSVLoader::readExtinction(
+        "../share/resources/data/csp-atmospheres/MieExtinctionSpectrum.csv", &spectrum);
+
+    for (int l = LAMBDA_MIN; l <= LAMBDA_MAX; l += 10) {
+
+      // nanometers
+      wavelengths.push_back(l);
+
+      // micrometers
+      double lambda = static_cast<double>(l) * 1e-3;
+
+      // watt / m^2
+      solarIrradiance.push_back(SOLAR_IRRADIANCE[(l - LAMBDA_MIN) / 10]);
+
+      rayleighScattering.push_back(mRayleigh * pow(lambda, -4));
+
+      float n0 = 3e8;
+      n0 /= 11.1e3; // dust scale height
+      double mieCrossSectionExt =
+          spectrum.Cext[internal::CSVLoader::getIndex(l, spectrum.wavelengths)] * n0; // area m^2
+      double mieCrossSectionSca =
+          spectrum.Csca[internal::CSVLoader::getIndex(l, spectrum.wavelengths)] * n0;
+      mieScattering.push_back(mieCrossSectionSca);
+      mieExtinction.push_back(mieCrossSectionExt); // m^-1
+
+      // number density in m^-3
+      // absorption cross section in m^2
+      // extinction in m^-1
+      absorptionExtinction.push_back(
+          maxOzoneNumberDensity * OZONE_CROSS_SECTION[(l - LAMBDA_MIN) / 10]);
+
+      groundAlbedo.push_back(settings.mGroundAlbedo.get());
+    }
   }
 
   double maxSunZenithAngle = (HALF_PRECISION ? 102.0 : 120.0) / 180.0 * glm::pi<double>();
@@ -182,8 +306,8 @@ bool Model::init(
   mModel.reset(new internal::Model(wavelengths, solarIrradiance, settings.mSunAngularRadius,
       planetRadius, atmosphereRadius, {rayleighLayer}, rayleighScattering, {mieLayer},
       mieScattering, mieExtinction, mMiePhaseFunctionG, ozoneDensity, absorptionExtinction,
-      groundAlbedo, maxSunZenithAngle, 1.0, LUMINANCE_MODE == PRECOMPUTED ? 15 : 3,
-      COMBINED_TEXTURES, HALF_PRECISION));
+      groundAlbedo, maxSunZenithAngle, 1.0, luminanceMode == Luminance::PRECOMPUTED ? 15 : 3,
+      COMBINED_TEXTURES, HALF_PRECISION, glslDefines));
 
   glDisable(GL_CULL_FACE);
   mModel->Init();

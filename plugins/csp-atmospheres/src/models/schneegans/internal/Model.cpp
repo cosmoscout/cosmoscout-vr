@@ -35,6 +35,8 @@ of the following C++ code.
 
 #include "Model.hpp"
 
+#include "../../../logger.hpp"
+#include "CSVLoader.hpp"
 #include "constants.hpp"
 
 #include "../../../../src/cs-utils/filesystem.hpp"
@@ -584,7 +586,8 @@ Model::Model(const std::vector<double>& wavelengths, const std::vector<double>& 
     const std::vector<DensityProfileLayer>& absorption_density,
     const std::vector<double>& absorption_extinction, const std::vector<double>& ground_albedo,
     double max_sun_zenith_angle, double length_unit_in_meters,
-    unsigned int num_precomputed_wavelengths, bool combine_scattering_textures, bool half_precision)
+    unsigned int num_precomputed_wavelengths, bool combine_scattering_textures, bool half_precision,
+    std::string const& glslDefines)
     : num_precomputed_wavelengths_(num_precomputed_wavelengths)
     , half_precision_(half_precision)
     , rgb_format_supported_(IsFramebufferRgbFormatSupported(half_precision)) {
@@ -634,53 +637,91 @@ Model::Model(const std::vector<double>& wavelengths, const std::vector<double>& 
   ComputeSpectralRadianceToLuminanceFactors(
       wavelengths, solar_irradiance, 0 /* lambda_power */, &sun_k_r, &sun_k_g, &sun_k_b);
 
+  auto PhaseFunctionWavelengthToString = [](vec3 lambdas, std::string filename) {
+    int angles = 180 * 4;
+
+    CSVLoader::PhaseFunctionSpectrumInfo phaseFunctionSpectrumInfo;
+    CSVLoader::readPhaseFunctionSpectrum(std::move(filename), &phaseFunctionSpectrumInfo);
+
+    std::stringstream ss;
+    ss << "#define mie_phase_function_value_count " << angles << "\n";
+    ss << "vec3 mie_phase_function_values[mie_phase_function_value_count] = vec3[](";
+
+    auto index1 = CSVLoader::getIndex(lambdas[2], phaseFunctionSpectrumInfo.wavelengths);
+    auto index2 = CSVLoader::getIndex(lambdas[1], phaseFunctionSpectrumInfo.wavelengths);
+    auto index3 = CSVLoader::getIndex(lambdas[0], phaseFunctionSpectrumInfo.wavelengths);
+
+    bool first = true;
+    for (int i = 0; i < angles; i++) {
+      if (!first)
+        ss << ", ";
+
+      int index = int(phaseFunctionSpectrumInfo.angles.size() * (float)i / angles);
+      ss << "vec3(" + std::to_string(phaseFunctionSpectrumInfo.angles[index].intensities[index1]) +
+                "," + std::to_string(phaseFunctionSpectrumInfo.angles[index].intensities[index2]) +
+                "," + std::to_string(phaseFunctionSpectrumInfo.angles[index].intensities[index3]) +
+                ")";
+
+      first = false;
+    }
+    ss << ");";
+    return ss.str();
+  };
+
   // A lambda that creates a GLSL header containing our atmosphere computation
   // functions, specialized for the given atmosphere parameters and for the 3
   // wavelengths in 'lambdas'.
   auto definitions_glsl = cs::utils::filesystem::loadToString(
-      "../share/resources/shaders/csp-atmospheres/models/bruneton/definitions.glsl");
+      "../share/resources/shaders/csp-atmospheres/models/schneegans/definitions.glsl");
   auto functions_glsl = cs::utils::filesystem::loadToString(
-      "../share/resources/shaders/csp-atmospheres/models/bruneton/functions.glsl");
+      "../share/resources/shaders/csp-atmospheres/models/schneegans/functions.glsl");
+
+  // clang-format off
   glsl_header_factory_ = [=](const vec3& lambdas) {
+
+    auto phaseFunctionString = PhaseFunctionWavelengthToString(
+      lambdas, "../share/resources/data/csp-atmospheres/MiePhaseFunctionSpectrum.csv");
+
+    std::cout << phaseFunctionString << std::endl;
+
     return "#version 330\n"
            "#define IN(x) const in x\n"
            "#define OUT(x) out x\n"
            "#define TEMPLATE(x)\n"
            "#define TEMPLATE_ARGUMENT(x)\n"
-           "#define assert(x)\n"
-           "const int TRANSMITTANCE_TEXTURE_WIDTH = " +
-           std::to_string(TRANSMITTANCE_TEXTURE_WIDTH) + ";\n" +
-           "const int TRANSMITTANCE_TEXTURE_HEIGHT = " +
-           std::to_string(TRANSMITTANCE_TEXTURE_HEIGHT) + ";\n" +
-           "const int SCATTERING_TEXTURE_R_SIZE = " + std::to_string(SCATTERING_TEXTURE_R_SIZE) +
-           ";\n" +
-           "const int SCATTERING_TEXTURE_MU_SIZE = " + std::to_string(SCATTERING_TEXTURE_MU_SIZE) +
-           ";\n" + "const int SCATTERING_TEXTURE_MU_S_SIZE = " +
-           std::to_string(SCATTERING_TEXTURE_MU_S_SIZE) + ";\n" +
-           "const int SCATTERING_TEXTURE_NU_SIZE = " + std::to_string(SCATTERING_TEXTURE_NU_SIZE) +
-           ";\n" +
-           "const int IRRADIANCE_TEXTURE_WIDTH = " + std::to_string(IRRADIANCE_TEXTURE_WIDTH) +
-           ";\n" +
-           "const int IRRADIANCE_TEXTURE_HEIGHT = " + std::to_string(IRRADIANCE_TEXTURE_HEIGHT) +
-           ";\n" + (combine_scattering_textures ? "#define COMBINED_SCATTERING_TEXTURES\n" : "") +
-           definitions_glsl + "const AtmosphereParameters ATMOSPHERE = AtmosphereParameters(\n" +
-           to_string(solar_irradiance, lambdas, 1.0) + ",\n" + std::to_string(sun_angular_radius) +
-           ",\n" + std::to_string(bottom_radius / length_unit_in_meters) + ",\n" +
-           std::to_string(top_radius / length_unit_in_meters) + ",\n" +
-           density_profile(rayleigh_density) + ",\n" +
-           to_string(rayleigh_scattering, lambdas, length_unit_in_meters) + ",\n" +
-           density_profile(mie_density) + ",\n" +
-           to_string(mie_scattering, lambdas, length_unit_in_meters) + ",\n" +
-           to_string(mie_extinction, lambdas, length_unit_in_meters) + ",\n" +
-           std::to_string(mie_phase_function_g) + ",\n" + density_profile(absorption_density) +
-           ",\n" + to_string(absorption_extinction, lambdas, length_unit_in_meters) + ",\n" +
-           to_string(ground_albedo, lambdas, 1.0) + ",\n" +
-           std::to_string(cos(max_sun_zenith_angle)) + ");\n" +
-           "const vec3 SKY_SPECTRAL_RADIANCE_TO_LUMINANCE = vec3(" + std::to_string(sky_k_r) + "," +
-           std::to_string(sky_k_g) + "," + std::to_string(sky_k_b) + ");\n" +
-           "const vec3 SUN_SPECTRAL_RADIANCE_TO_LUMINANCE = vec3(" + std::to_string(sun_k_r) + "," +
-           std::to_string(sun_k_g) + "," + std::to_string(sun_k_b) + ");\n" + functions_glsl;
+           "#define assert(x)\n" +
+           glslDefines + "\n" +
+           phaseFunctionString + "\n"
+           "const int TRANSMITTANCE_TEXTURE_WIDTH = "  + std::to_string(TRANSMITTANCE_TEXTURE_WIDTH) + ";\n" +
+           "const int TRANSMITTANCE_TEXTURE_HEIGHT = " + std::to_string(TRANSMITTANCE_TEXTURE_HEIGHT) + ";\n" +
+           "const int SCATTERING_TEXTURE_R_SIZE = "    + std::to_string(SCATTERING_TEXTURE_R_SIZE) + ";\n" +
+           "const int SCATTERING_TEXTURE_MU_SIZE = "   + std::to_string(SCATTERING_TEXTURE_MU_SIZE) + ";\n" +
+           "const int SCATTERING_TEXTURE_MU_S_SIZE = " + std::to_string(SCATTERING_TEXTURE_MU_S_SIZE) + ";\n" +
+           "const int SCATTERING_TEXTURE_NU_SIZE = "   + std::to_string(SCATTERING_TEXTURE_NU_SIZE) + ";\n" +
+           "const int IRRADIANCE_TEXTURE_WIDTH = "     + std::to_string(IRRADIANCE_TEXTURE_WIDTH) + ";\n" +
+           "const int IRRADIANCE_TEXTURE_HEIGHT = "    + std::to_string(IRRADIANCE_TEXTURE_HEIGHT) + ";\n" +
+           (combine_scattering_textures ? "#define COMBINED_SCATTERING_TEXTURES\n" : "") +
+           definitions_glsl +
+           "const AtmosphereParameters ATMOSPHERE = AtmosphereParameters(\n" +
+              to_string(solar_irradiance, lambdas, 1.0) + ",\n" +
+              std::to_string(sun_angular_radius) + ",\n" +
+              std::to_string(bottom_radius / length_unit_in_meters) + ",\n" +
+              std::to_string(top_radius / length_unit_in_meters) + ",\n" +
+              density_profile(rayleigh_density) + ",\n" +
+              to_string(rayleigh_scattering, lambdas, length_unit_in_meters) + ",\n" +
+              density_profile(mie_density) + ",\n" +
+              to_string(mie_scattering, lambdas, length_unit_in_meters) + ",\n" +
+              to_string(mie_extinction, lambdas, length_unit_in_meters) + ",\n" +
+              std::to_string(mie_phase_function_g) + ",\n" +
+              density_profile(absorption_density) + ",\n" +
+              to_string(absorption_extinction, lambdas, length_unit_in_meters) + ",\n" +
+              to_string(ground_albedo, lambdas, 1.0) + ",\n" +
+              std::to_string(cos(max_sun_zenith_angle)) + ");\n" +
+           "const vec3 SKY_SPECTRAL_RADIANCE_TO_LUMINANCE = vec3(" + std::to_string(sky_k_r) + "," + std::to_string(sky_k_g) + "," + std::to_string(sky_k_b) + ");\n" +
+           "const vec3 SUN_SPECTRAL_RADIANCE_TO_LUMINANCE = vec3(" + std::to_string(sun_k_r) + "," + std::to_string(sun_k_g) + "," + std::to_string(sun_k_b) + ");\n" +
+           functions_glsl;
   };
+  // clang-format on
 
   // Allocate the precomputed textures, but don't precompute them yet.
   transmittance_texture_ = NewTexture2d(TRANSMITTANCE_TEXTURE_WIDTH, TRANSMITTANCE_TEXTURE_HEIGHT);

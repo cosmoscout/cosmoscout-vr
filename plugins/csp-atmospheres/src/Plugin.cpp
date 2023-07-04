@@ -42,8 +42,8 @@ void from_json(nlohmann::json const& j, Plugin::Settings::Atmosphere::Model& o) 
   } else if (s == "Bruneton") {
     o = Plugin::Settings::Atmosphere::Model::eBruneton;
   } else {
-    throw std::runtime_error(
-        "Failed to parse Atmosphere::Model! Only 'CosmoScoutVR' or 'Bruneton' are allowed.");
+    throw std::runtime_error("Failed to parse Atmosphere::Model! Only 'CosmoScoutVR', 'Bruneton', "
+                             "'Schneegans' are allowed.");
   }
 }
 

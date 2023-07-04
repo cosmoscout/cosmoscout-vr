@@ -139,33 +139,11 @@ parameter):
 
 #include <GL/glew.h>
 #include <array>
-#include <cmath>
 #include <functional>
 #include <string>
 #include <vector>
 
 namespace csp::atmospheres::models::schneegans::internal {
-
-class PhaseFunction {
- public:
-  PhaseFunction(std::vector<double> values)
-      : mValues(std::move(values)) {
-  }
-
-  double get(double angle) const {
-    double index = angle / M_PI * (mValues.size() - 1);
-
-    size_t upper = std::ceil(index);
-    size_t lower = std::floor(index);
-
-    double alpha = index - lower;
-
-    return mValues[lower] * (1.0 - alpha) + mValues[upper] * alpha;
-  }
-
- private:
-  std::vector<double> mValues;
-};
 
 // An atmosphere layer of width 'width' (in m), and whose density is defined as
 //   'exp_term' * exp('exp_scale' * h) + 'linear_term' * h + 'constant_term',
@@ -189,12 +167,6 @@ struct DensityProfileLayer {
   double exp_scale;
   double linear_term;
   double constant_term;
-};
-
-struct Component {
-  std::vector<double>              mExtinctionSpectrum;
-  std::vector<PhaseFunction>       mPhaseFunctionSpectrum;
-  std::vector<DensityProfileLayer> mLayers;
 };
 
 class Model {
@@ -298,7 +270,10 @@ class Model {
       // Whether to use half precision floats (16 bits) or single precision floats
       // (32 bits) for the precomputed textures. Half precision is sufficient for
       // most cases, except for very high exposure values.
-      bool half_precision);
+      bool half_precision,
+      // This is used to enable one of the reference configurations (for instance
+      // Collienne or Costa)
+      std::string const& glslDefines);
 
   ~Model();
 
