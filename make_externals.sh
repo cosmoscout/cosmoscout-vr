@@ -246,8 +246,8 @@ echo ""
 cmake -E make_directory "$BUILD_DIR/opensg-1.8" && cd "$BUILD_DIR/opensg-1.8"
 cmake "${CMAKE_FLAGS[@]}" -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" -DCMAKE_UNITY_BUILD=$UNITY_BUILD \
       -DOPENSG_USE_PRECOMPILED_HEADERS=$PRECOMPILED_HEADERS -DOPENSG_INFINITE_REVERSE_PROJECTION=ON \
-      -DGLUT_INCLUDE_DIR="$INSTALL_DIR/include" -DGLUT_LIBRARY="$INSTALL_DIR/lib/libglut.so" \
-      -DOPENSG_BUILD_TESTS=Off -DCMAKE_BUILD_TYPE=$BUILD_TYPE "$EXTERNALS_DIR/opensg-1.8"
+      -DOPENSG_BUILD_TESTS=Off -DOPENSG_BUILD_WINDOW=Off -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
+      "$EXTERNALS_DIR/opensg-1.8"
 cmake --build . --target install --parallel "$(nproc)"
 
 # OpenVR ------------------------------------------------------------------------------------------
