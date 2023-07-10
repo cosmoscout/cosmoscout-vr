@@ -55,10 +55,12 @@ class ObserverNavigationNode : public IVdfnNode {
   glm::dquat                       mAngularDirection;
   cs::utils::AnimatedValue<double> mAngularSpeed;
   const double                     mAngularDeceleration;
+  const double                     mAngularAcceleration;
 
   glm::dvec3                       mLinearDirection;
   cs::utils::AnimatedValue<double> mLinearSpeed;
   const double                     mLinearDeceleration;
+  const double                     mLinearAcceleration;
 
   double mLastTime;
 };

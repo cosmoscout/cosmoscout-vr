@@ -29,9 +29,11 @@ ObserverNavigationNode::ObserverNavigationNode(
     , mAngularDirection(1.0, 0.0, 0.0, 0.0)
     , mAngularSpeed(0.0)
     , mAngularDeceleration(oParams.GetValueOrDefault<double>("angular_deceleration", 0.1))
+    , mAngularAcceleration(oParams.GetValueOrDefault<double>("angular_acceleration", 0.0))
     , mLinearDirection(0.0)
     , mLinearSpeed(0.0)
     , mLinearDeceleration(oParams.GetValueOrDefault<double>("linear_deceleration", 0.1))
+    , mLinearAcceleration(oParams.GetValueOrDefault<double>("linear_acceleration", 0.0))
     , mLastTime(-1.0) {
 
   mLinearSpeed.mDirection = cs::utils::AnimationDirection::eLinear;
@@ -93,8 +95,10 @@ bool ObserverNavigationNode::DoEvalNode() {
       mLinearDirection = vLinearDirection;
 
       if (mLinearSpeed.mEndValue == 0.0) {
-        mLinearSpeed.mStartValue = 1.0;
+        mLinearSpeed.mStartValue = mLinearSpeed.get(dTtime);
         mLinearSpeed.mEndValue   = 1.0;
+        mLinearSpeed.mStartTime  = dTtime;
+        mLinearSpeed.mEndTime    = dTtime + mLinearAcceleration;
       }
     } else {
       if (mLinearSpeed.mEndValue == 1.0) {
@@ -117,8 +121,10 @@ bool ObserverNavigationNode::DoEvalNode() {
       mAngularDirection = qRotation;
 
       if (mAngularSpeed.mEndValue == 0.0) {
-        mAngularSpeed.mStartValue = 1.0;
+        mAngularSpeed.mStartValue = mAngularSpeed.get(dTtime);
         mAngularSpeed.mEndValue   = 1.0;
+        mAngularSpeed.mStartTime  = dTtime;
+        mAngularSpeed.mEndTime    = dTtime + mAngularAcceleration;
       }
     } else {
       if (mAngularSpeed.mEndValue == 1.0) {
