@@ -9,8 +9,6 @@
 #define CSP_LOD_BODIES_LODVISITOR_HPP
 
 #include "Frustum.hpp"
-#include "RenderData.hpp"
-#include "TileBounds.hpp"
 #include "TileId.hpp"
 #include "TileVisitor.hpp"
 
@@ -19,149 +17,90 @@
 namespace csp::lodbodies {
 
 struct PlanetParameters;
-class RenderDataDEM;
-class RenderDataImg;
-class TreeManagerBase;
+class TreeManager;
 
 /// Specialization of TileVisitor that determines the necessary level of detail for tiles and
 /// produces lists of tiles to load and draw respectively.
-class LODVisitor : public TileVisitor<LODVisitor> {
+class LODVisitor : public TileVisitor {
  public:
-  explicit LODVisitor(PlanetParameters const& params, TreeManagerBase* treeMgrDEM = nullptr,
-      TreeManagerBase* treeMgrIMG = nullptr);
+  LODVisitor(PlanetParameters const& params, TreeManager* treeMgr);
 
-  TreeManagerBase* getTreeManagerDEM() const;
-  void             setTreeManagerDEM(TreeManagerBase* treeMgr);
+  /// If called, node bounds will be recomputed during the next traversal. This should be called
+  /// whenever the body radius or the elevation scale has been changed.
+  void queueRecomputeTileBounds();
 
-  TreeManagerBase* getTreeManagerIMG() const;
-  void             setTreeManagerIMG(TreeManagerBase* treeMgr);
-
-  int  getFrameCount() const;
+  /// Used to compute the age of unused tiles.
   void setFrameCount(int frameCount);
 
-  glm::ivec4 const& getViewport() const;
-  void              setViewport(glm::ivec4 const& vp);
+  /// These are required for frustum culling and level-of-detail selection.
+  void setModelview(glm::dmat4 const& m);
+  void setProjection(glm::dmat4 const& m);
 
-  glm::dmat4 const& getModelview() const;
-  void              setModelview(glm::dmat4 const& m);
-
-  glm::dmat4 const& getProjection() const;
-  void              setProjection(glm::dmat4 const& m);
-
-  /// Controls whether updates to the level of detail (LOD) decisions are made. When disabled
-  /// previous decisions will be reused.
+  /// Controls whether the tree cut should be modified. When disabled previous decisions will be
+  /// reused.
   ///
   /// This must have been enabled for at least one frame before it can be disabled, otherwise
   /// internal data is not correctly initialized!
   void setUpdateLOD(bool enable);
   bool getUpdateLOD() const;
 
-  /// Controls whether updates to the culling decisions are mode. When disabled previous decisions
-  /// will be reused.
-  ///
-  /// This must have been enabled for at least one frame before it can be disabled, otherwise
-  /// internal data is not correctly initialized!
-  void setUpdateCulling(bool enable);
-  bool getUpdateCulling() const;
-
-  /// Returns the elevation tiles that should be loaded. The parent tiles of these have been
+  /// Returns the nodes that should be loaded. The parent tiles of these have been
   /// determined to not provide sufficient resolution.
-  std::vector<TileId> const& getLoadDEM() const;
+  std::vector<TileId> const& getLoadNodes() const;
 
-  /// Returns the image tile that should be loaded. The parent tiles of these have been determined
-  /// to not provide sufficient resolution.
-  std::vector<TileId> const& getLoadIMG() const;
-
-  /// Returns the elevation tiles that should be rendered.
-  std::vector<RenderData*> const& getRenderDEM() const;
-
-  /// Returns the image tiles that should be rendered.
-  std::vector<RenderData*> const& getRenderIMG() const;
+  /// Returns the nodes that should be rendered.
+  std::vector<TileNode*> const& getRenderNodes() const;
 
  private:
-  /// Struct storing information relevant for LOD selection.
-  struct LODData {
-    glm::dmat4 mMatVM;
-    glm::dmat4 mMatP;
-    Frustum    mFrustumES; // frustum in eye space
-    glm::ivec4 mViewport;
-  };
-
-  /// Struct storing information relevant for frustum culling.
-  struct CullData {
+  /// Struct storing camera information.
+  struct CameraData {
+    Frustum        mFrustumES; // frustum in eye space
     Frustum        mFrustumMS; // frustum in model space
     glm::f64mat3x3 mMatN;
     glm::dvec3     mCamPos;
   };
 
-  /// State tracked during traversal of the tile quad trees.
-  class LODState : public TileVisitor<LODVisitor>::StateBase {
-   public:
-    RenderDataDEM* mRdDEM{};
-    RenderDataImg* mRdIMG{};
-  };
-
   bool preTraverse() override;
+  void postTraverse() override;
 
-  bool preVisitRoot(TileId const& tileId) override;
-  void postVisitRoot(TileId const& tileId) override;
+  bool preVisitRoot(TileNode* root) override;
+  bool preVisit(TileNode* node) override;
 
-  bool preVisit(TileId const& tileId) override;
-
-  void             pushState() override;
-  void             popState() override;
-  StateBase&       getState() override;
-  StateBase const& getState() const override;
-  LODState&        getLODState(int level = -1);
-  LODState const&  getLODState(int level = -1) const;
-
-  /// Visit the node with given the tileId. Returns whether children should be visited.
-  bool visitNode(TileId const& tileId);
-
-  /// Handle the case where the node with given the tileId should be refined. Tests whether
-  /// refinement is possible (i.e. whether data is loaded) and returns whether children should be
-  /// visited.
-  bool handleRefine(TileId const& tileId);
-
-  void addLoadChildrenDEM(TileNode* node);
-  void addLoadChildrenIMG(TileNode* node);
-
-  /// Returns whether the currently visited node is potentially visible. Tests if the node's
-  /// bounding box intersects the camera frustum.
-  bool testVisible(TileId const& tileId, TreeManagerBase* treeMgrDEM_);
+  /// Visit the given node. Returns whether children should be visited.
+  bool visitNode(TileNode* node);
 
   /// Returns whether the currently visited node should be refined, i.e. if it's children should be
   /// used to achieve desired resolution. Estimates the screen space size (in pixels) of the node
   /// and compares that with the desired LOD factor.
-  bool testNeedRefine(TileId const& tileId);
+  bool testNeedRefine(TileNode* node) const;
 
-  void drawLevel();
+  // Returns if the tile bounds intersect the current frustum. For each plane of the frustum
+  // determine if any corner of the bounding box is inside the plane's halfspace. If all corners are
+  // outside one halfspace the bounding box is outside the frustum and the algorithm stops early.
+  //
+  // TODO There is potential for optimization here, the paper "Optimized View Frustum Culling -
+  // Algorithms for Bounding Boxes" http://www.cse.chalmers.se/~uffe/vfc_bbox.pdf contains ideas
+  // (for example how to avoid testing all 8 corners).
+  bool testInFrustum(TileNode* node) const;
 
-  friend class TileVisitor<LODVisitor>;
-
-  static std::size_t const sMaxStackDepth = 32;
+  // Returns true if one the eight tile bbox corner points is not occluded by a proxy sphere.
+  // Culls tiles behind the horizon.
+  bool testFrontFacing(TileNode* node) const;
 
   PlanetParameters const* mParams;
-  TreeManagerBase*        mTreeMgrDEM;
-  TreeManagerBase*        mTreeMgrIMG;
+  TreeManager*            mTreeMgr;
+  bool                    mRecomputeTileBounds = false;
 
-  glm::ivec4 mViewport;
   glm::dmat4 mMatVM;
   glm::dmat4 mMatP;
-  LODData    mLodData;
-  CullData   mCullData;
+  CameraData mCameraData;
+  double     mHorizonCullRadius;
 
-  std::vector<LODState> mStack;
-  int                   mStackTop;
-
-  std::vector<TileId>      mLoadDEM;
-  std::vector<TileId>      mLoadIMG;
-  std::vector<RenderData*> mRenderDEM;
-  std::vector<RenderData*> mRenderIMG;
+  std::vector<TileId>    mLoadNodes;
+  std::vector<TileNode*> mRenderNodes;
 
   int  mFrameCount;
   bool mUpdateLOD;
-  bool mUpdateCulling;
 };
 
 } // namespace csp::lodbodies

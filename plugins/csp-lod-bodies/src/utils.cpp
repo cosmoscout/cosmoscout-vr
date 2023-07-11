@@ -9,7 +9,7 @@
 
 #include "HEALPix.hpp"
 
-#include "RenderDataDEM.hpp"
+#include "BaseTileData.hpp"
 #include "VistaPlanet.hpp"
 
 #include "../../../src/cs-utils/convert.hpp"
@@ -26,12 +26,12 @@ double getHeight(
     VistaPlanet const* planet, HeightSamplePrecision precision, glm::dvec2 const& lngLat) {
 
   // Check if TreeManagerDEM is ok
-  if (planet->getTileRenderer().getTreeManagerDEM() == nullptr) {
+  if (planet->getTileRenderer().getTreeManager() == nullptr) {
     return 0.0F;
   }
 
   // Check if TreeManagerDEM -> GetTree is ok
-  if (planet->getTileRenderer().getTreeManagerDEM()->getTree() == nullptr) {
+  if (planet->getTileRenderer().getTreeManager()->getTree() == nullptr) {
     return 0.0F;
   }
 
@@ -44,7 +44,7 @@ double getHeight(
   relative1 = HEALPix::convertBaseLngLat2XY(rootIndex, lngLat);
 
   // Get the right root
-  TileNode* parent = planet->getTileRenderer().getTreeManagerDEM()->getTree()->getRoot(rootIndex);
+  TileNode* parent = planet->getTileRenderer().getTreeManager()->getTree()->getRoot(rootIndex);
 
   // Check if parent is valid
   if (parent == nullptr) {
@@ -102,21 +102,21 @@ double getHeight(
 
       requested.push_back(HEALPix::getChildTileId(parent->getTileId(), childIndex));
 
-      planet->getTileRenderer().getTreeManagerDEM()->request(requested);
+      planet->getTileRenderer().getTreeManager()->request(requested);
 
-      // planet->getTileRenderer().getTreeManagerDEM()->merge();
-      planet->getTileRenderer().getTreeManagerDEM()->update();
+      // planet->getTileRenderer().getTreeManager()->merge();
+      planet->getTileRenderer().getTreeManager()->update();
 
       child = parent->getChild(childIndex);
     }
   }
 
   // Check if Child Exists
-  if (child == nullptr || child->getTileDataType() != TileDataType::eElevation) {
+  if (child == nullptr) {
     return 0.0;
   }
 
-  uint32_t size = child->getTile()->getResolution();
+  uint32_t size = child->getTileData().get(TileDataType::eElevation)->getResolution();
 
   // Figure out flip
   std::swap(relative1.x, relative1.y);
@@ -135,7 +135,7 @@ double getHeight(
   double hP2{};
   double hPP{};
 
-  const auto* ptr = child->getTile()->getTypedPtr<float>();
+  const auto* ptr = child->getTileData().get(TileDataType::eElevation)->getTypedPtr<float>();
   h               = ptr[vB + size * uB]; // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
   hP1 = ptr[vB + size * (uB + 1)];       // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
   hP2 = ptr[vB + 1 + size * uB];         // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
@@ -152,10 +152,7 @@ double getHeight(
 
 bool intersectTileBounds(TileNode const* tileNode, VistaPlanet const* planet,
     glm::dvec4 const& origin, glm::dvec4 const& direction, double& minDist, double& maxDist) {
-  TileBase* tile   = tileNode->getTile();
-  auto      tileId = tile->getTileId();
-  auto*     rdDEM  = planet->getTileRenderer().getTreeManagerDEM()->find<RenderDataDEM>(tileId);
-  BoundingBox<double> tile_bounds = rdDEM->getBounds();
+  BoundingBox<double> tile_bounds = tileNode->getBounds();
   std::array dMin{tile_bounds.getMin()[0], tile_bounds.getMin()[1], tile_bounds.getMin()[2]};
   std::array dMax{tile_bounds.getMax()[0], tile_bounds.getMax()[1], tile_bounds.getMax()[2]};
 
@@ -174,12 +171,12 @@ bool intersectTileBounds(TileNode const* tileNode, VistaPlanet const* planet,
 bool intersectPlanet(
     VistaPlanet const* planet, glm::dvec3 rayOrigin, glm::dvec3 rayDir, glm::dvec3& pos) {
   // Check if TreeManagerDEM is ok
-  if (planet->getTileRenderer().getTreeManagerDEM() == nullptr) {
+  if (planet->getTileRenderer().getTreeManager() == nullptr) {
     return false;
   }
 
   // Check if TreeManagerDEM -> GetTree is ok
-  if (planet->getTileRenderer().getTreeManagerDEM()->getTree() == nullptr) {
+  if (planet->getTileRenderer().getTreeManager()->getTree() == nullptr) {
     return false;
   }
 
@@ -203,8 +200,7 @@ bool intersectPlanet(
   std::multimap<double, TileNode*> intersected_tiles;
   for (int rootIndex = 0; rootIndex < 12; ++rootIndex) {
 
-    TileNode* root_node =
-        planet->getTileRenderer().getTreeManagerDEM()->getTree()->getRoot(rootIndex);
+    TileNode* root_node = planet->getTileRenderer().getTreeManager()->getTree()->getRoot(rootIndex);
 
     if (root_node == nullptr) {
       return false;
@@ -230,12 +226,8 @@ bool intersectPlanet(
       return false;
     }
 
-    if (parent->getTileDataType() != TileDataType::eElevation) {
-      return false;
-    }
-
     // Sample height field of cut leaf node
-    if (!isRefined(*parent)) {
+    if (!parent->childrenAvailable()) {
       // Get entry and exit point again:
       double min_dist{};
       double max_dist{};
@@ -268,10 +260,8 @@ bool intersectPlanet(
       //        |        \   /     |
       //        |         \/       |
       // BboxMin--------------------
-      TileBase* tile   = parent->getTile();
-      auto      tileId = tile->getTileId();
-      auto*     rdDEM  = planet->getTileRenderer().getTreeManagerDEM()->find<RenderDataDEM>(tileId);
-      auto      tile_bounds = rdDEM->getBounds();
+      auto const& tile        = parent->getTileData().get(TileDataType::eElevation);
+      auto        tile_bounds = parent->getBounds();
 
       // Tile sizes
       int size = tile->getResolution();
@@ -328,7 +318,7 @@ bool intersectPlanet(
         }
 
         // Access height data
-        const auto* ptr = parent->getTile()->getTypedPtr<float>();
+        const auto* ptr = parent->getTileData().get(TileDataType::eElevation)->getTypedPtr<float>();
         // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
         height = ptr[vB + size * uB];
         // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)

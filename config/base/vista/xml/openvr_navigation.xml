@@ -14,7 +14,7 @@ SPDX-License-Identifier: MIT
       <node name="flystick_source" type="DriverSensor">
          <param name="type" value="STICK"/>
          <param name="sensor_index" value="0"/>
-         <param name="driver" value="VIVEDRIVER"/>
+         <param name="driver" value="OPENVRDRIVER"/>
       </node>
 
       <node name="flystick" type="HistoryProject">
@@ -56,7 +56,7 @@ SPDX-License-Identifier: MIT
       <edge fromnode="flystick_source" tonode="flystick" fromport="history" toport="history" />
       <edge fromnode="sampling_mode" tonode="flystick" fromport="value" toport="sampling_mode" />
 
-      <edge fromnode="flystick" tonode="nav_button_invert" fromport="TRIGGER_TOUCHED" toport="in"/>
+      <edge fromnode="flystick" tonode="nav_button_invert" fromport="TRIGGER_PRESSED" toport="in"/>
       <edge fromnode="nav_button_invert" tonode="nav_button_change" fromport="out" toport="in_1"/>
       <edge fromnode="true" tonode="nav_button_change" fromport="value" toport="in_0"/>
 

@@ -15,14 +15,14 @@
 namespace csp::lodbodies {
 
 template <typename T>
-class Tile;
+class TileData;
 
 /// The MinMaxPyramid is a data structure for finding lod data in constant time. It's similar
 /// to a quad tree but it contains precomputed min and max values at each level.
 class MinMaxPyramid {
 
  public:
-  explicit MinMaxPyramid(Tile<float>* tile);
+  explicit MinMaxPyramid(TileData<float>* tile);
 
   MinMaxPyramid(MinMaxPyramid const& other) = default;
   MinMaxPyramid(MinMaxPyramid&& other)      = default;

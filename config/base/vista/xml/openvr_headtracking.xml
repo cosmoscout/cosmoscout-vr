@@ -10,7 +10,7 @@ SPDX-License-Identifier: MIT
         <node name="head_source" type="DriverSensor">
          <param name="type" value="HEAD"/>
          <param name="sensor_index" value="1"/>
-         <param name="driver" value="VIVEDRIVER"/>
+         <param name="driver" value="OPENVRDRIVER"/>
       </node>
 
         <node name="head" type="HistoryProject">
