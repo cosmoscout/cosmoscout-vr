@@ -38,6 +38,7 @@
 !/plugins/csp-trajectories
 !/plugins/csp-web-api
 !/plugins/csp-wms-overlays
+!/plugins/csp-user-study
 
 *.sublime*
 .vscode
