@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+
+  <link type="text/css" rel="stylesheet" href="third-party/css/bootstrap.min.css" />
+  <link type="text/css" rel="stylesheet" href="third-party/css/nouislider.css" />
+  <link type="text/css" rel="stylesheet" href="css/gui.css">
+
+  <script type="text/javascript" src="third-party/js/jquery-2.2.3.min.js"></script>
+  <script type="text/javascript" src="third-party/js/bootstrap.bundle.min.js"></script>
+  <script type="text/javascript" src="third-party/js/nouislider.min.js"></script>
+
+  <script type="text/javascript" src="js/api.js"></script>
+  <script type="text/javascript" src="js/cosmoscout.js"></script>
+  <script type="text/javascript" src="js/apis/utils.js"></script>
+  <script type="text/javascript" src="js/apis/gui.js"></script>
+
+  <script type="text/javascript">
+    var sounds = [];
+    sounds[0] = new Audio('../gui/audio/blub.flac');
+    sounds[1] = new Audio('../gui/audio/click.wav');
+    sounds[2] = new Audio('../gui/audio/pling.mp3');
+
+    function playSound(which) {
+      sounds[which].play();
+    }
+
+    // set/reset HTML to display standard checkpoints
+    function reset() {
+      document.getElementById("cp").className = "";
+      document.getElementById("fms").hidden = true;
+      document.getElementById("cog").hidden = true;
+      document.getElementById("chs").hidden = true;
+      document.getElementById("msg").hidden = true;
+    }
+    // set HTML to display FMS score checkpoint
+    function setFMS() {
+      reset()
+      document.getElementById("cp").className = "fms";
+      document.getElementById("fms").hidden = false;
+    }
+    // set HTML to display COG measurement checkpoint
+    function setCOG() {
+      reset()
+      document.getElementById("start-cog-measurement-button").value = "Start Measurement";
+      document.getElementById("cp").className = "cog";
+      document.getElementById("cog").hidden = false;
+    }
+    // set HTML to display Change Scenario checkpoint
+    function setCHS(html = "") {
+      reset()
+      document.getElementById("cp").className = "chs";
+      document.getElementById("chs").hidden = false;
+      document.getElementById("chs").innerHTML = html;
+    }
+    // set message to display
+    function setMSG(message) {
+      reset()
+      document.getElementById("cp").className = "msg";
+      document.getElementById("msg").hidden = false;
+      document.querySelector("#msg p").innerHTML = message;
+    }
+
+    // set the opacity of a checkpoint to distinguish between current (1.0) and upcoming (~0.5) checkpoints
+    function setBodyClass(className) {
+      document.querySelector("body").className = className;
+    }
+
+    function startCOGMeasurement() {
+      playSound(1);
+
+      let countDown = 5;
+      document.getElementById("start-cog-measurement-button").value = "Start in " + countDown + "s ...";
+      document.getElementById("start-cog-measurement-button").disabled = true;
+
+      let id = setInterval(function () {
+        --countDown;
+        document.getElementById("start-cog-measurement-button").value = "Start in " + countDown + "s ...";
+
+        if (countDown == 0) {
+          window.clearInterval(id);
+          CosmoScout.callbacks.setEnableCOGMeasurement(true);
+          playSound(2);
+          stopCOGMeasurement();
+        }
+
+      }, 1000);
+    }
+
+    function stopCOGMeasurement() {
+      let countDown = 10;
+      document.getElementById("start-cog-measurement-button").value = "Don't move! (" + countDown + "s)";
+
+
+      let id = setInterval(function () {
+        --countDown;
+        document.getElementById("start-cog-measurement-button").value = "Don't move! (" + countDown + "s)";
+
+        if (countDown == 0) {
+          window.clearInterval(id);
+          CosmoScout.callbacks.setEnableCOGMeasurement(false);
+          playSound(0);
+          document.getElementById("start-cog-measurement-button").disabled = false;
+        }
+
+      }, 1000);
+    }
+    
+    function confirmFMS() {
+      playSound(1);
+      window.callNative('confirmFMS');
+    }
+
+    function confirmMSG() {
+      playSound(1);
+      window.callNative('confirmMSG');
+    }
+    
+    // init cosmoscout api to init sliders
+    var CosmoScout = new CosmoScoutAPI();
+
+    document.addEventListener('DOMContentLoaded', () => {
+      CosmoScout.init(
+        UtilsApi,
+        GuiApi
+      );
+
+      CosmoScout.gui.initSlider("setFMS", 0, 20, 1, [0]);
+
+    })
+  </script>
+
+  <style>
+    P {
+      text-shadow: 1px 1px 1px #000, 0px 0px 1px #000, 1px 1px 5px rgb(0 0 0 / 75%);
+      font-size: 1.2em;
+      margin-bottom: 3px;
+    }
+
+    body {
+      transition: all 0.5s linear;
+    }
+
+    body.hidden {
+      display: none;
+    }
+
+    body.stage0 {
+      opacity: 1;
+      animation: flash 0.5s linear;
+    }
+
+    body.stage1 {
+      opacity: 0.3;
+      filter: blur(3px);
+    }
+
+    body.stage2 {
+      opacity: 0.2;
+      filter: blur(5px);
+    }
+
+    body.stage3 {
+      opacity: 0.1;
+      filter: blur(7px);
+    }
+
+    body.stage4 {
+      opacity: 0.1;
+      filter: blur(9px);
+    }
+
+    @keyframes flash {
+      0% {
+        filter: brightness(1)
+      }
+
+      20% {
+        filter: brightness(3)
+      }
+
+      100% {
+        filter: brightness(1)
+      }
+    }
+
+    body:not(.stage0)>#cp::before {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      border-radius: 100%;
+      background: repeating-linear-gradient(45deg,
+          #cdd1e991,
+          #cdd1e991 15px,
+          #70737d 15px,
+          #70737d 30px);
+      content: "";
+      z-index: -1;
+    }
+
+    #cp {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      border-radius: 100%;
+      border: 10px solid rgb(255, 255, 255);
+    }
+
+    #cp {
+      background: radial-gradient(circle, rgba(0, 0, 0, 0.0) 40%, rgb(15, 160, 228) 100%);
+    }
+
+    #cp.fms {
+      background: radial-gradient(circle, rgba(0, 0, 0, 0.2) 40%, rgb(255, 207, 102) 100%);
+    }
+
+    #cp.cog {
+      background: radial-gradient(circle, rgba(0, 0, 0, 0.2) 40%, rgb(255, 102, 173) 100%);
+    }
+
+    #cp.msg {
+      background: radial-gradient(circle, rgba(0, 0, 0, 0.2) 40%, rgb(181, 102, 255) 100%);
+    }
+
+    #cp.chs {
+      background: radial-gradient(circle, rgba(0, 0, 0, 0.2) 40%, rgba(164, 255, 112, 1) 100%);
+    }
+
+    #fms,
+    #cog,
+    #msg,
+    #chs {
+      text-align: center;
+      width: 70%;
+    }
+
+    #cog>img {
+      height: 180px;
+      margin: auto;
+      display: block;
+    }
+
+    .btn {
+      padding: 5px 25px;
+      margin-top: 8px;
+      margin-bottom: 4px;
+      border-radius: 10px;
+      background: var(--cs-color-background-darker);
+      color: var(--cs-color-text);
+      border-top: 3px solid var(--cs-color-primary);
+      border-left: 0px solid var(--cs-color-primary);
+      border-bottom: 3px solid var(--cs-color-primary);
+      border-right: 0px solid var(--cs-color-primary);
+      border-bottom: 3px solid var(--cs-color-primary);
+    }
+
+    .btn:not(:disabled):hover {
+      background: var(--cs-color-background-dark);
+      color: var(--cs-color-text-highlight);
+    }
+
+    .btn:hover {
+      background: var(--cs-color-background-darker);
+      color: var(--cs-color-text);
+    }
+
+    #fms>input {
+      margin-top: 13%;
+    }
+
+    /* Make the slider bigger */
+
+    .range-label span {
+      font-size: 1.2em;
+    }
+
+    .noUi-target .range-label {
+      line-height: 35px;
+      min-width: 35px;
+      top: 4px;
+    }
+
+    .noUi-target .noUi-active .range-label {
+      transform: translate(-50%, -20px);
+    }
+  </style>
+</head>
+
+<body style="overflow: hidden; margin: 0; position: absolute; top: 0; bottom: 0; left: 0; right: 0;">
+  <div id="cp">
+    <div id="chs"></div>
+    <div id="fms">
+      <P>How intense are your cyber-sickness symptoms?</P>
+      <div data-callback="setFMS"></div>
+      <input class="btn" type="button" value="Confirm" onclick="confirmFMS()">
+    </div>
+    <div id="cog">
+      <img src="img/stance.png" alt="">
+      <P>You will have 5s to assume the above stance. Then stand still for 10s.</P>
+      <input id="start-cog-measurement-button" class="btn" type="button" value="Start Measurement" onclick="startCOGMeasurement()">
+    </div>
+    <div id="msg">
+      <P></P>
+      <input class="btn" type="button" value="Continue" onclick="confirmMSG()">
+    </div>
+  </div>
+</body>
+
+</html>
