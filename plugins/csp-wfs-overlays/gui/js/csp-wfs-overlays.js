@@ -19,6 +19,7 @@
      * @inheritDoc
      */
     init() {
+      this._colorDiv = document.getElementById("bookmark-editor-color");
     }
   }
 

@@ -20,33 +20,50 @@ namespace csp::wfsoverlays {
 
 /// This plugin represents Web Feature Servivces data  in space. The plugin is configurable via the application
 /// config file. See README.md for details.
-
-class Plugin : public cs::core::PluginBase {
-  public:
-  struct Settings {
-    cs::utils::DefaultProperty<bool> mEnabled{true};
-    std::vector<std::string> mWfs; 
+struct InfoStruct { 
+    glm::dvec2 longLatDegrees;
+    glm::dvec2 longLatRadians; 
+    glm::dvec3 Cartesian;
+    double overSurfaceHeight;
+    bool heightComesFromJson;
   };
+class Plugin : public cs::core::PluginBase {
   
-  void init() override;
-  void deInit() override;
-  void update() override;
-
-  void setWFSServer(std::string URL);
-  void setWFSFeatureType(std::string featureType);
-
- private:
-  void onLoad();
-  void onSave();
-
-  std::shared_ptr<Settings> mPluginSettings = std::make_shared<Settings>();
-  std::vector<std::unique_ptr<FeatureRenderer>> mRenderers;
-  std::string mBaseUrl;
-
+  public:
+    struct Settings {
+      cs::utils::DefaultProperty<bool> mEnabled{true};
+      std::vector<std::string> mWfs; 
+    };
   
-  int mOnLoadConnection       = -1;
-  int mOnSaveConnection       = -1;
+    void init() override;
+    void deInit() override;
+    void update() override;
+
+    void setWFSServer(std::string URL);
+    void setWFSFeatureType(std::string featureType);
+    double calculateDistance(InfoStruct const& p1, InfoStruct const& p2, glm::vec3 earthRadius);
+
+    std::vector<glm::dvec3> Plugin::generateMidPoint (std::vector <InfoStruct> const& structIn, float threshold, 
+                                                        glm::vec3 earthRadius, std::shared_ptr<const cs::scene::CelestialObject> earth);
+
+  private:
+
+    void onLoad();
+    void onSave();
+
+    std::shared_ptr<Settings> mPluginSettings = std::make_shared<Settings>();
+    std::string mBaseUrl;
+
+    std::unique_ptr<FeatureRenderer> mPointRenderer;
+    std::unique_ptr<FeatureRenderer> mLineStringRenderer;
+    std::unique_ptr<FeatureRenderer> mPolygonRenderer;
+
+
+    int mOnLoadConnection       = -1;
+    int mOnSaveConnection       = -1;
 };
+
+
 
 } // namespace csp::wfsoverlays
 

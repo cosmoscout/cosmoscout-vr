@@ -33,3 +33,23 @@ SPDX-License-Identifier: MIT
     </div>
   </div>  
 
+  <div class="strike">
+    <span>Style</span>
+  </div>
+
+  <div class="row">
+    <div class="col-6">
+      <input name="surface_coloring" type="slidecontainer" data-callback="lodBodies.setSurfaceColoringMode1" />
+        <span>Color</span>
+      
+    </div>
+    <div class="col-6">
+      <div data-callback="wfsOverlays.setColor"></div>
+    </div>
+  </div>
+
+  <div class="slidecontainer">
+    <input type="range" min="1" max="100" value="50" class="slider" id="myRange">
+  </div>
+
+  <input type="text" class="form-control color-input" id="-asfdasfasdeditor-color" style="color: black;" value="">

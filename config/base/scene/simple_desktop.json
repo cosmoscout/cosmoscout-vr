@@ -715,7 +715,7 @@
     }
   },
   "plugins": {
-    "#csp-timings": {},
+    "csp-timings": {},
     "#csp-stars": {
       "celestialGridTexture": "../share/resources/textures/celestial_grid.png",
       "starFiguresTexture": "../share/resources/textures/constellation_figures.png",
@@ -735,7 +735,7 @@
       "hipparcosCatalog": "../share/download/stars/hip_main.dat",
       "tycho2Catalog": "../share/download/stars/tyc2_main.dat"
     },
-    "#csp-atmospheres": {
+    "csp-atmospheres": {
       "atmospheres": {
         "Earth": {
           "height": 80000,
@@ -776,8 +776,172 @@
         }
       }
     },
-    "#csp-measurement-tools": {},
-    "csp-simple-bodies": {
+    "csp-measurement-tools": {},
+    "csp-lod-bodies": {
+      "maxGPUTilesColor": 2048,
+      "maxGPUTilesDEM": 2048,
+      "mapCache": "map-cache/",
+      "bodies": {
+        "Earth": {
+          "activeImgDataset": "Helgoland + Blue Marble",
+          "activeDemDataset": "Helgoland + SRTM30",
+          "imgDatasets": {
+            "Test Grid": {
+              "copyright": "DLR, NASA",
+              "url": "http://129.247.34.87/mapserv?service=wms",
+              "layers": "earth.bluemarble.rgb,test.grid.800km.rgb,test.grid.8km.rgb,test.grid.8m.rgb,test.grid.8cm.rgb,test.grid.8mm.rgb",
+              "maxLevel": 29
+            },
+            "Helgoland + Blue Marble": {
+              "copyright": "DLR, NASA",
+              "url": "http://129.247.34.87/mapserv?service=wms",
+              "layers": "earth.bluemarble.rgb,earth.os.helgoland.rgb",
+              "maxLevel": 18
+            },
+            "MARUM + Blue Marble": {
+              "copyright": "MARUM, NASA",
+              "url": "http://129.247.34.87/mapserv?service=wms",
+              "layers": "earth.bluemarble.rgb,earth.marum.visions.rgb",
+              "maxLevel": 24
+            },
+            "Sachsen Anhalt + Blue Marble": {
+              "copyright": "GeoBasis-DE / LVermGeo-LSA, NASA",
+              "url": "http://129.247.34.87/mapserv?service=wms",
+              "layers": "earth.bluemarble.rgb,earth.sachsen-anhalt.dop20.rgb",
+              "maxLevel": 16
+            },
+            "Blue Marble": {
+              "copyright": "NASA",
+              "url": "http://129.247.34.87/mapserv?service=wms",
+              "layers": "earth.bluemarble.rgb",
+              "maxLevel": 6
+            },
+            "Landsat": {
+              "copyright": "NASA",
+              "url": "http://129.247.34.87/mapserv?service=wms",
+              "layers": "earth.landsat8.rgb",
+              "maxLevel": 15
+            }
+          },
+          "demDatasets": {
+            "Helgoland + SRTM30": {
+              "copyright": "DLR, NASA",
+              "url": "http://129.247.34.87/mapserv?service=wms",
+              "layers": "earth.srtm30.dem,earth.os.helgoland.dem",
+              "maxLevel": 17
+            },
+            "Sachsen Anhalt + SRTM30": {
+              "copyright": "GeoBasis-DE / LVermGeo-LSA, NASA",
+              "url": "http://129.247.34.87/mapserv?service=wms",
+              "layers": "earth.srtm30.dem,earth.sachsen-anhalt.cochstedt.bdom20.dem,earth.sachsen-anhalt.brocken.bdom20.dem,earth.sachsen-anhalt.thale.bdom20.dem,earth.sachsen-anhalt.klusfelsen.bdom20.dem,earth.sachsen-anhalt.regenstein.bdom20.dem",
+              "maxLevel": 16
+            },
+            "SRTM30": {
+              "copyright": "NASA",
+              "url": "http://129.247.34.87/mapserv?service=wms",
+              "layers": "earth.srtm30.dem",
+              "maxLevel": 12
+            },
+            "Blue Marble": {
+              "copyright": "NASA",
+              "url": "http://129.247.34.87/mapserv?service=wms",
+              "layers": "earth.bluemarble.dem",
+              "maxLevel": 6
+            },
+            "CleanTOPO": {
+              "copyright": "Tom Patterson, US National Park Service",
+              "url": "http://129.247.34.87/mapserv?service=wms",
+              "layers": "earth.cleantopo.dem",
+              "maxLevel": 6
+            },
+            "ETOPO1": {
+              "copyright": "NOAA",
+              "url": "http://129.247.34.87/mapserv?service=wms",
+              "layers": "earth.etopo1.dem",
+              "maxLevel": 6
+            },
+            "MARUM + GEPCO": {
+              "copyright": "MARUM",
+              "url": "http://129.247.34.87/mapserv?service=wms",
+              "layers": "earth.gebco.dem,earth.marum.sonne.dem,earth.marum.sentry.dem,earth.marum.visions.dem",
+              "maxLevel": 24
+            }
+          }
+        },
+        "Moon": {
+          "activeImgDataset": "Apollo (LRO NAC+WAC)",
+          "activeDemDataset": "Apollo (LRO NAC+WAC)",
+          "brdfHdr": {
+            "properties": {
+              "$B_C0": 0.0,
+              "$B_S0": 1.8,
+              "$b": 0.24,
+              "$c": 0.3,
+              "$h_C": 1.0,
+              "$h_S": 0.073,
+              "$phi": 0.3,
+              "$theta_p": 23.4,
+              "$w": 0.32
+            },
+            "source": "../share/resources/shaders/brdfs/hapke2012.glsl"
+          },
+          "brdfNonHdr": {
+            "properties": {
+              "$rho": 1.0,
+              "$sigma": 30.0
+            },
+            "source": "../share/resources/shaders/brdfs/oren-nayar_scaled.glsl"
+          },
+          "imgDatasets": {
+            "Apollo (LRO NAC+WAC)": {
+              "copyright": "NASA",
+              "url": "http://129.247.34.87/mapserv?service=wms",
+              "layers": "moon.lro.wac.gray,moon.lro.nac.apollo11.gray,moon.lro.nac.apollo15.gray,moon.lro.nac.apollo16.gray,moon.lro.nac.apollo17.gray",
+              "maxLevel": 14
+            },
+            "LRO LOLA LDAM": {
+              "copyright": "NASA",
+              "url": "http://129.247.34.87/mapserv?service=wms",
+              "layers": "moon.lro.lola.north.gray,moon.lro.lola.south.gray",
+              "maxLevel": 7
+            },
+            "Clementine": {
+              "copyright": "NASA",
+              "url": "http://129.247.34.87/mapserv?service=wms",
+              "layers": "moon.clementine.750nm.gray",
+              "maxLevel": 9
+            },
+            "Kaguya": {
+              "copyright": "JAXA",
+              "url": "http://129.247.34.87/mapserv?service=wms",
+              "layers": "moon.kaguya.gray",
+              "maxLevel": 9
+            }
+          },
+          "demDatasets": {
+            "Apollo (LRO NAC+WAC)": {
+              "copyright": "NASA",
+              "url": "http://129.247.34.87/mapserv?service=wms",
+              "layers": "moon.lro.wac.dem,moon.lro.nac.apollo11.dem,moon.lro.nac.apollo15.dem,moon.lro.nac.apollo16.dem,moon.lro.nac.apollo17.dem",
+              "maxLevel": 13
+            },
+            "LRO LOLA LDEM": {
+              "copyright": "NASA",
+              "url": "http://129.247.34.87/mapserv?service=wms",
+              "layers": "moon.lro.lola.north60.dem,moon.lro.lola.north75.dem,moon.lro.lola.north80.dem,moon.lro.lola.north85.dem,moon.lro.lola.south60.dem,moon.lro.lola.south75.dem,moon.lro.lola.south80.dem,moon.lro.lola.south85.dem",
+              "maxLevel": 11
+            },
+            "Kaguya": {
+              "copyright": "JAXA",
+              "url": "http://129.247.34.87/mapserv?service=wms",
+              "layers": "moon.kaguya.dem",
+              "maxLevel": 9
+            }
+          }
+        }
+      }
+    },
+    "#csp-simple-bodies": {
       "bodies": {
         "Sun": {
           "texture": "../share/resources/textures/sun.jpg"
