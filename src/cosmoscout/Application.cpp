@@ -31,7 +31,7 @@
 #include <VistaBase/VistaTimeUtils.h>
 #include <VistaInterProcComm/Cluster/VistaClusterDataSync.h>
 #include <VistaKernel/Cluster/VistaClusterMode.h>
-#include <VistaKernel/DisplayManager/GlutWindowImp/VistaGlutWindowingToolkit.h>
+#include <VistaKernel/DisplayManager/SDL2WindowImp/VistaSDL2WindowingToolkit.h>
 #include <VistaKernel/DisplayManager/VistaDisplayManager.h>
 #include <VistaKernel/EventManager/VistaEventManager.h>
 #include <VistaKernel/EventManager/VistaSystemEvent.h>
@@ -131,7 +131,7 @@ bool Application::Init(VistaSystem* pVistaSystem) {
   mSettings->pEnableMouseRay.connectAndTouch([this](bool enable) {
     // If we are running on freeglut, we can hide the mouse pointer when the mouse ray should be
     // shown. This is determined by the settings key "enableMouseRay".
-    auto* windowingToolkit = dynamic_cast<VistaGlutWindowingToolkit*>(
+    auto* windowingToolkit = dynamic_cast<VistaSDL2WindowingToolkit*>(
         GetVistaSystem()->GetDisplayManager()->GetWindowingToolkit());
 
     if (windowingToolkit) {
