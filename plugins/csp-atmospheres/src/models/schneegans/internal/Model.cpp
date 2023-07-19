@@ -729,8 +729,6 @@ Model::Model(const std::vector<double>& wavelengths, const std::vector<double>& 
   glShaderSource(atmosphere_shader_, 1, &source, NULL);
   glCompileShader(atmosphere_shader_);
 
-  logger().info(shader);
-
   // Create a full screen quad vertex array and vertex buffer objects.
   glGenVertexArrays(1, &full_screen_quad_vao_);
   glBindVertexArray(full_screen_quad_vao_);
