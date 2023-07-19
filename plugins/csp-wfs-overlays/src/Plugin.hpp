@@ -43,9 +43,10 @@ class Plugin : public cs::core::PluginBase {
     void setWFSFeatureType(std::string featureType);
     double calculateDistance(InfoStruct const& p1, InfoStruct const& p2, glm::vec3 earthRadius);
 
-    std::vector<glm::dvec3> Plugin::generateMidPoint (std::vector <InfoStruct> const& structIn, float threshold, 
-                                                        glm::vec3 earthRadius, std::shared_ptr<const cs::scene::CelestialObject> earth);
+    std::vector<glm::dvec3> generateMidPoint (std::vector <InfoStruct> const& structIn, float threshold, 
+                                                        glm::vec3 earthRadius, std::shared_ptr<const cs::scene::CelestialObject> earth);       // TODO: I think the Plugin:: isnt needed here
 
+    
   private:
 
     void onLoad();

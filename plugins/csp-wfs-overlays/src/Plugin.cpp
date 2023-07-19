@@ -15,6 +15,7 @@
 #include "../../../src/cs-utils/utils.hpp"
 #include "../../../src/cs-utils/filesystem.hpp"
 #include "../../../src/cs-utils/convert.hpp"
+#include "../../../src/cs-utils/ThreadPool.hpp"
 #include "logger.hpp"
 
 #include <iostream>
@@ -24,6 +25,8 @@
 #include <curlpp/Easy.hpp>
 #include <curlpp/Options.hpp>
 
+#include <thread>
+#include <chrono>
 
 #include <regex>
 
@@ -150,7 +153,6 @@ void from_json(const nlohmann::json& j, WFSFeatureCollection& o) {
 
 std::vector<glm::dvec3> Plugin::generateMidPoint (std::vector <InfoStruct> const& structIn, float threshold, 
                                                     glm::vec3 earthRadius, std::shared_ptr<const cs::scene::CelestialObject> earth) { 
-
   std::vector <InfoStruct> totalStruct;
 
   std::vector<glm::dvec3> renderingVector;     
@@ -176,16 +178,14 @@ std::vector<glm::dvec3> Plugin::generateMidPoint (std::vector <InfoStruct> const
       totalStruct.push_back(structIn[i]);
 
       int numMidPoints = static_cast<int> (distance/threshold);
-      // glm::dvec3 segmentDirection = glm::normalize(secondPoint-firstPoint);
-      // glm::dvec3 midPoint = firstPoint + (segmentDirection * (segmentLength * j)); 
+
       double segmentLength = distance/threshold; 
 
       std::vector <InfoStruct> midPointStruct;
+      
       for (int j=1; j <= numMidPoints; j++) {
+
         InfoStruct temporaryStruct;
-        // temporaryStruct.longLatRadians = glm::mix(p1LongLatRadians,p2LongLatRadians,segmentLength*j); 
-        // temporaryStruct.longLatDegrees = glm::mix(p1LongLatDegrees,p2LongLatDegrees,segmentLength*j)
-        
         temporaryStruct.Cartesian = glm::mix(p1Cartesian,p2Cartesian,(segmentLength*j)/distance); // fix length
         temporaryStruct.longLatRadians = cs::utils::convert::cartesianToLngLat(temporaryStruct.Cartesian, earthRadius);
 
@@ -212,9 +212,6 @@ std::vector<glm::dvec3> Plugin::generateMidPoint (std::vector <InfoStruct> const
   totalStruct.push_back(structIn[structIn.size() - 1]);
 
   for (int i=0; i<totalStruct.size(); i++) {
-    
-    // logger().info("{}: latLng({}, {}), h({}), cartLength({})", i, totalStruct[i].longLatDegrees.x, totalStruct[i].longLatDegrees.y, totalStruct[i].overSurfaceHeight, 
-     //   glm::length(totalStruct[i].Cartesian) - std::min(std::min(earthRadius.x, earthRadius.y), earthRadius.z));
     renderingVector.push_back(totalStruct[i].Cartesian);
   }
 return renderingVector;
@@ -362,63 +359,75 @@ void Plugin::setWFSFeatureType(std::string featureType) {
   // Saving all the attributes together in vectors before rendering
   //---------------------------------------------------------------
   // TODO: Likely to become a new function
+
+  logger().info("Size: {}", featureLocation.features.size());
   
   auto earth = mSolarSystem->getObject("Earth");
   glm::dvec3 earthRadius = earth->getRadii(); 
+
+  int numPoints = 0;
+  int numMultiPoints = 0;
+  int numLineStrings = 0;
+  int numMultiLineStrings = 0;
+  int numPolygons = 0;
+  int numMultiPolygons = 0; 
+  int numNull = 0;
   
+  // just to get the time of processing
+  auto startTime = std::chrono::high_resolution_clock::now();
+
+  // as points and multipoints will not use multi-threading
   std::vector <glm::dvec3> pointCoordinates;
-  std::vector <glm::dvec3> lineStringCoordinates;
-  std::vector <glm::dvec3> polygonCoordinates;
 
-  logger().info("Size: {}", featureLocation.features.size());
+  // for the rest of types, with multi-threading 
+  std::vector<std::vector<glm::dvec3>> lineStringIntermediateVector;
+  lineStringIntermediateVector.reserve(featureLocation.features.size());
+  std::vector<std::vector<glm::dvec3>> multiLineStringIntermediateVector;
+  multiLineStringIntermediateVector.reserve(featureLocation.features.size());
+  std::vector<std::vector<glm::dvec3>> polygonIntermediateVector;
+  polygonIntermediateVector.reserve(featureLocation.features.size());
+  std::vector<std::vector<glm::dvec3>> multiPolygonIntermediateVector;
+  multiPolygonIntermediateVector.reserve(featureLocation.features.size());
 
-  
-  
- 
+  // start the threadPool
+  cs::utils::ThreadPool threadPool(10);
 
-  int numPoints = 0, numMultiPoints = 0, numLineStrings = 0, numMultiLineStrings = 0, numPolygons = 0, numMultiPolygons = 0; 
-  
-  for (int i = 0; i < featureLocation.features.size(); i++) {
+  for (int l = 0; l < featureLocation.features.size(); l++) {
 
     // checking "null" geometry (e.g. DWD -> dwd:Autowarn_Vorhersage)
-    if (featureLocation.features[i].geometry == nullptr) {
+    if (featureLocation.features[l].geometry == nullptr) {
+      numNull++;
       continue;
     }
 
-    std::string type = featureLocation.features[i].geometry->mType;
+    std::string type = featureLocation.features[l].geometry->mType;
 
     if (type == "Point") {
-      numPoints++;
-      std::shared_ptr<Point> point = std::dynamic_pointer_cast<Point>(featureLocation.features[i].geometry); 
+      
+        numPoints++;     // Quick note here: i++ is not the same as ++i
+        std::shared_ptr<Point> point = std::dynamic_pointer_cast<Point>(featureLocation.features[l].geometry); 
+        InfoStruct pointStruct;
 
-      InfoStruct pointStruct;
-
-      pointStruct.longLatDegrees = {point->mCoordinates[0], point->mCoordinates[1]};
-      pointStruct.longLatRadians = {cs::utils::convert::toRadians(point->mCoordinates[0]),cs::utils::convert::toRadians(point->mCoordinates[1])};
-      if (point->mCoordinates.size() > 2) {
-        pointStruct.overSurfaceHeight = point->mCoordinates[2];
-
-        if (pointStruct.overSurfaceHeight <= 0.0) {
-          logger().info("{}", pointStruct.overSurfaceHeight);
+        pointStruct.longLatDegrees = {point->mCoordinates[0], point->mCoordinates[1]};
+        pointStruct.longLatRadians = {cs::utils::convert::toRadians(point->mCoordinates[0]),cs::utils::convert::toRadians(point->mCoordinates[1])};
+        if (point->mCoordinates.size() > 2) {
+          pointStruct.overSurfaceHeight = point->mCoordinates[2];
+          pointStruct.heightComesFromJson = true;
         }
-
-        pointStruct.heightComesFromJson = true;
+        else {                        
+          pointStruct.overSurfaceHeight = earth->getSurface()->getHeight({pointStruct.longLatRadians[0], pointStruct.longLatRadians[1]}) + 10;
+          pointStruct.heightComesFromJson = false;
+        } 
+        pointStruct.Cartesian = cs::utils::convert::toCartesian({pointStruct.longLatRadians[0], pointStruct.longLatRadians[1]}, earthRadius, pointStruct.overSurfaceHeight);
+        pointCoordinates.push_back(pointStruct.Cartesian);
       }
-      else {                        
-        pointStruct.overSurfaceHeight = earth->getSurface()->getHeight({pointStruct.longLatRadians[0], pointStruct.longLatRadians[1]}) + 10;
-        pointStruct.heightComesFromJson = false;
-      } 
-
-      pointStruct.Cartesian = cs::utils::convert::toCartesian({pointStruct.longLatRadians[0], pointStruct.longLatRadians[1]}, earthRadius, pointStruct.overSurfaceHeight);
-
-      pointCoordinates.push_back(pointStruct.Cartesian);
-    }
 
     else if (type == "MultiPoint") {
-      numMultiPoints++;
-      std::shared_ptr<MultiPoint> multiPoint = std::dynamic_pointer_cast<MultiPoint>(featureLocation.features[i].geometry); 
 
+      numMultiPoints++;
+      std::shared_ptr<MultiPoint> multiPoint = std::dynamic_pointer_cast<MultiPoint>(featureLocation.features[l].geometry); 
       InfoStruct multiPointStruct;
+
       for (int i=0; i < multiPoint->mCoordinates.size(); i++) {
         multiPointStruct.longLatDegrees = {multiPoint->mCoordinates[i][0], multiPoint->mCoordinates[i][1]};
         multiPointStruct.longLatRadians = {cs::utils::convert::toRadians(multiPoint->mCoordinates[i][0]), cs::utils::convert::toRadians(multiPoint->mCoordinates[i][1])};
@@ -433,128 +442,103 @@ void Plugin::setWFSFeatureType(std::string featureType) {
         } 
         multiPointStruct.Cartesian = cs::utils::convert::toCartesian({multiPointStruct.longLatRadians[0], multiPointStruct.longLatRadians[1]}, earthRadius, multiPointStruct.overSurfaceHeight); 
         pointCoordinates.push_back(multiPointStruct.Cartesian);
-      }   
-    }
+      }  
+    } 
 
     else if (type == "LineString") {
-      numLineStrings++;
-      std::shared_ptr<LineString> lineString = std::dynamic_pointer_cast<LineString>(featureLocation.features[i].geometry); 
-      std::vector<InfoStruct> lineStringStruct;
 
-      for (int i=0; i < lineString->mCoordinates.size(); i++) {
-        InfoStruct temporaryStruct;
-        temporaryStruct.longLatDegrees = {lineString->mCoordinates[i][0], lineString->mCoordinates[i][1]};
-        temporaryStruct.longLatRadians = cs::utils::convert::toRadians(temporaryStruct.longLatDegrees);
+      int nIteration = numLineStrings++;
+      lineStringIntermediateVector.push_back({});
 
-        if (lineString->mCoordinates[i].size() > 2) {
-          temporaryStruct.overSurfaceHeight = lineString->mCoordinates[i][2];
-          temporaryStruct.heightComesFromJson = true;
-        }
-        else {
-          temporaryStruct.overSurfaceHeight = earth->getSurface()->getHeight(temporaryStruct.longLatRadians) + 10;
-          temporaryStruct.heightComesFromJson = false;
-        }
+      auto lineStringProcessing = [&, nIteration, l] () {
 
-        temporaryStruct.Cartesian = cs::utils::convert::toCartesian(temporaryStruct.longLatRadians, earthRadius, temporaryStruct.overSurfaceHeight); 
+        std::shared_ptr<LineString> lineString = std::dynamic_pointer_cast<LineString>(featureLocation.features[l].geometry); 
+        std::vector<InfoStruct> lineStringStruct;
 
-        lineStringStruct.push_back(temporaryStruct);
-        if (i != 0 && i != lineString->mCoordinates.size()-1) {     
+        for (int i=0; i < lineString->mCoordinates.size(); i++) {
+          InfoStruct temporaryStruct;
+          temporaryStruct.longLatDegrees = {lineString->mCoordinates[i][0], lineString->mCoordinates[i][1]};
+          temporaryStruct.longLatRadians = cs::utils::convert::toRadians(temporaryStruct.longLatDegrees);
+
+          if (lineString->mCoordinates[i].size() > 2) {
+            temporaryStruct.overSurfaceHeight = lineString->mCoordinates[i][2];
+            temporaryStruct.heightComesFromJson = true;
+          }
+          else {
+            temporaryStruct.overSurfaceHeight = earth->getSurface()->getHeight(temporaryStruct.longLatRadians) + 10;
+            temporaryStruct.heightComesFromJson = false;
+          }
+          temporaryStruct.Cartesian = cs::utils::convert::toCartesian(temporaryStruct.longLatRadians, earthRadius, temporaryStruct.overSurfaceHeight); 
+
           lineStringStruct.push_back(temporaryStruct);
-        } 
-      }
-      std::vector<glm::dvec3> lineStringVec = generateMidPoint(lineStringStruct, 100000.0, earthRadius, earth);
-      // logger().info("{}, {}, {}", glm::length(line[0]), glm::length(line[line.size() / 2]), glm::length(line[line.size() - 1]));
-      lineStringCoordinates.insert(lineStringCoordinates.end(), lineStringVec.begin(), lineStringVec.end());
+          if (i != 0 && i != lineString->mCoordinates.size()-1) {     
+            lineStringStruct.push_back(temporaryStruct);
+          } 
+        }
+        std::vector<glm::dvec3> lineStringVec = generateMidPoint(lineStringStruct, 100000.0, earthRadius, earth);
+        lineStringIntermediateVector[nIteration].insert(lineStringIntermediateVector[nIteration].end(), lineStringVec.begin(), lineStringVec.end());
+      };
+
+      threadPool.enqueue(lineStringProcessing); // assign each tread what to do
     }
     
     else if (type == "MultiLineString") {
-      numMultiLineStrings++; 
-      std::shared_ptr<MultiLineString> multiLineString = std::dynamic_pointer_cast<MultiLineString>(featureLocation.features[i].geometry); 
-      
-      
-      for (int i=0; i < multiLineString->mCoordinates.size(); i++) { 
-std::vector<InfoStruct> multiLineStringStruct;
-        for (int j=0; j < multiLineString->mCoordinates[i].size(); j++) { 
-          InfoStruct temporaryStruct;
-          // multiLineStringStruct.push_back({});
-          temporaryStruct.longLatDegrees = {multiLineString->mCoordinates[i][j][0], multiLineString->mCoordinates[i][j][1]};
-          temporaryStruct.longLatRadians = cs::utils::convert::toRadians(temporaryStruct.longLatDegrees);
-          
-          if (multiLineString->mCoordinates[i][j].size() > 2) {
-            temporaryStruct.overSurfaceHeight = multiLineString->mCoordinates[i][j][2];
-            temporaryStruct.heightComesFromJson = true;
-          }
-          else {
-            temporaryStruct.overSurfaceHeight = earth->getSurface()->getHeight(temporaryStruct.longLatRadians) + 10;
-            temporaryStruct.heightComesFromJson = false;
-          }
-  
-          temporaryStruct.Cartesian = cs::utils::convert::toCartesian(temporaryStruct.longLatRadians, earthRadius, temporaryStruct.overSurfaceHeight);   
-          
-          multiLineStringStruct.push_back(temporaryStruct);
-          if (j != 0 && j != multiLineString->mCoordinates[i].size()-1) {          
+
+      int nIteration = numMultiLineStrings++; 
+      multiLineStringIntermediateVector.push_back({});
+
+      auto multiLineStringProcessing = [&, nIteration, l] () {
+
+        std::shared_ptr<MultiLineString> multiLineString = std::dynamic_pointer_cast<MultiLineString>(featureLocation.features[l].geometry); 
+        
+        for (int i=0; i < multiLineString->mCoordinates.size(); i++) { 
+          std::vector<InfoStruct> multiLineStringStruct;
+          for (int j=0; j < multiLineString->mCoordinates[i].size(); j++) { 
+            InfoStruct temporaryStruct;
+            temporaryStruct.longLatDegrees = {multiLineString->mCoordinates[i][j][0], multiLineString->mCoordinates[i][j][1]};
+            temporaryStruct.longLatRadians = cs::utils::convert::toRadians(temporaryStruct.longLatDegrees);
+            
+            if (multiLineString->mCoordinates[i][j].size() > 2) {
+              temporaryStruct.overSurfaceHeight = multiLineString->mCoordinates[i][j][2];
+              temporaryStruct.heightComesFromJson = true;
+            }
+            else {
+              temporaryStruct.overSurfaceHeight = earth->getSurface()->getHeight(temporaryStruct.longLatRadians) + 10;
+              temporaryStruct.heightComesFromJson = false;
+            }
+            temporaryStruct.Cartesian = cs::utils::convert::toCartesian(temporaryStruct.longLatRadians, earthRadius, temporaryStruct.overSurfaceHeight);   
+            
             multiLineStringStruct.push_back(temporaryStruct);
+            if (j != 0 && j != multiLineString->mCoordinates[i].size()-1) {          
+              multiLineStringStruct.push_back(temporaryStruct);
+            } 
           } 
-        } 
-        std::vector<glm::dvec3> multiLineStringVec = generateMidPoint(multiLineStringStruct, 100000.0, earthRadius, earth);
-      lineStringCoordinates.insert(lineStringCoordinates.end(), multiLineStringVec.begin(), multiLineStringVec.end());
-      }
+          std::vector<glm::dvec3> multiLineStringVec = generateMidPoint(multiLineStringStruct, 100000.0, earthRadius, earth);
+          multiLineStringIntermediateVector[nIteration].insert(multiLineStringIntermediateVector[nIteration].end(), multiLineStringVec.begin(), multiLineStringVec.end());
+        }
+      };
+
+      threadPool.enqueue(multiLineStringProcessing);      // assign each tread what to do
     } 
   
     else if (type == "Polygon") {
-      numPolygons++; 
-      std::shared_ptr<Polygon> polygon = std::dynamic_pointer_cast<Polygon>(featureLocation.features[i].geometry); 
-      
-      for (int i=0; i < polygon->mCoordinates.size(); i++) {
+
+      int nIteration = numPolygons++; 
+      polygonIntermediateVector.push_back({});
+
+      auto polygonProcessing = [&, nIteration, l] () {
+
+        std::shared_ptr<Polygon> polygon = std::dynamic_pointer_cast<Polygon>(featureLocation.features[l].geometry); 
         
-        // std::vector <glm::vec3> temporaryPolygonCoordinates;
-        std::vector<InfoStruct> polygonStruct;
-        for (int j=0; j < polygon->mCoordinates[i].size(); j++) {
-          InfoStruct temporaryStruct;   
-          // polygonStruct.push_back({});
-          temporaryStruct.longLatDegrees = {polygon->mCoordinates[i][j][0], polygon->mCoordinates[i][j][1]};
-          // polygonStruct[i].longLatRadians = {cs::utils::convert::toRadians(polygon->mCoordinates[i][j][0]), cs::utils::convert::toRadians(polygon->mCoordinates[i][j][1])};
-          
-          temporaryStruct.longLatRadians = cs::utils::convert::toRadians(temporaryStruct.longLatDegrees);
-          if (polygon->mCoordinates[i][j].size() > 2) {
-            temporaryStruct.overSurfaceHeight = polygon->mCoordinates[i][j][2];
-            temporaryStruct.heightComesFromJson = true;
-          }
-          else {
-            temporaryStruct.overSurfaceHeight = earth->getSurface()->getHeight(temporaryStruct.longLatRadians) + 10;
-            temporaryStruct.heightComesFromJson = false;
-          }
-
-          temporaryStruct.Cartesian = cs::utils::convert::toCartesian(temporaryStruct.longLatRadians, earthRadius, temporaryStruct.overSurfaceHeight);  
-          
-          polygonStruct.push_back(temporaryStruct);
-          if (j != 0 && j != polygon->mCoordinates[i].size()-1) {          
-            polygonStruct.push_back(temporaryStruct);
-          } 
-        }
-        std::vector<glm::dvec3> polygonVec = generateMidPoint(polygonStruct, 100000.0, earthRadius, earth);
-      polygonCoordinates.insert(polygonCoordinates.end(), polygonVec.begin(), polygonVec.end());
-      }      
-    }
-
-    else if (type == "MultiPolygon") {
-      numMultiPolygons++; 
-      std::shared_ptr<MultiPolygon> multiPolygon = std::dynamic_pointer_cast<MultiPolygon>(featureLocation.features[i].geometry);
-      
-
-      for (int i=0; i < multiPolygon->mCoordinates.size(); i++) { 
-
-        for (int j=0; j < multiPolygon->mCoordinates[i].size(); j++) {
-          // std::vector <glm::vec3> temporaryPolygonCoordinates;
-          std::vector<InfoStruct> multiPolygonStruct;
-          for (int k=0; k < multiPolygon->mCoordinates[i][j].size(); k++) {
-            InfoStruct temporaryStruct;
-            // multiPolygonStruct.push_back({});
-            temporaryStruct.longLatDegrees = {multiPolygon->mCoordinates[i][j][k][0], multiPolygon->mCoordinates[i][j][k][1]};
+        for (int i=0; i < polygon->mCoordinates.size(); i++) {
+          std::vector<InfoStruct> polygonStruct;
+          for (int j=0; j < polygon->mCoordinates[i].size(); j++) {
+            InfoStruct temporaryStruct;   
+            temporaryStruct.longLatDegrees = {polygon->mCoordinates[i][j][0], polygon->mCoordinates[i][j][1]};
             temporaryStruct.longLatRadians = cs::utils::convert::toRadians(temporaryStruct.longLatDegrees);
 
-            if (multiPolygon->mCoordinates[i][j][k].size() > 2) {
-              temporaryStruct.overSurfaceHeight = multiPolygon->mCoordinates[i][j][k][2];
+            if (polygon->mCoordinates[i][j].size() > 2) {
+              temporaryStruct.overSurfaceHeight = polygon->mCoordinates[i][j][2];
               temporaryStruct.heightComesFromJson = true;
             }
             else {
@@ -562,18 +546,62 @@ std::vector<InfoStruct> multiLineStringStruct;
               temporaryStruct.heightComesFromJson = false;
             }
 
-            temporaryStruct.Cartesian = cs::utils::convert::toCartesian(temporaryStruct.longLatRadians, earthRadius, temporaryStruct.overSurfaceHeight);   
+            temporaryStruct.Cartesian = cs::utils::convert::toCartesian(temporaryStruct.longLatRadians, earthRadius, temporaryStruct.overSurfaceHeight);  
             
-            multiPolygonStruct.push_back(temporaryStruct);
-            if (k != 0 && k != multiPolygon->mCoordinates[i][j].size()-1) {          
-              multiPolygonStruct.push_back(temporaryStruct);
+            polygonStruct.push_back(temporaryStruct);
+            if (j != 0 && j != polygon->mCoordinates[i].size()-1) {          
+              polygonStruct.push_back(temporaryStruct);
             } 
           }
-        std::vector<glm::dvec3> multiPolygonVec = generateMidPoint(multiPolygonStruct, 100000.0, earthRadius, earth);
-          polygonCoordinates.insert(polygonCoordinates.end(), multiPolygonVec.begin(), multiPolygonVec.end()); 
-        }
-      } 
-        
+          std::vector<glm::dvec3> polygonVec = generateMidPoint(polygonStruct, 100000.0, earthRadius, earth);
+          polygonIntermediateVector[nIteration].insert(polygonIntermediateVector[nIteration].end(), polygonVec.begin(), polygonVec.end());
+        } 
+      };
+
+      threadPool.enqueue(polygonProcessing);          // assign each tread what to do              
+    }
+
+    else if (type == "MultiPolygon") {
+
+      int nIteration = numMultiPolygons++; 
+      multiPolygonIntermediateVector.push_back({});
+
+      auto multiPolygonProcessing = [&, nIteration, l] () {
+
+        std::shared_ptr<MultiPolygon> multiPolygon = std::dynamic_pointer_cast<MultiPolygon>(featureLocation.features[l].geometry);
+      
+        for (int i=0; i < multiPolygon->mCoordinates.size(); i++) { 
+          for (int j=0; j < multiPolygon->mCoordinates[i].size(); j++) {
+            std::vector<InfoStruct> multiPolygonStruct;
+            for (int k=0; k < multiPolygon->mCoordinates[i][j].size(); k++) {
+
+              InfoStruct temporaryStruct;
+              temporaryStruct.longLatDegrees = {multiPolygon->mCoordinates[i][j][k][0], multiPolygon->mCoordinates[i][j][k][1]};
+              temporaryStruct.longLatRadians = cs::utils::convert::toRadians(temporaryStruct.longLatDegrees);
+
+              if (multiPolygon->mCoordinates[i][j][k].size() > 2) {
+                temporaryStruct.overSurfaceHeight = multiPolygon->mCoordinates[i][j][k][2];
+                temporaryStruct.heightComesFromJson = true;
+              }
+              else {
+                temporaryStruct.overSurfaceHeight = earth->getSurface()->getHeight(temporaryStruct.longLatRadians) + 10;
+                temporaryStruct.heightComesFromJson = false;
+              }
+
+              temporaryStruct.Cartesian = cs::utils::convert::toCartesian(temporaryStruct.longLatRadians, earthRadius, temporaryStruct.overSurfaceHeight);   
+              
+              multiPolygonStruct.push_back(temporaryStruct);
+              if (k != 0 && k != multiPolygon->mCoordinates[i][j].size()-1) {          
+                multiPolygonStruct.push_back(temporaryStruct);
+              } 
+            }
+            std::vector<glm::dvec3> multiPolygonVec = generateMidPoint(multiPolygonStruct, 100000.0, earthRadius, earth);
+            multiPolygonIntermediateVector[nIteration].insert(multiPolygonIntermediateVector[nIteration].end(), multiPolygonVec.begin(), multiPolygonVec.end()); 
+          }
+        } 
+      };
+
+      threadPool.enqueue(multiPolygonProcessing);         // assign each tread what to do
     }
     
     else { 
@@ -581,46 +609,81 @@ std::vector<InfoStruct> multiLineStringStruct;
     }
   }
 
+// just waiting for the threads to finish
+while (!threadPool.hasFinished()) {
+  std::this_thread::sleep_for(std::chrono::milliseconds(1));
+}
+
   // Rendering
   //----------
   logger().info("Creating the renderers...");
 
+  // for points and multipoints, without multithread
   std::vector<glm::vec3> pointCoordinatesRendering;
   for (int i=0; i < pointCoordinates.size(); i++) {
-    
       glm::vec3 coord = static_cast<glm::vec3>(pointCoordinates[i]);
       pointCoordinatesRendering.push_back(coord);
-    
-  }
+    }
 
+  // for linestrings and multilinestrings, with multithread
   std::vector<glm::vec3> lineStringCoordinatesRendering;
-  for (int i=0; i < lineStringCoordinates.size(); i++) {
-    
-      glm::vec3 coord = static_cast<glm::vec3>(lineStringCoordinates[i]);
+  for (int i=0; i < lineStringIntermediateVector.size(); i++) {
+    if (lineStringIntermediateVector[i].empty()) {
+      logger().info("empty line component.");
+    }
+    for (int j=0; j < lineStringIntermediateVector[i].size(); j++) {
+      glm::vec3 coord = static_cast<glm::vec3>(lineStringIntermediateVector[i][j]);
       lineStringCoordinatesRendering.push_back(coord);
-    
+    }  
+  }
+  for (int i=0; i < multiLineStringIntermediateVector.size(); i++) {
+    if (multiLineStringIntermediateVector[i].empty()) {
+      logger().info("empty multiline component.");
+    }
+    for (int j=0; j < multiLineStringIntermediateVector[i].size(); j++) {
+      glm::vec3 coord = static_cast<glm::vec3>(multiLineStringIntermediateVector[i][j]);
+      lineStringCoordinatesRendering.push_back(coord);
+    }  
   }
 
+  // for polygons and multipolygons, with multithread
   std::vector<glm::vec3> polygonCoordinatesRendering;
-  for (int i=0; i < polygonCoordinates.size(); i++) {
-    
-      glm::vec3 coord = static_cast<glm::vec3>(polygonCoordinates[i]);
+  for (int i=0; i < polygonIntermediateVector.size(); i++) {
+    if (polygonIntermediateVector[i].empty()) {
+      logger().info("empty polygon component.");
+    }
+    for (int j=0; j < polygonIntermediateVector[i].size(); j++) {
+      glm::vec3 coord = static_cast<glm::vec3>(polygonIntermediateVector[i][j]);
       polygonCoordinatesRendering.push_back(coord);
-    
+    }   
+  }
+  for (int i=0; i < multiPolygonIntermediateVector.size(); i++) {
+    if (multiPolygonIntermediateVector[i].empty()) {
+      logger().info("empty multipolygon component.");
+    }
+    for (int j=0; j < multiPolygonIntermediateVector[i].size(); j++) {
+      glm::vec3 coord = static_cast<glm::vec3>(multiPolygonIntermediateVector[i][j]);
+      polygonCoordinatesRendering.push_back(coord);
+    }   
   }
 
-  if (!pointCoordinates.empty()) {
-    logger().info("points: {}, multiPoints: {}. Containing {} points.", numPoints, numMultiPoints, pointCoordinates.size());
+
+  if (numNull != 0) {
+    logger().info("Number of null elements: {}", numNull);
+  }
+
+  if (!pointCoordinatesRendering.empty()) {
+    logger().info("points: {}, multiPoints: {}. Containing {} points. Size of intemediate: {}. ", numPoints, numMultiPoints, pointCoordinatesRendering.size(), pointCoordinates.size());
     mPointRenderer = std::make_unique<FeatureRenderer>("Point", pointCoordinatesRendering, mSolarSystem, mAllSettings);
   }
 
-  if (!lineStringCoordinates.empty()) {
-    logger().info("lines: {}, multiLines: {}. Containing {} points.", numLineStrings, numMultiLineStrings, lineStringCoordinates.size()/2+1);
+  if (!lineStringCoordinatesRendering.empty()) {
+    logger().info("lines: {}, multiLines: {}. Containing {} points.", numLineStrings, numMultiLineStrings, lineStringCoordinatesRendering.size()/2+1);
     mLineStringRenderer = std::make_unique<FeatureRenderer> ("LineString", lineStringCoordinatesRendering, mSolarSystem, mAllSettings);
   }
 
-  if (!polygonCoordinates.empty()) {
-    logger().info("polygons: {}, multiPolygons: {}. Containing {} points.", numPolygons, numMultiPolygons, polygonCoordinates.size()/2+1);
+  if (!polygonCoordinatesRendering.empty()) {
+    logger().info("polygons: {}, multiPolygons: {}. Containing {} points.", numPolygons, numMultiPolygons, polygonCoordinatesRendering.size()/2+1);
     mPolygonRenderer = std::make_unique<FeatureRenderer> ("Polygon", polygonCoordinatesRendering, mSolarSystem, mAllSettings);
   }
 
@@ -628,7 +691,15 @@ std::vector<InfoStruct> multiLineStringStruct;
     logger().info("Server response: {}", jsonStream.str());
   }
 
+  auto endTime = std::chrono::high_resolution_clock::now();
+
+  // printing the time that it took 
+  std::chrono::duration<double> diff = endTime - startTime;
+  // std::chrono::duration<double, std::milli> diffMilliseconds = endTime - startTime;
+  logger().info("Time of execution was: {} s. ", diff.count()); 
+
 }
+
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
