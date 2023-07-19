@@ -36,6 +36,46 @@ std::string replaceTabsWithWhitespaces(std::string& s) {
 }
 } // namespace
 
+void CSVLoader::readPhase(std::string const& filename, AtmosphereComponent& result) {
+  readLines(filename, [&](long lineNumber, std::string line) {
+    std::stringstream ss(trim(removeMultiWhitespaces(replaceTabsWithWhitespaces(line))));
+
+    // Skip empty lines and first line.
+    if (ss.rdbuf()->in_avail() == 0 || lineNumber == 0) {
+      return;
+    }
+
+    auto elements = lineToArray(ss, ',');
+
+    std::vector<double> intensities;
+
+    // Remove angle.
+    elements.erase(elements.begin());
+
+    for (auto& e : elements) {
+      intensities.push_back(std::stof(e));
+    }
+
+    result.phase.push_back(intensities);
+  });
+}
+
+void CSVLoader::readExtinction(std::string const& filename, AtmosphereComponent& result) {
+  readLines(filename, [&](long lineNumber, std::string line) {
+    std::stringstream ss(trim(removeMultiWhitespaces(replaceTabsWithWhitespaces(line))));
+
+    // Skip empty lines and first line.
+    if (ss.rdbuf()->in_avail() == 0 || lineNumber == 0) {
+      return;
+    }
+
+    auto elements = lineToArray(ss, ',');
+
+    result.scattering.push_back(std::stof(elements[1]));
+    result.absorption.push_back(std::stof(elements[2]));
+  });
+}
+
 std::vector<std::string> CSVLoader::lineToArray(std::stringstream& ss, char delimiter) {
   auto result = std::vector<std::string>();
 
@@ -46,8 +86,8 @@ std::vector<std::string> CSVLoader::lineToArray(std::stringstream& ss, char deli
   return result;
 }
 
-void CSVLoader::readLines(
-    std::string filename, std::function<void(long lineNumber, std::string line)> lineConsumer) {
+void CSVLoader::readLines(std::string const&               filename,
+    std::function<void(long lineNumber, std::string line)> lineConsumer) {
   std::ifstream file(filename);
 
   if (!file.is_open())
@@ -56,100 +96,11 @@ void CSVLoader::readLines(
     return;
 
   std::string line;
-  long        lineNumber = 1;
+  long        lineNumber = 0;
   while (std::getline(file, line)) {
     lineConsumer(lineNumber++, line);
   }
   file.close();
 }
 
-void CSVLoader::readPhaseFunctionSpectrum(std::string filename, PhaseFunctionSpectrumInfo* result) {
-  readLines(std::move(filename), [&](long lineNumber, std::string line) {
-    std::stringstream ss(trim(removeMultiWhitespaces(replaceTabsWithWhitespaces(line))));
-
-    // empty line
-    if (ss.rdbuf()->in_avail() == 0) {
-      return;
-    }
-
-    auto elements = lineToArray(ss, ',');
-
-    // wavelengths are enumerated in the csv header line
-    if (lineNumber == 1) {
-      result->wavelengths.clear();
-      result->angles.clear();
-      elements.erase(elements.begin()); // remove first column ('theta')
-      for (const auto& e : elements) {
-        auto wavelength = std::stof(e);
-        result->wavelengths.emplace_back(wavelength);
-      }
-      return;
-    }
-
-    PhaseFunctionSpectrumDatum functionSpectrumDatum{};
-    functionSpectrumDatum.angle = std::stof(elements[0]);
-    std::vector<double> intensities;
-
-    elements.erase(elements.begin());
-    for (auto& e : elements) {
-      auto intensity = std::stof(e);
-      intensities.push_back(intensity);
-    }
-    functionSpectrumDatum.intensities = intensities; //
-    result->angles.push_back(functionSpectrumDatum);
-
-    return;
-  });
-}
-
-size_t CSVLoader::getIndex(float wavelength, const std::vector<double>& wavelengths) {
-  for (size_t i = 0; i < wavelengths.size(); i++) {
-    if (wavelength < wavelengths[i]) {
-      return i;
-    }
-  }
-
-  return -1;
-}
-
-float CSVLoader::toFloat(const std::string& value) {
-  auto v = std::stof(value);
-  // if (abs(v) < 0.0000000001)
-  //    v = 0.f;
-  return v;
-}
-
-void CSVLoader::readExtinction(std::string filename, ExtinctionSpectrum* result) {
-  result->wavelengths.clear();
-  result->Cext.clear();
-  result->Qext.clear();
-
-  result->Csca.clear();
-  result->Qsca.clear();
-
-  readLines(std::move(filename), [&](long lineNumber, std::string line) {
-    std::stringstream ss(trim(removeMultiWhitespaces(replaceTabsWithWhitespaces(line))));
-
-    // empty line
-    if (ss.rdbuf()->in_avail() == 0) {
-      return;
-    }
-
-    auto elements = lineToArray(ss, ',');
-
-    // skip header line
-    if (lineNumber == 1) {
-      return;
-    }
-
-    result->wavelengths.push_back(std::stof(elements[0]));
-
-    result->Cext.push_back(toFloat(elements[1]));
-    result->Qext.push_back(toFloat(elements[2]));
-
-    result->Csca.push_back(toFloat(elements[3]));
-    result->Qsca.push_back(toFloat(elements[4]));
-    return;
-  });
-}
 } // namespace csp::atmospheres::models::schneegans::internal

@@ -169,6 +169,23 @@ struct DensityProfileLayer {
   double constant_term;
 };
 
+struct AtmosphereComponent {
+  // The outer vector contains entries for each angle of the phase function. The first item
+  // corresponds to 0° (forward scattering), the last item to 180° (back scattering). The inner
+  // vectors contain the intensity values for each wavelength at the specific angle.
+  std::vector<std::vector<double>> phase;
+
+  // Beta_sca per wavelength for N_0
+  std::vector<double> scattering;
+
+  // Beta_abs per wavelength for N_0
+  std::vector<double> absorption;
+
+  // Density distribution. The value at a specific altitude will be multiplied with the Beta_sca and
+  // Beta_abs values above.
+  std::vector<DensityProfileLayer> layers;
+};
+
 class Model {
  public:
   Model(
@@ -192,51 +209,13 @@ class Model {
       // The distance between the planet center and the top of the atmosphere,
       // in m.
       double top_radius,
-      // The density profile of air molecules, i.e. a function from altitude to
-      // dimensionless values between 0 (null density) and 1 (maximum density).
-      // Layers must be sorted from bottom to top. The width of the last layer is
-      // ignored, i.e. it always extend to the top atmosphere boundary. At most 2
-      // layers can be specified.
-      const std::vector<DensityProfileLayer>& rayleigh_density,
-      // The scattering coefficient of air molecules at the altitude where their
-      // density is maximum (usually the bottom of the atmosphere), as a function
-      // of wavelength, in m^-1. The scattering coefficient at altitude h is equal
-      // to 'rayleigh_scattering' times 'rayleigh_density' at this altitude. This
-      // vector must have the same size as the wavelengths parameter.
-      const std::vector<double>& rayleigh_scattering,
-      // The density profile of aerosols, i.e. a function from altitude to
-      // dimensionless values between 0 (null density) and 1 (maximum density).
-      // Layers must be sorted from bottom to top. The width of the last layer is
-      // ignored, i.e. it always extend to the top atmosphere boundary. At most 2
-      // layers can be specified.
-      const std::vector<DensityProfileLayer>& mie_density,
-      // The scattering coefficient of aerosols at the altitude where their
-      // density is maximum (usually the bottom of the atmosphere), as a function
-      // of wavelength, in m^-1. The scattering coefficient at altitude h is equal
-      // to 'mie_scattering' times 'mie_density' at this altitude. This vector
-      // must have the same size as the wavelengths parameter.
-      const std::vector<double>& mie_scattering,
-      // The extinction coefficient of aerosols at the altitude where their
-      // density is maximum (usually the bottom of the atmosphere), as a function
-      // of wavelength, in m^-1. The extinction coefficient at altitude h is equal
-      // to 'mie_extinction' times 'mie_density' at this altitude. This vector
-      // must have the same size as the wavelengths parameter.
-      const std::vector<double>& mie_extinction,
-      // The asymetry parameter for the Cornette-Shanks phase function for the
-      // aerosols.
-      double mie_phase_function_g,
-      // The density profile of air molecules that absorb light (e.g. ozone), i.e.
-      // a function from altitude to dimensionless values between 0 (null density)
-      // and 1 (maximum density). Layers must be sorted from bottom to top. The
-      // width of the last layer is ignored, i.e. it always extend to the top
-      // atmosphere boundary. At most 2 layers can be specified.
-      const std::vector<DensityProfileLayer>& absorption_density,
-      // The extinction coefficient of molecules that absorb light (e.g. ozone) at
-      // the altitude where their density is maximum, as a function of wavelength,
-      // in m^-1. The extinction coefficient at altitude h is equal to
-      // 'absorption_extinction' times 'absorption_density' at this altitude. This
-      // vector must have the same size as the wavelengths parameter.
-      const std::vector<double>& absorption_extinction,
+
+      const AtmosphereComponent& rayleigh,
+
+      const AtmosphereComponent& mie,
+
+      const AtmosphereComponent& ozone,
+
       // The average albedo of the ground, as a function of wavelength. This
       // vector must have the same size as the wavelengths parameter.
       const std::vector<double>& ground_albedo,
@@ -263,17 +242,10 @@ class Model {
       // functions, and stored as illuminance values. Then only the
       // luminance-based API functions are provided (see the above note).
       unsigned int num_precomputed_wavelengths,
-      // Whether to pack the (red component of the) single Mie scattering with the
-      // Rayleigh and multiple scattering in a single texture, or to store the
-      // (3 components of the) single Mie scattering in a separate texture.
-      bool combine_scattering_textures,
       // Whether to use half precision floats (16 bits) or single precision floats
       // (32 bits) for the precomputed textures. Half precision is sufficient for
       // most cases, except for very high exposure values.
-      bool half_precision,
-      // This is used to enable one of the reference configurations (for instance
-      // Collienne or Costa)
-      std::string const& glslDefines);
+      bool half_precision);
 
   ~Model();
 
@@ -285,7 +257,7 @@ class Model {
 
   void SetProgramUniforms(GLuint program, GLuint transmittance_texture_unit,
       GLuint scattering_texture_unit, GLuint irradiance_texture_unit,
-      GLuint optional_single_mie_scattering_texture_unit = 0) const;
+      GLuint single_mie_scattering_texture_unit) const;
 
   // Utility method to convert a function of the wavelength to linear sRGB.
   // 'wavelengths' and 'spectrum' must have the same size. The integral of
@@ -309,13 +281,14 @@ class Model {
       const vec3& lambdas, const mat3& luminance_from_radiance, bool blend,
       unsigned int num_scattering_orders);
 
+  std::vector<double>                     wavelengths_;
   unsigned int                            num_precomputed_wavelengths_;
   bool                                    half_precision_;
   bool                                    rgb_format_supported_;
   std::function<std::string(const vec3&)> glsl_header_factory_;
   GLuint                                  transmittance_texture_;
   GLuint                                  scattering_texture_;
-  GLuint                                  optional_single_mie_scattering_texture_;
+  GLuint                                  single_mie_scattering_texture_;
   GLuint                                  irradiance_texture_;
   GLuint                                  atmosphere_shader_;
   GLuint                                  full_screen_quad_vao_;

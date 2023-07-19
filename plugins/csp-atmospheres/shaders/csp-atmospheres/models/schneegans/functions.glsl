@@ -264,12 +264,12 @@ DimensionlessSpectrum ComputeTransmittanceToTopAtmosphereBoundary(
   assert(r >= atmosphere.bottom_radius && r <= atmosphere.top_radius);
   assert(mu >= -1.0 && mu <= 1.0);
   return exp(
-      -(atmosphere.rayleigh_scattering * ComputeOpticalLengthToTopAtmosphereBoundary(
-                                             atmosphere, atmosphere.rayleigh_density, r, mu) +
-          atmosphere.mie_extinction * ComputeOpticalLengthToTopAtmosphereBoundary(
-                                          atmosphere, atmosphere.mie_density, r, mu) +
-          atmosphere.absorption_extinction * ComputeOpticalLengthToTopAtmosphereBoundary(atmosphere,
-                                                 atmosphere.absorption_density, r, mu)));
+      -(atmosphere.rayleigh.extinction * ComputeOpticalLengthToTopAtmosphereBoundary(
+                                             atmosphere, atmosphere.rayleigh.density, r, mu) +
+          atmosphere.mie.extinction * ComputeOpticalLengthToTopAtmosphereBoundary(
+                                          atmosphere, atmosphere.mie.density, r, mu) +
+          atmosphere.ozone.extinction * ComputeOpticalLengthToTopAtmosphereBoundary(
+                                            atmosphere, atmosphere.ozone.density, r, mu)));
 }
 
 /*
@@ -596,8 +596,8 @@ void ComputeSingleScatteringIntegrand(IN(AtmosphereParameters) atmosphere,
       GetTransmittance(atmosphere, transmittance_texture, r, mu, d, ray_r_mu_intersects_ground) *
       GetTransmittanceToSun(atmosphere, transmittance_texture, r_d, mu_s_d);
   rayleigh = transmittance *
-             GetProfileDensity(atmosphere.rayleigh_density, r_d - atmosphere.bottom_radius);
-  mie = transmittance * GetProfileDensity(atmosphere.mie_density, r_d - atmosphere.bottom_radius);
+             GetProfileDensity(atmosphere.rayleigh.density, r_d - atmosphere.bottom_radius);
+  mie = transmittance * GetProfileDensity(atmosphere.mie.density, r_d - atmosphere.bottom_radius);
 }
 
 /*
@@ -654,59 +654,14 @@ void ComputeSingleScattering(IN(AtmosphereParameters) atmosphere,
     rayleigh_sum += rayleigh_i * weight_i;
     mie_sum += mie_i * weight_i;
   }
-  rayleigh = rayleigh_sum * dx * atmosphere.solar_irradiance * atmosphere.rayleigh_scattering;
-  mie      = mie_sum * dx * atmosphere.solar_irradiance * atmosphere.mie_scattering;
-}
-
-/*
-<p>Note that we added the solar irradiance and the scattering coefficient terms
-that we omitted in <code>ComputeSingleScatteringIntegrand</code>, but not the
-phase function terms - they are added at <a href="#rendering">render time</a>
-for better angular precision. We provide them here for completeness:
-*/
-
-InverseSolidAngle RayleighPhaseFunction(Number nu) {
-  InverseSolidAngle k = 3.0 / (16.0 * PI * sr);
-  return k * (1.0 + nu * nu);
-}
-
-Number CornetteShanks(Number nu, Number g) {
-  InverseSolidAngle k = 3.0 / (8.0 * PI * sr) * (1.0 - g * g) / (2.0 + g * g);
-  return k * (1.0 + nu * nu) / pow(1.0 + g * g - 2.0 * g * nu, 1.5);
-}
-
-Number DoubleHenyeyGreenstein(Number nu, Number g1, Number g2, Number alpha) {
-  Number numerator1 = 1.0f + g1 * g1;
-  Number numerator2 = 1.0f + g2 * g2;
-
-  // nu = cos(theta)
-  Number denumerator1 = pow(1.0f + g1 * g1 - 2.0f * g1 * nu, 1.5f);
-  Number denumerator2 = pow(1.0f + g2 * g2 - 2.0f * g2 * nu, 1.5f);
-
-  float result = alpha * (numerator1 / denumerator1) + (1.0f - alpha) * (numerator2 / denumerator2);
-  result *= 1.0f / (4.0f * PI);
-  return result;
+  rayleigh = rayleigh_sum * dx * atmosphere.solar_irradiance * atmosphere.rayleigh.scattering;
+  mie      = mie_sum * dx * atmosphere.solar_irradiance * atmosphere.mie.scattering;
 }
 
 // nu = cos(theta)
 // the cosine of the view-sun angle is nu [-1...1]
-vec3 MiePhaseFunction(Number g, float nu) {
-
-#ifdef CONFIG_TYPE_COLLIENNE
-
-  float p = CornetteShanks(nu, g);
-  return vec3(p, p, p);
-
-#elif defined(CONFIG_TYPE_COSTA)
-
-  float _r = DoubleHenyeyGreenstein(nu, 0.03f, 0.094f, 0.743f);
-  float _g = DoubleHenyeyGreenstein(nu, 0.4f, 0.094f, 0.743f);
-  float _b = DoubleHenyeyGreenstein(nu, 0.67f, 0.094f, 0.743f);
-  return vec3(_r, _g, _b);
-
-#else // CONFIG_TYPE_CUSTOM
-
-  int maxValue = mie_phase_function_value_count - 1;
+vec3 PhaseFunction(AtmosphereComponent component, float nu) {
+  int maxValue = 180 - 1;
 
   float theta = acos(nu) / pi; // 0<->1
   float start = float(maxValue) * theta;
@@ -716,10 +671,7 @@ vec3 MiePhaseFunction(Number g, float nu) {
 
   float mixing = max(0.0f, min(start - float(index1), 1.0f));
 
-  return mix(
-      mie_phase_function_values[int(index1)], mie_phase_function_values[int(index2)], mixing);
-
-#endif
+  return mix(component.phase[int(index1)], component.phase[int(index2)], mixing);
 }
 
 /*
@@ -951,8 +903,8 @@ RadianceSpectrum GetScattering(IN(AtmosphereParameters) atmosphere,
         mu, mu_s, nu, ray_r_mu_intersects_ground);
     IrradianceSpectrum mie      = GetScattering(
         atmosphere, single_mie_scattering_texture, r, mu, mu_s, nu, ray_r_mu_intersects_ground);
-    return rayleigh * RayleighPhaseFunction(nu) +
-           mie * MiePhaseFunction(atmosphere.mie_phase_function_g, nu);
+    return rayleigh * PhaseFunction(atmosphere.rayleigh, nu) +
+           mie * PhaseFunction(atmosphere.mie, nu);
   } else {
     return GetScattering(
         atmosphere, multiple_scattering_texture, r, mu, mu_s, nu, ray_r_mu_intersects_ground);
@@ -1186,13 +1138,13 @@ RadianceDensitySpectrum ComputeScatteringDensity(IN(AtmosphereParameters) atmosp
       // (all this summed over all particle types, i.e. Rayleigh and Mie).
       Number nu2 = dot(omega, omega_i);
       Number rayleigh_density =
-          GetProfileDensity(atmosphere.rayleigh_density, r - atmosphere.bottom_radius);
-      Number mie_density = GetProfileDensity(atmosphere.mie_density, r - atmosphere.bottom_radius);
+          GetProfileDensity(atmosphere.rayleigh.density, r - atmosphere.bottom_radius);
+      Number mie_density = GetProfileDensity(atmosphere.mie.density, r - atmosphere.bottom_radius);
       rayleigh_mie +=
           incident_radiance *
-          (atmosphere.rayleigh_scattering * rayleigh_density * RayleighPhaseFunction(nu2) +
-              atmosphere.mie_scattering * mie_density *
-                  MiePhaseFunction(atmosphere.mie_phase_function_g, nu2)) *
+          (atmosphere.rayleigh.scattering * rayleigh_density *
+                  PhaseFunction(atmosphere.rayleigh, nu2) +
+              atmosphere.mie.scattering * mie_density * PhaseFunction(atmosphere.mie, nu2)) *
           domega_i;
     }
   }
@@ -1517,37 +1469,8 @@ color, the aerial perspective, and the ground radiance.
 phase function term, plus the multiple scattering terms (divided by the Rayleigh
 phase function for dimensional homogeneity) are stored in a
 <code>scattering_texture</code>. We also assume that the single Mie scattering
-is stored, without its phase function term:
-<ul>
-<li>either separately, in a <code>single_mie_scattering_texture</code> (this
-option was not provided our <a href=
-"http://evasion.inrialpes.fr/~Eric.Bruneton/PrecomputedAtmosphericScattering2.zip"
->original implementation</a>),</li>
-<li>or, if the <code>COMBINED_SCATTERING_TEXTURES</code> preprocessor
-macro is defined, in the <code>scattering_texture</code>. In this case, which is
-only available with a GLSL compiler, Rayleigh and multiple scattering are stored
-in the RGB channels, and the red component of the single Mie scattering is
-stored in the alpha channel).</li>
-</ul>
-
-<p>In the second case, the green and blue components of the single Mie
-scattering are extrapolated as described in our
-<a href="https://hal.inria.fr/inria-00288758/en">paper</a>, with the following
-function:
+is stored, without its phase function term in a <code>single_mie_scattering_texture</code>
 */
-
-#ifdef COMBINED_SCATTERING_TEXTURES
-vec3 GetExtrapolatedSingleMieScattering(IN(AtmosphereParameters) atmosphere, IN(vec4) scattering) {
-  // Algebraically this can never be negative, but rounding errors can produce
-  // that effect for sufficiently short view rays.
-  if (scattering.r <= 0.0) {
-    return vec3(0.0);
-  }
-  return scattering.rgb * scattering.a / scattering.r *
-         (atmosphere.rayleigh_scattering.r / atmosphere.mie_scattering.r) *
-         (atmosphere.mie_scattering / atmosphere.rayleigh_scattering);
-}
-#endif
 
 /*
 <p>We can then retrieve all the scattering components (Rayleigh + multiple
@@ -1571,18 +1494,13 @@ IrradianceSpectrum GetCombinedScattering(IN(AtmosphereParameters) atmosphere,
   Number lerp        = tex_coord_x - tex_x;
   vec3   uvw0        = vec3((tex_x + uvwz.y) / Number(SCATTERING_TEXTURE_NU_SIZE), uvwz.z, uvwz.w);
   vec3   uvw1 = vec3((tex_x + 1.0 + uvwz.y) / Number(SCATTERING_TEXTURE_NU_SIZE), uvwz.z, uvwz.w);
-#ifdef COMBINED_SCATTERING_TEXTURES
-  vec4 combined_scattering =
-      texture(scattering_texture, uvw0) * (1.0 - lerp) + texture(scattering_texture, uvw1) * lerp;
-  IrradianceSpectrum scattering = IrradianceSpectrum(combined_scattering);
-  single_mie_scattering = GetExtrapolatedSingleMieScattering(atmosphere, combined_scattering);
-#else
+
   IrradianceSpectrum scattering = IrradianceSpectrum(
       texture(scattering_texture, uvw0) * (1.0 - lerp) + texture(scattering_texture, uvw1) * lerp);
   single_mie_scattering =
       IrradianceSpectrum(texture(single_mie_scattering_texture, uvw0) * (1.0 - lerp) +
                          texture(single_mie_scattering_texture, uvw1) * lerp);
-#endif
+
   return scattering;
 }
 
@@ -1655,8 +1573,8 @@ RadianceSpectrum GetSkyRadiance(IN(AtmosphereParameters) atmosphere,
     scattering            = scattering * shadow_transmittance;
     single_mie_scattering = single_mie_scattering * shadow_transmittance;
   }
-  return scattering * RayleighPhaseFunction(nu) +
-         single_mie_scattering * MiePhaseFunction(atmosphere.mie_phase_function_g, nu);
+  return scattering * PhaseFunction(atmosphere.rayleigh, nu) +
+         single_mie_scattering * PhaseFunction(atmosphere.mie, nu);
 }
 
 /*
@@ -1734,16 +1652,12 @@ RadianceSpectrum GetSkyRadianceToPoint(IN(AtmosphereParameters) atmosphere,
   }
   scattering            = scattering - shadow_transmittance * scattering_p;
   single_mie_scattering = single_mie_scattering - shadow_transmittance * single_mie_scattering_p;
-#ifdef COMBINED_SCATTERING_TEXTURES
-  single_mie_scattering =
-      GetExtrapolatedSingleMieScattering(atmosphere, vec4(scattering, single_mie_scattering.r));
-#endif
 
   // Hack to avoid rendering artifacts when the sun is below the horizon.
   single_mie_scattering = single_mie_scattering * smoothstep(Number(0.0), Number(0.01), mu_s);
 
-  return scattering * RayleighPhaseFunction(nu) +
-         single_mie_scattering * MiePhaseFunction(atmosphere.mie_phase_function_g, nu);
+  return scattering * PhaseFunction(atmosphere.rayleigh, nu) +
+         single_mie_scattering * PhaseFunction(atmosphere.mie, nu);
 }
 
 /*

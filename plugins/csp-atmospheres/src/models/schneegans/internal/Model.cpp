@@ -40,6 +40,7 @@ of the following C++ code.
 #include "constants.hpp"
 
 #include "../../../../src/cs-utils/filesystem.hpp"
+#include "../../../../src/cs-utils/utils.hpp"
 
 #include <cassert>
 #include <cmath>
@@ -194,7 +195,7 @@ const char kComputeMultipleScatteringShader[] = R"(
           vec3(gl_FragCoord.xy, layer + 0.5), nu);
       scattering = vec4(
           luminance_from_radiance *
-              delta_multiple_scattering.rgb / RayleighPhaseFunction(nu),
+              delta_multiple_scattering.rgb / PhaseFunction(ATMOSPHERE.rayleigh, nu),
           0.0);
     })";
 
@@ -579,42 +580,74 @@ initialize them), as well as a vertex buffer object to render a full screen quad
 
 Model::Model(const std::vector<double>& wavelengths, const std::vector<double>& solar_irradiance,
     const double sun_angular_radius, double bottom_radius, double top_radius,
-    const std::vector<DensityProfileLayer>& rayleigh_density,
-    const std::vector<double>&              rayleigh_scattering,
-    const std::vector<DensityProfileLayer>& mie_density, const std::vector<double>& mie_scattering,
-    const std::vector<double>& mie_extinction, double mie_phase_function_g,
-    const std::vector<DensityProfileLayer>& absorption_density,
-    const std::vector<double>& absorption_extinction, const std::vector<double>& ground_albedo,
+    const AtmosphereComponent& rayleigh, const AtmosphereComponent& mie,
+    const AtmosphereComponent& ozone, const std::vector<double>& ground_albedo,
     double max_sun_zenith_angle, double length_unit_in_meters,
-    unsigned int num_precomputed_wavelengths, bool combine_scattering_textures, bool half_precision,
-    std::string const& glslDefines)
-    : num_precomputed_wavelengths_(num_precomputed_wavelengths)
+    unsigned int num_precomputed_wavelengths, bool half_precision)
+    : wavelengths_(wavelengths)
+    , num_precomputed_wavelengths_(num_precomputed_wavelengths)
     , half_precision_(half_precision)
     , rgb_format_supported_(IsFramebufferRgbFormatSupported(half_precision)) {
-  auto to_string = [&wavelengths](const std::vector<double>& v, const vec3& lambdas, double scale) {
-    double r = Interpolate(wavelengths, v, lambdas[0]) * scale;
-    double g = Interpolate(wavelengths, v, lambdas[1]) * scale;
-    double b = Interpolate(wavelengths, v, lambdas[2]) * scale;
-    return "vec3(" + std::to_string(r) + "," + std::to_string(g) + "," + std::to_string(b) + ")";
+
+  auto extractVec3 = [this](const std::vector<double>& v, const vec3& lambdas, double scale = 1.0) {
+    double r = Interpolate(wavelengths_, v, lambdas[0]) * scale;
+    double g = Interpolate(wavelengths_, v, lambdas[1]) * scale;
+    double b = Interpolate(wavelengths_, v, lambdas[2]) * scale;
+    return "vec3(" + cs::utils::toString(r) + "," + cs::utils::toString(g) + "," +
+           cs::utils::toString(b) + ")";
   };
-  auto density_layer = [length_unit_in_meters](const DensityProfileLayer& layer) {
-    return "DensityProfileLayer(" + std::to_string(layer.width / length_unit_in_meters) + "," +
-           std::to_string(layer.exp_term) + "," +
-           std::to_string(layer.exp_scale * length_unit_in_meters) + "," +
-           std::to_string(layer.linear_term * length_unit_in_meters) + "," +
-           std::to_string(layer.constant_term) + ")";
+
+  auto densityLayer = [length_unit_in_meters](const DensityProfileLayer& layer) {
+    return "DensityProfileLayer(" + cs::utils::toString(layer.width / length_unit_in_meters) + "," +
+           cs::utils::toString(layer.exp_term) + "," +
+           cs::utils::toString(layer.exp_scale * length_unit_in_meters) + "," +
+           cs::utils::toString(layer.linear_term * length_unit_in_meters) + "," +
+           cs::utils::toString(layer.constant_term) + ")";
   };
-  auto density_profile = [density_layer](std::vector<DensityProfileLayer> layers) {
+
+  auto densityProfile = [densityLayer](std::vector<DensityProfileLayer> layers) {
     constexpr int kLayerCount = 2;
     while (layers.size() < kLayerCount) {
       layers.insert(layers.begin(), DensityProfileLayer());
     }
-    std::string result = "DensityProfile(DensityProfileLayer[" + std::to_string(kLayerCount) + "](";
+    std::string result =
+        "DensityProfile(DensityProfileLayer[" + cs::utils::toString(kLayerCount) + "](";
     for (int i = 0; i < kLayerCount; ++i) {
-      result += density_layer(layers[i]);
+      result += densityLayer(layers[i]);
       result += i < kLayerCount - 1 ? "," : "))";
     }
     return result;
+  };
+
+  auto atmosphereComponent = [densityProfile, extractVec3, length_unit_in_meters](
+                                 AtmosphereComponent const& component, vec3 lambdas) {
+    std::stringstream ss;
+    ss << "AtmosphereComponent(";
+
+    ss << "vec3[](";
+
+    bool first = true;
+    for (auto& theta : component.phase) {
+      if (first) {
+        first = false;
+      } else {
+        ss << ",";
+      }
+      ss << extractVec3(theta, lambdas);
+    }
+
+    ss << "),\n";
+
+    auto absorption = extractVec3(component.absorption, lambdas, length_unit_in_meters);
+    auto scattering = extractVec3(component.scattering, lambdas, length_unit_in_meters);
+
+    ss << scattering << " + " << absorption << ",\n";
+    ss << scattering << ",\n";
+    ss << densityProfile(component.layers);
+
+    ss << ")";
+
+    return ss.str();
   };
 
   // Compute the values for the SKY_RADIANCE_TO_LUMINANCE constant. In theory
@@ -630,43 +663,12 @@ Model::Model(const std::vector<double>& wavelengths, const std::vector<double>& 
     sky_k_r = sky_k_g = sky_k_b = MAX_LUMINOUS_EFFICACY;
   } else {
     ComputeSpectralRadianceToLuminanceFactors(
-        wavelengths, solar_irradiance, -3 /* lambda_power */, &sky_k_r, &sky_k_g, &sky_k_b);
+        wavelengths_, solar_irradiance, -3 /* lambda_power */, &sky_k_r, &sky_k_g, &sky_k_b);
   }
   // Compute the values for the SUN_RADIANCE_TO_LUMINANCE constant.
   double sun_k_r, sun_k_g, sun_k_b;
   ComputeSpectralRadianceToLuminanceFactors(
-      wavelengths, solar_irradiance, 0 /* lambda_power */, &sun_k_r, &sun_k_g, &sun_k_b);
-
-  auto PhaseFunctionWavelengthToString = [](vec3 lambdas, std::string filename) {
-    int angles = 180 * 4;
-
-    CSVLoader::PhaseFunctionSpectrumInfo phaseFunctionSpectrumInfo;
-    CSVLoader::readPhaseFunctionSpectrum(std::move(filename), &phaseFunctionSpectrumInfo);
-
-    std::stringstream ss;
-    ss << "#define mie_phase_function_value_count " << angles << "\n";
-    ss << "vec3 mie_phase_function_values[mie_phase_function_value_count] = vec3[](";
-
-    auto index1 = CSVLoader::getIndex(lambdas[2], phaseFunctionSpectrumInfo.wavelengths);
-    auto index2 = CSVLoader::getIndex(lambdas[1], phaseFunctionSpectrumInfo.wavelengths);
-    auto index3 = CSVLoader::getIndex(lambdas[0], phaseFunctionSpectrumInfo.wavelengths);
-
-    bool first = true;
-    for (int i = 0; i < angles; i++) {
-      if (!first)
-        ss << ", ";
-
-      int index = int(phaseFunctionSpectrumInfo.angles.size() * (float)i / angles);
-      ss << "vec3(" + std::to_string(phaseFunctionSpectrumInfo.angles[index].intensities[index1]) +
-                "," + std::to_string(phaseFunctionSpectrumInfo.angles[index].intensities[index2]) +
-                "," + std::to_string(phaseFunctionSpectrumInfo.angles[index].intensities[index3]) +
-                ")";
-
-      first = false;
-    }
-    ss << ");";
-    return ss.str();
-  };
+      wavelengths_, solar_irradiance, 0 /* lambda_power */, &sun_k_r, &sun_k_g, &sun_k_b);
 
   // A lambda that creates a GLSL header containing our atmosphere computation
   // functions, specialized for the given atmosphere parameters and for the 3
@@ -678,63 +680,44 @@ Model::Model(const std::vector<double>& wavelengths, const std::vector<double>& 
 
   // clang-format off
   glsl_header_factory_ = [=](const vec3& lambdas) {
-
-    auto phaseFunctionString = PhaseFunctionWavelengthToString(
-      lambdas, "../share/resources/data/csp-atmospheres/MiePhaseFunctionSpectrum.csv");
-
-    std::cout << phaseFunctionString << std::endl;
-
     return "#version 330\n"
-           "#define IN(x) const in x\n"
-           "#define OUT(x) out x\n"
-           "#define TEMPLATE(x)\n"
-           "#define TEMPLATE_ARGUMENT(x)\n"
-           "#define assert(x)\n" +
-           glslDefines + "\n" +
-           phaseFunctionString + "\n"
-           "const int TRANSMITTANCE_TEXTURE_WIDTH = "  + std::to_string(TRANSMITTANCE_TEXTURE_WIDTH) + ";\n" +
-           "const int TRANSMITTANCE_TEXTURE_HEIGHT = " + std::to_string(TRANSMITTANCE_TEXTURE_HEIGHT) + ";\n" +
-           "const int SCATTERING_TEXTURE_R_SIZE = "    + std::to_string(SCATTERING_TEXTURE_R_SIZE) + ";\n" +
-           "const int SCATTERING_TEXTURE_MU_SIZE = "   + std::to_string(SCATTERING_TEXTURE_MU_SIZE) + ";\n" +
-           "const int SCATTERING_TEXTURE_MU_S_SIZE = " + std::to_string(SCATTERING_TEXTURE_MU_S_SIZE) + ";\n" +
-           "const int SCATTERING_TEXTURE_NU_SIZE = "   + std::to_string(SCATTERING_TEXTURE_NU_SIZE) + ";\n" +
-           "const int IRRADIANCE_TEXTURE_WIDTH = "     + std::to_string(IRRADIANCE_TEXTURE_WIDTH) + ";\n" +
-           "const int IRRADIANCE_TEXTURE_HEIGHT = "    + std::to_string(IRRADIANCE_TEXTURE_HEIGHT) + ";\n" +
-           (combine_scattering_textures ? "#define COMBINED_SCATTERING_TEXTURES\n" : "") +
-           definitions_glsl +
-           "const AtmosphereParameters ATMOSPHERE = AtmosphereParameters(\n" +
-              to_string(solar_irradiance, lambdas, 1.0) + ",\n" +
-              std::to_string(sun_angular_radius) + ",\n" +
-              std::to_string(bottom_radius / length_unit_in_meters) + ",\n" +
-              std::to_string(top_radius / length_unit_in_meters) + ",\n" +
-              density_profile(rayleigh_density) + ",\n" +
-              to_string(rayleigh_scattering, lambdas, length_unit_in_meters) + ",\n" +
-              density_profile(mie_density) + ",\n" +
-              to_string(mie_scattering, lambdas, length_unit_in_meters) + ",\n" +
-              to_string(mie_extinction, lambdas, length_unit_in_meters) + ",\n" +
-              std::to_string(mie_phase_function_g) + ",\n" +
-              density_profile(absorption_density) + ",\n" +
-              to_string(absorption_extinction, lambdas, length_unit_in_meters) + ",\n" +
-              to_string(ground_albedo, lambdas, 1.0) + ",\n" +
-              std::to_string(cos(max_sun_zenith_angle)) + ");\n" +
-           "const vec3 SKY_SPECTRAL_RADIANCE_TO_LUMINANCE = vec3(" + std::to_string(sky_k_r) + "," + std::to_string(sky_k_g) + "," + std::to_string(sky_k_b) + ");\n" +
-           "const vec3 SUN_SPECTRAL_RADIANCE_TO_LUMINANCE = vec3(" + std::to_string(sun_k_r) + "," + std::to_string(sun_k_g) + "," + std::to_string(sun_k_b) + ");\n" +
-           functions_glsl;
-  };
+            "#define IN(x) const in x\n"
+            "#define OUT(x) out x\n"
+            "#define TEMPLATE(x)\n"
+            "#define TEMPLATE_ARGUMENT(x)\n"
+            "#define assert(x)\n"
+            "const int TRANSMITTANCE_TEXTURE_WIDTH = "  + cs::utils::toString(TRANSMITTANCE_TEXTURE_WIDTH) + ";\n" +
+            "const int TRANSMITTANCE_TEXTURE_HEIGHT = " + cs::utils::toString(TRANSMITTANCE_TEXTURE_HEIGHT) + ";\n" +
+            "const int SCATTERING_TEXTURE_R_SIZE = "    + cs::utils::toString(SCATTERING_TEXTURE_R_SIZE) + ";\n" +
+            "const int SCATTERING_TEXTURE_MU_SIZE = "   + cs::utils::toString(SCATTERING_TEXTURE_MU_SIZE) + ";\n" +
+            "const int SCATTERING_TEXTURE_MU_S_SIZE = " + cs::utils::toString(SCATTERING_TEXTURE_MU_S_SIZE) + ";\n" +
+            "const int SCATTERING_TEXTURE_NU_SIZE = "   + cs::utils::toString(SCATTERING_TEXTURE_NU_SIZE) + ";\n" +
+            "const int IRRADIANCE_TEXTURE_WIDTH = "     + cs::utils::toString(IRRADIANCE_TEXTURE_WIDTH) + ";\n" +
+            "const int IRRADIANCE_TEXTURE_HEIGHT = "    + cs::utils::toString(IRRADIANCE_TEXTURE_HEIGHT) + ";\n" +
+            definitions_glsl +
+            "const AtmosphereParameters ATMOSPHERE = AtmosphereParameters(\n" +
+              extractVec3(solar_irradiance, lambdas) + ",\n" +
+              cs::utils::toString(sun_angular_radius) + ",\n" +
+              cs::utils::toString(bottom_radius / length_unit_in_meters) + ",\n" +
+              cs::utils::toString(top_radius / length_unit_in_meters) + ",\n" +
+              atmosphereComponent(rayleigh, lambdas) + ",\n" +
+              atmosphereComponent(mie, lambdas) + ",\n" +
+              atmosphereComponent(ozone, lambdas) + ",\n" +
+              extractVec3(ground_albedo, lambdas) + ",\n" +
+              cs::utils::toString(cos(max_sun_zenith_angle)) + ");\n" +
+            "const vec3 SKY_SPECTRAL_RADIANCE_TO_LUMINANCE = vec3(" + cs::utils::toString(sky_k_r) + "," + cs::utils::toString(sky_k_g) + "," + cs::utils::toString(sky_k_b) + ");\n" +
+            "const vec3 SUN_SPECTRAL_RADIANCE_TO_LUMINANCE = vec3(" + cs::utils::toString(sun_k_r) + "," + cs::utils::toString(sun_k_g) + "," + cs::utils::toString(sun_k_b) + ");\n" +
+            functions_glsl;
+    };
   // clang-format on
 
   // Allocate the precomputed textures, but don't precompute them yet.
   transmittance_texture_ = NewTexture2d(TRANSMITTANCE_TEXTURE_WIDTH, TRANSMITTANCE_TEXTURE_HEIGHT);
-  scattering_texture_ =
-      NewTexture3d(SCATTERING_TEXTURE_WIDTH, SCATTERING_TEXTURE_HEIGHT, SCATTERING_TEXTURE_DEPTH,
-          combine_scattering_textures || !rgb_format_supported_ ? GL_RGBA : GL_RGB, half_precision);
-  if (combine_scattering_textures) {
-    optional_single_mie_scattering_texture_ = 0;
-  } else {
-    optional_single_mie_scattering_texture_ =
-        NewTexture3d(SCATTERING_TEXTURE_WIDTH, SCATTERING_TEXTURE_HEIGHT, SCATTERING_TEXTURE_DEPTH,
-            rgb_format_supported_ ? GL_RGB : GL_RGBA, half_precision);
-  }
+  scattering_texture_    = NewTexture3d(SCATTERING_TEXTURE_WIDTH, SCATTERING_TEXTURE_HEIGHT,
+      SCATTERING_TEXTURE_DEPTH, rgb_format_supported_ ? GL_RGB : GL_RGBA, half_precision);
+  single_mie_scattering_texture_ = NewTexture3d(SCATTERING_TEXTURE_WIDTH, SCATTERING_TEXTURE_HEIGHT,
+      SCATTERING_TEXTURE_DEPTH, rgb_format_supported_ ? GL_RGB : GL_RGBA, half_precision);
+
   irradiance_texture_ = NewTexture2d(IRRADIANCE_TEXTURE_WIDTH, IRRADIANCE_TEXTURE_HEIGHT);
 
   // Create and compile the shader providing our API.
@@ -745,6 +728,8 @@ Model::Model(const std::vector<double>& wavelengths, const std::vector<double>& 
   atmosphere_shader_ = glCreateShader(GL_FRAGMENT_SHADER);
   glShaderSource(atmosphere_shader_, 1, &source, NULL);
   glCompileShader(atmosphere_shader_);
+
+  logger().info(shader);
 
   // Create a full screen quad vertex array and vertex buffer objects.
   glGenVertexArrays(1, &full_screen_quad_vao_);
@@ -778,9 +763,7 @@ Model::~Model() {
   glDeleteVertexArrays(1, &full_screen_quad_vao_);
   glDeleteTextures(1, &transmittance_texture_);
   glDeleteTextures(1, &scattering_texture_);
-  if (optional_single_mie_scattering_texture_ != 0) {
-    glDeleteTextures(1, &optional_single_mie_scattering_texture_);
-  }
+  glDeleteTextures(1, &single_mie_scattering_texture_);
   glDeleteTextures(1, &irradiance_texture_);
   glDeleteShader(atmosphere_shader_);
 }
@@ -955,12 +938,10 @@ void Model::SetProgramUniforms(GLuint program, GLuint transmittance_texture_unit
   glBindTexture(GL_TEXTURE_2D, irradiance_texture_);
   glUniform1i(glGetUniformLocation(program, "irradiance_texture"), irradiance_texture_unit);
 
-  if (optional_single_mie_scattering_texture_ != 0) {
-    glActiveTexture(GL_TEXTURE0 + single_mie_scattering_texture_unit);
-    glBindTexture(GL_TEXTURE_3D, optional_single_mie_scattering_texture_);
-    glUniform1i(glGetUniformLocation(program, "single_mie_scattering_texture"),
-        single_mie_scattering_texture_unit);
-  }
+  glActiveTexture(GL_TEXTURE0 + single_mie_scattering_texture_unit);
+  glBindTexture(GL_TEXTURE_3D, single_mie_scattering_texture_);
+  glUniform1i(glGetUniformLocation(program, "single_mie_scattering_texture"),
+      single_mie_scattering_texture_unit);
 }
 
 /*
@@ -1005,9 +986,10 @@ void Model::Precompute(GLuint fbo, GLuint delta_irradiance_texture,
   // step. We create and compile them here (they are automatically destroyed
   // when this method returns, via the Program destructor).
   std::string header = glsl_header_factory_(lambdas);
-  Program     compute_transmittance(kVertexShader, header + kComputeTransmittanceShader);
-  Program     compute_direct_irradiance(kVertexShader, header + kComputeDirectIrradianceShader);
-  Program     compute_single_scattering(
+
+  Program compute_transmittance(kVertexShader, header + kComputeTransmittanceShader);
+  Program compute_direct_irradiance(kVertexShader, header + kComputeDirectIrradianceShader);
+  Program compute_single_scattering(
       kVertexShader, kGeometryShader, header + kComputeSingleScatteringShader);
   Program compute_scattering_density(
       kVertexShader, kGeometryShader, header + kComputeScatteringDensityShader);
@@ -1044,17 +1026,13 @@ void Model::Precompute(GLuint fbo, GLuint delta_irradiance_texture,
   // Compute the rayleigh and mie single scattering, store them in
   // delta_rayleigh_scattering_texture and delta_mie_scattering_texture, and
   // either store them or accumulate them in scattering_texture_ and
-  // optional_single_mie_scattering_texture_.
+  // single_mie_scattering_texture_.
   glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, delta_rayleigh_scattering_texture, 0);
   glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, delta_mie_scattering_texture, 0);
   glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, scattering_texture_, 0);
-  if (optional_single_mie_scattering_texture_ != 0) {
-    glFramebufferTexture(
-        GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, optional_single_mie_scattering_texture_, 0);
-    glDrawBuffers(4, kDrawBuffers);
-  } else {
-    glDrawBuffers(3, kDrawBuffers);
-  }
+  glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, single_mie_scattering_texture_, 0);
+  glDrawBuffers(4, kDrawBuffers);
+
   glViewport(0, 0, SCATTERING_TEXTURE_WIDTH, SCATTERING_TEXTURE_HEIGHT);
   glScissor(0, 0, SCATTERING_TEXTURE_WIDTH, SCATTERING_TEXTURE_HEIGHT);
   compute_single_scattering.Use();
