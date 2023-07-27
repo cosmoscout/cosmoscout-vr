@@ -27,6 +27,9 @@ namespace csp::wfsoverlays {
     const char* FeatureRenderer::FEATURE_VERT = R"(
     #version 330 core
     layout (location=0) in vec3 aPos;
+    layout (location=1) in vec3 aColor;
+
+    out vec3 vertexColor;
 
     uniform mat4 model;
     uniform mat4 view;
@@ -34,12 +37,13 @@ namespace csp::wfsoverlays {
 
     void main(){
         gl_Position = projection * view * model * vec4(aPos, 1.0);
+        vertexColor = aColor;
     }
     )";
 
     const char* FeatureRenderer::FEATURE_FRAG = R"(
 
-    uniform vec4 ourColor;
+    in vec3 vertexColor;
 
     uniform float         uAmbientBrightness;
     uniform float         uSunIlluminance;
@@ -58,7 +62,7 @@ namespace csp::wfsoverlays {
 
     void main(){
 
-        vec3 result = ourColor.rgb;
+        vec3 result = vertexColor.rgb;
 
             #ifdef ENABLE_HDR
                 result = SRGBtoLINEAR(result) * uSunIlluminance / PI;
@@ -66,8 +70,7 @@ namespace csp::wfsoverlays {
                 result = result * uSunIlluminance;
             #endif
 
-            FragColor = vec4(result, ourColor.a);
-            // FragColor = vec4 (1.0, 1.0, 1.0, 1.0);
+            FragColor = vec4(result, 1.0);
     }
     )";
 
@@ -87,6 +90,7 @@ namespace csp::wfsoverlays {
         mGLNode.reset(pSG->NewOpenGLNode(pSG->GetRoot(), this));
         VistaOpenSGMaterialTools::SetSortKeyOnSubtree(mGLNode.get(), static_cast<int>(cs::utils::DrawOrder::eOpaqueItems));
         
+        
         glGenVertexArrays(1, &VAO);
 
         // Generating the VBO to manage the memory of the input vertex
@@ -101,9 +105,13 @@ namespace csp::wfsoverlays {
         // Copying user-defined data into the current bound buffer                                                                                                        
         glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 3 * mCoordinates.size(), mCoordinates.data(), GL_STATIC_DRAW);      
 
-        // Setting the vertex attributes pointers
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);       
+        // Setting the vertex coordinates attributes pointers
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);       
         glEnableVertexAttribArray(0);
+
+        // Setting the vertex colors attributes pointers
+        glVertexAttribPointer(1, 3, GL_FLOAT, GL_TRUE, 6 * sizeof(float), (void*)(3 * sizeof(float)));       // color vertex attribute pointers
+        glEnableVertexAttribArray(1);
 
         glBindBuffer(GL_ARRAY_BUFFER, 0); 
         glBindVertexArray(0);
@@ -248,14 +256,15 @@ namespace csp::wfsoverlays {
         // Draw
         glBindVertexArray(VAO); 
 
-        GLint colorLocation  = glGetUniformLocation(shaderProgram, "ourColor");
+        /* GLint colorLocation  = glGetUniformLocation(shaderProgram, "ourColor");
         if (colorLocation == -1) {
             logger().info("error");
         }
+        */
         // glm::vec4 ourColor = {1.0f, 1.0f, 0.5f, 1.0f};
         // glUniform4fv(colorLocation, 1, glm::value_ptr(ourColor)); // it is an array
 
-        glUniform4f(colorLocation, 1.0f, 1.0f, 1.0f, 1.0f);
+        // glUniform4f(colorLocation, 1.0f, 1.0f, 1.0f, 1.0f);
 
         glPointSize(5.0);
         glLineWidth(5.0);

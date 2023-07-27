@@ -41,10 +41,11 @@ class Plugin : public cs::core::PluginBase {
 
     void setWFSServer(std::string URL);
     void setWFSFeatureType(std::string featureType);
+    void setRendering();
     double calculateDistance(InfoStruct const& p1, InfoStruct const& p2, glm::vec3 earthRadius);
 
     std::vector<glm::dvec3> generateMidPoint (std::vector <InfoStruct> const& structIn, float threshold, 
-                                                        glm::vec3 earthRadius, std::shared_ptr<const cs::scene::CelestialObject> earth);       // TODO: I think the Plugin:: isnt needed here
+                                                        glm::vec3 earthRadius, std::shared_ptr<const cs::scene::CelestialObject> earth, glm::vec3 featureColor);     
 
     
   private:
@@ -55,9 +56,18 @@ class Plugin : public cs::core::PluginBase {
     std::shared_ptr<Settings> mPluginSettings = std::make_shared<Settings>();
     std::string mBaseUrl;
 
+    WFSFeatureCollection featureLocation; 
+    DescribeFeatureType propertiesStruct;
+    std::stringstream jsonStream;
+
+
     std::unique_ptr<FeatureRenderer> mPointRenderer;
     std::unique_ptr<FeatureRenderer> mLineStringRenderer;
     std::unique_ptr<FeatureRenderer> mPolygonRenderer;
+
+    std::string mColor;
+    std::string mTime;
+    std::string mSelectedFeature;
 
 
     int mOnLoadConnection       = -1;

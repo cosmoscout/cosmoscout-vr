@@ -11,6 +11,8 @@
 #include <vector>
 #include <string>
 #include <array>
+#include <unordered_map>
+#include <nlohmann/json.hpp>
 
 
 namespace csp::wfsoverlays {
@@ -64,7 +66,7 @@ namespace csp::wfsoverlays {
         std::string id;
         std::shared_ptr<GeometryBase> geometry;
         std::string geometry_name;
-        //std::unordered_map<std::string, std::string> properties;
+        std::unordered_map<std::string, nlohmann::json> properties;
         std::array<float, 4> bbox;
     };
 
@@ -83,6 +85,30 @@ namespace csp::wfsoverlays {
         CRS crs; 
         // std::array<float, 4> bbox;
     };
+
+    /////////////////////////////
+
+    struct Property {
+        std::string name;
+        int maxOccurs;
+        int minOccurs;
+        bool nillable;
+        std::string type;
+        std::string localType;
+    };
+
+    struct FeatureType {
+        std::string typeName;
+        std::vector<Property> properties;
+    };
+
+    struct DescribeFeatureType {
+        std::string elementFormDefault;
+        std::string targetNamespace;
+        std::string targetPrefix;
+        std::vector<FeatureType> featureTypes;
+    };
+
 }
 
 
