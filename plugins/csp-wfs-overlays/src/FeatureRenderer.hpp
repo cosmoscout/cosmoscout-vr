@@ -18,18 +18,24 @@
 
 namespace csp::wfsoverlays { 
   class FeatureRenderer : public IVistaOpenGLDraw {
+
     public:
+
       template <typename T>
-      FeatureRenderer (std::string mType, T coordinates, std::shared_ptr<cs::core::SolarSystem> solarSystem, std::shared_ptr<cs::core::Settings> settings); 
+      FeatureRenderer (std::string type, T coordinates, std::shared_ptr<cs::core::SolarSystem> solarSystem, std::shared_ptr<cs::core::Settings> settings, double pointSize, double lineWidth);   // , 
       ~FeatureRenderer();
       bool Do() override;
       bool GetBoundingBox(VistaBoundingBox& bb) override;
+
     private:
+
       std::vector<glm::vec3> mCoordinates;
       std::unique_ptr<VistaOpenGLNode> mGLNode;
       std::shared_ptr<cs::core::SolarSystem> mSolarSystem;
       std::string mType;
       std::shared_ptr<cs::core::Settings> mSettings;
+      double mPointSizeInput;
+      double mLineWidthInput;
       int mHDRConnection;
       bool mShaderDirty;
 

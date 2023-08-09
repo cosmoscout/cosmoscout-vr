@@ -83,7 +83,7 @@ namespace csp::wfsoverlays {
         int numberReturned;
         std::string timeStamp;
         CRS crs; 
-        // std::array<float, 4> bbox;
+        std::array<float, 4> bbox;
     };
 
     /////////////////////////////
@@ -108,6 +108,9 @@ namespace csp::wfsoverlays {
         std::string targetPrefix;
         std::vector<FeatureType> featureTypes;
     };
+
+    double mPointSize;
+    double mLineWidth;
 
 }
 

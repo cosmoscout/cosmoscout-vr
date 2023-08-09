@@ -20,6 +20,7 @@ namespace csp::wfsoverlays {
 
 /// This plugin represents Web Feature Servivces data  in space. The plugin is configurable via the application
 /// config file. See README.md for details.
+
 struct InfoStruct { 
     glm::dvec2 longLatDegrees;
     glm::dvec2 longLatRadians; 
@@ -27,6 +28,7 @@ struct InfoStruct {
     double overSurfaceHeight;
     bool heightComesFromJson;
   };
+
 class Plugin : public cs::core::PluginBase {
   
   public:
@@ -41,13 +43,13 @@ class Plugin : public cs::core::PluginBase {
 
     void setWFSServer(std::string URL);
     void setWFSFeatureType(std::string featureType);
-    void setRendering();
+    void setRendering(double pointSize, double lineWidth);  
     double calculateDistance(InfoStruct const& p1, InfoStruct const& p2, glm::vec3 earthRadius);
+    double calculateAngle (InfoStruct const& p1, InfoStruct const& p2);
+    std::vector<InfoStruct> Interpolation (std::vector<InfoStruct> const& vectorIn, double thresholdAngle, glm::vec3 earthRadius, std::shared_ptr<const cs::scene::CelestialObject> earth);
 
     std::vector<glm::dvec3> generateMidPoint (std::vector <InfoStruct> const& structIn, float threshold, 
                                                         glm::vec3 earthRadius, std::shared_ptr<const cs::scene::CelestialObject> earth, glm::vec3 featureColor);     
-
-    
   private:
 
     void onLoad();
@@ -68,6 +70,7 @@ class Plugin : public cs::core::PluginBase {
     std::string mColor;
     std::string mTime;
     std::string mSelectedFeature;
+    
 
 
     int mOnLoadConnection       = -1;

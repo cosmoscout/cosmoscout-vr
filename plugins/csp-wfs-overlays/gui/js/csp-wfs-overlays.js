@@ -23,6 +23,7 @@
     }
 
     setFeatureProperties (properties) {
+
       const props = JSON.parse(properties);
       const tableContainer = document.getElementById("tableContainer");
       const tbody = document.getElementById("tableBody");
@@ -33,45 +34,65 @@
 
         const row = document.createElement("tr");
 
+        // name cell
         const nameCell = document.createElement("td");
         nameCell.textContent = item.name;
         row.appendChild(nameCell);
 
+        // type cell
         const typeCell = document.createElement("td");
         typeCell.textContent = item.localType;
         row.appendChild(typeCell);
-
-        const radioButton = document.createElement("input");
-        radioButton.type = "radio";
-        radioButton.name = "selectedColor";
-        radioButton.value = item.name;
-        radioButton.style.display = "block";
         
-        radioButton.addEventListener("click", () => { CosmoScout.callbacks.wfsOverlays.setColor(item.name)});
+        // color cell
         const colorCell = document.createElement("td");
-        colorCell.appendChild(radioButton);
+        if (item.localType == "string") {
+          const radioButton = document.createElement("input");
+          radioButton.type = "radio";
+          radioButton.name = "selectedColor";
+          radioButton.value = item.name;
+          radioButton.style.display = "block";
+          radioButton.addEventListener("click", () => { CosmoScout.callbacks.wfsOverlays.setColor(item.name)});
+          colorCell.appendChild(radioButton);
+        }
         row.appendChild(colorCell);
 
-        const radioButtonTime = document.createElement("input");
-        radioButtonTime.type = "radio";
-        radioButtonTime.name = "selectedTime";
-        radioButtonTime.value = item.name;
-        radioButtonTime.style.display = "block";
-
+        // time cell
         const timeCell = document.createElement("td");
-        timeCell.appendChild(radioButtonTime);
+        if (item.localType == "date-time") {
+          const radioButtonTime = document.createElement("input");
+          radioButtonTime.type = "radio";
+          radioButtonTime.name = "selectedTime";
+          radioButtonTime.value = item.name;
+          radioButtonTime.style.display = "block";
+          // TODO: we could add an event listener here
+          timeCell.appendChild(radioButtonTime);  
+        }
         row.appendChild(timeCell);
 
-        /* 
-        Object.values(item).forEach((value) => {
-        const cell = document.createElement("td");
-        cell.textContent = value;
-        row.appendChild(cell);
-        });
-        */
+        // append the whole row containing all the cells above
         tbody.appendChild(row);
       });
     }
+
+    setSize () {
+      const sizeSlider = document.getElementById("size-slider");
+      sizeSlider.addEventListener('change', function () {
+        const selectedValue = sizeSlider.value;
+        CosmoScout.callbacks.wfsOverlays.setSize(selectedValue);
+        // console.log("js::Size transmitido al cpp:", typeof selectedValue);
+      });
+    }
+
+    setWidth () {
+      const widthSlider = document.getElementById("width-slider");
+      widthSlider.addEventListener('change', function () {
+        const selectedValue = widthSlider.value;
+        CosmoScout.callbacks.wfsOverlays.setWidth(selectedValue);
+        // console.log("js::Width transmitido al cpp:", typeof selectedValue);
+      });
+    }
+
   }
 
   CosmoScout.init(WfsOverlaysApi);

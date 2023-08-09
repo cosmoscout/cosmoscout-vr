@@ -75,13 +75,15 @@ namespace csp::wfsoverlays {
     )";
 
     template <typename T>
-    FeatureRenderer::FeatureRenderer (std::string type, T coordinates, std::shared_ptr<cs::core::SolarSystem> solarSystem, 
-                                        std::shared_ptr<cs::core::Settings> settings) {
+    FeatureRenderer::FeatureRenderer (std::string type, T coordinates, std::shared_ptr<cs::core::SolarSystem> solarSystem,   
+                                        std::shared_ptr<cs::core::Settings> settings, double pointSize, double lineWidth) {
         
         mType = type;
         mSolarSystem = solarSystem;
         mCoordinates = coordinates;
         mSettings = settings;
+        mPointSizeInput = pointSize;
+        mLineWidthInput = lineWidth;
         mShaderDirty = true;
 
         // TODO: if no data found, display a warning
@@ -105,7 +107,7 @@ namespace csp::wfsoverlays {
         // Copying user-defined data into the current bound buffer                                                                                                        
         glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 3 * mCoordinates.size(), mCoordinates.data(), GL_STATIC_DRAW);      
 
-        // Setting the vertex coordinates attributes pointers
+        // Setting the vertex coordinates attribute pointers
         glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);       
         glEnableVertexAttribArray(0);
 
@@ -118,6 +120,36 @@ namespace csp::wfsoverlays {
 
         // Recreate the shader if HDR rendering mode are toggled.
         mHDRConnection = mSettings->mGraphics.pEnableHDR.connect([this](bool /*unused*/) { mShaderDirty = true; });
+
+        ////////////////////////////////////////////
+        /////////// FOR LINES //////////////////////
+
+        // TODO: 1st trial: line-based anti-aliasing 
+        // seemed to do nothing but thicker lines
+        /*
+        glEnable(GL_LINE_SMOOTH);
+        glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
+        */
+
+        // TODO: glEnable(GL_MULTISAMPLE);
+
+        ////////////////////////////////////////////
+        /////////// FOR LINES //////////////////////
+
+        // TODO: I read that GL_POINT_SMOOTH + GL_BLEND should work... 
+        // in my case if using POINT_SMOOTH I only see (small) differences
+        // but if I try to combine it with GL_BLEND it just does not work
+        // (what I get is a black screen, not even the Earth is shown).
+        // I read that the alpha component should be different to 1.0
+        // but I changed it to 0.9 and still got a black screen.
+        /*
+        glEnable(GL_POINT_SMOOTH);
+        glHint(GL_POINT_SMOOTH_HINT, GL_NICEST);
+
+        // I think blending combines the point's transparecy with the background
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        */
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -135,8 +167,9 @@ namespace csp::wfsoverlays {
     bool FeatureRenderer::Do() {
 
         if (mShaderDirty) {
+
             // building and compiling the vertex Shader
-            //--------------
+            //-----------------------------------------
             unsigned int vertexShader = glCreateShader(GL_VERTEX_SHADER);
             glShaderSource(vertexShader, 1, &FEATURE_VERT, NULL);
             glCompileShader(vertexShader);
@@ -157,7 +190,7 @@ namespace csp::wfsoverlays {
             const char * fragmentShadercStr = fragmentShaderCode.c_str();
 
             // building and compiling the fragment Shader
-            //----------------
+            //-------------------------------------------
             unsigned int fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
             glShaderSource(fragmentShader, 1, &fragmentShadercStr, NULL);
             glCompileShader(fragmentShader);
@@ -170,7 +203,7 @@ namespace csp::wfsoverlays {
             }
 
             // linking shaders
-            //-------------
+            //----------------
             shaderProgram = glCreateProgram();
             glAttachShader(shaderProgram, vertexShader);
             glAttachShader(shaderProgram, fragmentShader);
@@ -266,8 +299,15 @@ namespace csp::wfsoverlays {
 
         // glUniform4f(colorLocation, 1.0f, 1.0f, 1.0f, 1.0f);
 
-        glPointSize(5.0);
-        glLineWidth(5.0);
+        
+        GLfloat pointSizeGL = static_cast<GLfloat>(mPointSizeInput);
+        // std::cout << "Do::Size: " << pointSizeGL << std::endl;
+        glPointSize(pointSizeGL); 
+
+
+        GLfloat lineWidthGL = static_cast<GLfloat>(mLineWidthInput);
+        // std::cout << "Do::Size: " << pointSizeGL << std::endl;
+        glLineWidth(lineWidthGL);
 
         glDrawArrays(drawingType, 0, static_cast<GLsizei>(3 * mCoordinates.size()));
         glBindVertexArray(0); 

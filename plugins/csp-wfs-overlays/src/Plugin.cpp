@@ -52,7 +52,7 @@ namespace csp::wfsoverlays {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// binding the components of the Settings struct (from the Plugin class)
+// bind the components of the Settings struct (from the Plugin class)
 // defined at the header with the elements at the simple_desktop.json
 //----------------------------------------------------------------------
     
@@ -68,8 +68,8 @@ void to_json(nlohmann::json& j, Plugin::Settings const& o) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// just the from_json for all the different structs defined at the WFSTypes.hpp
-//-----------------------------------------------------------------------------
+// from_json for all the different structs defined at the WFSTypes.hpp
+//--------------------------------------------------------------------
 
 void from_json(const nlohmann::json& j, std::shared_ptr<GeometryBase>& o) {
   
@@ -176,48 +176,42 @@ void from_json(const nlohmann::json& j, DescribeFeatureType& o) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// the function generates midPoints between the Cartesian Points of a given
-// vector (coordinates) and saves them in another (updatedCoordinates).  
+// the function generates midPoints between the Cartesian components of a given
+//  vector of InfoStructs (structIn) and returns a vector of dvec3 (renderingVector).  
 //------------------------------------------------------------------------- 
 
-std::vector<glm::dvec3> Plugin::generateMidPoint (std::vector <InfoStruct> const& structIn, float threshold, 
+std::vector<glm::dvec3> Plugin::generateMidPoint (std::vector <InfoStruct> const& structsIn, float threshold, 
                                                     glm::vec3 earthRadius, std::shared_ptr<const cs::scene::CelestialObject> earth, glm::vec3 featureColor) { 
   std::vector <InfoStruct> totalStruct;
+  std::vector<glm::dvec3> renderingVector;    // the returned one
 
-  std::vector<glm::dvec3> renderingVector; 
+  // TODO: structsIn is already a STRUCT {v0, v1, v1, ... , vn-2, vn-2, vn-1}
 
-  for (int i=0; i < structIn.size()-1; i++) {     
+  for (int i=0; i < structsIn.size()-1; i++) {     
     
     // the following definitions will just make the code syntax simpler 
-    glm::dvec2 p1LongLatRadians = structIn[i].longLatRadians;
-    glm::dvec2 p2LongLatRadians = structIn[i+1].longLatRadians;
-    glm::dvec2 p1LongLatDegrees = structIn[i].longLatDegrees;
-    glm::dvec2 p2LongLatDegrees = structIn[i+1].longLatDegrees;
-    glm::dvec3 p1Cartesian      = structIn[i].Cartesian;
-    glm::dvec3 p2Cartesian      = structIn[i+1].Cartesian;
-    double p1Height = structIn[i].overSurfaceHeight;
-    double p2Height = structIn[i+1].overSurfaceHeight;
-    bool p1Bool = structIn[i].heightComesFromJson;
-    bool p2Bool = structIn[i+1].heightComesFromJson;
+    glm::dvec2 p1LongLatRadians = structsIn[i].longLatRadians;
+    glm::dvec2 p2LongLatRadians = structsIn[i+1].longLatRadians;
+    glm::dvec2 p1LongLatDegrees = structsIn[i].longLatDegrees;
+    glm::dvec2 p2LongLatDegrees = structsIn[i+1].longLatDegrees;
+    glm::dvec3 p1Cartesian      = structsIn[i].Cartesian;
+    glm::dvec3 p2Cartesian      = structsIn[i+1].Cartesian;
+    double p1Height = structsIn[i].overSurfaceHeight;
+    double p2Height = structsIn[i+1].overSurfaceHeight;
+    bool p1Bool = structsIn[i].heightComesFromJson;
+    bool p2Bool = structsIn[i+1].heightComesFromJson;
 
-    double distance = calculateDistance(structIn[i], structIn[i+1], earthRadius);
+    double distance = calculateDistance(structsIn[i], structsIn[i+1], earthRadius);
 
     if (distance > threshold) { 
-
-      totalStruct.push_back(structIn[i]);
-
+      totalStruct.push_back(structsIn[i]);
       int numMidPoints = static_cast<int> (distance/threshold);
-
       double segmentLength = distance/threshold; 
-
-      std::vector <InfoStruct> midPointStruct;
-
       for (int j=1; j <= numMidPoints; j++) {
-
         InfoStruct temporaryStruct;
-        temporaryStruct.Cartesian = glm::mix(p1Cartesian,p2Cartesian,(segmentLength*j)/distance); 
+        temporaryStruct.Cartesian = glm::mix(p1Cartesian,p2Cartesian,(segmentLength*j)/distance);   // without correct height
         temporaryStruct.longLatRadians = cs::utils::convert::cartesianToLngLat(temporaryStruct.Cartesian, earthRadius);
-
+        // get the correct height
         if (p1Bool || p2Bool) {
           temporaryStruct.overSurfaceHeight = ((p1Height + p2Height)/2);
           temporaryStruct.heightComesFromJson = true;
@@ -226,27 +220,30 @@ std::vector<glm::dvec3> Plugin::generateMidPoint (std::vector <InfoStruct> const
           temporaryStruct.overSurfaceHeight = earth->getSurface()->getHeight(temporaryStruct.longLatRadians);
           temporaryStruct.heightComesFromJson = false;
         }
-        temporaryStruct.Cartesian = cs::utils::convert::toCartesian(temporaryStruct.longLatRadians, earthRadius, temporaryStruct.overSurfaceHeight);
+        // correct the cartesian based on height
+        temporaryStruct.Cartesian = cs::utils::convert::toCartesian(temporaryStruct.longLatRadians, earthRadius, temporaryStruct.overSurfaceHeight);  // with correct height
         totalStruct.push_back(temporaryStruct);
-        totalStruct.push_back(temporaryStruct);
+        totalStruct.push_back(temporaryStruct);   // TODO: as input already doubled, it would be: option1 = STRUCT con {v0, mids x2, v1, v1, mids x2, v2, v2, ... , vn-2, vn-2, mids x2}
       }
     }
-
     // in case the distance is so small that midPoints are not needed
     else {
-      totalStruct.push_back(structIn[i]);
+      totalStruct.push_back(structsIn[i]);         // TODO: as input already doubled, it would be: option2 = STRUCT con {v0, v1, v1, v2, v2, ... , vn-2, vn-2}
     } 
   }
   
-  totalStruct.push_back(structIn[structIn.size() - 1]);
+  totalStruct.push_back(structsIn[structsIn.size() - 1]);   // TODO: it would be STRUCT con: {option1 ,vn-1}   or   {option2 ,vn-1}
   
+  // TODO: IF WE WANT TO USE THE INTERPOLATE.............. std::vector <InfoStruct> interpolatedStruct = Interpolation (totalStruct, 200.0, earthRadius, earth);
 
-  for (int i=0; i<totalStruct.size(); i++) {
-    renderingVector.push_back(totalStruct[i].Cartesian);
+  for (int i=0; i<totalStruct.size(); i++) {    // TODO: IF WE WANT TO USE THE INTERPOLATE.............. interpolatedStruct    INSTEAD OF totalStruct
+    renderingVector.push_back(totalStruct[i].Cartesian);    // TODO: IF WE WANT TO USE THE INTERPOLATE.............. interpolatedStruct    INSTEAD OF totalStruct
     renderingVector.push_back(featureColor);
   }
-return renderingVector;
-}
+
+return renderingVector; // TODO: it would be {v0, rgb0, x2 (mid,rgb), v1, rgb1, v1, rgb1, x2 (mid,rgb), ... , vn-2, rgbn-2, vn-2, rgbn-2}
+  }
+  
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -271,6 +268,57 @@ double Plugin::calculateDistance(InfoStruct const& p1, InfoStruct const& p2, glm
   else {
     return distanceHaversine;    
   }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+double Plugin::calculateAngle (InfoStruct const& p1, InfoStruct const& p2) {
+
+    double angleRad =  atan2(p2.Cartesian.y - p1.Cartesian.y, p2.Cartesian.x - p1.Cartesian.x); // in radians
+    double PI = glm::pi<double>();
+    double angleDeg = angleRad * (180.0 / PI);
+    return angleDeg;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+                                          
+std::vector<InfoStruct> Plugin::Interpolation (std::vector<InfoStruct> const& vectorIn, double thresholdAngle, glm::vec3 earthRadius, std::shared_ptr<const cs::scene::CelestialObject> earth) {
+
+  std::vector<InfoStruct> vectorOut;
+
+  for (int i=0; i < vectorIn.size()-1; i++) {
+
+    double angle = calculateAngle(vectorIn[i], vectorIn[i+1]);
+
+    vectorOut.push_back(vectorIn[i]);
+
+    if (std::abs(angle) > thresholdAngle) {
+      int numPoints = static_cast<int>(std::abs(angle) / thresholdAngle);
+      for (int j = 1; j <= numPoints; j++) {
+        InfoStruct temporaryStruct; 
+        double interpolationCoefficient = static_cast<double>(j) / (numPoints + 1);
+        temporaryStruct.Cartesian = vectorIn[i].Cartesian + (vectorIn[i+1].Cartesian - vectorIn[i].Cartesian) * interpolationCoefficient;
+        temporaryStruct.longLatRadians = cs::utils::convert::cartesianToLngLat(temporaryStruct.Cartesian, earthRadius);
+        // get the correct height
+        if (vectorIn[i].heightComesFromJson || vectorIn[i+1].heightComesFromJson) {
+          temporaryStruct.overSurfaceHeight = ((vectorIn[i].Cartesian.z + vectorIn[i+1].Cartesian.z)/2);
+          temporaryStruct.heightComesFromJson = true;
+        } 
+        else {
+          temporaryStruct.overSurfaceHeight = earth->getSurface()->getHeight(temporaryStruct.longLatRadians);
+          temporaryStruct.heightComesFromJson = false;
+        }
+        vectorOut.push_back(temporaryStruct);
+        vectorOut.push_back(temporaryStruct);
+      }
+    }
+    vectorOut.push_back(vectorIn[i+1]);
+  }
+
+  vectorOut.push_back(vectorIn[vectorIn.size() - 1]); 
+
+  return vectorOut;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -350,9 +398,9 @@ void Plugin::setWFSServer(std::string URL) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// once we select the desired dataset, its information is stored in a 
-// WFSFeatureCollection-type struct (featureLocation). Additionally, its
-// properies are saved in a DescribeFeatureType-type struct (propertiesStruct). 
+// once we select the desired dataset, its information is stored in a class member 
+// WFSFeatureCollection-type struct (featureLocation). Additionally, its properies are 
+// saved in a DescribeFeatureType-type struct (propertiesStruct), also a class member. 
 //-----------------------------------------------------------------------------
 
 void Plugin::setWFSFeatureType(std::string featureType) { 
@@ -422,6 +470,10 @@ void Plugin::setWFSFeatureType(std::string featureType) {
   from_json(propertiesData, propertiesStruct);
 
   mGuiManager->getGui()->callJavascript("CosmoScout.wfsOverlays.setFeatureProperties", docPropertiesString);
+
+  
+
+  
 }
 
   ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -430,17 +482,9 @@ void Plugin::setWFSFeatureType(std::string featureType) {
   // and handle its rendering depending on the type of its geometry
   //---------------------------------------------------------------
 
-  void Plugin::setRendering() { 
+  void Plugin::setRendering(double pointSize = 5.0, double lineWidth = 3.0) {   // TODO: double pointSize
     
-    /* 
-    for (const auto& featureType : propertiesStruct.featureTypes) {
-      for (const auto& property : featureType.properties) {
-        logger().info("{}", property.name);
-      }
-    }
-    */
-
-    logger().info("Size: {}", featureLocation.features.size());
+    logger().info("setRendering::Number of elements: {}", featureLocation.features.size());
     
     auto earth = mSolarSystem->getObject("Earth");
     glm::dvec3 earthRadius = earth->getRadii(); 
@@ -454,7 +498,7 @@ void Plugin::setWFSFeatureType(std::string featureType) {
     int numNull = 0;
 
     std::vector <glm::vec3> colors;
-    
+
     // just to get the time of processing
     auto startTime = std::chrono::high_resolution_clock::now();
 
@@ -484,7 +528,7 @@ void Plugin::setWFSFeatureType(std::string featureType) {
       glm::dvec3 featureColor = {1.0,1.0,1.0};
       nlohmann::json jsonColor = featureLocation.features[l].properties[mColor];
       if (jsonColor.type() == nlohmann::json::value_t::string) { 
-        try {
+        // try {
           // split the whole string into three substrings
           std::string jsonString = jsonColor.get<std::string>();
           std::vector<std::string> subStrings;
@@ -495,17 +539,16 @@ void Plugin::setWFSFeatureType(std::string featureType) {
           }
           if (subStrings.size() != 3) {
             threeComp++;
-            // logger().info("The color does not have exactly 3 components.");
+            // logger().warn("The color does not have exactly 3 components.");
           }
           // switch from strings to doubles and save them as dvec3 components
           double r = static_cast<double>(std::stoi(subStrings[0]) / 255.0);
           double g = static_cast<double>(std::stoi(subStrings[1]) / 255.0);
           double b = static_cast<double>(std::stoi(subStrings[2]) / 255.0);
           featureColor = {r,g,b};
-        } catch (const std::exception& e) {
-          std::cerr << "error when accessing the JSON: " << e.what() <<std::endl;
-        }
-      } 
+        } //catch (const std::exception& e) {
+          // std::cerr << "error when accessing the JSON: " << e.what() <<std::endl;
+      // NOTE THAT IF I WENT BACK TO THE TRY-CATCH METHOD I WOULD HAVE TO ADD SOME } } AFTER THIS PARAGRAPH
 
       // checking "null" geometry (e.g. DWD -> dwd:Autowarn_Vorhersage)
       if (featureLocation.features[l].geometry == nullptr) {
@@ -568,7 +611,7 @@ void Plugin::setWFSFeatureType(std::string featureType) {
         auto lineStringProcessing = [&, nIteration, l, featureColor] () {
 
           std::shared_ptr<LineString> lineString = std::dynamic_pointer_cast<LineString>(featureLocation.features[l].geometry); 
-          std::vector<InfoStruct> lineStringStruct;
+          std::vector<InfoStruct> lineStringStructs;
 
           for (int i=0; i < lineString->mCoordinates.size(); i++) {
             InfoStruct temporaryStruct;
@@ -585,13 +628,15 @@ void Plugin::setWFSFeatureType(std::string featureType) {
             }
             temporaryStruct.Cartesian = cs::utils::convert::toCartesian(temporaryStruct.longLatRadians, earthRadius, temporaryStruct.overSurfaceHeight); 
 
-            lineStringStruct.push_back(temporaryStruct);
+            lineStringStructs.push_back(temporaryStruct);
             if (i != 0 && i != lineString->mCoordinates.size()-1) {     
-              lineStringStruct.push_back(temporaryStruct);
+              lineStringStructs.push_back(temporaryStruct);    // TODO: here it would be STRUCT con {v0, v1, v1, ... , vn-2, vn-2, vn-1} 
             } 
+
           }
-          std::vector<glm::dvec3> lineStringVec = generateMidPoint(lineStringStruct, 100000.0, earthRadius, earth, featureColor);
+          std::vector<glm::dvec3> lineStringVec = generateMidPoint(lineStringStructs, 100000.0, earthRadius, earth, featureColor);
           lineStringIntermediateVector[nIteration].insert(lineStringIntermediateVector[nIteration].end(), lineStringVec.begin(), lineStringVec.end());
+          
         };
 
         threadPool.enqueue(lineStringProcessing); // assign each tread what to do
@@ -607,7 +652,7 @@ void Plugin::setWFSFeatureType(std::string featureType) {
           std::shared_ptr<MultiLineString> multiLineString = std::dynamic_pointer_cast<MultiLineString>(featureLocation.features[l].geometry); 
           
           for (int i=0; i < multiLineString->mCoordinates.size(); i++) { 
-            std::vector<InfoStruct> multiLineStringStruct;
+            std::vector<InfoStruct> multiLineStringStructs;
             for (int j=0; j < multiLineString->mCoordinates[i].size(); j++) { 
               InfoStruct temporaryStruct;
               temporaryStruct.longLatDegrees = {multiLineString->mCoordinates[i][j][0], multiLineString->mCoordinates[i][j][1]};
@@ -623,12 +668,12 @@ void Plugin::setWFSFeatureType(std::string featureType) {
               }
               temporaryStruct.Cartesian = cs::utils::convert::toCartesian(temporaryStruct.longLatRadians, earthRadius, temporaryStruct.overSurfaceHeight);   
               
-              multiLineStringStruct.push_back(temporaryStruct);
+              multiLineStringStructs.push_back(temporaryStruct);
               if (j != 0 && j != multiLineString->mCoordinates[i].size()-1) {          
-                multiLineStringStruct.push_back(temporaryStruct);
+                multiLineStringStructs.push_back(temporaryStruct);
               } 
             } 
-            std::vector<glm::dvec3> multiLineStringVec = generateMidPoint(multiLineStringStruct, 100000.0, earthRadius, earth, featureColor);
+            std::vector<glm::dvec3> multiLineStringVec = generateMidPoint(multiLineStringStructs, 100000.0, earthRadius, earth, featureColor);
             multiLineStringIntermediateVector[nIteration].insert(multiLineStringIntermediateVector[nIteration].end(), multiLineStringVec.begin(), multiLineStringVec.end());
           }
         };
@@ -646,7 +691,7 @@ void Plugin::setWFSFeatureType(std::string featureType) {
           std::shared_ptr<Polygon> polygon = std::dynamic_pointer_cast<Polygon>(featureLocation.features[l].geometry); 
           
           for (int i=0; i < polygon->mCoordinates.size(); i++) {
-            std::vector<InfoStruct> polygonStruct;
+            std::vector<InfoStruct> polygonStructs;
             for (int j=0; j < polygon->mCoordinates[i].size(); j++) {
               InfoStruct temporaryStruct;   
               temporaryStruct.longLatDegrees = {polygon->mCoordinates[i][j][0], polygon->mCoordinates[i][j][1]};
@@ -663,12 +708,13 @@ void Plugin::setWFSFeatureType(std::string featureType) {
 
               temporaryStruct.Cartesian = cs::utils::convert::toCartesian(temporaryStruct.longLatRadians, earthRadius, temporaryStruct.overSurfaceHeight);  
               
-              polygonStruct.push_back(temporaryStruct);
+              polygonStructs.push_back(temporaryStruct);
               if (j != 0 && j != polygon->mCoordinates[i].size()-1) {          
-                polygonStruct.push_back(temporaryStruct);
+                polygonStructs.push_back(temporaryStruct);
               } 
             }
-            std::vector<glm::dvec3> polygonVec = generateMidPoint(polygonStruct, 100000.0, earthRadius, earth, featureColor);
+
+            std::vector<glm::dvec3> polygonVec = generateMidPoint(polygonStructs, 100000.0, earthRadius, earth, featureColor);
             polygonIntermediateVector[nIteration].insert(polygonIntermediateVector[nIteration].end(), polygonVec.begin(), polygonVec.end());
           } 
         };
@@ -687,7 +733,7 @@ void Plugin::setWFSFeatureType(std::string featureType) {
         
           for (int i=0; i < multiPolygon->mCoordinates.size(); i++) { 
             for (int j=0; j < multiPolygon->mCoordinates[i].size(); j++) {
-              std::vector<InfoStruct> multiPolygonStruct;
+              std::vector<InfoStruct> multiPolygonStructs;
               for (int k=0; k < multiPolygon->mCoordinates[i][j].size(); k++) {
 
                 InfoStruct temporaryStruct;
@@ -705,17 +751,16 @@ void Plugin::setWFSFeatureType(std::string featureType) {
 
                 temporaryStruct.Cartesian = cs::utils::convert::toCartesian(temporaryStruct.longLatRadians, earthRadius, temporaryStruct.overSurfaceHeight);   
                 
-                multiPolygonStruct.push_back(temporaryStruct);
+                multiPolygonStructs.push_back(temporaryStruct);
                 if (k != 0 && k != multiPolygon->mCoordinates[i][j].size()-1) {          
-                  multiPolygonStruct.push_back(temporaryStruct);
+                  multiPolygonStructs.push_back(temporaryStruct);
                 } 
               }
-              std::vector<glm::dvec3> multiPolygonVec = generateMidPoint(multiPolygonStruct, 100000.0, earthRadius, earth, featureColor);
-              multiPolygonIntermediateVector[nIteration].insert(multiPolygonIntermediateVector[nIteration].end(), multiPolygonVec.begin(), multiPolygonVec.end()); 
+              std::vector<glm::dvec3> multiPolygonMidPoints = generateMidPoint(multiPolygonStructs, 100000.0, earthRadius, earth, featureColor);
+              multiPolygonIntermediateVector[nIteration].insert(multiPolygonIntermediateVector[nIteration].end(), multiPolygonMidPoints.begin(), multiPolygonMidPoints.end()); 
             }
           } 
         };
-
         threadPool.enqueue(multiPolygonProcessing);         // assign each tread what to do
       }
       
@@ -729,10 +774,13 @@ void Plugin::setWFSFeatureType(std::string featureType) {
       std::this_thread::sleep_for(std::chrono::milliseconds(1));
     }
 
-
+    // TODO: iMPROVE THIS ERROR WARNING
     if (threeComp != 0) {
-      logger().info("The color does not have exactly 3 components.");
+      logger().warn("The color does not have exactly 3 components.");
     }
+
+    // we have to convert from dvec3 to vec3 before rendering
+    //-------------------------------------------------------
 
     // for points and multipoints, without multithread
     std::vector<glm::vec3> pointCoordinatesRendering;
@@ -790,19 +838,28 @@ void Plugin::setWFSFeatureType(std::string featureType) {
     // rendering
     //----------
 
+    mPointSize = pointSize;
+    mLineWidth = lineWidth;
+
+    
+    
+
     if (!pointCoordinatesRendering.empty()) {
       logger().info( "points: {}, multiPoints: {}. (containing {} points). ", numPoints, numMultiPoints, pointCoordinatesRendering.size()/2 );
-      mPointRenderer = std::make_unique<FeatureRenderer>("Point", pointCoordinatesRendering, mSolarSystem, mAllSettings);
+      mPointRenderer = std::make_unique<FeatureRenderer>("Point", pointCoordinatesRendering, mSolarSystem, mAllSettings, mPointSize, mLineWidth);
+      logger().info("setRendering::PointSize {}", mPointSize);
     }
 
     if (!lineStringCoordinatesRendering.empty()) {
       logger().info( "lines: {}, multiLines: {}. (containing {} points).", numLineStrings, numMultiLineStrings, (lineStringCoordinatesRendering.size()/2+1)/2 );
-      mLineStringRenderer = std::make_unique<FeatureRenderer> ("LineString", lineStringCoordinatesRendering, mSolarSystem, mAllSettings);
+      mLineStringRenderer = std::make_unique<FeatureRenderer> ("LineString", lineStringCoordinatesRendering, mSolarSystem, mAllSettings, mPointSize, mLineWidth);
+      logger().info("setRendering::LineWidth {}", mLineWidth);
     }
 
     if (!polygonCoordinatesRendering.empty()) {
       logger().info( "polygons: {}, multiPolygons: {}. (containing {} points).", numPolygons, numMultiPolygons, (polygonCoordinatesRendering.size()/2+1)/2 );
-      mPolygonRenderer = std::make_unique<FeatureRenderer> ("Polygon", polygonCoordinatesRendering, mSolarSystem, mAllSettings);
+      mPolygonRenderer = std::make_unique<FeatureRenderer> ("Polygon", polygonCoordinatesRendering, mSolarSystem, mAllSettings, mPointSize, mLineWidth);
+      logger().info("setRendering::LineWidth {}", mLineWidth);
     }
 
     if(!mPointRenderer && !mLineStringRenderer && !mPolygonRenderer) {
@@ -814,6 +871,9 @@ void Plugin::setWFSFeatureType(std::string featureType) {
     // printing the time that it took 
     std::chrono::duration<double> diff = endTime - startTime;
     logger().info("Time of execution was: {} s. ", diff.count()); 
+
+    // logger().info("size: {}", pointSize);
+    
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -887,12 +947,43 @@ void Plugin::init() {
   // TODO: "Select Date" callback via GUI
   //-------------------------------------
 
+  /*
   mGuiManager->getGui()->registerCallback("wfsOverlays.setTime",
                                           "Use the chosen radio as the time.",
                                           std::function([this](std::string&& name) {
                                             logger().info("Time: {}", name);
                                           }));
+  */
 
+  // TODO: "Select Size" callback via GUI
+  //-------------------------------------
+
+  mGuiManager->getGui()->registerCallback("wfsOverlays.setSize",
+                                          "Use the chosen size for points.",
+                                          std::function([this](std::string&& userSelectedSize) {
+                                            logger().info("done");
+                                            mPointSize = std::stod(userSelectedSize);
+                                            setRendering(mPointSize, 3.0);
+                                            // logger().info("Size: {}", mPointSize);
+                                          }));
+
+  mGuiManager->getGui()->callJavascript("CosmoScout.wfsOverlays.setSize","5.0");
+
+  // TODO: "Select Width" callback via GUI
+  //-------------------------------------
+
+  mGuiManager->getGui()->registerCallback("wfsOverlays.setWidth",
+                                          "Use the chosen width for lines.",
+                                          std::function([this](std::string&& userSelectedWidth) {
+                                            logger().info("done");
+                                            mLineWidth = std::stod(userSelectedWidth);
+                                            setRendering(5.0, mLineWidth);
+                                            logger().info("Width: {}", mLineWidth);
+                                          }));
+
+  mGuiManager->getGui()->callJavascript("CosmoScout.wfsOverlays.setWidth","3.0");
+  
+                                          
   onLoad();
 
   // show the list of servers at the GUI

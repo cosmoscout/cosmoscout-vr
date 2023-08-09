@@ -5,60 +5,95 @@ SPDX-License-Identifier: MIT
 
 <div class="strike">
     <span>Dataset Selection</span>
-  </div>
-  <div class="row mb-1">
-    <div class="col-5">
-      <label>WFS Server</label>
-    </div>
-    <div class="col-6 offset-1">
-      <select data-callback="wfsOverlays.setServer" data-container="#cosmoscout" data-width="100%"
-        class="simple-value-dropdown" data-dropdown-align-right="true">
-        <!-- Filled by JavaScript Function called from Plugin.cpp -->
-      </select>
-    </div>
-  </div>
-      
-  <div class="row mb-1">
-    <div class="col-5">
-      <label>Feature type</label>
-    </div>
-    <div class="col-1">
-      <i class="material-icons" style="font-size: 22px; top:-3px;" id="wmsOverlays-infoIcon">info</i>
-    </div>
-    <div class="col-6">
-      <select data-callback="wfsOverlays.setWFSFeatureType" data-container="#cosmoscout" data-width="100%"
-        class="simple-value-dropdown" data-dropdown-align-right="true" data-live-search="true">
-        <!-- Filled by JavaScript Function called from Plugin.cpp -->
-      </select>
-    </div>
-  </div>  
+</div>
 
-  <div class="row mb-1">
-    <div class="col-5">
-      <label>Properties</label>
-    </div>
+<!------- SERVER SELECTION ------->
+<div class="row mb-1">
+  <div class="col-5">
+    <label>WFS Server</label>
   </div>
-    <table id = "tableContainer" style = "width: 100%"> 
-      <thead>
-        <th>Property Name:</th>
-        <th>Type:</th>
-        <th>Color:</th>
-        <th>Time:</th>
-      </thead>
-      <tbody id = "tableBody">
-        <!-- Filled by JavaScript Function called from Plugin.cpp --> 
-      </tbody>
-    </table>
+  <div class="col-6" offset-1>
+    <select data-callback="wfsOverlays.setServer" data-container="#cosmoscout" data-width="100%"
+      class="simple-value-dropdown" data-dropdown-align-right="true">
+      <!-- Filled by JavaScript Function called from Plugin.cpp -->
+    </select>
+  </div>
+</div>
+
+<!------- FEATURE TYPE SELECTION ------->
+<div class="row mb-1">
+  <div class="col-5">
+    <label>Feature type</label>
+  </div>
+  <div class="col-6" offset-1>
+    <select data-callback="wfsOverlays.setWFSFeatureType" data-container="#cosmoscout" data-width="100%"
+      class="simple-value-dropdown" data-dropdown-align-right="true" data-live-search="true">
+      <!-- Filled by JavaScript Function called from Plugin.cpp -->
+    </select>
+  </div>
+</div>  
+
+<!------- PROPERTIES MANAGEMENT ------->
+<div class="row mb-1">
+  <div class="col-5">
+    <label>Properties</label>
+  </div>
+</div>
+  <table id = "tableContainer" style = "width: 100%"> 
+    <thead>
+      <th>Property Name:</th>
+      <th>Type:</th>
+      <th>Color:</th>
+      <th>Time:</th>
+    </thead>
+    <tbody id = "tableBody">
+      <!-- Filled by JavaScript Function called from Plugin.cpp --> 
+    </tbody>
+  </table>
 
   <div class="strike">
     <span>Style</span>
   </div>
 
-  <div class="row">
-    <div class="col-6">
+  <!------- POINT SIZE SELECTION ------->
+  <div class="row mb-1">
+    <div class="col-5">
+      <label> Point size: </label>
+    </div>
+    <div class="slidecontainer">
+      <input data-callback="wfsOverlays.setSize" id="size-slider" type="range" min="1.0" max="10.0" step="1.0" value="1.0">
+      <!-- Filled by JavaScript Function called from Plugin.cpp -->
+    </div>
+  </div>
+
+  <!------- LINE WIDTH SELECTION ------->
+  <div class="row mb-1">
+    <div class="col-5">
+      <label> Line width: </label>
+    </div>
+    <div class="slidecontainer">
+      <input data-callback="wfsOverlays.setWidth" id="width-slider" type="range" min="1.0" max="10.0" step="1.0" value="1.0">
+      <!-- Filled by JavaScript Function called from Plugin.cpp -->
+    </div>
+  </div>
+
+
+
+
+
+
+
+
+<!--
+
+  <select data-callback="wfsOverlays.setServer" data-container="#cosmoscout" data-width="100%"
+        class="simple-value-dropdown" data-dropdown-align-right="true">
+        Filled by JavaScript Function called from Plugin.cpp 
+
+  <div class="row mb-1">
+    <div class="col-5">
       <input name="surface_coloring" type="slidecontainer" data-callback="lodBodies.setSurfaceColoringMode1" />
-        <span>Color</span>
-      
+        <span>Color</span>  
     </div>
     <div class="col-6">
       <div data-callback="wfsOverlays.setColor"></div>
@@ -68,5 +103,6 @@ SPDX-License-Identifier: MIT
   <div class="slidecontainer">
     <input type="range" min="1" max="100" value="50" class="slider" id="myRange">
   </div>
-
   <input type="text" class="form-control color-input" id="-asfdasfasdeditor-color" style="color: black;" value="">
+  
+-->
