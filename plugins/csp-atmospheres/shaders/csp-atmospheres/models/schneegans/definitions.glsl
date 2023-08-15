@@ -192,24 +192,7 @@ The atmosphere parameters are then defined by the following struct:
 */
 
 struct AtmosphereParameters {
-  // The solar irradiance at the top of the atmosphere.
-  IrradianceSpectrum solar_irradiance;
-  // The sun's angular radius. Warning: the implementation uses approximations
-  // that are valid only if this angle is smaller than 0.1 radians.
-  Angle sun_angular_radius;
-  // The distance between the planet center and the bottom of the atmosphere.
-  Length bottom_radius;
-  // The distance between the planet center and the top of the atmosphere.
-  Length top_radius;
-
   AtmosphereComponent rayleigh;
   AtmosphereComponent mie;
   AtmosphereComponent ozone;
-
-  DimensionlessSpectrum ground_albedo;
-  // The cosine of the maximum Sun zenith angle for which atmospheric scattering
-  // must be precomputed (for maximum precision, use the smallest Sun zenith
-  // angle yielding negligible sky light radiance values. For instance, for the
-  // Earth case, 102 degrees is a good choice - yielding mu_s_min = -0.2).
-  Number mu_s_min;
 };

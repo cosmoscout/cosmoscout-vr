@@ -127,7 +127,7 @@ const char kComputeDirectIrradianceShader[] = R"(
     uniform sampler2D transmittance_texture;
     void main() {
       delta_irradiance = ComputeDirectIrradianceTexture(
-          ATMOSPHERE, transmittance_texture, gl_FragCoord.xy);
+          transmittance_texture, gl_FragCoord.xy);
       irradiance = vec3(0.0);
     })";
 
@@ -190,7 +190,7 @@ const char kComputeMultipleScatteringShader[] = R"(
     void main() {
       float nu;
       delta_multiple_scattering = ComputeMultipleScatteringTexture(
-          ATMOSPHERE, transmittance_texture, scattering_density_texture,
+          transmittance_texture, scattering_density_texture,
           vec3(gl_FragCoord.xy, layer + 0.5), nu);
       scattering = luminance_from_radiance *
               delta_multiple_scattering.rgb / PhaseFunction(ATMOSPHERE.rayleigh, nu);
@@ -214,8 +214,8 @@ const char kAtmosphereShader[] = R"(
     uniform sampler2D irradiance_texture;
     #ifdef RADIANCE_API_ENABLED
     RadianceSpectrum GetSolarRadiance() {
-      return ATMOSPHERE.solar_irradiance /
-          (PI * ATMOSPHERE.sun_angular_radius * ATMOSPHERE.sun_angular_radius);
+      return SOLAR_IRRADIANCE /
+          (PI * SUN_ANGULAR_RADIUS * SUN_ANGULAR_RADIUS);
     }
     RadianceSpectrum GetSkyRadiance(
         Position camera, Direction view_ray,
@@ -234,13 +234,13 @@ const char kAtmosphereShader[] = R"(
     IrradianceSpectrum GetSunAndSkyIrradiance(
        Position p, Direction sun_direction,
        out IrradianceSpectrum sky_irradiance) {
-      return GetSunAndSkyIrradiance(ATMOSPHERE, transmittance_texture,
+      return GetSunAndSkyIrradiance(transmittance_texture,
           irradiance_texture, p, sun_direction, sky_irradiance);
     }
     #endif
     Luminance3 GetSolarLuminance() {
-      return ATMOSPHERE.solar_irradiance /
-          (PI * ATMOSPHERE.sun_angular_radius * ATMOSPHERE.sun_angular_radius) *
+      return SOLAR_IRRADIANCE /
+          (PI * SUN_ANGULAR_RADIUS * SUN_ANGULAR_RADIUS) *
           SUN_SPECTRAL_RADIANCE_TO_LUMINANCE;
     }
     Luminance3 GetSkyLuminance(
@@ -263,7 +263,7 @@ const char kAtmosphereShader[] = R"(
        Position p, Direction sun_direction,
        out IrradianceSpectrum sky_irradiance) {
       IrradianceSpectrum sun_irradiance = GetSunAndSkyIrradiance(
-          ATMOSPHERE, transmittance_texture, irradiance_texture, p,
+          transmittance_texture, irradiance_texture, p,
           sun_direction, sky_irradiance);
       sky_irradiance *= SKY_SPECTRAL_RADIANCE_TO_LUMINANCE;
       return sun_irradiance * SUN_SPECTRAL_RADIANCE_TO_LUMINANCE;
@@ -692,18 +692,18 @@ Model::Model(const std::vector<double>& wavelengths, const std::vector<double>& 
             "const int IRRADIANCE_TEXTURE_WIDTH = "     + cs::utils::toString(IRRADIANCE_TEXTURE_WIDTH) + ";\n" +
             "const int IRRADIANCE_TEXTURE_HEIGHT = "    + cs::utils::toString(IRRADIANCE_TEXTURE_HEIGHT) + ";\n" +
             definitions_glsl +
-            "const AtmosphereParameters ATMOSPHERE = AtmosphereParameters(\n" +
-              extractVec3(solar_irradiance, lambdas) + ",\n" +
-              cs::utils::toString(sun_angular_radius) + ",\n" +
-              cs::utils::toString(bottom_radius / length_unit_in_meters) + ",\n" +
-              cs::utils::toString(top_radius / length_unit_in_meters) + ",\n" +
-              atmosphereComponent(rayleigh, lambdas) + ",\n" +
-              atmosphereComponent(mie, lambdas) + ",\n" +
-              atmosphereComponent(ozone, lambdas) + ",\n" +
-              extractVec3(ground_albedo, lambdas) + ",\n" +
-              cs::utils::toString(cos(max_sun_zenith_angle)) + ");\n" +
             "const vec3 SKY_SPECTRAL_RADIANCE_TO_LUMINANCE = vec3(" + cs::utils::toString(sky_k_r) + "," + cs::utils::toString(sky_k_g) + "," + cs::utils::toString(sky_k_b) + ");\n" +
             "const vec3 SUN_SPECTRAL_RADIANCE_TO_LUMINANCE = vec3(" + cs::utils::toString(sun_k_r) + "," + cs::utils::toString(sun_k_g) + "," + cs::utils::toString(sun_k_b) + ");\n" +
+            "const vec3 SOLAR_IRRADIANCE = "            + extractVec3(solar_irradiance, lambdas) + ";\n" +
+            "const vec3 GROUND_ALBEDO = "               + extractVec3(ground_albedo, lambdas) + ";\n" +
+            "const float SUN_ANGULAR_RADIUS = "         + cs::utils::toString(sun_angular_radius) + ";\n" +
+            "const float BOTTOM_RADIUS = "              + cs::utils::toString(bottom_radius / length_unit_in_meters) + ";\n" +
+            "const float TOP_RADIUS = "                 + cs::utils::toString(top_radius / length_unit_in_meters) + ";\n" +
+            "const float MU_S_MIN = "                   + cs::utils::toString(cos(max_sun_zenith_angle))+ ";\n" +
+            "const AtmosphereParameters ATMOSPHERE = AtmosphereParameters(\n" +
+              atmosphereComponent(rayleigh, lambdas) + ",\n" +
+              atmosphereComponent(mie, lambdas) + ",\n" +
+              atmosphereComponent(ozone, lambdas) + ");\n" +
             functions_glsl;
     };
   // clang-format on
