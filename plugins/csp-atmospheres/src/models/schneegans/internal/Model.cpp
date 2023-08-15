@@ -134,7 +134,7 @@ const char kComputeDirectIrradianceShader[] = R"(
 const char kComputeSingleScatteringShader[] = R"(
     layout(location = 0) out vec3 delta_rayleigh;
     layout(location = 1) out vec3 delta_mie;
-    layout(location = 2) out vec4 scattering;
+    layout(location = 2) out vec3 scattering;
     layout(location = 3) out vec3 single_mie_scattering;
     uniform mat3 luminance_from_radiance;
     uniform sampler2D transmittance_texture;
@@ -143,8 +143,7 @@ const char kComputeSingleScatteringShader[] = R"(
       ComputeSingleScatteringTexture(
           ATMOSPHERE, transmittance_texture, vec3(gl_FragCoord.xy, layer + 0.5),
           delta_rayleigh, delta_mie);
-      scattering = vec4(luminance_from_radiance * delta_rayleigh.rgb,
-          (luminance_from_radiance * delta_mie).r);
+      scattering = luminance_from_radiance * delta_rayleigh;
       single_mie_scattering = luminance_from_radiance * delta_mie;
     })";
 
@@ -183,7 +182,7 @@ const char kComputeIndirectIrradianceShader[] = R"(
 
 const char kComputeMultipleScatteringShader[] = R"(
     layout(location = 0) out vec3 delta_multiple_scattering;
-    layout(location = 1) out vec4 scattering;
+    layout(location = 1) out vec3 scattering;
     uniform mat3 luminance_from_radiance;
     uniform sampler2D transmittance_texture;
     uniform sampler3D scattering_density_texture;
@@ -193,10 +192,8 @@ const char kComputeMultipleScatteringShader[] = R"(
       delta_multiple_scattering = ComputeMultipleScatteringTexture(
           ATMOSPHERE, transmittance_texture, scattering_density_texture,
           vec3(gl_FragCoord.xy, layer + 0.5), nu);
-      scattering = vec4(
-          luminance_from_radiance *
-              delta_multiple_scattering.rgb / PhaseFunction(ATMOSPHERE.rayleigh, nu),
-          0.0);
+      scattering = luminance_from_radiance *
+              delta_multiple_scattering.rgb / PhaseFunction(ATMOSPHERE.rayleigh, nu);
     })";
 
 /*
@@ -714,7 +711,7 @@ Model::Model(const std::vector<double>& wavelengths, const std::vector<double>& 
   // Allocate the precomputed textures, but don't precompute them yet.
   transmittance_texture_ = NewTexture2d(TRANSMITTANCE_TEXTURE_WIDTH, TRANSMITTANCE_TEXTURE_HEIGHT);
   scattering_texture_    = NewTexture3d(SCATTERING_TEXTURE_WIDTH, SCATTERING_TEXTURE_HEIGHT,
-      SCATTERING_TEXTURE_DEPTH, rgb_format_supported_ ? GL_RGB : GL_RGBA, half_precision);
+         SCATTERING_TEXTURE_DEPTH, rgb_format_supported_ ? GL_RGB : GL_RGBA, half_precision);
   single_mie_scattering_texture_ = NewTexture3d(SCATTERING_TEXTURE_WIDTH, SCATTERING_TEXTURE_HEIGHT,
       SCATTERING_TEXTURE_DEPTH, rgb_format_supported_ ? GL_RGB : GL_RGBA, half_precision);
 
