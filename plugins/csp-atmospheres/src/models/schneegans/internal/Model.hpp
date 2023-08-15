@@ -170,6 +170,18 @@ struct DensityProfileLayer {
 };
 
 struct AtmosphereComponent {
+  // A two dimensional texture containing the phase function for each wavelength. The vertical
+  // dimension corresponds to the angle, with forward scattering at the top and back scattering at
+  // the bottom. The horizontal dimension corresponds to the wavelength, with the shortest
+  // wavelength on the left and the longest wavelength on the right.
+  //   GLuint phaseTexture;
+
+  // A one dimensional texture containing Beta_sca per wavelength for N_0.
+  //   GLuint scatteringTexture;
+
+  // A one dimensional texture containing Beta_abs per wavelength for N_0.
+  //   GLuint absorptionTexture;
+
   // The outer vector contains entries for each angle of the phase function. The first item
   // corresponds to 0° (forward scattering), the last item to 180° (back scattering). The inner
   // vectors contain the intensity values for each wavelength at the specific angle.
