@@ -36,8 +36,6 @@ enum class Luminance {
   PRECOMPUTED
 };
 
-constexpr bool HALF_PRECISION = false;
-
 // Values from "Reference Solar Spectral Irradiance: ASTM G-173", ETR column
 // (see http://rredc.nrel.gov/solar/spectra/am1.5/ASTMG173/ASTMG173.html),
 // summed and averaged in each bin (e.g. the value for 360nm is the average
@@ -141,11 +139,11 @@ bool Model::init(
   }
 
   Luminance luminanceMode     = Luminance::PRECOMPUTED;
-  double    maxSunZenithAngle = (HALF_PRECISION ? 102.0 : 120.0) / 180.0 * glm::pi<double>();
+  double    maxSunZenithAngle = 120.0 / 180.0 * glm::pi<double>();
 
   mModel.reset(new internal::Model(wavelengths, solarIrradiance, settings.mSunAngularRadius,
       planetRadius, atmosphereRadius, rayleigh, mie, ozone, groundAlbedo, maxSunZenithAngle, 1.0,
-      luminanceMode == Luminance::PRECOMPUTED ? 15 : 3, HALF_PRECISION));
+      luminanceMode == Luminance::PRECOMPUTED ? 15 : 3));
 
   glDisable(GL_CULL_FACE);
   mModel->Init();
