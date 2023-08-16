@@ -1440,7 +1440,7 @@ color, the aerial perspective, and the ground radiance.
 <p>More precisely, we assume that the single Rayleigh scattering, without its
 phase function term, plus the multiple scattering terms (divided by the Rayleigh
 phase function for dimensional homogeneity) are stored in a
-<code>scattering_texture</code>. We also assume that the single Mie scattering
+<code>multiple_scattering_texture</code>. We also assume that the single Mie scattering
 is stored, without its phase function term in a <code>single_mie_scattering_texture</code>
 */
 
@@ -1451,13 +1451,16 @@ following function, based on
 <a href="#single_scattering_lookup"><code>GetScattering</code></a> (we duplicate
 some code here, instead of using two calls to <code>GetScattering</code>, to
 make sure that the texture coordinates computation is shared between the lookups
-in <code>scattering_texture</code> and
+in <code>multiple_scattering_texture</code> and
 <code>single_mie_scattering_texture</code>):
 */
 
-IrradianceSpectrum GetCombinedScattering(IN(ReducedScatteringTexture) scattering_texture,
+void GetCombinedScattering(IN(ReducedScatteringTexture) multiple_scattering_texture,
+    IN(ReducedScatteringTexture) single_rayleigh_scattering_texture,
     IN(ReducedScatteringTexture) single_mie_scattering_texture, Length r, Number mu, Number mu_s,
-    Number nu, bool ray_r_mu_intersects_ground, OUT(IrradianceSpectrum) single_mie_scattering) {
+    Number nu, bool ray_r_mu_intersects_ground, OUT(IrradianceSpectrum) multiple_scattering,
+    OUT(IrradianceSpectrum) single_rayleigh_scattering,
+    OUT(IrradianceSpectrum) single_mie_scattering) {
   vec4   uvwz = GetScatteringTextureUvwzFromRMuMuSNu(r, mu, mu_s, nu, ray_r_mu_intersects_ground);
   Number tex_coord_x = uvwz.x * Number(SCATTERING_TEXTURE_NU_SIZE - 1);
   Number tex_x       = floor(tex_coord_x);
@@ -1465,13 +1468,15 @@ IrradianceSpectrum GetCombinedScattering(IN(ReducedScatteringTexture) scattering
   vec3   uvw0        = vec3((tex_x + uvwz.y) / Number(SCATTERING_TEXTURE_NU_SIZE), uvwz.z, uvwz.w);
   vec3   uvw1 = vec3((tex_x + 1.0 + uvwz.y) / Number(SCATTERING_TEXTURE_NU_SIZE), uvwz.z, uvwz.w);
 
-  IrradianceSpectrum scattering = IrradianceSpectrum(
-      texture(scattering_texture, uvw0) * (1.0 - lerp) + texture(scattering_texture, uvw1) * lerp);
+  multiple_scattering =
+      IrradianceSpectrum(texture(multiple_scattering_texture, uvw0) * (1.0 - lerp) +
+                         texture(multiple_scattering_texture, uvw1) * lerp);
+  single_rayleigh_scattering =
+      IrradianceSpectrum(texture(single_rayleigh_scattering_texture, uvw0) * (1.0 - lerp) +
+                         texture(single_rayleigh_scattering_texture, uvw1) * lerp);
   single_mie_scattering =
       IrradianceSpectrum(texture(single_mie_scattering_texture, uvw0) * (1.0 - lerp) +
                          texture(single_mie_scattering_texture, uvw1) * lerp);
-
-  return scattering;
 }
 
 /*
@@ -1488,7 +1493,9 @@ of viewers outside the atmosphere, and the case of light shafts:
 */
 
 RadianceSpectrum GetSkyRadiance(IN(AtmosphereParameters) atmosphere,
-    IN(TransmittanceTexture) transmittance_texture, IN(ReducedScatteringTexture) scattering_texture,
+    IN(TransmittanceTexture) transmittance_texture,
+    IN(ReducedScatteringTexture) multiple_scattering_texture,
+    IN(ReducedScatteringTexture) single_rayleigh_scattering_texture,
     IN(ReducedScatteringTexture) single_mie_scattering_texture, Position camera,
     IN(Direction) view_ray, Length shadow_length, IN(Direction) sun_direction,
     OUT(DimensionlessSpectrum) transmittance) {
@@ -1519,11 +1526,13 @@ RadianceSpectrum GetSkyRadiance(IN(AtmosphereParameters) atmosphere,
   transmittance = ray_r_mu_intersects_ground
                       ? DimensionlessSpectrum(0.0)
                       : GetTransmittanceToTopAtmosphereBoundary(transmittance_texture, r, mu);
+  IrradianceSpectrum multiple_scattering;
+  IrradianceSpectrum single_rayleigh_scattering;
   IrradianceSpectrum single_mie_scattering;
-  IrradianceSpectrum scattering;
   if (shadow_length == 0.0 * m) {
-    scattering = GetCombinedScattering(scattering_texture, single_mie_scattering_texture, r, mu,
-        mu_s, nu, ray_r_mu_intersects_ground, single_mie_scattering);
+    GetCombinedScattering(multiple_scattering_texture, single_rayleigh_scattering_texture,
+        single_mie_scattering_texture, r, mu, mu_s, nu, ray_r_mu_intersects_ground,
+        multiple_scattering, single_rayleigh_scattering, single_mie_scattering);
   } else {
     // Case of light shafts (shadow_length is the total length noted l in our
     // paper): we omit the scattering between the camera and the point at
@@ -1534,14 +1543,16 @@ RadianceSpectrum GetSkyRadiance(IN(AtmosphereParameters) atmosphere,
     Number mu_p   = (r * mu + d) / r_p;
     Number mu_s_p = (r * mu_s + d * nu) / r_p;
 
-    scattering = GetCombinedScattering(scattering_texture, single_mie_scattering_texture, r_p, mu_p,
-        mu_s_p, nu, ray_r_mu_intersects_ground, single_mie_scattering);
+    GetCombinedScattering(multiple_scattering_texture, single_rayleigh_scattering_texture,
+        single_mie_scattering_texture, r_p, mu_p, mu_s_p, nu, ray_r_mu_intersects_ground,
+        multiple_scattering, single_rayleigh_scattering, single_mie_scattering);
     DimensionlessSpectrum shadow_transmittance =
         GetTransmittance(transmittance_texture, r, mu, shadow_length, ray_r_mu_intersects_ground);
-    scattering            = scattering * shadow_transmittance;
-    single_mie_scattering = single_mie_scattering * shadow_transmittance;
+    multiple_scattering        = multiple_scattering * shadow_transmittance;
+    single_rayleigh_scattering = single_rayleigh_scattering * shadow_transmittance;
+    single_mie_scattering      = single_mie_scattering * shadow_transmittance;
   }
-  return scattering * PhaseFunction(atmosphere.rayleigh, nu) +
+  return multiple_scattering + single_rayleigh_scattering * PhaseFunction(atmosphere.rayleigh, nu) +
          single_mie_scattering * PhaseFunction(atmosphere.mie, nu);
 }
 
@@ -1562,7 +1573,9 @@ correctly handle the case of viewers outside the atmosphere):
 */
 
 RadianceSpectrum GetSkyRadianceToPoint(IN(AtmosphereParameters) atmosphere,
-    IN(TransmittanceTexture) transmittance_texture, IN(ReducedScatteringTexture) scattering_texture,
+    IN(TransmittanceTexture) transmittance_texture,
+    IN(ReducedScatteringTexture) multiple_scattering_texture,
+    IN(ReducedScatteringTexture) single_rayleigh_scattering_texture,
     IN(ReducedScatteringTexture) single_mie_scattering_texture, Position camera, IN(Position) point,
     Length shadow_length, IN(Direction) sun_direction, OUT(DimensionlessSpectrum) transmittance) {
   // Compute the distance to the top atmosphere boundary along the view ray,
@@ -1590,25 +1603,31 @@ RadianceSpectrum GetSkyRadianceToPoint(IN(AtmosphereParameters) atmosphere,
 
   transmittance = GetTransmittance(transmittance_texture, r, mu, d, ray_r_mu_intersects_ground);
 
+  IrradianceSpectrum multiple_scattering;
+  IrradianceSpectrum single_rayleigh_scattering;
   IrradianceSpectrum single_mie_scattering;
-  IrradianceSpectrum scattering =
-      GetCombinedScattering(scattering_texture, single_mie_scattering_texture, r, mu, mu_s, nu,
-          ray_r_mu_intersects_ground, single_mie_scattering);
+
+  GetCombinedScattering(multiple_scattering_texture, single_rayleigh_scattering_texture,
+      single_mie_scattering_texture, r, mu, mu_s, nu, ray_r_mu_intersects_ground,
+      multiple_scattering, single_rayleigh_scattering, single_mie_scattering);
 
   // Compute the r, mu, mu_s and nu parameters for the second texture lookup.
   // If shadow_length is not 0 (case of light shafts), we want to ignore the
   // scattering along the last shadow_length meters of the view ray, which we
-  // do by subtracting shadow_length from d (this way scattering_p is equal to
+  // do by subtracting shadow_length from d (this way multiple_scattering_p is equal to
   // the S|x_s=x_0-lv term in Eq. (17) of our paper).
   d             = max(d - shadow_length, 0.0 * m);
   Length r_p    = ClampRadius(sqrt(d * d + 2.0 * r * mu * d + r * r));
   Number mu_p   = (r * mu + d) / r_p;
   Number mu_s_p = (r * mu_s + d * nu) / r_p;
 
+  IrradianceSpectrum multiple_scattering_p;
+  IrradianceSpectrum single_rayleigh_scattering_p;
   IrradianceSpectrum single_mie_scattering_p;
-  IrradianceSpectrum scattering_p =
-      GetCombinedScattering(scattering_texture, single_mie_scattering_texture, r_p, mu_p, mu_s_p,
-          nu, ray_r_mu_intersects_ground, single_mie_scattering_p);
+
+  GetCombinedScattering(multiple_scattering_texture, single_rayleigh_scattering_texture,
+      single_mie_scattering_texture, r_p, mu_p, mu_s_p, nu, ray_r_mu_intersects_ground,
+      multiple_scattering_p, single_rayleigh_scattering_p, single_mie_scattering_p);
 
   // Combine the lookup results to get the scattering between camera and point.
   DimensionlessSpectrum shadow_transmittance = transmittance;
@@ -1617,13 +1636,17 @@ RadianceSpectrum GetSkyRadianceToPoint(IN(AtmosphereParameters) atmosphere,
     shadow_transmittance =
         GetTransmittance(transmittance_texture, r, mu, d, ray_r_mu_intersects_ground);
   }
-  scattering            = scattering - shadow_transmittance * scattering_p;
+  multiple_scattering = multiple_scattering - shadow_transmittance * multiple_scattering_p;
+  single_rayleigh_scattering =
+      single_rayleigh_scattering - shadow_transmittance * single_rayleigh_scattering_p;
   single_mie_scattering = single_mie_scattering - shadow_transmittance * single_mie_scattering_p;
 
   // Hack to avoid rendering artifacts when the sun is below the horizon.
-  single_mie_scattering = single_mie_scattering * smoothstep(Number(0.0), Number(0.01), mu_s);
+  // single_mie_scattering = single_mie_scattering * smoothstep(Number(0.0), Number(0.01), mu_s);
+  // single_rayleigh_scattering =
+  //     single_rayleigh_scattering * smoothstep(Number(0.0), Number(0.01), mu_s);
 
-  return scattering * PhaseFunction(atmosphere.rayleigh, nu) +
+  return multiple_scattering + single_rayleigh_scattering * PhaseFunction(atmosphere.rayleigh, nu) +
          single_mie_scattering * PhaseFunction(atmosphere.mie, nu);
 }
 

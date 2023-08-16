@@ -182,7 +182,7 @@ const char kComputeIndirectIrradianceShader[] = R"(
 
 const char kComputeMultipleScatteringShader[] = R"(
     layout(location = 0) out vec3 delta_multiple_scattering;
-    layout(location = 1) out vec3 scattering;
+    layout(location = 1) out vec3 multiple_scattering;
     uniform mat3 luminance_from_radiance;
     uniform sampler2D transmittance_texture;
     uniform sampler3D scattering_density_texture;
@@ -192,8 +192,7 @@ const char kComputeMultipleScatteringShader[] = R"(
       delta_multiple_scattering = ComputeMultipleScatteringTexture(
           transmittance_texture, scattering_density_texture,
           vec3(gl_FragCoord.xy, layer + 0.5), nu);
-      scattering = luminance_from_radiance *
-              delta_multiple_scattering.rgb / PhaseFunction(ATMOSPHERE.rayleigh, nu);
+      multiple_scattering = luminance_from_radiance * delta_multiple_scattering;
     })";
 
 /*
@@ -209,7 +208,8 @@ shader).
 
 const char kAtmosphereShader[] = R"(
     uniform sampler2D transmittance_texture;
-    uniform sampler3D scattering_texture;
+    uniform sampler3D multiple_scattering_texture;
+    uniform sampler3D single_rayleigh_scattering_texture;
     uniform sampler3D single_mie_scattering_texture;
     uniform sampler2D irradiance_texture;
     #ifdef RADIANCE_API_ENABLED
@@ -221,14 +221,14 @@ const char kAtmosphereShader[] = R"(
         Position camera, Direction view_ray,
         Direction sun_direction, out DimensionlessSpectrum transmittance) {
       return GetSkyRadiance(ATMOSPHERE, transmittance_texture,
-          scattering_texture, single_mie_scattering_texture,
+          multiple_scattering_texture, single_rayleigh_scattering_texture, single_mie_scattering_texture,
           camera, view_ray, 0.0, sun_direction, transmittance);
     }
     RadianceSpectrum GetSkyRadianceToPoint(
         Position camera, Position point,
         Direction sun_direction, out DimensionlessSpectrum transmittance) {
       return GetSkyRadianceToPoint(ATMOSPHERE, transmittance_texture,
-          scattering_texture, single_mie_scattering_texture,
+          multiple_scattering_texture, single_rayleigh_scattering_texture, single_mie_scattering_texture,
           camera, point, 0.0, sun_direction, transmittance);
     }
     IrradianceSpectrum GetSunAndSkyIrradiance(
@@ -247,7 +247,7 @@ const char kAtmosphereShader[] = R"(
         Position camera, Direction view_ray,
         Direction sun_direction, out DimensionlessSpectrum transmittance) {
       return GetSkyRadiance(ATMOSPHERE, transmittance_texture,
-          scattering_texture, single_mie_scattering_texture,
+          multiple_scattering_texture, single_rayleigh_scattering_texture, single_mie_scattering_texture,
           camera, view_ray, 0.0, sun_direction, transmittance) *
           SKY_SPECTRAL_RADIANCE_TO_LUMINANCE;
     }
@@ -255,7 +255,7 @@ const char kAtmosphereShader[] = R"(
         Position camera, Position point,
         Direction sun_direction, out DimensionlessSpectrum transmittance) {
       return GetSkyRadianceToPoint(ATMOSPHERE, transmittance_texture,
-          scattering_texture, single_mie_scattering_texture,
+          multiple_scattering_texture, single_rayleigh_scattering_texture, single_mie_scattering_texture,
           camera, point, 0.0, sun_direction, transmittance) *
           SKY_SPECTRAL_RADIANCE_TO_LUMINANCE;
     }
@@ -710,10 +710,13 @@ Model::Model(const std::vector<double>& wavelengths, const std::vector<double>& 
 
   // Allocate the precomputed textures, but don't precompute them yet.
   transmittance_texture_ = NewTexture2d(TRANSMITTANCE_TEXTURE_WIDTH, TRANSMITTANCE_TEXTURE_HEIGHT);
-  scattering_texture_    = NewTexture3d(SCATTERING_TEXTURE_WIDTH, SCATTERING_TEXTURE_HEIGHT,
+  multiple_scattering_texture_   = NewTexture3d(SCATTERING_TEXTURE_WIDTH, SCATTERING_TEXTURE_HEIGHT,
       SCATTERING_TEXTURE_DEPTH, rgb_format_supported_ ? GL_RGB : GL_RGBA, half_precision);
   single_mie_scattering_texture_ = NewTexture3d(SCATTERING_TEXTURE_WIDTH, SCATTERING_TEXTURE_HEIGHT,
       SCATTERING_TEXTURE_DEPTH, rgb_format_supported_ ? GL_RGB : GL_RGBA, half_precision);
+  single_rayleigh_scattering_texture_ =
+      NewTexture3d(SCATTERING_TEXTURE_WIDTH, SCATTERING_TEXTURE_HEIGHT, SCATTERING_TEXTURE_DEPTH,
+          rgb_format_supported_ ? GL_RGB : GL_RGBA, half_precision);
 
   irradiance_texture_ = NewTexture2d(IRRADIANCE_TEXTURE_WIDTH, IRRADIANCE_TEXTURE_HEIGHT);
 
@@ -757,8 +760,9 @@ Model::~Model() {
   glDeleteBuffers(1, &full_screen_quad_vbo_);
   glDeleteVertexArrays(1, &full_screen_quad_vao_);
   glDeleteTextures(1, &transmittance_texture_);
-  glDeleteTextures(1, &scattering_texture_);
+  glDeleteTextures(1, &multiple_scattering_texture_);
   glDeleteTextures(1, &single_mie_scattering_texture_);
+  glDeleteTextures(1, &single_rayleigh_scattering_texture_);
   glDeleteTextures(1, &irradiance_texture_);
   glDeleteShader(atmosphere_shader_);
 }
@@ -919,15 +923,18 @@ texture units.
 */
 
 void Model::SetProgramUniforms(GLuint program, GLuint transmittance_texture_unit,
-    GLuint scattering_texture_unit, GLuint irradiance_texture_unit,
-    GLuint single_mie_scattering_texture_unit) const {
+    GLuint multiple_scattering_texture_unit, GLuint irradiance_texture_unit,
+    GLuint single_mie_scattering_texture_unit,
+    GLuint single_rayleigh_scattering_texture_unit) const {
+
   glActiveTexture(GL_TEXTURE0 + transmittance_texture_unit);
   glBindTexture(GL_TEXTURE_2D, transmittance_texture_);
   glUniform1i(glGetUniformLocation(program, "transmittance_texture"), transmittance_texture_unit);
 
-  glActiveTexture(GL_TEXTURE0 + scattering_texture_unit);
-  glBindTexture(GL_TEXTURE_3D, scattering_texture_);
-  glUniform1i(glGetUniformLocation(program, "scattering_texture"), scattering_texture_unit);
+  glActiveTexture(GL_TEXTURE0 + multiple_scattering_texture_unit);
+  glBindTexture(GL_TEXTURE_3D, multiple_scattering_texture_);
+  glUniform1i(glGetUniformLocation(program, "multiple_scattering_texture"),
+      multiple_scattering_texture_unit);
 
   glActiveTexture(GL_TEXTURE0 + irradiance_texture_unit);
   glBindTexture(GL_TEXTURE_2D, irradiance_texture_);
@@ -937,6 +944,11 @@ void Model::SetProgramUniforms(GLuint program, GLuint transmittance_texture_unit
   glBindTexture(GL_TEXTURE_3D, single_mie_scattering_texture_);
   glUniform1i(glGetUniformLocation(program, "single_mie_scattering_texture"),
       single_mie_scattering_texture_unit);
+
+  glActiveTexture(GL_TEXTURE0 + single_rayleigh_scattering_texture_unit);
+  glBindTexture(GL_TEXTURE_3D, single_rayleigh_scattering_texture_);
+  glUniform1i(glGetUniformLocation(program, "single_rayleigh_scattering_texture"),
+      single_rayleigh_scattering_texture_unit);
 }
 
 /*
@@ -982,11 +994,11 @@ Here is an outline of the data flow of the precomputation.
    irradiance * scattering coefficient. The term stored in the output textures is without the phase
    function. The irradiance for the current set of wavelengths is stored in
    delta_rayleigh_scattering_texture and delta_mie_scattering_texture. It is also converted to
-   illuminance and accumulated for all wavelengths in scattering_texture_ and
+   illuminance and accumulated for all wavelengths in multiple_scattering_texture_ and
    single_mie_scattering_texture_.
 
-At this point, scattering_texture_ and single_mie_scattering_texture_ contain single scattering
-illuminance without the phase function.
+At this point, multiple_scattering_texture_ and single_mie_scattering_texture_ contain single
+scattering illuminance without the phase function.
 
 4. Iteratively compute higher orders of scattering. The following happens in a loop:
 
@@ -996,13 +1008,14 @@ illuminance without the phase function.
         irradiance_texture_.
 
    4.3. Compute the multiple scattering, store it in delta_multiple_scattering_texture, and
-        accumulate it in scattering_texture_.
+        accumulate it in multiple_scattering_texture_.
 
 At the end, single_mie_scattering_texture_ contains the single mie scattering illuminance
-without the phase function and scattering_texture_ contains single rayleigh scattering without the
-phase function + multiple scattering with only the mie phase function applied. So at render time,
-the data from single_mie_scattering_texture_ needs to be multiplied with the mie phase function and
-the data from scattering_texture_ needs to be multiplied with the rayleigh phase function.
+without the phase function and multiple_scattering_texture_ contains single rayleigh scattering
+without the phase function + multiple scattering with only the mie phase function applied. So at
+render time, the data from single_mie_scattering_texture_ needs to be multiplied with the mie phase
+function and the data from multiple_scattering_texture_ needs to be multiplied with the rayleigh
+phase function.
 
 */
 void Model::Precompute(GLuint fbo, GLuint delta_irradiance_texture,
@@ -1059,11 +1072,12 @@ void Model::Precompute(GLuint fbo, GLuint delta_irradiance_texture,
 
   // 3. Compute the rayleigh and mie single scattering for the current wavelengths, store them in
   // delta_rayleigh_scattering_texture and delta_mie_scattering_texture, and accumulate the
-  // resulting luminance via additive blending in scattering_texture_ and
+  // resulting luminance via additive blending in multiple_scattering_texture_ and
   // single_mie_scattering_texture_.
   glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, delta_rayleigh_scattering_texture, 0);
   glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, delta_mie_scattering_texture, 0);
-  glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, scattering_texture_, 0);
+  glFramebufferTexture(
+      GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, single_rayleigh_scattering_texture_, 0);
   glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, single_mie_scattering_texture_, 0);
   glDrawBuffers(4, kDrawBuffers);
 
@@ -1124,10 +1138,10 @@ void Model::Precompute(GLuint fbo, GLuint delta_irradiance_texture,
     DrawQuad({false, true}, full_screen_quad_vao_);
 
     // 4.3. Compute the multiple scattering, store it in delta_multiple_scattering_texture, and
-    // accumulate it in scattering_texture_.
+    // accumulate it in multiple_scattering_texture_.
     glFramebufferTexture(
         GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, delta_multiple_scattering_texture, 0);
-    glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, scattering_texture_, 0);
+    glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, multiple_scattering_texture_, 0);
     glDrawBuffers(2, kDrawBuffers);
     glViewport(0, 0, SCATTERING_TEXTURE_WIDTH, SCATTERING_TEXTURE_HEIGHT);
     glScissor(0, 0, SCATTERING_TEXTURE_WIDTH, SCATTERING_TEXTURE_HEIGHT);

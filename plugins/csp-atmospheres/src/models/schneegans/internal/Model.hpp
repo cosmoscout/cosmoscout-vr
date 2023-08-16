@@ -268,8 +268,9 @@ class Model {
   }
 
   void SetProgramUniforms(GLuint program, GLuint transmittance_texture_unit,
-      GLuint scattering_texture_unit, GLuint irradiance_texture_unit,
-      GLuint single_mie_scattering_texture_unit) const;
+      GLuint multiple_scattering_texture_unit, GLuint irradiance_texture_unit,
+      GLuint single_mie_scattering_texture_unit,
+      GLuint single_rayleigh_scattering_texture_unit) const;
 
   // Utility method to convert a function of the wavelength to linear sRGB.
   // 'wavelengths' and 'spectrum' must have the same size. The integral of
@@ -299,7 +300,8 @@ class Model {
   bool                                    rgb_format_supported_;
   std::function<std::string(const vec3&)> glsl_header_factory_;
   GLuint                                  transmittance_texture_;
-  GLuint                                  scattering_texture_;
+  GLuint                                  multiple_scattering_texture_;
+  GLuint                                  single_rayleigh_scattering_texture_;
   GLuint                                  single_mie_scattering_texture_;
   GLuint                                  irradiance_texture_;
   GLuint                                  atmosphere_shader_;
