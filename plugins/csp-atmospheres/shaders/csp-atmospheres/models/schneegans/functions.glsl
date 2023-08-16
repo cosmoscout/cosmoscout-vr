@@ -1222,9 +1222,10 @@ RadianceDensitySpectrum ComputeScatteringDensityTexture(IN(AtmosphereParameters)
 }
 
 RadianceSpectrum ComputeMultipleScatteringTexture(IN(TransmittanceTexture) transmittance_texture,
-    IN(ScatteringDensityTexture) scattering_density_texture, IN(vec3) frag_coord, OUT(Number) nu) {
+    IN(ScatteringDensityTexture) scattering_density_texture, IN(vec3) frag_coord) {
   Length r;
   Number mu;
+  Number nu;
   Number mu_s;
   bool   ray_r_mu_intersects_ground;
   GetRMuMuSNuFromScatteringTextureFragCoord(

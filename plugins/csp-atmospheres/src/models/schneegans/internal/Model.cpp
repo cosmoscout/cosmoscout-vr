@@ -188,10 +188,9 @@ const char kComputeMultipleScatteringShader[] = R"(
     uniform sampler3D scattering_density_texture;
     uniform int layer;
     void main() {
-      float nu;
       delta_multiple_scattering = ComputeMultipleScatteringTexture(
           transmittance_texture, scattering_density_texture,
-          vec3(gl_FragCoord.xy, layer + 0.5), nu);
+          vec3(gl_FragCoord.xy, layer + 0.5));
       multiple_scattering = luminance_from_radiance * delta_multiple_scattering;
     })";
 
