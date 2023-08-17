@@ -29,14 +29,22 @@ class Model : public ModelBase {
       double mConstantTerm;
     };
 
-    struct Component {
-      std::string        mExtinction;
+    struct ScatteringComponent {
+      std::string        mBetaSca;
+      std::string        mBetaAbs;
       std::string        mPhase;
       std::vector<Layer> mLayers;
     };
 
+    struct AbsorbingComponent {
+      std::string        mBetaAbs;
+      std::vector<Layer> mLayers;
+    };
+
     double                             mSunAngularRadius = 0.004675;
-    std::vector<Component>             mComponents;
+    std::optional<ScatteringComponent> mParticlesA;
+    std::optional<ScatteringComponent> mParticlesB;
+    std::optional<AbsorbingComponent>  mAbsorbingParticles;
     cs::utils::DefaultProperty<double> mGroundAlbedo{0.1};
   };
 

@@ -552,8 +552,8 @@ initialize them), as well as a vertex buffer object to render a full screen quad
 
 Model::Model(const std::vector<double>& wavelengths, const std::vector<double>& solar_irradiance,
     const double sun_angular_radius, double bottom_radius, double top_radius,
-    const AtmosphereComponent& rayleigh, const AtmosphereComponent& mie,
-    const AtmosphereComponent& ozone, const std::vector<double>& ground_albedo,
+    const ScatteringAtmosphereComponent& rayleigh, const ScatteringAtmosphereComponent& mie,
+    const AbsorbingAtmosphereComponent& ozone, const std::vector<double>& ground_albedo,
     double max_sun_zenith_angle, double length_unit_in_meters,
     unsigned int num_precomputed_wavelengths)
     : rayleigh_(rayleigh)
@@ -593,8 +593,8 @@ Model::Model(const std::vector<double>& wavelengths, const std::vector<double>& 
   };
 
   auto scatteringComponent = [densityProfile, extractVec3, length_unit_in_meters](
-                                 AtmosphereComponent const& component, float phaseTextureV,
-                                 vec3 lambdas) {
+                                 ScatteringAtmosphereComponent const& component,
+                                 float phaseTextureV, vec3 lambdas) {
     std::stringstream ss;
     ss << "ScatteringComponent(";
 
@@ -613,14 +613,13 @@ Model::Model(const std::vector<double>& wavelengths, const std::vector<double>& 
   };
 
   auto absorbingComponent = [densityProfile, extractVec3, length_unit_in_meters](
-                                AtmosphereComponent const& component, vec3 lambdas) {
+                                AbsorbingAtmosphereComponent const& component, vec3 lambdas) {
     std::stringstream ss;
     ss << "AbsorbingComponent(";
 
     auto absorption = extractVec3(component.absorption, lambdas, length_unit_in_meters);
-    auto scattering = extractVec3(component.scattering, lambdas, length_unit_in_meters);
 
-    ss << scattering << " + " << absorption << ",\n";
+    ss << absorption << ",\n";
     ss << densityProfile(component.layers);
 
     ss << ")";
@@ -682,9 +681,9 @@ Model::Model(const std::vector<double>& wavelengths, const std::vector<double>& 
             "const float TOP_RADIUS = "                 + cs::utils::toString(top_radius / length_unit_in_meters) + ";\n" +
             "const float MU_S_MIN = "                   + cs::utils::toString(cos(max_sun_zenith_angle))+ ";\n" +
             "const AtmosphereComponents ATMOSPHERE = AtmosphereComponents(\n" +
-              scatteringComponent(rayleigh, 0.0, lambdas) + ",\n" +
-              scatteringComponent(mie, 1.0, lambdas) + ",\n" +
-              absorbingComponent(ozone, lambdas) + ");\n" +
+              scatteringComponent(rayleigh_, 0.0, lambdas) + ",\n" +
+              scatteringComponent(mie_, 1.0, lambdas) + ",\n" +
+              absorbingComponent(ozone_, lambdas) + ");\n" +
             functions_glsl;
     };
   // clang-format on
@@ -1155,7 +1154,8 @@ void Model::Precompute(GLuint fbo, GLuint delta_irradiance_texture,
 }
 
 void Model::UpdatePhaseFunctionTexture(
-    std::vector<AtmosphereComponent> const& scatteringComponents, const Model::vec3& lambdas) {
+    std::vector<ScatteringAtmosphereComponent> const& scatteringComponents,
+    const Model::vec3&                                lambdas) {
 
   if (phase_texture_ != 0) {
     glDeleteTextures(1, &phase_texture_);

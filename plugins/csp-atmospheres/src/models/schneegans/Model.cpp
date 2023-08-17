@@ -71,15 +71,29 @@ void to_json(nlohmann::json& j, Model::Settings::Layer const& o) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void from_json(nlohmann::json const& j, Model::Settings::Component& o) {
-  cs::core::Settings::deserialize(j, "extinction", o.mExtinction);
+void from_json(nlohmann::json const& j, Model::Settings::ScatteringComponent& o) {
+  cs::core::Settings::deserialize(j, "betaSca", o.mBetaSca);
+  cs::core::Settings::deserialize(j, "betaAbs", o.mBetaAbs);
   cs::core::Settings::deserialize(j, "phase", o.mPhase);
   cs::core::Settings::deserialize(j, "layers", o.mLayers);
 }
 
-void to_json(nlohmann::json& j, Model::Settings::Component const& o) {
-  cs::core::Settings::serialize(j, "extinction", o.mExtinction);
+void to_json(nlohmann::json& j, Model::Settings::ScatteringComponent const& o) {
+  cs::core::Settings::serialize(j, "betaSca", o.mBetaSca);
+  cs::core::Settings::serialize(j, "betaAbs", o.mBetaAbs);
   cs::core::Settings::serialize(j, "phase", o.mPhase);
+  cs::core::Settings::serialize(j, "layers", o.mLayers);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void from_json(nlohmann::json const& j, Model::Settings::AbsorbingComponent& o) {
+  cs::core::Settings::deserialize(j, "betaAbs", o.mBetaAbs);
+  cs::core::Settings::deserialize(j, "layers", o.mLayers);
+}
+
+void to_json(nlohmann::json& j, Model::Settings::AbsorbingComponent const& o) {
+  cs::core::Settings::serialize(j, "betaAbs", o.mBetaAbs);
   cs::core::Settings::serialize(j, "layers", o.mLayers);
 }
 
@@ -87,13 +101,17 @@ void to_json(nlohmann::json& j, Model::Settings::Component const& o) {
 
 void from_json(nlohmann::json const& j, Model::Settings& o) {
   cs::core::Settings::deserialize(j, "sunAngularRadius", o.mSunAngularRadius);
-  cs::core::Settings::deserialize(j, "components", o.mComponents);
+  cs::core::Settings::deserialize(j, "particles_a", o.mParticlesA);
+  cs::core::Settings::deserialize(j, "particles_b", o.mParticlesB);
+  cs::core::Settings::deserialize(j, "absorbing_particles", o.mAbsorbingParticles);
   cs::core::Settings::deserialize(j, "groundAlbedo", o.mGroundAlbedo);
 }
 
 void to_json(nlohmann::json& j, Model::Settings const& o) {
   cs::core::Settings::serialize(j, "sunAngularRadius", o.mSunAngularRadius);
-  cs::core::Settings::serialize(j, "components", o.mComponents);
+  cs::core::Settings::serialize(j, "particles_a", o.mParticlesA);
+  cs::core::Settings::serialize(j, "particles_b", o.mParticlesB);
+  cs::core::Settings::serialize(j, "absorbing_particles", o.mAbsorbingParticles);
   cs::core::Settings::serialize(j, "groundAlbedo", o.mGroundAlbedo);
 }
 
@@ -110,23 +128,40 @@ bool Model::init(
     logger().error("Failed to parse atmosphere parameters: {}", e.what());
   }
 
-  auto createComponent = [](Settings::Component const& settings) {
-    internal::AtmosphereComponent result;
+  internal::ScatteringAtmosphereComponent rayleigh;
+  internal::ScatteringAtmosphereComponent mie;
+  internal::AbsorbingAtmosphereComponent  ozone;
 
-    for (auto const& layer : settings.mLayers) {
-      result.layers.emplace_back(
+  if (settings.mParticlesA) {
+    for (auto const& layer : settings.mParticlesA->mLayers) {
+      rayleigh.layers.emplace_back(
           layer.mWidth, layer.mExpTerm, layer.mExpScale, layer.mLinearTerm, layer.mConstantTerm);
     }
 
-    internal::CSVLoader::readPhase(settings.mPhase, result);
-    internal::CSVLoader::readExtinction(settings.mExtinction, result);
+    rayleigh.phase      = internal::CSVLoader::read2DTable(settings.mParticlesA->mPhase);
+    rayleigh.scattering = internal::CSVLoader::read1DTable(settings.mParticlesA->mBetaSca);
+    rayleigh.absorption = internal::CSVLoader::read1DTable(settings.mParticlesA->mBetaAbs);
+  }
 
-    return result;
-  };
+  if (settings.mParticlesB) {
+    for (auto const& layer : settings.mParticlesB->mLayers) {
+      mie.layers.emplace_back(
+          layer.mWidth, layer.mExpTerm, layer.mExpScale, layer.mLinearTerm, layer.mConstantTerm);
+    }
 
-  auto rayleigh = createComponent(settings.mComponents[0]);
-  auto mie      = createComponent(settings.mComponents[1]);
-  auto ozone    = createComponent(settings.mComponents[2]);
+    mie.phase      = internal::CSVLoader::read2DTable(settings.mParticlesB->mPhase);
+    mie.scattering = internal::CSVLoader::read1DTable(settings.mParticlesB->mBetaSca);
+    mie.absorption = internal::CSVLoader::read1DTable(settings.mParticlesB->mBetaAbs);
+  }
+
+  if (settings.mAbsorbingParticles) {
+    for (auto const& layer : settings.mAbsorbingParticles->mLayers) {
+      ozone.layers.emplace_back(
+          layer.mWidth, layer.mExpTerm, layer.mExpScale, layer.mLinearTerm, layer.mConstantTerm);
+    }
+
+    ozone.absorption = internal::CSVLoader::read1DTable(settings.mAbsorbingParticles->mBetaAbs);
+  }
 
   std::vector<double> wavelengths;
   std::vector<double> solarIrradiance;

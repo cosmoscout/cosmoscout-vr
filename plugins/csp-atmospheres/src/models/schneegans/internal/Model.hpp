@@ -169,19 +169,7 @@ struct DensityProfileLayer {
   double constant_term;
 };
 
-struct AtmosphereComponent {
-  // A two dimensional texture containing the phase function for each wavelength. The vertical
-  // dimension corresponds to the angle, with forward scattering at the top and back scattering at
-  // the bottom. The horizontal dimension corresponds to the wavelength, with the shortest
-  // wavelength on the left and the longest wavelength on the right.
-  //   GLuint phaseTexture;
-
-  // A one dimensional texture containing Beta_sca per wavelength for N_0.
-  //   GLuint scatteringTexture;
-
-  // A one dimensional texture containing Beta_abs per wavelength for N_0.
-  //   GLuint absorptionTexture;
-
+struct ScatteringAtmosphereComponent {
   // The outer vector contains entries for each angle of the phase function. The first item
   // corresponds to 0° (forward scattering), the last item to 180° (back scattering). The inner
   // vectors contain the intensity values for each wavelength at the specific angle.
@@ -190,6 +178,15 @@ struct AtmosphereComponent {
   // Beta_sca per wavelength for N_0
   std::vector<double> scattering;
 
+  // Beta_abs per wavelength for N_0
+  std::vector<double> absorption;
+
+  // Density distribution. The value at a specific altitude will be multiplied with the Beta_sca and
+  // Beta_abs values above.
+  std::vector<DensityProfileLayer> layers;
+};
+
+struct AbsorbingAtmosphereComponent {
   // Beta_abs per wavelength for N_0
   std::vector<double> absorption;
 
@@ -222,11 +219,11 @@ class Model {
       // in m.
       double top_radius,
 
-      const AtmosphereComponent& rayleigh,
+      const ScatteringAtmosphereComponent& rayleigh,
 
-      const AtmosphereComponent& mie,
+      const ScatteringAtmosphereComponent& mie,
 
-      const AtmosphereComponent& ozone,
+      const AbsorbingAtmosphereComponent& ozone,
 
       // The average albedo of the ground, as a function of wavelength. This
       // vector must have the same size as the wavelengths parameter.
@@ -291,11 +288,12 @@ class Model {
       unsigned int num_scattering_orders);
 
   void UpdatePhaseFunctionTexture(
-      std::vector<AtmosphereComponent> const& scatteringComponents, const Model::vec3& lambdas);
+      std::vector<ScatteringAtmosphereComponent> const& scatteringComponents,
+      const Model::vec3&                                lambdas);
 
-  AtmosphereComponent rayleigh_;
-  AtmosphereComponent mie_;
-  AtmosphereComponent ozone_;
+  ScatteringAtmosphereComponent rayleigh_;
+  ScatteringAtmosphereComponent mie_;
+  AbsorbingAtmosphereComponent  ozone_;
 
   std::vector<double>                     wavelengths_;
   unsigned int                            num_precomputed_wavelengths_;

@@ -36,7 +36,9 @@ std::string replaceTabsWithWhitespaces(std::string& s) {
 }
 } // namespace
 
-void CSVLoader::readPhase(std::string const& filename, AtmosphereComponent& result) {
+std::vector<std::vector<double>> CSVLoader::read2DTable(std::string const& filename) {
+  std::vector<std::vector<double>> result;
+
   readLines(filename, [&](long lineNumber, std::string line) {
     std::stringstream ss(trim(removeMultiWhitespaces(replaceTabsWithWhitespaces(line))));
 
@@ -56,11 +58,15 @@ void CSVLoader::readPhase(std::string const& filename, AtmosphereComponent& resu
       intensities.push_back(std::stof(e));
     }
 
-    result.phase.push_back(intensities);
+    result.push_back(intensities);
   });
+
+  return result;
 }
 
-void CSVLoader::readExtinction(std::string const& filename, AtmosphereComponent& result) {
+std::vector<double> CSVLoader::read1DTable(std::string const& filename) {
+  std::vector<double> result;
+
   readLines(filename, [&](long lineNumber, std::string line) {
     std::stringstream ss(trim(removeMultiWhitespaces(replaceTabsWithWhitespaces(line))));
 
@@ -71,9 +77,10 @@ void CSVLoader::readExtinction(std::string const& filename, AtmosphereComponent&
 
     auto elements = lineToArray(ss, ',');
 
-    result.scattering.push_back(std::stof(elements[1]));
-    result.absorption.push_back(std::stof(elements[2]));
+    result.push_back(std::stof(elements[1]));
   });
+
+  return result;
 }
 
 std::vector<std::string> CSVLoader::lineToArray(std::stringstream& ss, char delimiter) {
