@@ -263,9 +263,9 @@ class Model {
     return atmosphere_shader_;
   }
 
-  void SetProgramUniforms(GLuint program, GLuint transmittance_texture_unit,
-      GLuint multiple_scattering_texture_unit, GLuint irradiance_texture_unit,
-      GLuint single_mie_scattering_texture_unit,
+  void SetProgramUniforms(GLuint program, GLuint phase_texture_unit,
+      GLuint transmittance_texture_unit, GLuint multiple_scattering_texture_unit,
+      GLuint irradiance_texture_unit, GLuint single_mie_scattering_texture_unit,
       GLuint single_rayleigh_scattering_texture_unit) const;
 
   // Utility method to convert a function of the wavelength to linear sRGB.
@@ -290,17 +290,25 @@ class Model {
       const vec3& lambdas, const mat3& luminance_from_radiance, bool blend,
       unsigned int num_scattering_orders);
 
+  void UpdatePhaseFunctionTexture(
+      std::vector<AtmosphereComponent> const& scatteringComponents, const Model::vec3& lambdas);
+
+  AtmosphereComponent rayleigh_;
+  AtmosphereComponent mie_;
+  AtmosphereComponent ozone_;
+
   std::vector<double>                     wavelengths_;
   unsigned int                            num_precomputed_wavelengths_;
   std::function<std::string(const vec3&)> glsl_header_factory_;
-  GLuint                                  transmittance_texture_;
-  GLuint                                  multiple_scattering_texture_;
-  GLuint                                  single_rayleigh_scattering_texture_;
-  GLuint                                  single_mie_scattering_texture_;
-  GLuint                                  irradiance_texture_;
-  GLuint                                  atmosphere_shader_;
-  GLuint                                  full_screen_quad_vao_;
-  GLuint                                  full_screen_quad_vbo_;
+  GLuint                                  phase_texture_                      = 0;
+  GLuint                                  transmittance_texture_              = 0;
+  GLuint                                  multiple_scattering_texture_        = 0;
+  GLuint                                  single_rayleigh_scattering_texture_ = 0;
+  GLuint                                  single_mie_scattering_texture_      = 0;
+  GLuint                                  irradiance_texture_                 = 0;
+  GLuint                                  atmosphere_shader_                  = 0;
+  GLuint                                  full_screen_quad_vao_               = 0;
+  GLuint                                  full_screen_quad_vbo_               = 0;
 };
 
 } // namespace csp::atmospheres::models::schneegans::internal

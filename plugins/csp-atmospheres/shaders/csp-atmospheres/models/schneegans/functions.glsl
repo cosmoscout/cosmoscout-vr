@@ -258,7 +258,7 @@ compute (we continue to assume that the segment does not intersect the ground):
 */
 
 DimensionlessSpectrum ComputeTransmittanceToTopAtmosphereBoundary(
-    IN(AtmosphereParameters) atmosphere, Length r, Number mu) {
+    IN(AtmosphereComponents) atmosphere, Length r, Number mu) {
   assert(r >= BOTTOM_RADIUS && r <= TOP_RADIUS);
   assert(mu >= -1.0 && mu <= 1.0);
   return exp(-(atmosphere.rayleigh.extinction *
@@ -397,7 +397,7 @@ the transmittance texture:
 */
 
 DimensionlessSpectrum ComputeTransmittanceToTopAtmosphereBoundaryTexture(
-    IN(AtmosphereParameters) atmosphere, IN(vec2) frag_coord) {
+    IN(AtmosphereComponents) atmosphere, IN(vec2) frag_coord) {
   const vec2 TRANSMITTANCE_TEXTURE_SIZE =
       vec2(TRANSMITTANCE_TEXTURE_WIDTH, TRANSMITTANCE_TEXTURE_HEIGHT);
   Length r;
@@ -577,7 +577,7 @@ the scattering coefficients at the bottom of the atmosphere - we add them later
 on for efficiency reasons):
 */
 
-void ComputeSingleScatteringIntegrand(IN(AtmosphereParameters) atmosphere,
+void ComputeSingleScatteringIntegrand(IN(AtmosphereComponents) atmosphere,
     IN(TransmittanceTexture) transmittance_texture, Length r, Number mu, Number mu_s, Number nu,
     Length d, bool ray_r_mu_intersects_ground, OUT(DimensionlessSpectrum) rayleigh,
     OUT(DimensionlessSpectrum) mie) {
@@ -614,7 +614,7 @@ the <a href="https://en.wikipedia.org/wiki/Trapezoidal_rule">trapezoidal
 rule</a>):
 */
 
-void ComputeSingleScattering(IN(AtmosphereParameters) atmosphere,
+void ComputeSingleScattering(IN(AtmosphereComponents) atmosphere,
     IN(TransmittanceTexture) transmittance_texture, Length r, Number mu, Number mu_s, Number nu,
     bool ray_r_mu_intersects_ground, OUT(IrradianceSpectrum) rayleigh,
     OUT(IrradianceSpectrum) mie) {
@@ -647,20 +647,9 @@ void ComputeSingleScattering(IN(AtmosphereParameters) atmosphere,
   mie      = mie_sum * dx * SOLAR_IRRADIANCE * atmosphere.mie.scattering;
 }
 
-// nu = cos(theta)
-// the cosine of the view-sun angle is nu [-1...1]
-vec3 PhaseFunction(AtmosphereComponent component, float nu) {
-  int maxValue = 180 - 1;
-
+vec3 PhaseFunction(ScatteringComponent component, float nu) {
   float theta = acos(nu) / pi; // 0<->1
-  float start = float(maxValue) * theta;
-
-  int index1 = int(start);
-  int index2 = min(index1 + 1, maxValue);
-
-  float mixing = max(0.0f, min(start - float(index1), 1.0f));
-
-  return mix(component.phase[int(index1)], component.phase[int(index2)], mixing);
+  return texture2D(phase_texture, vec2(theta, component.phaseTextureV)).rgb;
 }
 
 /*
@@ -825,7 +814,7 @@ void GetRMuMuSNuFromScatteringTextureFragCoord(IN(vec3) frag_coord, OUT(Length) 
 the single scattering in a 3D texture:
 */
 
-void ComputeSingleScatteringTexture(IN(AtmosphereParameters) atmosphere,
+void ComputeSingleScatteringTexture(IN(AtmosphereComponents) atmosphere,
     IN(TransmittanceTexture) transmittance_texture, IN(vec3) frag_coord,
     OUT(IrradianceSpectrum) rayleigh, OUT(IrradianceSpectrum) mie) {
   Length r;
@@ -873,7 +862,7 @@ assumes that, if <code>scattering_order</code> is strictly greater than 1, then
 with both Rayleigh and Mie included, as well as all the phase function terms.
 */
 
-RadianceSpectrum GetScattering(IN(AtmosphereParameters) atmosphere,
+RadianceSpectrum GetScattering(IN(AtmosphereComponents) atmosphere,
     IN(ReducedScatteringTexture) single_rayleigh_scattering_texture,
     IN(ReducedScatteringTexture) single_mie_scattering_texture,
     IN(ScatteringTexture) multiple_scattering_texture, Length r, Number mu, Number mu_s, Number nu,
@@ -1039,7 +1028,7 @@ received on the ground after $n-2$ bounces, and <code>scattering_order</code> is
 equal to $n$):</li>
 */
 
-RadianceDensitySpectrum ComputeScatteringDensity(IN(AtmosphereParameters) atmosphere,
+RadianceDensitySpectrum ComputeScatteringDensity(IN(AtmosphereComponents) atmosphere,
     IN(TransmittanceTexture) transmittance_texture,
     IN(ReducedScatteringTexture) single_rayleigh_scattering_texture,
     IN(ReducedScatteringTexture) single_mie_scattering_texture,
@@ -1203,7 +1192,7 @@ following simple functions to precompute a texel of the textures for the
 over the number of bounces:
 */
 
-RadianceDensitySpectrum ComputeScatteringDensityTexture(IN(AtmosphereParameters) atmosphere,
+RadianceDensitySpectrum ComputeScatteringDensityTexture(IN(AtmosphereComponents) atmosphere,
     IN(TransmittanceTexture) transmittance_texture,
     IN(ReducedScatteringTexture) single_rayleigh_scattering_texture,
     IN(ReducedScatteringTexture) single_mie_scattering_texture,
@@ -1324,7 +1313,7 @@ order of scattering, if $n>1$, and <code>scattering_order</code> is equal to
 $n$):</li>
 */
 
-IrradianceSpectrum ComputeIndirectIrradiance(IN(AtmosphereParameters) atmosphere,
+IrradianceSpectrum ComputeIndirectIrradiance(IN(AtmosphereComponents) atmosphere,
     IN(ReducedScatteringTexture) single_rayleigh_scattering_texture,
     IN(ReducedScatteringTexture) single_mie_scattering_texture,
     IN(ScatteringTexture) multiple_scattering_texture, Length r, Number mu_s,
@@ -1408,7 +1397,7 @@ IrradianceSpectrum ComputeDirectIrradianceTexture(
 <p>and the indirect one:
 */
 
-IrradianceSpectrum ComputeIndirectIrradianceTexture(IN(AtmosphereParameters) atmosphere,
+IrradianceSpectrum ComputeIndirectIrradianceTexture(IN(AtmosphereComponents) atmosphere,
     IN(ReducedScatteringTexture) single_rayleigh_scattering_texture,
     IN(ReducedScatteringTexture) single_mie_scattering_texture,
     IN(ScatteringTexture) multiple_scattering_texture, IN(vec2) frag_coord, int scattering_order) {
@@ -1493,7 +1482,7 @@ function, where most of the computations are used to correctly handle the case
 of viewers outside the atmosphere, and the case of light shafts:
 */
 
-RadianceSpectrum GetSkyRadiance(IN(AtmosphereParameters) atmosphere,
+RadianceSpectrum GetSkyRadiance(IN(AtmosphereComponents) atmosphere,
     IN(TransmittanceTexture) transmittance_texture,
     IN(ReducedScatteringTexture) multiple_scattering_texture,
     IN(ReducedScatteringTexture) single_rayleigh_scattering_texture,
@@ -1573,7 +1562,7 @@ implement in the following function (the initial computations are used to
 correctly handle the case of viewers outside the atmosphere):
 */
 
-RadianceSpectrum GetSkyRadianceToPoint(IN(AtmosphereParameters) atmosphere,
+RadianceSpectrum GetSkyRadianceToPoint(IN(AtmosphereComponents) atmosphere,
     IN(TransmittanceTexture) transmittance_texture,
     IN(ReducedScatteringTexture) multiple_scattering_texture,
     IN(ReducedScatteringTexture) single_rayleigh_scattering_texture,

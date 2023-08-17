@@ -180,19 +180,27 @@ struct DensityProfile {
   DensityProfileLayer layers[2];
 };
 
-struct AtmosphereComponent {
-  DimensionlessSpectrum phase[180];
-  ScatteringSpectrum    extinction;
-  ScatteringSpectrum    scattering;
-  DensityProfile        density;
+// This texture contains all the phase functions for the scattering components of the atmosphere.
+// The u coordinate maps to the scattering angle. Forward scattering is on the left (u == 0, theta
+// == 0) and back scattering on the right (u == 1, theta == 180).
+// The v coordinate maps to the various components. The phase function of the first scattering
+// component is stored in the top row of pixels, the second in the next and so on.
+uniform sampler2D phase_texture;
+
+struct ScatteringComponent {
+  Number             phaseTextureV;
+  ScatteringSpectrum extinction;
+  ScatteringSpectrum scattering;
+  DensityProfile     density;
 };
 
-/*
-The atmosphere parameters are then defined by the following struct:
-*/
+struct AbsorbingComponent {
+  ScatteringSpectrum extinction;
+  DensityProfile     density;
+};
 
-struct AtmosphereParameters {
-  AtmosphereComponent rayleigh;
-  AtmosphereComponent mie;
-  AtmosphereComponent ozone;
+struct AtmosphereComponents {
+  ScatteringComponent rayleigh;
+  ScatteringComponent mie;
+  AbsorbingComponent  ozone;
 };

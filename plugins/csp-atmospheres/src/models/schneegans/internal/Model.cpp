@@ -556,9 +556,11 @@ Model::Model(const std::vector<double>& wavelengths, const std::vector<double>& 
     const AtmosphereComponent& ozone, const std::vector<double>& ground_albedo,
     double max_sun_zenith_angle, double length_unit_in_meters,
     unsigned int num_precomputed_wavelengths)
-    : wavelengths_(wavelengths)
-    , num_precomputed_wavelengths_(num_precomputed_wavelengths)
-    , rgb_format_supported_(IsFramebufferRgbFormatSupported()) {
+    : rayleigh_(rayleigh)
+    , mie_(mie)
+    , ozone_(ozone)
+    , wavelengths_(wavelengths)
+    , num_precomputed_wavelengths_(num_precomputed_wavelengths) {
 
   auto extractVec3 = [this](const std::vector<double>& v, const vec3& lambdas, double scale = 1.0) {
     double r = Interpolate(wavelengths_, v, lambdas[0]) * scale;
@@ -590,30 +592,35 @@ Model::Model(const std::vector<double>& wavelengths, const std::vector<double>& 
     return result;
   };
 
-  auto atmosphereComponent = [densityProfile, extractVec3, length_unit_in_meters](
-                                 AtmosphereComponent const& component, vec3 lambdas) {
+  auto scatteringComponent = [densityProfile, extractVec3, length_unit_in_meters](
+                                 AtmosphereComponent const& component, float phaseTextureV,
+                                 vec3 lambdas) {
     std::stringstream ss;
-    ss << "AtmosphereComponent(";
+    ss << "ScatteringComponent(";
 
-    ss << "vec3[](";
-
-    bool first = true;
-    for (auto& theta : component.phase) {
-      if (first) {
-        first = false;
-      } else {
-        ss << ",";
-      }
-      ss << extractVec3(theta, lambdas);
-    }
-
-    ss << "),\n";
+    ss << phaseTextureV << ",\n";
 
     auto absorption = extractVec3(component.absorption, lambdas, length_unit_in_meters);
     auto scattering = extractVec3(component.scattering, lambdas, length_unit_in_meters);
 
     ss << scattering << " + " << absorption << ",\n";
     ss << scattering << ",\n";
+    ss << densityProfile(component.layers);
+
+    ss << ")";
+
+    return ss.str();
+  };
+
+  auto absorbingComponent = [densityProfile, extractVec3, length_unit_in_meters](
+                                AtmosphereComponent const& component, vec3 lambdas) {
+    std::stringstream ss;
+    ss << "AbsorbingComponent(";
+
+    auto absorption = extractVec3(component.absorption, lambdas, length_unit_in_meters);
+    auto scattering = extractVec3(component.scattering, lambdas, length_unit_in_meters);
+
+    ss << scattering << " + " << absorption << ",\n";
     ss << densityProfile(component.layers);
 
     ss << ")";
@@ -674,10 +681,10 @@ Model::Model(const std::vector<double>& wavelengths, const std::vector<double>& 
             "const float BOTTOM_RADIUS = "              + cs::utils::toString(bottom_radius / length_unit_in_meters) + ";\n" +
             "const float TOP_RADIUS = "                 + cs::utils::toString(top_radius / length_unit_in_meters) + ";\n" +
             "const float MU_S_MIN = "                   + cs::utils::toString(cos(max_sun_zenith_angle))+ ";\n" +
-            "const AtmosphereParameters ATMOSPHERE = AtmosphereParameters(\n" +
-              atmosphereComponent(rayleigh, lambdas) + ",\n" +
-              atmosphereComponent(mie, lambdas) + ",\n" +
-              atmosphereComponent(ozone, lambdas) + ");\n" +
+            "const AtmosphereComponents ATMOSPHERE = AtmosphereComponents(\n" +
+              scatteringComponent(rayleigh, 0.0, lambdas) + ",\n" +
+              scatteringComponent(mie, 1.0, lambdas) + ",\n" +
+              absorbingComponent(ozone, lambdas) + ");\n" +
             functions_glsl;
     };
   // clang-format on
@@ -734,6 +741,7 @@ Model::Model(const std::vector<double>& wavelengths, const std::vector<double>& 
 Model::~Model() {
   glDeleteBuffers(1, &full_screen_quad_vbo_);
   glDeleteVertexArrays(1, &full_screen_quad_vao_);
+  glDeleteTextures(1, &phase_texture_);
   glDeleteTextures(1, &transmittance_texture_);
   glDeleteTextures(1, &multiple_scattering_texture_);
   glDeleteTextures(1, &single_mie_scattering_texture_);
@@ -874,6 +882,10 @@ void Model::Init(unsigned int num_scattering_orders) {
     glScissor(0, 0, TRANSMITTANCE_TEXTURE_WIDTH, TRANSMITTANCE_TEXTURE_HEIGHT);
     compute_transmittance.Use();
     DrawQuad({}, full_screen_quad_vao_);
+
+    // Also, the phase_texture_ contains the phase functions for the last used wavelengths. We need
+    // to update it with kLambdaR, kLambdaG, kLambdaB as well.
+    UpdatePhaseFunctionTexture({rayleigh_, mie_}, {kLambdaR, kLambdaG, kLambdaB});
   }
 
   // Delete the temporary resources allocated at the begining of this method.
@@ -894,10 +906,14 @@ the corresponding uniforms in the user provided program to the index of these
 texture units.
 */
 
-void Model::SetProgramUniforms(GLuint program, GLuint transmittance_texture_unit,
-    GLuint multiple_scattering_texture_unit, GLuint irradiance_texture_unit,
-    GLuint single_mie_scattering_texture_unit,
+void Model::SetProgramUniforms(GLuint program, GLuint phase_texture_unit,
+    GLuint transmittance_texture_unit, GLuint multiple_scattering_texture_unit,
+    GLuint irradiance_texture_unit, GLuint single_mie_scattering_texture_unit,
     GLuint single_rayleigh_scattering_texture_unit) const {
+
+  glActiveTexture(GL_TEXTURE0 + phase_texture_unit);
+  glBindTexture(GL_TEXTURE_2D, phase_texture_);
+  glUniform1i(glGetUniformLocation(program, "phase_texture"), phase_texture_unit);
 
   glActiveTexture(GL_TEXTURE0 + transmittance_texture_unit);
   glBindTexture(GL_TEXTURE_2D, transmittance_texture_);
@@ -1000,6 +1016,8 @@ void Model::Precompute(GLuint fbo, GLuint delta_irradiance_texture,
   // when this method returns, via the Program destructor).
   std::string header = glsl_header_factory_(lambdas);
 
+  UpdatePhaseFunctionTexture({rayleigh_, mie_}, lambdas);
+
   Program compute_transmittance(kVertexShader, header + kComputeTransmittanceShader);
   Program compute_direct_irradiance(kVertexShader, header + kComputeDirectIrradianceShader);
   Program compute_single_scattering(
@@ -1077,14 +1095,15 @@ void Model::Precompute(GLuint fbo, GLuint delta_irradiance_texture,
     glViewport(0, 0, SCATTERING_TEXTURE_WIDTH, SCATTERING_TEXTURE_HEIGHT);
     glScissor(0, 0, SCATTERING_TEXTURE_WIDTH, SCATTERING_TEXTURE_HEIGHT);
     compute_scattering_density.Use();
-    compute_scattering_density.BindTexture2d("transmittance_texture", transmittance_texture_, 0);
+    compute_scattering_density.BindTexture2d("phase_texture", phase_texture_, 0);
+    compute_scattering_density.BindTexture2d("transmittance_texture", transmittance_texture_, 1);
     compute_scattering_density.BindTexture3d(
-        "single_rayleigh_scattering_texture", delta_rayleigh_scattering_texture, 1);
+        "single_rayleigh_scattering_texture", delta_rayleigh_scattering_texture, 2);
     compute_scattering_density.BindTexture3d(
-        "single_mie_scattering_texture", delta_mie_scattering_texture, 2);
+        "single_mie_scattering_texture", delta_mie_scattering_texture, 3);
     compute_scattering_density.BindTexture3d(
-        "multiple_scattering_texture", delta_multiple_scattering_texture, 3);
-    compute_scattering_density.BindTexture2d("irradiance_texture", delta_irradiance_texture, 4);
+        "multiple_scattering_texture", delta_multiple_scattering_texture, 4);
+    compute_scattering_density.BindTexture2d("irradiance_texture", delta_irradiance_texture, 5);
     compute_scattering_density.BindInt("scattering_order", scattering_order);
     for (unsigned int layer = 0; layer < SCATTERING_TEXTURE_DEPTH; ++layer) {
       compute_scattering_density.BindInt("layer", layer);
@@ -1100,12 +1119,13 @@ void Model::Precompute(GLuint fbo, GLuint delta_irradiance_texture,
     glScissor(0, 0, IRRADIANCE_TEXTURE_WIDTH, IRRADIANCE_TEXTURE_HEIGHT);
     compute_indirect_irradiance.Use();
     compute_indirect_irradiance.BindMat3("luminance_from_radiance", luminance_from_radiance);
+    compute_indirect_irradiance.BindTexture2d("phase_texture", phase_texture_, 0);
     compute_indirect_irradiance.BindTexture3d(
-        "single_rayleigh_scattering_texture", delta_rayleigh_scattering_texture, 0);
+        "single_rayleigh_scattering_texture", delta_rayleigh_scattering_texture, 1);
     compute_indirect_irradiance.BindTexture3d(
-        "single_mie_scattering_texture", delta_mie_scattering_texture, 1);
+        "single_mie_scattering_texture", delta_mie_scattering_texture, 2);
     compute_indirect_irradiance.BindTexture3d(
-        "multiple_scattering_texture", delta_multiple_scattering_texture, 2);
+        "multiple_scattering_texture", delta_multiple_scattering_texture, 3);
     compute_indirect_irradiance.BindInt("scattering_order", scattering_order - 1);
     DrawQuad({false, true}, full_screen_quad_vao_);
 
@@ -1119,9 +1139,10 @@ void Model::Precompute(GLuint fbo, GLuint delta_irradiance_texture,
     glScissor(0, 0, SCATTERING_TEXTURE_WIDTH, SCATTERING_TEXTURE_HEIGHT);
     compute_multiple_scattering.Use();
     compute_multiple_scattering.BindMat3("luminance_from_radiance", luminance_from_radiance);
-    compute_multiple_scattering.BindTexture2d("transmittance_texture", transmittance_texture_, 0);
+    compute_multiple_scattering.BindTexture2d("phase_texture", phase_texture_, 0);
+    compute_multiple_scattering.BindTexture2d("transmittance_texture", transmittance_texture_, 1);
     compute_multiple_scattering.BindTexture3d(
-        "scattering_density_texture", delta_scattering_density_texture, 1);
+        "scattering_density_texture", delta_scattering_density_texture, 2);
     for (unsigned int layer = 0; layer < SCATTERING_TEXTURE_DEPTH; ++layer) {
       compute_multiple_scattering.BindInt("layer", layer);
       DrawQuad({false, true}, full_screen_quad_vao_);
@@ -1131,6 +1152,31 @@ void Model::Precompute(GLuint fbo, GLuint delta_irradiance_texture,
   glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, 0, 0);
   glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, 0, 0);
   glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, 0, 0);
+}
+
+void Model::UpdatePhaseFunctionTexture(
+    std::vector<AtmosphereComponent> const& scatteringComponents, const Model::vec3& lambdas) {
+
+  if (phase_texture_ != 0) {
+    glDeleteTextures(1, &phase_texture_);
+  }
+
+  size_t numAngles = scatteringComponents.front().phase.size();
+
+  std::vector<float> data;
+  data.reserve(4 * scatteringComponents.size() * numAngles);
+
+  for (size_t i(0); i < scatteringComponents.size(); ++i) {
+    for (auto const& spectrum : scatteringComponents[i].phase) {
+      data.push_back(Interpolate(wavelengths_, spectrum, lambdas[0]));
+      data.push_back(Interpolate(wavelengths_, spectrum, lambdas[1]));
+      data.push_back(Interpolate(wavelengths_, spectrum, lambdas[2]));
+      data.push_back(0.f);
+    }
+  }
+
+  phase_texture_ = NewTexture2d(
+      numAngles, scatteringComponents.size(), GL_RGBA32F, GL_RGBA, GL_FLOAT, data.data());
 }
 
 } // namespace csp::atmospheres::models::schneegans::internal
