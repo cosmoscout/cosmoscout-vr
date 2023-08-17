@@ -400,7 +400,8 @@ class Program {
 <p>We also need functions to allocate the precomputed textures on GPU:
 */
 
-GLuint NewTexture2d(int width, int height) {
+GLuint NewTexture2d(int width, int height, GLenum internalFormat, GLenum format, GLenum type,
+    void* data = nullptr) {
   GLuint texture;
   glGenTextures(1, &texture);
   glActiveTexture(GL_TEXTURE0);
@@ -410,12 +411,12 @@ GLuint NewTexture2d(int width, int height) {
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
   glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
-  // 16F precision for the transmittance gives artifacts.
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, width, height, 0, GL_RGBA, GL_FLOAT, NULL);
+  glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, width, height, 0, format, type, data);
   return texture;
 }
 
-GLuint NewTexture3d(int width, int height, int depth, GLenum format, bool half_precision) {
+GLuint NewTexture3d(int width, int height, int depth, GLenum internalFormat, GLenum format,
+    GLenum type, void* data = nullptr) {
   GLuint texture;
   glGenTextures(1, &texture);
   glActiveTexture(GL_TEXTURE0);
@@ -426,32 +427,8 @@ GLuint NewTexture3d(int width, int height, int depth, GLenum format, bool half_p
   glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
   glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
   glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
-  GLenum internal_format = format == GL_RGBA ? (half_precision ? GL_RGBA16F : GL_RGBA32F)
-                                             : (half_precision ? GL_RGB16F : GL_RGB32F);
-  glTexImage3D(GL_TEXTURE_3D, 0, internal_format, width, height, depth, 0, format, GL_FLOAT, NULL);
+  glTexImage3D(GL_TEXTURE_3D, 0, internalFormat, width, height, depth, 0, format, type, data);
   return texture;
-}
-
-/*
-<p>a function to test whether the RGB format is a supported renderbuffer color
-format (the OpenGL 3.3 Core Profile specification requires support for the RGBA
-formats, but not for the RGB ones):
-*/
-
-bool IsFramebufferRgbFormatSupported() {
-  GLuint test_fbo = 0;
-  glGenFramebuffers(1, &test_fbo);
-  glBindFramebuffer(GL_FRAMEBUFFER, test_fbo);
-  GLuint test_texture = 0;
-  glGenTextures(1, &test_texture);
-  glBindTexture(GL_TEXTURE_2D, test_texture);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, 1, 1, 0, GL_RGB, GL_FLOAT, NULL);
-  glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, test_texture, 0);
-  bool rgb_format_supported = glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE;
-  glDeleteTextures(1, &test_texture);
-  glDeleteFramebuffers(1, &test_fbo);
-  return rgb_format_supported;
 }
 
 /*
@@ -706,16 +683,17 @@ Model::Model(const std::vector<double>& wavelengths, const std::vector<double>& 
   // clang-format on
 
   // Allocate the precomputed textures, but don't precompute them yet.
-  transmittance_texture_ = NewTexture2d(TRANSMITTANCE_TEXTURE_WIDTH, TRANSMITTANCE_TEXTURE_HEIGHT);
+  transmittance_texture_ = NewTexture2d(
+      TRANSMITTANCE_TEXTURE_WIDTH, TRANSMITTANCE_TEXTURE_HEIGHT, GL_RGBA32F, GL_RGBA, GL_FLOAT);
   multiple_scattering_texture_   = NewTexture3d(SCATTERING_TEXTURE_WIDTH, SCATTERING_TEXTURE_HEIGHT,
-      SCATTERING_TEXTURE_DEPTH, rgb_format_supported_ ? GL_RGB : GL_RGBA);
+      SCATTERING_TEXTURE_DEPTH, GL_RGBA32F, GL_RGBA, GL_FLOAT);
   single_mie_scattering_texture_ = NewTexture3d(SCATTERING_TEXTURE_WIDTH, SCATTERING_TEXTURE_HEIGHT,
-      SCATTERING_TEXTURE_DEPTH, rgb_format_supported_ ? GL_RGB : GL_RGBA);
-  single_rayleigh_scattering_texture_ =
-      NewTexture3d(SCATTERING_TEXTURE_WIDTH, SCATTERING_TEXTURE_HEIGHT, SCATTERING_TEXTURE_DEPTH,
-          rgb_format_supported_ ? GL_RGB : GL_RGBA);
+      SCATTERING_TEXTURE_DEPTH, GL_RGBA32F, GL_RGBA, GL_FLOAT);
+  single_rayleigh_scattering_texture_ = NewTexture3d(SCATTERING_TEXTURE_WIDTH,
+      SCATTERING_TEXTURE_HEIGHT, SCATTERING_TEXTURE_DEPTH, GL_RGBA32F, GL_RGBA, GL_FLOAT);
 
-  irradiance_texture_ = NewTexture2d(IRRADIANCE_TEXTURE_WIDTH, IRRADIANCE_TEXTURE_HEIGHT);
+  irradiance_texture_ = NewTexture2d(
+      IRRADIANCE_TEXTURE_WIDTH, IRRADIANCE_TEXTURE_HEIGHT, GL_RGBA32F, GL_RGBA, GL_FLOAT);
 
   // Create and compile the shader providing our API.
   std::string shader = glsl_header_factory_({kLambdaR, kLambdaG, kLambdaB}) +
@@ -823,17 +801,14 @@ void Model::Init(unsigned int num_scattering_orders) {
   // order of scattering (the final precomputed textures store the sum of all
   // the scattering orders). We allocate them here, and destroy them at the end
   // of this method.
-  GLuint delta_irradiance_texture =
-      NewTexture2d(IRRADIANCE_TEXTURE_WIDTH, IRRADIANCE_TEXTURE_HEIGHT);
-  GLuint delta_rayleigh_scattering_texture =
-      NewTexture3d(SCATTERING_TEXTURE_WIDTH, SCATTERING_TEXTURE_HEIGHT, SCATTERING_TEXTURE_DEPTH,
-          rgb_format_supported_ ? GL_RGB : GL_RGBA);
-  GLuint delta_mie_scattering_texture =
-      NewTexture3d(SCATTERING_TEXTURE_WIDTH, SCATTERING_TEXTURE_HEIGHT, SCATTERING_TEXTURE_DEPTH,
-          rgb_format_supported_ ? GL_RGB : GL_RGBA);
-  GLuint delta_scattering_density_texture =
-      NewTexture3d(SCATTERING_TEXTURE_WIDTH, SCATTERING_TEXTURE_HEIGHT, SCATTERING_TEXTURE_DEPTH,
-          rgb_format_supported_ ? GL_RGB : GL_RGBA);
+  GLuint delta_irradiance_texture = NewTexture2d(
+      IRRADIANCE_TEXTURE_WIDTH, IRRADIANCE_TEXTURE_HEIGHT, GL_RGBA32F, GL_RGBA, GL_FLOAT);
+  GLuint delta_rayleigh_scattering_texture = NewTexture3d(SCATTERING_TEXTURE_WIDTH,
+      SCATTERING_TEXTURE_HEIGHT, SCATTERING_TEXTURE_DEPTH, GL_RGBA32F, GL_RGBA, GL_FLOAT);
+  GLuint delta_mie_scattering_texture      = NewTexture3d(SCATTERING_TEXTURE_WIDTH,
+      SCATTERING_TEXTURE_HEIGHT, SCATTERING_TEXTURE_DEPTH, GL_RGBA32F, GL_RGBA, GL_FLOAT);
+  GLuint delta_scattering_density_texture  = NewTexture3d(SCATTERING_TEXTURE_WIDTH,
+      SCATTERING_TEXTURE_HEIGHT, SCATTERING_TEXTURE_DEPTH, GL_RGBA32F, GL_RGBA, GL_FLOAT);
   // delta_multiple_scattering_texture is only needed to compute scattering
   // order 3 or more, while delta_rayleigh_scattering_texture and
   // delta_mie_scattering_texture are only needed to compute double scattering.

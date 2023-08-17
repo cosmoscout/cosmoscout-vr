@@ -292,7 +292,6 @@ class Model {
 
   std::vector<double>                     wavelengths_;
   unsigned int                            num_precomputed_wavelengths_;
-  bool                                    rgb_format_supported_;
   std::function<std::string(const vec3&)> glsl_header_factory_;
   GLuint                                  transmittance_texture_;
   GLuint                                  multiple_scattering_texture_;
