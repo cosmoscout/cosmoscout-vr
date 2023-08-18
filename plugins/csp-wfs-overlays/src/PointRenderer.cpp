@@ -5,7 +5,7 @@
 // SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
 // SPDX-License-Identifier: MIT
 
-#include "FeatureRenderer.hpp"
+#include "PointRenderer.hpp"
 #include "logger.hpp"
 
 #include "../../../src/cs-core/Settings.hpp"
@@ -24,12 +24,13 @@
 
 namespace csp::wfsoverlays {
 
-    const char* FeatureRenderer::FEATURE_VERT = R"(
+    const char* PointRenderer::FEATURE_VERT = R"(
     #version 330 core
     layout (location=0) in vec3 aPos;
     layout (location=1) in vec3 aColor;
 
     out vec3 vertexColor;
+    out vec3 positions;    /* TODO: added this */
 
     uniform mat4 model;
     uniform mat4 view;
@@ -38,11 +39,51 @@ namespace csp::wfsoverlays {
     void main(){
         gl_Position = projection * view * model * vec4(aPos, 1.0);
         vertexColor = aColor;
-        gl_PointSize = 12;
     }
     )";
 
-    const char* FeatureRenderer::FEATURE_FRAG = R"(
+    const char* PointRenderer::FEATURE_GEOM = R"(
+    #version 330 core
+    layout (points) in;
+    layout (triangle_strip, max_vertices = 4) out;
+
+    in vec3 positions;
+
+    out vec3 vertexColor;
+
+    uniform mat4 model;
+    uniform mat4 view;
+    uniform mat4 projection;
+
+    void main() {
+        for (int i = 0; i < gl_in.length(); ++i) {
+            vec3 center = vec3(inPointData[i * 6], inPointData[i * 6 + 1], inPointData[i * 6 + 2]);   // Coordenadas del punto (xo, yo, zo)
+            vec3 color = vec3(inPointData[i * 6 + 3], inPointData[i * 6 + 4], inPointData[i * 6 + 5]); // Color del punto (r, g, b)
+
+            // Calcula las coordenadas de los vértices del cuadrado que representa el punto
+            vec4 vertexPos = projection * view * model * vec4(center, 1.0);
+            gl_Position = vertexPos + vec4(-1.0, -1.0, 0.0, 0.0);
+            vertexColor = color;
+            EmitVertex();
+
+            gl_Position = vertexPos + vec4(1.0, -1.0, 0.0, 0.0);
+            vertexColor = color;
+            EmitVertex();
+
+            gl_Position = vertexPos + vec4(-1.0, 1.0, 0.0, 0.0);
+            vertexColor = color;
+            EmitVertex();
+
+            gl_Position = vertexPos + vec4(1.0, 1.0, 0.0, 0.0);
+            vertexColor = color;
+            EmitVertex();
+
+            EndPrimitive();
+        }
+    }
+    )";
+
+    const char* PointRenderer::FEATURE_FRAG = R"(
 
     in vec3 vertexColor;
 
@@ -65,6 +106,10 @@ namespace csp::wfsoverlays {
 
         vec3 result = vertexColor.rgb;
 
+        vec2 coord = gl_PointCoord - vec2(0.5);
+        if (length(coord) > 0.72)
+            result = vec3(1.0,0.0,0.0); 
+
             #ifdef ENABLE_HDR
                 result = SRGBtoLINEAR(result) * uSunIlluminance / PI;
             #else
@@ -76,14 +121,14 @@ namespace csp::wfsoverlays {
     )";
 
     template <typename T>
-    FeatureRenderer::FeatureRenderer (std::string type, T coordinates, std::shared_ptr<cs::core::SolarSystem> solarSystem,   
-                                        std::shared_ptr<cs::core::Settings> settings, double lineWidth) {
+    PointRenderer::PointRenderer (std::string type, T coordinates, std::shared_ptr<cs::core::SolarSystem> solarSystem,   
+                                        std::shared_ptr<cs::core::Settings> settings, double pointSize) {
         
         mType = type;
         mSolarSystem = solarSystem;
         mCoordinates = coordinates;
         mSettings = settings;
-        mLineWidthInput = lineWidth;
+        mPointSizeInput = pointSize;
         mShaderDirty = true;
 
         // TODO: if no data found, display a warning
@@ -153,7 +198,7 @@ namespace csp::wfsoverlays {
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    FeatureRenderer::~FeatureRenderer() {
+    PointRenderer::~PointRenderer() {
     
         mSettings->mGraphics.pEnableHDR.disconnect(mHDRConnection);
 
@@ -163,7 +208,7 @@ namespace csp::wfsoverlays {
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    bool FeatureRenderer::Do() {
+    bool PointRenderer::Do() {
 
         if (mShaderDirty) {
 
@@ -300,9 +345,9 @@ namespace csp::wfsoverlays {
         // Draw
         glBindVertexArray(VAO); 
 
-        GLfloat lineWidthGL = static_cast<GLfloat>(mLineWidthInput);
+        GLfloat pointSizeGL = static_cast<GLfloat>(mPointSizeInput);
         // std::cout << "Do::Size: " << pointSizeGL << std::endl;
-        glLineWidth(lineWidthGL);
+        glPointSize(pointSizeGL); 
 
         glDrawArrays(drawingType, 0, static_cast<GLsizei>(3 * mCoordinates.size()));
         glBindVertexArray(0); 
@@ -313,7 +358,7 @@ namespace csp::wfsoverlays {
         return true;
     }
 
-    bool FeatureRenderer::GetBoundingBox(VistaBoundingBox& bb) {
+    bool PointRenderer::GetBoundingBox(VistaBoundingBox& bb) {
         return false;
     }
 }

@@ -14,6 +14,7 @@
 #include <memory>
 #include <unordered_set>
 #include "FeatureRenderer.hpp"
+#include "PointRenderer.hpp"
 #include "WFSTypes.hpp"
 
 namespace csp::wfsoverlays {
@@ -45,8 +46,15 @@ class Plugin : public cs::core::PluginBase {
     void setWFSFeatureType(std::string featureType);
     void setRendering(double pointSize, double lineWidth);  
     double calculateDistance(InfoStruct const& p1, InfoStruct const& p2, glm::vec3 earthRadius);
-    double calculateAngle (InfoStruct const& p1, InfoStruct const& p2);
-    std::vector<InfoStruct> Interpolation (std::vector<InfoStruct> const& vectorIn, double thresholdAngle, glm::vec3 earthRadius, std::shared_ptr<const cs::scene::CelestialObject> earth);
+    void correctHeight (InfoStruct const& struct1, InfoStruct const& struct2, InfoStruct& temporaryStruct,  
+                                                    std::shared_ptr<const cs::scene::CelestialObject> earth);
+
+    // double calculateAngle (InfoStruct const& p1, InfoStruct const& p2);
+    // std::vector<InfoStruct> Interpolation (std::vector<InfoStruct> const& vectorIn, double thresholdAngle, glm::vec3 earthRadius, std::shared_ptr<const cs::scene::CelestialObject> earth);
+
+    double calculateAngle (InfoStruct const& previousPoint, InfoStruct const& middlePoint, InfoStruct const& nextPoint);
+    std::vector<InfoStruct> Interpolation (std::vector<InfoStruct> const& structsIn, double thresholdAngle, glm::vec3 earthRadius, std::shared_ptr<const cs::scene::CelestialObject> earth);
+
 
     std::vector<glm::dvec3> generateMidPoint (std::vector <InfoStruct> const& structIn, float threshold, 
                                                         glm::vec3 earthRadius, std::shared_ptr<const cs::scene::CelestialObject> earth, glm::vec3 featureColor);     
@@ -63,7 +71,7 @@ class Plugin : public cs::core::PluginBase {
     std::stringstream jsonStream;
 
 
-    std::unique_ptr<FeatureRenderer> mPointRenderer;
+    std::unique_ptr<PointRenderer> mPointRenderer;
     std::unique_ptr<FeatureRenderer> mLineStringRenderer;
     std::unique_ptr<FeatureRenderer> mPolygonRenderer;
 
