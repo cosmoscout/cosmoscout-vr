@@ -13,7 +13,7 @@
 #include "../../../src/cs-utils/Property.hpp"
 #include <memory>
 #include <unordered_set>
-#include "FeatureRenderer.hpp"
+#include "LineRenderer.hpp"
 #include "PointRenderer.hpp"
 #include "WFSTypes.hpp"
 
@@ -61,8 +61,8 @@ class Plugin : public cs::core::PluginBase {
 
 
     std::unique_ptr<PointRenderer> mPointRenderer;
-    std::unique_ptr<FeatureRenderer> mLineStringRenderer;
-    std::unique_ptr<FeatureRenderer> mPolygonRenderer;
+    std::unique_ptr<LineRenderer> mLineStringRenderer;
+    std::unique_ptr<LineRenderer> mPolygonRenderer;
 
     std::string mColor;
     std::string mTime;

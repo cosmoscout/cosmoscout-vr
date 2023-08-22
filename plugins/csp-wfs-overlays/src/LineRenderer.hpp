@@ -5,8 +5,8 @@
 // SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
 // SPDX-License-Identifier: MIT
 
-#ifndef CSP_WFS_OVERLAYS_FEATURE_RENDERER_HPP
-#define CSP_WFS_OVERLAYS_FEATURE_RENDERER_HPP
+#ifndef CSP_WFS_OVERLAYS_LINE_RENDERER_HPP
+#define CSP_WFS_OVERLAYS_LINE_RENDERER_HPP
 
 #include <VistaKernel/GraphicsManager/VistaOpenGLDraw.h>
 #include <VistaKernel/GraphicsManager/VistaOpenGLNode.h>
@@ -17,13 +17,13 @@
 #include "../../../src/cs-core/SolarSystem.hpp"
 
 namespace csp::wfsoverlays { 
-  class FeatureRenderer : public IVistaOpenGLDraw {
+  class LineRenderer : public IVistaOpenGLDraw {
 
     public:
 
-      FeatureRenderer (std::vector<glm::vec3> coordinates, std::shared_ptr<cs::core::SolarSystem> solarSystem, std::shared_ptr<cs::core::Settings> settings, 
+      LineRenderer (std::vector<glm::vec3> coordinates, std::shared_ptr<cs::core::SolarSystem> solarSystem, std::shared_ptr<cs::core::Settings> settings, 
                       double lineWidth, std::shared_ptr<Settings> pluginSettings);   
-      ~FeatureRenderer();
+      ~LineRenderer();
       bool Do() override;
       bool GetBoundingBox(VistaBoundingBox& bb) override;
 
@@ -47,4 +47,4 @@ namespace csp::wfsoverlays {
 }
 
 
-#endif // CSP_WFS_OVERLAYS_FEATURE_RENDERER_HPP
+#endif // CSP_WFS_OVERLAYS_LINE_RENDERER_HPP

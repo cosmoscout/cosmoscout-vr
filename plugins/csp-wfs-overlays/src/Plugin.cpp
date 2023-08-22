@@ -6,7 +6,7 @@
 // SPDX-License-Identifier: MIT
 
 #include "Plugin.hpp"
-#include "FeatureRenderer.hpp"
+#include "LineRenderer.hpp"
 #include "PointRenderer.hpp"
 
 #include "../../../src/cs-core/GuiManager.hpp"
@@ -518,7 +518,7 @@ void Plugin::setWFSFeatureType(std::string featureType) {
   // and handle its rendering depending on the type of its geometry
   //---------------------------------------------------------------
 
-  void Plugin::setRendering(double pointSize = 0.05, double lineWidth = 1.0) {   // TODO: double pointSize
+  void Plugin::setRendering(double pointSize = 0.02, double lineWidth = 2.0) {   
     
     logger().info("setRendering::Number of elements: {}", featureLocation.features.size());
     
@@ -897,9 +897,6 @@ void Plugin::setWFSFeatureType(std::string featureType) {
     mPointSize = pointSize;
     mLineWidth = lineWidth;
 
-    
-    
-
     if (!pointCoordinatesRendering.empty()) {
       logger().info( "points: {}, multiPoints: {}. (containing {} points). ", numPoints, numMultiPoints, pointCoordinatesRendering.size()/2 );
       mPointRenderer = std::make_unique<PointRenderer>(pointCoordinatesRendering, mSolarSystem, mAllSettings, mPointSize, mPluginSettings);
@@ -908,13 +905,13 @@ void Plugin::setWFSFeatureType(std::string featureType) {
 
     if (!lineStringCoordinatesRendering.empty()) {
       logger().info( "lines: {}, multiLines: {}. (containing {} points).", numLineStrings, numMultiLineStrings, (lineStringCoordinatesRendering.size()/2+1)/2 );
-      mLineStringRenderer = std::make_unique<FeatureRenderer> (lineStringCoordinatesRendering, mSolarSystem, mAllSettings, mLineWidth, mPluginSettings);
+      mLineStringRenderer = std::make_unique<LineRenderer> (lineStringCoordinatesRendering, mSolarSystem, mAllSettings, mLineWidth, mPluginSettings);
       logger().info("setRendering::LineWidth {}", mLineWidth);
     }
 
     if (!polygonCoordinatesRendering.empty()) {
       logger().info( "polygons: {}, multiPolygons: {}. (containing {} points).", numPolygons, numMultiPolygons, (polygonCoordinatesRendering.size()/2+1)/2 );
-      mPolygonRenderer = std::make_unique<FeatureRenderer> (polygonCoordinatesRendering, mSolarSystem, mAllSettings, mLineWidth, mPluginSettings);
+      mPolygonRenderer = std::make_unique<LineRenderer> (polygonCoordinatesRendering, mSolarSystem, mAllSettings, mLineWidth, mPluginSettings);
       logger().info("setRendering::LineWidth {}", mLineWidth);
     }
 
@@ -1019,7 +1016,7 @@ void Plugin::init() {
                                           std::function([this](std::string&& userSelectedSize) {
                                             logger().info("done");
                                             mPointSize = std::stod(userSelectedSize);
-                                            setRendering(mPointSize, 1.0);
+                                            setRendering(mPointSize, 2.0);
                                             // logger().info("Size: {}", mPointSize);
                                           }));
 
@@ -1033,7 +1030,7 @@ void Plugin::init() {
                                           std::function([this](std::string&& userSelectedWidth) {
                                             logger().info("done");
                                             mLineWidth = std::stod(userSelectedWidth);
-                                            setRendering(1.0, mLineWidth);
+                                            setRendering(0.02, mLineWidth);
                                             logger().info("Width: {}", mLineWidth);
                                           }));
 

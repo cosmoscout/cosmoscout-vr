@@ -5,7 +5,7 @@
 // SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
 // SPDX-License-Identifier: MIT
 
-#include "FeatureRenderer.hpp"
+#include "LineRenderer.hpp"
 #include "logger.hpp"
 
 #include "../../../src/cs-core/Settings.hpp"
@@ -24,7 +24,7 @@
 
 namespace csp::wfsoverlays {
 
-    const char* FeatureRenderer::FEATURE_VERT = R"(
+    const char* LineRenderer::FEATURE_VERT = R"(
     #version 330 core
     layout (location=0) in vec3 aPos;
     layout (location=1) in vec3 aColor;
@@ -41,7 +41,7 @@ namespace csp::wfsoverlays {
     }
     )";
 
-    const char* FeatureRenderer::FEATURE_FRAG = R"(
+    const char* LineRenderer::FEATURE_FRAG = R"(
 
     in vec3 vertexColor;
 
@@ -74,7 +74,7 @@ namespace csp::wfsoverlays {
     }
     )";
 
-    FeatureRenderer::FeatureRenderer (std::vector<glm::vec3> coordinates, std::shared_ptr<cs::core::SolarSystem> solarSystem,   
+    LineRenderer::LineRenderer (std::vector<glm::vec3> coordinates, std::shared_ptr<cs::core::SolarSystem> solarSystem,   
                                         std::shared_ptr<cs::core::Settings> settings, double lineWidth, std::shared_ptr<Settings> pluginSettings) {
         mSolarSystem = solarSystem;
         mCoordinates = coordinates;
@@ -118,7 +118,7 @@ namespace csp::wfsoverlays {
     }
     ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    FeatureRenderer::~FeatureRenderer() {
+    LineRenderer::~LineRenderer() {
     
         mSettings->mGraphics.pEnableHDR.disconnect(mHDRConnection);
 
@@ -128,7 +128,7 @@ namespace csp::wfsoverlays {
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    bool FeatureRenderer::Do() {
+    bool LineRenderer::Do() {
 
         if (!mPluginSettings->mEnabled.get()) {
             return true;
@@ -268,7 +268,7 @@ namespace csp::wfsoverlays {
         return true;
     }
 
-    bool FeatureRenderer::GetBoundingBox(VistaBoundingBox& bb) {
+    bool LineRenderer::GetBoundingBox(VistaBoundingBox& bb) {
         return false;
     }
 }
