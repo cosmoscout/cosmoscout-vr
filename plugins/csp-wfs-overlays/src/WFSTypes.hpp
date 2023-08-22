@@ -13,9 +13,15 @@
 #include <array>
 #include <unordered_map>
 #include <nlohmann/json.hpp>
+#include "../../../src/cs-utils/Property.hpp"
+#include "../../../src/cs-core/Settings.hpp"
 
 
 namespace csp::wfsoverlays {
+    struct Settings {
+      cs::utils::DefaultProperty<bool> mEnabled{true};
+      std::vector<std::string> mWfs; 
+    };
 
     // TODO: Consider adding the         const std::string PointType = "Point";  
 

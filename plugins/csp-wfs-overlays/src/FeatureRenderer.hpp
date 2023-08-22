@@ -21,8 +21,8 @@ namespace csp::wfsoverlays {
 
     public:
 
-      template <typename T>
-      FeatureRenderer (std::string type, T coordinates, std::shared_ptr<cs::core::SolarSystem> solarSystem, std::shared_ptr<cs::core::Settings> settings, double lineWidth);   // , 
+      FeatureRenderer (std::vector<glm::vec3> coordinates, std::shared_ptr<cs::core::SolarSystem> solarSystem, std::shared_ptr<cs::core::Settings> settings, 
+                      double lineWidth, std::shared_ptr<Settings> pluginSettings);   
       ~FeatureRenderer();
       bool Do() override;
       bool GetBoundingBox(VistaBoundingBox& bb) override;
@@ -32,9 +32,8 @@ namespace csp::wfsoverlays {
       std::vector<glm::vec3> mCoordinates;
       std::unique_ptr<VistaOpenGLNode> mGLNode;
       std::shared_ptr<cs::core::SolarSystem> mSolarSystem;
-      std::string mType;
       std::shared_ptr<cs::core::Settings> mSettings;
-      double mPointSizeInput;
+      std::shared_ptr<Settings> mPluginSettings;
       double mLineWidthInput;
       int mHDRConnection;
       bool mShaderDirty;

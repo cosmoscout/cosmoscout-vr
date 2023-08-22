@@ -941,7 +941,7 @@
         }
       }
     },
-    "#csp-simple-bodies": {
+    "csp-simple-bodies": {
       "bodies": {
         "Sun": {
           "texture": "../share/resources/textures/sun.jpg"

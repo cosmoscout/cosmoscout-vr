@@ -15,14 +15,15 @@
 #include "WFSTypes.hpp"
 #include <glm/glm.hpp>
 #include "../../../src/cs-core/SolarSystem.hpp"
+#include <VistaOGLExt/VistaTexture.h>
 
 namespace csp::wfsoverlays { 
   class PointRenderer : public IVistaOpenGLDraw {
 
     public:
 
-      template <typename T>
-      PointRenderer (std::string type, T coordinates, std::shared_ptr<cs::core::SolarSystem> solarSystem, std::shared_ptr<cs::core::Settings> settings, double pointSize);   // , 
+      PointRenderer (std::vector<glm::vec3> coordinates, std::shared_ptr<cs::core::SolarSystem> solarSystem, std::shared_ptr<cs::core::Settings> settings, 
+                    double pointSize, std::shared_ptr<Settings> pluginSettings);    
       ~PointRenderer();
       bool Do() override;
       bool GetBoundingBox(VistaBoundingBox& bb) override;
@@ -32,10 +33,10 @@ namespace csp::wfsoverlays {
       std::vector<glm::vec3> mCoordinates;
       std::unique_ptr<VistaOpenGLNode> mGLNode;
       std::shared_ptr<cs::core::SolarSystem> mSolarSystem;
-      std::string mType;
       std::shared_ptr<cs::core::Settings> mSettings;
+      std::shared_ptr<Settings> mPluginSettings;
+      std::unique_ptr<VistaTexture> mTexture; // TODO:   as in simple body
       double mPointSizeInput;
-      double mLineWidthInput;
       int mHDRConnection;
       bool mShaderDirty;
 

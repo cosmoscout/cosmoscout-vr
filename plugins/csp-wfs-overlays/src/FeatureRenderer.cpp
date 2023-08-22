@@ -38,7 +38,6 @@ namespace csp::wfsoverlays {
     void main(){
         gl_Position = projection * view * model * vec4(aPos, 1.0);
         vertexColor = aColor;
-        gl_PointSize = 12;
     }
     )";
 
@@ -75,22 +74,15 @@ namespace csp::wfsoverlays {
     }
     )";
 
-    template <typename T>
-    FeatureRenderer::FeatureRenderer (std::string type, T coordinates, std::shared_ptr<cs::core::SolarSystem> solarSystem,   
-                                        std::shared_ptr<cs::core::Settings> settings, double lineWidth) {
-        
-        mType = type;
+    FeatureRenderer::FeatureRenderer (std::vector<glm::vec3> coordinates, std::shared_ptr<cs::core::SolarSystem> solarSystem,   
+                                        std::shared_ptr<cs::core::Settings> settings, double lineWidth, std::shared_ptr<Settings> pluginSettings) {
         mSolarSystem = solarSystem;
         mCoordinates = coordinates;
         mSettings = settings;
+        mPluginSettings = pluginSettings;
         mLineWidthInput = lineWidth;
         mShaderDirty = true;
 
-        // TODO: if no data found, display a warning
-
-        
-        
-        
         VistaSceneGraph* pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
         mGLNode.reset(pSG->NewOpenGLNode(pSG->GetRoot(), this));
         VistaOpenSGMaterialTools::SetSortKeyOnSubtree(mGLNode.get(), static_cast<int>(cs::utils::DrawOrder::eOpaqueItems));
@@ -123,34 +115,7 @@ namespace csp::wfsoverlays {
 
         // Recreate the shader if HDR rendering mode are toggled.
         mHDRConnection = mSettings->mGraphics.pEnableHDR.connect([this](bool /*unused*/) { mShaderDirty = true; });
-
-        ////////////////////////////////////////////
-        /////////// FOR LINES //////////////////////
-
-        // TODO: 1st trial: line-based anti-aliasing 
-        // seemed to do nothing but thicker lines
-        /*
-        glEnable(GL_LINE_SMOOTH);
-        glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
-        */
-
-        // TODO: glEnable(GL_MULTISAMPLE);
-
-        ////////////////////////////////////////////
-        /////////// FOR LINES //////////////////////
-
-        // TODO: I read that GL_POINT_SMOOTH + GL_BLEND should work... 
-        // in my case if using POINT_SMOOTH I only see (small) differences
-        // but if I try to combine it with GL_BLEND it just does not work
-        // (what I get is a black screen, not even the Earth is shown).
-        // I read that the alpha component should be different to 1.0
-        // but I changed it to 0.9 and still got a black screen.
-        
-
-        
-        
     }
-
     ////////////////////////////////////////////////////////////////////////////////////////////////////
 
     FeatureRenderer::~FeatureRenderer() {
@@ -164,6 +129,10 @@ namespace csp::wfsoverlays {
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     bool FeatureRenderer::Do() {
+
+        if (!mPluginSettings->mEnabled.get()) {
+            return true;
+        }
 
         if (mShaderDirty) {
 
@@ -283,20 +252,6 @@ namespace csp::wfsoverlays {
         // glEnable(GL_BLEND);
         // glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-        GLenum drawingType;
-
-        if (mType == "Point" || mType =="MultiPoint") {
-            drawingType=GL_POINTS;
-        }
-
-        else if (mType == "LineString" || mType =="MultiLineString") {
-            drawingType=GL_LINES;
-        }
-
-        else if (mType == "Polygon" || mType =="MultiPolygon") {
-            drawingType=GL_LINES;   
-        }
-
         // Draw
         glBindVertexArray(VAO); 
 
@@ -304,7 +259,7 @@ namespace csp::wfsoverlays {
         // std::cout << "Do::Size: " << pointSizeGL << std::endl;
         glLineWidth(lineWidthGL);
 
-        glDrawArrays(drawingType, 0, static_cast<GLsizei>(3 * mCoordinates.size()));
+        glDrawArrays(GL_LINES, 0, static_cast<GLsizei>(3 * mCoordinates.size()));
         glBindVertexArray(0); 
 
         // glPopAttrib();

@@ -32,12 +32,7 @@ struct InfoStruct {
 
 class Plugin : public cs::core::PluginBase {
   
-  public:
-    struct Settings {
-      cs::utils::DefaultProperty<bool> mEnabled{true};
-      std::vector<std::string> mWfs; 
-    };
-  
+  public:  
     void init() override;
     void deInit() override;
     void update() override;
@@ -48,14 +43,8 @@ class Plugin : public cs::core::PluginBase {
     double calculateDistance(InfoStruct const& p1, InfoStruct const& p2, glm::vec3 earthRadius);
     void correctHeight (InfoStruct const& struct1, InfoStruct const& struct2, InfoStruct& temporaryStruct,  
                                                     std::shared_ptr<const cs::scene::CelestialObject> earth);
-
-    // double calculateAngle (InfoStruct const& p1, InfoStruct const& p2);
-    // std::vector<InfoStruct> Interpolation (std::vector<InfoStruct> const& vectorIn, double thresholdAngle, glm::vec3 earthRadius, std::shared_ptr<const cs::scene::CelestialObject> earth);
-
     double calculateAngle (InfoStruct const& previousPoint, InfoStruct const& middlePoint, InfoStruct const& nextPoint);
     std::vector<InfoStruct> Interpolation (std::vector<InfoStruct> const& structsIn, double thresholdAngle, glm::vec3 earthRadius, std::shared_ptr<const cs::scene::CelestialObject> earth);
-
-
     std::vector<glm::dvec3> generateMidPoint (std::vector <InfoStruct> const& structIn, float threshold, 
                                                         glm::vec3 earthRadius, std::shared_ptr<const cs::scene::CelestialObject> earth, glm::vec3 featureColor);     
   private:
