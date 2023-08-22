@@ -300,7 +300,7 @@ float getSurfaceDistance(vec3 rayOrigin, vec3 rayDir) {
   // We compute the observer-centric distance to the current pixel. uMatScale is required to apply
   // the non-uniform scale of the ellipsoidal atmosphere to the reconstructed position.
   vec4 fragDir = uMatInvP * vec4(2.0 * vsIn.texcoords - 1, 2 * depth - 1, 1);
-  fragDir      /= fragDir.w;
+  fragDir /= fragDir.w;
   fragDir       = uMatScale * fragDir;
   float depthMS = length(fragDir.xyz);
 
@@ -448,6 +448,75 @@ float getCloudShadow(vec3 rayOrigin, vec3 rayDir) {
 
 // -------------------------------------------------------------------------------------------------
 
+#if SKYDOME_MODE
+
+void main() {
+  float cAltitude     = 1.0;
+  float cSunElevation = 45.0 / 180.0 * PI;
+  bool  cHorizon      = false;
+
+  oColor = vec3(0.0);
+
+  const vec3 rayOrigin = vec3(0.0, PLANET_RADIUS + cAltitude, 0.0);
+  const vec3 sunDir    = normalize(vec3(0.0, sin(cSunElevation), cos(cSunElevation)));
+  vec3       rayDir;
+  vec2       coords = vsIn.texcoords * 2.0 - 1.0;
+
+  if (length(coords) > 1.0) {
+    return;
+  }
+
+  coords *= PI * 0.5;
+
+
+  if (cHorizon) {
+    rayDir = normalize(vec3(sin(coords.x), sin(coords.y), cos(length(coords))));
+
+  } else {
+    rayDir = normalize(vec3(sin(coords.x), cos(length(coords)), sin(-coords.y)));
+  }
+
+  vec2 atmosphereIntersections = intersectAtmosphere(rayOrigin, rayDir);
+  if (atmosphereIntersections.x > atmosphereIntersections.y || atmosphereIntersections.y < 0) {
+    return;
+  }
+
+  // If something is in front of the atmosphere, we do not have to do anything either.
+  float surfaceDistance = getSurfaceDistance(rayOrigin, rayDir);
+  if (surfaceDistance < atmosphereIntersections.x) {
+    return;
+  }
+
+  bool hitsSurface = surfaceDistance < atmosphereIntersections.y;
+
+  vec3 transmittance, inScatter;
+
+  if (hitsSurface) {
+
+    oColor = vec3(0.5);
+
+    // If the ray hits the ground, we have to compute the amount of light reaching the ground as
+    // well as how much of the reflected light is attenuated on its path to the observer.
+    vec3 skyIlluminance;
+    vec3 surfacePoint = rayOrigin + rayDir * surfaceDistance;
+    inScatter         = GetSkyLuminanceToPoint(rayOrigin, surfacePoint, sunDir, transmittance);
+    vec3 illuminance  = GetSunAndSkyIlluminance(surfacePoint, sunDir, skyIlluminance);
+    illuminance += skyIlluminance;
+
+    oColor *= illuminance;
+
+  } else {
+    oColor = vec3(0.0);
+
+    // If the ray leaves the atmosphere unblocked, we only need to compute the luminance of the sky.
+    inScatter = GetSkyLuminance(rayOrigin, rayDir, sunDir, transmittance);
+  }
+
+  oColor = transmittance * oColor + inScatter;
+}
+
+#else
+
 // We start with the planet / background color without any atmosphere. First, we will overlay the
 // water color (if enabled). Thereafter, we compute the atmospheric scattering and overlay the
 // resulting atmosphere color. Finally, we will compute the color of the clouds and overlay them as
@@ -503,8 +572,8 @@ void main() {
     // Looking down onto the ocean.
     if (oceanIntersections.x > 0) {
 
-      vec3 oceanSurface = vsIn.rayOrigin + rayDir * oceanIntersections.x;
-      vec3 idealNormal  = normalize(oceanSurface);
+      vec3        oceanSurface      = vsIn.rayOrigin + rayDir * oceanIntersections.x;
+      vec3        idealNormal       = normalize(oceanSurface);
 
 #if ENABLE_WAVES
       const float WAVE_SPEED        = 0.2;
@@ -670,3 +739,5 @@ void main() {
   oColor = linearToSRGB(oColor);
 #endif
 }
+
+#endif

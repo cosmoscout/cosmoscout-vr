@@ -28,6 +28,8 @@
 #include <VistaOGLExt/VistaTexture.h>
 
 #include <glm/gtc/type_ptr.hpp>
+#include <stb_image.h>
+#include <stb_image_write.h>
 
 namespace csp::atmospheres {
 
@@ -151,6 +153,8 @@ void Atmosphere::configure(Plugin::Settings::Atmosphere const& settings) {
     }
 
     mSettings = settings;
+
+    renderSkyDome(mObjectName + "_skydome.hdr");
   }
 }
 
@@ -164,6 +168,7 @@ void Atmosphere::updateShader() {
   auto sFrag = cs::utils::filesystem::loadToString(
       "../share/resources/shaders/csp-atmospheres/atmosphere.frag");
 
+  cs::utils::replaceString(sFrag, "SKYDOME_MODE", "0");
   cs::utils::replaceString(sFrag, "PLANET_RADIUS", std::to_string(mRadii[0]));
   cs::utils::replaceString(
       sFrag, "ATMOSPHERE_RADIUS", std::to_string(mRadii[0] + mSettings.mHeight));
@@ -407,6 +412,92 @@ bool Atmosphere::GetBoundingBox(VistaBoundingBox& bb) {
   bb.SetBounds(fMin.data(), fMax.data());
 
   return true;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Atmosphere::renderSkyDome(std::string const& fileName) const {
+  const int SIZE = 1024;
+
+  VistaGLSLShader shader;
+
+  auto sVert = cs::utils::filesystem::loadToString(
+      "../share/resources/shaders/csp-atmospheres/atmosphere.vert");
+  auto sFrag = cs::utils::filesystem::loadToString(
+      "../share/resources/shaders/csp-atmospheres/atmosphere.frag");
+
+  cs::utils::replaceString(sFrag, "SKYDOME_MODE", "1");
+  cs::utils::replaceString(sFrag, "PLANET_RADIUS", std::to_string(mRadii[0]));
+  cs::utils::replaceString(
+      sFrag, "ATMOSPHERE_RADIUS", std::to_string(mRadii[0] + mSettings.mHeight));
+  cs::utils::replaceString(sFrag, "ENABLE_CLOUDS", "0");
+  cs::utils::replaceString(sFrag, "ENABLE_WATER", "0");
+  cs::utils::replaceString(sFrag, "ENABLE_WAVES", "0");
+  cs::utils::replaceString(sFrag, "ENABLE_HDR", "0");
+  cs::utils::replaceString(sFrag, "HDR_SAMPLES", "0");
+  cs::utils::replaceString(
+      sFrag, "ECLIPSE_SHADER_SNIPPET", mEclipseShadowReceiver->getShaderSnippet());
+
+  shader.InitVertexShaderFromString(sVert);
+  shader.InitFragmentShaderFromString(sFrag);
+
+  // Add the fragment shader from the atmospheric model.
+  glAttachShader(shader.GetProgram(), mModel->getShader());
+
+  shader.Link();
+
+  GLuint texture;
+  glGenTextures(1, &texture);
+  glActiveTexture(GL_TEXTURE0);
+  glBindTexture(GL_TEXTURE_2D, texture);
+  glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, SIZE, SIZE, 0, GL_RGBA, GL_FLOAT, nullptr);
+
+  GLuint fbo;
+  glGenFramebuffers(1, &fbo);
+  glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+
+  glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, texture, 0);
+  glDrawBuffer(GL_COLOR_ATTACHMENT0);
+  glViewport(0, 0, SIZE, SIZE);
+  glScissor(0, 0, SIZE, SIZE);
+
+  // save current lighting and meterial state of the OpenGL state machine ----
+  glPushAttrib(GL_LIGHTING_BIT | GL_ENABLE_BIT);
+  glDisable(GL_LIGHTING);
+  glDisable(GL_DEPTH_TEST);
+  glDisable(GL_BLEND);
+  glEnable(GL_TEXTURE_2D);
+  glDepthMask(GL_FALSE);
+
+  // set uniforms ------------------------------------------------------------
+  shader.Bind();
+
+  // shader.SetUniform(mUniforms.sunIlluminance, static_cast<float>(mSunIlluminance));
+  // shader.SetUniform(mUniforms.sunLuminance, static_cast<float>(mSunLuminance));
+
+  mModel->setUniforms(shader.GetProgram(), 4);
+
+  // draw --------------------------------------------------------------------
+  glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+  // clean up ----------------------------------------------------------------
+
+  shader.Release();
+
+  glDepthMask(GL_TRUE);
+
+  std::vector<float> pixels(SIZE * SIZE * 4);
+  glReadPixels(0, 0, SIZE, SIZE, GL_RGBA, GL_FLOAT, &pixels[0]);
+
+  stbi_write_hdr(fileName.c_str(), SIZE, SIZE, 4, pixels.data());
+
+  glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+  glDeleteFramebuffers(1, &fbo);
+  glDeleteTextures(1, &texture);
+
+  glPopAttrib();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
