@@ -473,8 +473,14 @@ void Atmosphere::renderSkyDome(std::string const& fileName) const {
   // set uniforms ------------------------------------------------------------
   shader.Bind();
 
-  // shader.SetUniform(mUniforms.sunIlluminance, static_cast<float>(mSunIlluminance));
-  // shader.SetUniform(mUniforms.sunLuminance, static_cast<float>(mSunLuminance));
+  double const sunLuminousPower = 3.75e28;
+  double       sunDist          = 149597870700;
+  double       sunIlluminance   = sunLuminousPower / (sunDist * sunDist * 4.0 * glm::pi<double>());
+
+  std::cout << sunIlluminance << std::endl;
+
+  shader.SetUniform(
+      shader.GetUniformLocation("uSunIlluminance"), static_cast<float>(sunIlluminance));
 
   mModel->setUniforms(shader.GetProgram(), 4);
 
