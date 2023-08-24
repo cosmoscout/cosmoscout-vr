@@ -17,25 +17,8 @@ namespace csp::atmospheres::models::schneegans {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// The parameterization and comments below are based on the demo application by Eric Bruneton. The
-// original source code can be found here:
+// From the demo application by Eric Bruneton. The original source code can be found here:
 // https://github.com/ebruneton/precomputed_atmospheric_scattering/blob/master/atmosphere/demo/demo.cc
-
-enum class Luminance {
-  // Render the spectral radiance at kLambdaR, kLambdaG, kLambdaB.
-  NONE,
-  // Render the sRGB luminance, using an approximate (on the fly) conversion
-  // from 3 spectral radiance values only (see section 14.3 in <a href=
-  // "https://arxiv.org/pdf/1612.04336.pdf">A Qualitative and Quantitative
-  //  Evaluation of 8 Clear Sky Models</a>).
-  APPROXIMATE,
-  // Render the sRGB luminance, precomputed from 15 spectral radiance values
-  // (see section 4.4 in <a href=
-  // "http://www.oskee.wz.cz/stranka/uploads/SCCG10ElekKmoch.pdf">Real-time
-  //  Spectral Scattering in Large-scale Natural Participating Media</a>).
-  PRECOMPUTED
-};
-
 // Values from "Reference Solar Spectral Irradiance: ASTM G-173", ETR column
 // (see http://rredc.nrel.gov/solar/spectra/am1.5/ASTMG173/ASTMG173.html),
 // summed and averaged in each bin (e.g. the value for 360nm is the average
@@ -101,6 +84,7 @@ void to_json(nlohmann::json& j, Model::Settings::AbsorbingComponent const& o) {
 
 void from_json(nlohmann::json const& j, Model::Settings& o) {
   cs::core::Settings::deserialize(j, "sunAngularRadius", o.mSunAngularRadius);
+  cs::core::Settings::deserialize(j, "spectralData", o.mSpectralData);
   cs::core::Settings::deserialize(j, "particles_a", o.mParticlesA);
   cs::core::Settings::deserialize(j, "particles_b", o.mParticlesB);
   cs::core::Settings::deserialize(j, "absorbing_particles", o.mAbsorbingParticles);
@@ -109,6 +93,7 @@ void from_json(nlohmann::json const& j, Model::Settings& o) {
 
 void to_json(nlohmann::json& j, Model::Settings const& o) {
   cs::core::Settings::serialize(j, "sunAngularRadius", o.mSunAngularRadius);
+  cs::core::Settings::serialize(j, "spectralData", o.mSpectralData);
   cs::core::Settings::serialize(j, "particles_a", o.mParticlesA);
   cs::core::Settings::serialize(j, "particles_b", o.mParticlesB);
   cs::core::Settings::serialize(j, "absorbing_particles", o.mAbsorbingParticles);
@@ -173,12 +158,11 @@ bool Model::init(
     groundAlbedo.push_back(settings.mGroundAlbedo.get());
   }
 
-  Luminance luminanceMode     = Luminance::PRECOMPUTED;
-  double    maxSunZenithAngle = 120.0 / 180.0 * glm::pi<double>();
+  double maxSunZenithAngle = 120.0 / 180.0 * glm::pi<double>();
 
   mModel.reset(new internal::Model(wavelengths, solarIrradiance, settings.mSunAngularRadius,
       planetRadius, atmosphereRadius, rayleigh, mie, ozone, groundAlbedo, maxSunZenithAngle, 1.0,
-      luminanceMode == Luminance::PRECOMPUTED ? 15 : 3));
+      settings.mSpectralData ? 15 : 3));
 
   glDisable(GL_CULL_FACE);
   mModel->Init();

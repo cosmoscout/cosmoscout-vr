@@ -42,6 +42,7 @@ class Model : public ModelBase {
     };
 
     double                             mSunAngularRadius = 0.004675;
+    bool                               mSpectralData;
     std::optional<ScatteringComponent> mParticlesA;
     std::optional<ScatteringComponent> mParticlesB;
     std::optional<AbsorbingComponent>  mAbsorbingParticles;
