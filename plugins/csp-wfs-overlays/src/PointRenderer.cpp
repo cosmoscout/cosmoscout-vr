@@ -25,9 +25,6 @@
 
 #include "../../../src/cs-utils/utils.hpp"
 
-// #define STB_IMAGE_IMPLEMENTATION // TODO: as in the learn openGL
-// #include "stb_image.h" // TODO: as in the learn openGL
-
 namespace csp::wfsoverlays {
 
     const char* PointRenderer::FEATURE_VERT = R"(
@@ -35,12 +32,11 @@ namespace csp::wfsoverlays {
     layout (location=0) in vec3 aPos;
     layout (location=1) in vec3 aColor;
 
-    uniform mat4 model;
-    uniform mat4 view;
-    uniform mat4 projection;  
+    uniform mat4    model;
+    uniform mat4    view;
+    uniform mat4    projection;  
 
     out vec3 vertexColor;
-    // out vec3 position;    
 
     out VS_OUT {
         vec3 color;
@@ -66,7 +62,7 @@ namespace csp::wfsoverlays {
     out vec3 vertexColor;
     out vec2 fragTexCoords;
 
-    void build_square(vec4 position) {
+    void build_square(vec4 position) {      // for each point, it will create 4 vertices (which will be later used as texture coordinates)
         
         vertexColor = gs_in[0].color;
 
@@ -89,7 +85,6 @@ namespace csp::wfsoverlays {
         EndPrimitive();
     }
 
-
     void main() {
         build_square(gl_in[0].gl_Position);
     }
@@ -103,13 +98,11 @@ namespace csp::wfsoverlays {
     uniform float         uAmbientBrightness;
     uniform float         uSunIlluminance;
     uniform vec3          uSunDirection;
-
-    uniform sampler2D ourTexture;
+    uniform sampler2D     ourTexture;
 
     out vec4 FragColor;
 
     const float PI = 3.14159265359;
-
     // ===========================================================================
     vec3 SRGBtoLINEAR(vec3 srgbIn)
     {
@@ -127,7 +120,6 @@ namespace csp::wfsoverlays {
                 result = result * uSunIlluminance;
             #endif
 
-            // FragColor = vec4(result, 1.0);
             FragColor = texture(ourTexture, fragTexCoords) * vec4(result, 1.0);
     }
     )";
@@ -135,27 +127,25 @@ namespace csp::wfsoverlays {
     PointRenderer::PointRenderer (std::vector<glm::vec3> coordinates, std::shared_ptr<cs::core::SolarSystem> solarSystem,   
                                         std::shared_ptr<cs::core::Settings> settings, double pointSize, std::shared_ptr<Settings> pluginSettings) {
         
-        mSolarSystem = solarSystem;
-        mCoordinates = coordinates;
-        mSettings = settings;
+        mSolarSystem    = solarSystem;
+        mCoordinates    = coordinates;
+        mSettings       = settings;
         mPluginSettings = pluginSettings;
         mPointSizeInput = pointSize;
-        mShaderDirty = true;
+        mShaderDirty    = true;
 
         VistaSceneGraph* pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
         mGLNode.reset(pSG->NewOpenGLNode(pSG->GetRoot(), this));
         VistaOpenSGMaterialTools::SetSortKeyOnSubtree(mGLNode.get(), static_cast<int>(cs::utils::DrawOrder::eOpaqueItems));
         
-        // TODO: build, compile and link shaders
-        
-        glGenVertexArrays(1, &VAO);
+        glGenVertexArrays(1, &mVAO);
 
         // Generating the VBO to manage the memory of the input vertex
         unsigned int VBO;                                                                   
         glGenBuffers(1, &VBO);
 
-        // Binding the VAO
-        glBindVertexArray(VAO);                                                             
+        // Binding the mVAO
+        glBindVertexArray(mVAO);                                                             
         // Binding the VBO
         glBindBuffer(GL_ARRAY_BUFFER, VBO); 
 
@@ -166,8 +156,8 @@ namespace csp::wfsoverlays {
         glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);       
         glEnableVertexAttribArray(0);
 
-        // Setting the vertex colors attributes pointers
-        glVertexAttribPointer(1, 3, GL_FLOAT, GL_TRUE, 6 * sizeof(float), (void*)(3 * sizeof(float)));       // color vertex attribute pointers
+        // Setting the vertex colors attribute pointers
+        glVertexAttribPointer(1, 3, GL_FLOAT, GL_TRUE, 6 * sizeof(float), (void*)(3 * sizeof(float)));       
         glEnableVertexAttribArray(1);
 
         glBindBuffer(GL_ARRAY_BUFFER, 0); 
@@ -176,9 +166,8 @@ namespace csp::wfsoverlays {
         // Recreate the shader if HDR rendering mode are toggled.
         mHDRConnection = mSettings->mGraphics.pEnableHDR.connect([this](bool /*unused*/) { mShaderDirty = true; });
 
-        // TODO: load and create a texture
+        // load and create a texture
         mTexture = cs::graphics::TextureLoader::loadFromFile("../share/resources/textures/Circle.png");
-
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -214,7 +203,7 @@ namespace csp::wfsoverlays {
                 glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
                 std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << std::endl;
             }
-
+            // HDR settings
             std::string defines = "#version 330\n";
             if (mSettings->mGraphics.pEnableHDR.get()) {
                 defines += "#define ENABLE_HDR\n";
@@ -249,15 +238,15 @@ namespace csp::wfsoverlays {
 
             // linking shaders
             //----------------
-            shaderProgram = glCreateProgram();
-            glAttachShader(shaderProgram, vertexShader);
-            glAttachShader(shaderProgram, geometryShader);
-            glAttachShader(shaderProgram, fragmentShader);
-            glLinkProgram(shaderProgram);
+            mShaderProgram = glCreateProgram();
+            glAttachShader(mShaderProgram, vertexShader);
+            glAttachShader(mShaderProgram, geometryShader);
+            glAttachShader(mShaderProgram, fragmentShader);
+            glLinkProgram(mShaderProgram);
             // check for linking errors
-            glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
+            glGetProgramiv(mShaderProgram, GL_LINK_STATUS, &success);
             if (!success) {
-                glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
+                glGetProgramInfoLog(mShaderProgram, 512, NULL, infoLog);
                 std::cout << "ERROR::SHADER::PROGRAM::LINKING_FAILED\n" << infoLog << std::endl;
             }
             glDeleteShader(vertexShader);
@@ -271,104 +260,73 @@ namespace csp::wfsoverlays {
             return true;
         }
 
-        // TODO: FROM learn OpenGL
-        /*
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-        GLuint ourTexture = glGetUniformLocation(shaderProgram, "ourTexture");
-        glUniform1i(ourTexture, 0);
-
-        // bind Texture
-        glBindTexture(GL_TEXTURE_2D, texture);
-        */
-
-        glUseProgram(shaderProgram);
+        glUseProgram(mShaderProgram);
         auto transform = earth->getObserverRelativeTransform();
 
-        // Get modelview and projection matrices.
+        // Dealing with the different uniform matrices.
+        //---------------------------------------------
         std::array<GLfloat, 16> glMatV{};
         std::array<GLfloat, 16> glMatP{};
         glGetFloatv(GL_MODELVIEW_MATRIX, glMatV.data());
         glGetFloatv(GL_PROJECTION_MATRIX, glMatP.data());
         auto matM = glm::mat4(transform);
         auto matV = glm::make_mat4x4(glMatV.data());
-
-        GLuint model = glGetUniformLocation(shaderProgram, "model");
-        GLuint view = glGetUniformLocation(shaderProgram, "view");
-        GLuint projection = glGetUniformLocation(shaderProgram, "projection");
-
+        // Getting the uniform matrices location
+        GLuint model = glGetUniformLocation(mShaderProgram, "model");
+        GLuint view = glGetUniformLocation(mShaderProgram, "view");
+        GLuint projection = glGetUniformLocation(mShaderProgram, "projection");
+        // Doing the uniform matrices location assignment
         glUniformMatrix4fv(model, 1, GL_FALSE, glm::value_ptr(matM));
         glUniformMatrix4fv(view, 1, GL_FALSE, glm::value_ptr(matV));
         glUniformMatrix4fv(projection, 1, GL_FALSE, glMatP.data());
 
+        // Normalizing in terms of the CS windows size in order to have the texture coordinates within the (0,1) interval
+        //---------------------------------------------------------------------------------------------------------------
         int width, height;
         VistaViewport* pViewport(GetVistaSystem()->GetDisplayManager()->GetViewports().begin()->second);
         pViewport->GetViewportProperties()->GetSize(width, height);
         float aspectRatio = static_cast<float>(width) / height;
-        GLuint circleSize  = glGetUniformLocation(shaderProgram, "circleSize");
+        GLuint circleSize  = glGetUniformLocation(mShaderProgram, "circleSize");
         GLfloat pointSizeGL = static_cast<GLfloat>(mPointSizeInput);
         glUniform2f (circleSize, pointSizeGL, pointSizeGL * aspectRatio);
 
+        // HDR settings
+        //-------------
         glm::vec3 sunDirection(1, 0, 0);
         float sunIlluminance(1.F);
         float ambientBrightness(mSettings->mGraphics.pAmbientBrightness.get());
 
-        /* if (object == mSolarSystem->getSun()) {
-            // If the overlay is on the sun, we have to calculate the lighting differently.
-            if (mSettings->mGraphics.pEnableHDR.get()) {
-                // The variable is called illuminance, for the sun it contains actually luminance values.
-                sunIlluminance = static_cast<float>(mSolarSystem->getSunLuminance());
-                // For planets, this illuminance is divided by pi, so we have to premultiply it for the sun.
-                sunIlluminance *= glm::pi<float>();
-            }
-            ambientBrightness = 1.0F;
-        } 
-        else { */
-            // For all other bodies we can use the utility methods from the SolarSystem.
         if (mSettings->mGraphics.pEnableHDR.get()) {
             sunIlluminance = static_cast<float>(mSolarSystem->getSunIlluminance(transform[3]));
         }
         sunDirection = glm::normalize(glm::inverse(transform) * glm::dvec4(mSolarSystem->getSunDirection(transform[3]), 0.0));
-        
-        GLint uSunDirectionLocation  = glGetUniformLocation(shaderProgram, "uSunDirection");
-        GLint uSunIlluminanceLocation  = glGetUniformLocation(shaderProgram, "uSunIlluminance");
-        GLint uAmbientBrightnessLocation  = glGetUniformLocation(shaderProgram, "uAmbientBrightness");
-
+        // HDR uniform locations
+        GLint uSunDirectionLocation  = glGetUniformLocation(mShaderProgram, "uSunDirection");
+        GLint uSunIlluminanceLocation  = glGetUniformLocation(mShaderProgram, "uSunIlluminance");
+        GLint uAmbientBrightnessLocation  = glGetUniformLocation(mShaderProgram, "uAmbientBrightness");
+        // HDR uniform assignment
         glUniform1f (uAmbientBrightnessLocation, ambientBrightness);
         glUniform1f (uSunIlluminanceLocation, sunIlluminance);
         glUniform3fv (uSunDirectionLocation, 1, glm::value_ptr(sunDirection));
 
-        // glPushAttrib(GL_POINT_SMOOTH); 
-        // glPushAttrib(GL_BLEND);
-
-        // glEnable(GL_POINT_SMOOTH);
-        // glHint(GL_POINT_SMOOTH_HINT, GL_NICEST);
-
-        // I think blending combines the point's transparecy with the background
-        // glEnable(GL_BLEND);
-        // glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
+        // Texture settings
+        //-----------------
         glPushAttrib(GL_BLEND);
         glPushAttrib(GL_ENABLE_BIT);
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-        GLuint ourTexture = glGetUniformLocation(shaderProgram, "ourTexture");
+        // Texture location and assignment
+        GLuint ourTexture = glGetUniformLocation(mShaderProgram, "ourTexture");
         glUniform1i(ourTexture, 0);
-
         mTexture->Bind(GL_TEXTURE0);
 
         // Draw
-        glBindVertexArray(VAO); 
-
+        glBindVertexArray(mVAO); 
         glDisable(GL_CULL_FACE);
         glDrawArrays(GL_POINTS, 0, static_cast<GLsizei>(3 * mCoordinates.size()));
         glBindVertexArray(0); 
         glEnable(GL_CULL_FACE);
-
         mTexture->Unbind(GL_TEXTURE0);
-
         glPopAttrib();
         glPopAttrib();
 

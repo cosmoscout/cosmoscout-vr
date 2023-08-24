@@ -38,8 +38,8 @@ namespace csp::wfsoverlays {
       int mHDRConnection;
       bool mShaderDirty;
 
-      unsigned int VAO;
-      unsigned int shaderProgram;
+      unsigned int mVAO;
+      unsigned int mShaderProgram;
 
       static const char* FEATURE_VERT;
       static const char* FEATURE_FRAG;

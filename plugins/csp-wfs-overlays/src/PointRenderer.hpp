@@ -35,13 +35,13 @@ namespace csp::wfsoverlays {
       std::shared_ptr<cs::core::SolarSystem> mSolarSystem;
       std::shared_ptr<cs::core::Settings> mSettings;
       std::shared_ptr<Settings> mPluginSettings;
-      std::unique_ptr<VistaTexture> mTexture; // TODO:   as in simple body
+      std::unique_ptr<VistaTexture> mTexture; 
       double mPointSizeInput;
       int mHDRConnection;
       bool mShaderDirty;
-
-      unsigned int VAO;
-      unsigned int shaderProgram;
+      
+      unsigned int mVAO;
+      unsigned int mShaderProgram;
 
       static const char* FEATURE_VERT;
       static const char* FEATURE_GEOM;

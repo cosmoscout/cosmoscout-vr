@@ -57,14 +57,16 @@ namespace csp::wfsoverlays {
 // defined at the header with the elements at the simple_desktop.json
 //----------------------------------------------------------------------
     
-void from_json(nlohmann::json const& j, Settings& o) {       // here, it is (m)Enabled, (m)Wfs because the
-  cs::core::Settings::deserialize(j, "enabled", o.mEnabled);         // simple_desktop.json file has no constructors
-  cs::core::Settings::deserialize(j, "wfs", o.mWfs); 
+void from_json(nlohmann::json const& j, Settings& o) {       // here, it is (m)Enabled, (m)Wfs, etc because unlike other classess, the simple_desktop.json file has no constructors
+  cs::core::Settings::deserialize(j, "enabled", o.mEnabled);         
+  cs::core::Settings::deserialize(j, "wfs", o.mWfs);
+  cs::core::Settings::deserialize(j, "interpolation", o.mInterpolation); 
 }
 
 void to_json(nlohmann::json& j, Settings const& o) {
   cs::core::Settings::serialize(j, "enabled", o.mEnabled);
   cs::core::Settings::serialize(j, "wfs", o.mWfs);
+  cs::core::Settings::serialize(j, "interpolation", o.mInterpolation);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -120,33 +122,28 @@ void from_json(const nlohmann::json& j, std::shared_ptr<GeometryBase>& o) {
   } 
 } 
 
-// here it would be the Properties1
-
 void from_json(const nlohmann::json& j, Feature& o) { 
   cs::core::Settings::deserialize(j, "type", o.type); 
   cs::core::Settings::deserialize(j, "id", o.id);
-  cs::core::Settings::deserialize(j, "geometry", o.geometry); // Struct
+  cs::core::Settings::deserialize(j, "geometry", o.geometry); 
   cs::core::Settings::deserialize(j, "geometry_name", o.geometry_name);
-  cs::core::Settings::deserialize(j, "properties", o.properties); // Prop
+  cs::core::Settings::deserialize(j, "properties", o.properties); 
   //cs::core::Settings::deserialize(j, "bbox", o.bbox); 
 } 
 
-// here it would be the Properties2
-
 void from_json(const nlohmann::json& j, CRS& o) { 
   cs::core::Settings::deserialize(j, "type", o.type); 
-  //cs::core::Settings::deserialize(j, "properties", o.properties);  // Prop
 } 
 
 void from_json(const nlohmann::json& j, WFSFeatureCollection& o) { 
   cs::core::Settings::deserialize(j, "type", o.type); 
-  cs::core::Settings::deserialize(j, "features", o.features); // Vector
+  cs::core::Settings::deserialize(j, "features", o.features); 
   cs::core::Settings::deserialize(j, "totalFeatures", o.totalFeatures);
   cs::core::Settings::deserialize(j, "numberMatched", o.numberMatched);
   cs::core::Settings::deserialize(j, "numberReturned", o.numberReturned); 
   cs::core::Settings::deserialize(j, "timeStamp", o.timeStamp);
   cs::core::Settings::deserialize(j, "crs", o.crs);
-  //cs::core::Settings::deserialize(j, "bbox", o.bbox); // Array 
+  //cs::core::Settings::deserialize(j, "bbox", o.bbox);  
 } 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -177,103 +174,105 @@ void from_json(const nlohmann::json& j, DescribeFeatureType& o) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// the function generates midPoints between the Cartesian components of a given
-//  vector of InfoStructs (structIn) and returns a vector of dvec3 (renderingVector).  
-//------------------------------------------------------------------------- 
+// the function generates midPoints between the Cartesian components of a given vector if its distance is greater than a certain
+// threshold. This might be useful to avoid having points rendered under the surface of the Earth. It is remarkable that its input  
+// is a vector of structs (structIn) but it returns a vector of doubles (renderingVector). 
+//--------------------------------------------------------------------------------------------------------------------------------
 
 std::vector<glm::dvec3> Plugin::generateMidPoint (std::vector <InfoStruct> const& structsIn, float threshold, 
                                                     glm::vec3 earthRadius, std::shared_ptr<const cs::scene::CelestialObject> earth, glm::vec3 featureColor) { 
   std::vector <InfoStruct> totalStruct;
   std::vector<glm::dvec3> renderingVector;    // the returned one
 
-  // TODO: structsIn is already a STRUCT {v0, v1, v1, ... , vn-2, vn-2, vn-1}
-
   for (int i=0; i < structsIn.size()-1; i++) {  
 
     // the following definitions will just make the code syntax simpler 
-    glm::dvec2 p1LongLatRadians = structsIn[i].longLatRadians;
-    glm::dvec2 p2LongLatRadians = structsIn[i+1].longLatRadians;
-    glm::dvec2 p1LongLatDegrees = structsIn[i].longLatDegrees;
-    glm::dvec2 p2LongLatDegrees = structsIn[i+1].longLatDegrees;
-    glm::dvec3 p1Cartesian      = structsIn[i].Cartesian;
-    glm::dvec3 p2Cartesian      = structsIn[i+1].Cartesian;
+    glm::dvec2 p1LongLatRadians = structsIn[i].mLongLatRadians;
+    glm::dvec2 p2LongLatRadians = structsIn[i+1].mLongLatRadians;
+    glm::dvec2 p1LongLatDegrees = structsIn[i].mLongLatDegrees;
+    glm::dvec2 p2LongLatDegrees = structsIn[i+1].mLongLatDegrees;
+    glm::dvec3 p1Cartesian      = structsIn[i].mCartesian;
+    glm::dvec3 p2Cartesian      = structsIn[i+1].mCartesian;
 
     double distance = calculateDistance(structsIn[i], structsIn[i+1], earthRadius);
 
     if (distance > threshold) { 
-
+      // the structsIn vector already has its inner components duplicated i.e. {v0, v1 (doubled), ... , vn-2 (doubled), vn-1}
       totalStruct.push_back(structsIn[i]);
-      int numMidPoints = static_cast<int> (distance/threshold);
-      double segmentLength = distance/threshold;
+      int numMidPoints = static_cast<int> (distance/threshold); // number of points we are going to generate between each component
+      double segmentLength = distance/threshold;  // distance between those generated points 
 
       for (int j=1; j <= numMidPoints; j++) {
         InfoStruct temporaryStruct;
-        temporaryStruct.Cartesian = glm::mix(p1Cartesian,p2Cartesian,(segmentLength*j)/distance);   // without correct height
-        temporaryStruct.longLatRadians = cs::utils::convert::cartesianToLngLat(temporaryStruct.Cartesian, earthRadius);
+        temporaryStruct.mCartesian = glm::mix(p1Cartesian,p2Cartesian,(segmentLength*j)/distance);   // without correct height
+        temporaryStruct.mLongLatRadians = cs::utils::convert::cartesianToLngLat(temporaryStruct.mCartesian, earthRadius);
         
         correctHeight (structsIn[i], structsIn[i+1], temporaryStruct, earth);
         
         // correct the cartesian based on height
-        temporaryStruct.Cartesian = cs::utils::convert::toCartesian(temporaryStruct.longLatRadians, earthRadius, temporaryStruct.overSurfaceHeight);  // with correct height
+        temporaryStruct.mCartesian = cs::utils::convert::toCartesian(temporaryStruct.mLongLatRadians, earthRadius, temporaryStruct.mOverSurfaceHeight);  // with correct height
         totalStruct.push_back(temporaryStruct);
-        totalStruct.push_back(temporaryStruct);   // TODO: as input already doubled, it would be: option1 = STRUCT con {v0, mids x2, v1, v1, mids x2, v2, v2, ... , vn-2, vn-2, mids x2}
+        totalStruct.push_back(temporaryStruct);   // now it would look like {v0, ... , vi (doubled), midPoints (doubled)}
       }
     }
     // in case the distance is so small that midPoints are not needed
     else {
-
-      totalStruct.push_back(structsIn[i]);         // TODO: as input already doubled, it would be: option2 = STRUCT con {v0, v1, v1, v2, v2, ... , vn-2, vn-2}
+      totalStruct.push_back(structsIn[i]);         // in this it would be {v0, ... , vi} (without midPoints)
     } 
   }
   
-  totalStruct.push_back(structsIn[structsIn.size() - 1]);   // TODO: it would be STRUCT con: {option1 ,vn-1}   or   {option2 ,vn-1}
+  totalStruct.push_back(structsIn[structsIn.size() - 1]);   // by doing this we are just adding the last component i.e. {v0, ... , vn-1} 
   
-  // TODO: IF WE WANT TO USE THE INTERPOLATE.............. std::vector <InfoStruct> interpolatedStruct = Interpolation (totalStruct, 200.0, earthRadius, earth);
-
-  for (int i=0; i<totalStruct.size(); i++) {    // TODO: IF WE WANT TO USE THE INTERPOLATE.............. interpolatedStruct    INSTEAD OF totalStruct
-    renderingVector.push_back(totalStruct[i].Cartesian);    // TODO: IF WE WANT TO USE THE INTERPOLATE.............. interpolatedStruct    INSTEAD OF totalStruct
-    renderingVector.push_back(featureColor);
+  for (int i=0; i<totalStruct.size(); i++) {    
+    renderingVector.push_back(totalStruct[i].mCartesian); // here we add the Cartesian components of all the points and midpoints.   
+    renderingVector.push_back(featureColor);  // now we introduce the color
   }
 
-return renderingVector; // TODO: it would be {v0, rgb0, x2 (mid,rgb), v1, rgb1, v1, rgb1, x2 (mid,rgb), ... , vn-2, rgbn-2, vn-2, rgbn-2}
-  }
-  
+  return renderingVector; // it would be something like {v0.xyz, v0.rgb, .... (duplicated .xyz and .rgb) .... , vn-1.xyz, vn-1.rgb}
+}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// if we just get the xyz components in a spherical coordinate system, it is very likely to have points under the 
+// surface of Earth, as it is not a perfect sphere but a body with mountains and slopes. In order to correct that,
+// we use the getHeight function provided by cosmoScout. However, sometimes we have a fourth component in our set 
+// of coordinates which is the height over the surface of the Earth (specially common in atmospheric datasets like 
+// DWD -> dwd:Trajectories). This function will handle both 3 and 4-component data. 
+//----------------------------------------------------------------------------------------------------------------
 
 void Plugin::correctHeight (InfoStruct const& struct1, InfoStruct const& struct2, InfoStruct& temporaryStruct,  
                                                     std::shared_ptr<const cs::scene::CelestialObject> earth) {
   // for the sake of simplicity
-  bool p1Bool = struct1.heightComesFromJson;
-  bool p2Bool = struct2.heightComesFromJson;
-  double p1Height = struct1.overSurfaceHeight;
-  double p2Height = struct2.overSurfaceHeight;
+  bool p1Bool = struct1.mHeightComesFromJson;
+  bool p2Bool = struct2.mHeightComesFromJson;
+  double p1Height = struct1.mOverSurfaceHeight;
+  double p2Height = struct2.mOverSurfaceHeight;
 
   if (p1Bool || p2Bool) {
-    temporaryStruct.overSurfaceHeight = ((p1Height + p2Height)/2);
-    temporaryStruct.heightComesFromJson = true;
+    temporaryStruct.mOverSurfaceHeight = ((p1Height + p2Height)/2);
+    temporaryStruct.mHeightComesFromJson = true;
   } 
   else {
-    temporaryStruct.overSurfaceHeight = earth->getSurface()->getHeight(temporaryStruct.longLatRadians);
-    temporaryStruct.heightComesFromJson = false;
+    temporaryStruct.mOverSurfaceHeight = earth->getSurface()->getHeight(temporaryStruct.mLongLatRadians);
+    temporaryStruct.mHeightComesFromJson = false;
   }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// the function takes as an input the earthRadius and a couple of 
-// points (in Cartesian), whose Great Circle distance will be returned.
-//--------------------------------------------------------------------
+// the function takes as an input the earthRadius and a couple of cartesian points,
+// whose Great Circle distance will be returned (We will use the Haversine method).
+//---------------------------------------------------------------------------------
 
 double Plugin::calculateDistance(InfoStruct const& p1, InfoStruct const& p2, glm::vec3 earthRadius) { 
   
   // great circle distance using Haversine formula     
-  double rootArgument = cos(p1.longLatRadians[1]) * cos(p2.longLatRadians[1]) * cos(p1.longLatRadians[0] - p2.longLatRadians[0]) + sin(p1.longLatRadians[1]) * sin(p2.longLatRadians[1]);
+  double rootArgument = cos(p1.mLongLatRadians[1]) * cos(p2.mLongLatRadians[1]) * cos(p1.mLongLatRadians[0] - p2.mLongLatRadians[0]) + sin(p1.mLongLatRadians[1]) * sin(p2.mLongLatRadians[1]);
   double averageEarthRadius = (earthRadius[0] + earthRadius[1] + earthRadius[2])/3;
-  double distanceHaversine = (averageEarthRadius + (p1.overSurfaceHeight+p2.overSurfaceHeight)/2)  * acos(rootArgument);
+  double distanceHaversine = (averageEarthRadius + (p1.mOverSurfaceHeight+p2.mOverSurfaceHeight)/2)  * acos(rootArgument);
 
   // staight-line distance
-  double distanceStraight = glm::distance(p1.Cartesian,p2.Cartesian);
+  double distanceStraight = glm::distance(p1.mCartesian,p2.mCartesian);
   
   // comparison
   if (distanceStraight>distanceHaversine) {
@@ -286,11 +285,14 @@ double Plugin::calculateDistance(InfoStruct const& p1, InfoStruct const& p2, glm
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+// the aim of the function is simply returning the angle (in degrees) between
+// three points. These points will be introduced as components of structs. 
+//---------------------------------------------------------------------------
 
 double Plugin::calculateAngle (InfoStruct const& previousPoint, InfoStruct const& middlePoint, InfoStruct const& nextPoint) {
 
-  glm::dvec3 vec1 = middlePoint.Cartesian - previousPoint.Cartesian;
-  glm::dvec3 vec2 = nextPoint.Cartesian - middlePoint.Cartesian;
+  glm::dvec3 vec1 = middlePoint.mCartesian - previousPoint.mCartesian;
+  glm::dvec3 vec2 = nextPoint.mCartesian - middlePoint.mCartesian;
 
   double dotProduct = glm::dot(glm::normalize(vec1),glm::normalize(vec2));
   double angleRad =  glm::acos(dotProduct); // in radians
@@ -299,9 +301,11 @@ double Plugin::calculateAngle (InfoStruct const& previousPoint, InfoStruct const
   return angleDeg;
 }
 
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+// the function checks if a certain line/polygon has sharp angles. If that's the case, it generates 3 midPoints in order to get a smoother 
+// rendering. Again, the threshold angle is up to user. The theoretical base behind this construction is the Bézier-curves generation. 
+//----------------------------------------------------------------------------------------------------------------------------------------
 
 std::vector<InfoStruct> Plugin::Interpolation (std::vector<InfoStruct> const& structsIn, double thresholdAngle, glm::vec3 earthRadius, std::shared_ptr<const cs::scene::CelestialObject> earth) {
 
@@ -309,53 +313,55 @@ std::vector<InfoStruct> Plugin::Interpolation (std::vector<InfoStruct> const& st
 
   for (int i=0; i < structsIn.size(); i++) {   
 
-    glm::dvec3 p1 = structsIn[i-1].Cartesian; 
-    glm::dvec3 p2 = structsIn[i].Cartesian; 
-    glm::dvec3 p3 = structsIn[i+1].Cartesian; 
+    if ( i==0 || i== structsIn.size()-1) {
+      structsOut.push_back(structsIn[i]);
+      continue;
+    }
+
+    glm::dvec3 p1 = structsOut.back().mCartesian; 
+    glm::dvec3 p2 = structsIn[i].mCartesian; 
+    glm::dvec3 p3 = structsIn[i+1].mCartesian; 
 
     glm::dvec3 v1 = p2-p1;
     glm::dvec3 v2 = p3-p2;
 
-    if ( i==0 || i== structsIn.size()-1) {
-      structsOut.push_back(structsIn[i]);
+    double angle = calculateAngle(structsOut.back(), structsIn[i], structsIn[i+1]);
+
+    if (angle < thresholdAngle) {
+      
+      // first midPoint. It has a 0.25 interpolation coefficient.
+      glm::dvec3 firstChildVec =  p1+(0.25)*v1+(0.25)*p2+(0.25)*(0.25)*v2-p1*(0.25)-(0.25)*(0.25)*v1;
+      InfoStruct firstChildStruct;
+      firstChildStruct.mCartesian = firstChildVec; // without actual height
+      firstChildStruct.mLongLatRadians = cs::utils::convert::cartesianToLngLat(firstChildStruct.mCartesian, earthRadius);
+      correctHeight (structsIn[i-1], structsIn[i+1], firstChildStruct, earth);
+      firstChildStruct.mCartesian = cs::utils::convert::toCartesian(firstChildStruct.mLongLatRadians, earthRadius, firstChildStruct.mOverSurfaceHeight);  // with correct height
+      structsOut.push_back(firstChildStruct);
+
+      // second midPoint. It has a 0.5 interpolation coefficient.
+      glm::dvec3 secondChildVec = p1+(0.5)*v1+(0.5)*p2+(0.5)*(0.5)*v2-p1*(0.5)-(0.5)*(0.5)*v1;
+      InfoStruct secondChildStruct;
+      secondChildStruct.mCartesian = secondChildVec; // without actual height
+      secondChildStruct.mLongLatRadians = cs::utils::convert::cartesianToLngLat(secondChildStruct.mCartesian, earthRadius);
+      correctHeight (structsIn[i-1], structsIn[i+1], secondChildStruct, earth);
+      secondChildStruct.mCartesian = cs::utils::convert::toCartesian(secondChildStruct.mLongLatRadians, earthRadius, secondChildStruct.mOverSurfaceHeight);  // with correct height
+      structsOut.push_back(secondChildStruct);
+
+      // third midPoint. It has a 0.75 interpolation coefficient.
+      glm::dvec3 thirdChildVec = p1+(0.75)*v1+(0.75)*p2+(0.75)*(0.75)*v2-p1*(0.75)-(0.75)*(0.75)*v1;
+      InfoStruct thirdChildStruct;
+      thirdChildStruct.mCartesian = thirdChildVec; // without actual height
+      thirdChildStruct.mLongLatRadians = cs::utils::convert::cartesianToLngLat(thirdChildStruct.mCartesian, earthRadius);
+      correctHeight (structsIn[i-1], structsIn[i+1], thirdChildStruct, earth);
+      thirdChildStruct.mCartesian = cs::utils::convert::toCartesian(thirdChildStruct.mLongLatRadians, earthRadius, thirdChildStruct.mOverSurfaceHeight);  // with correct height
+      structsOut.push_back(thirdChildStruct);
     }
     else {
-      double angle = calculateAngle(structsOut.back(), structsIn[i], structsIn[i+1]);
-      if (angle < thresholdAngle) {
-
-        glm::dvec3 firstChildVec = (0.25)*(0.25)*(v2-v1)+2.0*p1;
-        InfoStruct firstChildStruct;
-        firstChildStruct.Cartesian = firstChildVec; // without actual height
-        firstChildStruct.longLatRadians = cs::utils::convert::cartesianToLngLat(firstChildStruct.Cartesian, earthRadius);
-        correctHeight (structsIn[i-1], structsIn[i+1], firstChildStruct, earth);
-        firstChildStruct.Cartesian = cs::utils::convert::toCartesian(firstChildStruct.longLatRadians, earthRadius, firstChildStruct.overSurfaceHeight);  // with correct height
-        structsOut.push_back(firstChildStruct);
-
-        glm::dvec3 secondChildVec = (0.5)*(0.5)*(v2-v1)+2.0*p1;
-        InfoStruct secondChildStruct;
-        secondChildStruct.Cartesian = secondChildVec; // without actual height
-        secondChildStruct.longLatRadians = cs::utils::convert::cartesianToLngLat(secondChildStruct.Cartesian, earthRadius);
-        correctHeight (structsIn[i-1], structsIn[i+1], secondChildStruct, earth);
-        secondChildStruct.Cartesian = cs::utils::convert::toCartesian(secondChildStruct.longLatRadians, earthRadius, secondChildStruct.overSurfaceHeight);  // with correct height
-        structsOut.push_back(secondChildStruct);
-
-        glm::dvec3 thirdChildVec = (0.75)*(0.75)*(v2-v1)+2.0*p1;
-        InfoStruct thirdChildStruct;
-        thirdChildStruct.Cartesian = thirdChildVec; // without actual height
-        thirdChildStruct.longLatRadians = cs::utils::convert::cartesianToLngLat(thirdChildStruct.Cartesian, earthRadius);
-        correctHeight (structsIn[i-1], structsIn[i+1], thirdChildStruct, earth);
-        thirdChildStruct.Cartesian = cs::utils::convert::toCartesian(thirdChildStruct.longLatRadians, earthRadius, thirdChildStruct.overSurfaceHeight);  // with correct height
-        structsOut.push_back(thirdChildStruct);
-
-      }
-      else {
-        structsOut.push_back(structsIn[i]);
-      }
-    }
+      structsOut.push_back(structsIn[i]);
+    } 
   }
   return structsOut;
 }
-
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -377,7 +383,7 @@ void Plugin::setWFSServer(std::string URL) {
   std::string mUrl = mBaseUrl + "&REQUEST=GetCapabilities";
 
   // build the XML request
-  std::stringstream xmlStream;      // string stream where the response will be stored
+  std::stringstream xmlStream;  // where the response will be stored
   curlpp::Easy      request;
   request.setOpt(curlpp::options::Url(mUrl));
   request.setOpt(curlpp::options::WriteStream(&xmlStream));
@@ -413,7 +419,6 @@ void Plugin::setWFSServer(std::string URL) {
     const char* featureTypeName = featureTypeElement -> FirstChildElement ("Name") -> GetText();
     ss << featureTypeName << std::endl;
     featureTypes.push_back(featureTypeName);   
-
     featureTypeElement = featureTypeElement -> NextSiblingElement ("FeatureType");
   } 
 
@@ -435,9 +440,9 @@ void Plugin::setWFSServer(std::string URL) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // once we select the desired dataset, its information is stored in a class member 
-// WFSFeatureCollection-type struct (featureLocation). Additionally, its properies are 
-// saved in a DescribeFeatureType-type struct (propertiesStruct), also a class member. 
-//-----------------------------------------------------------------------------
+// WFSFeatureCollection-type struct (mFeatureLocation). Additionally, its properies are 
+// saved in a DescribeFeatureType-type struct (mPropertiesStruct), also a class member. 
+//-------------------------------------------------------------------------------------
 
 void Plugin::setWFSFeatureType(std::string featureType) { 
 
@@ -445,18 +450,18 @@ void Plugin::setWFSFeatureType(std::string featureType) {
   mLineStringRenderer = nullptr;
   mPolygonRenderer = nullptr;
 
-  if (featureType == "None") {
+  if (featureType=="None") { 
     return;
   }
 
-  std::string mFeatureUrl = mBaseUrl + "&outputFormat=json&REQUEST=GetFeature" + "&typeName=" + featureType;
-  logger().info(mFeatureUrl);
+  std::string featureUrl = mBaseUrl + "&outputFormat=json&REQUEST=GetFeature" + "&typeName=" + featureType;
+  logger().info(featureUrl);
 
   // build the JSON request
-  std::stringstream jsonStream;      // Where the response will be stored
+  std::stringstream mJsonStream;      // Where the response will be stored
   curlpp::Easy      jsonRequest;
-  jsonRequest.setOpt(curlpp::options::Url(mFeatureUrl));
-  jsonRequest.setOpt(curlpp::options::WriteStream(&jsonStream));
+  jsonRequest.setOpt(curlpp::options::Url(featureUrl));
+  jsonRequest.setOpt(curlpp::options::WriteStream(&mJsonStream));
   jsonRequest.setOpt(curlpp::options::NoSignal(true));
   jsonRequest.setOpt(curlpp::options::SslVerifyPeer(false));
 
@@ -465,16 +470,16 @@ void Plugin::setWFSFeatureType(std::string featureType) {
     jsonRequest.perform();            
   } catch (std::exception const& e) {
     std::stringstream message;
-    message << "WFS capabilities request failed for '" << mFeatureUrl << "': '" << e.what() << "'";
+    message << "WFS capabilities request failed for '" << featureUrl << "': '" << e.what() << "'";
     throw std::runtime_error(message.str());
   }  
 
   // transfer the info to a string (doc) and parse it 
-  std::string docString = jsonStream.str();
+  std::string docString = mJsonStream.str();
   nlohmann::json data = nlohmann::json::parse(docString);
 
   // store all the info for a single getCapabilities listed feature
-  from_json(data, featureLocation);
+  from_json(data, mFeatureLocation);
 
   // same thing but for the DescribeFeatureType (DFT)
   //-------------------------------------------------
@@ -503,24 +508,21 @@ void Plugin::setWFSFeatureType(std::string featureType) {
   nlohmann::json propertiesData = nlohmann::json::parse(docPropertiesString);
 
   // store all the properties of a single getCapabilities listed feature
-  from_json(propertiesData, propertiesStruct);
+  from_json(propertiesData, mPropertiesStruct);
 
   mGuiManager->getGui()->callJavascript("CosmoScout.wfsOverlays.setFeatureProperties", docPropertiesString);
-
-  
-
-  
 }
 
   ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-  // here, we loop through the data filled structs we just saved
-  // and handle its rendering depending on the type of its geometry
-  //---------------------------------------------------------------
+  // here, we loop through the data filled structs we just saved and 
+  // handle its rendering depending on the type of its geometry
+  //----------------------------------------------------------------
 
   void Plugin::setRendering(double pointSize = 0.02, double lineWidth = 2.0) {   
     
-    logger().info("setRendering::Number of elements: {}", featureLocation.features.size());
+    logger().info("-------");
+    logger().info("setRendering::Number of elements: {}", mFeatureLocation.features.size());
     
     auto earth = mSolarSystem->getObject("Earth");
     glm::dvec3 earthRadius = earth->getRadii(); 
@@ -543,28 +545,28 @@ void Plugin::setWFSFeatureType(std::string featureType) {
 
     // for the rest of types, with multi-threading 
     std::vector<std::vector<glm::dvec3>> lineStringIntermediateVector;
-    lineStringIntermediateVector.reserve(featureLocation.features.size());
+    lineStringIntermediateVector.reserve(mFeatureLocation.features.size());
     std::vector<std::vector<glm::dvec3>> multiLineStringIntermediateVector;
-    multiLineStringIntermediateVector.reserve(featureLocation.features.size());
+    multiLineStringIntermediateVector.reserve(mFeatureLocation.features.size());
     std::vector<std::vector<glm::dvec3>> polygonIntermediateVector;
-    polygonIntermediateVector.reserve(featureLocation.features.size());
+    polygonIntermediateVector.reserve(mFeatureLocation.features.size());
     std::vector<std::vector<glm::dvec3>> multiPolygonIntermediateVector;
-    multiPolygonIntermediateVector.reserve(featureLocation.features.size());
+    multiPolygonIntermediateVector.reserve(mFeatureLocation.features.size());
 
     // start the threadPool
     cs::utils::ThreadPool threadPool(std::thread::hardware_concurrency());
+    // in case of crashing, we can always try using one thread only: cs::utils::ThreadPool threadPool(1);
 
     // more than 3 component color flag
     int threeComp = 0;
 
-    for (int l = 0; l < featureLocation.features.size(); l++) {
+    for (int l = 0; l < mFeatureLocation.features.size(); l++) {
 
       // set the color selected by the user via the GUI 
       //-----------------------------------------------   
       glm::dvec3 featureColor = {1.0,1.0,1.0};
-      nlohmann::json jsonColor = featureLocation.features[l].properties[mColor];
+      nlohmann::json jsonColor = mFeatureLocation.features[l].properties[mColor];
       if (jsonColor.type() == nlohmann::json::value_t::string) { 
-        // try {
           // split the whole string into three substrings
           std::string jsonString = jsonColor.get<std::string>();
           std::vector<std::string> subStrings;
@@ -575,66 +577,63 @@ void Plugin::setWFSFeatureType(std::string featureType) {
           }
           if (subStrings.size() != 3) {
             threeComp++;
-            // logger().warn("The color does not have exactly 3 components.");
           }
           // switch from strings to doubles and save them as dvec3 components
           double r = static_cast<double>(std::stoi(subStrings[0]) / 255.0);
           double g = static_cast<double>(std::stoi(subStrings[1]) / 255.0);
           double b = static_cast<double>(std::stoi(subStrings[2]) / 255.0);
           featureColor = {r,g,b};
-        } //catch (const std::exception& e) {
-          // std::cerr << "error when accessing the JSON: " << e.what() <<std::endl;
-      // NOTE THAT IF I WENT BACK TO THE TRY-CATCH METHOD I WOULD HAVE TO ADD SOME } } AFTER THIS PARAGRAPH
-
+        }
+        
       // checking "null" geometry (e.g. DWD -> dwd:Autowarn_Vorhersage)
-      if (featureLocation.features[l].geometry == nullptr) {
+      if (mFeatureLocation.features[l].geometry == nullptr) {
         numNull++;
         continue;
       }
 
-      std::string type = featureLocation.features[l].geometry->mType;
+      std::string type = mFeatureLocation.features[l].geometry->mType;
 
       if (type == "Point") {
         
-          numPoints++;     // quick note here: i++ is not the same as ++i
-          std::shared_ptr<Point> point = std::dynamic_pointer_cast<Point>(featureLocation.features[l].geometry); 
+          numPoints++;     
+          std::shared_ptr<Point> point = std::dynamic_pointer_cast<Point>(mFeatureLocation.features[l].geometry); 
           InfoStruct pointStruct;
 
-          pointStruct.longLatDegrees = {point->mCoordinates[0], point->mCoordinates[1]};
-          pointStruct.longLatRadians = {cs::utils::convert::toRadians(point->mCoordinates[0]),cs::utils::convert::toRadians(point->mCoordinates[1])};
+          pointStruct.mLongLatDegrees = {point->mCoordinates[0], point->mCoordinates[1]};
+          pointStruct.mLongLatRadians = {cs::utils::convert::toRadians(point->mCoordinates[0]),cs::utils::convert::toRadians(point->mCoordinates[1])};
           if (point->mCoordinates.size() > 2) {
-            pointStruct.overSurfaceHeight = point->mCoordinates[2];
-            pointStruct.heightComesFromJson = true;
+            pointStruct.mOverSurfaceHeight = point->mCoordinates[2];
+            pointStruct.mHeightComesFromJson = true;
           }
           else {                        
-            pointStruct.overSurfaceHeight = earth->getSurface()->getHeight({pointStruct.longLatRadians[0], pointStruct.longLatRadians[1]}) + 10;
-            pointStruct.heightComesFromJson = false;
+            pointStruct.mOverSurfaceHeight = earth->getSurface()->getHeight({pointStruct.mLongLatRadians[0], pointStruct.mLongLatRadians[1]}) + 10;
+            pointStruct.mHeightComesFromJson = false;
           } 
-          pointStruct.Cartesian = cs::utils::convert::toCartesian({pointStruct.longLatRadians[0], pointStruct.longLatRadians[1]}, earthRadius, pointStruct.overSurfaceHeight);
-          pointCoordinates.push_back(pointStruct.Cartesian);
+          pointStruct.mCartesian = cs::utils::convert::toCartesian({pointStruct.mLongLatRadians[0], pointStruct.mLongLatRadians[1]}, earthRadius, pointStruct.mOverSurfaceHeight);
+          pointCoordinates.push_back(pointStruct.mCartesian);
           pointCoordinates.push_back(featureColor);
         }
 
       else if (type == "MultiPoint") {
 
         numMultiPoints++;
-        std::shared_ptr<MultiPoint> multiPoint = std::dynamic_pointer_cast<MultiPoint>(featureLocation.features[l].geometry); 
+        std::shared_ptr<MultiPoint> multiPoint = std::dynamic_pointer_cast<MultiPoint>(mFeatureLocation.features[l].geometry); 
         InfoStruct multiPointStruct;
 
         for (int i=0; i < multiPoint->mCoordinates.size(); i++) {
-          multiPointStruct.longLatDegrees = {multiPoint->mCoordinates[i][0], multiPoint->mCoordinates[i][1]};
-          multiPointStruct.longLatRadians = {cs::utils::convert::toRadians(multiPoint->mCoordinates[i][0]), cs::utils::convert::toRadians(multiPoint->mCoordinates[i][1])};
+          multiPointStruct.mLongLatDegrees = {multiPoint->mCoordinates[i][0], multiPoint->mCoordinates[i][1]};
+          multiPointStruct.mLongLatRadians = {cs::utils::convert::toRadians(multiPoint->mCoordinates[i][0]), cs::utils::convert::toRadians(multiPoint->mCoordinates[i][1])};
           
           if (multiPoint->mCoordinates[i].size() > 2) {
-            multiPointStruct.overSurfaceHeight = multiPoint->mCoordinates[i][2];
-            multiPointStruct.heightComesFromJson = true;
+            multiPointStruct.mOverSurfaceHeight = multiPoint->mCoordinates[i][2];
+            multiPointStruct.mHeightComesFromJson = true;
           }
           else {
-            multiPointStruct.overSurfaceHeight = earth->getSurface()->getHeight({multiPointStruct.longLatRadians[0], multiPointStruct.longLatRadians[1]}) + 10;
-            multiPointStruct.heightComesFromJson = false;
+            multiPointStruct.mOverSurfaceHeight = earth->getSurface()->getHeight({multiPointStruct.mLongLatRadians[0], multiPointStruct.mLongLatRadians[1]}) + 10;
+            multiPointStruct.mHeightComesFromJson = false;
           } 
-          multiPointStruct.Cartesian = cs::utils::convert::toCartesian({multiPointStruct.longLatRadians[0], multiPointStruct.longLatRadians[1]}, earthRadius, multiPointStruct.overSurfaceHeight); 
-          pointCoordinates.push_back(multiPointStruct.Cartesian);
+          multiPointStruct.mCartesian = cs::utils::convert::toCartesian({multiPointStruct.mLongLatRadians[0], multiPointStruct.mLongLatRadians[1]}, earthRadius, multiPointStruct.mOverSurfaceHeight); 
+          pointCoordinates.push_back(multiPointStruct.mCartesian);
           pointCoordinates.push_back(featureColor);
         }  
       } 
@@ -644,54 +643,52 @@ void Plugin::setWFSFeatureType(std::string featureType) {
         int nIteration = numLineStrings++;
         lineStringIntermediateVector.push_back({});
 
-        auto lineStringProcessing = [&, nIteration, l, featureColor] () {
+        // we need to use a lambda function to assign it as a task for the threads
+        auto lineStringProcessing = [&, nIteration, l] () {
 
-          std::shared_ptr<LineString> lineString = std::dynamic_pointer_cast<LineString>(featureLocation.features[l].geometry); 
-          // TODO: IFDEF
-          std::vector<InfoStruct> lineStringAux;  
-          // TODO: end IFDEF
+          std::vector<InfoStruct> lineStringAux;
+          std::shared_ptr<LineString> lineString = std::dynamic_pointer_cast<LineString>(mFeatureLocation.features[l].geometry); 
           std::vector<InfoStruct> lineStringStructs;
 
           for (int i=0; i < lineString->mCoordinates.size(); i++) {
-            InfoStruct temporaryStruct;
-            temporaryStruct.longLatDegrees = {lineString->mCoordinates[i][0], lineString->mCoordinates[i][1]};
-            temporaryStruct.longLatRadians = cs::utils::convert::toRadians(temporaryStruct.longLatDegrees);
-
+            InfoStruct temporaryStruct{};
+            temporaryStruct.mLongLatDegrees = {lineString->mCoordinates[i][0], lineString->mCoordinates[i][1]};
+            temporaryStruct.mLongLatRadians = cs::utils::convert::toRadians(temporaryStruct.mLongLatDegrees);
+            // if there is a 4th component for height over the surface
             if (lineString->mCoordinates[i].size() > 2) {
-              temporaryStruct.overSurfaceHeight = lineString->mCoordinates[i][2];
-              temporaryStruct.heightComesFromJson = true;
+              temporaryStruct.mOverSurfaceHeight = lineString->mCoordinates[i][2];
+              temporaryStruct.mHeightComesFromJson = true;
             }
-            else {
-              temporaryStruct.overSurfaceHeight = earth->getSurface()->getHeight(temporaryStruct.longLatRadians) + 10;
-              temporaryStruct.heightComesFromJson = false;
+            else {   // if there is not a 4th component
+              temporaryStruct.mOverSurfaceHeight = earth->getSurface()->getHeight(temporaryStruct.mLongLatRadians) + 10;
+              temporaryStruct.mHeightComesFromJson = false;
             }
-            temporaryStruct.Cartesian = cs::utils::convert::toCartesian(temporaryStruct.longLatRadians, earthRadius, temporaryStruct.overSurfaceHeight);
-            // TODO: ifdef 
-            lineStringAux.push_back(temporaryStruct); // lsAux = {v0, v1, ... , vn-1} 
-            // TODO: else 
-            /*
-            lineStringStructs.push_back(temporaryStruct);
-            if i != 0 && i != multiLineString->mCoordinates.size()-1) {          
-              lineStringStructs.push_back(temporaryStruct);
-            }
-            */
-          }
-          // TODO: IFDEF
-          std::vector<InfoStruct> lineStringInterpolated;
-          lineStringInterpolated = Interpolation (lineStringAux, 60.0, earthRadius, earth); // lsAux = {v0, interp, v2, interp, v4, ... , vn-1}
+            temporaryStruct.mCartesian = cs::utils::convert::toCartesian(temporaryStruct.mLongLatRadians, earthRadius, temporaryStruct.mOverSurfaceHeight);
 
-          for (int i=0; i < lineStringInterpolated.size(); i++) {
-            lineStringStructs.push_back(lineStringInterpolated[i]);
-            if (i != 0 && i != lineStringInterpolated.size()-1) {     
-              lineStringStructs.push_back(lineStringInterpolated[i]);    // TODO: here it would be STRUCT con {v0, 2x interp, v4 , 2x interp, ... , vn-1} 
+            if (mPluginSettings->mInterpolation.get()) {  
+              lineStringAux.push_back(temporaryStruct);    
+            }
+            else {  // duplicating the components when no interpolation is used
+              lineStringStructs.push_back(temporaryStruct);
+              if (i != 0 && i != lineString->mCoordinates.size()-1) {          
+                lineStringStructs.push_back(temporaryStruct);
+              }
             } 
           }
-          // TODO: end IFDEF
+
+          if (mPluginSettings->mInterpolation.get()) {  // in case we want to use the interpolation method
+            std::vector<InfoStruct> lineStringInterpolated;
+            lineStringInterpolated = Interpolation (lineStringAux, 60.0, earthRadius, earth); 
+            for (int a=0; a < lineStringInterpolated.size(); a++) { // duplicating the components
+              lineStringStructs.push_back(lineStringInterpolated[a]);
+              if (a != 0 && a != lineStringInterpolated.size()-1) { 
+                lineStringStructs.push_back(lineStringInterpolated[a]);    
+              } 
+            }
+          }
           std::vector<glm::dvec3> lineStringVec = generateMidPoint(lineStringStructs, 100000.0, earthRadius, earth, featureColor);
           lineStringIntermediateVector[nIteration].insert(lineStringIntermediateVector[nIteration].end(), lineStringVec.begin(), lineStringVec.end());
-          
         };
-
         threadPool.enqueue(lineStringProcessing); // assign each tread what to do
       }
       
@@ -700,118 +697,164 @@ void Plugin::setWFSFeatureType(std::string featureType) {
         int nIteration = numMultiLineStrings++; 
         multiLineStringIntermediateVector.push_back({});
 
+        // we need to use a lambda function to assign it as a task for the threads
         auto multiLineStringProcessing = [&, nIteration, l] () {
 
-          std::shared_ptr<MultiLineString> multiLineString = std::dynamic_pointer_cast<MultiLineString>(featureLocation.features[l].geometry); 
+          std::shared_ptr<MultiLineString> multiLineString = std::dynamic_pointer_cast<MultiLineString>(mFeatureLocation.features[l].geometry); 
           
           for (int i=0; i < multiLineString->mCoordinates.size(); i++) { 
-            // TODO: IFDEF std::vector<InfoStruct> multiLineStringAux;
             std::vector<InfoStruct> multiLineStringStructs;
+            std::vector<InfoStruct> multiLineStringAux; 
             for (int j=0; j < multiLineString->mCoordinates[i].size(); j++) { 
-              InfoStruct temporaryStruct;
-              temporaryStruct.longLatDegrees = {multiLineString->mCoordinates[i][j][0], multiLineString->mCoordinates[i][j][1]};
-              temporaryStruct.longLatRadians = cs::utils::convert::toRadians(temporaryStruct.longLatDegrees);
+              InfoStruct temporaryStruct{};
+              temporaryStruct.mLongLatDegrees = {multiLineString->mCoordinates[i][j][0], multiLineString->mCoordinates[i][j][1]};
+              temporaryStruct.mLongLatRadians = cs::utils::convert::toRadians(temporaryStruct.mLongLatDegrees);
+              // if there is a 4th component for height over the surface
               if (multiLineString->mCoordinates[i][j].size() > 2) {
-                temporaryStruct.overSurfaceHeight = multiLineString->mCoordinates[i][j][2];
-                temporaryStruct.heightComesFromJson = true;
+                temporaryStruct.mOverSurfaceHeight = multiLineString->mCoordinates[i][j][2];
+                temporaryStruct.mHeightComesFromJson = true;
               }
-              else {
-                temporaryStruct.overSurfaceHeight = earth->getSurface()->getHeight(temporaryStruct.longLatRadians) + 10;
-                temporaryStruct.heightComesFromJson = false;
+              else {  // if there is not a 4th component
+                temporaryStruct.mOverSurfaceHeight = earth->getSurface()->getHeight(temporaryStruct.mLongLatRadians) + 10;
+                temporaryStruct.mHeightComesFromJson = false;
               }
-              temporaryStruct.Cartesian = cs::utils::convert::toCartesian(temporaryStruct.longLatRadians, earthRadius, temporaryStruct.overSurfaceHeight);   
-              // TODO: IFDEF multiLineStringAux.push_back(temporaryStruct);
-              multiLineStringStructs.push_back(temporaryStruct);
-              if (j != 0 && j != multiLineString->mCoordinates[i].size()-1) {          
-                multiLineStringStructs.push_back(temporaryStruct);
+              temporaryStruct.mCartesian = cs::utils::convert::toCartesian(temporaryStruct.mLongLatRadians, earthRadius, temporaryStruct.mOverSurfaceHeight); 
+
+              if (mPluginSettings->mInterpolation.get()) {  
+                multiLineStringAux.push_back(temporaryStruct);  
               } 
-            } 
+              else { // duplicating the components when no interpolation is used
+                multiLineStringStructs.push_back(temporaryStruct);
+                if (j != 0 && j != multiLineString->mCoordinates[i].size()-1) {          
+                  multiLineStringStructs.push_back(temporaryStruct);
+                } 
+              } 
+            }
+            if (mPluginSettings->mInterpolation.get()) {  // in case we want to use the interpolation method
+              std::vector<InfoStruct> multiLineStringInterpolated;
+              multiLineStringInterpolated = Interpolation (multiLineStringAux, 60.0, earthRadius, earth); // lsAux = {v0, interp, v2, interp, v4, ... , vn-1}
+              for (int a=0; a < multiLineStringInterpolated.size(); a++) {  // duplicating the components
+                multiLineStringStructs.push_back(multiLineStringInterpolated[a]);
+                if (a != 0 && a != multiLineStringInterpolated.size()-1) { 
+                  multiLineStringStructs.push_back(multiLineStringInterpolated[a]);    
+                } 
+              }
+            }
             std::vector<glm::dvec3> multiLineStringVec = generateMidPoint(multiLineStringStructs, 100000.0, earthRadius, earth, featureColor);
             multiLineStringIntermediateVector[nIteration].insert(multiLineStringIntermediateVector[nIteration].end(), multiLineStringVec.begin(), multiLineStringVec.end());
           }
         };
-
         threadPool.enqueue(multiLineStringProcessing);      // assign each tread what to do
-      } 
-    
+      }
+
       else if (type == "Polygon") {
 
         int nIteration = numPolygons++; 
         polygonIntermediateVector.push_back({});
-
+        
+        // we need to use a lambda function to assign it as a task for the threads
         auto polygonProcessing = [&, nIteration, l] () {
+          std::shared_ptr<Polygon> polygon = std::dynamic_pointer_cast<Polygon>(mFeatureLocation.features[l].geometry); 
 
-          std::shared_ptr<Polygon> polygon = std::dynamic_pointer_cast<Polygon>(featureLocation.features[l].geometry); 
-          
           for (int i=0; i < polygon->mCoordinates.size(); i++) {
+            
             std::vector<InfoStruct> polygonStructs;
+            std::vector<InfoStruct> polygonAux; 
+
             for (int j=0; j < polygon->mCoordinates[i].size(); j++) {
-              InfoStruct temporaryStruct;   
-              temporaryStruct.longLatDegrees = {polygon->mCoordinates[i][j][0], polygon->mCoordinates[i][j][1]};
-              temporaryStruct.longLatRadians = cs::utils::convert::toRadians(temporaryStruct.longLatDegrees);
-
+              InfoStruct temporaryStruct = {};
+              temporaryStruct.mLongLatDegrees = {polygon->mCoordinates[i][j][0], polygon->mCoordinates[i][j][1]};
+              temporaryStruct.mLongLatRadians = cs::utils::convert::toRadians(temporaryStruct.mLongLatDegrees);
+              // if there is a 4th component for height over the surface
               if (polygon->mCoordinates[i][j].size() > 2) {
-                temporaryStruct.overSurfaceHeight = polygon->mCoordinates[i][j][2];
-                temporaryStruct.heightComesFromJson = true;
+                temporaryStruct.mOverSurfaceHeight = polygon->mCoordinates[i][j][2];
+                temporaryStruct.mHeightComesFromJson = true;
               }
-              else {
-                temporaryStruct.overSurfaceHeight = earth->getSurface()->getHeight(temporaryStruct.longLatRadians) + 10;
-                temporaryStruct.heightComesFromJson = false;
+              else {  // if there is not a 4th component
+                temporaryStruct.mOverSurfaceHeight = earth->getSurface()->getHeight(temporaryStruct.mLongLatRadians) + 10;
+                temporaryStruct.mHeightComesFromJson = false;
               }
-
-              temporaryStruct.Cartesian = cs::utils::convert::toCartesian(temporaryStruct.longLatRadians, earthRadius, temporaryStruct.overSurfaceHeight);  
+              temporaryStruct.mCartesian = cs::utils::convert::toCartesian(temporaryStruct.mLongLatRadians, earthRadius, temporaryStruct.mOverSurfaceHeight);  
               
-              polygonStructs.push_back(temporaryStruct);
-              // TODO: We'll have to move this duplication. The ideal place will be after interpolation and before midPointGeneration.
-              if (j != 0 && j != polygon->mCoordinates[i].size()-1) {          
-                polygonStructs.push_back(temporaryStruct);
+              if (mPluginSettings->mInterpolation.get()) {  
+                polygonAux.push_back(temporaryStruct); 
               } 
+              else { // duplicating the components when no interpolation is used
+                polygonStructs.push_back(temporaryStruct);
+                if (j != 0 && j != polygon->mCoordinates[i].size()-1) {          
+                  polygonStructs.push_back(temporaryStruct);
+                } 
+              }
             }
-            // TODO: Here would be the interpolation!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+            if (mPluginSettings->mInterpolation.get()) {  // in case we want to use the interpolation method
+              std::vector<InfoStruct> polygonInterpolated;
+              polygonInterpolated = Interpolation (polygonAux, 60.0, earthRadius, earth); 
+              for (int a=0; a < polygonInterpolated.size(); a++) {  // duplicating the components
+                polygonStructs.push_back(polygonInterpolated[a]);
+                if (a != 0 && a != polygonInterpolated.size()-1) { 
+                  polygonStructs.push_back(polygonInterpolated[a]);   
+                } 
+              }
+            }
             std::vector<glm::dvec3> polygonVec = generateMidPoint(polygonStructs, 100000.0, earthRadius, earth, featureColor);
             polygonIntermediateVector[nIteration].insert(polygonIntermediateVector[nIteration].end(), polygonVec.begin(), polygonVec.end());
           } 
         };
-
         threadPool.enqueue(polygonProcessing);          // assign each tread what to do              
       }
-
+      
       else if (type == "MultiPolygon") {
 
         int nIteration = numMultiPolygons++; 
         multiPolygonIntermediateVector.push_back({});
 
+        // we need to use a lambda function to assign it as a task for the threads
         auto multiPolygonProcessing = [&, nIteration, l] () {
 
-          std::shared_ptr<MultiPolygon> multiPolygon = std::dynamic_pointer_cast<MultiPolygon>(featureLocation.features[l].geometry);
+          std::shared_ptr<MultiPolygon> multiPolygon = std::dynamic_pointer_cast<MultiPolygon>(mFeatureLocation.features[l].geometry);
         
           for (int i=0; i < multiPolygon->mCoordinates.size(); i++) { 
+
             for (int j=0; j < multiPolygon->mCoordinates[i].size(); j++) {
+
               std::vector<InfoStruct> multiPolygonStructs;
+              std::vector<InfoStruct> multiPolygonAux; 
+
               for (int k=0; k < multiPolygon->mCoordinates[i][j].size(); k++) {
-
                 InfoStruct temporaryStruct;
-                temporaryStruct.longLatDegrees = {multiPolygon->mCoordinates[i][j][k][0], multiPolygon->mCoordinates[i][j][k][1]};
-                temporaryStruct.longLatRadians = cs::utils::convert::toRadians(temporaryStruct.longLatDegrees);
-
+                temporaryStruct.mLongLatDegrees = {multiPolygon->mCoordinates[i][j][k][0], multiPolygon->mCoordinates[i][j][k][1]};
+                temporaryStruct.mLongLatRadians = cs::utils::convert::toRadians(temporaryStruct.mLongLatDegrees);
+                // if there is a 4th component for height over the surface
                 if (multiPolygon->mCoordinates[i][j][k].size() > 2) {
-                  temporaryStruct.overSurfaceHeight = multiPolygon->mCoordinates[i][j][k][2];
-                  temporaryStruct.heightComesFromJson = true;
+                  temporaryStruct.mOverSurfaceHeight = multiPolygon->mCoordinates[i][j][k][2];
+                  temporaryStruct.mHeightComesFromJson = true;
                 }
-                else {
-                  temporaryStruct.overSurfaceHeight = earth->getSurface()->getHeight(temporaryStruct.longLatRadians) + 10;
-                  temporaryStruct.heightComesFromJson = false;
+                else {  // if there is not a 4th component
+                  temporaryStruct.mOverSurfaceHeight = earth->getSurface()->getHeight(temporaryStruct.mLongLatRadians) + 10;
+                  temporaryStruct.mHeightComesFromJson = false;
                 }
-
-                temporaryStruct.Cartesian = cs::utils::convert::toCartesian(temporaryStruct.longLatRadians, earthRadius, temporaryStruct.overSurfaceHeight);   
+                temporaryStruct.mCartesian = cs::utils::convert::toCartesian(temporaryStruct.mLongLatRadians, earthRadius, temporaryStruct.mOverSurfaceHeight);   
                 
-                multiPolygonStructs.push_back(temporaryStruct);
-                // TODO: We'll have to move this duplication. The ideal place will be after interpolation and before midPointGeneration.
-                if (k != 0 && k != multiPolygon->mCoordinates[i][j].size()-1) {          
-                  multiPolygonStructs.push_back(temporaryStruct);
+                if (mPluginSettings->mInterpolation.get()) { 
+                    multiPolygonAux.push_back(temporaryStruct);  
                 } 
+                else { // duplicating the components when no interpolation is used
+                  multiPolygonStructs.push_back(temporaryStruct);
+                  if (k != 0 && k != multiPolygon->mCoordinates[i][j].size()-1) {          
+                    multiPolygonStructs.push_back(temporaryStruct);
+                  } 
+                }  
               }
-              // TODO: Here would be the interpolation!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+              if (mPluginSettings->mInterpolation.get()) {  // in case we want to use the interpolation method
+                std::vector<InfoStruct> multiPolygonInterpolated;
+                multiPolygonInterpolated = Interpolation (multiPolygonAux, 60.0, earthRadius, earth); 
+                for (int a=0; a < multiPolygonInterpolated.size(); a++) {
+                  multiPolygonStructs.push_back(multiPolygonInterpolated[a]);
+                  if (a != 0 && a != multiPolygonInterpolated.size()-1) { 
+                    multiPolygonStructs.push_back(multiPolygonInterpolated[a]);    
+                  } 
+                }
+              }
               std::vector<glm::dvec3> multiPolygonMidPoints = generateMidPoint(multiPolygonStructs, 100000.0, earthRadius, earth, featureColor);
               multiPolygonIntermediateVector[nIteration].insert(multiPolygonIntermediateVector[nIteration].end(), multiPolygonMidPoints.begin(), multiPolygonMidPoints.end()); 
             }
@@ -819,7 +862,7 @@ void Plugin::setWFSFeatureType(std::string featureType) {
         };
         threadPool.enqueue(multiPolygonProcessing);         // assign each tread what to do
       }
-      
+
       else { 
         logger().warn(" {} data could not be rendered", type); 
       }
@@ -830,22 +873,23 @@ void Plugin::setWFSFeatureType(std::string featureType) {
       std::this_thread::sleep_for(std::chrono::milliseconds(1));
     }
 
-    // TODO: iMPROVE THIS ERROR WARNING
     if (threeComp != 0) {
       logger().warn("The color does not have exactly 3 components.");
     }
 
-    // we have to convert from dvec3 to vec3 before rendering
-    //-------------------------------------------------------
+    // by now, we have already saved all the coordinates and colors in 
+    // the designated vectorfor every different type. Before rendering
+    // with openGL, we need to convert from dvec3 to vec3.
+    //----------------------------------------------------------------
 
-    // for points and multipoints, without multithread
+    // conversion for points and multipoints, without multithread
     std::vector<glm::vec3> pointCoordinatesRendering;
     for (int i=0; i < pointCoordinates.size(); i++) {
         glm::vec3 coord = static_cast<glm::vec3>(pointCoordinates[i]);
         pointCoordinatesRendering.push_back(coord); 
       }
 
-    // for linestrings and multilinestrings, with multithread
+    // conversion for linestrings and multilinestrings, with multithread
     std::vector<glm::vec3> lineStringCoordinatesRendering;
     for (int i=0; i < lineStringIntermediateVector.size(); i++) {
       if (lineStringIntermediateVector[i].empty()) {
@@ -866,7 +910,7 @@ void Plugin::setWFSFeatureType(std::string featureType) {
       }  
     }
 
-    // for polygons and multipolygons, with multithread
+    // conversion for polygons and multipolygons, with multithread
     std::vector<glm::vec3> polygonCoordinatesRendering;
     for (int i=0; i < polygonIntermediateVector.size(); i++) {
       if (polygonIntermediateVector[i].empty()) {
@@ -916,17 +960,16 @@ void Plugin::setWFSFeatureType(std::string featureType) {
     }
 
     if(!mPointRenderer && !mLineStringRenderer && !mPolygonRenderer) {
-      logger().info("Server response: {}", jsonStream.str());
+      logger().info("Server response: {}", mJsonStream.str());
     }
 
     auto endTime = std::chrono::high_resolution_clock::now();
 
-    // printing the time that it took 
+    // registering the time that the vector assignment and rendering took 
     std::chrono::duration<double> diff = endTime - startTime;
-    logger().info("Time of execution was: {} s. ", diff.count()); 
 
-    // logger().info("size: {}", pointSize);
-    
+    // We can print that time by just uncommenting the following line:
+    // logger().info("Time of execution was: {} s. ", diff.count());    
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -960,6 +1003,19 @@ void Plugin::init() {
 
   mPluginSettings->mEnabled.connectAndTouch([this](bool enable) { mGuiManager->setCheckboxValue("wfsOverlays.setEnabled", enable); });
 
+  // "Interpolation" callback via GUI
+  //---------------------------------
+
+  mGuiManager->getGui()->registerCallback("wfsOverlays.setInterpolation",
+                                          "Enables or disables interpolation rendering.",
+                                          std::function([this](bool value) { 
+                                            mPluginSettings->mInterpolation = value; 
+                                            logger().info("Interpolation: {}", mPluginSettings->mInterpolation.get());
+                                            setRendering();
+                                          }));
+
+  mPluginSettings->mInterpolation.connectAndTouch([this](bool interpolation) { mGuiManager->setCheckboxValue("wfsOverlays.setInterpolation", interpolation); });
+
   // "Set Server" callback via GUI
   //------------------------------
 
@@ -987,8 +1043,8 @@ void Plugin::init() {
                                         "wfsOverlays.setWFSFeatureType", 
                                         "None", "None", false);
 
-  // "Select Color" callback via GUI
-  //--------------------------------
+  // "Select Color" callback via GUI (if we wanted to do a "Select Date", it would be similar)
+  //------------------------------------------------------------------------------------------
   mGuiManager->getGui()->registerCallback("wfsOverlays.setColor",
                                           "Use the chosen radio as the color.",
                                           std::function([this](std::string&& name) {
@@ -997,34 +1053,20 @@ void Plugin::init() {
                                             logger().info("Color: {}", name);
                                           }));
 
-  // TODO: "Select Date" callback via GUI
-  //-------------------------------------
-
-  /*
-  mGuiManager->getGui()->registerCallback("wfsOverlays.setTime",
-                                          "Use the chosen radio as the time.",
-                                          std::function([this](std::string&& name) {
-                                            logger().info("Time: {}", name);
-                                          }));
-  */
-
-  // TODO: "Select Size" callback via GUI
-  //-------------------------------------
-
+  // "Select Size" callback via GUI
+  //-------------------------------
   mGuiManager->getGui()->registerCallback("wfsOverlays.setSize",
                                           "Use the chosen size for points.",
                                           std::function([this](std::string&& userSelectedSize) {
                                             logger().info("done");
                                             mPointSize = std::stod(userSelectedSize);
                                             setRendering(mPointSize, 2.0);
-                                            // logger().info("Size: {}", mPointSize);
                                           }));
 
   mGuiManager->getGui()->callJavascript("CosmoScout.wfsOverlays.setSize","1.0");
 
-  // TODO: "Select Width" callback via GUI
-  //-------------------------------------
-
+  // "Select Width" callback via GUI
+  //--------------------------------
   mGuiManager->getGui()->registerCallback("wfsOverlays.setWidth",
                                           "Use the chosen width for lines.",
                                           std::function([this](std::string&& userSelectedWidth) {
@@ -1036,12 +1078,10 @@ void Plugin::init() {
 
   mGuiManager->getGui()->callJavascript("CosmoScout.wfsOverlays.setWidth","1.0");
   
-                                          
   onLoad();
 
   // show the list of servers at the GUI
   //------------------------------------
-
   std::vector<std::string> serverList = mPluginSettings->mWfs;
   for (int i=0; i < serverList.size(); i++) {
     mGuiManager->getGui()->callJavascript("CosmoScout.gui.addDropdownValue", 
@@ -1074,6 +1114,8 @@ void Plugin::deInit() {
   mGuiManager->removeSettingsSection("Wfs Overlays");
 
   mGuiManager->getGui()->unregisterCallback("wfsOverlays.setEnabled");
+
+  mGuiManager->getGui()->unregisterCallback("wfsOverlays.setInterpolation");
 
   mAllSettings->onLoad().disconnect(mOnLoadConnection);
   mAllSettings->onSave().disconnect(mOnSaveConnection);

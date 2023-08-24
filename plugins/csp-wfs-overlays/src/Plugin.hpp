@@ -23,16 +23,17 @@ namespace csp::wfsoverlays {
 /// config file. See README.md for details.
 
 struct InfoStruct { 
-    glm::dvec2 longLatDegrees;
-    glm::dvec2 longLatRadians; 
-    glm::dvec3 Cartesian;
-    double overSurfaceHeight;
-    bool heightComesFromJson;
+    glm::dvec2 mLongLatDegrees;
+    glm::dvec2 mLongLatRadians; 
+    glm::dvec3 mCartesian;
+    double mOverSurfaceHeight;
+    bool mHeightComesFromJson;
   };
 
 class Plugin : public cs::core::PluginBase {
   
-  public:  
+  public: 
+
     void init() override;
     void deInit() override;
     void update() override;
@@ -54,27 +55,19 @@ class Plugin : public cs::core::PluginBase {
 
     std::shared_ptr<Settings> mPluginSettings = std::make_shared<Settings>();
     std::string mBaseUrl;
-
-    WFSFeatureCollection featureLocation; 
-    DescribeFeatureType propertiesStruct;
-    std::stringstream jsonStream;
-
-
+    WFSFeatureCollection mFeatureLocation; 
+    DescribeFeatureType mPropertiesStruct;
+    std::stringstream mJsonStream;
     std::unique_ptr<PointRenderer> mPointRenderer;
     std::unique_ptr<LineRenderer> mLineStringRenderer;
     std::unique_ptr<LineRenderer> mPolygonRenderer;
-
     std::string mColor;
     std::string mTime;
     std::string mSelectedFeature;
     
-
-
     int mOnLoadConnection       = -1;
     int mOnSaveConnection       = -1;
 };
-
-
 
 } // namespace csp::wfsoverlays
 

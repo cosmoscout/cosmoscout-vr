@@ -52,7 +52,6 @@ namespace csp::wfsoverlays {
     out vec4 FragColor;
 
     const float PI = 3.14159265359;
-
     // ===========================================================================
     vec3 SRGBtoLINEAR(vec3 srgbIn)
     {
@@ -76,26 +75,25 @@ namespace csp::wfsoverlays {
 
     LineRenderer::LineRenderer (std::vector<glm::vec3> coordinates, std::shared_ptr<cs::core::SolarSystem> solarSystem,   
                                         std::shared_ptr<cs::core::Settings> settings, double lineWidth, std::shared_ptr<Settings> pluginSettings) {
-        mSolarSystem = solarSystem;
-        mCoordinates = coordinates;
-        mSettings = settings;
+        mSolarSystem    = solarSystem;
+        mCoordinates    = coordinates;
+        mSettings       = settings;
         mPluginSettings = pluginSettings;
         mLineWidthInput = lineWidth;
-        mShaderDirty = true;
+        mShaderDirty    = true;
 
         VistaSceneGraph* pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
         mGLNode.reset(pSG->NewOpenGLNode(pSG->GetRoot(), this));
         VistaOpenSGMaterialTools::SetSortKeyOnSubtree(mGLNode.get(), static_cast<int>(cs::utils::DrawOrder::eOpaqueItems));
         
-        
-        glGenVertexArrays(1, &VAO);
+        glGenVertexArrays(1, &mVAO);
 
         // Generating the VBO to manage the memory of the input vertex
         unsigned int VBO;                                                                   
         glGenBuffers(1, &VBO);
 
-        // Binding the VAO
-        glBindVertexArray(VAO);                                                             
+        // Binding the mVAO
+        glBindVertexArray(mVAO);                                                             
         // Binding the VBO
         glBindBuffer(GL_ARRAY_BUFFER, VBO); 
 
@@ -149,7 +147,7 @@ namespace csp::wfsoverlays {
                 glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
                 std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << std::endl;
             }
-
+            // HDR settings
             std::string defines = "#version 330\n";
             if (mSettings->mGraphics.pEnableHDR.get()) {
                 defines += "#define ENABLE_HDR\n";
@@ -172,14 +170,14 @@ namespace csp::wfsoverlays {
 
             // linking shaders
             //----------------
-            shaderProgram = glCreateProgram();
-            glAttachShader(shaderProgram, vertexShader);
-            glAttachShader(shaderProgram, fragmentShader);
-            glLinkProgram(shaderProgram);
+            mShaderProgram = glCreateProgram();
+            glAttachShader(mShaderProgram, vertexShader);
+            glAttachShader(mShaderProgram, fragmentShader);
+            glLinkProgram(mShaderProgram);
             // check for linking errors
-            glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
+            glGetProgramiv(mShaderProgram, GL_LINK_STATUS, &success);
             if (!success) {
-                glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
+                glGetProgramInfoLog(mShaderProgram, 512, NULL, infoLog);
                 std::cout << "ERROR::SHADER::PROGRAM::LINKING_FAILED\n" << infoLog << std::endl;
             }
             glDeleteShader(vertexShader);
@@ -192,78 +190,53 @@ namespace csp::wfsoverlays {
             return true;
         }
 
-        glUseProgram(shaderProgram);
+        glUseProgram(mShaderProgram);
         auto transform = earth->getObserverRelativeTransform();
 
         glEnable(GL_PROGRAM_POINT_SIZE);
 
-        // Get modelview and projection matrices.
+        // Dealing with the different uniform matrices.
+        //---------------------------------------------
         std::array<GLfloat, 16> glMatV{};
         std::array<GLfloat, 16> glMatP{};
         glGetFloatv(GL_MODELVIEW_MATRIX, glMatV.data());
         glGetFloatv(GL_PROJECTION_MATRIX, glMatP.data());
         auto matM = glm::mat4(transform);
         auto matV = glm::make_mat4x4(glMatV.data());
-
-        GLuint model = glGetUniformLocation(shaderProgram, "model");
-        GLuint view = glGetUniformLocation(shaderProgram, "view");
-        GLuint projection = glGetUniformLocation(shaderProgram, "projection");
-
+        // Getting the uniform matrices location
+        GLuint model = glGetUniformLocation(mShaderProgram, "model");
+        GLuint view = glGetUniformLocation(mShaderProgram, "view");
+        GLuint projection = glGetUniformLocation(mShaderProgram, "projection");
+        // Doing the uniform matrices location assignment
         glUniformMatrix4fv(model, 1, GL_FALSE, glm::value_ptr(matM));
         glUniformMatrix4fv(view, 1, GL_FALSE, glm::value_ptr(matV));
         glUniformMatrix4fv(projection, 1, GL_FALSE, glMatP.data());
 
+        // HDR settings
+        //-------------
         glm::vec3 sunDirection(1, 0, 0);
         float sunIlluminance(1.F);
         float ambientBrightness(mSettings->mGraphics.pAmbientBrightness.get());
 
-        /* if (object == mSolarSystem->getSun()) {
-            // If the overlay is on the sun, we have to calculate the lighting differently.
-            if (mSettings->mGraphics.pEnableHDR.get()) {
-                // The variable is called illuminance, for the sun it contains actually luminance values.
-                sunIlluminance = static_cast<float>(mSolarSystem->getSunLuminance());
-                // For planets, this illuminance is divided by pi, so we have to premultiply it for the sun.
-                sunIlluminance *= glm::pi<float>();
-            }
-            ambientBrightness = 1.0F;
-        } 
-        else { */
-            // For all other bodies we can use the utility methods from the SolarSystem.
         if (mSettings->mGraphics.pEnableHDR.get()) {
             sunIlluminance = static_cast<float>(mSolarSystem->getSunIlluminance(transform[3]));
         }
         sunDirection = glm::normalize(glm::inverse(transform) * glm::dvec4(mSolarSystem->getSunDirection(transform[3]), 0.0));
-        
-        GLint uSunDirectionLocation  = glGetUniformLocation(shaderProgram, "uSunDirection");
-        GLint uSunIlluminanceLocation  = glGetUniformLocation(shaderProgram, "uSunIlluminance");
-        GLint uAmbientBrightnessLocation  = glGetUniformLocation(shaderProgram, "uAmbientBrightness");
-
+        // HDR uniform locations
+        GLint uSunDirectionLocation  = glGetUniformLocation(mShaderProgram, "uSunDirection");
+        GLint uSunIlluminanceLocation  = glGetUniformLocation(mShaderProgram, "uSunIlluminance");
+        GLint uAmbientBrightnessLocation  = glGetUniformLocation(mShaderProgram, "uAmbientBrightness");
+        // HDR uniform assignment
         glUniform1f (uAmbientBrightnessLocation, ambientBrightness);
         glUniform1f (uSunIlluminanceLocation, sunIlluminance);
         glUniform3fv (uSunDirectionLocation, 1, glm::value_ptr(sunDirection));
 
-        // glPushAttrib(GL_POINT_SMOOTH); 
-        // glPushAttrib(GL_BLEND);
-
-        // glEnable(GL_POINT_SMOOTH);
-        // glHint(GL_POINT_SMOOTH_HINT, GL_NICEST);
-
-        // I think blending combines the point's transparecy with the background
-        // glEnable(GL_BLEND);
-        // glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
         // Draw
-        glBindVertexArray(VAO); 
-
+        glBindVertexArray(mVAO); 
         GLfloat lineWidthGL = static_cast<GLfloat>(mLineWidthInput);
-        // std::cout << "Do::Size: " << pointSizeGL << std::endl;
         glLineWidth(lineWidthGL);
-
         glDrawArrays(GL_LINES, 0, static_cast<GLsizei>(3 * mCoordinates.size()));
         glBindVertexArray(0); 
-
-        // glPopAttrib();
-        // glPopAttrib();
 
         return true;
     }

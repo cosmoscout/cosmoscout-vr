@@ -19,17 +19,16 @@
 
 namespace csp::wfsoverlays {
     struct Settings {
-      cs::utils::DefaultProperty<bool> mEnabled{true};
-      std::vector<std::string> mWfs; 
+        cs::utils::DefaultProperty<bool> mEnabled{true};
+        std::vector<std::string> mWfs; 
+        cs::utils::DefaultProperty<bool> mInterpolation{false};
     };
 
-    // TODO: Consider adding the         const std::string PointType = "Point";  
-
-    // Defining the vectors we will later use (just for a tidy code)
-    using PointCoordinates = std::vector<double>;
-    using LineStringCoordinates = std::vector<std::vector<double>>; // Will work for MultiPoint
-    using PolygonCoordinates = std::vector <std::vector <std::vector<double>>>; // Will work for MultiLineString
-    using MultiPolygonCoordinates = std::vector <std::vector <std::vector <std::vector<double>>>>;
+    // defining the vectors we will later use (just for a tidy code)
+    using PointCoordinates = std::vector<double>;                                                           // for points
+    using LineStringCoordinates = std::vector<std::vector<double>>;                                         // for lineStrings and multiPoints
+    using PolygonCoordinates = std::vector <std::vector <std::vector<double>>>;                             // for polygons MultiLineString
+    using MultiPolygonCoordinates = std::vector <std::vector <std::vector <std::vector<double>>>>;          // for multiPolygons
 
     struct GeometryBase {
         std::string mType;
