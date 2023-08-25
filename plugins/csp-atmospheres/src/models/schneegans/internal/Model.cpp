@@ -47,6 +47,22 @@ of the following C++ code.
 #include <iostream>
 #include <memory>
 
+// From the demo application by Eric Bruneton. The original source code can be found here:
+// https://github.com/ebruneton/precomputed_atmospheric_scattering/blob/master/atmosphere/demo/demo.cc
+// Values from "Reference Solar Spectral Irradiance: ASTM G-173", ETR column
+// (see http://rredc.nrel.gov/solar/spectra/am1.5/ASTMG173/ASTMG173.html),
+// summed and averaged in each bin (e.g. the value for 360nm is the average
+// of the ASTM G-173 values for all wavelengths between 360 and 370nm).
+// Values in W.m^-2.
+std::vector<double> WAVELENGTHS = {360, 370, 380, 390, 400, 410, 420, 430, 440, 450, 460, 470, 480,
+    490, 500, 510, 520, 530, 540, 550, 560, 570, 580, 590, 600, 610, 620, 630, 640, 650, 660, 670,
+    680, 690, 700, 710, 720, 730, 740, 750, 760, 770, 780, 790, 800, 810, 820, 830};
+std::vector<double> SOLAR_IRRADIANCE = {1.11776, 1.14259, 1.01249, 1.14716, 1.72765, 1.73054,
+    1.6887, 1.61253, 1.91198, 2.03474, 2.02042, 2.02212, 1.93377, 1.95809, 1.91686, 1.8298, 1.8685,
+    1.8931, 1.85149, 1.8504, 1.8341, 1.8345, 1.8147, 1.78158, 1.7533, 1.6965, 1.68194, 1.64654,
+    1.6048, 1.52143, 1.55622, 1.5113, 1.474, 1.4482, 1.41018, 1.36775, 1.34188, 1.31429, 1.28303,
+    1.26758, 1.2367, 1.2082, 1.18737, 1.14683, 1.12362, 1.1058, 1.07124, 1.04992};
+
 /*
 <p>The rest of this file is organized in 3 parts:
 <ul>
@@ -506,15 +522,14 @@ Evaluation of 8 Clear Sky Models</a> for their definitions):
 */
 
 // The returned constants are in lumen.nm / watt.
-void ComputeSpectralRadianceToLuminanceFactors(const std::vector<double>& wavelengths,
-    const std::vector<double>& solar_irradiance, double lambda_power, double* k_r, double* k_g,
-    double* k_b) {
+void ComputeSpectralRadianceToLuminanceFactors(
+    double lambda_power, double* k_r, double* k_g, double* k_b) {
   *k_r           = 0.0;
   *k_g           = 0.0;
   *k_b           = 0.0;
-  double solar_r = Interpolate(wavelengths, solar_irradiance, Model::kLambdaR);
-  double solar_g = Interpolate(wavelengths, solar_irradiance, Model::kLambdaG);
-  double solar_b = Interpolate(wavelengths, solar_irradiance, Model::kLambdaB);
+  double solar_r = Interpolate(WAVELENGTHS, SOLAR_IRRADIANCE, Model::kLambdaR);
+  double solar_g = Interpolate(WAVELENGTHS, SOLAR_IRRADIANCE, Model::kLambdaG);
+  double solar_b = Interpolate(WAVELENGTHS, SOLAR_IRRADIANCE, Model::kLambdaB);
   int    dlambda = 1;
   for (int lambda = kLambdaMin; lambda < kLambdaMax; lambda += dlambda) {
     double        x_bar      = CieColorMatchingFunctionTableValue(lambda, 1);
@@ -524,7 +539,7 @@ void ComputeSpectralRadianceToLuminanceFactors(const std::vector<double>& wavele
     double        r_bar      = xyz2srgb[0] * x_bar + xyz2srgb[1] * y_bar + xyz2srgb[2] * z_bar;
     double        g_bar      = xyz2srgb[3] * x_bar + xyz2srgb[4] * y_bar + xyz2srgb[5] * z_bar;
     double        b_bar      = xyz2srgb[6] * x_bar + xyz2srgb[7] * y_bar + xyz2srgb[8] * z_bar;
-    double        irradiance = Interpolate(wavelengths, solar_irradiance, lambda);
+    double        irradiance = Interpolate(WAVELENGTHS, SOLAR_IRRADIANCE, lambda);
     *k_r += r_bar * irradiance / solar_r * pow(lambda / Model::kLambdaR, lambda_power);
     *k_g += g_bar * irradiance / solar_g * pow(lambda / Model::kLambdaG, lambda_power);
     *k_b += b_bar * irradiance / solar_b * pow(lambda / Model::kLambdaB, lambda_power);
@@ -550,23 +565,21 @@ initialize them), as well as a vertex buffer object to render a full screen quad
 (used to render into the precomputed textures).
 */
 
-Model::Model(const std::vector<double>& wavelengths, const std::vector<double>& solar_irradiance,
-    const double sun_angular_radius, double bottom_radius, double top_radius,
-    const ScatteringAtmosphereComponent& rayleigh, const ScatteringAtmosphereComponent& mie,
-    const AbsorbingAtmosphereComponent& ozone, const std::vector<double>& ground_albedo,
-    double max_sun_zenith_angle, double length_unit_in_meters,
-    unsigned int num_precomputed_wavelengths)
-    : rayleigh_(rayleigh)
+Model::Model(const std::vector<double>& wavelengths, const double sun_angular_radius,
+    double bottom_radius, double top_radius, const ScatteringAtmosphereComponent& rayleigh,
+    const ScatteringAtmosphereComponent& mie, const AbsorbingAtmosphereComponent& ozone,
+    double ground_albedo, double max_sun_zenith_angle, double length_unit_in_meters)
+    : wavelengths_(wavelengths)
+    , rayleigh_(rayleigh)
     , mie_(mie)
-    , ozone_(ozone)
-    , wavelengths_(wavelengths)
-    , num_precomputed_wavelengths_(num_precomputed_wavelengths) {
+    , ozone_(ozone) {
 
   auto extractVec3 = [this](const std::vector<double>& v, const vec3& lambdas, double scale = 1.0) {
-    if (num_precomputed_wavelengths_ == 3) {
-      return "vec3(" + cs::utils::toString(v[0] * scale) + "," + cs::utils::toString(v[1] * scale) +
-             "," + cs::utils::toString(v[2] * scale) + ")";
-    }
+    // if (num_precomputed_wavelengths_ == 3) {
+    //   return "vec3(" + cs::utils::toString(v[0] * scale) + "," + cs::utils::toString(v[1] *
+    //   scale) +
+    //          "," + cs::utils::toString(v[2] * scale) + ")";
+    // }
     double r = Interpolate(wavelengths_, v, lambdas[0]) * scale;
     double g = Interpolate(wavelengths_, v, lambdas[1]) * scale;
     double b = Interpolate(wavelengths_, v, lambdas[2]) * scale;
@@ -613,8 +626,6 @@ Model::Model(const std::vector<double>& wavelengths, const std::vector<double>& 
 
     ss << ")";
 
-    std::cout << ss.str() << std::endl;
-
     return ss.str();
   };
 
@@ -640,18 +651,16 @@ Model::Model(const std::vector<double>& wavelengths, const std::vector<double>& 
   // (because the values are too large), so we store illuminance values divided
   // by MAX_LUMINOUS_EFFICACY instead. This is why, in precomputed illuminance
   // mode, we set SKY_RADIANCE_TO_LUMINANCE to MAX_LUMINOUS_EFFICACY.
-  bool   precompute_illuminance = num_precomputed_wavelengths > 3;
+  bool   precompute_illuminance = wavelengths_.size() > 3;
   double sky_k_r, sky_k_g, sky_k_b;
   if (precompute_illuminance) {
     sky_k_r = sky_k_g = sky_k_b = MAX_LUMINOUS_EFFICACY;
   } else {
-    ComputeSpectralRadianceToLuminanceFactors(
-        wavelengths_, solar_irradiance, -3 /* lambda_power */, &sky_k_r, &sky_k_g, &sky_k_b);
+    ComputeSpectralRadianceToLuminanceFactors(-3 /* lambda_power */, &sky_k_r, &sky_k_g, &sky_k_b);
   }
   // Compute the values for the SUN_RADIANCE_TO_LUMINANCE constant.
   double sun_k_r, sun_k_g, sun_k_b;
-  ComputeSpectralRadianceToLuminanceFactors(
-      wavelengths_, solar_irradiance, 0 /* lambda_power */, &sun_k_r, &sun_k_g, &sun_k_b);
+  ComputeSpectralRadianceToLuminanceFactors(0 /* lambda_power */, &sun_k_r, &sun_k_g, &sun_k_b);
 
   // A lambda that creates a GLSL header containing our atmosphere computation
   // functions, specialized for the given atmosphere parameters and for the 3
@@ -680,8 +689,8 @@ Model::Model(const std::vector<double>& wavelengths, const std::vector<double>& 
             definitions_glsl +
             "const vec3 SKY_SPECTRAL_RADIANCE_TO_LUMINANCE = vec3(" + cs::utils::toString(sky_k_r) + "," + cs::utils::toString(sky_k_g) + "," + cs::utils::toString(sky_k_b) + ");\n" +
             "const vec3 SUN_SPECTRAL_RADIANCE_TO_LUMINANCE = vec3(" + cs::utils::toString(sun_k_r) + "," + cs::utils::toString(sun_k_g) + "," + cs::utils::toString(sun_k_b) + ");\n" +
-            "const vec3 SOLAR_IRRADIANCE = "            + extractVec3(solar_irradiance, lambdas) + ";\n" +
-            "const vec3 GROUND_ALBEDO = "               + extractVec3(ground_albedo, lambdas) + ";\n" +
+            "const vec3 SOLAR_IRRADIANCE = "            + extractVec3(SOLAR_IRRADIANCE, lambdas) + ";\n" +
+            "const vec3 GROUND_ALBEDO = vec3("          + cs::utils::toString(ground_albedo) + ");\n" +
             "const float SUN_ANGULAR_RADIUS = "         + cs::utils::toString(sun_angular_radius) + ";\n" +
             "const float BOTTOM_RADIUS = "              + cs::utils::toString(bottom_radius / length_unit_in_meters) + ";\n" +
             "const float TOP_RADIUS = "                 + cs::utils::toString(top_radius / length_unit_in_meters) + ";\n" +
@@ -698,7 +707,7 @@ Model::Model(const std::vector<double>& wavelengths, const std::vector<double>& 
   transmittance_texture_ = NewTexture2d(
       TRANSMITTANCE_TEXTURE_WIDTH, TRANSMITTANCE_TEXTURE_HEIGHT, GL_RGBA32F, GL_RGBA, GL_FLOAT);
   multiple_scattering_texture_   = NewTexture3d(SCATTERING_TEXTURE_WIDTH, SCATTERING_TEXTURE_HEIGHT,
-      SCATTERING_TEXTURE_DEPTH, GL_RGBA32F, GL_RGBA, GL_FLOAT);
+        SCATTERING_TEXTURE_DEPTH, GL_RGBA32F, GL_RGBA, GL_FLOAT);
   single_mie_scattering_texture_ = NewTexture3d(SCATTERING_TEXTURE_WIDTH, SCATTERING_TEXTURE_HEIGHT,
       SCATTERING_TEXTURE_DEPTH, GL_RGBA32F, GL_RGBA, GL_FLOAT);
   single_rayleigh_scattering_texture_ = NewTexture3d(SCATTERING_TEXTURE_WIDTH,
@@ -819,9 +828,9 @@ void Model::Init(unsigned int num_scattering_orders) {
   GLuint delta_rayleigh_scattering_texture = NewTexture3d(SCATTERING_TEXTURE_WIDTH,
       SCATTERING_TEXTURE_HEIGHT, SCATTERING_TEXTURE_DEPTH, GL_RGBA32F, GL_RGBA, GL_FLOAT);
   GLuint delta_mie_scattering_texture      = NewTexture3d(SCATTERING_TEXTURE_WIDTH,
-      SCATTERING_TEXTURE_HEIGHT, SCATTERING_TEXTURE_DEPTH, GL_RGBA32F, GL_RGBA, GL_FLOAT);
+           SCATTERING_TEXTURE_HEIGHT, SCATTERING_TEXTURE_DEPTH, GL_RGBA32F, GL_RGBA, GL_FLOAT);
   GLuint delta_scattering_density_texture  = NewTexture3d(SCATTERING_TEXTURE_WIDTH,
-      SCATTERING_TEXTURE_HEIGHT, SCATTERING_TEXTURE_DEPTH, GL_RGBA32F, GL_RGBA, GL_FLOAT);
+       SCATTERING_TEXTURE_HEIGHT, SCATTERING_TEXTURE_DEPTH, GL_RGBA32F, GL_RGBA, GL_FLOAT);
   // delta_multiple_scattering_texture is only needed to compute scattering
   // order 3 or more, while delta_rayleigh_scattering_texture and
   // delta_mie_scattering_texture are only needed to compute double scattering.
@@ -837,7 +846,7 @@ void Model::Init(unsigned int num_scattering_orders) {
 
   // The actual precomputations depend on whether we want to store precomputed
   // irradiance or illuminance values.
-  if (num_precomputed_wavelengths_ <= 3) {
+  if (wavelengths_.size() <= 3) {
     vec3 lambdas{kLambdaR, kLambdaG, kLambdaB};
     mat3 luminance_from_radiance{1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0};
     Precompute(fbo, delta_irradiance_texture, delta_rayleigh_scattering_texture,
@@ -847,7 +856,7 @@ void Model::Init(unsigned int num_scattering_orders) {
   } else {
     constexpr double kLambdaMin     = 360.0;
     constexpr double kLambdaMax     = 830.0;
-    int              num_iterations = (num_precomputed_wavelengths_ + 2) / 3;
+    int              num_iterations = (wavelengths_.size() + 2) / 3;
     double           dlambda        = (kLambdaMax - kLambdaMin) / (3 * num_iterations);
     for (int i = 0; i < num_iterations; ++i) {
       vec3 lambdas{kLambdaMin + (3 * i + 0.5) * dlambda, kLambdaMin + (3 * i + 1.5) * dlambda,

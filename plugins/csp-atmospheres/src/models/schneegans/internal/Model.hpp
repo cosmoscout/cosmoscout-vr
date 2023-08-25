@@ -206,9 +206,6 @@ class Model {
       // results (this number of wavelengths has absolutely no impact on the
       // shader performance).
       const std::vector<double>& wavelengths,
-      // The solar irradiance at the top of the atmosphere, in W/m^2/nm. This
-      // vector must have the same size as the wavelengths parameter.
-      const std::vector<double>& solar_irradiance,
       // The sun's angular radius, in radians. Warning: the implementation uses
       // approximations that are valid only if this value is smaller than 0.1.
       double sun_angular_radius,
@@ -225,9 +222,8 @@ class Model {
 
       const AbsorbingAtmosphereComponent& ozone,
 
-      // The average albedo of the ground, as a function of wavelength. This
-      // vector must have the same size as the wavelengths parameter.
-      const std::vector<double>& ground_albedo,
+      // The average albedo of the ground.
+      double ground_albedo,
       // The maximum Sun zenith angle for which atmospheric scattering must be
       // precomputed, in radians (for maximum precision, use the smallest Sun
       // zenith angle yielding negligible sky light radiance values. For instance,
@@ -236,21 +232,7 @@ class Model {
       double max_sun_zenith_angle,
       // The length unit used in your shaders and meshes. This is the length unit
       // which must be used when calling the atmosphere model shader functions.
-      double length_unit_in_meters,
-      // The number of wavelengths for which atmospheric scattering must be
-      // precomputed (the temporary GPU memory used during precomputations, and
-      // the GPU memory used by the precomputed results, is independent of this
-      // number, but the <i>precomputation time is directly proportional to this
-      // number</i>):
-      // - if this number is less than or equal to 3, scattering is precomputed
-      // for 3 wavelengths, and stored as irradiance values. Then both the
-      // radiance-based and the luminance-based API functions are provided (see
-      // the above note).
-      // - otherwise, scattering is precomputed for this number of wavelengths
-      // (rounded up to a multiple of 3), integrated with the CIE color matching
-      // functions, and stored as illuminance values. Then only the
-      // luminance-based API functions are provided (see the above note).
-      unsigned int num_precomputed_wavelengths);
+      double length_unit_in_meters);
 
   ~Model();
 
@@ -291,12 +273,12 @@ class Model {
       std::vector<ScatteringAtmosphereComponent> const& scatteringComponents,
       const Model::vec3&                                lambdas);
 
+  std::vector<double> wavelengths_;
+
   ScatteringAtmosphereComponent rayleigh_;
   ScatteringAtmosphereComponent mie_;
   AbsorbingAtmosphereComponent  ozone_;
 
-  std::vector<double>                     wavelengths_;
-  unsigned int                            num_precomputed_wavelengths_;
   std::function<std::string(const vec3&)> glsl_header_factory_;
   GLuint                                  phase_texture_                      = 0;
   GLuint                                  transmittance_texture_              = 0;

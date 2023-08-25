@@ -36,14 +36,17 @@ std::string replaceTabsWithWhitespaces(std::string& s) {
 }
 } // namespace
 
-std::vector<std::vector<double>> CSVLoader::read2DTable(std::string const& filename) {
+std::vector<std::vector<double>> CSVLoader::readPhase(
+    std::string const& filename, std::vector<double>& wavelengths) {
   std::vector<std::vector<double>> result;
+
+  bool checkWavelengths = !wavelengths.empty();
 
   readLines(filename, [&](long lineNumber, std::string line) {
     std::stringstream ss(trim(removeMultiWhitespaces(replaceTabsWithWhitespaces(line))));
 
-    // Skip empty lines and first line.
-    if (ss.rdbuf()->in_avail() == 0 || lineNumber == 0) {
+    // Skip empty lines.
+    if (ss.rdbuf()->in_avail() == 0) {
       return;
     }
 
@@ -51,21 +54,42 @@ std::vector<std::vector<double>> CSVLoader::read2DTable(std::string const& filen
 
     std::vector<double> intensities;
 
-    // Remove angle.
+    // Remove first column.
     elements.erase(elements.begin());
 
-    for (auto& e : elements) {
-      intensities.push_back(std::stof(e));
-    }
+    if (lineNumber == 0) {
+      for (size_t i(0); i < elements.size(); ++i) {
+        float lambda = std::stof(elements[i]);
 
-    result.push_back(intensities);
+        if (checkWavelengths) {
+          if (lambda != wavelengths[i]) {
+            throw std::runtime_error(
+                "Failed to read phase from '" + filename +
+                "': Wavelengths are not the same as in a previously loaded data set!");
+          }
+        } else {
+          wavelengths.push_back(lambda);
+        }
+      }
+
+    } else {
+
+      for (auto& e : elements) {
+        intensities.push_back(std::stof(e));
+      }
+
+      result.push_back(intensities);
+    }
   });
 
   return result;
 }
 
-std::vector<double> CSVLoader::read1DTable(std::string const& filename) {
+std::vector<double> CSVLoader::readExtinction(
+    std::string const& filename, std::vector<double>& wavelengths) {
   std::vector<double> result;
+
+  bool checkWavelengths = !wavelengths.empty();
 
   readLines(filename, [&](long lineNumber, std::string line) {
     std::stringstream ss(trim(removeMultiWhitespaces(replaceTabsWithWhitespaces(line))));
@@ -76,6 +100,17 @@ std::vector<double> CSVLoader::read1DTable(std::string const& filename) {
     }
 
     auto elements = lineToArray(ss, ',');
+
+    float lambda = std::stof(elements[0]);
+    if (checkWavelengths) {
+      if (lambda != wavelengths[lineNumber - 1]) {
+        throw std::runtime_error(
+            "Failed to read extinction from '" + filename +
+            "': Wavelengths are not the same as in a previously loaded data set!");
+      }
+    } else {
+      wavelengths.push_back(lambda);
+    }
 
     result.push_back(std::stof(elements[1]));
   });

@@ -24,8 +24,10 @@ namespace csp::atmospheres::models::schneegans::internal {
 
 class CSVLoader {
  public:
-  static std::vector<std::vector<double>> read2DTable(std::string const& filename);
-  static std::vector<double>              read1DTable(std::string const& filename);
+  static std::vector<std::vector<double>> readPhase(
+      std::string const& filename, std::vector<double>& wavelengths);
+  static std::vector<double> readExtinction(
+      std::string const& filename, std::vector<double>& wavelengths);
 
  private:
   static std::vector<std::string> lineToArray(std::stringstream& ss, char delimiter);
