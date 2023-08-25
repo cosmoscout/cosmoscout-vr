@@ -482,10 +482,10 @@ function (specified by some samples), and a CIE color matching function
 of the following two functions:
 */
 
-constexpr int kLambdaMin = 360;
-constexpr int kLambdaMax = 830;
-
 double CieColorMatchingFunctionTableValue(double wavelength, int column) {
+  constexpr int kLambdaMin = 360;
+  constexpr int kLambdaMax = 830;
+
   if (wavelength <= kLambdaMin || wavelength >= kLambdaMax) {
     return 0.0;
   }
@@ -522,7 +522,7 @@ Evaluation of 8 Clear Sky Models</a> for their definitions):
 */
 
 // The returned constants are in lumen.nm / watt.
-void ComputeSpectralRadianceToLuminanceFactors(
+void ComputeSpectralRadianceToLuminanceFactors(double lambdaMin, double lambdaMax,
     double lambda_power, double* k_r, double* k_g, double* k_b) {
   *k_r           = 0.0;
   *k_g           = 0.0;
@@ -531,7 +531,7 @@ void ComputeSpectralRadianceToLuminanceFactors(
   double solar_g = Interpolate(WAVELENGTHS, SOLAR_IRRADIANCE, Model::kLambdaG);
   double solar_b = Interpolate(WAVELENGTHS, SOLAR_IRRADIANCE, Model::kLambdaB);
   int    dlambda = 1;
-  for (int lambda = kLambdaMin; lambda < kLambdaMax; lambda += dlambda) {
+  for (int lambda = lambdaMin; lambda < lambdaMax; lambda += dlambda) {
     double        x_bar      = CieColorMatchingFunctionTableValue(lambda, 1);
     double        y_bar      = CieColorMatchingFunctionTableValue(lambda, 2);
     double        z_bar      = CieColorMatchingFunctionTableValue(lambda, 3);
@@ -652,15 +652,19 @@ Model::Model(const std::vector<double>& wavelengths, const double sun_angular_ra
   // by MAX_LUMINOUS_EFFICACY instead. This is why, in precomputed illuminance
   // mode, we set SKY_RADIANCE_TO_LUMINANCE to MAX_LUMINOUS_EFFICACY.
   bool   precompute_illuminance = wavelengths_.size() > 3;
+  double lambdaMin              = wavelengths_.front();
+  double lambdaMax              = wavelengths_.back();
   double sky_k_r, sky_k_g, sky_k_b;
   if (precompute_illuminance) {
     sky_k_r = sky_k_g = sky_k_b = MAX_LUMINOUS_EFFICACY;
   } else {
-    ComputeSpectralRadianceToLuminanceFactors(-3 /* lambda_power */, &sky_k_r, &sky_k_g, &sky_k_b);
+    ComputeSpectralRadianceToLuminanceFactors(
+        lambdaMin, lambdaMax, -3 /* lambda_power */, &sky_k_r, &sky_k_g, &sky_k_b);
   }
   // Compute the values for the SUN_RADIANCE_TO_LUMINANCE constant.
   double sun_k_r, sun_k_g, sun_k_b;
-  ComputeSpectralRadianceToLuminanceFactors(0 /* lambda_power */, &sun_k_r, &sun_k_g, &sun_k_b);
+  ComputeSpectralRadianceToLuminanceFactors(
+      lambdaMin, lambdaMax, 0 /* lambda_power */, &sun_k_r, &sun_k_g, &sun_k_b);
 
   // A lambda that creates a GLSL header containing our atmosphere computation
   // functions, specialized for the given atmosphere parameters and for the 3
@@ -854,13 +858,13 @@ void Model::Init(unsigned int num_scattering_orders) {
         delta_multiple_scattering_texture, lambdas, luminance_from_radiance, false /* blend */,
         num_scattering_orders);
   } else {
-    constexpr double kLambdaMin     = 360.0;
-    constexpr double kLambdaMax     = 830.0;
-    int              num_iterations = (wavelengths_.size() + 2) / 3;
-    double           dlambda        = (kLambdaMax - kLambdaMin) / (3 * num_iterations);
+    double lambdaMin      = wavelengths_.front();
+    double lambdaMax      = wavelengths_.back();
+    int    num_iterations = (wavelengths_.size() + 2) / 3;
+    double dlambda        = (lambdaMax - lambdaMin) / (3 * num_iterations);
     for (int i = 0; i < num_iterations; ++i) {
-      vec3 lambdas{kLambdaMin + (3 * i + 0.5) * dlambda, kLambdaMin + (3 * i + 1.5) * dlambda,
-          kLambdaMin + (3 * i + 2.5) * dlambda};
+      vec3 lambdas{lambdaMin + (3 * i + 0.5) * dlambda, lambdaMin + (3 * i + 1.5) * dlambda,
+          lambdaMin + (3 * i + 2.5) * dlambda};
       auto coeff = [dlambda](double lambda, int component) {
         // Note that we don't include MAX_LUMINOUS_EFFICACY here, to avoid
         // artefacts due to too large values when using half precision on GPU.
@@ -951,33 +955,6 @@ void Model::SetProgramUniforms(GLuint program, GLuint phase_texture_unit,
   glBindTexture(GL_TEXTURE_3D, single_rayleigh_scattering_texture_);
   glUniform1i(glGetUniformLocation(program, "single_rayleigh_scattering_texture"),
       single_rayleigh_scattering_texture_unit);
-}
-
-/*
-<p>The utility method <code>ConvertSpectrumToLinearSrgb</code> is implemented
-with a simple numerical integration of the given function, times the CIE color
-matching funtions (with an integration step of 1nm), followed by a matrix
-multiplication:
-*/
-
-void Model::ConvertSpectrumToLinearSrgb(const std::vector<double>& wavelengths,
-    const std::vector<double>& spectrum, double* r, double* g, double* b) {
-  double    x       = 0.0;
-  double    y       = 0.0;
-  double    z       = 0.0;
-  const int dlambda = 1;
-  for (int lambda = kLambdaMin; lambda < kLambdaMax; lambda += dlambda) {
-    double value = Interpolate(wavelengths, spectrum, lambda);
-    x += CieColorMatchingFunctionTableValue(lambda, 1) * value;
-    y += CieColorMatchingFunctionTableValue(lambda, 2) * value;
-    z += CieColorMatchingFunctionTableValue(lambda, 3) * value;
-  }
-  *r = MAX_LUMINOUS_EFFICACY * (XYZ_TO_SRGB[0] * x + XYZ_TO_SRGB[1] * y + XYZ_TO_SRGB[2] * z) *
-       dlambda;
-  *g = MAX_LUMINOUS_EFFICACY * (XYZ_TO_SRGB[3] * x + XYZ_TO_SRGB[4] * y + XYZ_TO_SRGB[5] * z) *
-       dlambda;
-  *b = MAX_LUMINOUS_EFFICACY * (XYZ_TO_SRGB[6] * x + XYZ_TO_SRGB[7] * y + XYZ_TO_SRGB[8] * z) *
-       dlambda;
 }
 
 /*
