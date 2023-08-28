@@ -22,6 +22,8 @@
       this._colorDiv = document.getElementById("bookmark-editor-color");
     }
 
+    // Here we manage the properties display at the GUI
+    //-------------------------------------------------
     setFeatureProperties (properties) {
 
       const props = JSON.parse(properties);
@@ -57,7 +59,7 @@
         }
         row.appendChild(colorCell);
 
-        // time cell
+        // time cell  (note that unlike for the color cell, we do not process dates in the .cpp)
         const timeCell = document.createElement("td");
         if (item.localType == "date-time") {
           const radioButtonTime = document.createElement("input");
@@ -65,25 +67,28 @@
           radioButtonTime.name = "selectedTime";
           radioButtonTime.value = item.name;
           radioButtonTime.style.display = "block";
-          // TODO: we could add an event listener here
+          // we could add an event listener here
           timeCell.appendChild(radioButtonTime);  
         }
         row.appendChild(timeCell);
 
-        // append the whole row containing all the cells above
+        // append the whole row containing all the cells above (name, type, color, time)
         tbody.appendChild(row);
       });
     }
 
+    // Here we manage the point size selection displayed at the GUI
+    //-------------------------------------------------------------
     setSize () {
       const sizeSlider = document.getElementById("size-slider");
       sizeSlider.addEventListener('change', function () {
         const selectedValue = sizeSlider.value;
         CosmoScout.callbacks.wfsOverlays.setSize(selectedValue);
-        // console.log("js::Size transmitido al cpp:", typeof selectedValue);
       });
     }
 
+    // Here we manage the line width selection displayed at the GUI
+    //-------------------------------------------------------------
     setWidth () {
       const widthSlider = document.getElementById("width-slider");
       widthSlider.addEventListener('change', function () {

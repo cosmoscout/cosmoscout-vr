@@ -67,51 +67,51 @@ namespace csp::wfsoverlays {
     };
 
     struct Feature {  
-        std::string type;
-        std::string id;
-        std::shared_ptr<GeometryBase> geometry;
-        std::string geometry_name;
-        std::unordered_map<std::string, nlohmann::json> properties;
-        std::array<float, 4> bbox;
+        std::string mType;
+        std::string mId;
+        std::shared_ptr<GeometryBase> mGeometry;
+        std::string mGeometry_name;
+        std::unordered_map<std::string, nlohmann::json> mProperties;
+        // std::array<float, 4> mBbox;
     };
 
     struct CRS {
-        std::string type;
-        //std::unordered_map<std::string, std::string> properties;
+        std::string mType;
+        //std::unordered_map<std::string, std::string> mProperties;
     };
 
     struct WFSFeatureCollection {
-        std::string type;
-        std::vector<Feature> features;
-        int totalFeatures;
-        int numberMatched;
-        int numberReturned;
-        std::string timeStamp;
-        CRS crs; 
-        std::array<float, 4> bbox;
+        std::string mType;
+        std::vector<Feature> mFeatures;
+        int mTotalFeatures;
+        int mNumberMatched;
+        int mNumberReturned;
+        std::string mTimeStamp;
+        CRS mCrs; 
+        // std::array<float, 4> mBbox;
     };
 
     /////////////////////////////
 
     struct Property {
-        std::string name;
-        int maxOccurs;
-        int minOccurs;
-        bool nillable;
-        std::string type;
-        std::string localType;
+        std::string mName;
+        int mMaxOccurs;
+        int mMinOccurs;
+        bool mNillable;
+        std::string mType;
+        std::string mLocalType;
     };
 
     struct FeatureType {
-        std::string typeName;
-        std::vector<Property> properties;
+        std::string mTypeName;
+        std::vector<Property> mProperties;
     };
 
     struct DescribeFeatureType {
-        std::string elementFormDefault;
-        std::string targetNamespace;
-        std::string targetPrefix;
-        std::vector<FeatureType> featureTypes;
+        std::string mElementFormDefault;
+        std::string mTargetNamespace;
+        std::string mTargetPrefix;
+        std::vector<FeatureType> mFeatureTypes;
     };
 
     double mPointSize;

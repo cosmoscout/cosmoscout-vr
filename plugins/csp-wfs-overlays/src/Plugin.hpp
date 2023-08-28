@@ -42,12 +42,11 @@ class Plugin : public cs::core::PluginBase {
     void setWFSFeatureType(std::string featureType);
     void setRendering(double pointSize, double lineWidth);  
     double calculateDistance(InfoStruct const& p1, InfoStruct const& p2, glm::vec3 earthRadius);
-    void correctHeight (InfoStruct const& struct1, InfoStruct const& struct2, InfoStruct& temporaryStruct,  
-                                                    std::shared_ptr<const cs::scene::CelestialObject> earth);
+    void correctHeight (InfoStruct const& struct1, InfoStruct const& struct2, InfoStruct& temporaryStruct, std::shared_ptr<const cs::scene::CelestialObject> earth);
     double calculateAngle (InfoStruct const& previousPoint, InfoStruct const& middlePoint, InfoStruct const& nextPoint);
-    std::vector<InfoStruct> Interpolation (std::vector<InfoStruct> const& structsIn, double thresholdAngle, glm::vec3 earthRadius, std::shared_ptr<const cs::scene::CelestialObject> earth);
-    std::vector<glm::dvec3> generateMidPoint (std::vector <InfoStruct> const& structIn, float threshold, 
-                                                        glm::vec3 earthRadius, std::shared_ptr<const cs::scene::CelestialObject> earth, glm::vec3 featureColor);     
+    std::vector<InfoStruct> interpolation (std::vector<InfoStruct> const& structsIn, double thresholdAngle, glm::vec3 earthRadius, std::shared_ptr<const cs::scene::CelestialObject> earth);
+    std::vector<glm::dvec3> generateMidPoint (std::vector <InfoStruct> const& structIn, float threshold, glm::vec3 earthRadius, std::shared_ptr<const cs::scene::CelestialObject> earth, glm::vec3 featureColor);     
+  
   private:
 
     void onLoad();
