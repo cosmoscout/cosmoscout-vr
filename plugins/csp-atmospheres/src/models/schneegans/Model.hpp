@@ -44,7 +44,7 @@ class Model : public ModelBase {
     double                             mSunAngularRadius = 0.004675;
     ScatteringComponent                mParticlesA;
     ScatteringComponent                mParticlesB;
-    AbsorbingComponent                 mAbsorbingParticles;
+    std::optional<AbsorbingComponent>  mAbsorbingParticles;
     cs::utils::DefaultProperty<double> mGroundAlbedo{0.1};
   };
 

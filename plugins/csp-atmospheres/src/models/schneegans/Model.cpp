@@ -118,13 +118,19 @@ bool Model::init(
   mie.scattering = internal::CSVLoader::readExtinction(settings.mParticlesB.mBetaSca, wavelengths);
   mie.absorption = internal::CSVLoader::readExtinction(settings.mParticlesB.mBetaAbs, wavelengths);
 
-  for (auto const& layer : settings.mAbsorbingParticles.mLayers) {
-    ozone.layers.emplace_back(
-        layer.mWidth, layer.mExpTerm, layer.mExpScale, layer.mLinearTerm, layer.mConstantTerm);
-  }
+  if (settings.mAbsorbingParticles) {
 
-  ozone.absorption =
-      internal::CSVLoader::readExtinction(settings.mAbsorbingParticles.mBetaAbs, wavelengths);
+    for (auto const& layer : settings.mAbsorbingParticles->mLayers) {
+      ozone.layers.emplace_back(
+          layer.mWidth, layer.mExpTerm, layer.mExpScale, layer.mLinearTerm, layer.mConstantTerm);
+    }
+
+    ozone.absorption =
+        internal::CSVLoader::readExtinction(settings.mAbsorbingParticles->mBetaAbs, wavelengths);
+
+  } else {
+    ozone.absorption = std::vector<double>(wavelengths.size(), 0.0);
+  }
 
   if (wavelengths.size() < 3) {
     throw std::runtime_error(
