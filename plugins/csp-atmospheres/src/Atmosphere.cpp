@@ -122,10 +122,12 @@ void Atmosphere::configure(Plugin::Settings::Atmosphere const& settings) {
     }
 
     // Reconfigure the model if any related parameter changed.
-    if (mRadii != radii || settings.mHeight != mSettings.mHeight ||
+    if (mRadii != radii || settings.mTopAltitude != mSettings.mTopAltitude ||
+        settings.mBottomAltitude != mSettings.mBottomAltitude ||
         settings.mModelSettings != mSettings.mModelSettings) {
 
-      if (mModel->init(settings.mModelSettings, radii[0], radii[0] + settings.mHeight)) {
+      if (mModel->init(settings.mModelSettings, radii[0] + settings.mBottomAltitude.get(),
+              radii[0] + settings.mTopAltitude)) {
         mShaderDirty = true;
       }
     }
@@ -146,7 +148,9 @@ void Atmosphere::configure(Plugin::Settings::Atmosphere const& settings) {
       mShaderDirty = true;
     }
 
-    if (mSettings.mHeight != settings.mHeight || mSettings.mEnableWater != settings.mEnableWater ||
+    if (mSettings.mTopAltitude != settings.mTopAltitude ||
+        mSettings.mBottomAltitude != settings.mBottomAltitude ||
+        mSettings.mEnableWater != settings.mEnableWater ||
         mSettings.mEnableWaves != settings.mEnableWaves ||
         mSettings.mEnableClouds != settings.mEnableClouds) {
       mShaderDirty = true;
@@ -169,9 +173,10 @@ void Atmosphere::updateShader() {
       "../share/resources/shaders/csp-atmospheres/atmosphere.frag");
 
   cs::utils::replaceString(sFrag, "SKYDOME_MODE", "0");
-  cs::utils::replaceString(sFrag, "PLANET_RADIUS", std::to_string(mRadii[0]));
   cs::utils::replaceString(
-      sFrag, "ATMOSPHERE_RADIUS", std::to_string(mRadii[0] + mSettings.mHeight));
+      sFrag, "PLANET_RADIUS", std::to_string(mRadii[0] + mSettings.mBottomAltitude.get()));
+  cs::utils::replaceString(
+      sFrag, "ATMOSPHERE_RADIUS", std::to_string(mRadii[0] + mSettings.mTopAltitude));
   cs::utils::replaceString(
       sFrag, "ENABLE_CLOUDS", std::to_string(mSettings.mEnableClouds.get() && mCloudTexture));
   cs::utils::replaceString(sFrag, "ENABLE_WATER", std::to_string(mSettings.mEnableWater.get()));
@@ -236,8 +241,8 @@ void Atmosphere::update(double time) {
 
     // Altitude in [0.2x atmosphere boundary ... 5x atmosphere boundary] -> [0 ... 1]
     double heightInAtmosphere =
-        std::min(1.0, std::max(0.0, (dist - object->getRadii()[0] - mSettings.mHeight * 0.2) /
-                                        (mSettings.mHeight * 5.0)));
+        std::min(1.0, std::max(0.0, (dist - object->getRadii()[0] - mSettings.mTopAltitude * 0.2) /
+                                        (mSettings.mTopAltitude * 5.0)));
 
     // [noon ... midnight] -> [1 ... -1]
     double daySide = glm::dot(-toPlanet, glm::dvec3(mSunDirection));
@@ -427,9 +432,10 @@ void Atmosphere::renderSkyDome(std::string const& fileName) const {
       "../share/resources/shaders/csp-atmospheres/atmosphere.frag");
 
   cs::utils::replaceString(sFrag, "SKYDOME_MODE", "1");
-  cs::utils::replaceString(sFrag, "PLANET_RADIUS", std::to_string(mRadii[0]));
   cs::utils::replaceString(
-      sFrag, "ATMOSPHERE_RADIUS", std::to_string(mRadii[0] + mSettings.mHeight));
+      sFrag, "PLANET_RADIUS", std::to_string(mRadii[0] + mSettings.mBottomAltitude.get()));
+  cs::utils::replaceString(
+      sFrag, "ATMOSPHERE_RADIUS", std::to_string(mRadii[0] + mSettings.mTopAltitude));
   cs::utils::replaceString(sFrag, "ENABLE_CLOUDS", "0");
   cs::utils::replaceString(sFrag, "ENABLE_WATER", "0");
   cs::utils::replaceString(sFrag, "ENABLE_WAVES", "0");

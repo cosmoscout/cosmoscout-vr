@@ -41,13 +41,14 @@ class Plugin : public cs::core::PluginBase {
       nlohmann::json mModelSettings;
 
       /// These parameters are model-agnostic.
-      double                            mHeight; ///< In meters.
-      cs::utils::DefaultProperty<bool>  mEnableWater{false};
-      cs::utils::DefaultProperty<bool>  mEnableWaves{true};
-      cs::utils::DefaultProperty<float> mWaterLevel{0.F}; ///< In meters.
-      cs::utils::DefaultProperty<bool>  mEnableClouds{true};
-      std::optional<std::string>        mCloudTexture;          ///< Path to the cloud texture.
-      cs::utils::DefaultProperty<float> mCloudAltitude{3000.F}; ///< In meters.
+      double                             mTopAltitude; ///< In meters.
+      cs::utils::DefaultProperty<double> mBottomAltitude{0.0}; ///< In meters.
+      cs::utils::DefaultProperty<bool>   mEnableWater{false};
+      cs::utils::DefaultProperty<bool>   mEnableWaves{true};
+      cs::utils::DefaultProperty<float>  mWaterLevel{0.F}; ///< In meters.
+      cs::utils::DefaultProperty<bool>   mEnableClouds{true};
+      std::optional<std::string>         mCloudTexture;          ///< Path to the cloud texture.
+      cs::utils::DefaultProperty<float>  mCloudAltitude{3000.F}; ///< In meters.
     };
 
     std::unordered_map<std::string, Atmosphere> mAtmospheres;
