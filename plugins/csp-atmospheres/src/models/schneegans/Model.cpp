@@ -20,7 +20,7 @@ namespace csp::atmospheres::models::schneegans {
 void from_json(nlohmann::json const& j, Model::Settings::Layer& o) {
   cs::core::Settings::deserialize(j, "width", o.mWidth);
   cs::core::Settings::deserialize(j, "expTerm", o.mExpTerm);
-  cs::core::Settings::deserialize(j, "expScale", o.mExpScale);
+  cs::core::Settings::deserialize(j, "scaleHeight", o.mScaleHeight);
   cs::core::Settings::deserialize(j, "linearTerm", o.mLinearTerm);
   cs::core::Settings::deserialize(j, "constantTerm", o.mConstantTerm);
 }
@@ -28,7 +28,7 @@ void from_json(nlohmann::json const& j, Model::Settings::Layer& o) {
 void to_json(nlohmann::json& j, Model::Settings::Layer const& o) {
   cs::core::Settings::serialize(j, "width", o.mWidth);
   cs::core::Settings::serialize(j, "expTerm", o.mExpTerm);
-  cs::core::Settings::serialize(j, "expScale", o.mExpScale);
+  cs::core::Settings::serialize(j, "scaleHeight", o.mScaleHeight);
   cs::core::Settings::serialize(j, "linearTerm", o.mLinearTerm);
   cs::core::Settings::serialize(j, "constantTerm", o.mConstantTerm);
 }
@@ -100,7 +100,7 @@ bool Model::init(
 
   for (auto const& layer : settings.mParticlesA.mLayers) {
     rayleigh.layers.emplace_back(
-        layer.mWidth, layer.mExpTerm, layer.mExpScale, layer.mLinearTerm, layer.mConstantTerm);
+        layer.mWidth, layer.mExpTerm, layer.mScaleHeight, layer.mLinearTerm, layer.mConstantTerm);
   }
 
   rayleigh.phase = internal::CSVLoader::readPhase(settings.mParticlesA.mPhase, wavelengths);
@@ -111,7 +111,7 @@ bool Model::init(
 
   for (auto const& layer : settings.mParticlesB.mLayers) {
     mie.layers.emplace_back(
-        layer.mWidth, layer.mExpTerm, layer.mExpScale, layer.mLinearTerm, layer.mConstantTerm);
+        layer.mWidth, layer.mExpTerm, layer.mScaleHeight, layer.mLinearTerm, layer.mConstantTerm);
   }
 
   mie.phase      = internal::CSVLoader::readPhase(settings.mParticlesB.mPhase, wavelengths);
@@ -122,7 +122,7 @@ bool Model::init(
 
     for (auto const& layer : settings.mAbsorbingParticles->mLayers) {
       ozone.layers.emplace_back(
-          layer.mWidth, layer.mExpTerm, layer.mExpScale, layer.mLinearTerm, layer.mConstantTerm);
+          layer.mWidth, layer.mExpTerm, layer.mScaleHeight, layer.mLinearTerm, layer.mConstantTerm);
     }
 
     ozone.absorption =

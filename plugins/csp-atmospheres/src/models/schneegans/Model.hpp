@@ -24,7 +24,7 @@ class Model : public ModelBase {
     struct Layer {
       double mWidth;
       double mExpTerm;
-      double mExpScale;
+      double mScaleHeight;
       double mLinearTerm;
       double mConstantTerm;
     };

@@ -590,7 +590,7 @@ Model::Model(const std::vector<double>& wavelengths, const double sun_angular_ra
   auto densityLayer = [length_unit_in_meters](const DensityProfileLayer& layer) {
     return "DensityProfileLayer(" + cs::utils::toString(layer.width / length_unit_in_meters) + "," +
            cs::utils::toString(layer.exp_term) + "," +
-           cs::utils::toString(layer.exp_scale * length_unit_in_meters) + "," +
+           cs::utils::toString(layer.scale_height * length_unit_in_meters) + "," +
            cs::utils::toString(layer.linear_term * length_unit_in_meters) + "," +
            cs::utils::toString(layer.constant_term) + ")";
   };

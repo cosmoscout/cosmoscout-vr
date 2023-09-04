@@ -162,12 +162,12 @@ parameters that depend on the altitude:
 */
 
 // An atmosphere layer of width 'width', and whose density is defined as
-//   'exp_term' * exp('exp_scale' * h) + 'linear_term' * h + 'constant_term',
+//   'exp_term' * exp('scale_height' * h) + 'linear_term' * h + 'constant_term',
 // clamped to [0,1], and where h is the altitude.
 struct DensityProfileLayer {
   Length        width;
   Number        exp_term;
-  InverseLength exp_scale;
+  Length        scale_height;
   InverseLength linear_term;
   Number        constant_term;
 };

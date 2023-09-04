@@ -218,8 +218,8 @@ href="https://en.wikipedia.org/wiki/Trapezoidal_rule">trapezoidal rule</a>):
 */
 
 Number GetLayerDensity(IN(DensityProfileLayer) layer, Length altitude) {
-  Number density = layer.exp_term * exp(layer.exp_scale * altitude) + layer.linear_term * altitude +
-                   layer.constant_term;
+  Number density = layer.exp_term * exp(-altitude / layer.scale_height) +
+                   layer.linear_term * altitude + layer.constant_term;
   return clamp(density, Number(0.0), Number(1.0));
 }
 
