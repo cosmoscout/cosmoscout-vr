@@ -38,13 +38,47 @@
     <node name="eight" type="ConstantValue[float]">
       <param name="value" value="8"/>
     </node>
+
+    <node name="deadzone" type="ConstantValue[float]">
+      <param name="value" value="0.075"/>
+    </node>
+
     <!-- ############################################## -->
 
+    <node name="leftStickDeadZoneX" type="Threshold[float]">
+        <param name="mode" value="output_zero" />
+        <param name="compare_absolute_value" value="true" />
+        <param name="subtract_threshold" value="true" />
+    </node>
+
+    <node name="leftStickDeadZoneY" type="Threshold[float]">
+        <param name="mode" value="output_zero" />
+        <param name="compare_absolute_value" value="true" />
+        <param name="subtract_threshold" value="true" />
+    </node>
+
+    <node name="substract_vertical" type="Substract[float]"/>
     <node name="translation"   type="Compose3DVector" />
 
-    <node name="invert_yaw"    type="Multiply[float]" />
-    <node name="rotation_axis" type="Compose3DVector" />
-    <node name="create_quat"   type="EulerRotate" />
+    <node name="rightStickDeadZoneX" type="Threshold[float]">
+        <param name="mode" value="output_zero" />
+        <param name="compare_absolute_value" value="true" />
+        <param name="subtract_threshold" value="true" />
+    </node>
+
+    <node name="rightStickDeadZoneY" type="Threshold[float]">
+        <param name="mode" value="output_zero" />
+        <param name="compare_absolute_value" value="true" />
+        <param name="subtract_threshold" value="true" />
+    </node>
+    
+    <node name="shoulderLeftConvert"  type="TypeConvert[bool,float]"/>
+    <node name="shoulderRightConvert" type="TypeConvert[bool,float]"/>
+
+    <node name="invert_yaw"     type="Multiply[float]" />
+    <node name="substract_roll" type="Substract[float]"/>
+    <node name="rotation_axis"  type="Compose3DVector" />
+    <node name="create_quat"    type="EulerRotate" />
 
     <node name="timer" type="Timer" />
 
@@ -53,35 +87,57 @@
     </node>
 
     <node name="observer" type="ObserverNavigationNode">
-        <param name="max_linear_speed" value="10, 10, 20" />
-        <param name="max_angular_speed" value="1" />
-        <param name="angular_deceleration" value="0" />
-        <param name="linear_deceleration" value="0" />
-        <param name="prevent_navigation_when_hovered_gui" value="false" />
+      <param name="max_linear_speed" value="10, 10, 20" />
+      <param name="max_angular_speed" value="1" />
+      <param name="angular_deceleration" value="0" />
+      <param name="linear_deceleration" value="0" />
+      <param name="prevent_navigation_when_hovered_gui" value="false" />
     </node>
   </graph>
   <edges>
-    <edge fromnode="controller_source"     tonode="controller"              fromport="history"     toport="history" />
-    <edge fromnode="project_mode"          tonode="controller"              fromport="value"       toport="sampling_mode" />
+    <edge fromnode="controller_source" tonode="controller" fromport="history" toport="history" />
+    <edge fromnode="project_mode"      tonode="controller" fromport="value"   toport="sampling_mode" />
+
+    <!-- Deadzone Handling -->
+    <edge fromnode="controller" tonode="leftStickDeadZoneX" fromport="STICK_LEFT_X" toport="in"/>
+    <edge fromnode="deadzone"   tonode="leftStickDeadZoneX" fromport="value"        toport="threshold"/>
+
+    <edge fromnode="controller" tonode="leftStickDeadZoneY" fromport="STICK_LEFT_Y" toport="in"/>
+    <edge fromnode="deadzone"   tonode="leftStickDeadZoneY" fromport="value"        toport="threshold"/>
+    
+    <edge fromnode="controller" tonode="rightStickDeadZoneX" fromport="STICK_RIGHT_X" toport="in"/>
+    <edge fromnode="deadzone"   tonode="rightStickDeadZoneX" fromport="value"         toport="threshold"/>
+
+    <edge fromnode="controller" tonode="rightStickDeadZoneY" fromport="STICK_RIGHT_Y" toport="in"/>
+    <edge fromnode="deadzone"   tonode="rightStickDeadZoneY" fromport="value"         toport="threshold"/>
 
     <!-- Create the 3d vector responsible for navigation -->
-    <edge fromnode="controller"    tonode="translation"       fromport="STICK_LEFT_X"   toport="x"/>
-    <edge fromnode="zero"          tonode="translation"       fromport="value"          toport="y"/>
-    <edge fromnode="controller"    tonode="translation"       fromport="STICK_LEFT_Y"   toport="z"/>
+    <edge fromnode="controller" tonode="substract_vertical" fromport="TRIGGER_LEFT"  toport="first"/>
+    <edge fromnode="controller" tonode="substract_vertical" fromport="TRIGGER_RIGHT" toport="second"/>
 
-    <edge fromnode="translation"   tonode="observer"          fromport="out"            toport="translation"/>
+    <edge fromnode="leftStickDeadZoneX" tonode="translation" fromport="out" toport="x"/>
+    <edge fromnode="substract_vertical" tonode="translation" fromport="out" toport="y"/>
+    <edge fromnode="leftStickDeadZoneY" tonode="translation" fromport="out" toport="z"/>
+
+    <edge fromnode="translation" tonode="observer" fromport="out" toport="translation"/>
 
     <!-- Create the 3d vector and quaternion responsible for rotation -->
-    <edge fromnode="controller"    tonode="invert_yaw"        fromport="STICK_RIGHT_X"  toport="first"/>
-    <edge fromnode="-one"          tonode="invert_yaw"        fromport="value"          toport="second"/>
+    <edge fromnode="rightStickDeadZoneX" tonode="invert_yaw" fromport="out"   toport="first"/>
+    <edge fromnode="-one"                tonode="invert_yaw" fromport="value" toport="second"/>
 
-    <edge fromnode="controller"    tonode="rotation_axis"     fromport="STICK_RIGHT_Y"  toport="x"/>
-    <edge fromnode="invert_yaw"    tonode="rotation_axis"     fromport="out"            toport="y"/>
-    <edge fromnode="zero"          tonode="rotation_axis"     fromport="value"          toport="z"/>
+    <edge fromnode="controller" tonode="shoulderLeftConvert"  fromport="SHOULDER_LEFT_PRESSED"  toport="in"/>
+    <edge fromnode="controller" tonode="shoulderRightConvert" fromport="SHOULDER_RIGHT_PRESSED" toport="in"/>
 
-    <edge fromnode="rotation_axis" tonode="create_quat"       fromport="out"            toport="angles"/>
+    <edge fromnode="shoulderLeftConvert"  tonode="substract_roll" fromport="out" toport="first"/>
+    <edge fromnode="shoulderRightConvert" tonode="substract_roll" fromport="out" toport="second"/>
+
+    <edge fromnode="rightStickDeadZoneY" tonode="rotation_axis" fromport="out" toport="x"/>
+    <edge fromnode="invert_yaw"          tonode="rotation_axis" fromport="out" toport="y"/>
+    <edge fromnode="substract_roll"      tonode="rotation_axis" fromport="out" toport="z"/>
+
+    <edge fromnode="rotation_axis" tonode="create_quat" fromport="out" toport="angles"/>
     
-    <edge fromnode="create_quat"   tonode="observer"          fromport="out"            toport="rotation"/>
+    <edge fromnode="create_quat"   tonode="observer" fromport="out" toport="rotation"/>
 
     <!-- Set the delta time -->
     <edge fromnode="timer" tonode="observer" fromport="time" toport="time" />
