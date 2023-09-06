@@ -1,0 +1,89 @@
+<module>
+  <nodespace>
+  </nodespace>
+  <graph>
+    <node name="controller_source" type="DriverSensor">
+      <param name="sensor_index" value="0"/>
+      <param name="driver" value="SDL2CONTROLLER"/>
+    </node>
+
+    <node name="controller" type="HistoryProject">
+    </node>
+
+    <node name="project_mode" type="ConstantValue[int]">
+      <param name="value" value="0"/>
+    </node>
+
+    <!-- Constants #################################### -->
+    <node name="-one" type="ConstantValue[float]">
+      <param name="value" value="-1"/>
+    </node>
+
+    <node name="zero" type="ConstantValue[float]">
+      <param name="value" value="0"/>
+    </node>
+
+    <node name="one" type="ConstantValue[float]">
+      <param name="value" value="1"/>
+    </node>
+
+    <node name="two" type="ConstantValue[float]">
+      <param name="value" value="2"/>
+    </node>
+    
+    <node name="four" type="ConstantValue[float]">
+      <param name="value" value="4"/>
+    </node>
+    
+    <node name="eight" type="ConstantValue[float]">
+      <param name="value" value="8"/>
+    </node>
+    <!-- ############################################## -->
+
+    <node name="translation"   type="Compose3DVector" />
+
+    <node name="invert_yaw"    type="Multiply[float]" />
+    <node name="rotation_axis" type="Compose3DVector" />
+    <node name="create_quat"   type="EulerRotate" />
+
+    <node name="timer" type="Timer" />
+
+    <node name="nav_mode" type="ConstantValue[int]">
+      <param name="value" value="2"/>
+    </node>
+
+    <node name="observer" type="ObserverNavigationNode">
+        <param name="max_linear_speed" value="10, 10, 20" />
+        <param name="max_angular_speed" value="1" />
+        <param name="angular_deceleration" value="0" />
+        <param name="linear_deceleration" value="0" />
+        <param name="prevent_navigation_when_hovered_gui" value="false" />
+    </node>
+  </graph>
+  <edges>
+    <edge fromnode="controller_source"     tonode="controller"              fromport="history"     toport="history" />
+    <edge fromnode="project_mode"          tonode="controller"              fromport="value"       toport="sampling_mode" />
+
+    <!-- Create the 3d vector responsible for navigation -->
+    <edge fromnode="controller"    tonode="translation"       fromport="STICK_LEFT_X"   toport="x"/>
+    <edge fromnode="zero"          tonode="translation"       fromport="value"          toport="y"/>
+    <edge fromnode="controller"    tonode="translation"       fromport="STICK_LEFT_Y"   toport="z"/>
+
+    <edge fromnode="translation"   tonode="observer"          fromport="out"            toport="translation"/>
+
+    <!-- Create the 3d vector and quaternion responsible for rotation -->
+    <edge fromnode="controller"    tonode="invert_yaw"        fromport="STICK_RIGHT_X"  toport="first"/>
+    <edge fromnode="-one"          tonode="invert_yaw"        fromport="value"          toport="second"/>
+
+    <edge fromnode="controller"    tonode="rotation_axis"     fromport="STICK_RIGHT_Y"  toport="x"/>
+    <edge fromnode="invert_yaw"    tonode="rotation_axis"     fromport="out"            toport="y"/>
+    <edge fromnode="zero"          tonode="rotation_axis"     fromport="value"          toport="z"/>
+
+    <edge fromnode="rotation_axis" tonode="create_quat"       fromport="out"            toport="angles"/>
+    
+    <edge fromnode="create_quat"   tonode="observer"          fromport="out"            toport="rotation"/>
+
+    <!-- Set the delta time -->
+    <edge fromnode="timer" tonode="observer" fromport="time" toport="time" />
+  </edges>
+</module>
