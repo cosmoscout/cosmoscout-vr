@@ -1,3 +1,8 @@
+<!-- 
+SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
+SPDX-License-Identifier: MIT
+-->
+
 <module>
   <nodespace>
   </nodespace>
@@ -45,6 +50,7 @@
 
     <!-- ############################################## -->
 
+    <!-- Create a deadzone for the controller's left stick. -->
     <node name="leftStickDeadZoneX" type="Threshold[float]">
         <param name="mode" value="output_zero" />
         <param name="compare_absolute_value" value="true" />
@@ -60,6 +66,7 @@
     <node name="substract_vertical" type="Substract[float]"/>
     <node name="translation"   type="Compose3DVector" />
 
+    <!-- Create a deadzone for the controller's right stick. -->
     <node name="rightStickDeadZoneX" type="Threshold[float]">
         <param name="mode" value="output_zero" />
         <param name="compare_absolute_value" value="true" />
@@ -72,6 +79,7 @@
         <param name="subtract_threshold" value="true" />
     </node>
     
+    <!-- For converting the shoulder button presses to floats. -->
     <node name="shoulderLeftConvert"  type="TypeConvert[bool,float]"/>
     <node name="shoulderRightConvert" type="TypeConvert[bool,float]"/>
 
@@ -111,26 +119,30 @@
     <edge fromnode="controller" tonode="rightStickDeadZoneY" fromport="STICK_RIGHT_Y" toport="in"/>
     <edge fromnode="deadzone"   tonode="rightStickDeadZoneY" fromport="value"         toport="threshold"/>
 
-    <!-- Create the 3d vector responsible for navigation -->
-    <edge fromnode="controller" tonode="substract_vertical" fromport="TRIGGER_LEFT"  toport="first"/>
-    <edge fromnode="controller" tonode="substract_vertical" fromport="TRIGGER_RIGHT" toport="second"/>
+    <!-- Right trigger minus left trigger equals vertical change. -->
+    <edge fromnode="controller" tonode="substract_vertical" fromport="TRIGGER_RIGHT" toport="first"/>
+    <edge fromnode="controller" tonode="substract_vertical" fromport="TRIGGER_LEFT"  toport="second"/>
 
+    <!-- Create the 3d vector responsible for navigation -->
     <edge fromnode="leftStickDeadZoneX" tonode="translation" fromport="out" toport="x"/>
     <edge fromnode="substract_vertical" tonode="translation" fromport="out" toport="y"/>
     <edge fromnode="leftStickDeadZoneY" tonode="translation" fromport="out" toport="z"/>
 
     <edge fromnode="translation" tonode="observer" fromport="out" toport="translation"/>
 
-    <!-- Create the 3d vector and quaternion responsible for rotation -->
+    <!-- Deadzone Handling -->
     <edge fromnode="rightStickDeadZoneX" tonode="invert_yaw" fromport="out"   toport="first"/>
     <edge fromnode="-one"                tonode="invert_yaw" fromport="value" toport="second"/>
 
+    <!-- Convert the shoulder button presses to floats. -->
     <edge fromnode="controller" tonode="shoulderLeftConvert"  fromport="SHOULDER_LEFT_PRESSED"  toport="in"/>
     <edge fromnode="controller" tonode="shoulderRightConvert" fromport="SHOULDER_RIGHT_PRESSED" toport="in"/>
 
+    <!-- Left shoulder button minus right shoulder button equals roll change. -->
     <edge fromnode="shoulderLeftConvert"  tonode="substract_roll" fromport="out" toport="first"/>
     <edge fromnode="shoulderRightConvert" tonode="substract_roll" fromport="out" toport="second"/>
 
+    <!-- Create the 3d vector and quaternion responsible for rotation -->
     <edge fromnode="rightStickDeadZoneY" tonode="rotation_axis" fromport="out" toport="x"/>
     <edge fromnode="invert_yaw"          tonode="rotation_axis" fromport="out" toport="y"/>
     <edge fromnode="substract_roll"      tonode="rotation_axis" fromport="out" toport="z"/>
