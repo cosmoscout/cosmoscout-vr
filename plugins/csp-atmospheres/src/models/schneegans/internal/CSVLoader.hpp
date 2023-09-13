@@ -24,6 +24,7 @@ namespace csp::atmospheres::models::schneegans::internal {
 
 class CSVLoader {
  public:
+  static std::vector<double> readDensity(std::string const& filename, uint32_t& densityCount);
   static std::vector<std::vector<double>> readPhase(
       std::string const& filename, std::vector<double>& wavelengths);
   static std::vector<double> readExtinction(

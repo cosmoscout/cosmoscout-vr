@@ -217,19 +217,13 @@ numerically with the help of the following auxilliary function (using the <a
 href="https://en.wikipedia.org/wiki/Trapezoidal_rule">trapezoidal rule</a>):
 */
 
-Number GetLayerDensity(IN(DensityProfileLayer) layer, Length altitude) {
-  Number density = layer.exp_term * exp(-altitude / layer.scale_height) +
-                   layer.linear_term * altitude + layer.constant_term;
-  return clamp(density, Number(0.0), Number(1.0));
-}
-
-Number GetProfileDensity(IN(DensityProfile) profile, Length altitude) {
-  return altitude < profile.layers[0].width ? GetLayerDensity(profile.layers[0], altitude)
-                                            : GetLayerDensity(profile.layers[1], altitude);
+Number GetDensity(IN(Number) densityTextureV, Length altitude) {
+  float u = clamp(altitude / (TOP_RADIUS - BOTTOM_RADIUS), 0.0, 1.0);
+  return texture(density_texture, vec2(u, densityTextureV)).r;
 }
 
 Length ComputeOpticalLengthToTopAtmosphereBoundary(
-    IN(DensityProfile) profile, Length r, Number mu) {
+    IN(Number) densityTextureV, Length r, Number mu) {
   assert(r >= BOTTOM_RADIUS && r <= TOP_RADIUS);
   assert(mu >= -1.0 && mu <= 1.0);
   // Number of intervals for the numerical integration.
@@ -244,7 +238,7 @@ Length ComputeOpticalLengthToTopAtmosphereBoundary(
     Length r_i = sqrt(d_i * d_i + 2.0 * r * mu * d_i + r * r);
     // Number density at the current sample point (divided by the number density
     // at the bottom of the atmosphere, yielding a dimensionless number).
-    Number y_i = GetProfileDensity(profile, r_i - BOTTOM_RADIUS);
+    Number y_i = GetDensity(densityTextureV, r_i - BOTTOM_RADIUS);
     // Sample weight (from the trapezoidal rule).
     Number weight_i = i == 0 || i == SAMPLE_COUNT ? 0.5 : 1.0;
     result += y_i * weight_i * dx;
@@ -261,12 +255,12 @@ DimensionlessSpectrum ComputeTransmittanceToTopAtmosphereBoundary(
     IN(AtmosphereComponents) atmosphere, Length r, Number mu) {
   assert(r >= BOTTOM_RADIUS && r <= TOP_RADIUS);
   assert(mu >= -1.0 && mu <= 1.0);
-  return exp(-(atmosphere.rayleigh.extinction *
-                   ComputeOpticalLengthToTopAtmosphereBoundary(atmosphere.rayleigh.density, r, mu) +
-               atmosphere.mie.extinction *
-                   ComputeOpticalLengthToTopAtmosphereBoundary(atmosphere.mie.density, r, mu) +
-               atmosphere.ozone.extinction *
-                   ComputeOpticalLengthToTopAtmosphereBoundary(atmosphere.ozone.density, r, mu)));
+  return exp(-(atmosphere.rayleigh.extinction * ComputeOpticalLengthToTopAtmosphereBoundary(
+                                                    atmosphere.rayleigh.densityTextureV, r, mu) +
+               atmosphere.mie.extinction * ComputeOpticalLengthToTopAtmosphereBoundary(
+                                               atmosphere.mie.densityTextureV, r, mu) +
+               atmosphere.ozone.extinction * ComputeOpticalLengthToTopAtmosphereBoundary(
+                                                 atmosphere.ozone.densityTextureV, r, mu)));
 }
 
 /*
@@ -586,8 +580,8 @@ void ComputeSingleScatteringIntegrand(IN(AtmosphereComponents) atmosphere,
   DimensionlessSpectrum transmittance =
       GetTransmittance(transmittance_texture, r, mu, d, ray_r_mu_intersects_ground) *
       GetTransmittanceToSun(transmittance_texture, r_d, mu_s_d);
-  rayleigh = transmittance * GetProfileDensity(atmosphere.rayleigh.density, r_d - BOTTOM_RADIUS);
-  mie      = transmittance * GetProfileDensity(atmosphere.mie.density, r_d - BOTTOM_RADIUS);
+  rayleigh = transmittance * GetDensity(atmosphere.rayleigh.densityTextureV, r_d - BOTTOM_RADIUS);
+  mie      = transmittance * GetDensity(atmosphere.mie.densityTextureV, r_d - BOTTOM_RADIUS);
 }
 
 /*
@@ -1104,8 +1098,8 @@ RadianceDensitySpectrum ComputeScatteringDensity(IN(AtmosphereComponents) atmosp
       // coefficient, and the phase function for directions omega and omega_i
       // (all this summed over all particle types, i.e. Rayleigh and Mie).
       Number nu2              = dot(omega, omega_i);
-      Number rayleigh_density = GetProfileDensity(atmosphere.rayleigh.density, r - BOTTOM_RADIUS);
-      Number mie_density      = GetProfileDensity(atmosphere.mie.density, r - BOTTOM_RADIUS);
+      Number rayleigh_density = GetDensity(atmosphere.rayleigh.densityTextureV, r - BOTTOM_RADIUS);
+      Number mie_density      = GetDensity(atmosphere.mie.densityTextureV, r - BOTTOM_RADIUS);
       rayleigh_mie +=
           incident_radiance *
           (atmosphere.rayleigh.scattering * rayleigh_density *

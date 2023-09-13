@@ -21,24 +21,16 @@ namespace csp::atmospheres::models::schneegans {
 class Model : public ModelBase {
  public:
   struct Settings {
-    struct Layer {
-      double mWidth;
-      double mExpTerm;
-      double mScaleHeight;
-      double mLinearTerm;
-      double mConstantTerm;
-    };
-
     struct ScatteringComponent {
-      std::string        mBetaSca;
-      std::string        mBetaAbs;
-      std::string        mPhase;
-      std::vector<Layer> mLayers;
+      std::string mBetaSca;
+      std::string mBetaAbs;
+      std::string mPhase;
+      std::string mDensity;
     };
 
     struct AbsorbingComponent {
-      std::string        mBetaAbs;
-      std::vector<Layer> mLayers;
+      std::string mBetaAbs;
+      std::string mDensity;
     };
 
     double                             mSunAngularRadius = 0.004675;

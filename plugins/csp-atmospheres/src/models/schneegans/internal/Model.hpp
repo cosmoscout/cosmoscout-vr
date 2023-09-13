@@ -145,30 +145,6 @@ parameter):
 
 namespace csp::atmospheres::models::schneegans::internal {
 
-// An atmosphere layer of width 'width' (in m), and whose density is defined as
-// 'exp_term' * exp(-h / 'scale_height') + 'linear_term' * h + 'constant_term',
-// clamped to [0,1], and where h is the altitude (in m). 'exp_term' and
-// 'constant_term' are unitless, 'scale_height' in m and 'linear_term' is in
-// m^-1.
-struct DensityProfileLayer {
-  DensityProfileLayer()
-      : DensityProfileLayer(0.0, 0.0, 0.0, 0.0, 0.0) {
-  }
-  DensityProfileLayer(
-      double width, double exp_term, double scale_height, double linear_term, double constant_term)
-      : width(width)
-      , exp_term(exp_term)
-      , scale_height(scale_height)
-      , linear_term(linear_term)
-      , constant_term(constant_term) {
-  }
-  double width;
-  double exp_term;
-  double scale_height;
-  double linear_term;
-  double constant_term;
-};
-
 struct ScatteringAtmosphereComponent {
   // The outer vector contains entries for each angle of the phase function. The first item
   // corresponds to 0° (forward scattering), the last item to 180° (back scattering). The inner
@@ -181,18 +157,18 @@ struct ScatteringAtmosphereComponent {
   // Beta_abs per wavelength for N_0
   std::vector<double> absorption;
 
-  // Density distribution. The value at a specific altitude will be multiplied with the Beta_sca and
-  // Beta_abs values above.
-  std::vector<DensityProfileLayer> layers;
+  // Linear function describing the density distribution from bottom to top. The value at a specific
+  // altitude will be multiplied with the Beta_sca and Beta_abs values above.
+  std::vector<double> density;
 };
 
 struct AbsorbingAtmosphereComponent {
   // Beta_abs per wavelength for N_0
   std::vector<double> absorption;
 
-  // Density distribution. The value at a specific altitude will be multiplied with the Beta_sca and
-  // Beta_abs values above.
-  std::vector<DensityProfileLayer> layers;
+  // Linear function describing the density distribution from bottom to top. The value at a specific
+  // altitude will be multiplied with the Beta_sca and Beta_abs values above.
+  std::vector<double> density;
 };
 
 class Model {
@@ -280,6 +256,7 @@ class Model {
 
   std::function<std::string(const vec3&)> glsl_header_factory_;
   GLuint                                  phase_texture_         = 0;
+  GLuint                                  density_texture_       = 0;
   GLuint                                  transmittance_texture_ = 0;
 
   // This texture stores single rayleigh scattering plus all multiple scattering contributions. The

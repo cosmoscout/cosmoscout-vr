@@ -36,6 +36,36 @@ std::string replaceTabsWithWhitespaces(std::string& s) {
 }
 } // namespace
 
+std::vector<double> CSVLoader::readDensity(std::string const& filename, uint32_t& densityCount) {
+  std::vector<double> result;
+
+  bool checkDensities = densityCount != 0;
+
+  readLines(filename, [&](long lineNumber, std::string line) {
+    std::stringstream ss(trim(removeMultiWhitespaces(replaceTabsWithWhitespaces(line))));
+
+    // Skip empty lines and first line.
+    if (ss.rdbuf()->in_avail() == 0 || lineNumber == 0) {
+      return;
+    }
+
+    auto elements = lineToArray(ss, ',');
+    result.push_back(std::stof(elements[0]));
+  });
+
+  if (checkDensities) {
+    if (densityCount != result.size()) {
+      throw std::runtime_error(
+          "Failed to read density from '" + filename +
+          "': Number of density values differs from a previously loaded data set!");
+    }
+  }
+
+  densityCount = result.size();
+
+  return result;
+}
+
 std::vector<std::vector<double>> CSVLoader::readPhase(
     std::string const& filename, std::vector<double>& wavelengths) {
   std::vector<std::vector<double>> result;

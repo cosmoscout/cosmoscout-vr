@@ -17,48 +17,30 @@ namespace csp::atmospheres::models::schneegans {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void from_json(nlohmann::json const& j, Model::Settings::Layer& o) {
-  cs::core::Settings::deserialize(j, "width", o.mWidth);
-  cs::core::Settings::deserialize(j, "expTerm", o.mExpTerm);
-  cs::core::Settings::deserialize(j, "scaleHeight", o.mScaleHeight);
-  cs::core::Settings::deserialize(j, "linearTerm", o.mLinearTerm);
-  cs::core::Settings::deserialize(j, "constantTerm", o.mConstantTerm);
-}
-
-void to_json(nlohmann::json& j, Model::Settings::Layer const& o) {
-  cs::core::Settings::serialize(j, "width", o.mWidth);
-  cs::core::Settings::serialize(j, "expTerm", o.mExpTerm);
-  cs::core::Settings::serialize(j, "scaleHeight", o.mScaleHeight);
-  cs::core::Settings::serialize(j, "linearTerm", o.mLinearTerm);
-  cs::core::Settings::serialize(j, "constantTerm", o.mConstantTerm);
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
 void from_json(nlohmann::json const& j, Model::Settings::ScatteringComponent& o) {
   cs::core::Settings::deserialize(j, "betaSca", o.mBetaSca);
   cs::core::Settings::deserialize(j, "betaAbs", o.mBetaAbs);
   cs::core::Settings::deserialize(j, "phase", o.mPhase);
-  cs::core::Settings::deserialize(j, "layers", o.mLayers);
+  cs::core::Settings::deserialize(j, "density", o.mDensity);
 }
 
 void to_json(nlohmann::json& j, Model::Settings::ScatteringComponent const& o) {
   cs::core::Settings::serialize(j, "betaSca", o.mBetaSca);
   cs::core::Settings::serialize(j, "betaAbs", o.mBetaAbs);
   cs::core::Settings::serialize(j, "phase", o.mPhase);
-  cs::core::Settings::serialize(j, "layers", o.mLayers);
+  cs::core::Settings::serialize(j, "density", o.mDensity);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void from_json(nlohmann::json const& j, Model::Settings::AbsorbingComponent& o) {
   cs::core::Settings::deserialize(j, "betaAbs", o.mBetaAbs);
-  cs::core::Settings::deserialize(j, "layers", o.mLayers);
+  cs::core::Settings::deserialize(j, "density", o.mDensity);
 }
 
 void to_json(nlohmann::json& j, Model::Settings::AbsorbingComponent const& o) {
   cs::core::Settings::serialize(j, "betaAbs", o.mBetaAbs);
-  cs::core::Settings::serialize(j, "layers", o.mLayers);
+  cs::core::Settings::serialize(j, "density", o.mDensity);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -97,38 +79,29 @@ bool Model::init(
   internal::AbsorbingAtmosphereComponent  ozone;
 
   std::vector<double> wavelengths;
+  uint32_t            densityCount = 0;
 
-  for (auto const& layer : settings.mParticlesA.mLayers) {
-    rayleigh.layers.emplace_back(
-        layer.mWidth, layer.mExpTerm, layer.mScaleHeight, layer.mLinearTerm, layer.mConstantTerm);
-  }
-
-  rayleigh.phase = internal::CSVLoader::readPhase(settings.mParticlesA.mPhase, wavelengths);
+  rayleigh.density = internal::CSVLoader::readDensity(settings.mParticlesA.mDensity, densityCount);
+  rayleigh.phase   = internal::CSVLoader::readPhase(settings.mParticlesA.mPhase, wavelengths);
   rayleigh.scattering =
       internal::CSVLoader::readExtinction(settings.mParticlesA.mBetaSca, wavelengths);
   rayleigh.absorption =
       internal::CSVLoader::readExtinction(settings.mParticlesA.mBetaAbs, wavelengths);
 
-  for (auto const& layer : settings.mParticlesB.mLayers) {
-    mie.layers.emplace_back(
-        layer.mWidth, layer.mExpTerm, layer.mScaleHeight, layer.mLinearTerm, layer.mConstantTerm);
-  }
-
+  mie.density    = internal::CSVLoader::readDensity(settings.mParticlesB.mDensity, densityCount);
   mie.phase      = internal::CSVLoader::readPhase(settings.mParticlesB.mPhase, wavelengths);
   mie.scattering = internal::CSVLoader::readExtinction(settings.mParticlesB.mBetaSca, wavelengths);
   mie.absorption = internal::CSVLoader::readExtinction(settings.mParticlesB.mBetaAbs, wavelengths);
 
   if (settings.mAbsorbingParticles) {
 
-    for (auto const& layer : settings.mAbsorbingParticles->mLayers) {
-      ozone.layers.emplace_back(
-          layer.mWidth, layer.mExpTerm, layer.mScaleHeight, layer.mLinearTerm, layer.mConstantTerm);
-    }
-
+    ozone.density =
+        internal::CSVLoader::readDensity(settings.mAbsorbingParticles->mDensity, densityCount);
     ozone.absorption =
         internal::CSVLoader::readExtinction(settings.mAbsorbingParticles->mBetaAbs, wavelengths);
 
   } else {
+    ozone.density    = std::vector<double>(densityCount, 0.0);
     ozone.absorption = std::vector<double>(wavelengths.size(), 0.0);
   }
 

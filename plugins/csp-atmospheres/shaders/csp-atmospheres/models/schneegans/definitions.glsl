@@ -157,28 +157,8 @@ const Luminance               kcd_per_square_meter                = kcd / m2;
 <h3>Atmosphere parameters</h3>
 
 <p>Using the above types, we can now define the parameters of our atmosphere
-model. We start with the definition of density profiles, which are needed for
-parameters that depend on the altitude:
+model.
 */
-
-// An atmosphere layer of width 'width', and whose density is defined as
-//   'exp_term' * exp('scale_height' * h) + 'linear_term' * h + 'constant_term',
-// clamped to [0,1], and where h is the altitude.
-struct DensityProfileLayer {
-  Length        width;
-  Number        exp_term;
-  Length        scale_height;
-  InverseLength linear_term;
-  Number        constant_term;
-};
-
-// An atmosphere density profile made of several layers on top of each other
-// (from bottom to top). The width of the last layer is ignored, i.e. it always
-// extend to the top atmosphere boundary. The profile values vary between 0
-// (null density) to 1 (maximum density).
-struct DensityProfile {
-  DensityProfileLayer layers[2];
-};
 
 // This texture contains all the phase functions for the scattering components of the atmosphere.
 // The u coordinate maps to the scattering angle. Forward scattering is on the left (u == 0, theta
@@ -187,16 +167,22 @@ struct DensityProfile {
 // component is stored in the top row of pixels, the second in the next and so on.
 uniform sampler2D phase_texture;
 
+// This texture contains all the density functions for the components of the atmosphere.
+// The u coordinate maps to the altitude. Atmosphere's bottom is on the left (u == 0) and the top
+// is the right (u == 1). The v coordinate maps to the various components. The density function of
+// the first component is stored in the top row of pixels, the second in the next and so on.
+uniform sampler2D density_texture;
+
 struct ScatteringComponent {
   Number             phaseTextureV;
+  Number             densityTextureV;
   ScatteringSpectrum extinction;
   ScatteringSpectrum scattering;
-  DensityProfile     density;
 };
 
 struct AbsorbingComponent {
+  Number             densityTextureV;
   ScatteringSpectrum extinction;
-  DensityProfile     density;
 };
 
 struct AtmosphereComponents {
