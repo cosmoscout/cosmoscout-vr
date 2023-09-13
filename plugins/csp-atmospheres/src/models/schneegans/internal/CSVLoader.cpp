@@ -23,6 +23,16 @@ std::string trim(const std::string& s) {
   return ltrim(rtrim(s));
 }
 
+float stringToFloat(std::string const& s) {
+  try {
+    return std::stof(s);
+  } catch (std::exception const& e) {
+    std::cout << "Failed to convert string '" << s << "' to float! Using 0 instead." << std::endl;
+  }
+
+  return 0.f;
+}
+
 /**
  * http://www.cplusplus.com/forum/beginner/185953/
  */
@@ -50,7 +60,7 @@ std::vector<double> CSVLoader::readDensity(std::string const& filename, uint32_t
     }
 
     auto elements = lineToArray(ss, ',');
-    result.push_back(std::stof(elements[0]));
+    result.push_back(stringToFloat(elements[0]));
   });
 
   if (checkDensities) {
@@ -89,7 +99,7 @@ std::vector<std::vector<double>> CSVLoader::readPhase(
 
     if (lineNumber == 0) {
       for (size_t i(0); i < elements.size(); ++i) {
-        float lambda = std::stof(elements[i]);
+        float lambda = stringToFloat(elements[i]);
 
         if (checkWavelengths) {
           if (lambda != wavelengths[i]) {
@@ -105,7 +115,7 @@ std::vector<std::vector<double>> CSVLoader::readPhase(
     } else {
 
       for (auto& e : elements) {
-        intensities.push_back(std::stof(e));
+        intensities.push_back(stringToFloat(e));
       }
 
       result.push_back(intensities);
@@ -131,7 +141,7 @@ std::vector<double> CSVLoader::readExtinction(
 
     auto elements = lineToArray(ss, ',');
 
-    float lambda = std::stof(elements[0]);
+    float lambda = stringToFloat(elements[0]);
     if (checkWavelengths) {
       if (lambda != wavelengths[lineNumber - 1]) {
         throw std::runtime_error(
@@ -142,7 +152,7 @@ std::vector<double> CSVLoader::readExtinction(
       wavelengths.push_back(lambda);
     }
 
-    result.push_back(std::stof(elements[1]));
+    result.push_back(stringToFloat(elements[1]));
   });
 
   return result;
