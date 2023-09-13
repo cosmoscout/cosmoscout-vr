@@ -165,7 +165,7 @@ GLuint Model::getShader() const {
 
 GLuint Model::setUniforms(GLuint program, GLuint startTextureUnit) const {
   mModel->SetProgramUniforms(program, startTextureUnit, startTextureUnit + 1, startTextureUnit + 2,
-      startTextureUnit + 3, startTextureUnit + 4, startTextureUnit + 5);
+      startTextureUnit + 3, startTextureUnit + 4);
   return startTextureUnit + 6;
 }
 

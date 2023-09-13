@@ -244,8 +244,7 @@ class Model {
 
   void SetProgramUniforms(GLuint program, GLuint phase_texture_unit,
       GLuint transmittance_texture_unit, GLuint multiple_scattering_texture_unit,
-      GLuint irradiance_texture_unit, GLuint single_mie_scattering_texture_unit,
-      GLuint single_rayleigh_scattering_texture_unit) const;
+      GLuint irradiance_texture_unit, GLuint single_mie_scattering_texture_unit) const;
 
   // Utility method to convert a function of the wavelength to linear sRGB.
   // 'wavelengths' and 'spectrum' must have the same size. The integral of
@@ -280,15 +279,19 @@ class Model {
   AbsorbingAtmosphereComponent  ozone_;
 
   std::function<std::string(const vec3&)> glsl_header_factory_;
-  GLuint                                  phase_texture_                      = 0;
-  GLuint                                  transmittance_texture_              = 0;
-  GLuint                                  multiple_scattering_texture_        = 0;
-  GLuint                                  single_rayleigh_scattering_texture_ = 0;
-  GLuint                                  single_mie_scattering_texture_      = 0;
-  GLuint                                  irradiance_texture_                 = 0;
-  GLuint                                  atmosphere_shader_                  = 0;
-  GLuint                                  full_screen_quad_vao_               = 0;
-  GLuint                                  full_screen_quad_vbo_               = 0;
+  GLuint                                  phase_texture_         = 0;
+  GLuint                                  transmittance_texture_ = 0;
+
+  // This texture stores single rayleigh scattering plus all multiple scattering contributions. The
+  // single mie scattering is stored in an extra texture to have a higher angular resolution (the
+  // phase function is applied at render time).
+  GLuint multiple_scattering_texture_   = 0;
+  GLuint single_mie_scattering_texture_ = 0;
+
+  GLuint irradiance_texture_   = 0;
+  GLuint atmosphere_shader_    = 0;
+  GLuint full_screen_quad_vao_ = 0;
+  GLuint full_screen_quad_vbo_ = 0;
 };
 
 } // namespace csp::atmospheres::models::schneegans::internal
