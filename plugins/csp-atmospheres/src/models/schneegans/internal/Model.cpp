@@ -894,6 +894,7 @@ void Model::Init(unsigned int num_scattering_orders) {
     glViewport(0, 0, TRANSMITTANCE_TEXTURE_WIDTH, TRANSMITTANCE_TEXTURE_HEIGHT);
     glScissor(0, 0, TRANSMITTANCE_TEXTURE_WIDTH, TRANSMITTANCE_TEXTURE_HEIGHT);
     compute_transmittance.Use();
+    compute_transmittance.BindTexture2d("density_texture", density_texture_, 0);
     DrawQuad({}, full_screen_quad_vao_);
 
     // Also, the phase_texture_ contains the phase functions for the last used wavelengths. We need
