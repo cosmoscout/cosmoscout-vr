@@ -30,21 +30,27 @@ sRGB luminance values).
 
 namespace csp::atmospheres::models::schneegans::internal {
 
+constexpr int SAMPLE_COUNT_OPTICAL_DEPTH       = 500; // 500
+constexpr int SAMPLE_COUNT_SINGLE_SCATTERING   = 250; // 50
+constexpr int SAMPLE_COUNT_SCATTERING_DENSITY  = 16;  // 16
+constexpr int SAMPLE_COUNT_MULTI_SCATTERING    = 50;  // 50
+constexpr int SAMPLE_COUNT_INDIRECT_IRRADIANCE = 32;  // 32
+
 // Low impact on preprocssing time, resolution seems suitable for CosmoScout VR.
-constexpr int TRANSMITTANCE_TEXTURE_WIDTH  = 256;
-constexpr int TRANSMITTANCE_TEXTURE_HEIGHT = 64;
+constexpr int TRANSMITTANCE_TEXTURE_WIDTH  = 1024; // 256
+constexpr int TRANSMITTANCE_TEXTURE_HEIGHT = 1024; // 64
 
-// Affects banding towards horizon during dusk / dawn. Original value was 32.
-constexpr int SCATTERING_TEXTURE_R_SIZE = 16;
+// Affects banding towards horizon during dusk / dawn.
+constexpr int SCATTERING_TEXTURE_R_SIZE = 64; // 32
 
-// Affects banding towards horizon during dusk / dawn. Original value was 128.
-constexpr int SCATTERING_TEXTURE_MU_SIZE = 64;
+// Affects banding towards horizon during dusk / dawn.
+constexpr int SCATTERING_TEXTURE_MU_SIZE = 64; // 128
 
-// Affects banding in the day-night transition when seen from space. Original value was 32.
-constexpr int SCATTERING_TEXTURE_MU_S_SIZE = 64;
+// Affects banding in the day-night transition when seen from space.
+constexpr int SCATTERING_TEXTURE_MU_S_SIZE = 32; // 32
 
 // Affects blockiness in the sky during dusk and dawn. Original value was 8.
-constexpr int SCATTERING_TEXTURE_NU_SIZE = 16;
+constexpr int SCATTERING_TEXTURE_NU_SIZE = 16; // 8
 
 constexpr int SCATTERING_TEXTURE_WIDTH  = SCATTERING_TEXTURE_NU_SIZE * SCATTERING_TEXTURE_MU_S_SIZE;
 constexpr int SCATTERING_TEXTURE_HEIGHT = SCATTERING_TEXTURE_MU_SIZE;
@@ -448,6 +454,6 @@ constexpr double CIE_2_DEG_COLOR_MATCHING_FUNCTIONS[380] = {
 constexpr double XYZ_TO_SRGB[9] = {
     +3.2406, -1.5372, -0.4986, -0.9689, +1.8758, +0.0415, +0.0557, -0.2040, +1.0570};
 
-} // namespace csp::atmospheres::models::bruneton::internal
+} // namespace csp::atmospheres::models::schneegans::internal
 
 #endif // CSP_ATMOSPHERES_MODELS_SCHNEEGANS_INTERNAL_CONSTANTS_HPP

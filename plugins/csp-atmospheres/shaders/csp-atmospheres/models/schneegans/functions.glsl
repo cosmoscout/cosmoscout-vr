@@ -226,13 +226,12 @@ Length ComputeOpticalLengthToTopAtmosphereBoundary(
     IN(Number) densityTextureV, Length r, Number mu) {
   assert(r >= BOTTOM_RADIUS && r <= TOP_RADIUS);
   assert(mu >= -1.0 && mu <= 1.0);
-  // Number of intervals for the numerical integration.
-  const int SAMPLE_COUNT = 500;
+
   // The integration step, i.e. the length of each integration interval.
-  Length dx = DistanceToTopAtmosphereBoundary(r, mu) / Number(SAMPLE_COUNT);
+  Length dx = DistanceToTopAtmosphereBoundary(r, mu) / Number(SAMPLE_COUNT_OPTICAL_DEPTH);
   // Integration loop.
   Length result = 0.0 * m;
-  for (int i = 0; i <= SAMPLE_COUNT; ++i) {
+  for (int i = 0; i <= SAMPLE_COUNT_OPTICAL_DEPTH; ++i) {
     Length d_i = Number(i) * dx;
     // Distance between the current sample point and the planet center.
     Length r_i = sqrt(d_i * d_i + 2.0 * r * mu * d_i + r * r);
@@ -240,7 +239,7 @@ Length ComputeOpticalLengthToTopAtmosphereBoundary(
     // at the bottom of the atmosphere, yielding a dimensionless number).
     Number y_i = GetDensity(densityTextureV, r_i - BOTTOM_RADIUS);
     // Sample weight (from the trapezoidal rule).
-    Number weight_i = i == 0 || i == SAMPLE_COUNT ? 0.5 : 1.0;
+    Number weight_i = i == 0 || i == SAMPLE_COUNT_OPTICAL_DEPTH ? 0.5 : 1.0;
     result += y_i * weight_i * dx;
   }
   return result;
@@ -617,15 +616,13 @@ void ComputeSingleScattering(IN(AtmosphereComponents) atmosphere,
   assert(mu_s >= -1.0 && mu_s <= 1.0);
   assert(nu >= -1.0 && nu <= 1.0);
 
-  // Number of intervals for the numerical integration.
-  const int SAMPLE_COUNT = 50;
   // The integration step, i.e. the length of each integration interval.
-  Length dx =
-      DistanceToNearestAtmosphereBoundary(r, mu, ray_r_mu_intersects_ground) / Number(SAMPLE_COUNT);
+  Length dx = DistanceToNearestAtmosphereBoundary(r, mu, ray_r_mu_intersects_ground) /
+              Number(SAMPLE_COUNT_SINGLE_SCATTERING);
   // Integration loop.
   DimensionlessSpectrum rayleigh_sum = DimensionlessSpectrum(0.0);
   DimensionlessSpectrum mie_sum      = DimensionlessSpectrum(0.0);
-  for (int i = 0; i <= SAMPLE_COUNT; ++i) {
+  for (int i = 0; i <= SAMPLE_COUNT_SINGLE_SCATTERING; ++i) {
     Length d_i = Number(i) * dx;
     // The Rayleigh and Mie single scattering at the current sample point.
     DimensionlessSpectrum rayleigh_i;
@@ -633,7 +630,7 @@ void ComputeSingleScattering(IN(AtmosphereComponents) atmosphere,
     ComputeSingleScatteringIntegrand(atmosphere, transmittance_texture, r, mu, mu_s, nu, d_i,
         ray_r_mu_intersects_ground, rayleigh_i, mie_i);
     // Sample weight (from the trapezoidal rule).
-    Number weight_i = (i == 0 || i == SAMPLE_COUNT) ? 0.5 : 1.0;
+    Number weight_i = (i == 0 || i == SAMPLE_COUNT_SINGLE_SCATTERING) ? 0.5 : 1.0;
     rayleigh_sum += rayleigh_i * weight_i;
     mie_sum += mie_i * weight_i;
   }
@@ -1044,14 +1041,13 @@ RadianceDensitySpectrum ComputeScatteringDensity(IN(AtmosphereComponents) atmosp
   Number sun_dir_y        = sqrt(max(1.0 - sun_dir_x * sun_dir_x - mu_s * mu_s, 0.0));
   vec3   omega_s          = vec3(sun_dir_x, sun_dir_y, mu_s);
 
-  const int               SAMPLE_COUNT = 16;
-  const Angle             dphi         = pi / Number(SAMPLE_COUNT);
-  const Angle             dtheta       = pi / Number(SAMPLE_COUNT);
+  const Angle             dphi   = pi / Number(SAMPLE_COUNT_SCATTERING_DENSITY);
+  const Angle             dtheta = pi / Number(SAMPLE_COUNT_SCATTERING_DENSITY);
   RadianceDensitySpectrum rayleigh_mie =
       RadianceDensitySpectrum(0.0 * watt_per_cubic_meter_per_sr_per_nm);
 
   // Nested loops for the integral over all the incident directions omega_i.
-  for (int l = 0; l < SAMPLE_COUNT; ++l) {
+  for (int l = 0; l < SAMPLE_COUNT_SCATTERING_DENSITY; ++l) {
     Angle  theta                         = (Number(l) + 0.5) * dtheta;
     Number cos_theta                     = cos(theta);
     Number sin_theta                     = sin(theta);
@@ -1069,7 +1065,7 @@ RadianceDensitySpectrum ComputeScatteringDensity(IN(AtmosphereComponents) atmosp
       ground_albedo           = GROUND_ALBEDO;
     }
 
-    for (int m = 0; m < 2 * SAMPLE_COUNT; ++m) {
+    for (int m = 0; m < 2 * SAMPLE_COUNT_SCATTERING_DENSITY; ++m) {
       Angle      phi      = (Number(m) + 0.5) * dphi;
       vec3       omega_i  = vec3(cos(phi) * sin_theta, sin(phi) * sin_theta, cos_theta);
       SolidAngle domega_i = (dtheta / rad) * (dphi / rad) * sin(theta) * sr;
@@ -1142,14 +1138,12 @@ RadianceSpectrum ComputeMultipleScattering(IN(TransmittanceTexture) transmittanc
   assert(mu_s >= -1.0 && mu_s <= 1.0);
   assert(nu >= -1.0 && nu <= 1.0);
 
-  // Number of intervals for the numerical integration.
-  const int SAMPLE_COUNT = 50;
   // The integration step, i.e. the length of each integration interval.
-  Length dx =
-      DistanceToNearestAtmosphereBoundary(r, mu, ray_r_mu_intersects_ground) / Number(SAMPLE_COUNT);
+  Length dx = DistanceToNearestAtmosphereBoundary(r, mu, ray_r_mu_intersects_ground) /
+              Number(SAMPLE_COUNT_MULTI_SCATTERING);
   // Integration loop.
   RadianceSpectrum rayleigh_mie_sum = RadianceSpectrum(0.0 * watt_per_square_meter_per_sr_per_nm);
-  for (int i = 0; i <= SAMPLE_COUNT; ++i) {
+  for (int i = 0; i <= SAMPLE_COUNT_MULTI_SCATTERING; ++i) {
     Length d_i = Number(i) * dx;
 
     // The r, mu and mu_s parameters at the current integration point (see the
@@ -1164,7 +1158,7 @@ RadianceSpectrum ComputeMultipleScattering(IN(TransmittanceTexture) transmittanc
             scattering_density_texture, r_i, mu_i, mu_s_i, nu, ray_r_mu_intersects_ground) *
         GetTransmittance(transmittance_texture, r, mu, d_i, ray_r_mu_intersects_ground) * dx;
     // Sample weight (from the trapezoidal rule).
-    Number weight_i = (i == 0 || i == SAMPLE_COUNT) ? 0.5 : 1.0;
+    Number weight_i = (i == 0 || i == SAMPLE_COUNT_MULTI_SCATTERING) ? 0.5 : 1.0;
     rayleigh_mie_sum += rayleigh_mie_i * weight_i;
   }
   return rayleigh_mie_sum;
@@ -1315,15 +1309,14 @@ IrradianceSpectrum ComputeIndirectIrradiance(IN(AtmosphereComponents) atmosphere
   assert(mu_s >= -1.0 && mu_s <= 1.0);
   assert(scattering_order >= 1);
 
-  const int   SAMPLE_COUNT = 32;
-  const Angle dphi         = pi / Number(SAMPLE_COUNT);
-  const Angle dtheta       = pi / Number(SAMPLE_COUNT);
+  const Angle dphi   = pi / Number(SAMPLE_COUNT_INDIRECT_IRRADIANCE);
+  const Angle dtheta = pi / Number(SAMPLE_COUNT_INDIRECT_IRRADIANCE);
 
   IrradianceSpectrum result  = IrradianceSpectrum(0.0 * watt_per_square_meter_per_nm);
   vec3               omega_s = vec3(sqrt(1.0 - mu_s * mu_s), 0.0, mu_s);
-  for (int j = 0; j < SAMPLE_COUNT / 2; ++j) {
+  for (int j = 0; j < SAMPLE_COUNT_INDIRECT_IRRADIANCE / 2; ++j) {
     Angle theta = (Number(j) + 0.5) * dtheta;
-    for (int i = 0; i < 2 * SAMPLE_COUNT; ++i) {
+    for (int i = 0; i < 2 * SAMPLE_COUNT_INDIRECT_IRRADIANCE; ++i) {
       Angle      phi    = (Number(i) + 0.5) * dphi;
       vec3       omega  = vec3(cos(phi) * sin(theta), sin(phi) * sin(theta), cos(theta));
       SolidAngle domega = (dtheta / rad) * (dphi / rad) * sin(theta) * sr;
@@ -1609,8 +1602,6 @@ RadianceSpectrum GetSkyRadianceToPoint(IN(AtmosphereComponents) atmosphere,
 
   // Hack to avoid rendering artifacts when the sun is below the horizon.
   // single_mie_scattering = single_mie_scattering * smoothstep(Number(0.0), Number(0.01), mu_s);
-  // single_rayleigh_scattering =
-  //     single_rayleigh_scattering * smoothstep(Number(0.0), Number(0.01), mu_s);
 
   return multiple_scattering * PhaseFunction(atmosphere.rayleigh, nu) +
          single_mie_scattering * PhaseFunction(atmosphere.mie, nu);
