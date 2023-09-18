@@ -362,7 +362,7 @@ float getCloudDensity(vec3 rayOrigin, vec3 rayDir, float tIntersection) {
 vec4 getCloudColor(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, float surfaceDistance) {
 
   // The distance between the top and bottom cloud layers.
-  float thickness = uCloudAltitude * 0.2;
+  float thickness = uCloudAltitude * 0.5;
 
   // The distance to the planet surface where the fade-out starts.
   float fadeWidth = thickness * 2.0;
@@ -437,7 +437,7 @@ float getCloudShadow(vec3 rayOrigin, vec3 rayDir) {
   }
 
   // We have to fade out the cloud shadow in the same manner as the cloud color.
-  float thickness = uCloudAltitude * 0.2;
+  float thickness = uCloudAltitude * 0.5;
   float fadeWidth = thickness * 2.0;
 
   // Reduce cloud opacity when end point is very close to planet surface.
@@ -467,7 +467,6 @@ void main() {
   }
 
   coords *= PI * 0.5;
-
 
   if (cHorizon) {
     rayDir = normalize(vec3(sin(coords.x), sin(coords.y), cos(length(coords))));
