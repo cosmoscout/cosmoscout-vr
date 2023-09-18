@@ -578,11 +578,6 @@ Model::Model(const std::vector<double>& wavelengths, const double sun_angular_ra
     , ozone_(ozone) {
 
   auto extractVec3 = [this](const std::vector<double>& v, const vec3& lambdas, double scale = 1.0) {
-    // if (num_precomputed_wavelengths_ == 3) {
-    //   return "vec3(" + cs::utils::toString(v[0] * scale) + "," + cs::utils::toString(v[1] *
-    //   scale) +
-    //          "," + cs::utils::toString(v[2] * scale) + ")";
-    // }
     double r = Interpolate(wavelengths_, v, lambdas[0]) * scale;
     double g = Interpolate(wavelengths_, v, lambdas[1]) * scale;
     double b = Interpolate(wavelengths_, v, lambdas[2]) * scale;
