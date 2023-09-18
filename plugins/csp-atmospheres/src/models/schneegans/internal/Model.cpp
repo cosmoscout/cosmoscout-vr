@@ -670,9 +670,9 @@ Model::Model(const std::vector<double>& wavelengths, const double sun_angular_ra
             "const int IRRADIANCE_TEXTURE_HEIGHT = "    + cs::utils::toString(IRRADIANCE_TEXTURE_HEIGHT) + ";\n" +
             "const int SAMPLE_COUNT_OPTICAL_DEPTH = "   + cs::utils::toString(SAMPLE_COUNT_OPTICAL_DEPTH) + ";\n" +
             "const int SAMPLE_COUNT_SINGLE_SCATTERING = "   + cs::utils::toString(SAMPLE_COUNT_SINGLE_SCATTERING) + ";\n" +
-            "const int SAMPLE_COUNT_SCATTERING_DENSITY = "   + cs::utils::toString(SAMPLE_COUNT_SCATTERING_DENSITY) + ";\n" +
-            "const int SAMPLE_COUNT_MULTI_SCATTERING = "   + cs::utils::toString(SAMPLE_COUNT_MULTI_SCATTERING) + ";\n" +
-            "const int SAMPLE_COUNT_INDIRECT_IRRADIANCE = "   + cs::utils::toString(SAMPLE_COUNT_INDIRECT_IRRADIANCE) + ";\n" +
+            "const int SAMPLE_COUNT_SCATTERING_DENSITY = "  + cs::utils::toString(SAMPLE_COUNT_SCATTERING_DENSITY) + ";\n" +
+            "const int SAMPLE_COUNT_MULTI_SCATTERING = "    + cs::utils::toString(SAMPLE_COUNT_MULTI_SCATTERING) + ";\n" +
+            "const int SAMPLE_COUNT_INDIRECT_IRRADIANCE = " + cs::utils::toString(SAMPLE_COUNT_INDIRECT_IRRADIANCE) + ";\n" +
             definitions_glsl +
             "const vec3 SKY_SPECTRAL_RADIANCE_TO_LUMINANCE = vec3(" + cs::utils::toString(sky_k_r) + "," + cs::utils::toString(sky_k_g) + "," + cs::utils::toString(sky_k_b) + ");\n" +
             "const vec3 SUN_SPECTRAL_RADIANCE_TO_LUMINANCE = vec3(" + cs::utils::toString(sun_k_r) + "," + cs::utils::toString(sun_k_g) + "," + cs::utils::toString(sun_k_b) + ");\n" +
@@ -879,9 +879,11 @@ void Model::Init(unsigned int num_scattering_orders) {
                 XYZ_TO_SRGB[component * 3 + 2] * z) *
             dlambda);
       };
+
       mat3 luminance_from_radiance{coeff(lambdas[0], 0), coeff(lambdas[1], 0), coeff(lambdas[2], 0),
           coeff(lambdas[0], 1), coeff(lambdas[1], 1), coeff(lambdas[2], 1), coeff(lambdas[0], 2),
           coeff(lambdas[1], 2), coeff(lambdas[2], 2)};
+
       Precompute(fbo, delta_irradiance_texture, delta_rayleigh_scattering_texture,
           delta_mie_scattering_texture, delta_scattering_density_texture,
           delta_multiple_scattering_texture, lambdas, luminance_from_radiance, i > 0 /* blend */,
