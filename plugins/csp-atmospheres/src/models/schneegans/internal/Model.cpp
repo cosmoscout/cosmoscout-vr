@@ -500,19 +500,21 @@ double CieColorMatchingFunctionTableValue(double wavelength, int column) {
          CIE_2_DEG_COLOR_MATCHING_FUNCTIONS[4 * (row + 1) + column] * u;
 }
 
-double Interpolate(const std::vector<double>& wavelengths,
-    const std::vector<double>& wavelength_function, double wavelength) {
-  assert(wavelength_function.size() == wavelengths.size());
-  if (wavelength < wavelengths[0]) {
-    return wavelength_function[0];
+double Interpolate(const std::vector<double>& xVals, const std::vector<double>& yVals, double x) {
+  assert(yVals.size() == xVals.size());
+
+  if (x < xVals[0]) {
+    return yVals[0];
   }
-  for (unsigned int i = 0; i < wavelengths.size() - 1; ++i) {
-    if (wavelength < wavelengths[i + 1]) {
-      double u = (wavelength - wavelengths[i]) / (wavelengths[i + 1] - wavelengths[i]);
-      return wavelength_function[i] * (1.0 - u) + wavelength_function[i + 1] * u;
+
+  for (unsigned int i = 0; i < xVals.size() - 1; ++i) {
+    if (x < xVals[i + 1]) {
+      double u = (x - xVals[i]) / (xVals[i + 1] - xVals[i]);
+      return yVals[i] * (1.0 - u) + yVals[i + 1] * u;
     }
   }
-  return wavelength_function[wavelength_function.size() - 1];
+
+  return yVals[yVals.size() - 1];
 }
 
 /*
