@@ -534,7 +534,7 @@ void ComputeSpectralRadianceToLuminanceFactors(double lambdaMin, double lambdaMa
   double solar_g = Interpolate(WAVELENGTHS, SOLAR_IRRADIANCE, Model::kLambdaG);
   double solar_b = Interpolate(WAVELENGTHS, SOLAR_IRRADIANCE, Model::kLambdaB);
   int    dlambda = 1;
-  for (int lambda = lambdaMin; lambda < lambdaMax; lambda += dlambda) {
+  for (int lambda = lambdaMin; lambda <= lambdaMax; lambda += dlambda) {
     double        x_bar      = CieColorMatchingFunctionTableValue(lambda, 1);
     double        y_bar      = CieColorMatchingFunctionTableValue(lambda, 2);
     double        z_bar      = CieColorMatchingFunctionTableValue(lambda, 3);
@@ -577,15 +577,16 @@ Model::Model(const std::vector<double>& wavelengths, const double sun_angular_ra
     , mie_(mie)
     , ozone_(ozone) {
 
-  auto extractVec3 = [this](const std::vector<double>& v, const vec3& lambdas, double scale = 1.0) {
-    double r = Interpolate(wavelengths_, v, lambdas[0]) * scale;
-    double g = Interpolate(wavelengths_, v, lambdas[1]) * scale;
-    double b = Interpolate(wavelengths_, v, lambdas[2]) * scale;
+  auto extractVec3 = [](const std::vector<double>& xVals, const std::vector<double>& yVals,
+                         const vec3& lambdas, double scale = 1.0) {
+    double r = Interpolate(xVals, yVals, lambdas[0]) * scale;
+    double g = Interpolate(xVals, yVals, lambdas[1]) * scale;
+    double b = Interpolate(xVals, yVals, lambdas[2]) * scale;
     return "vec3(" + cs::utils::toString(r) + "," + cs::utils::toString(g) + "," +
            cs::utils::toString(b) + ")";
   };
 
-  auto scatteringComponent = [extractVec3, length_unit_in_meters](
+  auto scatteringComponent = [this, extractVec3, length_unit_in_meters](
                                  ScatteringAtmosphereComponent const& component,
                                  float phaseTextureV, float densityTextureV, vec3 lambdas) {
     std::stringstream ss;
@@ -594,8 +595,10 @@ Model::Model(const std::vector<double>& wavelengths, const double sun_angular_ra
     ss << phaseTextureV << ",\n";
     ss << densityTextureV << ",\n";
 
-    auto absorption = extractVec3(component.absorption, lambdas, length_unit_in_meters);
-    auto scattering = extractVec3(component.scattering, lambdas, length_unit_in_meters);
+    auto absorption =
+        extractVec3(wavelengths_, component.absorption, lambdas, length_unit_in_meters);
+    auto scattering =
+        extractVec3(wavelengths_, component.scattering, lambdas, length_unit_in_meters);
 
     ss << scattering << " + " << absorption << ",\n";
     ss << scattering << "\n";
@@ -605,7 +608,7 @@ Model::Model(const std::vector<double>& wavelengths, const double sun_angular_ra
     return ss.str();
   };
 
-  auto absorbingComponent = [extractVec3, length_unit_in_meters](
+  auto absorbingComponent = [this, extractVec3, length_unit_in_meters](
                                 AbsorbingAtmosphereComponent const& component,
                                 float densityTextureV, vec3 lambdas) {
     std::stringstream ss;
@@ -613,7 +616,8 @@ Model::Model(const std::vector<double>& wavelengths, const double sun_angular_ra
 
     ss << densityTextureV << ",\n";
 
-    auto absorption = extractVec3(component.absorption, lambdas, length_unit_in_meters);
+    auto absorption =
+        extractVec3(wavelengths_, component.absorption, lambdas, length_unit_in_meters);
 
     ss << absorption << "\n";
 
@@ -676,7 +680,7 @@ Model::Model(const std::vector<double>& wavelengths, const double sun_angular_ra
             definitions_glsl +
             "const vec3 SKY_SPECTRAL_RADIANCE_TO_LUMINANCE = vec3(" + cs::utils::toString(sky_k_r) + "," + cs::utils::toString(sky_k_g) + "," + cs::utils::toString(sky_k_b) + ");\n" +
             "const vec3 SUN_SPECTRAL_RADIANCE_TO_LUMINANCE = vec3(" + cs::utils::toString(sun_k_r) + "," + cs::utils::toString(sun_k_g) + "," + cs::utils::toString(sun_k_b) + ");\n" +
-            "const vec3 SOLAR_IRRADIANCE = "            + extractVec3(SOLAR_IRRADIANCE, lambdas) + ";\n" +
+            "const vec3 SOLAR_IRRADIANCE = "            + extractVec3(WAVELENGTHS, SOLAR_IRRADIANCE, lambdas) + ";\n" +
             "const vec3 GROUND_ALBEDO = vec3("          + cs::utils::toString(ground_albedo) + ");\n" +
             "const float SUN_ANGULAR_RADIUS = "         + cs::utils::toString(sun_angular_radius) + ";\n" +
             "const float BOTTOM_RADIUS = "              + cs::utils::toString(bottom_radius / length_unit_in_meters) + ";\n" +
@@ -856,16 +860,12 @@ void Model::Init(unsigned int num_scattering_orders) {
         delta_multiple_scattering_texture, lambdas, luminance_from_radiance, false /* blend */,
         num_scattering_orders);
   } else {
-    double lambdaMin      = wavelengths_.front();
-    double lambdaMax      = wavelengths_.back();
-    int    num_iterations = (wavelengths_.size() + 2) / 3;
-    double dlambda        = (lambdaMax - lambdaMin) / (3 * num_iterations);
+    int num_iterations = wavelengths_.size() / 3;
     for (int i = 0; i < num_iterations; ++i) {
       logger().info("Precomputing atmospheric scattering ({}/{})...", i + 1, num_iterations);
 
-      vec3 lambdas{lambdaMin + (3 * i + 0.5) * dlambda, lambdaMin + (3 * i + 1.5) * dlambda,
-          lambdaMin + (3 * i + 2.5) * dlambda};
-      auto coeff = [dlambda](double lambda, int component) {
+      vec3 lambdas{wavelengths_[i * 3 + 0], wavelengths_[i * 3 + 1], wavelengths_[i * 3 + 2]};
+      auto coeff = [this](double lambda, int component) {
         // Note that we don't include MAX_LUMINOUS_EFFICACY here, to avoid
         // artefacts due to too large values when using half precision on GPU.
         // We add this term back in kAtmosphereShader, via
@@ -877,7 +877,7 @@ void Model::Init(unsigned int num_scattering_orders) {
         return static_cast<float>(
             (XYZ_TO_SRGB[component * 3] * x + XYZ_TO_SRGB[component * 3 + 1] * y +
                 XYZ_TO_SRGB[component * 3 + 2] * z) *
-            dlambda);
+            (wavelengths_[1] - wavelengths_[0]));
       };
 
       mat3 luminance_from_radiance{coeff(lambdas[0], 0), coeff(lambdas[1], 0), coeff(lambdas[2], 0),
