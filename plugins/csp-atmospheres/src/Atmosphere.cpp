@@ -483,8 +483,6 @@ void Atmosphere::renderSkyDome(std::string const& fileName) const {
   double       sunDist          = 149597870700;
   double       sunIlluminance   = sunLuminousPower / (sunDist * sunDist * 4.0 * glm::pi<double>());
 
-  std::cout << sunIlluminance << std::endl;
-
   shader.SetUniform(
       shader.GetUniformLocation("uSunIlluminance"), static_cast<float>(sunIlluminance));
 
