@@ -41,10 +41,10 @@ constexpr int TRANSMITTANCE_TEXTURE_WIDTH  = 1024; // 256
 constexpr int TRANSMITTANCE_TEXTURE_HEIGHT = 1024; // 64
 
 // Affects banding towards horizon during dusk / dawn.
-constexpr int SCATTERING_TEXTURE_R_SIZE = 64; // 32
+constexpr int SCATTERING_TEXTURE_R_SIZE = 32; // 32
 
 // Affects banding towards horizon during dusk / dawn.
-constexpr int SCATTERING_TEXTURE_MU_SIZE = 64; // 128
+constexpr int SCATTERING_TEXTURE_MU_SIZE = 128; // 128
 
 // Affects banding in the day-night transition when seen from space.
 constexpr int SCATTERING_TEXTURE_MU_S_SIZE = 32; // 32
