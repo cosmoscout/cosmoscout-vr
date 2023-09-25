@@ -222,14 +222,6 @@ class Model {
       GLuint transmittance_texture_unit, GLuint multiple_scattering_texture_unit,
       GLuint irradiance_texture_unit, GLuint single_mie_scattering_texture_unit) const;
 
-  // Utility method to convert a function of the wavelength to linear sRGB.
-  // 'wavelengths' and 'spectrum' must have the same size. The integral of
-  // 'spectrum' times each CIE_2_DEG_COLOR_MATCHING_FUNCTIONS (and times
-  // MAX_LUMINOUS_EFFICACY) is computed to get XYZ values, which are then
-  // converted to linear sRGB with the XYZ_TO_SRGB matrix.
-  static void ConvertSpectrumToLinearSrgb(const std::vector<double>& wavelengths,
-      const std::vector<double>& spectrum, double* r, double* g, double* b);
-
   static constexpr double kLambdaR = 680.0;
   static constexpr double kLambdaG = 550.0;
   static constexpr double kLambdaB = 440.0;
