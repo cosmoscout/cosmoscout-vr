@@ -452,7 +452,7 @@ float getCloudShadow(vec3 rayOrigin, vec3 rayDir) {
 
 void main() {
   float cAltitude     = 1.0;
-  float cSunElevation = 45.0 / 180.0 * PI;
+  float cSunElevation = 10.0 / 180.0 * PI;
   bool  cHorizon      = false;
 
   oColor = vec3(0.0);
