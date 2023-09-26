@@ -475,6 +475,30 @@ class CS_CORE_EXPORT Settings {
 
   // -----------------------------------------------------------------------------------------------
 
+  struct Audio {
+    /// Enables or disables HRTF
+    utils::DefaultProperty<bool> pEnableHRTF{true};
+
+    /// Specifies the maximum number of mono sources
+    utils::DefaultProperty<int> pNumberMonoSources{512};
+
+    /// Specifies the maximum number of stereo sources
+    utils::DefaultProperty<int> pNumberStereoSources{5};
+
+    /// Specifies the Refresh rate of the context processing
+    utils::DefaultProperty<int> pRefreshRate{30};
+
+    /// Specifies whether it should be a sychronous or asynchronous(default) context
+    utils::DefaultProperty<bool> pContextSync{false};
+
+    ///	Frequency for mixing in the output buffer, measured in Hz
+    utils::DefaultProperty<int> pMixerFrequency{48000};
+  };
+
+  Audio mAudio;
+
+  // -----------------------------------------------------------------------------------------------
+
   /// A map with configuration options for each plugin. The JSON object is not parsed, this is done
   /// by the plugins themselves.
   std::map<std::string, nlohmann::json> mPlugins;

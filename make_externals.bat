@@ -423,7 +423,17 @@ if %USING_NINJA%==true (
   cmake -E copy "%BUILD_DIR%/cef/libcef_dll_wrapper/%BUILD_TYPE%/libcef_dll_wrapper.lib"  "%INSTALL_DIR%/lib"
 )
 
-rem ------------------------------------------------------------------------------------------------
+rem openal-soft --------------------------------------------------------------------------------------
+:openal-soft
+
+echo.
+echo Building and installing openal-soft ...
+echo.
+
+cmake -E make_directory "%BUILD_DIR%/openal-soft" && cd "%BUILD_DIR%/openal-soft"
+cmake -DCMAKE_BUILD_TYPE=%BUILD_TYPE% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%"^
+      -DCMAKE_UNITY_BUILD=%UNITY_BUILD% "%EXTERNALS_DIR%/openal-soft" || goto :error
+cmake --build . --config %BUILD_TYPE% --target install --parallel %NUMBER_OF_PROCESSORS% || goto :error
 
 :finish
 echo Finished successfully.

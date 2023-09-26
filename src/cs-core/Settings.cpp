@@ -364,6 +364,27 @@ void to_json(nlohmann::json& j, Settings::Graphics const& o) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void from_json(nlohmann::json const& j, Settings::Audio& o) {
+  Settings::deserialize(j, "enableHRTF", o.pEnableHRTF);
+  Settings::deserialize(j, "numberMonoSources", o.pNumberMonoSources);
+  Settings::deserialize(j, "numberStereoSources", o.pNumberStereoSources);
+  Settings::deserialize(j, "refreshRate", o.pRefreshRate);
+  Settings::deserialize(j, "contextSync", o.pContextSync);
+  Settings::deserialize(j, "mixerOutputFrequency", o.pMixerFrequency);
+}
+
+void to_json(nlohmann::json& j, Settings::Audio const& o) {
+  Settings::serialize(j, "enableVsync", o.pEnableVsync);
+  Settings::serialize(j, "enableHRTF", o.pEnableHRTF);
+  Settings::serialize(j, "numberMonoSources", o.pNumberMonoSources);
+  Settings::serialize(j, "numberStereoSources", o.pNumberStereoSources);
+  Settings::serialize(j, "refreshRate", o.pRefreshRate);
+  Settings::serialize(j, "contextSync", o.pContextSync);
+  Settings::serialize(j, "mixerOutputFrequency", o.pMixerFrequency);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void from_json(nlohmann::json const& j, Settings& o) {
   Settings::deserialize(j, "startDate", o.mStartDate);
   Settings::deserialize(j, "resetDate", o.mResetDate);

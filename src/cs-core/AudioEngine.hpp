@@ -1,0 +1,33 @@
+////////////////////////////////////////////////////////////////////////////////////////////////////
+//                               This file is part of CosmoScout VR                               //
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
+// SPDX-License-Identifier: MIT
+
+#ifndef CS_CORE_AUDIO_AudioEngine_HPP
+#define CS_CORE_AUDIO_AudioEngine_HPP
+
+#include "Settings.hpp"
+
+#include "../cs-audio/OpenAlManager.hpp"
+
+// forward declaration
+
+namespace cs::core {
+
+class CS_CORE_EXPORT AudioEngine {
+
+ public:
+  explicit AudioEngine(std::shared_ptr<Settings> settings);
+
+  ~AudioEngine();
+
+ private:
+  std::shared_ptr<core::Settings>       mSettings;
+  std::unique_ptr<audio::OpenAlManager> mOpenAlManager;
+};
+
+} // namespace cs::core
+
+#endif // CS_CORE_AUDIO_AudioEngine_HPP
