@@ -374,7 +374,6 @@ void from_json(nlohmann::json const& j, Settings::Audio& o) {
 }
 
 void to_json(nlohmann::json& j, Settings::Audio const& o) {
-  Settings::serialize(j, "enableVsync", o.pEnableVsync);
   Settings::serialize(j, "enableHRTF", o.pEnableHRTF);
   Settings::serialize(j, "numberMonoSources", o.pNumberMonoSources);
   Settings::serialize(j, "numberStereoSources", o.pNumberStereoSources);
