@@ -122,7 +122,7 @@ bool Model::init(
           rayleigh, mie, ozone, settings.mGroundAlbedo.get(), maxSunZenithAngle, 1.0));
 
   glDisable(GL_CULL_FACE);
-  mModel->Init(10);
+  mModel->Init(15);
   glEnable(GL_CULL_FACE);
 
   return true;
