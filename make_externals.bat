@@ -431,9 +431,10 @@ echo Building and installing openal-soft ...
 echo.
 
 cmake -E make_directory "%BUILD_DIR%/openal-soft" && cd "%BUILD_DIR%/openal-soft"
-cmake -DCMAKE_BUILD_TYPE=%BUILD_TYPE% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%"^
-      -DCMAKE_UNITY_BUILD=%UNITY_BUILD% "%EXTERNALS_DIR%/openal-soft" || goto :error
-cmake --build . --config %BUILD_TYPE% --target install --parallel %NUMBER_OF_PROCESSORS% || goto :error
+cmake "%EXTERNALS_DIR%/openal-soft" || goto :error
+cmake --build . || goto :error
+cmake -E copy_directory "%EXTERNALS_DIR%/openal-soft/include"    "%INSTALL_DIR%/include/openal-soft" || goto :error
+cmake -E copy_directory "%BUILD_DIR%/openal-soft/%BUILD_TYPE%"   "%INSTALL_DIR%/lib" || goto :error
 
 :finish
 echo Finished successfully.
