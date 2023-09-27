@@ -40,6 +40,8 @@ uniform float uWaterLevel;
 uniform sampler2D uCloudTexture;
 uniform float     uCloudAltitude;
 
+uniform float     uSunElevation;
+
 // outputs
 layout(location = 0) out vec3 oColor;
 
@@ -452,7 +454,7 @@ float getCloudShadow(vec3 rayOrigin, vec3 rayDir) {
 
 void main() {
   float cAltitude     = 1.0;
-  float cSunElevation = 10.0 / 180.0 * PI;
+  float cSunElevation = uSunElevation / 180.0 * PI;
   bool  cHorizon      = false;
 
   oColor = vec3(0.0);

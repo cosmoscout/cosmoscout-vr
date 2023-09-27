@@ -158,7 +158,7 @@ void Atmosphere::configure(Plugin::Settings::Atmosphere const& settings) {
 
     mSettings = settings;
 
-    renderSkyDome(mObjectName + "_skydome.hdr");
+    renderSkyDome(mObjectName);
   }
 }
 
@@ -421,8 +421,8 @@ bool Atmosphere::GetBoundingBox(VistaBoundingBox& bb) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Atmosphere::renderSkyDome(std::string const& fileName) const {
-  const int SIZE = 1024;
+void Atmosphere::renderSkyDome(std::string const& name) const {
+  const int SIZE = 512;
 
   VistaGLSLShader shader;
 
@@ -486,21 +486,27 @@ void Atmosphere::renderSkyDome(std::string const& fileName) const {
   shader.SetUniform(
       shader.GetUniformLocation("uSunIlluminance"), static_cast<float>(sunIlluminance));
 
-  mModel->setUniforms(shader.GetProgram(), 4);
+  std::vector<float> pixels(SIZE * SIZE * 4);
 
-  // draw --------------------------------------------------------------------
-  glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+  std::vector<float> elevation = {0.0, 45.0, 75.0, 90.0};
+
+  for (float e : elevation) {
+    shader.SetUniform(shader.GetUniformLocation("uSunElevation"), e);
+
+    mModel->setUniforms(shader.GetProgram(), 4);
+
+    // draw --------------------------------------------------------------------
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+    glReadPixels(0, 0, SIZE, SIZE, GL_RGBA, GL_FLOAT, &pixels[0]);
+
+    stbi_write_hdr(fmt::format("{}_{}.hdr", name, e).c_str(), SIZE, SIZE, 4, pixels.data());
+  }
 
   // clean up ----------------------------------------------------------------
-
-  shader.Release();
-
   glDepthMask(GL_TRUE);
 
-  std::vector<float> pixels(SIZE * SIZE * 4);
-  glReadPixels(0, 0, SIZE, SIZE, GL_RGBA, GL_FLOAT, &pixels[0]);
-
-  stbi_write_hdr(fileName.c_str(), SIZE, SIZE, 4, pixels.data());
+  shader.Release();
 
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
 

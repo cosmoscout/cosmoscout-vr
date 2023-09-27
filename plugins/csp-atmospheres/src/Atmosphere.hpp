@@ -52,7 +52,7 @@ class Atmosphere : public IVistaOpenGLDraw {
  private:
   void updateShader();
 
-  void renderSkyDome(std::string const& fileName) const;
+  void renderSkyDome(std::string const& name) const;
 
   std::shared_ptr<Plugin::Settings>                mPluginSettings;
   std::shared_ptr<cs::core::Settings>              mAllSettings;
