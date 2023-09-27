@@ -10,11 +10,14 @@
 
 #include "Settings.hpp"
 
+#include <openal-soft/AL/al.h>
+#include <openal-soft/AL/alc.h>
+
 namespace cs::audio {
 
 class /*CS_GRAPHICS_EXPORT*/ OpenAlManager {
  public:
-  OpenAlManager(std::shared_ptr<core::Settings::audio> settings);
+  OpenAlManager(std::shared_ptr<core::Settings> settings);
 
   ~OpenAlManager();
   
@@ -24,10 +27,17 @@ class /*CS_GRAPHICS_EXPORT*/ OpenAlManager {
 
  private:
   
-  bool initOpenAl(std::shared_ptr<core::Settings::audio> settings);
+  bool initOpenAl(std::shared_ptr<core::Settings> settings);
 
   std::unique_ptr<ALCdevice>  mDevice;
   std::unique_ptr<ALCcontext> mContext;
+
+  // temporary stuff for testing
+  void playTestSound(std::string wavToPlay);
+  char* loadWAV(const char* fn, int& chan, int& samplerate, int& bps, int& size, unsigned int& format);
+  ALuint sources_temp[1];
+  ALuint buffer_temp[1];
+  // ---------------------------
 };
 
 } // namespace cs::audio
