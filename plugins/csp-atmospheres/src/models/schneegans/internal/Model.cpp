@@ -698,7 +698,7 @@ Model::Model(const std::vector<double>& wavelengths, const double sun_angular_ra
   transmittance_texture_ = NewTexture2d(
       TRANSMITTANCE_TEXTURE_WIDTH, TRANSMITTANCE_TEXTURE_HEIGHT, GL_RGBA32F, GL_RGBA, GL_FLOAT);
   multiple_scattering_texture_   = NewTexture3d(SCATTERING_TEXTURE_WIDTH, SCATTERING_TEXTURE_HEIGHT,
-      SCATTERING_TEXTURE_DEPTH, GL_RGBA32F, GL_RGBA, GL_FLOAT);
+        SCATTERING_TEXTURE_DEPTH, GL_RGBA32F, GL_RGBA, GL_FLOAT);
   single_mie_scattering_texture_ = NewTexture3d(SCATTERING_TEXTURE_WIDTH, SCATTERING_TEXTURE_HEIGHT,
       SCATTERING_TEXTURE_DEPTH, GL_RGBA32F, GL_RGBA, GL_FLOAT);
 
@@ -833,9 +833,9 @@ void Model::Init(unsigned int num_scattering_orders) {
   GLuint delta_rayleigh_scattering_texture = NewTexture3d(SCATTERING_TEXTURE_WIDTH,
       SCATTERING_TEXTURE_HEIGHT, SCATTERING_TEXTURE_DEPTH, GL_RGBA32F, GL_RGBA, GL_FLOAT);
   GLuint delta_mie_scattering_texture      = NewTexture3d(SCATTERING_TEXTURE_WIDTH,
-      SCATTERING_TEXTURE_HEIGHT, SCATTERING_TEXTURE_DEPTH, GL_RGBA32F, GL_RGBA, GL_FLOAT);
+           SCATTERING_TEXTURE_HEIGHT, SCATTERING_TEXTURE_DEPTH, GL_RGBA32F, GL_RGBA, GL_FLOAT);
   GLuint delta_scattering_density_texture  = NewTexture3d(SCATTERING_TEXTURE_WIDTH,
-      SCATTERING_TEXTURE_HEIGHT, SCATTERING_TEXTURE_DEPTH, GL_RGBA32F, GL_RGBA, GL_FLOAT);
+       SCATTERING_TEXTURE_HEIGHT, SCATTERING_TEXTURE_DEPTH, GL_RGBA32F, GL_RGBA, GL_FLOAT);
   // delta_multiple_scattering_texture is only needed to compute scattering
   // order 3 or more, while delta_rayleigh_scattering_texture and
   // delta_mie_scattering_texture are only needed to compute double scattering.
@@ -902,7 +902,9 @@ void Model::Init(unsigned int num_scattering_orders) {
     glScissor(0, 0, TRANSMITTANCE_TEXTURE_WIDTH, TRANSMITTANCE_TEXTURE_HEIGHT);
     compute_transmittance.Use();
     compute_transmittance.BindTexture2d("density_texture", density_texture_, 0);
-    DrawQuad({}, full_screen_quad_vao_);
+    DrawQuad({false}, full_screen_quad_vao_);
+
+    glFlush();
 
     // Also, the phase_texture_ contains the phase functions for the last used wavelengths. We need
     // to update it with kLambdaR, kLambdaG, kLambdaB as well.
@@ -1031,7 +1033,7 @@ void Model::Precompute(GLuint fbo, GLuint delta_irradiance_texture,
   glScissor(0, 0, TRANSMITTANCE_TEXTURE_WIDTH, TRANSMITTANCE_TEXTURE_HEIGHT);
   compute_transmittance.Use();
   compute_transmittance.BindTexture2d("density_texture", density_texture_, 0);
-  DrawQuad({}, full_screen_quad_vao_);
+  DrawQuad({false}, full_screen_quad_vao_);
 
   // -----------------------------------------------------------------------------------------------
 
@@ -1099,7 +1101,7 @@ void Model::Precompute(GLuint fbo, GLuint delta_irradiance_texture,
     compute_scattering_density.BindInt("scattering_order", scattering_order);
     for (unsigned int layer = 0; layer < SCATTERING_TEXTURE_DEPTH; ++layer) {
       compute_scattering_density.BindInt("layer", layer);
-      DrawQuad({}, full_screen_quad_vao_);
+      DrawQuad({false}, full_screen_quad_vao_);
     }
 
     // 4.2. Compute the indirect irradiance, store it in delta_irradiance_texture and
@@ -1144,6 +1146,8 @@ void Model::Precompute(GLuint fbo, GLuint delta_irradiance_texture,
   glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, 0, 0);
   glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, 0, 0);
   glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, 0, 0);
+
+  glFlush();
 }
 
 void Model::UpdatePhaseFunctionTexture(
