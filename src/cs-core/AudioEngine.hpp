@@ -10,7 +10,8 @@
 
 #include "Settings.hpp"
 
-#include "../cs-audio/OpenAlManager.hpp"
+#include "../cs-audio/internal/OpenAlManager.hpp"
+#include "../cs-audio/Source.hpp"
 
 // forward declaration
 
@@ -23,9 +24,12 @@ class CS_CORE_EXPORT AudioEngine {
 
   ~AudioEngine();
 
+  audio::Source createSource(std::string file /*, AudioSettings*/);
+
  private:
   std::shared_ptr<core::Settings>       mSettings;
   std::unique_ptr<audio::OpenAlManager> mOpenAlManager;
+  std::shared_ptr<audio::BufferManager> mBufferManager;
 };
 
 } // namespace cs::core
