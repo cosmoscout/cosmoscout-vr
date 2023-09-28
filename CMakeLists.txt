@@ -143,6 +143,14 @@ else()
   SET(VistaCoreLibs_DIR ${COSMOSCOUT_EXTERNALS_DIR}/share/VistaCoreLibs/cmake)
 endif()
 
+if (DEFINED ENV{OPENAL_ROOT_DIR})
+  SET(ENV{OPENALDIR} "$ENV{OPENAL_ROOT_DIR}")
+else()
+  SET(ENV{OPENALDIR} ${COSMOSCOUT_EXTERNALS_DIR})
+endif()
+
+message(STATUS "$ENV{OPENALDIR}")
+
 find_package(GLM REQUIRED)
 find_package(GLI REQUIRED)
 find_package(DOCTEST REQUIRED)
@@ -161,6 +169,7 @@ find_package(CIVETWEB REQUIRED)
 find_package(VistaCoreLibs REQUIRED 
   COMPONENTS "VistaBase" "VistaKernel" "VistaKernelOpenSGExt" "VistaOGLExt"
 )
+find_package(OpenAL REQUIRED)
 
 # X11 is used on Linux to set the application window's name and icon.
 if (UNIX)
@@ -309,6 +318,7 @@ include_directories(
   ${CMAKE_BINARY_DIR}/src/cs-core
   ${CMAKE_BINARY_DIR}/src/cs-utils
   ${CMAKE_BINARY_DIR}/src/cs-graphics
+  ${CMAKE_BINARY_DIR}/src/cs-audio
   ${CMAKE_BINARY_DIR}/src/cs-gui
   ${CMAKE_BINARY_DIR}/src/cs-scene
 )
