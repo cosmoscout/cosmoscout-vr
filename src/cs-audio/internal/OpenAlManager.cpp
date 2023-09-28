@@ -6,34 +6,52 @@
 // SPDX-License-Identifier: MIT
 
 #include "OpenAlManager.hpp"
-#include "Settings.hpp"
+#include "../../cs-core/Settings.hpp"
 #include <memory>
 
-#include <openal-soft/AL/al.h>
-#include <openal-soft/AL/alc.h>
+#include <AL/al.h>
+#include <AL/alc.h>
+#include <AL/alext.h>
+
+// testing
+#include <iostream>
+#include <fstream>
+#include <cstring>
 
 namespace cs::audio {
 
 OpenAlManager::OpenAlManager(std::shared_ptr<core::Settings> settings) {
   if (initOpenAl(settings)) {
-    playTestSound("../../../audioCSNotes/testFiles/exotic_mono.wav");
+    playTestSound("../../../../audioCSNotes/testFiles/exotic_mono.wav");
   }
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 OpenAlManager::~OpenAlManager() {
-  
   // testing stuff
   alDeleteSources(1, sources_temp);
 	alDeleteBuffers(1, buffer_temp);
+  // ---------------------
+
+  alcMakeContextCurrent(NULL);
+	alcDestroyContext(mContext.get());
+	alcCloseDevice(mDevice.get());
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
 std::vector<std::string> OpenAlManager::getDevices() {
   return std::vector<std::string>();
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 bool OpenAlManager::setDevice(std::string outputDevice) {
   return true;
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool OpenAlManager::initOpenAl(std::shared_ptr<core::Settings> settings) {
   // open default device
@@ -43,16 +61,27 @@ bool OpenAlManager::initOpenAl(std::shared_ptr<core::Settings> settings) {
   }
 
   // create context
+  /*
   ALCint attrlist[] = {
-    ALC_FREQUENCY, settings->mAudio->pMixerOutputFrequency,
-	  ALC_MONO_SOURCES, settings->mAudio->pNumberMonoSources,
-	  ALC_STEREO_SOURCES, settings->mAudio->pNumberStereoSources,
-	  ALC_REFRESH, settings->mAudio->pRefreshRate,
-	  ALC_SYNC, (settings->mAudio->pContextSync ? AL_TRUE : AL_FALSE),
-	  ALC_HRTF_SOFT, (settings->mAudio->pEnableHRTF ? AL_TRUE : AL_FALSE)
+    ALC_FREQUENCY, settings->mAudio.pMixerFrequency,
+	  ALC_MONO_SOURCES, settings->mAudio.pNumberMonoSources,
+	  ALC_STEREO_SOURCES, settings->mAudio.pNumberStereoSources,
+	  ALC_REFRESH, settings->mAudio.pRefreshRate,
+	  ALC_SYNC, settings->mAudio.pContextSync,
+	  ALC_HRTF_SOFT, settings->mAudio.pEnableHRTF
+  };
+  */
+  ALCint attrlist[] = {
+    ALC_FREQUENCY, 48000,
+	  ALC_MONO_SOURCES, 12,
+	  ALC_STEREO_SOURCES, 1,
+	  ALC_REFRESH, 30,
+	  ALC_SYNC, 1,
+	  ALC_HRTF_SOFT, 1
   };
 
-  mContext = std::unique_ptr<ALCcontext>(alcCreateContext(mDevice.get(), attrlist));
+  mContext = std::make_unique<ALCcontext>(alcCreateContext(mDevice.get(), attrlist));
+  // mContext = std::unique_ptr<ALCcontext>(alcCreateContext(mDevice.get(), attrlist));
   if (!alcMakeContextCurrent(mContext.get())) {
     return false;
   }
@@ -64,7 +93,9 @@ bool OpenAlManager::initOpenAl(std::shared_ptr<core::Settings> settings) {
   return true;
 }
 
-void OpenAlManager::playTestSound(std::string wavToPlay) {
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+bool OpenAlManager::playTestSound(std::string wavToPlay) {
   alGetError(); // pop error stack
 
   // set Listener
@@ -112,6 +143,8 @@ void OpenAlManager::playTestSound(std::string wavToPlay) {
   alSourcePlay(sources_temp[0]);
   return true;
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
 char* OpenAlManager::loadWAV(const char* fn, int& chan, int& samplerate, int& bps, int& size, unsigned int& format)
 {
@@ -163,6 +196,24 @@ char* OpenAlManager::loadWAV(const char* fn, int& chan, int& samplerate, int& bp
 	}
 
     return data;
+}
+
+int OpenAlManager::convertToInt(char* buffer, int len)
+{
+    int a = 0;
+    if (!isBigEndian())
+        for (int i = 0; i < len; i++)
+            ((char*)&a)[i] = buffer[i];
+    else
+        for (int i = 0; i < len; i++)
+            ((char*)&a)[3 - i] = buffer[i];
+    return a;
+}
+
+bool OpenAlManager::isBigEndian()
+{
+    int a = 1;
+    return !((char*)&a)[0];
 }
 
 } // namespace cs::audio

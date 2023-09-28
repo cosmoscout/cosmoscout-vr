@@ -10,12 +10,12 @@
 
 #include "Settings.hpp"
 
-#include <openal-soft/AL/al.h>
-#include <openal-soft/AL/alc.h>
+#include <AL/al.h>
+#include <AL/alc.h>
 
 namespace cs::audio {
 
-class /*CS_GRAPHICS_EXPORT*/ OpenAlManager {
+class /*CS_AUDIO_EXPORT*/ OpenAlManager {
  public:
   OpenAlManager(std::shared_ptr<core::Settings> settings);
 
@@ -33,10 +33,12 @@ class /*CS_GRAPHICS_EXPORT*/ OpenAlManager {
   std::unique_ptr<ALCcontext> mContext;
 
   // temporary stuff for testing
-  void playTestSound(std::string wavToPlay);
+  bool playTestSound(std::string wavToPlay);
   char* loadWAV(const char* fn, int& chan, int& samplerate, int& bps, int& size, unsigned int& format);
   ALuint sources_temp[1];
   ALuint buffer_temp[1];
+  int convertToInt(char* buffer, int len);
+  bool isBigEndian();
   // ---------------------------
 };
 
