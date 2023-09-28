@@ -33,7 +33,7 @@ namespace csp::atmospheres::models::schneegans::internal {
 constexpr int SAMPLE_COUNT_OPTICAL_DEPTH = 1500; // 500
 
 // Improves sampling of thin layers.
-constexpr int SAMPLE_COUNT_SINGLE_SCATTERING = 150; // 50
+constexpr int SAMPLE_COUNT_SINGLE_SCATTERING = 250; // 50
 
 // Darkens horizon for thick atmospheres.
 constexpr int SAMPLE_COUNT_MULTI_SCATTERING = 150; // 50
@@ -45,11 +45,11 @@ constexpr int SAMPLE_COUNT_SCATTERING_DENSITY = 16; // 16
 constexpr int SAMPLE_COUNT_INDIRECT_IRRADIANCE = 32; // 32
 
 // Low impact on preprocssing time. Resolution seems suitable for CosmoScout VR.
-constexpr int TRANSMITTANCE_TEXTURE_WIDTH  = 512; // 256
-constexpr int TRANSMITTANCE_TEXTURE_HEIGHT = 128; // 64
+constexpr int TRANSMITTANCE_TEXTURE_WIDTH  = 1024; // 256
+constexpr int TRANSMITTANCE_TEXTURE_HEIGHT = 1024; // 64
 
-// Little quality impact.
-constexpr int SCATTERING_TEXTURE_R_SIZE = 8; // 16
+// Improves sampling of thick low-altitude layers.
+constexpr int SCATTERING_TEXTURE_R_SIZE = 16; // 16
 
 // Circular banding artifacts around zenith for thick atmospheres.
 constexpr int SCATTERING_TEXTURE_MU_SIZE = 128; // 64
