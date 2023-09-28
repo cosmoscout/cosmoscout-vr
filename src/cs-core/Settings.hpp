@@ -591,6 +591,8 @@ CS_CORE_EXPORT void from_json(nlohmann::json const& j, Settings::SceneScale& o);
 CS_CORE_EXPORT void to_json(nlohmann::json& j, Settings::SceneScale const& o);
 CS_CORE_EXPORT void from_json(nlohmann::json const& j, Settings::Graphics& o);
 CS_CORE_EXPORT void to_json(nlohmann::json& j, Settings::Graphics const& o);
+CS_CORE_EXPORT void from_json(nlohmann::json const& j, Settings::Audio& o);
+CS_CORE_EXPORT void to_json(nlohmann::json& j, Settings::Audio const& o);
 CS_CORE_EXPORT void from_json(nlohmann::json const& j, Settings& o);
 CS_CORE_EXPORT void to_json(nlohmann::json& j, Settings const& o);
 
