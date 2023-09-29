@@ -8,6 +8,8 @@
 #ifndef CS_APPLICATION_HPP
 #define CS_APPLICATION_HPP
 
+#include "../cs-core/AudioEngine.hpp"
+
 #include <VistaKernel/VistaFrameLoop.h>
 #include <limits>
 #include <map>
@@ -33,7 +35,7 @@ class GraphicsEngine;
 class TimeControl;
 class SolarSystem;
 class DragNavigation;
-class AudioEngine;
+// class AudioEngine;
 } // namespace cs::core
 
 namespace cs::graphics {
