@@ -19,7 +19,7 @@ add_library(cs-audio SHARED
 
 target_link_libraries(cs-audio
   PUBLIC
-    openal-soft
+    ${OPENAL_LIBRARY}
     cs-utils
 )
 

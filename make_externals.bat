@@ -81,8 +81,6 @@ cmake -E make_directory "%INSTALL_DIR%/share"
 cmake -E make_directory "%INSTALL_DIR%/bin"
 cmake -E make_directory "%INSTALL_DIR%/include"
 
-goto openal-soft
-
 rem glew -------------------------------------------------------------------------------------------
 :glew
 
