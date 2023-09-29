@@ -8,6 +8,7 @@
 #ifndef CS_AUDIO_OPEN_AL_MANAGER_HPP
 #define CS_AUDIO_OPEN_AL_MANAGER_HPP
 
+#include "cs_audio_export.hpp"
 #include "Settings.hpp"
 
 #include <AL/al.h>
@@ -15,7 +16,7 @@
 
 namespace cs::audio {
 
-class /*CS_AUDIO_EXPORT*/ OpenAlManager {
+class CS_AUDIO_EXPORT OpenAlManager {
  public:
   OpenAlManager(std::shared_ptr<core::Settings> settings);
 
@@ -29,17 +30,9 @@ class /*CS_AUDIO_EXPORT*/ OpenAlManager {
   
   bool initOpenAl(std::shared_ptr<core::Settings> settings);
 
-  std::unique_ptr<ALCdevice>  mDevice;
-  std::unique_ptr<ALCcontext> mContext;
-
-  // temporary stuff for testing
-  bool playTestSound(std::string wavToPlay);
-  char* loadWAV(const char* fn, int& chan, int& samplerate, int& bps, int& size, unsigned int& format);
-  ALuint sources_temp[1];
-  ALuint buffer_temp[1];
-  int convertToInt(char* buffer, int len);
-  bool isBigEndian();
-  // ---------------------------
+  // using raw pointers because smart one always throw an error
+  ALCdevice* mDevice;
+  ALCcontext* mContext;
 };
 
 } // namespace cs::audio
