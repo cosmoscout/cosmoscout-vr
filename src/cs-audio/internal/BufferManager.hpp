@@ -8,20 +8,27 @@
 #ifndef CS_AUDIO_BUFFER_MANAGER_HPP
 #define CS_AUDIO_BUFFER_MANAGER_HPP
 
+#include "cs_audio_export.hpp"
+
 #include <string>
 #include <vector>
-
 #include <AL/al.h>
 
 namespace cs::audio {
 
 struct Buffer {
-  std::string file;
-  int         usageNumber;
-  ALuint      openAlId;
+  std::string mFile;
+  int         mUsageNumber;
+  ALuint      mOpenAlId;
+
+  Buffer(std::string file, ALuint openAlId) 
+    : mFile(std::move(file))
+    , mOpenAlId(std::move(openAlId)) {
+    mUsageNumber = 1;  
+  }
 };
 
-class /*CS_AUDIO_EXPORT*/ BufferManager {
+class CS_AUDIO_EXPORT BufferManager {
  public:
   ~BufferManager();
 
@@ -32,7 +39,7 @@ class /*CS_AUDIO_EXPORT*/ BufferManager {
   void removeBuffer(std::string file);
   
  private:
-  std::vector<std::shared_ptr<Buffer>> bufferList;
+  std::vector<std::shared_ptr<Buffer>> mBufferList;
   
   // creates a new buffer
   ALuint createBuffer(std::string file);
