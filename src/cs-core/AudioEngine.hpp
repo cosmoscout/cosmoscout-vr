@@ -8,12 +8,12 @@
 #ifndef CS_CORE_AUDIO_AudioEngine_HPP
 #define CS_CORE_AUDIO_AudioEngine_HPP
 
+#include "cs_audio_export.hpp"
 #include "Settings.hpp"
 
 #include "../cs-audio/internal/OpenAlManager.hpp"
 #include "../cs-audio/Source.hpp"
 
-// forward declaration
 
 namespace cs::core {
 
@@ -30,6 +30,12 @@ class CS_CORE_EXPORT AudioEngine {
   std::shared_ptr<core::Settings>       mSettings;
   std::unique_ptr<audio::OpenAlManager> mOpenAlManager;
   std::shared_ptr<audio::BufferManager> mBufferManager;
+
+  // for testing
+  void playAmbient(std::string file);
+  void playAmbient2();
+  ALuint sources[1];
+  ALuint buffer[1];
 };
 
 } // namespace cs::core

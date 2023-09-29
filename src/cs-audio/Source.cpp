@@ -21,23 +21,49 @@ Source::Source(std::shared_ptr<BufferManager> bufferManager, std::string file)
   alGenSources((ALuint)1, &mOpenAlId);
 
   // TODO: check if file actually exists
+ 
+  // temp for ambient
+  alSource3i(mOpenAlId, AL_POSITION, 0, 0, 0);
+  alSourcei(mOpenAlId, AL_LOOPING, AL_TRUE);
 
-  // bind buffer to source
-  alSourcei(mOpenAlId, AL_BUFFER, mBufferManager->getBuffer(file));
+  // get buffer and bind buffer to source
+  alSourcei(mOpenAlId, AL_BUFFER, mBufferManager->getBuffer(mFile));
   // TODO: Error handling
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 Source::~Source() {
-  
+  mBufferManager->removeBuffer(mFile);
+  alDeleteSources(1, &mOpenAlId);
+  // TODO: Error handling
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool Source::play() {
+  int playing;
+  alGetSourcei(mOpenAlId, AL_SOURCE_STATE, &playing);
+  std::cout << "is playing: " << (playing == AL_PLAYING ? "yes" : "no") << std::endl;
+
   alSourcePlay(mOpenAlId);
   // TODO: Error handling
+
+  float x, y, z;
+  alGetSource3f(mOpenAlId, AL_POSITION, &x, &y, &z);
+  std::cout << "source Position: " << x << ", " << y << ", " << z << std::endl;
+
+  float gain;
+  alGetSourcef(mOpenAlId, AL_GAIN, &gain);
+  std::cout << "gain: " << gain << std::endl;
+
+  int buffer;
+  alGetSourcei(mOpenAlId, AL_BUFFER, &buffer);
+  std::cout << "buffer: " << buffer << std::endl;
+
+  alGetSourcei(mOpenAlId, AL_SOURCE_STATE, &playing);
+  std::cout << "is playing: " << (playing == AL_PLAYING ? "yes" : "no") << std::endl;
+
   return true;
 }
 
@@ -58,6 +84,7 @@ void Source::update() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool Source::setFile(std::string file) {
+  mBufferManager->removeBuffer(mFile);
   mFile = file;
   // TODO: check if file exists
   return true;
