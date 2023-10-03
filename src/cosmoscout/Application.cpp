@@ -222,6 +222,9 @@ void Application::Quit() {
   assertCleanUp("mInputManager", mInputManager.use_count());
   mInputManager.reset();
 
+  assertCleanUp("mAudioEngine", mAudioEngine.use_count());
+  mAudioEngine.reset();
+
   VistaFrameLoop::Quit();
 }
 
