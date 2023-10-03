@@ -24,7 +24,7 @@ namespace cs::core {
 
 AudioEngine::AudioEngine(std::shared_ptr<Settings> settings) 
     : mSettings(std::move(settings)) 
-    , mOpenAlManager(std::make_unique<audio::OpenAlManager>(mSettings)) 
+    , mOpenAlManager(std::make_unique<audio::OpenAlManager>(mSettings))
     , mBufferManager(std::make_shared<audio::BufferManager>()) {
 
   // Tell the user what's going on.
@@ -36,6 +36,13 @@ AudioEngine::AudioEngine(std::shared_ptr<Settings> settings)
 }
  
 AudioEngine::~AudioEngine() {
+  try {
+    // Tell the user what's going on.
+    logger().debug("Deleting AudioEngine.");
+  } catch (...) {}
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
 std::shared_ptr<audio::Source> AudioEngine::createSource(std::string file, std::shared_ptr<audio::SourceSettings> settings) {
   return std::make_shared<audio::Source>(mBufferManager, file, settings);
