@@ -10,8 +10,13 @@
 
 #include "../cs-audio/internal/FileReader.hpp"
 #include "../cs-audio/internal/OpenAlManager.hpp"
+#include "../cs-audio/internal/Listener.hpp"
 #include "../cs-audio/Source.hpp"
 #include "../cs-audio/SourceSettings.hpp"
+
+#include "../cs-audio/Pipeline.hpp"
+#include "../cs-audio/processingSteps/Default_PS.hpp"
+#include "../cs-audio/processingSteps/Spatialization_PS.hpp"
 
 namespace cs::core {
 
@@ -27,10 +32,9 @@ AudioEngine::AudioEngine(std::shared_ptr<Settings> settings)
   logger().info("OpenAL-Soft Vendor:  {}", alGetString(AL_VENDOR));
   logger().info("OpenAL-Soft Version:  {}", alGetString(AL_VERSION));
 
-  playAmbient("C:/Users/sass_fl/audioCS/audioCSNotes/testFiles/scifi_stereo.wav");
-  // playAmbient2();
+  playAmbient("I:/Bachelorarbeit/audioCS/audioCSNotes/testFiles/scifi_stereo.wav");
 }
-
+ 
 AudioEngine::~AudioEngine() {
 
 std::shared_ptr<audio::Source> AudioEngine::createSource(std::string file, std::shared_ptr<audio::SourceSettings> settings) {
@@ -62,59 +66,14 @@ bool AudioEngine::setDevice(std::string outputDevice) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void AudioEngine::playAmbient(std::string file) {
-  // set Listener
-	alListener3i(AL_POSITION, 0, 0, 0);
-
-	ALint listenerOri[] = { 0, 0, 1, 0, 1, 0 };
-	alListeneriv(AL_ORIENTATION, listenerOri);
-
-  // set source
-  audio::Source source = createSource(file);
-  source.play();
-
-  int x, y, z;
-  alGetListener3i(AL_POSITION, &x, &y, &z);
-  std::cout << "listener Position: " << x << ", " << y << ", " << z << std::endl;
-}
-
-void AudioEngine::playAmbient2() {
-  alGetError(); // pop error stack
-
-	// set Listener
-	alListener3f(AL_POSITION, 0, 0, 0);
-
-	ALint listenerOri[] = { 0, 0, 1, 0, 1, 0 };
-	alListeneriv(AL_ORIENTATION, listenerOri);
-
-	// set source
-	alGenSources((ALuint)1, sources);
-
-	alSource3i(sources[0], AL_POSITION, 0, 0, 0);
-
-	alSourcei(sources[0], AL_LOOPING, AL_TRUE);
-
-	// set buffer
-	alGenBuffers((ALuint)1, buffer);
-
-	unsigned int format;
-	int channel, sampleRate, bps, size;
-	
-	char* data = audio::FileReader::loadWAV("C:/Users/sass_fl/audioCS/audioCSNotes/testFiles/scifi_stereo.wav", channel, sampleRate, bps, size, format);
-	if (!data)
-		return;
-
-	alBufferData(buffer[0], format, data, size, sampleRate);
-	delete[] data;
-
-	// bind buffer to source
-	alSourcei(sources[0], AL_BUFFER, buffer[0]);
-
-  alSourcePlay(sources[0]);
-
-  int bufferSize;
-  alGetBufferi(buffer[0], AL_SIZE, &bufferSize);
-  std::cout << "size: " << bufferSize << std::endl;
-
+  testSource = createSource(file);
+  /*
+  std::shared_ptr<audio::Default_PS> default_ps = std::make_shared<audio::Default_PS>();
+  std::shared_ptr<audio::Spatialization_PS> spat_ps = std::make_shared<audio::Spatialization_PS>();
+  
+  testPipeline = std::make_shared<audio::Pipeline>();
+  */
+  testSource->play();
 }
 
 } // namespace cs::core

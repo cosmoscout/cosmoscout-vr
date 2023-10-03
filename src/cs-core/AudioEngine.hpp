@@ -15,6 +15,9 @@
 #include "../cs-audio/Source.hpp"
 #include "../cs-audio/SourceSettings.hpp"
 
+#include "../cs-audio/Pipeline.hpp"
+#include "../cs-audio/processingSteps/Default_PS.hpp"
+#include "../cs-audio/processingSteps/Spatialization_PS.hpp"
 
 namespace cs::core {
 
@@ -34,9 +37,8 @@ class CS_CORE_EXPORT AudioEngine {
 
   // for testing
   void playAmbient(std::string file);
-  void playAmbient2();
-  ALuint sources[1];
-  ALuint buffer[1];
+  std::shared_ptr<audio::Source> testSource;
+  std::shared_ptr<audio::Pipeline> testPipeline;
 };
 
 } // namespace cs::core
