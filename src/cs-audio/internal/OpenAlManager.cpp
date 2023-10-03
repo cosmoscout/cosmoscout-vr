@@ -16,7 +16,9 @@
 namespace cs::audio {
 
 OpenAlManager::OpenAlManager(std::shared_ptr<core::Settings> settings) {
-  initOpenAl(settings);
+  if (!initOpenAl(settings)) {
+    logger().warn("Failed to (fully) initalize OpenAL!");
+  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -55,20 +57,54 @@ bool OpenAlManager::initOpenAl(std::shared_ptr<core::Settings> settings) {
   // open default device
   mDevice = alcOpenDevice(nullptr);
   if (!mDevice) {
+    logger().warn("Failed to open default device!");
     return false;
   }
 
   // create context
   mContext = alcCreateContext(mDevice, attrlist);
-  if (!alcMakeContextCurrent(mContext)) {
+  if (contextErrorOccurd()) {
+    logger().warn("Failed to create context!");
     return false;
   }
 
-  // check for errors
-  if (alcGetError(mDevice) != ALC_NO_ERROR) {
-    return false; // TODO
+  // select context
+  ALCboolean contextSelected = alcMakeContextCurrent(mContext);
+  if (contextErrorOccurd() || !contextSelected) {
+    logger().warn("Faild to select current context!");
+    return false;
   }
+
   return true;
 }
 
+bool OpenAlManager::contextErrorOccurd() {
+  ALCenum error;
+  if ((error = alcGetError(mDevice)) != ALC_NO_ERROR) {
+
+    std::string errorCode;
+    switch(error) {
+      case ALC_INVALID_DEVICE:
+        errorCode = "Invalid device handle";
+        break;
+      case ALC_INVALID_CONTEXT:
+        errorCode = "Invalid context handle";
+        break;
+      case ALC_INVALID_ENUM:
+        errorCode = "Invalid enumeration passed to an ALC call";
+        break;
+      case ALC_INVALID_VALUE:
+        errorCode = "Invalid value passed to an ALC call";
+        break;
+      case ALC_OUT_OF_MEMORY:
+        errorCode = "Not enough memory to execute the ALC call";
+        break;
+      default:
+        errorCode = "Unkown error code";
+    }
+    logger().warn("OpenAL-Soft Context Error occured! Reason: {}...", errorCode);
+    return true;
+  }
+  return false;
+}
 } // namespace cs::audio

@@ -27,12 +27,12 @@ class CS_AUDIO_EXPORT OpenAlManager {
   bool setDevice(std::string outputDevice);
 
  private:
-  
-  bool initOpenAl(std::shared_ptr<core::Settings> settings);
-
   // using raw pointers because smart one always throw an error
   ALCdevice* mDevice;
   ALCcontext* mContext;
+  
+  bool initOpenAl(std::shared_ptr<core::Settings> settings);
+  bool contextErrorOccurd();
 };
 
 } // namespace cs::audio
