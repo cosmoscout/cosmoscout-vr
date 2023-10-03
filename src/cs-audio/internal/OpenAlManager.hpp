@@ -19,12 +19,7 @@ namespace cs::audio {
 class CS_AUDIO_EXPORT OpenAlManager {
  public:
   OpenAlManager(std::shared_ptr<core::Settings> settings);
-
   ~OpenAlManager();
-  
-  /// Returns a list of all possible Output Devices 
-  std::vector<std::string> getDevices();
-  bool setDevice(std::string outputDevice);
 
  private:
   // using raw pointers because smart one always throw an error

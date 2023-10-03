@@ -37,13 +37,29 @@ std::shared_ptr<audio::Source> AudioEngine::createSource(std::string file, std::
   return std::make_shared<audio::Source>(mBufferManager, file, settings);
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+std::vector<std::string> AudioEngine::getDevices() {
+  if (alcIsExtensionPresent(NULL, "ALC_ENUMERATE_ALL_EXT") == AL_TRUE) {
+    logger().info("Available Devices: {}.", alcGetString(nullptr, ALC_ALL_DEVICES_SPECIFIER)); 
+
+  } else if (alcIsExtensionPresent(NULL, "ALC_ENUMERATION_EXT") == AL_TRUE) {
+    logger().warn("OpenAL Extensions 'ALC_ENUMERATE_ALL_EXT' not found. Not all available devices might be found!");
+    logger().info("Available Devices: {}.", alcGetString(nullptr, ALC_DEVICE_SPECIFIER));
+
+  } else {
+    logger().warn("OpenAL Extensions 'ALC_ENUMERATE_ALL_EXT' and 'ALC_ENUMERATION_EXT' not found. Unable to find available devices!");
+  }
+  return std::vector<std::string>();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-audio::Source AudioEngine::createSource(std::string file /*AudioSettings*/) {
-  return audio::Source(mBufferManager, file);
+bool AudioEngine::setDevice(std::string outputDevice) {
+  return false;
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void AudioEngine::playAmbient(std::string file) {
   // set Listener
