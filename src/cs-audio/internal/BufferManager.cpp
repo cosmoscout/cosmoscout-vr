@@ -10,10 +10,12 @@
 #include "../logger.hpp"
 
 #include <AL/al.h>
+#include <iostream>
 
 namespace cs::audio {
 
 BufferManager::~BufferManager() {
+  alGetError(); // clear error code
   // delete all buffers
   // gather all buffer Ids to delete them in a single OpenAL call
   std::unique_ptr<ALuint[]> bufferIds(new ALuint[mBufferList.size()]);
@@ -23,7 +25,9 @@ BufferManager::~BufferManager() {
     i++;   
   }
   alDeleteBuffers((ALsizei) mBufferList.size(), bufferIds.get());
-  // TODO: Error handling
+  if (errorOccurd()) {
+    logger().warn("Failed to delete (all) buffers!");
+  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -39,32 +43,30 @@ ALuint BufferManager::getBuffer(std::string file) {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
- 
-ALuint BufferManager::createBuffer(std::string file) {
-  alGetError(); // pop error stack
 
-  // TODO: ist ein array wirklich nötig?  
-  std::unique_ptr<ALuint> newBufferId;
-  std::unique_ptr<ALuint[]> newBufferId2(new ALuint[1]);
-  alGenBuffers(1, newBufferId2.get());
-  // TODO: Error handling
+ALuint BufferManager::createBuffer(std::string file) {
+  alGetError(); // clear error code
+
+  ALuint newBufferId;
+  alGenBuffers(1, &newBufferId);
+  if (errorOccurd()) {
+    logger().warn("Failed to generate buffer!");
+  }
 
   // read wave file and load into buffer
   unsigned int format;
 	int channel, sampleRate, bps, size;	
 	char* data = FileReader::loadWAV(file.c_str(), channel, sampleRate, bps, size, format);
-	alBufferData(newBufferId2[0], format, data, size, sampleRate);
+	alBufferData(newBufferId, format, data, size, sampleRate);
 	delete[] data;
-  // TODO: Error handling
+  if (errorOccurd()) {
+    logger().warn("Failed to fill buffer with data!");
+  }
 
   // add Buffer 
-  mBufferList.push_back(std::make_shared<Buffer>(file, newBufferId2[0]));
+  mBufferList.push_back(std::make_shared<Buffer>(file, newBufferId));
 
-  int bufferSize;
-  alGetBufferi(newBufferId2[0], AL_SIZE, &bufferSize);
-  std::cout << "size: " << bufferSize << std::endl;
-
-  return newBufferId2[0];
+  return newBufferId;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -83,11 +85,13 @@ void BufferManager::removeBuffer(std::string file) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void BufferManager::deleteBuffer(std::shared_ptr<Buffer> bufferToDelete) {
-  alGetError(); // pop error stack
+  alGetError(); // clear error code
   
   // delete buffer in OpenAL
-  alDeleteBuffers((ALuint) 1, &bufferToDelete->mOpenAlId);
-  // TODO: Error handling
+  alDeleteBuffers((ALsizei) 1, &(bufferToDelete->mOpenAlId));
+  if (errorOccurd()) {
+    logger().warn("Failed to delete single buffer!");
+  }
 
   // delete buffer from bufferList
   int counter = 0;

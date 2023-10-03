@@ -8,8 +8,11 @@
 #include "Source.hpp"
 #include "../cs-core/AudioEngine.hpp"
 #include "internal/BufferManager.hpp"
+#include "internal/openAlError.hpp"
 
 #include <AL/al.h>
+
+// FadeIn FadeOut?
 
 namespace cs::audio {
 
@@ -18,53 +21,42 @@ Source::Source(std::shared_ptr<BufferManager> bufferManager, std::string file, s
   , mBufferManager(std::move(bufferManager)) 
   , mSettings(std::move(settings)) {
 
-  // generate new source  
-  alGenSources((ALuint)1, &mOpenAlId);
+  alGetError(); // clear error code
 
   // TODO: check if file actually exists
- 
-  // temp for ambient
-  alSource3i(mOpenAlId, AL_POSITION, 0, 0, 0);
-  alSourcei(mOpenAlId, AL_LOOPING, AL_TRUE);
+
+  // generate new source  
+  alGenSources((ALuint)1, &mOpenAlId);
+  if (errorOccurd()) {
+    logger().warn("Failed to generate OpenAL-Soft Source!");
+  }
 
   // get buffer and bind buffer to source
   alSourcei(mOpenAlId, AL_BUFFER, mBufferManager->getBuffer(mFile));
-  // TODO: Error handling
+  if (errorOccurd()) {
+    logger().warn("Failed to bind buffer to source!");
+  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 Source::~Source() {
-  mBufferManager->removeBuffer(mFile);
+  alGetError(); // clear error code
   alDeleteSources(1, &mOpenAlId);
-  // TODO: Error handling
+  if (errorOccurd()) {
+    logger().warn("Failed to delete source!");
+  }
+  mBufferManager->removeBuffer(mFile);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool Source::play() {
-  int playing;
-  alGetSourcei(mOpenAlId, AL_SOURCE_STATE, &playing);
-  std::cout << "is playing: " << (playing == AL_PLAYING ? "yes" : "no") << std::endl;
-
   alSourcePlay(mOpenAlId);
-  // TODO: Error handling
-
-  float x, y, z;
-  alGetSource3f(mOpenAlId, AL_POSITION, &x, &y, &z);
-  std::cout << "source Position: " << x << ", " << y << ", " << z << std::endl;
-
-  float gain;
-  alGetSourcef(mOpenAlId, AL_GAIN, &gain);
-  std::cout << "gain: " << gain << std::endl;
-
-  int buffer;
-  alGetSourcei(mOpenAlId, AL_BUFFER, &buffer);
-  std::cout << "buffer: " << buffer << std::endl;
-
-  alGetSourcei(mOpenAlId, AL_SOURCE_STATE, &playing);
-  std::cout << "is playing: " << (playing == AL_PLAYING ? "yes" : "no") << std::endl;
-
+  if (errorOccurd()) {
+    logger().warn("Failed to start playback of source!");
+    return false;
+  }
   return true;
 }
 
@@ -72,7 +64,10 @@ bool Source::play() {
 
 bool Source::stop() {
   alSourceStop(mOpenAlId);
-  // TODO: Error handling
+  if (errorOccurd()) {
+    logger().warn("Failed to stop playback of source!");
+    return false;
+  }
   return true;
 }
 
@@ -85,9 +80,19 @@ void Source::update() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool Source::setFile(std::string file) {
+  alGetError(); // clear error code
+  // alSourceStop(mOpenAlId);
+  alSourcei(mOpenAlId, AL_BUFFER, NULL);
+  if (errorOccurd()) {
+    logger().warn("Failed to remove buffer from source!");
+    return false;
+  }
   mBufferManager->removeBuffer(mFile);
-  mFile = file;
+  
   // TODO: check if file exists
+  
+  mFile = file;
+  mBufferManager->getBuffer(mFile);
   return true;
 }
 
