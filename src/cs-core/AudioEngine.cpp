@@ -11,6 +11,7 @@
 #include "../cs-audio/internal/FileReader.hpp"
 #include "../cs-audio/internal/OpenAlManager.hpp"
 #include "../cs-audio/Source.hpp"
+#include "../cs-audio/SourceSettings.hpp"
 
 namespace cs::core {
 
@@ -31,7 +32,11 @@ AudioEngine::AudioEngine(std::shared_ptr<Settings> settings)
 }
 
 AudioEngine::~AudioEngine() {
-  // TODO order of deletion
+
+std::shared_ptr<audio::Source> AudioEngine::createSource(std::string file, std::shared_ptr<audio::SourceSettings> settings) {
+  return std::make_shared<audio::Source>(mBufferManager, file, settings);
+}
+
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

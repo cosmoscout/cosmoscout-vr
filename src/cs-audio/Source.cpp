@@ -13,9 +13,10 @@
 
 namespace cs::audio {
 
-Source::Source(std::shared_ptr<BufferManager> bufferManager, std::string file) 
+Source::Source(std::shared_ptr<BufferManager> bufferManager, std::string file, std::shared_ptr<SourceSettings> settings) 
   : mFile(std::move(file)) 
-  , mBufferManager(std::move(bufferManager)) {
+  , mBufferManager(std::move(bufferManager)) 
+  , mSettings(std::move(settings)) {
 
   // generate new source  
   alGenSources((ALuint)1, &mOpenAlId);

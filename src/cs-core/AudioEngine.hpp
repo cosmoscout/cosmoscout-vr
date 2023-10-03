@@ -13,6 +13,7 @@
 
 #include "../cs-audio/internal/OpenAlManager.hpp"
 #include "../cs-audio/Source.hpp"
+#include "../cs-audio/SourceSettings.hpp"
 
 
 namespace cs::core {
@@ -24,7 +25,7 @@ class CS_CORE_EXPORT AudioEngine {
 
   ~AudioEngine();
 
-  audio::Source createSource(std::string file /*, AudioSettings*/);
+  std::shared_ptr<audio::Source> createSource(std::string file, std::shared_ptr<audio::SourceSettings> settings=nullptr);
 
  private:
   std::shared_ptr<core::Settings>       mSettings;

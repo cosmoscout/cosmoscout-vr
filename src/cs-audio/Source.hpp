@@ -11,6 +11,8 @@
 #include "cs_audio_export.hpp"
 
 #include "internal/BufferManager.hpp"
+#include "SourceSettings.hpp"
+
 #include <AL/al.h>
 
 // forward declaration
@@ -29,14 +31,9 @@ class CS_AUDIO_EXPORT Source {
   bool setFile(std::string file);
   std::string getFile() const;
 
-  friend class AudioEngine;
-  Source(std::shared_ptr<BufferManager> bufferManager, std::string file /*, AudioSettings*/);
+  Source(std::shared_ptr<BufferManager> bufferManager, std::string file, std::shared_ptr<SourceSettings> settings=nullptr);
  private:
-  
-
-  std::string                    mFile;
-  ALuint                         mOpenAlId;
-  std::shared_ptr<BufferManager> mBufferManager;
+  std::shared_ptr<SourceSettings> mSettings;
 };
 
 } // namespace cs::audio
