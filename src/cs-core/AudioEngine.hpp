@@ -29,6 +29,9 @@ class CS_CORE_EXPORT AudioEngine {
   ~AudioEngine();
 
   std::shared_ptr<audio::Source> createSource(std::string file, std::shared_ptr<audio::SourceSettings> settings=nullptr);
+  /// Returns a list of all possible Output Devices 
+  std::vector<std::string> getDevices();
+  bool setDevice(std::string outputDevice);
 
  private:
   std::shared_ptr<core::Settings>       mSettings;
