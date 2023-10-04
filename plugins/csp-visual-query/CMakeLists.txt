@@ -25,7 +25,6 @@ add_library(csp-visual-query SHARED
   ${HEADER_FILES}
   ${NODE_FILES}
   ${RESOURCE_FILES}
-
 )
 
 target_link_libraries(csp-visual-query

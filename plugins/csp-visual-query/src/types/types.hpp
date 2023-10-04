@@ -5,9 +5,10 @@
 // SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
 // SPDX-License-Identifier: MIT
 
-#ifndef CSP_VISUAL_QUERY_IMAGE_HPP
-#define CSP_VISUAL_QUERY_IMAGE_HPP
+#ifndef CSP_VISUAL_QUERY_TYPES_HPP
+#define CSP_VISUAL_QUERY_TYPES_HPP
 
+#include <string>
 #include <vector>
 #include <ctime>
 
@@ -93,4 +94,4 @@ class Volume3D : public TimeStamp {
 
 } // namespace csp::visualquery
 
-#endif // CSP_VISUAL_QUERY_IMAGE_HPP
+#endif // CSP_VISUAL_QUERY_TYPES_HPP
