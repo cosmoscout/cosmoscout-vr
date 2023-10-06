@@ -74,7 +74,14 @@ bool Source::stop() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Source::update() {
+  // call all processing steps
+  mProcessingStepsManager->process(mOpenAlId, settings);
+
+  // write changed values into mCurrentSettings
+  // TODO
     
+  // reset settings
+  settings = std::make_shared<SourceSettings>(); 
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -100,6 +107,12 @@ bool Source::setFile(std::string file) {
 
 std::string Source::getFile() const {
   return mFile;   
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+std::shared_ptr<SourceSettings> Source::getSettings() const {
+  return mCurrentSettings;
 }
 
 } // namespace cs::audio

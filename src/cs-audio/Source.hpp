@@ -26,20 +26,22 @@ class CS_AUDIO_EXPORT Source : public OpenAlError {
   
   bool play();
   bool stop();
-  void update(/*AudioSettings*/);
+  void update();
 
   bool setFile(std::string file);
   std::string getFile() const;
 
-  // TODO: Constructor in private ausprobieren
-  // friend class AudioEngine;
-  Source(std::shared_ptr<BufferManager> bufferManager, std::string file, std::shared_ptr<SourceSettings> settings=nullptr);
+  std::shared_ptr<SourceSettings> getSettings() const;
 
+  // TODO: Constructor in private ausprobieren
+
+  /// Contains all settings that are about to be set using the update() function. 
+  /// If update() is called these settings will be used to call all the processing 
+  /// steps. When finished, all set values will be written into mCurrentSettings
+  /// and settings gets reset.
+  std::shared_ptr<SourceSettings>         settings;
  private:
-  std::string                     mFile;
-  ALuint                          mOpenAlId;
-  std::shared_ptr<BufferManager>  mBufferManager;
-  std::shared_ptr<SourceSettings> mSettings;
+  std::shared_ptr<SourceSettings>         mCurrentSettings;
 };
 
 } // namespace cs::audio
