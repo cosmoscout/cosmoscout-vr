@@ -16,8 +16,16 @@
 namespace cs::audio {
 
 OpenAlManager::OpenAlManager(std::shared_ptr<core::Settings> settings) {
+  std::cout << "hrtf settings: " << settings->mAudio.pEnableHRTF.get() << std::endl;
   if (!initOpenAl(settings)) {
     logger().warn("Failed to (fully) initalize OpenAL!");
+  }
+  ALCint hrtf;
+  alcGetIntegerv(mDevice, ALC_HRTF_STATUS_SOFT, 1, &hrtf);
+  if (hrtf) {
+    std::cout << "hrtf an" << std::endl;
+  } else {
+    std::cout << "hrtf aus" << std::endl;
   }
 }
 
