@@ -18,7 +18,7 @@ namespace cs::audio {
 
 class CS_AUDIO_EXPORT Spatialization_PS : public ProcessingStep {
  public:
- void process(ALuint openAlId);
+  void process(ALuint openAlId, std::shared_ptr<SourceSettings> settings);
 
  private:
 };
