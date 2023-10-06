@@ -5,7 +5,7 @@
 // SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
 // SPDX-License-Identifier: MIT
 
-#include "../internal/openAlError.hpp"
+#include "../internal/alErrorHandling.hpp"
 #include "../SourceSettings.hpp"
 
 #include <AL/al.h>

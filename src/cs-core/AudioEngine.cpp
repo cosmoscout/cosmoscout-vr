@@ -13,10 +13,7 @@
 #include "../cs-audio/internal/Listener.hpp"
 #include "../cs-audio/Source.hpp"
 #include "../cs-audio/SourceSettings.hpp"
-
-#include "../cs-audio/Pipeline.hpp"
-#include "../cs-audio/processingSteps/Default_PS.hpp"
-#include "../cs-audio/processingSteps/Spatialization_PS.hpp"
+#include "../cs-audio/internal/alErrorHandling.hpp"
 
 namespace cs::core {
 

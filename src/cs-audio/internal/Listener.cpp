@@ -5,7 +5,7 @@
 // SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
 // SPDX-License-Identifier: MIT
 
-#include "openAlError.hpp"
+#include "alErrorHandling.hpp"
 #include "Listener.hpp"
 #include "../logger.hpp"
 
@@ -16,7 +16,7 @@ namespace cs::audio {
 bool Listener::setPosition(float x, float y, float z) {
   alGetError(); // clear error code
   alListener3f(AL_POSITION, x, y, z);
-  if (errorOccurd()) {
+  if (alErrorHandling::errorOccurd()) {
     logger().warn("Failed to set Listener Position!");
     return false;
   }
@@ -28,7 +28,7 @@ bool Listener::setPosition(float x, float y, float z) {
 bool Listener::setVeclocity(float x, float y, float z) {
   alGetError(); // clear error code
   alListener3f(AL_VELOCITY, x, y, z);
-  if (errorOccurd()) {
+  if (alErrorHandling::errorOccurd()) {
     logger().warn("Failed to set Listener Veclocity!");
     return false;
   }
@@ -41,7 +41,7 @@ bool Listener::setOrientation(float atX, float atY, float atZ, float upX, float 
   alGetError(); // clear error code
   ALfloat vec[] = { atX, atY, atZ, upX, upY, upZ };
   alListenerfv(AL_ORIENTATION, vec);
-  if (errorOccurd()) {
+  if (alErrorHandling::errorOccurd()) {
     logger().warn("Failed to set Listener Veclocity!");
     return false;
   }

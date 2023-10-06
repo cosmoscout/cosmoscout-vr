@@ -7,6 +7,7 @@
 
 #include "BufferManager.hpp"
 #include "FileReader.hpp"
+#include "alErrorHandling.hpp"
 #include "../logger.hpp"
 
 #include <AL/al.h>
@@ -25,7 +26,7 @@ BufferManager::~BufferManager() {
     i++;   
   }
   alDeleteBuffers((ALsizei) mBufferList.size(), bufferIds.get());
-  if (errorOccurd()) {
+  if (alErrorHandling::errorOccurd()) {
     logger().warn("Failed to delete (all) buffers!");
   }
 }
@@ -49,7 +50,7 @@ ALuint BufferManager::createBuffer(std::string file) {
 
   ALuint newBufferId;
   alGenBuffers(1, &newBufferId);
-  if (errorOccurd()) {
+  if (alErrorHandling::errorOccurd()) {
     logger().warn("Failed to generate buffer!");
   }
 
@@ -59,7 +60,7 @@ ALuint BufferManager::createBuffer(std::string file) {
 	char* data = FileReader::loadWAV(file.c_str(), channel, sampleRate, bps, size, format);
 	alBufferData(newBufferId, format, data, size, sampleRate);
 	delete[] data;
-  if (errorOccurd()) {
+  if (alErrorHandling::errorOccurd()) {
     logger().warn("Failed to fill buffer with data!");
   }
 
@@ -89,7 +90,7 @@ void BufferManager::deleteBuffer(std::shared_ptr<Buffer> bufferToDelete) {
   
   // delete buffer in OpenAL
   alDeleteBuffers((ALsizei) 1, &(bufferToDelete->mOpenAlId));
-  if (errorOccurd()) {
+  if (alErrorHandling::errorOccurd()) {
     logger().warn("Failed to delete single buffer!");
   }
 

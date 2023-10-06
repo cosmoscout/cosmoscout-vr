@@ -27,13 +27,13 @@ Source::Source(std::shared_ptr<BufferManager> bufferManager, std::string file, s
 
   // generate new source  
   alGenSources((ALuint)1, &mOpenAlId);
-  if (errorOccurd()) {
+  if (alErrorHandling::errorOccurd()) {
     logger().warn("Failed to generate OpenAL-Soft Source!");
   }
 
   // get buffer and bind buffer to source
   alSourcei(mOpenAlId, AL_BUFFER, mBufferManager->getBuffer(mFile));
-  if (errorOccurd()) {
+  if (alErrorHandling::errorOccurd()) {
     logger().warn("Failed to bind buffer to source!");
   }
 }
@@ -43,7 +43,7 @@ Source::Source(std::shared_ptr<BufferManager> bufferManager, std::string file, s
 Source::~Source() {
   alGetError(); // clear error code
   alDeleteSources(1, &mOpenAlId);
-  if (errorOccurd()) {
+  if (alErrorHandling::errorOccurd()) {
     logger().warn("Failed to delete source!");
   }
   mBufferManager->removeBuffer(mFile);
@@ -53,7 +53,7 @@ Source::~Source() {
 
 bool Source::play() {
   alSourcePlay(mOpenAlId);
-  if (errorOccurd()) {
+  if (alErrorHandling::errorOccurd()) {
     logger().warn("Failed to start playback of source!");
     return false;
   }
@@ -64,7 +64,7 @@ bool Source::play() {
 
 bool Source::stop() {
   alSourceStop(mOpenAlId);
-  if (errorOccurd()) {
+  if (alErrorHandling::errorOccurd()) {
     logger().warn("Failed to stop playback of source!");
     return false;
   }
@@ -83,7 +83,7 @@ bool Source::setFile(std::string file) {
   alGetError(); // clear error code
   // alSourceStop(mOpenAlId);
   alSourcei(mOpenAlId, AL_BUFFER, NULL);
-  if (errorOccurd()) {
+  if (alErrorHandling::errorOccurd()) {
     logger().warn("Failed to remove buffer from source!");
     return false;
   }

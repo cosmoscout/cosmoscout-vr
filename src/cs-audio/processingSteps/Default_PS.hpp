@@ -9,7 +9,6 @@
 #define CS_AUDIO_PS_DEFAULT_HPP
 
 #include "cs_audio_export.hpp"
-#include "../internal/OpenAlError.hpp"
 #include "../SourceSettings.hpp"
 #include "../Source.hpp"
 #include "ProcessingStep.hpp"
@@ -18,7 +17,7 @@
 
 namespace cs::audio {
 
-class CS_AUDIO_EXPORT Default_PS : public OpenAlError, public ProcessingStep {
+class CS_AUDIO_EXPORT Default_PS : public ProcessingStep {
  public:
  void process(ALuint openAlId);
 

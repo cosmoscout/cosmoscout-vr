@@ -10,7 +10,6 @@
 
 #include "cs_audio_export.hpp"
 #include "BufferManager.hpp"
-#include "OpenAlError.hpp"
 
 #include <AL/al.h>
 
@@ -19,7 +18,7 @@ class AudioEngine;
 
 namespace cs::audio {
 
-class CS_AUDIO_EXPORT Listener : public OpenAlError {
+class CS_AUDIO_EXPORT Listener {
  public:
  
   static bool setPosition(float x, float y, float z);
