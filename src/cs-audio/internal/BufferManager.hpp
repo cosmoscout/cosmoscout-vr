@@ -31,6 +31,13 @@ struct Buffer {
 
 class CS_AUDIO_EXPORT BufferManager : public OpenAlError {
  public:
+  BufferManager(const BufferManager& obj) = delete;
+  BufferManager(BufferManager&&) = delete;
+
+  BufferManager& operator=(const BufferManager&) = delete;
+  BufferManager& operator=(BufferManager&&) = delete;
+
+  BufferManager() {}
   ~BufferManager();
 
   // returns an OpenAL id to a buffer for this file; The BufferManager will

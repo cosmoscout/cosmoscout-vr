@@ -24,8 +24,13 @@ namespace cs::core {
 class CS_CORE_EXPORT AudioEngine {
 
  public:
-  explicit AudioEngine(std::shared_ptr<Settings> settings);
+  AudioEngine(const AudioEngine& obj) = delete;
+  AudioEngine(AudioEngine&&) = delete;
 
+  AudioEngine& operator=(const AudioEngine&) = delete;
+  AudioEngine& operator=(AudioEngine&&) = delete;
+
+  explicit AudioEngine(std::shared_ptr<Settings> settings);
   ~AudioEngine();
 
   std::shared_ptr<audio::Source> createSource(std::string file, std::shared_ptr<audio::SourceSettings> settings=nullptr);

@@ -18,6 +18,12 @@ namespace cs::audio {
 
 class CS_AUDIO_EXPORT OpenAlManager {
  public:
+  OpenAlManager(const OpenAlManager& obj) = delete;
+  OpenAlManager(OpenAlManager&&) = delete;
+
+  OpenAlManager& operator=(const OpenAlManager&) = delete;
+  OpenAlManager& operator=(OpenAlManager&&) = delete;
+
   OpenAlManager(std::shared_ptr<core::Settings> settings);
   ~OpenAlManager();
 
