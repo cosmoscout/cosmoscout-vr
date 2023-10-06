@@ -58,7 +58,7 @@ Source::~Source() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool Source::play() {
+bool Source::play() const {
   alSourcePlay(mOpenAlId);
   if (alErrorHandling::errorOccurd()) {
     logger().warn("Failed to start playback of source!");
@@ -69,7 +69,7 @@ bool Source::play() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool Source::stop() {
+bool Source::stop() const {
   alSourceStop(mOpenAlId);
   if (alErrorHandling::errorOccurd()) {
     logger().warn("Failed to stop playback of source!");

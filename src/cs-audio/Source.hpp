@@ -24,8 +24,8 @@ class CS_AUDIO_EXPORT Source {
  public:
   ~Source();
   
-  bool play();
-  bool stop();
+  bool play() const;
+  bool stop() const;
   void update();
 
   bool setFile(std::string file);
