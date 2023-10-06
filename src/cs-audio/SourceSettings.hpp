@@ -11,6 +11,7 @@
 #include "cs_audio_export.hpp"
 
 #include <optional>
+#include <vector>
 
 namespace cs::audio {
 

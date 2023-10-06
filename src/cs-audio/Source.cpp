@@ -9,10 +9,9 @@
 #include "../cs-core/AudioEngine.hpp"
 #include "internal/BufferManager.hpp"
 #include "internal/alErrorHandling.hpp"
+#include "internal/ProcessingStepsManager.hpp"
 
 #include <AL/al.h>
-
-// FadeIn FadeOut?
 
 namespace cs::audio {
 

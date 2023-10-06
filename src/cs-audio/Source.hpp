@@ -10,8 +10,8 @@
 
 #include "cs_audio_export.hpp"
 #include "internal/BufferManager.hpp"
-#include "internal/OpenAlError.hpp"
 #include "SourceSettings.hpp"
+#include "internal/ProcessingStepsManager.hpp"
 
 #include <AL/al.h>
 

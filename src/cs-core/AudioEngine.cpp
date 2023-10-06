@@ -13,6 +13,7 @@
 #include "../cs-audio/internal/Listener.hpp"
 #include "../cs-audio/Source.hpp"
 #include "../cs-audio/SourceSettings.hpp"
+#include "../cs-audio/internal/BufferManager.hpp"
 #include "../cs-audio/internal/ProcessingStepsManager.hpp"
 #include "../cs-audio/internal/alErrorHandling.hpp"
 
@@ -31,7 +32,7 @@ AudioEngine::AudioEngine(std::shared_ptr<Settings> settings)
   logger().info("OpenAL-Soft Vendor:  {}", alGetString(AL_VENDOR));
   logger().info("OpenAL-Soft Version:  {}", alGetString(AL_VERSION));
 
-  playAmbient("I:/Bachelorarbeit/audioCS/audioCSNotes/testFiles/scifi_stereo.wav");
+  playAmbient("C:/Users/sass_fl/audioCS/audioCSNotes/testFiles/scifi_stereo.wav");
 }
  
 AudioEngine::~AudioEngine() {
