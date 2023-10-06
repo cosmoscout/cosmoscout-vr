@@ -20,7 +20,7 @@
 
 namespace cs::audio {
 
-class CS_AUDIO_EXPORT Source : public OpenAlError {
+class CS_AUDIO_EXPORT Source {
  public:
   ~Source();
   

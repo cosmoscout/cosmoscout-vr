@@ -32,13 +32,17 @@ Source::Source(std::shared_ptr<BufferManager> bufferManager,
   alGenSources((ALuint)1, &mOpenAlId);
   if (alErrorHandling::errorOccurd()) {
     logger().warn("Failed to generate OpenAL-Soft Source!");
+    return;
   }
 
   // get buffer and bind buffer to source
   alSourcei(mOpenAlId, AL_BUFFER, mBufferManager->getBuffer(mFile));
   if (alErrorHandling::errorOccurd()) {
     logger().warn("Failed to bind buffer to source!");
+    return;
   }
+
+  mProcessingStepsManager->process(mOpenAlId, mCurrentSettings);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

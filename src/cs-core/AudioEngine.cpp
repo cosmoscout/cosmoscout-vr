@@ -44,8 +44,10 @@ AudioEngine::~AudioEngine() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::shared_ptr<audio::Source> AudioEngine::createSource(std::string file, std::shared_ptr<audio::SourceSettings> settings) {
-  return std::make_shared<audio::Source>(mBufferManager, file, settings);
+std::shared_ptr<audio::Source> AudioEngine::createSource(std::string file, 
+ std::shared_ptr<audio::SourceSettings> settings) {
+  return std::shared_ptr<audio::Source>(new audio::Source(mBufferManager, mProcessingStepsManager, file, 
+    ((settings == nullptr) ? std::make_shared<audio::SourceSettings>() : settings)));
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
