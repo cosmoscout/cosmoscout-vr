@@ -9,7 +9,6 @@
 #define CS_AUDIO_BUFFER_MANAGER_HPP
 
 #include "cs_audio_export.hpp"
-#include "openAlError.hpp"
 
 #include <string>
 #include <vector>
@@ -29,7 +28,7 @@ struct Buffer {
   }
 };
 
-class CS_AUDIO_EXPORT BufferManager : public OpenAlError {
+class CS_AUDIO_EXPORT BufferManager {
  public:
   BufferManager(const BufferManager& obj) = delete;
   BufferManager(BufferManager&&) = delete;

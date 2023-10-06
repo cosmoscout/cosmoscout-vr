@@ -8,7 +8,7 @@
 #include "Source.hpp"
 #include "../cs-core/AudioEngine.hpp"
 #include "internal/BufferManager.hpp"
-#include "internal/openAlError.hpp"
+#include "internal/alErrorHandling.hpp"
 
 #include <AL/al.h>
 
