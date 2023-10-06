@@ -14,10 +14,7 @@
 #include "../cs-audio/internal/OpenAlManager.hpp"
 #include "../cs-audio/Source.hpp"
 #include "../cs-audio/SourceSettings.hpp"
-
-#include "../cs-audio/Pipeline.hpp"
-#include "../cs-audio/processingSteps/Default_PS.hpp"
-#include "../cs-audio/processingSteps/Spatialization_PS.hpp"
+#include "../cs-audio/internal/ProcessingStepsManager.hpp"
 
 namespace cs::core {
 
@@ -40,9 +37,10 @@ class CS_CORE_EXPORT AudioEngine {
   bool setDevice(std::string outputDevice);
 
  private:
-  std::shared_ptr<core::Settings>       mSettings;
-  std::unique_ptr<audio::OpenAlManager> mOpenAlManager;
-  std::shared_ptr<audio::BufferManager> mBufferManager;
+  std::shared_ptr<core::Settings>                mSettings;
+  std::unique_ptr<audio::OpenAlManager>          mOpenAlManager;
+  std::shared_ptr<audio::BufferManager>          mBufferManager;
+  std::shared_ptr<audio::ProcessingStepsManager> mProcessingStepsManager;
 
   // for testing
   void playAmbient(std::string file);

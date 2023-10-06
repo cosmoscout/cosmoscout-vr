@@ -13,6 +13,7 @@
 #include "../cs-audio/internal/Listener.hpp"
 #include "../cs-audio/Source.hpp"
 #include "../cs-audio/SourceSettings.hpp"
+#include "../cs-audio/internal/ProcessingStepsManager.hpp"
 #include "../cs-audio/internal/alErrorHandling.hpp"
 
 namespace cs::core {
@@ -22,7 +23,8 @@ namespace cs::core {
 AudioEngine::AudioEngine(std::shared_ptr<Settings> settings) 
     : mSettings(std::move(settings)) 
     , mOpenAlManager(std::make_unique<audio::OpenAlManager>(mSettings))
-    , mBufferManager(std::make_shared<audio::BufferManager>()) {
+    , mBufferManager(std::make_shared<audio::BufferManager>()) 
+    , mProcessingStepsManager(std::make_unique<audio::ProcessingStepsManager>(mSettings)){
 
   // Tell the user what's going on.
   logger().debug("Creating AudioEngine.");
