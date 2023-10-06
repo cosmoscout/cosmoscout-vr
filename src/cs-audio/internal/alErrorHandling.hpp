@@ -17,8 +17,8 @@ class AudioEngine;
 
 namespace cs::audio {
 
-class CS_AUDIO_EXPORT OpenAlError {
- protected:
+class CS_AUDIO_EXPORT alErrorHandling {
+ public:
   static bool errorOccurd();
 
 }; // namespace cs::audio
