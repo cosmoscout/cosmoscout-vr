@@ -87,6 +87,20 @@ bool AudioEngine::setDevice(std::string outputDevice) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+bool AudioEngine::setMasterVolume(ALfloat gain) {
+  if (gain < 0) {
+    return false;
+  }
+  alListenerf(AL_GAIN, gain);
+  if (audio::alErrorHandling::errorOccurd()) {
+    logger().warn("Failed to set master volume!");
+    return false;
+  }
+  return true;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void AudioEngine::playAmbient(std::string file) {
   testSource = createSource(file);
   /*
