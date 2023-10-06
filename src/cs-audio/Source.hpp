@@ -47,6 +47,11 @@ class CS_AUDIO_EXPORT Source {
   
   // friend class cs::core::AudioEngine;
  private:
+
+  std::string                             mFile;
+  ALuint                                  mOpenAlId;
+  std::shared_ptr<BufferManager>          mBufferManager;
+  std::shared_ptr<ProcessingStepsManager> mProcessingStepsManager;
   std::shared_ptr<SourceSettings>         mCurrentSettings;
 };
 
