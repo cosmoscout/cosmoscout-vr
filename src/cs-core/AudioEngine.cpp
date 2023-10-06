@@ -47,18 +47,34 @@ std::shared_ptr<audio::Source> AudioEngine::createSource(std::string file, std::
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::vector<std::string> AudioEngine::getDevices() {
+std::shared_ptr<std::vector<std::string>> AudioEngine::getDevices() {
+  std::shared_ptr<std::vector<std::string>> result = std::make_shared<std::vector<std::string>>();
+  int macro;
+
   if (alcIsExtensionPresent(NULL, "ALC_ENUMERATE_ALL_EXT") == AL_TRUE) {
-    logger().info("Available Devices: {}.", alcGetString(nullptr, ALC_ALL_DEVICES_SPECIFIER)); 
+    macro = ALC_ALL_DEVICES_SPECIFIER;
 
   } else if (alcIsExtensionPresent(NULL, "ALC_ENUMERATION_EXT") == AL_TRUE) {
     logger().warn("OpenAL Extensions 'ALC_ENUMERATE_ALL_EXT' not found. Not all available devices might be found!");
-    logger().info("Available Devices: {}.", alcGetString(nullptr, ALC_DEVICE_SPECIFIER));
+    macro = ALC_DEVICE_SPECIFIER;
 
   } else {
     logger().warn("OpenAL Extensions 'ALC_ENUMERATE_ALL_EXT' and 'ALC_ENUMERATION_EXT' not found. Unable to find available devices!");
+    return result;
   }
-  return std::vector<std::string>();
+
+  const ALCchar* device = alcGetString(nullptr, macro);
+  const ALCchar* next = alcGetString(nullptr, macro) + 1;
+  size_t len = 0;
+
+  while (device && *device != '\0' && next && *next != '\0') {
+    result->push_back(device);
+    len = strlen(device);
+    device += (len + 1);
+    next += (len + 2);
+  }
+
+  return result;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
