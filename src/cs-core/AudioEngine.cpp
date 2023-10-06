@@ -102,14 +102,25 @@ bool AudioEngine::setMasterVolume(ALfloat gain) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void AudioEngine::playAmbient(std::string file) {
-  testSource = createSource(file);
-  /*
-  std::shared_ptr<audio::Default_PS> default_ps = std::make_shared<audio::Default_PS>();
-  std::shared_ptr<audio::Spatialization_PS> spat_ps = std::make_shared<audio::Spatialization_PS>();
+  // testSettings = std::make_shared<audio::SourceSettings>();
+  // testSettings->looping = true;
+  // testSettings->gain = 1.0f;
+  // testSource->mSettings->pitch = 4.0f;
+  // testSource->update();
+
+  testSettings = std::make_shared<audio::SourceSettings>();
+  testSettings->looping = true;
   
-  testPipeline = std::make_shared<audio::Pipeline>();
-  */
-  testSource->play();
+  testSourceA = createSource(file, testSettings); 
+  testSourceB = createSource("C:/Users/sass_fl/audioCS/audioCSNotes/testFiles/exotic_mono.wav", testSettings);
+
+  testSourceA->play();
+  testSourceB->play();
+
+  testSettings->pitch = 4.0f; 
+
+  testSourceA->update();
+  testSourceB->update();
 }
 
 } // namespace cs::core

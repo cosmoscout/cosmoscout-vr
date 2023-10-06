@@ -46,8 +46,9 @@ class CS_CORE_EXPORT AudioEngine {
 
   // for testing
   void playAmbient(std::string file);
-  std::shared_ptr<audio::Source> testSource;
-  std::shared_ptr<audio::Pipeline> testPipeline;
+  std::shared_ptr<audio::Source> testSourceA;
+  std::shared_ptr<audio::Source> testSourceB;
+  std::shared_ptr<audio::SourceSettings> testSettings;
 };
 
 } // namespace cs::core
