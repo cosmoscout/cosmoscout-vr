@@ -16,7 +16,7 @@
 #include <AL/al.h>
 
 // forward declaration
-class AudioEngine;
+// class cs::core::AudioEngine;
 
 namespace cs::audio {
 
@@ -40,6 +40,8 @@ class CS_AUDIO_EXPORT Source : public OpenAlError {
   /// steps. When finished, all set values will be written into mCurrentSettings
   /// and settings gets reset.
   std::shared_ptr<SourceSettings>         settings;
+  
+  // friend class cs::core::AudioEngine;
  private:
   std::shared_ptr<SourceSettings>         mCurrentSettings;
 };
