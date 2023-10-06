@@ -16,10 +16,14 @@
 
 namespace cs::audio {
 
-Source::Source(std::shared_ptr<BufferManager> bufferManager, std::string file, std::shared_ptr<SourceSettings> settings) 
+Source::Source(std::shared_ptr<BufferManager> bufferManager, 
+  std::shared_ptr<ProcessingStepsManager> processingStepsManager,
+  std::string file, std::shared_ptr<SourceSettings> startSettings) 
   : mFile(std::move(file)) 
   , mBufferManager(std::move(bufferManager)) 
-  , mSettings(std::move(settings)) {
+  , mCurrentSettings(std::move(startSettings)) 
+  , settings(std::make_shared<SourceSettings>())
+  , mProcessingStepsManager(std::move(processingStepsManager)) {
 
   alGetError(); // clear error code
 

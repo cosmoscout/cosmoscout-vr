@@ -41,6 +41,10 @@ class CS_AUDIO_EXPORT Source : public OpenAlError {
   /// and settings gets reset.
   std::shared_ptr<SourceSettings>         settings;
   
+  Source(std::shared_ptr<BufferManager> bufferManager, 
+  std::shared_ptr<ProcessingStepsManager> processingStepsManager,
+  std::string file, std::shared_ptr<SourceSettings> settings);
+  
   // friend class cs::core::AudioEngine;
  private:
   std::shared_ptr<SourceSettings>         mCurrentSettings;
