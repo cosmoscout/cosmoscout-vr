@@ -33,17 +33,18 @@ struct Bound {
 
 struct TimeStamp {
  public:
-  TimeStamp(std::time_t timeStamp);
-  std::time_t getTimeStamp();
-  void setTimeStamp(std::time_t timeStamp); // ???
+  TimeStamp(double timeStamp);
+
+  double getTimeStamp();
+  void setTimeStamp(double timeStamp);
 
  private:
-  std::time_t mTimeStamp;
+  double mTimeStamp; // time in TDB
 };
 
-class Image2D : public TimeStamp {
+class Image2D {
  public:
-  Image2D(std::vector<Point2D> points, std::time_t timeStamp, Bound boundX, Bound boundY);
+  Image2D(std::vector<Point2D> points, double timeStamp, Bound boundX, Bound boundY, Dimension dimension);
 
   std::vector<Point2D> getPoints();
   std::optional<Bound> getBound(std::string boundType);
@@ -51,15 +52,16 @@ class Image2D : public TimeStamp {
   void setPoints(std::vector<Point2D> points);
   void setBound(std::string boundType, float min, float max);
 
+  TimeStamp            mTimeStamp;
  private:
   std::vector<Point2D> mPoints;
   Bound mBoundX;
   Bound mBoundY;
 };
 
-class LayeredImage2D : public TimeStamp {
+class LayeredImage2D {
  public:
-  LayeredImage2D(std::vector<std::vector<Point2D>> points, std::time_t timeStamp, Bound boundX, Bound boundY);
+  LayeredImage2D(std::vector<std::vector<Point2D>> points, double timeStamp, Bound boundX, Bound boundY,
 
   std::vector<std::vector<Point2D>> getPoints();
   std::optional<Bound>              getBound(std::string boundType);
@@ -67,15 +69,16 @@ class LayeredImage2D : public TimeStamp {
   void setPoints(std::vector<std::vector<Point2D>> points);
   void setBound(std::string boundType, float min, float max);
 
+  TimeStamp                         mTimeStamp;
  private:
   std::vector<std::vector<Point2D>> mPoints;
   Bound mBoundX;
   Bound mBoundY;
 };
 
-class Volume3D : public TimeStamp {
+class Volume3D {
  public:
-  Volume3D(std::vector<Point3D> points, std::time_t timeStamp);
+  Volume3D(std::vector<Point3D> points, double timeStamp, Bound boundX, Bound boundY, Bound boundZ,
   Volume3D(std::vector<Point3D> points, std::time_t timeStamp, Bound boundX, Bound boundY, Bound boundZ);
 
   std::vector<Point3D> getPoints();
@@ -84,6 +87,7 @@ class Volume3D : public TimeStamp {
   void setPoints(std::vector<Point3D> points);
   void setBound(std::string boundType, float min, float max);
 
+  TimeStamp            mTimeStamp;
  private:
   std::vector<Point3D> mPoints;
   Bound mBoundX;

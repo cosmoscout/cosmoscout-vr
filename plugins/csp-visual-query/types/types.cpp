@@ -13,21 +13,22 @@
 
 namespace csp::visualquery {
 
-TimeStamp::TimeStamp(std::time_t timeStamp) {
-  mTimeStamp = timeStamp;
+TimeStamp::TimeStamp(double timeStamp)
+  : mTimeStamp(timeStamp) {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::time_t TimeStamp::getTimeStamp() {
+double TimeStamp::getTimeStamp() {
     return mTimeStamp;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void TimeStamp::setTimeStamp(std::time_t timeStamp) {
+void TimeStamp::setTimeStamp(double timeStamp) {
     mTimeStamp = timeStamp;
 }
+
 
 //Image2D///////////////////////////////////////////////////////////////////////////////////////////
 
