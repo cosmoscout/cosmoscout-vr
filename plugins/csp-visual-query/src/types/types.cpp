@@ -39,16 +39,17 @@ Dimension::Dimension(int width, int length, int depth)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-int Dimension::getDimension(std::string dimensionType) {
+std::optional<int> Dimension::getDimension(std::string dimensionType) {
   if (dimensionType == "width") {
-    return mWidth;
+    return std::make_optional(mWidth);
   }
   if (dimensionType == "length") {
-    return mLength;
+    return std::make_optional(mLength);
   }
   if (dimensionType == "depth") {
-    return mDepth;
+    return std::make_optional(mDepth);
   }
+  return std::nullopt;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -126,10 +127,12 @@ std::vector<Point2D> Image2D::getPoints() {
 
 std::optional<Bound> Image2D::getBound(std::string boundType) {
   if (boundType == "x") {
-    return mBoundX;
-  }
+    return std::make_optional(mBoundX);
 
-  return mBoundY;
+  } else if (boundType == "y") {
+    return std::make_optional(mBoundY);
+  }
+  return std::nullopt;
 }
 
 // LayeredImage2D////////////////////////////////////////////////////////////////////////////////////
@@ -170,10 +173,12 @@ std::vector<std::vector<Point2D>> LayeredImage2D::getPoints() {
 
 std::optional<Bound> LayeredImage2D::getBound(std::string boundType) {
   if (boundType == "x") {
-    return mBoundX;
-  }
+    return std::make_optional(mBoundX);
 
-  return mBoundY;
+  } else if (boundType == "y") {
+    return std::make_optional(mBoundY);
+  }
+  return std::nullopt;
 }
 
 // Volume3D//////////////////////////////////////////////////////////////////////////////////////////
@@ -218,14 +223,15 @@ std::vector<Point3D> Volume3D::getPoints() {
 
 std::optional<Bound> Volume3D::getBound(std::string const& boundType) {
   if (boundType == "x") {
-    return mBoundX;
-  }
+    return std::make_optional(mBoundX);
 
-  if (boundType == "y") {
-    return mBoundY;
-  }
+  } else if (boundType == "y") {
+    return std::make_optional(mBoundY);
 
-  return mBoundZ;
+  } else if (boundType == "z") {
+    return std::make_optional(mBoundZ);
+  }
+  return std::nullopt;
 }
 
 } // namespace csp::visualquery
