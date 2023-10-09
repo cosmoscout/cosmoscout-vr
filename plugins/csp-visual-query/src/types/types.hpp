@@ -45,6 +45,7 @@ struct TimeStamp {
 class Image2D : public TimeStamp {
  public:
   Image2D(std::vector<Point2D> points, std::time_t timeStamp, Bound boundX, Bound boundY);
+  Image2D();
 
   std::vector<Point2D> getPoints();
   std::optional<Bound> getBound(std::string boundType);
@@ -80,10 +81,10 @@ class Volume3D : public TimeStamp {
   Volume3D(std::vector<Point3D> points, std::time_t timeStamp, Bound boundX, Bound boundY, Bound boundZ);
 
   std::vector<Point3D> getPoints();
-  std::optional<Bound> getBound(std::string boundType);
+  std::optional<Bound> getBound(const std::string& boundType);
 
   void setPoints(std::vector<Point3D> points);
-  void setBound(std::string boundType, float min, float max);
+  void setBound(const std::string& boundType, float min, float max);
 
  private:
   std::vector<Point3D> mPoints;

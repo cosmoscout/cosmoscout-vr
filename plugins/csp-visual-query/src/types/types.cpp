@@ -7,9 +7,9 @@
 
 #include "types.hpp"
 
-#include <vector>
 #include <ctime>
 #include <optional>
+#include <vector>
 
 namespace csp::visualquery {
 
@@ -20,22 +20,30 @@ TimeStamp::TimeStamp(std::time_t timeStamp) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 std::time_t TimeStamp::getTimeStamp() {
-    return mTimeStamp;
+  return mTimeStamp;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void TimeStamp::setTimeStamp(std::time_t timeStamp) {
-    mTimeStamp = timeStamp;
+  mTimeStamp = timeStamp;
 }
 
-//Image2D///////////////////////////////////////////////////////////////////////////////////////////
+// Image2D///////////////////////////////////////////////////////////////////////////////////////////
 
-Image2D::Image2D(std::vector<Point2D> points, std::time_t timeStamp, Bound boundX, Bound boundY) 
- : TimeStamp(timeStamp) {
-    mPoints = points;
-    mBoundX = boundX;
-    mBoundY = boundY;
+Image2D::Image2D(std::vector<Point2D> points, std::time_t timeStamp, Bound boundX, Bound boundY)
+    : TimeStamp(timeStamp) {
+  mPoints = points;
+  mBoundX = boundX;
+  mBoundY = boundY;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+Image2D::Image2D()
+    : TimeStamp({})
+    , mBoundX()
+    , mBoundY() {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -66,19 +74,19 @@ std::vector<Point2D> Image2D::getPoints() {
 std::optional<Bound> Image2D::getBound(std::string boundType) {
   if (boundType == "x") {
     return mBoundX;
-
-  } else if (boundType == "y") {
-    return mBoundY;
   }
+
+  return mBoundY;
 }
 
-//LayeredImage2D////////////////////////////////////////////////////////////////////////////////////
+// LayeredImage2D////////////////////////////////////////////////////////////////////////////////////
 
-LayeredImage2D::LayeredImage2D(std::vector<std::vector<Point2D>> points, std::time_t timeStamp, Bound boundX, Bound boundY) 
- : TimeStamp(timeStamp) {
-    mPoints = points;
-    mBoundX = boundX;
-    mBoundY = boundY;
+LayeredImage2D::LayeredImage2D(
+    std::vector<std::vector<Point2D>> points, std::time_t timeStamp, Bound boundX, Bound boundY)
+    : TimeStamp(timeStamp) {
+  mPoints = points;
+  mBoundX = boundX;
+  mBoundY = boundY;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -104,37 +112,36 @@ std::vector<std::vector<Point2D>> LayeredImage2D::getPoints() {
   return mPoints;
 }
 
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 std::optional<Bound> LayeredImage2D::getBound(std::string boundType) {
   if (boundType == "x") {
     return mBoundX;
-
-  } else if (boundType == "y") {
-    return mBoundY;
   }
+
+  return mBoundY;
 }
 
-//Volume3D//////////////////////////////////////////////////////////////////////////////////////////
+// Volume3D//////////////////////////////////////////////////////////////////////////////////////////
 
-Volume3D::Volume3D(std::vector<Point3D> points, std::time_t timeStamp,
-  Bound boundX, Bound boundY, Bound boundZ) : TimeStamp(timeStamp) {
-    mPoints = points;
-    mBoundX = boundX;
-    mBoundY = boundY;
-    mBoundZ = boundZ;
+Volume3D::Volume3D(
+    std::vector<Point3D> points, std::time_t timeStamp, Bound boundX, Bound boundY, Bound boundZ)
+    : TimeStamp(timeStamp)
+    , mBoundZ(boundZ)
+    , mBoundY(boundY)
+    , mBoundX(boundX)
+    , mPoints(std::move(points)) {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Volume3D::setPoints(std::vector<Point3D> points) {
-  mPoints = points;
+  mPoints = std::move(points);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Volume3D::setBound(std::string boundType, float min, float max) {
+void Volume3D::setBound(std::string const& boundType, float min, float max) {
   if (boundType == "x") {
     mBoundX = Bound{min, max};
 
@@ -154,16 +161,16 @@ std::vector<Point3D> Volume3D::getPoints() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::optional<Bound> Volume3D::getBound(std::string boundType) {
+std::optional<Bound> Volume3D::getBound(std::string const& boundType) {
   if (boundType == "x") {
     return mBoundX;
-
-  } else if (boundType == "y") {
-    return mBoundY;
-
-  } else if (boundType == "z") {
-    return mBoundZ;
   }
+
+  if (boundType == "y") {
+    return mBoundY;
+  }
+
+  return mBoundZ;
 }
 
 } // namespace csp::visualquery

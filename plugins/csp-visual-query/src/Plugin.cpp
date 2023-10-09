@@ -13,7 +13,8 @@
 #include "../../../src/cs-core/Settings.hpp"
 
 #include "logger.hpp"
-#include "output/Render.hpp"
+#include "output/OverlayRenderer/OverlayRender.hpp"
+#include "sources/RandomDataSource/RandomDataSource.hpp"
 #include "sources/WCSSource.hpp"
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -121,12 +122,14 @@ void Plugin::setupNodeEditor(uint16_t port) {
 
   factory.registerSocketType("GreyScaleGeoTexture", "#ffff00");
   factory.registerSocketType("WCSScalarField", "#b08ab3");
+  factory.registerSocketType("Image2D", "#3333ff");
 
   // Now, we register our custom node types. Any parameter given to this method, will later be
   // passed to the constructor of the node instances. For more information, see the documentation of
   // NodeFactory::registerNodeType().
   factory.registerNodeType<WCSSource>();
-  factory.registerNodeType<Render>();
+  factory.registerNodeType<RandomDataSource>();
+  factory.registerNodeType<OverlayRender>();
 
   // Finally, create the node editor. It will start the server so that we can now open a web browser
   // and navigate to localhost:<port>.

@@ -5,27 +5,25 @@
 // SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
 // SPDX-License-Identifier: MIT
 
-#ifndef CSP_VISUAL_QUERY_RENDER_HPP
-#define CSP_VISUAL_QUERY_RENDER_HPP
+#ifndef CSP_VISUAL_QUERY_OVERLAYRENDER_HPP
+#define CSP_VISUAL_QUERY_OVERLAYRENDER_HPP
 
-#include "../../../csl-node-editor/src/Node.hpp"
+#include "../../../../csl-node-editor/src/Node.hpp"
 
 namespace csp::visualquery {
 
-class Render : public csl::nodeeditor::Node {
+class OverlayRender final : public csl::nodeeditor::Node {
  public:
   // static interface ------------------------------------------------------------------------------
 
-  static const std::string       sName;
-  static std::string             sSource();
-  static std::unique_ptr<Render> sCreate();
+  static const std::string              sName;
+  static std::string                    sSource();
+  static std::unique_ptr<OverlayRender> sCreate(std::shared_ptr<cs::core::SolarSystem> solarSystem);
 
   // instance interface ----------------------------------------------------------------------------
 
-  /// New instances of this node are created by the node factory.
-
-  Render();
-  ~Render() override;
+  OverlayRender(std::shared_ptr<cs::core::SolarSystem> solarSystem);
+  ~OverlayRender() override;
 
   /// Each node must override this. It simply returns the static sName.
   std::string const& getName() const override;
@@ -37,8 +35,9 @@ class Render : public csl::nodeeditor::Node {
   void process() override;
 
  private:
+  std::shared_ptr<cs::core::SolarSystem> mSolarSystem;
 };
 
 } // namespace csp::visualquery
 
-#endif // CSP_VISUAL_QUERY_RENDER_HPP
+#endif // CSP_VISUAL_QUERY_OVERLAYRENDER_HPP

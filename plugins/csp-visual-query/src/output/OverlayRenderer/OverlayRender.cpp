@@ -5,53 +5,57 @@
 // SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
 // SPDX-License-Identifier: MIT
 
-#include "Render.hpp"
+#include "OverlayRender.hpp"
 
-#include "../../../../src/cs-utils/filesystem.hpp"
+#include "../../../../../src/cs-utils/filesystem.hpp"
 
 namespace csp::visualquery {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-const std::string Render::sName = "Render";
+const std::string OverlayRender::sName = "OverlayRender";
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::string Render::sSource() {
-  return cs::utils::filesystem::loadToString("../share/resources/nodes/csp-visual-query/Render.js");
+std::string OverlayRender::sSource() {
+  return cs::utils::filesystem::loadToString(
+      "../share/resources/nodes/csp-visual-query/OverlayRender.js");
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::unique_ptr<Render> Render::sCreate() {
-  return std::make_unique<Render>();
+std::unique_ptr<OverlayRender> OverlayRender::sCreate(
+    std::shared_ptr<cs::core::SolarSystem> solarSystem) {
+  return std::make_unique<OverlayRender>(std::move(solarSystem));
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::string const& Render::getName() const {
+std::string const& OverlayRender::getName() const {
   return sName;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-Render::Render() {
+OverlayRender::OverlayRender(std::shared_ptr<cs::core::SolarSystem> solarSystem)
+    : mSolarSystem(std::move(solarSystem)) {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-Render::~Render() {
-}
+OverlayRender::~OverlayRender() = default;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Render::process() {
+void OverlayRender::process() {
+  auto input = readInput<std::shared_ptr<Image2D>>("Image2D", nullptr);
+  if (!input) {
+    return;
+  }
 
-  // Whenever this method is called, we send a message to the JavaScript counterpart of this node.
-  // The value is sent as a JSON object
-  auto json     = nlohmann::json::object();
-  json["value"] = readInput<double>("number", 0.0);
-  sendMessageToJS(json);
+  for (auto const& entry : input->getPoints()) {
+    logger().info(entry.value.at(0));
+  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

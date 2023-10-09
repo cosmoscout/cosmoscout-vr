@@ -13,11 +13,11 @@ endif()
 
 # build plugin -------------------------------------------------------------------------------------
 
-file(GLOB SOURCE_FILES src/*.cpp src/*/*.cpp)
-file(GLOB NODE_FILES src/*/*.js)
+file(GLOB SOURCE_FILES src/*.cpp src/*/*.cpp src/*/*/*.cpp)
+file(GLOB NODE_FILES src/*/*.js src/*/*/*.js)
 
 # Resource files and header files are only added in order to make them available in your IDE.
-file(GLOB HEADER_FILES src/*.hpp src/*/*.cpp)
+file(GLOB HEADER_FILES src/*.hpp src/*/*.hpp src/*/*/*.hpp)
 file(GLOB_RECURSE RESOURCE_FILES gui/*)
 
 add_library(csp-visual-query SHARED
