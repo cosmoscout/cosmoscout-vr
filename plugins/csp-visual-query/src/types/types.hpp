@@ -36,7 +36,7 @@ struct Dimension {
  public:
   Dimension(int width, int length, int depth);
 
-  int getDimension(std::string dimensionType);
+  std::optional<int> getDimension(std::string dimensionType);
   void setDimension(std::string dimensionType, int value);
   void setDimension(int width, int length, int depth);
  
