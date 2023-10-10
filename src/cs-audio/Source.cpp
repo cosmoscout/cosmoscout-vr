@@ -20,7 +20,7 @@ namespace cs::audio {
 
 Source::Source(std::shared_ptr<BufferManager> bufferManager, 
   std::shared_ptr<ProcessingStepsManager> processingStepsManager,
-  std::string file, std::shared_ptr<SourceSettings> startSettings) 
+  std::string file) 
   : mFile(std::move(file)) 
   , mBufferManager(std::move(bufferManager)) 
   , mCurrentSettings(std::make_shared<std::map<std::string, std::any>>()) 

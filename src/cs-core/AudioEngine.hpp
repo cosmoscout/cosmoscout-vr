@@ -32,7 +32,7 @@ class CS_CORE_EXPORT AudioEngine {
   ~AudioEngine();
 
   /// Creates a new audio source
-  std::shared_ptr<audio::Source> createSource(std::string file, std::shared_ptr<audio::SourceSettings> settings=nullptr);
+  std::shared_ptr<audio::Source> createSource(std::string file);
   /// Returns a list of all possible Output Devices 
   std::shared_ptr<std::vector<std::string>> getDevices();
   /// Sets the output device for the audioEngine

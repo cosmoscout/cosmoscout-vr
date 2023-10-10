@@ -38,6 +38,10 @@ class CS_AUDIO_EXPORT Source {
 
   // TODO: Constructor in private ausprobieren
 
+  Source(std::shared_ptr<BufferManager> bufferManager, 
+  std::shared_ptr<ProcessingStepsManager> processingStepsManager,
+  std::string file);
+
   friend class SourceGroup;
   
   // friend class cs::core::AudioEngine;
