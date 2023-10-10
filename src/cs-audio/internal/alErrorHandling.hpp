@@ -19,7 +19,7 @@ namespace cs::audio {
 
 class CS_AUDIO_EXPORT alErrorHandling {
  public:
-  static bool errorOccurd();
+  static bool errorOccurred();
 
 }; // namespace cs::audio
 

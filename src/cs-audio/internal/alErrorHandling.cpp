@@ -10,7 +10,7 @@
 
 namespace cs::audio {
 
-bool alErrorHandling::errorOccurd() {
+bool alErrorHandling::errorOccurred() {
   ALenum error;
   if ((error = alGetError()) != AL_NO_ERROR) {
 

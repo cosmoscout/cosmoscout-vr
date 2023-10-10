@@ -20,7 +20,7 @@ void Default_PS::process(ALuint openAlId, std::shared_ptr<SourceSettings> settin
     
     } else {
       alSourcef(openAlId, AL_GAIN, settings->gain.value());
-      if (alErrorHandling::errorOccurd()) {
+      if (alErrorHandling::errorOccurred()) {
           logger().warn("Failed to set source gain!");
       }
     }
@@ -28,7 +28,7 @@ void Default_PS::process(ALuint openAlId, std::shared_ptr<SourceSettings> settin
 
   if (settings->looping.has_value()) {
     alSourcei(openAlId, AL_LOOPING, settings->looping.value());
-    if (alErrorHandling::errorOccurd()) {
+    if (alErrorHandling::errorOccurred()) {
       logger().warn("Failed to set source looping!");
     }
   }
@@ -39,7 +39,7 @@ void Default_PS::process(ALuint openAlId, std::shared_ptr<SourceSettings> settin
     
     } else {
       alSourcef(openAlId, AL_PITCH, settings->pitch.value());
-      if (alErrorHandling::errorOccurd()) {
+      if (alErrorHandling::errorOccurred()) {
         logger().warn("Failed to set source pitch!");
       }
     }
