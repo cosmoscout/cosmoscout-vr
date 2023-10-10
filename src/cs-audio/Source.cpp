@@ -10,6 +10,7 @@
 #include "internal/BufferManager.hpp"
 #include "internal/alErrorHandling.hpp"
 #include "internal/ProcessingStepsManager.hpp"
+#include "internal/SettingsMixer.hpp"
 
 #include <AL/al.h>
 #include <map>
@@ -86,8 +87,8 @@ void Source::update() {
   // call all processing steps
   mProcessingStepsManager->process(mOpenAlId, mSettings);
 
-  // write changed values into mCurrentSettings
-  // TODO
+  // TODO: ErrorHandling
+  SettingsMixer::addSettings(*mCurrentSettings, mSettings);
     
   // reset settings
   mSettings->clear(); 
