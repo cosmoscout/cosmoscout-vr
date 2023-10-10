@@ -18,6 +18,9 @@
 
 namespace cs::audio {
 
+// forward declaration
+class SourceGroup;
+
 class CS_AUDIO_EXPORT Source {
  public:
   ~Source();
@@ -35,6 +38,8 @@ class CS_AUDIO_EXPORT Source {
 
   // TODO: Constructor in private ausprobieren
 
+  friend class SourceGroup;
+  
   // friend class cs::core::AudioEngine;
  private:
   std::string                                      mFile;

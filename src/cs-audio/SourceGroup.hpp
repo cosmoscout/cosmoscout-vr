@@ -12,17 +12,38 @@
 #include "Source.hpp"
 
 #include <memory>
+#include <string>
+#include <any>
+#include <map>
+#include <set>
 
 namespace cs::audio {
 
-struct CS_AUDIO_EXPORT SourceGroup {
+class CS_AUDIO_EXPORT SourceGroup {
  public:
+  SourceGroup(std::shared_ptr<ProcessingStepsManager> processingStepsManager);
+
+  /// Add a new source to the group
   void add(std::shared_ptr<Source> source);
+  /// Remove a source from the group
+  void remove(std::shared_ptr<Source> source);
+  /// Remove all sources form the group
+  void reset();
+  /// Update the group settings
   void update();
-  std::unique_ptr<SourceSettings>      mSettings;
+  /// Update the group settings and all member sources
+  void updateAll();
+  /// Update only the member sources
+  void updateMembersOnly();
+
+  /// Set settings that will be applied when calling update(). 
+  void set(std::string key, std::any value);
 
  private:
-  std::vector<std::shared_ptr<Source>> mSources;
+  std::shared_ptr<std::map<std::string, std::any>> mSettings;
+  std::shared_ptr<std::map<std::string, std::any>> mCurrentSettings;
+  std::set<std::shared_ptr<Source>>                mMemberSources;
+  std::shared_ptr<ProcessingStepsManager>          mProcessingStepsManager;
 };
 
 } // namespace cs::audio
