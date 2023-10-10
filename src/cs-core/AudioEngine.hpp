@@ -13,7 +13,6 @@
 
 #include "../cs-audio/internal/OpenAlManager.hpp"
 #include "../cs-audio/Source.hpp"
-#include "../cs-audio/SourceSettings.hpp"
 #include "../cs-audio/internal/BufferManager.hpp"
 #include "../cs-audio/internal/ProcessingStepsManager.hpp"
 
@@ -41,7 +40,7 @@ class CS_CORE_EXPORT AudioEngine {
   /// Sets the output device for the audioEngine
   bool setDevice(std::string outputDevice);
   /// Sets the master volume for the audioEngine 
-  bool setMasterVolume(ALfloat gain);
+  bool setMasterVolume(float gain);
 
  private:
   std::shared_ptr<core::Settings>                mSettings;

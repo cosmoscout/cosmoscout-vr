@@ -60,7 +60,7 @@ std::shared_ptr<std::vector<std::string>> AudioEngine::getDevices() {
 
   if (alcIsExtensionPresent(NULL, "ALC_ENUMERATE_ALL_EXT") == AL_TRUE) {
     macro = ALC_ALL_DEVICES_SPECIFIER;
-
+  
   } else if (alcIsExtensionPresent(NULL, "ALC_ENUMERATION_EXT") == AL_TRUE) {
     logger().warn("OpenAL Extensions 'ALC_ENUMERATE_ALL_EXT' not found. Not all available devices might be found!");
     macro = ALC_DEVICE_SPECIFIER;
@@ -92,12 +92,12 @@ bool AudioEngine::setDevice(std::string outputDevice) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool AudioEngine::setMasterVolume(ALfloat gain) {
+bool AudioEngine::setMasterVolume(float gain) {
   if (gain < 0) {
     return false;
   }
-  alListenerf(AL_GAIN, gain);
-  if (audio::alErrorHandling::errorOccurd()) {
+  alListenerf(AL_GAIN, (ALfloat) gain);
+  if (audio::alErrorHandling::errorOccurred()) {
     logger().warn("Failed to set master volume!");
     return false;
   }
