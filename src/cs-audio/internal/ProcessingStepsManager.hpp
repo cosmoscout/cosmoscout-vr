@@ -11,7 +11,6 @@
 #include "cs_audio_export.hpp"
 #include "../../cs-core/Settings.hpp"
 #include "../processingSteps/ProcessingStep.hpp"
-#include "../SourceSettings.hpp"
 
 #include <AL/al.h>
 
@@ -26,11 +25,13 @@ class CS_AUDIO_EXPORT ProcessingStepsManager {
   ProcessingStepsManager& operator=(ProcessingStepsManager&&) = delete;
 
   ProcessingStepsManager(std::shared_ptr<core::Settings> settings);
-  void process(ALuint openAlId, std::shared_ptr<SourceSettings> settings);
+  void process(ALuint openAlId, 
+    std::shared_ptr<std::map<std::string, std::any>> sourceSettings);
 
  private:
   std::vector<std::shared_ptr<ProcessingStep>> activeProcessingSteps;
   
+  // TODO: use set instead of vector
   void setProcessingSteps(std::vector<std::string> processingSteps);
 };
 

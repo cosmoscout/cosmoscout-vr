@@ -7,38 +7,39 @@
 
 #include "Default_PS.hpp"
 #include "../internal/alErrorHandling.hpp"
-#include "../SourceSettings.hpp"
 
 #include <AL/al.h>
+#include <map>
+#include <any>
 
 namespace cs::audio {
 
-void Default_PS::process(ALuint openAlId, std::shared_ptr<SourceSettings> settings) {
-  if (settings->gain.has_value()) { 
-    if (settings->gain.value() < 0) {
+void Default_PS::process(ALuint openAlId, std::shared_ptr<std::map<std::string, std::any>> settings) {
+  if (auto search = settings->find("gain"); search != settings->end()) { 
+    if (std::any_cast<float>(settings->at("gain")) < 0) {
       logger().warn("Audio source error! Unable to set a negative gain!");
     
     } else {
-      alSourcef(openAlId, AL_GAIN, settings->gain.value());
+      alSourcef(openAlId, AL_GAIN, std::any_cast<float>(settings->at("gain")));
       if (alErrorHandling::errorOccurred()) {
           logger().warn("Failed to set source gain!");
       }
     }
   }
 
-  if (settings->looping.has_value()) {
-    alSourcei(openAlId, AL_LOOPING, settings->looping.value());
+  if (auto search = settings->find("looping"); search != settings->end()) {
+    alSourcei(openAlId, AL_LOOPING, std::any_cast<bool>(settings->at("looping")));
     if (alErrorHandling::errorOccurred()) {
       logger().warn("Failed to set source looping!");
     }
   }
 
-  if (settings->pitch.has_value()) {
-    if (settings->pitch.value() < 0) {
+  if (auto search = settings->find("pitch"); search != settings->end()) {
+    if (std::any_cast<float>(settings->at("pitch")) < 0) {
       logger().warn("Audio source error! Unable to set a negative pitch!");
     
     } else {
-      alSourcef(openAlId, AL_PITCH, settings->pitch.value());
+      alSourcef(openAlId, AL_PITCH, std::any_cast<float>(settings->at("pitch")));
       if (alErrorHandling::errorOccurred()) {
         logger().warn("Failed to set source pitch!");
       }

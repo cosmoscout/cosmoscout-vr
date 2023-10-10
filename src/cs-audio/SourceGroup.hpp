@@ -10,7 +10,6 @@
 
 #include "cs_audio_export.hpp"
 #include "Source.hpp"
-#include "SourceSettings.hpp"
 
 #include <memory>
 

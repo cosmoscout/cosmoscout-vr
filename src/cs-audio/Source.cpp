@@ -12,6 +12,8 @@
 #include "internal/ProcessingStepsManager.hpp"
 
 #include <AL/al.h>
+#include <map>
+#include <any>
 
 namespace cs::audio {
 
@@ -20,8 +22,8 @@ Source::Source(std::shared_ptr<BufferManager> bufferManager,
   std::string file, std::shared_ptr<SourceSettings> startSettings) 
   : mFile(std::move(file)) 
   , mBufferManager(std::move(bufferManager)) 
-  , mCurrentSettings(std::move(startSettings)) 
-  , settings(std::make_shared<SourceSettings>())
+  , mCurrentSettings(std::make_shared<std::map<std::string, std::any>>()) 
+  , mSettings(std::make_shared<std::map<std::string, std::any>>())
   , mProcessingStepsManager(std::move(processingStepsManager)) {
 
   alGetError(); // clear error code
@@ -82,13 +84,19 @@ bool Source::stop() const {
 
 void Source::update() {
   // call all processing steps
-  mProcessingStepsManager->process(mOpenAlId, settings);
+  mProcessingStepsManager->process(mOpenAlId, mSettings);
 
   // write changed values into mCurrentSettings
   // TODO
     
   // reset settings
-  settings = std::make_shared<SourceSettings>(); 
+  mSettings->clear(); 
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Source::set(std::string key, std::any value) {
+  mSettings->operator[](key) = value;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -118,7 +126,7 @@ std::string Source::getFile() const {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::shared_ptr<SourceSettings> Source::getSettings() const {
+std::shared_ptr<std::map<std::string, std::any>> Source::getSettings() const {
   return mCurrentSettings;
 }
 

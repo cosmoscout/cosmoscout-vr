@@ -9,14 +9,16 @@
 #define CS_AUDIO_PROCESSING_STEP_HPP
 
 #include "cs_audio_export.hpp"
-#include "../SourceSettings.hpp"
+
 #include <AL/al.h>
+#include <map>
+#include <any>
 
 namespace cs::audio {
 
 class CS_AUDIO_EXPORT ProcessingStep {
  public:
-  virtual void process(ALuint openAlId, std::shared_ptr<audio::SourceSettings> settings) = 0;
+  virtual void process(ALuint openAlId, std::shared_ptr<std::map<std::string, std::any>> settings) = 0;
  
  private:
 

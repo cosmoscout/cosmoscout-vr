@@ -9,7 +9,6 @@
 #define CS_AUDIO_PS_DEFAULT_HPP
 
 #include "cs_audio_export.hpp"
-#include "../SourceSettings.hpp"
 #include "../Source.hpp"
 #include "ProcessingStep.hpp"
 
@@ -19,7 +18,7 @@ namespace cs::audio {
 
 class CS_AUDIO_EXPORT Default_PS : public ProcessingStep {
  public:
-  void process(ALuint openAlId, std::shared_ptr<SourceSettings> settings);
+  void process(ALuint openAlId, std::shared_ptr<std::map<std::string, std::any>> settings);
 
  private:
 };

@@ -39,7 +39,7 @@ void ProcessingStepsManager::setProcessingSteps(std::vector<std::string> process
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void ProcessingStepsManager::process(ALuint openAlId, std::shared_ptr<SourceSettings> settings) {
+void ProcessingStepsManager::process(ALuint openAlId, std::shared_ptr<std::map<std::string, std::any>> settings) {
   for (auto step : activeProcessingSteps) {
     step->process(openAlId, settings);
   }

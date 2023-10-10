@@ -12,7 +12,6 @@
 #include "../cs-audio/internal/OpenAlManager.hpp"
 #include "../cs-audio/internal/Listener.hpp"
 #include "../cs-audio/Source.hpp"
-#include "../cs-audio/SourceSettings.hpp"
 #include "../cs-audio/internal/BufferManager.hpp"
 #include "../cs-audio/internal/ProcessingStepsManager.hpp"
 #include "../cs-audio/internal/alErrorHandling.hpp"
