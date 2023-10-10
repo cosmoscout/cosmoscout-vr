@@ -17,6 +17,9 @@
 #include "../cs-audio/internal/BufferManager.hpp"
 #include "../cs-audio/internal/ProcessingStepsManager.hpp"
 
+#include <map>
+#include <any>
+
 namespace cs::core {
 
 class CS_CORE_EXPORT AudioEngine {
@@ -48,9 +51,10 @@ class CS_CORE_EXPORT AudioEngine {
 
   // for testing
   void playAmbient(std::string file);
+  void printMap(std::shared_ptr<std::map<std::string, std::any>> map);
   std::shared_ptr<audio::Source> testSourceA;
   std::shared_ptr<audio::Source> testSourceB;
-  std::shared_ptr<audio::SourceSettings> testSettings;
+  std::map<std::string, std::any> testSettings;
 };
 
 } // namespace cs::core
