@@ -34,6 +34,9 @@ void SourceGroup::reset() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void SourceGroup::update() {
+  if (this->mSettings->empty()) {
+    return;
+  }
   for (std::shared_ptr<Source> source : mMemberSources) {
     // mix group and source settings
     auto settingsToSet = SettingsMixer::mixGroupUpdate(source->mCurrentSettings, this->mSettings);
@@ -56,6 +59,10 @@ void SourceGroup::update() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void SourceGroup::updateAll() {
+  if (this->mSettings->empty()) {
+    updateMembersOnly();
+    return;
+  }
   for (std::shared_ptr<Source> source : mMemberSources) {
     // mix group and source settings
     auto settingsToSet = SettingsMixer::mixGroupAndSourceUpdate(source->mCurrentSettings, 

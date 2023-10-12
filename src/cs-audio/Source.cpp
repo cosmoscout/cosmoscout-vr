@@ -84,6 +84,9 @@ bool Source::stop() const {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Source::update() {
+  if (mSettings->empty()) {
+    return;
+  }
   // call all processing steps
   mProcessingStepsManager->process(mOpenAlId, mSettings);
 
