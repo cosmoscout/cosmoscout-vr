@@ -35,9 +35,9 @@ class CS_AUDIO_EXPORT SettingsMixer {
     std::shared_ptr<std::map<std::string, std::any>> sourceCurrentSettings,
     std::shared_ptr<std::map<std::string, std::any>> groupSettings);
 
-  // Add/override newSettings to the existing currentSettings
+  /// override baseSettings with newSettings / add newSettings
   static void addSettings(
-    std::map<std::string, std::any> &currentSettings,
+    std::map<std::string, std::any> &baseSettings,
     std::shared_ptr<std::map<std::string, std::any>> newSettings);
 
  private:

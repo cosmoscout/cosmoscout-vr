@@ -17,11 +17,7 @@ std::shared_ptr<std::map<std::string, std::any>> SettingsMixer::mixGroupAndSourc
   std::shared_ptr<std::map<std::string, std::any>> groupSettings) {
   
   auto result = mixGroupUpdate(sourceCurrentSettings, groupSettings);
-
-  // override groupSettings with sourceSettings / add sourceSettings
-  for (auto const& [key, val] : *sourceSettings) {
-    result->operator[](key) = val;
-  }
+  addSettings(*result, sourceSettings);
   return result;
 }
 
@@ -40,11 +36,11 @@ std::shared_ptr<std::map<std::string, std::any>> SettingsMixer::mixGroupUpdate(
   return result;
 }
 
-void SettingsMixer::addSettings(std::map<std::string, std::any> &currentSettings,
+void SettingsMixer::addSettings(std::map<std::string, std::any> &baseSettings,
   std::shared_ptr<std::map<std::string, std::any>> newSettings) {
   
   for (auto const& [key, val] : *newSettings) {
-    currentSettings[key] = val;
+    baseSettings[key] = val;
   }
 }
 
