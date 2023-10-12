@@ -12,6 +12,7 @@
 #include "../cs-audio/internal/OpenAlManager.hpp"
 #include "../cs-audio/internal/Listener.hpp"
 #include "../cs-audio/Source.hpp"
+#include "../cs-audio/SourceGroup.hpp"
 #include "../cs-audio/internal/BufferManager.hpp"
 #include "../cs-audio/internal/ProcessingStepsManager.hpp"
 #include "../cs-audio/internal/alErrorHandling.hpp"
@@ -36,7 +37,7 @@ AudioEngine::AudioEngine(std::shared_ptr<Settings> settings)
   logger().info("OpenAL-Soft Vendor:  {}", alGetString(AL_VENDOR));
   logger().info("OpenAL-Soft Version:  {}", alGetString(AL_VERSION));
 
-  playAmbient("C:/Users/sass_fl/audioCS/audioCSNotes/testFiles/scifi_stereo.wav");
+  playAmbient("I:/Bachelorarbeit/audioCS/audioCSNotes/testFiles/scifi_stereo.wav");
 }
  
 AudioEngine::~AudioEngine() {
@@ -44,12 +45,6 @@ AudioEngine::~AudioEngine() {
     // Tell the user what's going on.
     logger().debug("Deleting AudioEngine.");
   } catch (...) {}
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-std::shared_ptr<audio::Source> AudioEngine::createSource(std::string file) {
-  return std::make_shared<audio::Source>(mBufferManager, mProcessingStepsManager, file);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -106,11 +101,29 @@ bool AudioEngine::setMasterVolume(float gain) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void AudioEngine::playAmbient(std::string file) {
-  testSourceA = createSource(file); 
-  testSourceA->set("looping", true);
-  testSourceA->play();
+void AudioEngine::createAudioControls() {
+  // TODO  
+}
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void AudioEngine::playAmbient(std::string file) {
+  audioController = std::make_shared<audio::AudioController>(mBufferManager, mProcessingStepsManager, std::vector<std::string>(), 0);
+  
+  testSourceA = audioController->createSource(file); 
+  testSourceB = audioController->createSource("I:/Bachelorarbeit/audioCS/audioCSNotes/testFiles/exotic_mono.wav");
+  testSourceGroup = audioController->createSourceGroup();
+
+  testSourceA->play();
+  testSourceB->play();
+
+  testSourceGroup->add(testSourceA);
+  testSourceGroup->add(testSourceB);
+  
+  testSourceGroup->set("looping", true);
+  testSourceGroup->update();
+  
+  return;
   // test SettingsMixer
   auto sourceCurrent = std::make_shared<std::map<std::string, std::any>>();
   auto sourceNew = std::make_shared<std::map<std::string, std::any>>();

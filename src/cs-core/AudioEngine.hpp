@@ -13,6 +13,8 @@
 
 #include "../cs-audio/internal/OpenAlManager.hpp"
 #include "../cs-audio/Source.hpp"
+#include "../cs-audio/SourceGroup.hpp"
+#include "../cs-audio/AudioController.hpp"
 #include "../cs-audio/internal/BufferManager.hpp"
 #include "../cs-audio/internal/ProcessingStepsManager.hpp"
 
@@ -33,8 +35,6 @@ class CS_CORE_EXPORT AudioEngine {
   explicit AudioEngine(std::shared_ptr<Settings> settings);
   ~AudioEngine();
 
-  /// Creates a new audio source
-  std::shared_ptr<audio::Source> createSource(std::string file);
   /// Returns a list of all possible Output Devices 
   std::shared_ptr<std::vector<std::string>> getDevices();
   /// Sets the output device for the audioEngine
@@ -48,11 +48,15 @@ class CS_CORE_EXPORT AudioEngine {
   std::shared_ptr<audio::BufferManager>          mBufferManager;
   std::shared_ptr<audio::ProcessingStepsManager> mProcessingStepsManager;
 
+  void createAudioControls();
+
   // for testing
+  std::shared_ptr<audio::AudioController> audioController;
   void playAmbient(std::string file);
   void printMap(std::shared_ptr<std::map<std::string, std::any>> map);
   std::shared_ptr<audio::Source> testSourceA;
   std::shared_ptr<audio::Source> testSourceB;
+  std::shared_ptr<audio::SourceGroup> testSourceGroup;
   std::map<std::string, std::any> testSettings;
 };
 

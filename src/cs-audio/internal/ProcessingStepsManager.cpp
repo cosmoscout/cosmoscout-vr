@@ -8,6 +8,7 @@
 #include "ProcessingStepsManager.hpp"
 #include "../../cs-core/Settings.hpp"
 #include "../../cs-core/Settings.hpp"
+#include <set>
 
 // processingSteps:
 # include "../processingSteps/Default_PS.hpp"
@@ -17,7 +18,7 @@ namespace cs::audio {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-ProcessingStepsManager::ProcessingStepsManager(std::shared_ptr<core::Settings> settings) {
+ProcessingStepsManager::ProcessingStepsManager() {
   activeProcessingSteps.push_back(std::make_shared<Default_PS>()); 
 
   // setProcessingSteps();
@@ -25,21 +26,31 @@ ProcessingStepsManager::ProcessingStepsManager(std::shared_ptr<core::Settings> s
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void ProcessingStepsManager::setProcessingSteps(std::vector<std::string> processingSteps) {
+void ProcessingStepsManager::createPipeline(std::vector<std::string> processingSteps, int audioControllerId) {
+  std::set<std::shared_ptr<ProcessingStep>> pipeline;
+
   for (std::string processingStep : processingSteps) {
 
     if (processingStep == "Spatialization") {
-      activeProcessingSteps.push_back(std::make_shared<Spatialization_PS>());
+      pipeline.insert(std::make_shared<Spatialization_PS>());
       continue;
     }
 
     // ...
   }
+
+  mPipelines[audioControllerId] = pipeline;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void ProcessingStepsManager::process(ALuint openAlId, std::shared_ptr<std::map<std::string, std::any>> settings) {
+ProcessingStep ProcessingStepsManager::createProcessingStep(std::string processingStep) {
+  
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void ProcessingStepsManager::process(ALuint openAlId, int audioControllerId, std::shared_ptr<std::map<std::string, std::any>> settings) {
   for (auto step : activeProcessingSteps) {
     step->process(openAlId, settings);
   }

@@ -13,6 +13,8 @@
 #include "../processingSteps/ProcessingStep.hpp"
 
 #include <AL/al.h>
+#include <map>
+#include <set>
 
 namespace cs::audio {
 
@@ -24,15 +26,16 @@ class CS_AUDIO_EXPORT ProcessingStepsManager {
   ProcessingStepsManager& operator=(const ProcessingStepsManager&) = delete;
   ProcessingStepsManager& operator=(ProcessingStepsManager&&) = delete;
 
-  ProcessingStepsManager(std::shared_ptr<core::Settings> settings);
-  void process(ALuint openAlId, 
-    std::shared_ptr<std::map<std::string, std::any>> sourceSettings);
+  ProcessingStepsManager();
 
- private:
-  std::vector<std::shared_ptr<ProcessingStep>> activeProcessingSteps;
-  
-  // TODO: use set instead of vector
-  void setProcessingSteps(std::vector<std::string> processingSteps);
+  void createPipeline(std::vector<std::string> processingSteps, int audioControllerId);
+  void process(ALuint openAlId, int audioControllerId,
+    std::shared_ptr<std::map<std::string, std::any>> sourceSettings);
+    
+ private:                                                                                                                                                     
+  std::map<int, std::set<std::shared_ptr<ProcessingStep>>> mPipelines;
+  std::set<std::shared_ptr<ProcessingStep>> existingProcessingSteps;
+  ProcessingStep createProcessingStep(std::string processingStep);
 };
 
 } // namespace cs::audio
