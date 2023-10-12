@@ -12,7 +12,10 @@
 namespace cs::audio {
 
 SourceGroup::SourceGroup(std::shared_ptr<ProcessingStepsManager> processingStepsManager) 
-  : mProcessingStepsManager(std::move(processingStepsManager)) {
+  : mProcessingStepsManager(std::move(processingStepsManager))
+  , mSettings(std::make_shared<std::map<std::string, std::any>>())
+  , mCurrentSettings(std::make_shared<std::map<std::string, std::any>>()) 
+  , mMemberSources(std::set<std::shared_ptr<Source>>()) {
 }
 
 void SourceGroup::add(std::shared_ptr<Source> source) {
