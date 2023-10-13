@@ -8,6 +8,8 @@
 #ifndef CSP_VISUAL_QUERY_RENDERER_HPP
 #define CSP_VISUAL_QUERY_RENDERER_HPP
 
+#include "../../../../csl-ogc/src/common/utils.hpp"
+
 #include <VistaOGLExt/VistaGLSLShader.h>
 #include <VistaOGLExt/VistaTexture.h>
 
@@ -29,6 +31,8 @@ class Renderer final : public IVistaOpenGLDraw {
   bool Do() override;
   bool GetBoundingBox(VistaBoundingBox& bb) override;
 
+  void setData(Image2D image);
+
  private:
   std::string                            mObjectName;
   std::shared_ptr<cs::core::SolarSystem> mSolarSystem;
@@ -49,7 +53,9 @@ class Renderer final : public IVistaOpenGLDraw {
   /// Upper Corner of the bounding volume for the planet.
   glm::vec3 mMaxBounds;
 
-  bool mShaderDirty        = true;
+  csl::ogc::Bounds mBounds;
+
+  bool mShaderDirty = true;
 
   /// Code for the geometry shader
   static const std::string SURFACE_GEOM;

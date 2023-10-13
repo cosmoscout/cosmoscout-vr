@@ -36,8 +36,8 @@ struct Dimension {
  public:
   Dimension(int width, int length, int depth);
 
-  std::optional<int> getDimension(std::string dimensionType);
-  void setDimension(std::string dimensionType, int value);
+  std::optional<int> getDimension(const std::string& dimensionType);
+  void setDimension(const std::string& dimensionType, int value);
   void setDimension(int width, int length, int depth);
 
  private:
@@ -50,7 +50,7 @@ struct TimeStamp {
  public:
   TimeStamp(double timeStamp);
 
-  double getTimeStamp();
+  double getTimeStamp() const;
   void setTimeStamp(double timeStamp);
 
  private:
@@ -63,10 +63,10 @@ class Image2D {
   Image2D();
 
   std::vector<Point2D> getPoints();
-  std::optional<Bound> getBound(std::string boundType);
+  std::optional<Bound> getBound(const std::string& boundType);
 
   void setPoints(std::vector<Point2D> points);
-  void setBound(std::string boundType, float min, float max);
+  void setBound(const std::string& boundType, float min, float max);
 
   TimeStamp            mTimeStamp;
   Dimension            mDimension;
@@ -83,10 +83,10 @@ class LayeredImage2D {
     Dimension dimension);
 
   std::vector<std::vector<Point2D>> getPoints();
-  std::optional<Bound>              getBound(std::string boundType);
+  std::optional<Bound>              getBound(const std::string& boundType);
 
   void setPoints(std::vector<std::vector<Point2D>> points);
-  void setBound(std::string boundType, float min, float max);
+  void setBound(const std::string& boundType, float min, float max);
 
   TimeStamp                         mTimeStamp;
   Dimension                         mDimension;

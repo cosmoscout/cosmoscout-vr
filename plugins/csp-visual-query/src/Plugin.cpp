@@ -129,7 +129,7 @@ void Plugin::setupNodeEditor(uint16_t port) {
   // NodeFactory::registerNodeType().
   factory.registerNodeType<WCSSource>();
   factory.registerNodeType<RandomDataSource>();
-  factory.registerNodeType<OverlayRender>();
+  factory.registerNodeType<OverlayRender>(mSolarSystem);
 
   // Finally, create the node editor. It will start the server so that we can now open a web browser
   // and navigate to localhost:<port>.

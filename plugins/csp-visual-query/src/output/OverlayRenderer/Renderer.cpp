@@ -8,6 +8,7 @@
 #include "Renderer.hpp"
 
 #include "../../../../src/cs-core/SolarSystem.hpp"
+#include "glm/gtc/type_ptr.hpp"
 
 #include <VistaKernel/DisplayManager/VistaDisplayManager.h>
 #include <VistaKernel/DisplayManager/VistaViewport.h>
@@ -59,6 +60,21 @@ Renderer::~Renderer() {
   pSG->GetRoot()->DisconnectChild(mGLNode.get());
 }
 
+void Renderer::setData(Image2D image) {
+  std::vector<float> data{};
+  data.reserve(image.getPoints().size());
+
+  mBounds = csl::ogc::Bounds(image.getBound("lon")->min, image.getBound("lon")->max,
+      image.getBound("lat")->min, image.getBound("lat")->max);
+
+  for (auto const& point : image.getPoints()) {
+    data.emplace_back(point.value.at(0), point.value.at(0), point.value.at(0));
+  }
+
+  mTexture.UploadTexture(*image.mDimension.getDimension("width"),
+      *image.mDimension.getDimension("height"), data.data(), false);
+}
+
 bool Renderer::Do() {
   if (mShaderDirty) {
     mShader = VistaGLSLShader();
@@ -70,10 +86,14 @@ bool Renderer::Do() {
 
     mShaderDirty = false;
   }
-  return false;
+
+
+  return true;
 }
+
 bool Renderer::GetBoundingBox(VistaBoundingBox& bb) {
-  return false;
+  bb.SetBounds(glm::value_ptr(mMinBounds), glm::value_ptr(mMaxBounds));
+  return true;
 }
 
 } // namespace csp::visualquery

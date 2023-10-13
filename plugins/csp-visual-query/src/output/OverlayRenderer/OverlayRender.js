@@ -7,7 +7,7 @@
 
 // The TimeNode is pretty simple as it only has a single output socket. The component serves as
 // a kind of factory. Whenever a new node is created, the builder() method is called.
-class OverlayRender extends Rete.Component {
+class OverlayRenderComponent extends Rete.Component {
   constructor() {
     // This name must match the RenderNode::sName defined in Render.cpp.
     super("OverlayRender");

@@ -9,37 +9,38 @@
 
 #include <ctime>
 #include <optional>
+#include <utility>
 #include <vector>
 
 namespace csp::visualquery {
 
 TimeStamp::TimeStamp(double timeStamp)
-  : mTimeStamp(timeStamp) {
+    : mTimeStamp(timeStamp) {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-double TimeStamp::getTimeStamp() {
-    return mTimeStamp;
+double TimeStamp::getTimeStamp() const {
+  return mTimeStamp;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void TimeStamp::setTimeStamp(double timeStamp) {
-    mTimeStamp = timeStamp;
+  mTimeStamp = timeStamp;
 }
 
-//Dimension/////////////////////////////////////////////////////////////////////////////////////////
+// Dimension/////////////////////////////////////////////////////////////////////////////////////////
 
 Dimension::Dimension(int width, int length, int depth)
-  : mWidth(width)
-  , mLength(length)
-  , mDepth(depth) {
+    : mWidth(width)
+    , mLength(length)
+    , mDepth(depth) {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::optional<int> Dimension::getDimension(std::string dimensionType) {
+std::optional<int> Dimension::getDimension(const std::string& dimensionType) {
   if (dimensionType == "width") {
     return std::make_optional(mWidth);
   }
@@ -55,12 +56,12 @@ std::optional<int> Dimension::getDimension(std::string dimensionType) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Dimension::setDimension(int width, int length, int depth) {
-  mWidth = width;
+  mWidth  = width;
   mLength = length;
-  mDepth = depth;
+  mDepth  = depth;
 }
 
-void Dimension::setDimension(std::string dimensionType, int value) {
+void Dimension::setDimension(const std::string& dimensionType, int value) {
   if (dimensionType == "width") {
     mWidth = value;
     return;
@@ -75,40 +76,35 @@ void Dimension::setDimension(std::string dimensionType, int value) {
   }
 }
 
-//Image2D///////////////////////////////////////////////////////////////////////////////////////////
+// Image2D///////////////////////////////////////////////////////////////////////////////////////////
 
-Image2D::Image2D(std::vector<Point2D> points, double timeStamp, Bound boundX, Bound boundY, Dimension dimension)
- : mTimeStamp(timeStamp)
- , mPoints(points)
- , mBoundX(boundX)
- , mBoundY(boundY)
- , mDimension(dimension) {
-
-}
-Image2D::Image2D(std::vector<Point2D> points, std::time_t timeStamp, Bound boundX, Bound boundY)
-    : TimeStamp(timeStamp) {
-  mPoints = points;
-  mBoundX = boundX;
-  mBoundY = boundY;
+Image2D::Image2D(
+    std::vector<Point2D> points, double timeStamp, Bound boundX, Bound boundY, Dimension dimension)
+    : mTimeStamp(timeStamp)
+    , mPoints(std::move(points))
+    , mBoundX(boundX)
+    , mBoundY(boundY)
+    , mDimension(dimension) {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 Image2D::Image2D()
-    : TimeStamp({})
+    : mTimeStamp(0)
     , mBoundX()
-    , mBoundY() {
+    , mBoundY()
+    , mDimension(0, 0, 0) {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Image2D::setPoints(std::vector<Point2D> points) {
-  mPoints = points;
+  mPoints = std::move(points);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Image2D::setBound(std::string boundType, float min, float max) {
+void Image2D::setBound(const std::string& boundType, float min, float max) {
   if (boundType == "x") {
     mBoundX = Bound{min, max};
 
@@ -125,11 +121,12 @@ std::vector<Point2D> Image2D::getPoints() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::optional<Bound> Image2D::getBound(std::string boundType) {
+std::optional<Bound> Image2D::getBound(const std::string& boundType) {
   if (boundType == "x") {
     return std::make_optional(mBoundX);
+  }
 
-  } else if (boundType == "y") {
+  if (boundType == "y") {
     return std::make_optional(mBoundY);
   }
   return std::nullopt;
@@ -137,27 +134,26 @@ std::optional<Bound> Image2D::getBound(std::string boundType) {
 
 // LayeredImage2D////////////////////////////////////////////////////////////////////////////////////
 
-LayeredImage2D::LayeredImage2D(std::vector<std::vector<Point2D>> points, double timeStamp, Bound boundX,
-  Bound boundY, Dimension dimension)
- : mTimeStamp(timeStamp)
- , mPoints(points)
- , mBoundX(boundX)
- , mBoundY(boundY)
- , mDimension(dimension) {
+LayeredImage2D::LayeredImage2D(std::vector<std::vector<Point2D>> points, double timeStamp,
+    Bound boundX, Bound boundY, Dimension dimension)
+    : mTimeStamp(timeStamp)
+    , mPoints(std::move(points))
+    , mBoundX(boundX)
+    , mBoundY(boundY)
+    , mDimension(dimension) {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void LayeredImage2D::setPoints(std::vector<std::vector<Point2D>> points) {
-  mPoints = points;
+  mPoints = std::move(points);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void LayeredImage2D::setBound(std::string boundType, float min, float max) {
+void LayeredImage2D::setBound(const std::string& boundType, float min, float max) {
   if (boundType == "x") {
     mBoundX = Bound{min, max};
-
   } else if (boundType == "y") {
     mBoundY = Bound{min, max};
   }
@@ -171,11 +167,12 @@ std::vector<std::vector<Point2D>> LayeredImage2D::getPoints() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::optional<Bound> LayeredImage2D::getBound(std::string boundType) {
+std::optional<Bound> LayeredImage2D::getBound(const std::string& boundType) {
   if (boundType == "x") {
     return std::make_optional(mBoundX);
+  }
 
-  } else if (boundType == "y") {
+  if (boundType == "y") {
     return std::make_optional(mBoundY);
   }
   return std::nullopt;
@@ -183,14 +180,14 @@ std::optional<Bound> LayeredImage2D::getBound(std::string boundType) {
 
 // Volume3D//////////////////////////////////////////////////////////////////////////////////////////
 
-Volume3D::Volume3D(std::vector<Point3D> points, double timeStamp, Bound boundX, Bound boundY, Bound boundZ,
-  Dimension dimension)
-  : mTimeStamp(timeStamp)
-  , mPoints(points)
-  , mBoundX(boundX)
-  , mBoundY(boundY)
-  , mBoundZ(boundZ)
-  , mDimension(dimension) {
+Volume3D::Volume3D(std::vector<Point3D> points, double timeStamp, Bound boundX, Bound boundY,
+    Bound boundZ, Dimension dimension)
+    : mTimeStamp(timeStamp)
+    , mPoints(std::move(points))
+    , mBoundX(boundX)
+    , mBoundY(boundY)
+    , mBoundZ(boundZ)
+    , mDimension(dimension) {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -224,11 +221,13 @@ std::vector<Point3D> Volume3D::getPoints() {
 std::optional<Bound> Volume3D::getBound(std::string const& boundType) {
   if (boundType == "x") {
     return std::make_optional(mBoundX);
+  }
 
-  } else if (boundType == "y") {
+  if (boundType == "y") {
     return std::make_optional(mBoundY);
+  }
 
-  } else if (boundType == "z") {
+  if (boundType == "z") {
     return std::make_optional(mBoundZ);
   }
   return std::nullopt;
