@@ -52,7 +52,7 @@ class CS_CORE_EXPORT AudioEngine {
 
   // for testing
   std::shared_ptr<audio::AudioController> audioController;
-  void playAmbient(std::string file);
+  void playAmbient();
   void printMap(std::shared_ptr<std::map<std::string, std::any>> map);
   std::shared_ptr<audio::Source> testSourceA;
   std::shared_ptr<audio::Source> testSourceB;

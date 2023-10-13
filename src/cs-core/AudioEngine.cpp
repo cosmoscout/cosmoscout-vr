@@ -37,7 +37,7 @@ AudioEngine::AudioEngine(std::shared_ptr<Settings> settings)
   logger().info("OpenAL-Soft Vendor:  {}", alGetString(AL_VENDOR));
   logger().info("OpenAL-Soft Version:  {}", alGetString(AL_VERSION));
 
-  playAmbient("I:/Bachelorarbeit/audioCS/audioCSNotes/testFiles/scifi_stereo.wav");
+  playAmbient();
 }
  
 AudioEngine::~AudioEngine() {
@@ -107,11 +107,11 @@ void AudioEngine::createAudioControls() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void AudioEngine::playAmbient(std::string file) {
+void AudioEngine::playAmbient() {
   audioController = std::make_shared<audio::AudioController>(mBufferManager, mProcessingStepsManager, std::vector<std::string>(), 0);
   
-  testSourceA = audioController->createSource(file); 
-  testSourceB = audioController->createSource("I:/Bachelorarbeit/audioCS/audioCSNotes/testFiles/exotic_mono.wav");
+  testSourceA = audioController->createSource("C:/Users/sass_fl/audioCS/audioCSNotes/testFiles/scifi_stereo.wav"); 
+  testSourceB = audioController->createSource("C:/Users/sass_fl/audioCS/audioCSNotes/testFiles/exotic_mono.wav");
   testSourceGroup = audioController->createSourceGroup();
 
   testSourceA->play();
@@ -121,102 +121,10 @@ void AudioEngine::playAmbient(std::string file) {
   testSourceGroup->add(testSourceB);
   
   testSourceGroup->set("looping", true);
-  testSourceGroup->update();
-  
-  return;
-  // test SettingsMixer
-  auto sourceCurrent = std::make_shared<std::map<std::string, std::any>>();
-  auto sourceNew = std::make_shared<std::map<std::string, std::any>>();
-  auto groupNew = std::make_shared<std::map<std::string, std::any>>();
+  audioController->set("pitch", 3.0f);
+  testSourceA->set("pitch", 1.0f);
 
-  std::cout << "----Test 1----" << std::endl;
-
-  sourceCurrent->operator[]("gain") = 1.5f;
-  sourceCurrent->operator[]("pitch") = 1.0f;
-  groupNew->operator[]("looping") = true;
-
-  printMap(audio::SettingsMixer::mixGroupUpdate(sourceCurrent, groupNew));
-  /*
-  looping: true
-  */
-  sourceCurrent->clear();
-  groupNew->clear();
-
-  std::cout << "----Test 2----" << std::endl;
-  sourceCurrent->operator[]("gain") = 1.5f;
-  sourceCurrent->operator[]("pitch") = 1.0f;
-  sourceCurrent->operator[]("looping") = false;
-  groupNew->operator[]("looping") = true;
-
-  printMap(audio::SettingsMixer::mixGroupUpdate(sourceCurrent, groupNew));
-  /*
-  -
-  */
-  sourceCurrent->clear();
-  groupNew->clear();
-
-  
-  std::cout << "----Test 3----" << std::endl;
-  sourceCurrent->operator[]("gain") = 1.5f;
-  sourceCurrent->operator[]("pitch") = 1.0f;
-
-  sourceNew->operator[]("pitch") = 0.5f;
-
-  groupNew->operator[]("looping") = true;
-
-  printMap(audio::SettingsMixer::mixGroupAndSourceUpdate(sourceCurrent, sourceNew, groupNew));
-  /*
-  pitch: 0.5
-  looping: true
-  */
-  sourceCurrent->clear();
-  sourceNew->clear();
-  groupNew->clear();
-
-  std::cout << "----Test 4----" << std::endl;
-  sourceCurrent->operator[]("gain") = 1.5f;
-  sourceCurrent->operator[]("pitch") = 1.0f;
-
-  sourceNew->operator[]("pitch") = 0.5f;
-  sourceNew->operator[]("looping") = false;
-  groupNew->operator[]("looping") = true;
-
-  printMap(audio::SettingsMixer::mixGroupAndSourceUpdate(sourceCurrent, sourceNew, groupNew));
-  /*
-  pitch: 0.5
-  looping: false
-  */
-  sourceCurrent->clear();
-  sourceNew->clear();
-  groupNew->clear();
-}
-
-void AudioEngine::printMap(std::shared_ptr<std::map<std::string, std::any>> map) {
-  for (auto const& [key, val] : *map) {
-    std::cout << key << ": ";
-
-    auto type = val.type().name();
-    std::cout << "(" << type << ") ";
-    try {
-      std::cout << std::any_cast<int>(val);
-    } catch (const std::bad_any_cast&)
-    {
-    }
-
-    try{
-      std::cout << std::any_cast<float>(val);
-    } catch (const std::bad_any_cast&)
-    {
-    } 
-
-    try {
-      std::cout << std::any_cast<bool>(val);
-    } catch (const std::bad_any_cast&)
-    {
-    }
-
-    std::cout << std::endl;
-  }
+  audioController->update(); 
 }
 
 } // namespace cs::core
