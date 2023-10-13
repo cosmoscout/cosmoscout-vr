@@ -20,12 +20,12 @@ namespace cs::audio {
 
 Source::Source(std::shared_ptr<BufferManager> bufferManager, 
   std::shared_ptr<ProcessingStepsManager> processingStepsManager,
-  std::string file) 
+  std::string file)
   : SourceSettings() 
   , mFile(std::move(file)) 
   , mBufferManager(std::move(bufferManager)) 
   , mProcessingStepsManager(std::move(processingStepsManager)) {
-
+  
   alGetError(); // clear error code
 
   // TODO: check if file actually exists
@@ -43,8 +43,8 @@ Source::Source(std::shared_ptr<BufferManager> bufferManager,
     logger().warn("Failed to bind buffer to source!");
     return;
   }
-
-  mProcessingStepsManager->process(mOpenAlId, mCurrentSettings);
+  // TODO: call process() with group and plugin settings
+  // mProcessingStepsManager->process(mOpenAlId, mAudioControllerId, mCurrentSettings);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

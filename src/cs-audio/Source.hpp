@@ -38,9 +38,10 @@ class CS_AUDIO_EXPORT Source : public SourceSettings{
   std::shared_ptr<ProcessingStepsManager> processingStepsManager,
   std::string file);
 
-  friend class SourceGroup;
-  
   // friend class cs::core::AudioEngine;
+  friend class SourceGroup;
+  friend class AudioController;
+  
  private:
   std::string                                      mFile;
   ALuint                                           mOpenAlId;

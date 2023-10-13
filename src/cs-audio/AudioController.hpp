@@ -26,21 +26,20 @@ class CS_AUDIO_EXPORT AudioController : public SourceSettings {
   AudioController(
     std::shared_ptr<BufferManager> bufferManager, 
     std::shared_ptr<ProcessingStepsManager> processingStepsManager,
-    std::vector<std::string> processingStpes,
-    int audioControllerId);
+    std::vector<std::string> processingSteps);
 
   /// Creates a new audio source
   std::shared_ptr<Source> createSource(std::string file);
   /// Creates a new audio source group
   std::shared_ptr<SourceGroup> createSourceGroup();
-  /// Set settings that will be applied to all sources of a plugin 
-  void set(std::string key, std::any value);
+
+  void update();
 
  private:
-  std::shared_ptr<BufferManager>                   mBufferManager;
-  std::shared_ptr<ProcessingStepsManager>          mProcessingStepsManager;
-  std::shared_ptr<std::map<std::string, std::any>> mGlobalPluginSettings;
-  int                                              mAudioControllerId;
+  std::shared_ptr<BufferManager>            mBufferManager;
+  std::shared_ptr<ProcessingStepsManager>   mProcessingStepsManager;
+  std::vector<std::shared_ptr<Source>>      mSources;
+  std::vector<std::shared_ptr<SourceGroup>> mGroups;
 };
 
 } // namespace cs::audio

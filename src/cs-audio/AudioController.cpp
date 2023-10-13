@@ -8,6 +8,7 @@
 #include "AudioController.hpp"
 #include "internal/BufferManager.hpp"
 #include "internal/ProcessingStepsManager.hpp"
+#include "internal/SettingsMixer.hpp"
 #include "Source.hpp"
 #include "SourceGroup.hpp"
 
@@ -16,33 +17,75 @@ namespace cs::audio {
 AudioController::AudioController(
   std::shared_ptr<BufferManager> bufferManager, 
   std::shared_ptr<ProcessingStepsManager> processingStepsManager,
-  std::vector<std::string> processingStpes,
-  int audioControllerId) 
-  : mBufferManager(std::move(bufferManager))
-  , mProcessingStepsManager(std::move(processingStepsManager)) 
-  , mGlobalPluginSettings(std::make_shared<std::map<std::string, std::any>>())
-  , mAudioControllerId(std::move(audioControllerId)) {
+  std::vector<std::string> processingSteps) 
+  : SourceSettings()
+  , mBufferManager(std::move(bufferManager))
+  , mProcessingStepsManager(std::move(processingStepsManager)) {
 
-  // TODO:
-  // mProcessingStepsManager->createPipeline(processingStpes);
+  // TODO: define pipeline via config file
+  mProcessingStepsManager->createPipeline(processingSteps, mAudioControllerId);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::shared_ptr<audio::SourceGroup> AudioController::createSourceGroup() {
-  return std::make_shared<audio::SourceGroup>(mProcessingStepsManager);
+std::shared_ptr<SourceGroup> AudioController::createSourceGroup() {
+  auto x = std::make_shared<SourceGroup>();
+  mGroups.push_back(x);
+  return x;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::shared_ptr<audio::Source> AudioController::createSource(std::string file) {
-  return std::make_shared<audio::Source>(mBufferManager, mProcessingStepsManager, file);
+std::shared_ptr<Source> AudioController::createSource(std::string file) {
+  auto x = std::make_shared<Source>(mBufferManager, mProcessingStepsManager, file);
+  mSources.push_back(x);
+  return x;
 } 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void AudioController::set(std::string key, std::any value) {
-    mGlobalPluginSettings->operator[](key) = value;
+void AudioController::update() {
+  
+  for (std::shared_ptr<Source> source : mSources) {
+    // TODO: refactor
+    
+    // take plugin settings
+    std::map<std::string, std::any> x(*mUpdateSettings);
+    auto finalSettings = std::make_shared<std::map<std::string, std::any>>(x);
+
+    // add group settings
+    if (source->mGroup != nullptr) {
+      finalSettings = SettingsMixer::OverrideAdd_A_with_B(finalSettings, source->mGroup->mUpdateSettings);
+    }
+
+    // skip if there is nothing to update
+    if (finalSettings->empty() && source->mUpdateSettings->empty()) {
+      continue;
+    }
+    
+    // remove settings that are already set
+    finalSettings = SettingsMixer::A_Without_B(finalSettings, source->mCurrentSettings);
+
+    // add sourceSettings to finalSettings
+    finalSettings = SettingsMixer::OverrideAdd_A_with_B(finalSettings, source->mUpdateSettings);
+
+    // run finalSetting through pipeline
+    mProcessingStepsManager->process(source->mOpenAlId, std::shared_ptr<AudioController>(this), finalSettings);
+  
+    // Update currently set settings for a source
+    source->mCurrentSettings = SettingsMixer::OverrideAdd_A_with_B(source->mCurrentSettings, finalSettings);
+    source->mUpdateSettings->clear();
+  }
+
+  // Update currently set settings for a group
+  for (std::shared_ptr<SourceGroup> group : mGroups) {
+    group->mCurrentSettings = SettingsMixer::OverrideAdd_A_with_B(group->mCurrentSettings, group->mUpdateSettings);
+    group->mUpdateSettings->clear();
+  }
+
+  // Update currently set settings for the plugin
+  this->mCurrentSettings = SettingsMixer::OverrideAdd_A_with_B(this->mCurrentSettings, this->mUpdateSettings);
+  this->mUpdateSettings->clear();
 }
 
 } // namespace cs::audio
