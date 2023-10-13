@@ -19,7 +19,8 @@
 
 namespace cs::audio {
 
-class CS_AUDIO_EXPORT SourceGroup {
+class CS_AUDIO_EXPORT SourceGroup : public SourceSettings
+{
  public:
   SourceGroup(std::shared_ptr<ProcessingStepsManager> processingStepsManager);
 

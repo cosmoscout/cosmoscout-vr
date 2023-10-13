@@ -21,8 +21,7 @@
 
 namespace cs::audio {
 
-
-class CS_AUDIO_EXPORT AudioController {
+class CS_AUDIO_EXPORT AudioController : public SourceSettings {
  public:
   AudioController(
     std::shared_ptr<BufferManager> bufferManager, 

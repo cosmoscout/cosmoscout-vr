@@ -21,10 +21,9 @@ namespace cs::audio {
 Source::Source(std::shared_ptr<BufferManager> bufferManager, 
   std::shared_ptr<ProcessingStepsManager> processingStepsManager,
   std::string file) 
-  : mFile(std::move(file)) 
+  : SourceSettings() 
+  , mFile(std::move(file)) 
   , mBufferManager(std::move(bufferManager)) 
-  , mCurrentSettings(std::make_shared<std::map<std::string, std::any>>()) 
-  , mSettings(std::make_shared<std::map<std::string, std::any>>())
   , mProcessingStepsManager(std::move(processingStepsManager)) {
 
   alGetError(); // clear error code
@@ -83,28 +82,6 @@ bool Source::stop() const {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Source::update() {
-  if (mSettings->empty()) {
-    return;
-  }
-  // call all processing steps
-  mProcessingStepsManager->process(mOpenAlId, mSettings);
-
-  // TODO: ErrorHandling
-  SettingsMixer::addSettings(*mCurrentSettings, mSettings);
-    
-  // reset settings
-  mSettings->clear(); 
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void Source::set(std::string key, std::any value) {
-  mSettings->operator[](key) = value;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
 bool Source::setFile(std::string file) {
   alGetError(); // clear error code
   // alSourceStop(mOpenAlId);
@@ -126,12 +103,6 @@ bool Source::setFile(std::string file) {
 
 std::string Source::getFile() const {
   return mFile;   
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-std::shared_ptr<std::map<std::string, std::any>> Source::getSettings() const {
-  return mCurrentSettings;
 }
 
 } // namespace cs::audio
