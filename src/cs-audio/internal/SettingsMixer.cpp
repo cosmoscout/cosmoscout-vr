@@ -9,26 +9,13 @@
 
 namespace cs::audio {
 
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-std::shared_ptr<std::map<std::string, std::any>> SettingsMixer::mixGroupAndSourceUpdate(
-  std::shared_ptr<std::map<std::string, std::any>> sourceCurrentSettings,
-  std::shared_ptr<std::map<std::string, std::any>> sourceSettings,
-  std::shared_ptr<std::map<std::string, std::any>> groupSettings) {
+std::shared_ptr<std::map<std::string, std::any>> SettingsMixer::A_Without_B(
+  std::shared_ptr<std::map<std::string, std::any>> A, 
+  std::shared_ptr<std::map<std::string, std::any>> B) {
   
-  auto result = mixGroupUpdate(sourceCurrentSettings, groupSettings);
-  addSettings(*result, sourceSettings);
-  return result;
-}
-
-std::shared_ptr<std::map<std::string, std::any>> SettingsMixer::mixGroupUpdate(
-  std::shared_ptr<std::map<std::string, std::any>> sourceCurrentSettings,
-  std::shared_ptr<std::map<std::string, std::any>> groupSettings) {
-  
-  // only set groupSettings that are not already set in sourceCurrentSettings
   auto result = std::make_shared<std::map<std::string, std::any>>();
-  for (auto const& [key, val] : *groupSettings) {
-    if (auto search = sourceCurrentSettings->find(key); search != sourceCurrentSettings->end()) { 
+  for (auto const& [key, val] : *A) {
+    if (auto search = B->find(key); search != B->end()) { 
       continue;
     }
     result->operator[](key) = val;
@@ -36,12 +23,17 @@ std::shared_ptr<std::map<std::string, std::any>> SettingsMixer::mixGroupUpdate(
   return result;
 }
 
-void SettingsMixer::addSettings(std::map<std::string, std::any> &baseSettings,
-  std::shared_ptr<std::map<std::string, std::any>> newSettings) {
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+std::shared_ptr<std::map<std::string, std::any>> SettingsMixer::OverrideAdd_A_with_B(
+  std::shared_ptr<std::map<std::string, std::any>> A, 
+  std::shared_ptr<std::map<std::string, std::any>> B) {
   
-  for (auto const& [key, val] : *newSettings) {
-    baseSettings[key] = val;
+  std::map<std::string, std::any> result(*A);
+  for (auto const& [key, val] : *B) {
+    result[key] = val;
   }
+  return std::make_shared<std::map<std::string, std::any>>(result);
 }
 
 } // namespace cs::audio

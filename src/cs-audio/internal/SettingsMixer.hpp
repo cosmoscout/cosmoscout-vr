@@ -19,27 +19,14 @@ namespace cs::audio {
 
 class CS_AUDIO_EXPORT SettingsMixer {
  public:
-  /// Mixes groupSettings with sourceCurrentSettings so that only groupSettings
-  /// are set that are not already set in sourceCurrentSettings and overrides
-  /// groupSettings with sourcSettings if they are set. This mix function 
-  /// is used in SourceGroup.updateAll().
-  static std::shared_ptr<std::map<std::string, std::any>> mixGroupAndSourceUpdate(
-    std::shared_ptr<std::map<std::string, std::any>> sourceCurrentSettings,
-    std::shared_ptr<std::map<std::string, std::any>> sourceSettings,
-    std::shared_ptr<std::map<std::string, std::any>> groupSettings);
+  static std::shared_ptr<std::map<std::string, std::any>> A_Without_B(
+    std::shared_ptr<std::map<std::string, std::any>> A, 
+    std::shared_ptr<std::map<std::string, std::any>> B);
 
-  /// Mixes sourceCurrentSettings with groupSettings so that only groupSettings
-  /// are set that are not already set in sourceCurrentSettings. This mix function 
-  /// is used in SourceGroup.update().
-  static std::shared_ptr<std::map<std::string, std::any>> mixGroupUpdate(
-    std::shared_ptr<std::map<std::string, std::any>> sourceCurrentSettings,
-    std::shared_ptr<std::map<std::string, std::any>> groupSettings);
-
-  /// override baseSettings with newSettings / add newSettings
-  static void addSettings(
-    std::map<std::string, std::any> &baseSettings,
-    std::shared_ptr<std::map<std::string, std::any>> newSettings);
-
+  static std::shared_ptr<std::map<std::string, std::any>> OverrideAdd_A_with_B(
+    std::shared_ptr<std::map<std::string, std::any>> A, 
+    std::shared_ptr<std::map<std::string, std::any>> B);
+  
  private:
 
 };
