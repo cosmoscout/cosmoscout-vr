@@ -11,6 +11,7 @@
 #include "cs_audio_export.hpp"
 #include "../../cs-core/Settings.hpp"
 #include "../processingSteps/ProcessingStep.hpp"
+#include "../AudioController.hpp"
 
 #include <AL/al.h>
 #include <map>
@@ -28,14 +29,15 @@ class CS_AUDIO_EXPORT ProcessingStepsManager {
 
   ProcessingStepsManager();
 
-  void createPipeline(std::vector<std::string> processingSteps, int audioControllerId);
-  void process(ALuint openAlId, int audioControllerId,
+  void createPipeline(std::vector<std::string> processingSteps, std::shared_ptr<AudioController> audioController);
+  void process(ALuint openAlId, std::shared_ptr<AudioController> audioController,
     std::shared_ptr<std::map<std::string, std::any>> sourceSettings);
     
  private:                                                                                                                                                     
-  std::map<int, std::set<std::shared_ptr<ProcessingStep>>> mPipelines;
-  std::set<std::shared_ptr<ProcessingStep>> existingProcessingSteps;
-  ProcessingStep createProcessingStep(std::string processingStep);
+  std::map<std::shared_ptr<AudioController>, std::set<std::shared_ptr<ProcessingStep>>> mPipelines;
+  std::map<std::string, std::shared_ptr<ProcessingStep>>                                mExistingProcessingSteps; 
+
+  std::shared_ptr<ProcessingStep> getProcessingStep(std::string processingStep);
 };
 
 } // namespace cs::audio

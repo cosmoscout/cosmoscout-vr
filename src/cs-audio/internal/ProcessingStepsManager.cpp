@@ -6,8 +6,9 @@
 // SPDX-License-Identifier: MIT
 
 #include "ProcessingStepsManager.hpp"
-#include "../../cs-core/Settings.hpp"
-#include "../../cs-core/Settings.hpp"
+#include "../logger.hpp"
+#include "../AudioController.hpp"
+
 #include <set>
 
 // processingSteps:
@@ -18,40 +19,57 @@ namespace cs::audio {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-ProcessingStepsManager::ProcessingStepsManager() {
-  activeProcessingSteps.push_back(std::make_shared<Default_PS>()); 
-
-  // setProcessingSteps();
+ProcessingStepsManager::ProcessingStepsManager() 
+  : mPipelines(std::map<std::shared_ptr<AudioController>, std::set<std::shared_ptr<ProcessingStep>>>())
+  , mExistingProcessingSteps(std::map<std::string, std::shared_ptr<ProcessingStep>>()) {
+  
+  mExistingProcessingSteps["Default"] = std::make_shared<Default_PS>(); 
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void ProcessingStepsManager::createPipeline(std::vector<std::string> processingSteps, int audioControllerId) {
+void ProcessingStepsManager::createPipeline(std::vector<std::string> processingSteps, 
+  std::shared_ptr<AudioController> audioController) {
+  
   std::set<std::shared_ptr<ProcessingStep>> pipeline;
+  pipeline.insert(mExistingProcessingSteps["Default"]);
 
   for (std::string processingStep : processingSteps) {
-
-    if (processingStep == "Spatialization") {
-      pipeline.insert(std::make_shared<Spatialization_PS>());
-      continue;
+    auto ps = getProcessingStep(processingStep);
+    if (ps != nullptr) {
+      pipeline.insert(ps);
     }
-
-    // ...
   }
 
-  mPipelines[audioControllerId] = pipeline;
+  mPipelines[audioController] = pipeline;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-ProcessingStep ProcessingStepsManager::createProcessingStep(std::string processingStep) {
-  
+std::shared_ptr<ProcessingStep> ProcessingStepsManager::getProcessingStep(std::string processingStep) {
+  // Search for processing step and reuse it if it already exists:
+  if (auto search = mExistingProcessingSteps.find(processingStep); search != mExistingProcessingSteps.end()) {
+    return mExistingProcessingSteps[processingStep];
+  }
+
+  // Create not yet existing processing step:
+  if (processingStep == "Spatialization") {
+    mExistingProcessingSteps[processingStep] = std::make_shared<Spatialization_PS>();
+    return mExistingProcessingSteps[processingStep];
+  }
+
+  // ...
+
+  logger().warn("Audio Processing Warning: Unable to create '{}' processing step!", processingStep);
+  return nullptr;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void ProcessingStepsManager::process(ALuint openAlId, int audioControllerId, std::shared_ptr<std::map<std::string, std::any>> settings) {
-  for (auto step : activeProcessingSteps) {
+void ProcessingStepsManager::process(ALuint openAlId, std::shared_ptr<AudioController> audioController, 
+  std::shared_ptr<std::map<std::string, std::any>> settings) {
+
+  for (auto step : mPipelines[audioController]) {
     step->process(openAlId, settings);
   }
 }

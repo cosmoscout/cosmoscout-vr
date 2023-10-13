@@ -30,7 +30,7 @@ AudioEngine::AudioEngine(std::shared_ptr<Settings> settings)
     : mSettings(std::move(settings)) 
     , mOpenAlManager(std::make_unique<audio::OpenAlManager>(mSettings))
     , mBufferManager(std::make_shared<audio::BufferManager>()) 
-    , mProcessingStepsManager(std::make_unique<audio::ProcessingStepsManager>(mSettings)){
+    , mProcessingStepsManager(std::make_shared<audio::ProcessingStepsManager>()){
 
   // Tell the user what's going on.
   logger().debug("Creating AudioEngine.");
@@ -113,7 +113,7 @@ void AudioEngine::playAmbient() {
   testSourceA = audioController->createSource("C:/Users/sass_fl/audioCS/audioCSNotes/testFiles/scifi_stereo.wav"); 
   testSourceB = audioController->createSource("C:/Users/sass_fl/audioCS/audioCSNotes/testFiles/exotic_mono.wav");
   testSourceGroup = audioController->createSourceGroup();
-
+                   
   testSourceA->play();
   testSourceB->play();
 
