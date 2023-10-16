@@ -9,6 +9,7 @@
 
 #include "../../../../src/cs-utils/filesystem.hpp"
 #include "../../../csl-ogc/src/wcs/WebCoverageService.hpp"
+#include "../../../csl-ogc/src/wcs/WebCoverageTextureLoader.hpp"
 #include "../types/types.hpp"
 
 namespace csp::visualquery {
@@ -55,7 +56,7 @@ std::string const& WCSImageLoader::getName() const {
 void WCSImageLoader::onMessageFromJS(nlohmann::json const& message) {
 
   logger().debug("Message form JS: {}", message.dump());
-  
+
   // Send available servers
   if (message.dump() == "\"requestServers\"") {
     sendServersToJs();
@@ -84,6 +85,7 @@ void WCSImageLoader::onMessageFromJS(nlohmann::json const& message) {
       }
       sendImageChannelsToJs();
     }
+    return;
   }
 
   // set newly selected image channel
@@ -94,7 +96,7 @@ void WCSImageLoader::onMessageFromJS(nlohmann::json const& message) {
       mSelectedImageChannel = nullptr;
 
     // set new image channel
-  } else {
+    } else {
       auto temp = mSelectedServer->getCoverage(message["imageChannel"]);
       mSelectedImageChannel = (temp.has_value() ? std::make_shared<csl::ogc::WebCoverage>(temp.value()) : nullptr);
     }
@@ -147,7 +149,50 @@ void WCSImageLoader::process() {
   // double first  = readInput<double>("first", 0.0);
 
   // The name of the port must match the name given in the JavaScript code above.
-  writeOutput("minDataValue", 0);
+  // writeOutput("minDataValue", 0);
+
+  // create request for texture loading
+  if (mSelectedServer == nullptr || mSelectedImageChannel == nullptr) {
+    return;
+  }
+
+  logger().debug("process!");
+
+  csl::ogc::WebCoverageTextureLoader::Request request;
+  
+  request.mTime = std::to_string(readInput<double>("wcsTime", 0.0));
+  
+  logger().debug(0);
+
+  csl::ogc::Bounds bound;
+  bound.mMinLon = readInput<double>("xBoundMin", 0.0);
+  bound.mMaxLon = readInput<double>("xBoundMax", 100.0);
+  bound.mMinLat = readInput<double>("yBoundMin", 0.0);
+  bound.mMaxLat = readInput<double>("yBoundMax", 100.0);
+  request.mBounds = bound;
+
+  logger().debug(1);
+
+  request.mMaxSize = readInput<int>("resolution", 1024);
+
+  logger().debug(2);
+
+  request.mFormat = "image/tiff";
+
+  logger().debug(3);
+
+  auto texLoader = csl::ogc::WebCoverageTextureLoader();
+  auto texture = texLoader.loadTexture(*mSelectedServer, *mSelectedImageChannel, request, 
+    "../../../install/windows-Release/share/cache/csp-visual-query/texture-cache", true);
+
+  logger().debug(4);
+
+  if (texture.has_value()) {
+    logger().debug("x in texture: {}", texture.value().x);
+    logger().debug("y in texture: {}", texture.value().y);
+  }
+
+  logger().debug(5);
 }
 
 void WCSImageLoader::sendServersToJs() {

@@ -38,7 +38,7 @@ class WCSImageLoaderComponent extends Rete.Component {
     let yBoundMaxInput = new Rete.Input('yBoundMax', "Latitude Max", CosmoScout.socketTypes['number Value']);
     node.addInput(yBoundMaxInput);
     
-    let timeInput = new Rete.Input('time', "Time", CosmoScout.socketTypes['WCSTime']);
+    let timeInput = new Rete.Input('wcsTime', "Time", CosmoScout.socketTypes['WCSTime']);
     node.addInput(timeInput);
     
     let resolutionInput = new Rete.Input('resolution', "Resolution", CosmoScout.socketTypes['WCSResolution']);
