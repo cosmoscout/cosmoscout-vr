@@ -34,8 +34,9 @@ std::unique_ptr<WCSImageLoader> WCSImageLoader::sCreate(
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 WCSImageLoader::WCSImageLoader(std::shared_ptr<std::vector<csl::ogc::WebCoverageService>> wcs)
-  : mWcs(std::move(wcs)) {
-  
+  : mWcs(std::move(wcs))
+  , mSelectedServer(nullptr)
+  , mSelectedImageChannel(nullptr) {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -55,13 +56,48 @@ void WCSImageLoader::onMessageFromJS(nlohmann::json const& message) {
 
   logger().debug("Message form JS: {}", message.dump());
   
+  // Send available servers
   if (message.dump() == "\"requestServers\"") {
     sendServersToJs();
-  
+    return;
+  }
+
+  // set newly selected server
+  if (message.find("server") != message.end()) {
+
+    // reset server and image channel selection    
+    if (message["server"] == "none") {
+      mSelectedServer = nullptr;
+      mSelectedImageChannel = nullptr;
+      
+      nlohmann::json imageChannel;
+      imageChannel["imageChannel"] = "reset";
+      sendMessageToJS(imageChannel);
+    
+    // set new server and send available image channels
+    } else {
+      for (auto wcs : (*mWcs)) {
+        if (wcs.getTitle() == message["server"]) {
+          mSelectedServer = std::make_shared<csl::ogc::WebCoverageService>(wcs);
+          break;
+        }
+      }
+      sendImageChannelsToJs();
+    }
+  }
+
+  // set newly selected image channel
+  else if (message.find("imageChannel") !=  message.end()) {
+    
+    // reset image channel selection
+    if (message["imageChannel"] == "none") {
+      mSelectedImageChannel = nullptr;
+
+    // set new image channel
   } else {
-    mSelectedWcsIndex = message; 
-    // Send image layers for newly selected server
-    sendImageLayersToJs();
+      auto temp = mSelectedServer->getCoverage(message["imageChannel"]);
+      mSelectedImageChannel = (temp.has_value() ? std::make_shared<csl::ogc::WebCoverage>(temp.value()) : nullptr);
+    }
   }
 
   // Whenever the server changes, we write the new output by calling the process() method.
@@ -103,15 +139,15 @@ void WCSImageLoader::sendServersToJs() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void WCSImageLoader::sendImageLayersToJs() {
-  std::vector<std::string> imageLayerNames;
+void WCSImageLoader::sendImageChannelsToJs() {
+  std::vector<std::string> imageChannelNames;
   
-  for (csl::ogc::WebCoverage imageLayer : (*mWcs)[mSelectedWcsIndex].getCoverages()) {
-    imageLayerNames.push_back(imageLayer.getTitle());
+  for (csl::ogc::WebCoverage imageChannel : mSelectedServer->getCoverages()) {
+    imageChannelNames.push_back(imageChannel.getTitle());
   }
-  nlohmann::json imageLayers;
-  imageLayers["imageLayer"] = imageLayerNames;
-  sendMessageToJS(imageLayers);
+  nlohmann::json imageChannels;
+  imageChannels["imageChannel"] = imageChannelNames;
+  sendMessageToJS(imageChannels);
 }
 
 } // namespace csp::visualquery

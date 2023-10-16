@@ -56,13 +56,13 @@ class WCSImageLoaderComponent extends Rete.Component {
     let serverControl = new ServerControl('selectServer');
     node.addControl(serverControl);
 
-    let imageLayerControl = new ImageLayerControl('selectImageLayer');
-    node.addControl(imageLayerControl);
+    let imageChannelControl = new ImageChannelControl('selectImageChannel');
+    node.addControl(imageChannelControl);
 
     node.onInit = (nodeDiv) => { 
 
       serverControl.init(nodeDiv, node.data); 
-      imageLayerControl.init(nodeDiv, node.data);
+      imageChannelControl.init(nodeDiv, node.data);
 
       node.onMessageFromCPP = (message) => {
 
@@ -72,13 +72,19 @@ class WCSImageLoaderComponent extends Rete.Component {
           serverControl.createServerSelection(message["server"]);  
         }
 
-        // display imageLayers in dropdown
-        else if (message["imageLayer"]) {
-          console.log("IMAGE LAYER!");
-          console.log(message);
-          this.parent.data.imageLayer = message["imageLayer"];        
-          this.createServerSelection(message["imageLayer"]);
-        
+        // new image channels received
+        else if (message["imageChannel"]) {
+
+          // rest image channels selection
+          if (message["imageChannel"] === "reset") {
+            node.data.imageChannel = [];
+            imageChannelControl.resetImageChannelSelection();  
+
+          // add new image channels to dropdown
+          } else {
+            node.data.imageChannel = message["imageChannel"];        
+            imageChannelControl.createImageChannelSelection(message["imageChannel"]);
+          }
         
         } else {
           console.log("Unknown cpp message:");
@@ -107,7 +113,7 @@ class ServerControl extends Rete.Control {
     // This HTML code will be used whenever a node is created with this widget.
     this.template = `
           <select>
-            <option value="0">None</option>
+            <option value="none">None</option>
           </select>
 
           <style>
@@ -140,21 +146,18 @@ class ServerControl extends Rete.Control {
       });
   }
 
+  // Send a request to get the available servers.
   sendServerRequest() {
-      if (!this.parent.data.url) {
-        CosmoScout.sendMessageToCPP("requestServers", this.parent.id); 
-      }
+    if (!this.parent.data.url) {
+      CosmoScout.sendMessageToCPP("requestServers", this.parent.id); 
+    }
   }
 
   createServerSelection(values) {
-    // remove all elements
-    while (this.selectElement.lastElementChild) {
-      this.selectElement.removeChild(this.selectElement.lastElementChild);
-    }
     // add new elements
     for (let i = 0; i < values.length; i++) {
       let option = document.createElement("option");
-      option.value = i; 
+      option.value = values[i]; 
       option.innerHTML = values[i];
       this.selectElement.appendChild(option);
     }
@@ -163,8 +166,8 @@ class ServerControl extends Rete.Control {
   }
 }
 
-// This is the widget which is used for selecting the image layer.
-class ImageLayerControl extends Rete.Control {
+// This is the widget which is used for selecting the image Channel.
+class ImageChannelControl extends Rete.Control {
   constructor(key) {
     super(key);
     this.selectElement;
@@ -195,26 +198,44 @@ class ImageLayerControl extends Rete.Control {
     $(this.selectElement).selectpicker();
 
     // Preselect a server.
-    if (data.imageLayer) {
-      $(this.selectElement).selectpicker('val', data.imageLayer);
+    if (data.imageChannel) {
+      $(this.selectElement).selectpicker('val', data.imageChannel);
     }
 
-    // Send an update to the node editor server whenever the user selects a new layer.
+    // Send an update to the node editor server whenever the user selects a new channel.
     this.selectElement.addEventListener('change',
       (e) => {
         CosmoScout.sendMessageToCPP({imageChannel: e.target.value}, this.parent.id); 
       });
   }
 
-  createServerSelection(values) {    
+  createImageChannelSelection(values) {    
+    this.resetImageChannelSelection();
+
     // add new elements
     for (let i = 0; i < values.length; i++) {
       let option = document.createElement("option");
-      option.value = i + 1; 
+      option.value = values[i]; 
       option.innerHTML = values[i];
       this.selectElement.appendChild(option);
     }
     // refresh bootstrap dropdown options
-    $(this.selectElement).selectpicker("refresh");   
+    $(this.selectElement).selectpicker("refresh");
+  }
+
+  resetImageChannelSelection() {
+    // remove all elements
+    while (this.selectElement.firstChild) {
+      this.selectElement.removeChild(this.selectElement.lastChild);
+    }
+
+    // add "None" element
+    let none = document.createElement("option");
+    none.value = 0; 
+    none.innerHTML = "None";
+    this.selectElement.appendChild(none);
+
+    // refresh bootstrap dropdown options
+    $(this.selectElement).selectpicker("refresh");
   }
 }

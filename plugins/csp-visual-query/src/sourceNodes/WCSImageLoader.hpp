@@ -54,12 +54,13 @@ class WCSImageLoader : public csl::nodeeditor::Node {
   void setData(nlohmann::json const& json) override;
 
   void sendServersToJs();
-  void sendImageLayersToJs();
+  void sendImageChannelsToJs();
 
  private:
   // Image2D mImage;
   std::shared_ptr<std::vector<csl::ogc::WebCoverageService>> mWcs;
-  int mSelectedWcsIndex;
+  std::shared_ptr<csl::ogc::WebCoverageService>              mSelectedServer;
+  std::shared_ptr<csl::ogc::WebCoverage>                     mSelectedImageChannel;
 };
 
 } // namespace csp::visualquery
