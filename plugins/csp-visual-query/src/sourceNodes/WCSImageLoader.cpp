@@ -109,13 +109,36 @@ void WCSImageLoader::onMessageFromJS(nlohmann::json const& message) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 nlohmann::json WCSImageLoader::getData() const {
-  return {{"url", mSelectedWcsIndex}};
+  nlohmann::json data;
+  if (mSelectedServer != nullptr) {
+    data["serverUrl"] = mSelectedServer->getUrl();
+
+    if (mSelectedImageChannel != nullptr) {
+      data["imageChannelId"] = mSelectedImageChannel->getId();
+    }
+  }
+  return data;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void WCSImageLoader::setData(nlohmann::json const& json) {
-  mSelectedWcsIndex = json["url"];
+  if (json.find("serverUrl") != json.end()) {
+
+    for (csl::ogc::WebCoverageService wcs : *mWcs) {
+      if (wcs.getUrl() == json["serverUrl"]) {
+        mSelectedServer = std::make_shared<csl::ogc::WebCoverageService>(wcs);
+        break;
+      }
+    }
+
+    if (mSelectedServer != nullptr && json.find("imageChannelId") != json.end()) {
+
+      auto temp = mSelectedServer->getCoverage(json["imageChannelId"]);
+      mSelectedImageChannel = (temp.has_value() ? std::make_shared<csl::ogc::WebCoverage>(temp.value()) : nullptr);
+    }
+  }
+  // process() ?
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
