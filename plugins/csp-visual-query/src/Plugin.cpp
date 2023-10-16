@@ -10,12 +10,13 @@
 #include "../../../src/cs-core/GuiManager.hpp"
 #include "logger.hpp"
 
-#include "../../../src/cs-core/Settings.hpp"
-
-#include "logger.hpp"
 #include "output/OverlayRenderer/OverlayRender.hpp"
 #include "sources/RandomDataSource/RandomDataSource.hpp"
-#include "sources/WCSSource.hpp"
+#include "outputNodes/Render.hpp"
+#include "sourceNodes/WCSSource.hpp"
+#include "sourceNodes/WCSImageLoader.hpp"
+
+#include <vector>
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -38,6 +39,7 @@ namespace csp::visualquery {
 void from_json(nlohmann::json const& j, Plugin::Settings& o) {
   cs::core::Settings::deserialize(j, "port", o.mPort);
   cs::core::Settings::deserialize(j, "graph", o.mGraph);
+  cs::core::Settings::deserialize(j, "wcs", o.mWcsUrl);
 }
 
 void to_json(nlohmann::json& j, Plugin::Settings const& o) {
@@ -56,6 +58,22 @@ void Plugin::init() {
   mPluginSettings.mPort.connect([this](uint16_t port) { setupNodeEditor(port); });
 
   onLoad();
+
+  // load WCS
+  for (std::string url : mPluginSettings.mWcsUrl) {
+    mPluginSettings.mWebCoverages.push_back(csl::ogc::WebCoverageService(
+      url, csl::ogc::WebServiceBase::CacheMode::eAlways,
+      "../../install/windows-Release/share/csp-visual-query/wcs-cache"
+      )
+    );
+  }
+
+  for (csl::ogc::WebCoverageService x : mPluginSettings.mWebCoverages) {
+    auto y = x.getCoverages();
+    for (auto z : y) {
+      std::cout << z.getTitle() << std::endl;
+    }
+  }
 
   logger().info("Loading done.");
 }
@@ -89,6 +107,7 @@ void Plugin::update() {
 void Plugin::onLoad() {
   // Read settings from JSON.
   from_json(mAllSettings->mPlugins.at("csp-visual-query"), mPluginSettings);
+  // from_json(mAllSettings->mPlugins.at("csp-wcs-overlays"), mPluginSettings);
   // If there is a graph defined in the settings, we give this to the node editor.
   if (mPluginSettings.mGraph.has_value()) {
     try {
@@ -124,10 +143,19 @@ void Plugin::setupNodeEditor(uint16_t port) {
   factory.registerSocketType("WCSScalarField", "#b08ab3");
   factory.registerSocketType("Image2D", "#3333ff");
 
+  // factory.registerSocketType("WCSImage", "#b08ab3");
+  factory.registerSocketType("WCSMinMax", "#b08ab3");
+  factory.registerSocketType("WCSResolution", "#b08ab3");
+  factory.registerSocketType("WCSTime", "#b08ab3");
+  factory.registerSocketType("WCSBound", "#b08ab3");
+  factory.registerSocketType("Number Value", "#b08ab3");
+
   // Now, we register our custom node types. Any parameter given to this method, will later be
   // passed to the constructor of the node instances. For more information, see the documentation of
   // NodeFactory::registerNodeType().
   factory.registerNodeType<WCSSource>();
+  factory.registerNodeType<WCSImageLoader>(
+    std::shared_ptr<std::vector<csl::ogc::WebCoverageService>>(&mPluginSettings.mWebCoverages));
   factory.registerNodeType<RandomDataSource>();
   factory.registerNodeType<OverlayRender>(mSolarSystem);
 

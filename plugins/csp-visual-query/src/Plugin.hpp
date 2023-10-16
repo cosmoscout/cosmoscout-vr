@@ -12,6 +12,7 @@
 #include "../../../src/cs-core/Settings.hpp"
 #include "../../../src/cs-utils/Property.hpp"
 #include "../../csl-node-editor/src/NodeEditor.hpp"
+#include "../../csl-ogc/src/wcs/WebCoverageService.hpp"
 
 #include <memory>
 
@@ -28,6 +29,10 @@ class Plugin : public cs::core::PluginBase {
     /// graphs to separate json files instead and load them at runtime. The JSON format of this
     /// graph is defined in csl-node-editor/src/NodeEditor.hpp.
     std::optional<nlohmann::json> mGraph;
+
+    // URL which contains the WCS server
+    std::vector<std::string> mWcsUrl;
+    std::vector<csl::ogc::WebCoverageService> mWebCoverages;
   };
 
   void init() override;

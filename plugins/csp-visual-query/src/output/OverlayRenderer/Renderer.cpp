@@ -68,7 +68,9 @@ void Renderer::setData(Image2D image) {
       image.getBound("lat")->min, image.getBound("lat")->max);
 
   for (auto const& point : image.getPoints()) {
-    data.emplace_back(point.value.at(0), point.value.at(0), point.value.at(0));
+    data.emplace_back(point.value.at(0));
+    data.emplace_back(point.value.at(0));
+    data.emplace_back(point.value.at(0));
   }
 
   mTexture.UploadTexture(*image.mDimension.getDimension("width"),
