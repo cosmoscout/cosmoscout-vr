@@ -21,21 +21,21 @@ class WCSImageLoaderComponent extends Rete.Component {
   builder(node) {
 
     // This node has a single output. The first parameter is the name of this output and must be
-    // unique amongst all sockets. It is also used in the TimeNode::process() to write the
+    // unique amongst all sockets. It is also used in the WCSImageLoader::process() to write the
     // output of this node. The second parameter is shown as name on the node. The last
     // parameter references a socket type which has been registered with the node factory
     // before. It is required that the class is called <NAME>Component.
 
-    let xBoundMinInput = new Rete.Input('xBoundMin', "Longitude Min", CosmoScout.socketTypes['WCSBound']);
+    let xBoundMinInput = new Rete.Input('xBoundMin', "Longitude Min", CosmoScout.socketTypes['number Value']);
     node.addInput(xBoundMinInput);
 
-    let xBoundMaxInput = new Rete.Input('xBoundMax', "Longitude Max", CosmoScout.socketTypes['WCSBound']);
+    let xBoundMaxInput = new Rete.Input('xBoundMax', "Longitude Max", CosmoScout.socketTypes['number Value']);
     node.addInput(xBoundMaxInput);
 
-    let yBoundMinInput = new Rete.Input('yBoundMin', "Latitude Min", CosmoScout.socketTypes['WCSBound']);
+    let yBoundMinInput = new Rete.Input('yBoundMin', "Latitude Min", CosmoScout.socketTypes['number Value']);
     node.addInput(yBoundMinInput);
 
-    let yBoundMaxInput = new Rete.Input('yBoundMax', "Latitude Max", CosmoScout.socketTypes['WCSBound']);
+    let yBoundMaxInput = new Rete.Input('yBoundMax', "Latitude Max", CosmoScout.socketTypes['number Value']);
     node.addInput(yBoundMaxInput);
     
     let timeInput = new Rete.Input('time', "Time", CosmoScout.socketTypes['WCSTime']);
@@ -47,10 +47,10 @@ class WCSImageLoaderComponent extends Rete.Component {
     let imageOutput = new Rete.Output('image', 'Image 2D', CosmoScout.socketTypes['WCSImage']);
     node.addOutput(imageOutput);
     
-    let minOutput = new Rete.Output('minDataValue', 'Min', CosmoScout.socketTypes['WCSMinMax']);
+    let minOutput = new Rete.Output('minDataValue', 'Min', CosmoScout.socketTypes['number Value']);
     node.addOutput(minOutput);
 
-    let maxOutput = new Rete.Output('maxDataValue', 'Max', CosmoScout.socketTypes['WCSMinMax']);
+    let maxOutput = new Rete.Output('maxDataValue', 'Max', CosmoScout.socketTypes['number Value']);
     node.addOutput(maxOutput);
 
     let serverControl = new ServerControl('selectServer');

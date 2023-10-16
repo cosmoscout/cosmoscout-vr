@@ -1,4 +1,4 @@
-////////////////////////////////////////////////////////////////////////////////////////////////////
+﻿////////////////////////////////////////////////////////////////////////////////////////////////////
 //                               This file is part of CosmoScout VR                               //
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -145,7 +145,7 @@ void Plugin::setupNodeEditor(uint16_t port) {
   factory.registerSocketType("WCSResolution", "#b08ab3");
   factory.registerSocketType("WCSTime", "#b08ab3");
   factory.registerSocketType("WCSBound", "#b08ab3");
-  factory.registerSocketType("Number Value", "#b08ab3");
+  factory.registerSocketType("number Value", "#FFD480");
 
   // Now, we register our custom node types. Any parameter given to this method, will later be
   // passed to the constructor of the node instances. For more information, see the documentation of
