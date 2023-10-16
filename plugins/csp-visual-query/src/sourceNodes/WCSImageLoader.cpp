@@ -53,9 +53,6 @@ std::string const& WCSImageLoader::getName() const {
 
 void WCSImageLoader::onMessageFromJS(nlohmann::json const& message) {
 
-  // The CosmoScout.sendMessageToCPP() method sends the currently selected server.
-  // mSelectedUrl = message;
-  
   logger().debug("Message form JS: {}", message.dump());
   
   if (message.dump() == "\"requestServers\"") {

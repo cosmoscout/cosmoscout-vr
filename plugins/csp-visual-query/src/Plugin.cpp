@@ -1,4 +1,4 @@
-﻿////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////
 //                               This file is part of CosmoScout VR                               //
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -71,13 +71,6 @@ void Plugin::init() {
       "../../install/windows-Release/share/csp-visual-query/wcs-cache"
       )
     );
-  }
-
-  for (csl::ogc::WebCoverageService x : mPluginSettings.mWebCoverages) {
-    auto y = x.getCoverages();
-    for (auto z : y) {
-      std::cout << z.getTitle() << std::endl;
-    }
   }
 
   logger().info("Loading done.");

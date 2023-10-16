@@ -87,11 +87,6 @@ class WCSImageLoaderComponent extends Rete.Component {
       };
     }
 
-    document.addEventListener("DOMContentLoaded", function(){
-      console.log("loaded");
-    });
-
-
     let button1 = document.createElement("button");
     button1.innerHTML = "request server";
     button1.addEventListener("click", (e) => {
@@ -131,12 +126,7 @@ class ServerControl extends Rete.Control {
 
     // Initialize the bootstrap select.
     this.selectElement = nodeDiv.querySelector("select");
-    console.log(this.selectElement);
     $(this.selectElement).selectpicker();
-
-    $(this.selectElement).change(function() {
-      alert( "Handler for .change() called." );
-    });
 
     // Preselect a server.
     if (data.url) {
@@ -146,19 +136,14 @@ class ServerControl extends Rete.Control {
     // Send an update to the node editor server whenever the user selects a new server.
     this.selectElement.addEventListener('change',
       (e) => {
-          let message = {server: e.target.value};
-          CosmoScout.sendMessageToCPP(message, this.parent.id); 
+        CosmoScout.sendMessageToCPP({server: e.target.value}, this.parent.id); 
       });
   }
 
   sendServerRequest() {
-    // Send a request to get the available servers.
-    this.selectElement.addEventListener('click',
-    (e) => {
       if (!this.parent.data.url) {
         CosmoScout.sendMessageToCPP("requestServers", this.parent.id); 
       }
-    });
   }
 
   createServerSelection(values) {
@@ -206,7 +191,7 @@ class ImageLayerControl extends Rete.Control {
 
     // Initialize the bootstrap select.
     this.selectElement = nodeDiv.querySelectorAll("select")[1];
-    console.log(this.selectElement);
+
     $(this.selectElement).selectpicker();
 
     // Preselect a server.
@@ -217,7 +202,7 @@ class ImageLayerControl extends Rete.Control {
     // Send an update to the node editor server whenever the user selects a new layer.
     this.selectElement.addEventListener('change',
       (e) => {
-        CosmoScout.sendMessageToCPP(parseInt(e.target.value), this.parent.id); 
+        CosmoScout.sendMessageToCPP({imageChannel: e.target.value}, this.parent.id); 
       });
   }
 
