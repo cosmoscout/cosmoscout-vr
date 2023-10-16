@@ -19,7 +19,7 @@ const std::string NumberNode::sName = "Number";
 
 std::string NumberNode::sSource() {
   return cs::utils::filesystem::loadToString(
-      "../share/resources/nodes/csp-demo-node-editor/NumberNode.js");
+      "../share/resources/nodes/csp-visual-query/NumberNode.js");
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
