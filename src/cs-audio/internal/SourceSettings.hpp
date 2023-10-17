@@ -24,6 +24,14 @@ class CS_AUDIO_EXPORT SourceSettings {
   /// Returns the currently set settings 
   std::shared_ptr<std::map<std::string, std::any>> getCurrentSettings() const;
 
+  /// @brief Removes a key from the current and update settings.
+  /// @param key key to remove
+  void remove(std::string key);
+
+  /// @brief Removes a key from the update settings.
+  /// @param key key to remove
+  void removeUpdate(std::string key);
+
  protected:                 
   SourceSettings();                                                                                                                                    
   /// Contains all settings that are about to be set using the update() function. 

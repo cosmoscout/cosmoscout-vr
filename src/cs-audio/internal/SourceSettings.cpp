@@ -26,4 +26,18 @@ std::shared_ptr<std::map<std::string, std::any>> SourceSettings::getCurrentSetti
   return mCurrentSettings;
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void SourceSettings::remove(std::string key) {
+  mCurrentSettings->erase(key);
+  mUpdateSettings->erase(key);
+  addToUpdateList();
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void SourceSettings::removeUpdate(std::string key) {
+  mUpdateSettings->erase(key);
+}
+
 } // namespace cs::audio
