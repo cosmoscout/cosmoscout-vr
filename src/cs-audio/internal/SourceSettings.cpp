@@ -9,15 +9,28 @@
 
 namespace cs::audio {
 
+SourceSettings::SourceSettings(std::shared_ptr<UpdateBuilder> updateBuilder) 
+  : mUpdateSettings(std::make_shared<std::map<std::string, std::any>>()) 
+  , mCurrentSettings(std::make_shared<std::map<std::string, std::any>>())
+  , mUpdateBuilder(std::move(updateBuilder)) {
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 SourceSettings::SourceSettings() 
   : mUpdateSettings(std::make_shared<std::map<std::string, std::any>>()) 
   , mCurrentSettings(std::make_shared<std::map<std::string, std::any>>()) {
+}
+
+void SourceSettings::setUpdateBuilder(std::shared_ptr<UpdateBuilder> updateBuilder) {
+  mUpdateBuilder = updateBuilder;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void SourceSettings::set(std::string key, std::any value) {
   mUpdateSettings->operator[](key) = value;
+  addToUpdateList();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

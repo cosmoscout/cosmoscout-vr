@@ -12,6 +12,7 @@
 #include "internal/SourceSettings.hpp"
 #include "internal/BufferManager.hpp"
 #include "internal/ProcessingStepsManager.hpp"
+#include "internal/UpdateBuilder.hpp"
 
 #include <AL/al.h>
 #include <map>
@@ -36,18 +37,20 @@ class CS_AUDIO_EXPORT Source : public SourceSettings{
 
   Source(std::shared_ptr<BufferManager> bufferManager, 
   std::shared_ptr<ProcessingStepsManager> processingStepsManager,
-  std::string file);
+  std::string file, std::shared_ptr<UpdateBuilder> updateBuilder);
 
   // friend class cs::core::AudioEngine;
   friend class SourceGroup;
   friend class AudioController;
-  
+    
  private:
   std::string                                      mFile;
   ALuint                                           mOpenAlId;
   std::shared_ptr<BufferManager>                   mBufferManager;
   std::shared_ptr<ProcessingStepsManager>          mProcessingStepsManager;
   std::shared_ptr<SourceGroup>                     mGroup;
+
+  void addToUpdateList();
 };
 
 } // namespace cs::audio

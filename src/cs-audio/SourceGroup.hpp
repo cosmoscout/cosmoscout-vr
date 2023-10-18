@@ -10,6 +10,7 @@
 
 #include "cs_audio_export.hpp"
 #include "Source.hpp"
+#include "internal/SourceSettings.hpp"
 
 #include <memory>
 #include <string>
@@ -19,10 +20,14 @@
 
 namespace cs::audio {
 
+// forward declarations
+class Source;
+class UpdateBuilder;
+
 class CS_AUDIO_EXPORT SourceGroup : public SourceSettings
 {
  public:
-  explicit SourceGroup();
+  explicit SourceGroup(std::shared_ptr<UpdateBuilder> updateBuilder);
   ~SourceGroup();
 
   /// Add a new source to the group
@@ -32,10 +37,14 @@ class CS_AUDIO_EXPORT SourceGroup : public SourceSettings
   /// Remove all sources form the group
   void reset();
 
+  std::set<std::shared_ptr<Source>> getMembers() const;
+    
   friend class AudioController;
 
  private:
   std::set<std::shared_ptr<Source>> mMemberSources;
+  
+  void addToUpdateList();
 };
 
 } // namespace cs::audio

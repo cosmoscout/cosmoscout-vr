@@ -9,6 +9,7 @@
 #include "internal/BufferManager.hpp"
 #include "internal/ProcessingStepsManager.hpp"
 #include "internal/SettingsMixer.hpp"
+#include "internal/UpdateBuilder.hpp"
 #include "Source.hpp"
 #include "SourceGroup.hpp"
 
@@ -20,7 +21,10 @@ AudioController::AudioController(
   std::vector<std::string> processingSteps) 
   : SourceSettings()
   , mBufferManager(std::move(bufferManager))
-  , mProcessingStepsManager(std::move(processingStepsManager)) {
+  , mProcessingStepsManager(std::move(processingStepsManager))
+  , mUpdateBuilder(std::make_shared<UpdateBuilder>()) {
+  
+  setUpdateBuilder(mUpdateBuilder);
 
   // TODO: define pipeline via config file
   mProcessingStepsManager->createPipeline(processingSteps, mAudioControllerId);
@@ -29,17 +33,17 @@ AudioController::AudioController(
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 std::shared_ptr<SourceGroup> AudioController::createSourceGroup() {
-  auto x = std::make_shared<SourceGroup>();
-  mGroups.push_back(x);
-  return x;
+  auto group = std::make_shared<SourceGroup>(mUpdateBuilder);
+  mGroups.push_back(group);
+  return group;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 std::shared_ptr<Source> AudioController::createSource(std::string file) {
-  auto x = std::make_shared<Source>(mBufferManager, mProcessingStepsManager, file);
-  mSources.push_back(x);
-  return x;
+  auto source = std::make_shared<Source>(mBufferManager, mProcessingStepsManager, file, mUpdateBuilder);
+  mSources.push_back(source);
+  return source;
 } 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

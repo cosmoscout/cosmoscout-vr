@@ -8,11 +8,13 @@
 #include "SourceGroup.hpp"
 #include "Source.hpp"
 #include "internal/SettingsMixer.hpp"
+#include "internal/UpdateBuilder.hpp"
+#include "internal/SourceSettings.hpp"
 
 namespace cs::audio {
 
-SourceGroup::SourceGroup() 
-  : SourceSettings()
+SourceGroup::SourceGroup(std::shared_ptr<UpdateBuilder> updateBuilder) 
+  : SourceSettings(updateBuilder)
   , mMemberSources(std::set<std::shared_ptr<Source>>()) {
 }
 
@@ -50,6 +52,18 @@ void SourceGroup::reset() {
     source->mGroup = nullptr;
   }
   mMemberSources.clear();
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+std::set<std::shared_ptr<Source>> SourceGroup::getMembers() const {
+  return mMemberSources;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void SourceGroup::addToUpdateList() {
+  mUpdateBuilder->update(this);
 }
 
 } // namespace cs::audio

@@ -12,7 +12,7 @@
 #include "Source.hpp"
 #include "SourceGroup.hpp"
 #include "internal/BufferManager.hpp"
-#include "internal/ProcessingStepsManager.hpp"
+#include "internal/UpdateBuilder.hpp"
 
 #include <memory>
 #include <map>
@@ -40,6 +40,9 @@ class CS_AUDIO_EXPORT AudioController : public SourceSettings {
   std::shared_ptr<ProcessingStepsManager>   mProcessingStepsManager;
   std::vector<std::shared_ptr<Source>>      mSources;
   std::vector<std::shared_ptr<SourceGroup>> mGroups;
+  std::shared_ptr<UpdateBuilder>            mUpdateBuilder;
+
+  void addToUpdateList();
 };
 
 } // namespace cs::audio

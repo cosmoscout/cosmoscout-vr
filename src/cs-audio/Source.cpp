@@ -20,8 +20,8 @@ namespace cs::audio {
 
 Source::Source(std::shared_ptr<BufferManager> bufferManager, 
   std::shared_ptr<ProcessingStepsManager> processingStepsManager,
-  std::string file)
-  : SourceSettings() 
+  std::string file, std::shared_ptr<UpdateBuilder> updateBuilder)
+  : SourceSettings(updateBuilder) 
   , mFile(std::move(file)) 
   , mBufferManager(std::move(bufferManager)) 
   , mProcessingStepsManager(std::move(processingStepsManager)) {
@@ -103,6 +103,12 @@ bool Source::setFile(std::string file) {
 
 std::string Source::getFile() const {
   return mFile;   
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Source::addToUpdateList() {
+  mUpdateBuilder->update(this);
 }
 
 } // namespace cs::audio
