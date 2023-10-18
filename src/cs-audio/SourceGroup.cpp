@@ -28,7 +28,6 @@ SourceGroup::~SourceGroup() {
 
 void SourceGroup::add(std::shared_ptr<Source> source) {
   if (source->mGroup != nullptr) {
-    // TODO: automatic reassignment
     logger().warn("Audio Group Warning: Remove Source form previous group before assigning a new one!");
     return;
   }
@@ -48,8 +47,8 @@ void SourceGroup::remove(std::shared_ptr<Source> sourceToRemove) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void SourceGroup::reset() {
-  for (auto source : mMemberSources) {
-    source->mGroup = nullptr;
+  for (auto sourcePtr : mMemberSources) {
+    sourcePtr->mGroup = nullptr;
   }
   mMemberSources.clear();
 }
