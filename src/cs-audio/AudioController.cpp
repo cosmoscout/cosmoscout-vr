@@ -27,7 +27,7 @@ AudioController::AudioController(
   setUpdateBuilder(mUpdateBuilder);
 
   // TODO: define pipeline via config file
-  mProcessingStepsManager->createPipeline(processingSteps, mAudioControllerId);
+  mProcessingStepsManager->createPipeline(processingSteps, this);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

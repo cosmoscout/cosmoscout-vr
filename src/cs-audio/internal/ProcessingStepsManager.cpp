@@ -20,7 +20,7 @@ namespace cs::audio {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 ProcessingStepsManager::ProcessingStepsManager() 
-  : mPipelines(std::map<std::shared_ptr<AudioController>, std::set<std::shared_ptr<ProcessingStep>>>())
+  : mPipelines(std::map<AudioController*, std::set<std::shared_ptr<ProcessingStep>>>())
   , mExistingProcessingSteps(std::map<std::string, std::shared_ptr<ProcessingStep>>()) {
   
   mExistingProcessingSteps["Default"] = std::make_shared<Default_PS>(); 
@@ -29,7 +29,7 @@ ProcessingStepsManager::ProcessingStepsManager()
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void ProcessingStepsManager::createPipeline(std::vector<std::string> processingSteps, 
-  std::shared_ptr<AudioController> audioController) {
+  AudioController* audioController) {
   
   std::set<std::shared_ptr<ProcessingStep>> pipeline;
   pipeline.insert(mExistingProcessingSteps["Default"]);
@@ -67,7 +67,7 @@ std::shared_ptr<ProcessingStep> ProcessingStepsManager::getProcessingStep(std::s
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void ProcessingStepsManager::process(ALuint openAlId, std::shared_ptr<AudioController> audioController, 
-  std::shared_ptr<std::map<std::string, std::any>> settings) {
+  AudioController* audioController, std::shared_ptr<std::map<std::string, std::any>> settings) {
 
   for (auto step : mPipelines[audioController]) {
     step->process(openAlId, settings);

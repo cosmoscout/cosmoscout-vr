@@ -29,12 +29,12 @@ class CS_AUDIO_EXPORT ProcessingStepsManager {
 
   ProcessingStepsManager();
 
-  void createPipeline(std::vector<std::string> processingSteps, std::shared_ptr<AudioController> audioController);
-  void process(ALuint openAlId, std::shared_ptr<AudioController> audioController,
+  void createPipeline(std::vector<std::string> processingSteps, AudioController* audioController);
+  std::shared_ptr<std::vector<std::string>> process(ALuint openAlId, AudioController* audioController,
     std::shared_ptr<std::map<std::string, std::any>> sourceSettings);
     
  private:                                                                                                                                                     
-  std::map<std::shared_ptr<AudioController>, std::set<std::shared_ptr<ProcessingStep>>> mPipelines;
+  std::map<AudioController*, std::set<std::shared_ptr<ProcessingStep>>> mPipelines;
   std::map<std::string, std::shared_ptr<ProcessingStep>>                                mExistingProcessingSteps; 
 
   std::shared_ptr<ProcessingStep> getProcessingStep(std::string processingStep);
