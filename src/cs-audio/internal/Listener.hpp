@@ -22,7 +22,7 @@ class CS_AUDIO_EXPORT Listener {
  public:
  
   static bool setPosition(float x, float y, float z);
-  static bool setVeclocity(float x, float y, float z);
+  static bool setVelocity(float x, float y, float z);
   static bool setOrientation(float atX, float atY, float atZ, float upX, float upY, float upZ);
 
  private:

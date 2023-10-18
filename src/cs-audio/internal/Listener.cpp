@@ -25,7 +25,7 @@ bool Listener::setPosition(float x, float y, float z) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool Listener::setVeclocity(float x, float y, float z) {
+bool Listener::setVelocity(float x, float y, float z) {
   alGetError(); // clear error code
   alListener3f(AL_VELOCITY, x, y, z);
   if (alErrorHandling::errorOccurred()) {
