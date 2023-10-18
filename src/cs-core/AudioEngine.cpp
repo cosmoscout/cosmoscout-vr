@@ -7,6 +7,7 @@
 
 #include "AudioEngine.hpp"
 #include "Settings.hpp"
+#include "SolarSystem.hpp"
 
 #include "../cs-audio/internal/FileReader.hpp"
 #include "../cs-audio/internal/OpenAlManager.hpp"
@@ -25,11 +26,13 @@ namespace cs::core {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-AudioEngine::AudioEngine(std::shared_ptr<Settings> settings) 
+AudioEngine::AudioEngine(std::shared_ptr<Settings> settings, std::shared_ptr<SolarSystem> solarSystem) 
     : mSettings(std::move(settings)) 
     , mOpenAlManager(std::make_unique<audio::OpenAlManager>(mSettings))
     , mBufferManager(std::make_shared<audio::BufferManager>()) 
-    , mProcessingStepsManager(std::make_shared<audio::ProcessingStepsManager>()){
+    , mProcessingStepsManager(std::make_shared<audio::ProcessingStepsManager>()) 
+    , mObserver(solarSystem->getObserver())
+    , mSolarSystem(std::move(solarSystem)) {
 
   // Tell the user what's going on.
   logger().debug("Creating AudioEngine.");
@@ -100,6 +103,25 @@ bool AudioEngine::setMasterVolume(float gain) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void AudioEngine::update() {
+
+  static int x = 0;
+
+  if (x % 60 == 0) {
+    auto pos = mObserver.getPosition();
+    std::cout << "observer pos:   " << pos.x << ", " << pos.y << ", " << pos.z << std::endl;
+
+    std::cout << "observer speed: " << mSolarSystem->pCurrentObserverSpeed << std::endl;
+  }
+  ++x;
+
+  cs::audio::Listener::setPosition();
+  cs::audio::Listener::setVelocity();
+  cs::audio::Listener::setOrientation();
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void AudioEngine::createAudioControls() {
   // TODO  
 }
@@ -108,10 +130,10 @@ void AudioEngine::createAudioControls() {
 
 void AudioEngine::playAmbient() {
   audioController = std::make_shared<audio::AudioController>(mBufferManager, mProcessingStepsManager, std::vector<std::string>());
-  
+
   testSourceA = audioController->createSource("C:/Users/sass_fl/audioCS/audioCSNotes/testFiles/scifi_stereo.wav"); 
   testSourceB = audioController->createSource("C:/Users/sass_fl/audioCS/audioCSNotes/testFiles/exotic_mono.wav");
-                   
+
   testSourceA->play();
   testSourceB->play();
 

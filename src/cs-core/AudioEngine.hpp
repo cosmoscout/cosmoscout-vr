@@ -10,6 +10,7 @@
 
 #include "cs_audio_export.hpp"
 #include "Settings.hpp"
+#include "SolarSystem.hpp"
 
 #include "../cs-audio/internal/OpenAlManager.hpp"
 #include "../cs-audio/Source.hpp"
@@ -32,7 +33,8 @@ class CS_CORE_EXPORT AudioEngine {
   AudioEngine& operator=(const AudioEngine&) = delete;
   AudioEngine& operator=(AudioEngine&&) = delete;
 
-  explicit AudioEngine(std::shared_ptr<Settings> settings);
+  explicit AudioEngine(std::shared_ptr<Settings> settings, 
+    std::shared_ptr<SolarSystem> solarSystem);
   ~AudioEngine();
 
   /// Returns a list of all possible Output Devices 
@@ -41,12 +43,15 @@ class CS_CORE_EXPORT AudioEngine {
   bool setDevice(std::string outputDevice);
   /// Sets the master volume for the audioEngine 
   bool setMasterVolume(float gain);
+  /// Update OpenAL Listener
+  void update();
 
  private:
   std::shared_ptr<core::Settings>                mSettings;
   std::unique_ptr<audio::OpenAlManager>          mOpenAlManager;
   std::shared_ptr<audio::BufferManager>          mBufferManager;
   std::shared_ptr<audio::ProcessingStepsManager> mProcessingStepsManager;
+  cs::scene::CelestialObserver                   mObserver;
 
   void createAudioControls();
 
@@ -57,6 +62,8 @@ class CS_CORE_EXPORT AudioEngine {
   std::shared_ptr<audio::Source> testSourceB;
   std::shared_ptr<audio::SourceGroup> testSourceGroup;
   std::map<std::string, std::any> testSettings;
+
+  std::shared_ptr<SolarSystem> mSolarSystem;
 };
 
 } // namespace cs::core
