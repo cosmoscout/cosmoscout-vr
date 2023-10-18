@@ -18,7 +18,9 @@ namespace cs::audio {
 
 class CS_AUDIO_EXPORT ProcessingStep {
  public:
-  virtual void process(ALuint openAlId, std::shared_ptr<std::map<std::string, std::any>> settings) = 0;
+  virtual void process(ALuint openAlId, 
+    std::shared_ptr<std::map<std::string, std::any>> settings,
+    std::shared_ptr<std::vector<std::string>> failedSettings) = 0;
  
  private:
 

@@ -10,10 +10,13 @@
 
 #include <AL/al.h>
 #include <memory>
+#include <vector>
 
 namespace cs::audio {
 
-void Spatialization_PS::process(ALuint openAlId, std::shared_ptr<std::map<std::string, std::any>> settings) {
+void Spatialization_PS::process(ALuint openAlId, 
+  std::shared_ptr<std::map<std::string, std::any>> settings,
+  std::shared_ptr<std::vector<std::string>> failedSettings) {
     
 }
 

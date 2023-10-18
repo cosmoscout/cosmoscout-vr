@@ -21,6 +21,9 @@
 
 namespace cs::audio {
 
+// forward declarations
+class ProcessingStepsManager;
+
 class CS_AUDIO_EXPORT AudioController : public SourceSettings {
  public:
   AudioController(
@@ -43,6 +46,10 @@ class CS_AUDIO_EXPORT AudioController : public SourceSettings {
   std::shared_ptr<UpdateBuilder>            mUpdateBuilder;
 
   void addToUpdateList();
+
+  void updateAll();
+  void updateGroups(std::vector<std::shared_ptr<Source>> sources);
+  void updateSources(std::vector<std::shared_ptr<Source>> sources);
 };
 
 } // namespace cs::audio
