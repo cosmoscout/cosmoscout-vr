@@ -23,6 +23,9 @@ class CS_AUDIO_EXPORT Default_PS : public ProcessingStep {
     std::shared_ptr<std::vector<std::string>> failedSettings);
 
  private:
+  bool processGain(ALuint openAlId, std::any value);
+  bool processLooping(ALuint openAlId, std::any value);
+  bool processPitch(ALuint openAlId, std::any value);
 };
 
 } // namespace cs::audio
