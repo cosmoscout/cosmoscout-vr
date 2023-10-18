@@ -18,9 +18,8 @@
 #include "../cs-audio/internal/alErrorHandling.hpp"
 
 // for testing:
-#include "../cs-audio/internal/SettingsMixer.hpp"
-#include <map>
 #include <any>
+#include <map>
 
 namespace cs::core {
 
@@ -108,15 +107,15 @@ void AudioEngine::createAudioControls() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void AudioEngine::playAmbient() {
-  audioController = std::make_shared<audio::AudioController>(mBufferManager, mProcessingStepsManager, std::vector<std::string>(), 0);
+  audioController = std::make_shared<audio::AudioController>(mBufferManager, mProcessingStepsManager, std::vector<std::string>());
   
   testSourceA = audioController->createSource("C:/Users/sass_fl/audioCS/audioCSNotes/testFiles/scifi_stereo.wav"); 
   testSourceB = audioController->createSource("C:/Users/sass_fl/audioCS/audioCSNotes/testFiles/exotic_mono.wav");
-  testSourceGroup = audioController->createSourceGroup();
                    
   testSourceA->play();
   testSourceB->play();
 
+  testSourceGroup = audioController->createSourceGroup();
   testSourceGroup->add(testSourceA);
   testSourceGroup->add(testSourceB);
   
