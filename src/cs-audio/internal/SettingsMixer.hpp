@@ -23,6 +23,10 @@ class CS_AUDIO_EXPORT SettingsMixer {
     std::shared_ptr<std::map<std::string, std::any>> A, 
     std::shared_ptr<std::map<std::string, std::any>> B);
 
+  static std::shared_ptr<std::map<std::string, std::any>> A_Without_B(
+    std::shared_ptr<std::map<std::string, std::any>> A, 
+    std::shared_ptr<std::vector<std::string>> B);
+
   static std::shared_ptr<std::map<std::string, std::any>> OverrideAdd_A_with_B(
     std::shared_ptr<std::map<std::string, std::any>> A, 
     std::shared_ptr<std::map<std::string, std::any>> B);
