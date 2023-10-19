@@ -8,6 +8,7 @@
 #include "AudioEngine.hpp"
 #include "Settings.hpp"
 #include "SolarSystem.hpp"
+#include "GuiManager.hpp"
 
 #include "../cs-audio/internal/FileReader.hpp"
 #include "../cs-audio/internal/OpenAlManager.hpp"
@@ -26,19 +27,22 @@ namespace cs::core {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-AudioEngine::AudioEngine(std::shared_ptr<Settings> settings, std::shared_ptr<SolarSystem> solarSystem) 
+AudioEngine::AudioEngine(std::shared_ptr<Settings> settings, std::shared_ptr<SolarSystem> solarSystem,
+  std::shared_ptr<GuiManager> guiManager) 
     : mSettings(std::move(settings)) 
-    , mOpenAlManager(std::make_unique<audio::OpenAlManager>(mSettings))
+    , mGuiManager(std::move(guiManager))
     , mBufferManager(std::make_shared<audio::BufferManager>()) 
     , mProcessingStepsManager(std::make_shared<audio::ProcessingStepsManager>()) 
     , mObserver(solarSystem->getObserver())
-    , mSolarSystem(std::move(solarSystem)) {
+    , mSolarSystem(std::move(solarSystem))
+    , mMasterVolume(1.f) {
 
   // Tell the user what's going on.
   logger().debug("Creating AudioEngine.");
   logger().info("OpenAL-Soft Vendor:  {}", alGetString(AL_VENDOR));
   logger().info("OpenAL-Soft Version:  {}", alGetString(AL_VERSION));
 
+  createGUI();
   playAmbient();
 }
  
@@ -91,6 +95,7 @@ bool AudioEngine::setDevice(std::string outputDevice) {
 
 bool AudioEngine::setMasterVolume(float gain) {
   if (gain < 0) {
+    logger().warn("Unable to set a negative gain!");
     return false;
   }
   alListenerf(AL_GAIN, (ALfloat) gain);
@@ -98,7 +103,25 @@ bool AudioEngine::setMasterVolume(float gain) {
     logger().warn("Failed to set master volume!");
     return false;
   }
+  mMasterVolume = gain;
   return true;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void AudioEngine::createGUI() {
+  // add settings to GUI
+  mGuiManager->addSettingsSectionToSideBarFromHTML("Audio", "accessibility_new",
+      "../share/resources/gui/audio_settings.html");
+  mGuiManager->executeJavascriptFile("../share/resources/gui/js/audio_settings.js"); 
+
+  // register callback for master volume slider
+  mGuiManager->getGui()->registerCallback("audio.masterVolume",
+      "Values sets the overall audio volume.", std::function([this](double value) {
+        setMasterVolume(static_cast<float>(value));
+      }));
+  mMasterVolume.connectAndTouch(
+      [this](float value) { mGuiManager->setSliderValue("audio.masterVolume", value); }); 
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
