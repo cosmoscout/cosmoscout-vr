@@ -31,6 +31,7 @@ AudioEngine::AudioEngine(std::shared_ptr<Settings> settings, std::shared_ptr<Sol
   std::shared_ptr<GuiManager> guiManager) 
     : mSettings(std::move(settings)) 
     , mGuiManager(std::move(guiManager))
+    , mOpenAlManager(std::make_unique<audio::OpenAlManager>())
     , mBufferManager(std::make_shared<audio::BufferManager>()) 
     , mProcessingStepsManager(std::make_shared<audio::ProcessingStepsManager>()) 
     , mObserver(solarSystem->getObserver())
@@ -39,6 +40,11 @@ AudioEngine::AudioEngine(std::shared_ptr<Settings> settings, std::shared_ptr<Sol
 
   // Tell the user what's going on.
   logger().debug("Creating AudioEngine.");
+
+  if (!mOpenAlManager->initOpenAl(mSettings->mAudio)) {
+    logger().warn("Failed to (fully) initialize OpenAL!");
+    return;
+  }
   logger().info("OpenAL-Soft Vendor:  {}", alGetString(AL_VENDOR));
   logger().info("OpenAL-Soft Version:  {}", alGetString(AL_VERSION));
 

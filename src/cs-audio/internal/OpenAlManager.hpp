@@ -24,15 +24,14 @@ class CS_AUDIO_EXPORT OpenAlManager {
   OpenAlManager& operator=(const OpenAlManager&) = delete;
   OpenAlManager& operator=(OpenAlManager&&) = delete;
 
-  OpenAlManager(std::shared_ptr<core::Settings> settings);
   ~OpenAlManager();
 
+  bool initOpenAl(std::shared_ptr<core::Settings> settings);
+
  private:
-  // using raw pointers because smart one always throw an error
   ALCdevice* mDevice;
   ALCcontext* mContext;
   
-  bool initOpenAl(std::shared_ptr<core::Settings> settings);
   bool contextErrorOccurd();
 };
 

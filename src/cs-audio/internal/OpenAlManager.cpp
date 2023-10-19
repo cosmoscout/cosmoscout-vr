@@ -15,22 +15,6 @@
 
 namespace cs::audio {
 
-OpenAlManager::OpenAlManager(std::shared_ptr<core::Settings> settings) {
-  std::cout << "hrtf settings: " << settings->mAudio.pEnableHRTF.get() << std::endl;
-  if (!initOpenAl(settings)) {
-    logger().warn("Failed to (fully) initalize OpenAL!");
-  }
-  ALCint hrtf;
-  alcGetIntegerv(mDevice, ALC_HRTF_STATUS_SOFT, 1, &hrtf);
-  if (hrtf) {
-    std::cout << "hrtf an" << std::endl;
-  } else {
-    std::cout << "hrtf aus" << std::endl;
-  }
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
 OpenAlManager::~OpenAlManager() {
   alcMakeContextCurrent(nullptr);
 	alcDestroyContext(mContext);
@@ -39,15 +23,15 @@ OpenAlManager::~OpenAlManager() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool OpenAlManager::initOpenAl(std::shared_ptr<core::Settings> settings) {
+bool OpenAlManager::initOpenAl(core::Settings::mAudio settings) {
   // create settings for context
   ALCint attrlist[] = {
-    ALC_FREQUENCY, settings->mAudio.pMixerFrequency.get(),
-	  ALC_MONO_SOURCES, settings->mAudio.pNumberMonoSources.get(),
-	  ALC_STEREO_SOURCES, settings->mAudio.pNumberStereoSources.get(),
-	  ALC_REFRESH, settings->mAudio.pRefreshRate.get(),
-	  ALC_SYNC, settings->mAudio.pContextSync.get(),
-	  ALC_HRTF_SOFT, settings->mAudio.pEnableHRTF.get()
+    ALC_FREQUENCY, settings.pMixerFrequency.get(),
+	  ALC_MONO_SOURCES, settings.pNumberMonoSources.get(),
+	  ALC_STEREO_SOURCES, settings.pNumberStereoSources.get(),
+	  ALC_REFRESH, settings.pRefreshRate.get(),
+	  ALC_SYNC, settings.pContextSync.get(),
+	  ALC_HRTF_SOFT, settings.pEnableHRTF.get()
   };
 
   // open default device
