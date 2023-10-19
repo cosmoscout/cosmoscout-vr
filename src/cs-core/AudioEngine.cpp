@@ -144,21 +144,23 @@ void AudioEngine::update() {
   }
   ++x;
 
-  cs::audio::Listener::setPosition();
-  cs::audio::Listener::setVelocity();
-  cs::audio::Listener::setOrientation();
+  // cs::audio::Listener::setPosition();
+  // cs::audio::Listener::setVelocity();
+  // cs::audio::Listener::setOrientation();
 }
 
-////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////// /////////////////////////////
 
-void AudioEngine::createAudioControls() {
-  // TODO  
+void AudioEngine::createAudioController() {
+  auto controller = std::make_shared<audio::AudioController>(mBufferManager, mProcessingStepsManager);
+  mAudioControllers.push_back(controller);
+  return controller;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void AudioEngine::playAmbient() {
-  audioController = std::make_shared<audio::AudioController>(mBufferManager, mProcessingStepsManager, std::vector<std::string>());
+  audioController = createAudioController();
 
   testSourceA = audioController->createSource("C:/Users/sass_fl/audioCS/audioCSNotes/testFiles/scifi_stereo.wav"); 
   testSourceB = audioController->createSource("C:/Users/sass_fl/audioCS/audioCSNotes/testFiles/exotic_mono.wav");

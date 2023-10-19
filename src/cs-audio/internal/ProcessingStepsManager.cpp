@@ -46,6 +46,14 @@ void ProcessingStepsManager::createPipeline(std::vector<std::string> processingS
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void ProcessingStepsManager::createPipeline(AudioController* audioController) {
+  std::set<std::shared_ptr<ProcessingStep>> pipeline;
+  pipeline.insert(mExistingProcessingSteps["Default"]);
+  mPipelines[audioController] = pipeline;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 std::shared_ptr<ProcessingStep> ProcessingStepsManager::getProcessingStep(std::string processingStep) {
   // Search for processing step and reuse it if it already exists:
   if (auto search = mExistingProcessingSteps.find(processingStep); search != mExistingProcessingSteps.end()) {

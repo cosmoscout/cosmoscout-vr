@@ -28,13 +28,14 @@ class CS_AUDIO_EXPORT AudioController : public SourceSettings {
  public:
   AudioController(
     std::shared_ptr<BufferManager> bufferManager, 
-    std::shared_ptr<ProcessingStepsManager> processingStepsManager,
-    std::vector<std::string> processingSteps);
+    std::shared_ptr<ProcessingStepsManager> processingStepsManager);
 
   /// Creates a new audio source
   std::shared_ptr<Source> createSource(std::string file);
   /// Creates a new audio source group
   std::shared_ptr<SourceGroup> createSourceGroup();
+  /// Define processing pipeline
+  void setPipeline(std::vector<std::string> processingSteps);
 
   void update();
 

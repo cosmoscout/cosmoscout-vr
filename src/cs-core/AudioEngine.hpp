@@ -46,6 +46,8 @@ class CS_CORE_EXPORT AudioEngine {
   bool setMasterVolume(float gain);
   /// Update OpenAL Listener
   void update();
+  /// Create a new AudioController
+  std::shared_ptr<audio::AudioController> createAudioController();
 
  private:
   std::shared_ptr<core::Settings>                      mSettings;
@@ -55,6 +57,8 @@ class CS_CORE_EXPORT AudioEngine {
   cs::scene::CelestialObserver                         mObserver; // ?
   std::shared_ptr<core::GuiManager>                    mGuiManager; // ?
   float                                                mMasterVolume;
+  std::vector<std::shared_ptr<audio::AudioController>> mAudioControllers
+
   void createGUI();
 
   // for testing

@@ -17,17 +17,14 @@ namespace cs::audio {
 
 AudioController::AudioController(
   std::shared_ptr<BufferManager> bufferManager, 
-  std::shared_ptr<ProcessingStepsManager> processingStepsManager,
-  std::vector<std::string> processingSteps) 
+  std::shared_ptr<ProcessingStepsManager> processingStepsManager) 
   : SourceSettings()
   , mBufferManager(std::move(bufferManager))
   , mProcessingStepsManager(std::move(processingStepsManager))
   , mUpdateBuilder(std::make_shared<UpdateBuilder>()) {
   
-  setUpdateBuilder(mUpdateBuilder);
-  
-  // TODO: define pipeline via config file
-  mProcessingStepsManager->createPipeline(processingSteps, this);
+  setUpdateBuilder(mUpdateBuilder);  
+  mProcessingStepsManager->createPipeline(this);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -45,6 +42,12 @@ std::shared_ptr<Source> AudioController::createSource(std::string file) {
   mSources.push_back(source);
   return source;
 } 
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void AudioController::setPipeline(std::vector<std::string> processingSteps) {
+  mProcessingStepsManager->createPipeline(processingSteps, this);
+}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
