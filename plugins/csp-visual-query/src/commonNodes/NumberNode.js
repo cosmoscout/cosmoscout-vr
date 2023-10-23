@@ -26,7 +26,7 @@ class NumberComponent extends Rete.Component {
     // the output of this node. The second parameter is shown as name on the node. The last
     // parameter references a socket type which has been registered with the node factory
     // before.
-    let output = new Rete.Output('value', "Output", CosmoScout.socketTypes['Number Value']);
+    let output = new Rete.Output('value', "Output", CosmoScout.socketTypes['WCSNumber']);
     node.addOutput(output);
 
     // Add the number input widget. The name parameter must be unique

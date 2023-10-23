@@ -21,24 +21,24 @@ class WCSImageLoaderComponent extends Rete.Component {
   builder(node) {
 
     // This node has a single output. The first parameter is the name of this output and must be
-    // unique amongst all sockets. It is also used in the TimeNode::process() to write the
+    // unique amongst all sockets. It is also used in the WCSImageLoader::process() to write the
     // output of this node. The second parameter is shown as name on the node. The last
     // parameter references a socket type which has been registered with the node factory
     // before. It is required that the class is called <NAME>Component.
 
-    let xBoundMinInput = new Rete.Input('xBoundMin', "Longitude Min", CosmoScout.socketTypes['WCSBound']);
+    let xBoundMinInput = new Rete.Input('xBoundMin', "Longitude Min", CosmoScout.socketTypes['number Value']);
     node.addInput(xBoundMinInput);
 
-    let xBoundMaxInput = new Rete.Input('xBoundMax', "Longitude Max", CosmoScout.socketTypes['WCSBound']);
+    let xBoundMaxInput = new Rete.Input('xBoundMax', "Longitude Max", CosmoScout.socketTypes['number Value']);
     node.addInput(xBoundMaxInput);
 
-    let yBoundMinInput = new Rete.Input('yBoundMin', "Latitude Min", CosmoScout.socketTypes['WCSBound']);
+    let yBoundMinInput = new Rete.Input('yBoundMin', "Latitude Min", CosmoScout.socketTypes['number Value']);
     node.addInput(yBoundMinInput);
 
-    let yBoundMaxInput = new Rete.Input('yBoundMax', "Latitude Max", CosmoScout.socketTypes['WCSBound']);
+    let yBoundMaxInput = new Rete.Input('yBoundMax', "Latitude Max", CosmoScout.socketTypes['number Value']);
     node.addInput(yBoundMaxInput);
     
-    let timeInput = new Rete.Input('time', "Time", CosmoScout.socketTypes['WCSTime']);
+    let timeInput = new Rete.Input('wcsTime', "Time", CosmoScout.socketTypes['WCSTime']);
     node.addInput(timeInput);
     
     let resolutionInput = new Rete.Input('resolution', "Resolution", CosmoScout.socketTypes['WCSResolution']);
@@ -47,22 +47,22 @@ class WCSImageLoaderComponent extends Rete.Component {
     let imageOutput = new Rete.Output('image', 'Image 2D', CosmoScout.socketTypes['Image2D']);
     node.addOutput(imageOutput);
     
-    let minOutput = new Rete.Output('minDataValue', 'Min', CosmoScout.socketTypes['WCSMinMax']);
+    let minOutput = new Rete.Output('minDataValue', 'Min', CosmoScout.socketTypes['number Value']);
     node.addOutput(minOutput);
 
-    let maxOutput = new Rete.Output('maxDataValue', 'Max', CosmoScout.socketTypes['WCSMinMax']);
+    let maxOutput = new Rete.Output('maxDataValue', 'Max', CosmoScout.socketTypes['number Value']);
     node.addOutput(maxOutput);
 
     let serverControl = new ServerControl('selectServer');
     node.addControl(serverControl);
 
-    let imageLayerControl = new ImageLayerControl('selectImageLayer');
-    node.addControl(imageLayerControl);
+    let imageChannelControl = new ImageChannelControl('selectImageChannel');
+    node.addControl(imageChannelControl);
 
     node.onInit = (nodeDiv) => { 
 
       serverControl.init(nodeDiv, node.data); 
-      imageLayerControl.init(nodeDiv, node.data);
+      imageChannelControl.init(nodeDiv, node.data);
 
       node.onMessageFromCPP = (message) => {
 
@@ -72,13 +72,19 @@ class WCSImageLoaderComponent extends Rete.Component {
           serverControl.createServerSelection(message["server"]);  
         }
 
-        // display imageLayers in dropdown
-        else if (message["imageLayer"]) {
-          console.log("IMAGE LAYER!");
-          console.log(message);
-          this.parent.data.imageLayer = message["imageLayer"];        
-          this.createServerSelection(message["imageLayer"]);
-        
+        // new image channels received
+        else if (message["imageChannel"]) {
+
+          // rest image channels selection
+          if (message["imageChannel"] === "reset") {
+            node.data.imageChannel = [];
+            imageChannelControl.resetImageChannelSelection();  
+
+          // add new image channels to dropdown
+          } else {
+            node.data.imageChannel = message["imageChannel"];        
+            imageChannelControl.createImageChannelSelection(message["imageChannel"]);
+          }
         
         } else {
           console.log("Unknown cpp message:");
@@ -86,11 +92,6 @@ class WCSImageLoaderComponent extends Rete.Component {
         }
       };
     }
-
-    document.addEventListener("DOMContentLoaded", function(){
-      console.log("loaded");
-    });
-
 
     let button1 = document.createElement("button");
     button1.innerHTML = "request server";
@@ -112,7 +113,7 @@ class ServerControl extends Rete.Control {
     // This HTML code will be used whenever a node is created with this widget.
     this.template = `
           <select>
-            <option value="0">None</option>
+            <option value="none">None</option>
           </select>
 
           <style>
@@ -131,12 +132,7 @@ class ServerControl extends Rete.Control {
 
     // Initialize the bootstrap select.
     this.selectElement = nodeDiv.querySelector("select");
-    console.log(this.selectElement);
     $(this.selectElement).selectpicker();
-
-    $(this.selectElement).change(function() {
-      alert( "Handler for .change() called." );
-    });
 
     // Preselect a server.
     if (data.url) {
@@ -146,30 +142,22 @@ class ServerControl extends Rete.Control {
     // Send an update to the node editor server whenever the user selects a new server.
     this.selectElement.addEventListener('change',
       (e) => {
-          let message = {server: e.target.value};
-          CosmoScout.sendMessageToCPP(message, this.parent.id); 
+        CosmoScout.sendMessageToCPP({server: e.target.value}, this.parent.id); 
       });
   }
 
+  // Send a request to get the available servers.
   sendServerRequest() {
-    // Send a request to get the available servers.
-    this.selectElement.addEventListener('click',
-    (e) => {
-      if (!this.parent.data.url) {
-        CosmoScout.sendMessageToCPP("requestServers", this.parent.id); 
-      }
-    });
+    if (!this.parent.data.url) {
+      CosmoScout.sendMessageToCPP("requestServers", this.parent.id); 
+    }
   }
 
   createServerSelection(values) {
-    // remove all elements
-    while (this.selectElement.lastElementChild) {
-      this.selectElement.removeChild(this.selectElement.lastElementChild);
-    }
     // add new elements
     for (let i = 0; i < values.length; i++) {
       let option = document.createElement("option");
-      option.value = i; 
+      option.value = values[i]; 
       option.innerHTML = values[i];
       this.selectElement.appendChild(option);
     }
@@ -178,8 +166,8 @@ class ServerControl extends Rete.Control {
   }
 }
 
-// This is the widget which is used for selecting the image layer.
-class ImageLayerControl extends Rete.Control {
+// This is the widget which is used for selecting the image Channel.
+class ImageChannelControl extends Rete.Control {
   constructor(key) {
     super(key);
     this.selectElement;
@@ -206,30 +194,48 @@ class ImageLayerControl extends Rete.Control {
 
     // Initialize the bootstrap select.
     this.selectElement = nodeDiv.querySelectorAll("select")[1];
-    console.log(this.selectElement);
+
     $(this.selectElement).selectpicker();
 
     // Preselect a server.
-    if (data.imageLayer) {
-      $(this.selectElement).selectpicker('val', data.imageLayer);
+    if (data.imageChannel) {
+      $(this.selectElement).selectpicker('val', data.imageChannel);
     }
 
-    // Send an update to the node editor server whenever the user selects a new layer.
+    // Send an update to the node editor server whenever the user selects a new channel.
     this.selectElement.addEventListener('change',
       (e) => {
-        CosmoScout.sendMessageToCPP(parseInt(e.target.value), this.parent.id); 
+        CosmoScout.sendMessageToCPP({imageChannel: e.target.value}, this.parent.id); 
       });
   }
 
-  createServerSelection(values) {    
+  createImageChannelSelection(values) {    
+    this.resetImageChannelSelection();
+
     // add new elements
     for (let i = 0; i < values.length; i++) {
       let option = document.createElement("option");
-      option.value = i + 1; 
+      option.value = values[i]; 
       option.innerHTML = values[i];
       this.selectElement.appendChild(option);
     }
     // refresh bootstrap dropdown options
-    $(this.selectElement).selectpicker("refresh");   
+    $(this.selectElement).selectpicker("refresh");
+  }
+
+  resetImageChannelSelection() {
+    // remove all elements
+    while (this.selectElement.firstChild) {
+      this.selectElement.removeChild(this.selectElement.lastChild);
+    }
+
+    // add "None" element
+    let none = document.createElement("option");
+    none.value = 0; 
+    none.innerHTML = "None";
+    this.selectElement.appendChild(none);
+
+    // refresh bootstrap dropdown options
+    $(this.selectElement).selectpicker("refresh");
   }
 }
