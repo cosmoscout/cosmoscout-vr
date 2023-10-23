@@ -5,36 +5,37 @@
 // SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
 // SPDX-License-Identifier: MIT
 
-#include "WCSImageLoader.hpp"
+#include "WCSCoverage.hpp"
 
 #include "../../../../src/cs-utils/filesystem.hpp"
 #include "../../../csl-ogc/src/wcs/WebCoverageService.hpp"
 #include "../../../csl-ogc/src/wcs/WebCoverageTextureLoader.hpp"
 #include "../types/types.hpp"
+#include "../types/CoverageContainer.hpp"
 
 namespace csp::visualquery {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-const std::string WCSImageLoader::sName = "WCSImageLoader";
+const std::string WCSCoverage::sName = "WCSCoverage";
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::string WCSImageLoader::sSource() {
+std::string WCSCoverage::sSource() {
   return cs::utils::filesystem::loadToString(
-      "../share/resources/nodes/csp-visual-query/WCSImageLoader.js");
+      "../share/resources/nodes/csp-visual-query/WCSCoverage.js");
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::unique_ptr<WCSImageLoader> WCSImageLoader::sCreate(
+std::unique_ptr<WCSCoverage> WCSCoverage::sCreate(
   std::shared_ptr<std::vector<csl::ogc::WebCoverageService>> wcs) {
-  return std::make_unique<WCSImageLoader>(std::move(wcs));
+  return std::make_unique<WCSCoverage>(std::move(wcs));
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-WCSImageLoader::WCSImageLoader(std::shared_ptr<std::vector<csl::ogc::WebCoverageService>> wcs)
+WCSCoverage::WCSCoverage(std::shared_ptr<std::vector<csl::ogc::WebCoverageService>> wcs)
   : mWcs(std::move(wcs))
   , mSelectedServer(nullptr)
   , mSelectedImageChannel(nullptr) {
@@ -42,20 +43,20 @@ WCSImageLoader::WCSImageLoader(std::shared_ptr<std::vector<csl::ogc::WebCoverage
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-WCSImageLoader::~WCSImageLoader() {
+WCSCoverage::~WCSCoverage() {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::string const& WCSImageLoader::getName() const {
+std::string const& WCSCoverage::getName() const {
   return sName;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void WCSImageLoader::onMessageFromJS(nlohmann::json const& message) {
+void WCSCoverage::onMessageFromJS(nlohmann::json const& message) {
 
-  logger().debug("Message form JS: {}", message.dump());
+  logger().debug("WCSCoverage: Message form JS: {}", message.dump());
 
   // Send available servers
   if (message.dump() == "\"requestServers\"") {
@@ -110,7 +111,7 @@ void WCSImageLoader::onMessageFromJS(nlohmann::json const& message) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-nlohmann::json WCSImageLoader::getData() const {
+nlohmann::json WCSCoverage::getData() const {
   nlohmann::json data;
   if (mSelectedServer != nullptr) {
     data["serverUrl"] = mSelectedServer->getUrl();
@@ -124,7 +125,7 @@ nlohmann::json WCSImageLoader::getData() const {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void WCSImageLoader::setData(nlohmann::json const& json) {
+void WCSCoverage::setData(nlohmann::json const& json) {
   if (json.find("serverUrl") != json.end()) {
 
     for (csl::ogc::WebCoverageService wcs : *mWcs) {
@@ -145,57 +146,24 @@ void WCSImageLoader::setData(nlohmann::json const& json) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void WCSImageLoader::process() {
-  // double first  = readInput<double>("first", 0.0);
-
-  // The name of the port must match the name given in the JavaScript code above.
-  // writeOutput("minDataValue", 0);
-
-  // create request for texture loading
+void WCSCoverage::process() {
   if (mSelectedServer == nullptr || mSelectedImageChannel == nullptr) {
     return;
   }
 
-  logger().debug("process!");
+  auto coverageSettings = mSelectedImageChannel->getSettings();
 
-  csl::ogc::WebCoverageTextureLoader::Request request;
-  
-  request.mTime = std::to_string(readInput<double>("wcsTime", 0.0));
-  
-  logger().debug(0);
+  // writeOutput("minTimeValue", coverageSettings); ???
+  // writeOutput("maxTimeValue", coverageSettings); ???
+  writeOutput("lngBoundMinOut", coverageSettings.mBounds.mMinLon);
+  writeOutput("lngBoundMaxOut", coverageSettings.mBounds.mMaxLon);
+  writeOutput("latBoundMinOut", coverageSettings.mBounds.mMinLat);
+  writeOutput("latBoundMaxOut", coverageSettings.mBounds.mMaxLat);
 
-  csl::ogc::Bounds bound;
-  bound.mMinLon = readInput<double>("xBoundMin", 0.0);
-  bound.mMaxLon = readInput<double>("xBoundMax", 100.0);
-  bound.mMinLat = readInput<double>("yBoundMin", 0.0);
-  bound.mMaxLat = readInput<double>("yBoundMax", 100.0);
-  request.mBounds = bound;
-
-  logger().debug(1);
-
-  request.mMaxSize = readInput<int>("resolution", 1024);
-
-  logger().debug(2);
-
-  request.mFormat = "image/tiff";
-
-  logger().debug(3);
-
-  auto texLoader = csl::ogc::WebCoverageTextureLoader();
-  auto texture = texLoader.loadTexture(*mSelectedServer, *mSelectedImageChannel, request, 
-    "../../../install/windows-Release/share/cache/csp-visual-query/texture-cache", true);
-
-  logger().debug(4);
-
-  if (texture.has_value()) {
-    logger().debug("x in texture: {}", texture.value().x);
-    logger().debug("y in texture: {}", texture.value().y);
-  }
-
-  logger().debug(5);
+  writeOutput("coverageOut", std::make_shared<CoverageContainer>(mSelectedServer, mSelectedImageChannel));
 }
 
-void WCSImageLoader::sendServersToJs() {
+void WCSCoverage::sendServersToJs() {
   std::vector<std::string> serverNames;
   for (csl::ogc::WebCoverageService server : *mWcs) {
     serverNames.push_back(server.getTitle());
@@ -207,7 +175,7 @@ void WCSImageLoader::sendServersToJs() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void WCSImageLoader::sendImageChannelsToJs() {
+void WCSCoverage::sendImageChannelsToJs() {
   std::vector<std::string> imageChannelNames;
   
   for (csl::ogc::WebCoverage imageChannel : mSelectedServer->getCoverages()) {

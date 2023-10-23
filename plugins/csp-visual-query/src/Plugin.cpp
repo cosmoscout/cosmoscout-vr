@@ -1,4 +1,4 @@
-////////////////////////////////////////////////////////////////////////////////////////////////////
+﻿////////////////////////////////////////////////////////////////////////////////////////////////////
 //                               This file is part of CosmoScout VR                               //
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -18,7 +18,8 @@
 #include "logger.hpp"
 #include "outputNodes/Render.hpp"
 #include "sourceNodes/WCSSource.hpp"
-#include "sourceNodes/WCSImageLoader.hpp"
+#include "sourceNodes/WCSCoverage.hpp"
+#include "sourceNodes/WCSCoverageImage.hpp"
 #include "commonNodes/NumberNode.hpp"
 
 #include <vector>
@@ -152,8 +153,9 @@ void Plugin::setupNodeEditor(uint16_t port) {
   // passed to the constructor of the node instances. For more information, see the documentation of
   // NodeFactory::registerNodeType().
   factory.registerNodeType<WCSSource>();
-  factory.registerNodeType<WCSImageLoader>(
+  factory.registerNodeType<WCSCoverage>(
     std::shared_ptr<std::vector<csl::ogc::WebCoverageService>>(&mPluginSettings.mWebCoverages));
+  factory.registerNodeType<WCSCoverageImage>();
   factory.registerNodeType<Render>();
   factory.registerNodeType<NumberNode>();
 

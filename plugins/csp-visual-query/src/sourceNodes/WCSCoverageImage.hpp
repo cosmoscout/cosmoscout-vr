@@ -5,30 +5,30 @@
 // SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
 // SPDX-License-Identifier: MIT
 
-#ifndef CSP_VISUAL_QUERY_WCS_IMAGE_LOADER_HPP
-#define CSP_VISUAL_QUERY_WCS_IMAGE_LOADER_HPP
+#ifndef CSP_VISUAL_QUERY_WCS_COVERAGE_IMAGE_HPP
+#define CSP_VISUAL_QUERY_WCS_COVERAGE_IMAGE_HPP
 
 #include "../../../csl-node-editor/src/Node.hpp"
 #include "../../../csl-ogc/src/wcs/WebCoverageService.hpp"
+#include "../../../csl-ogc/src/wcs/WebCoverageTextureLoader.hpp"
 #include "../types/types.hpp"
 
 namespace csp::visualquery {
 
-class WCSImageLoader : public csl::nodeeditor::Node {
+class WCSCoverageImage : public csl::nodeeditor::Node {
  public:
   // static interface ------------------------------------------------------------------------------
 
   static const std::string          sName;
   static std::string                sSource();
-  static std::unique_ptr<WCSImageLoader> sCreate(
-    std::shared_ptr<std::vector<csl::ogc::WebCoverageService>> wcs);
+  static std::unique_ptr<WCSCoverageImage> sCreate();
 
   // instance interface ----------------------------------------------------------------------------
 
   /// New instances of this node are created by the node factory.
 
-  explicit WCSImageLoader(std::shared_ptr<std::vector<csl::ogc::WebCoverageService>> wcsUrl);
-  ~WCSImageLoader() override;
+  explicit WCSCoverageImage();
+  ~WCSCoverageImage() override;
 
   /// Each node must override this. It simply returns the static sName.
   std::string const& getName() const override;
@@ -38,6 +38,9 @@ class WCSImageLoader : public csl::nodeeditor::Node {
   /// node editor, for example if a new web client was connected hence needs updated values for all
   /// nodes.
   void process() override;
+
+  // Creates a new request object to load a texture from a server
+  csl::ogc::WebCoverageTextureLoader::Request getRequest();
 
   /// This will be called whenever the CosmoScout.sendMessageToCPP() is called by the JavaScript
   /// client part of this node.
@@ -53,16 +56,10 @@ class WCSImageLoader : public csl::nodeeditor::Node {
   /// contain a server.
   void setData(nlohmann::json const& json) override;
 
-  void sendServersToJs();
-  void sendImageChannelsToJs();
-
  private:
   // Image2D mImage;
-  std::shared_ptr<std::vector<csl::ogc::WebCoverageService>> mWcs;
-  std::shared_ptr<csl::ogc::WebCoverageService>              mSelectedServer;
-  std::shared_ptr<csl::ogc::WebCoverage>                     mSelectedImageChannel;
 };
 
 } // namespace csp::visualquery
 
-#endif // CSP_VISUAL_QUERY_WCS_IMAGE_LOADER_HPP
+#endif // CSP_VISUAL_QUERY_WCS_COVERAGE_IMAGE_HPP
