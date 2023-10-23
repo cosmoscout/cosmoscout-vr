@@ -10,111 +10,58 @@
 
 #include <string>
 #include <vector>
-#include <ctime>
+#include <any>
+#include "GL/glew.h"
 
 namespace csp::visualquery {
 
-struct Point2D {
-  float x; // longitude
-  float y; // latitude
-  std::vector<float> value;
-};
-
-struct Point3D {
-  float x; // longitude
-  float y; // latitude
-  float z; // height
-  std::vector<float> value;
-};
-
 struct Bound {
-  float min;
-  float max;
+  double min;
+  double max;
 };
 
 struct Dimension {
- public:
-  Dimension(int width, int length, int depth);
-
-  std::optional<int> getDimension(std::string dimensionType);
-  void setDimension(std::string dimensionType, int value);
-  void setDimension(int width, int length, int depth);
- 
- private:
   int mWidth;
   int mLength;
   int mDepth;
 };
 
 struct TimeStamp {
- public:
-  TimeStamp(double timeStamp);
-
-  double getTimeStamp();
-  void setTimeStamp(double timeStamp);
-
- private:
   double mTimeStamp; // time in TDB
+};
+
+template <typename T>
+struct Values {
+  std::vector<T> values;
+  GLenum         type;
 };
 
 class Image2D {
  public:
-  Image2D(std::vector<Point2D> points, double timeStamp, Bound boundX, Bound boundY, Dimension dimension);
-
-  std::vector<Point2D> getPoints();
-  std::optional<Bound> getBound(std::string boundType);
-
-  void setPoints(std::vector<Point2D> points);
-  void setBound(std::string boundType, float min, float max);
-  
-  TimeStamp            mTimeStamp;
-  Dimension            mDimension;
-
- private:
-  std::vector<Point2D> mPoints;
-  Bound                mBoundX;
-  Bound                mBoundY;
+  std::any  mValues;
+  Bound     mBoundX;
+  Bound     mBoundY;
+  TimeStamp mTimeStamp;
+  Dimension mDimension;
 };
 
 class LayeredImage2D {
  public:
-  LayeredImage2D(std::vector<std::vector<Point2D>> points, double timeStamp, Bound boundX, Bound boundY,
-    Dimension dimension);
-
-  std::vector<std::vector<Point2D>> getPoints();
-  std::optional<Bound>              getBound(std::string boundType);
-
-  void setPoints(std::vector<std::vector<Point2D>> points);
-  void setBound(std::string boundType, float min, float max);
-
-  TimeStamp                         mTimeStamp;
-  Dimension                         mDimension;
-
- private:
-  std::vector<std::vector<Point2D>> mPoints;
-  Bound                             mBoundX;
-  Bound                             mBoundY;
+  std::vector<std::any> mValues;
+  Bound                 mBoundX;
+  Bound                 mBoundY;
+  TimeStamp             mTimeStamp;
+  Dimension             mDimension;
 };
 
 class Volume3D {
  public:
-  Volume3D(std::vector<Point3D> points, double timeStamp, Bound boundX, Bound boundY, Bound boundZ,
-    Dimension dimension);
-
-  std::vector<Point3D> getPoints();
-  std::optional<Bound> getBound(std::string boundType);
-
-  void setPoints(std::vector<Point3D> points);
-  void setBound(std::string boundType, float min, float max);
-
-  TimeStamp            mTimeStamp;
-  Dimension            mDimension;
-
- private:
-  std::vector<Point3D> mPoints;
-  Bound                mBoundX;
-  Bound                mBoundY;
-  Bound                mBoundZ;
+  std::any  mValues;
+  Bound     mBoundX;
+  Bound     mBoundY;
+  Bound     mBoundZ;
+  TimeStamp mTimeStamp;
+  Dimension mDimension;
 };
 
 } // namespace csp::visualquery
