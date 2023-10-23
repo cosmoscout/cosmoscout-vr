@@ -1,4 +1,4 @@
-﻿////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////
 //                               This file is part of CosmoScout VR                               //
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -140,6 +140,7 @@ void Plugin::setupNodeEditor(uint16_t port) {
   factory.registerSocketType("GreyScaleGeoTexture", "#ffff00");
   factory.registerSocketType("WCSScalarField", "#b08ab3");
 
+  factory.registerSocketType("Coverage", "#8e38ff");
   factory.registerSocketType("WCSImage", "#b08ab3");
   factory.registerSocketType("WCSMinMax", "#b08ab3");
   factory.registerSocketType("WCSResolution", "#b08ab3");
