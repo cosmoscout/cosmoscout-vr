@@ -6,7 +6,6 @@
 // SPDX-License-Identifier: MIT
 
 #include "Source.hpp"
-#include "../cs-core/AudioEngine.hpp"
 #include "internal/BufferManager.hpp"
 #include "internal/alErrorHandling.hpp"
 #include "internal/ProcessingStepsManager.hpp"

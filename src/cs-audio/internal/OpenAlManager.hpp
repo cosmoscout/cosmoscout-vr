@@ -9,7 +9,7 @@
 #define CS_AUDIO_OPEN_AL_MANAGER_HPP
 
 #include "cs_audio_export.hpp"
-#include "Settings.hpp"
+#include "../../cs-core/Settings.hpp"
 
 #include <AL/al.h>
 #include <AL/alc.h>
