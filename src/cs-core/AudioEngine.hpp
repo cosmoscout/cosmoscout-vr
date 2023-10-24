@@ -19,6 +19,7 @@
 #include "../cs-audio/AudioController.hpp"
 #include "../cs-audio/internal/BufferManager.hpp"
 #include "../cs-audio/internal/ProcessingStepsManager.hpp"
+#include "../cs-utils/Property.hpp"
 
 #include <map>
 #include <any>
@@ -56,6 +57,8 @@ class CS_CORE_EXPORT AudioEngine {
   std::shared_ptr<audio::ProcessingStepsManager>       mProcessingStepsManager;
   cs::scene::CelestialObserver                         mObserver; // ?
   std::shared_ptr<core::GuiManager>                    mGuiManager; // ?
+  utils::Property<float>                               mMasterVolume;
+  std::vector<std::shared_ptr<audio::AudioController>> mAudioControllers;
 
   AudioEngine(std::shared_ptr<Settings> settings, 
     std::shared_ptr<SolarSystem> solarSystem, std::shared_ptr<GuiManager> guiManager);
