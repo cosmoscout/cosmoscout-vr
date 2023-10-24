@@ -136,6 +136,22 @@ void AudioEngine::createGUI() {
       }));
   mMasterVolume.connectAndTouch(
       [this](float value) { mGuiManager->setSliderValue("audio.masterVolume", value); }); 
+
+
+  // Fill the dropdowns with the availabe output devices
+  // TODO: make device selectable and change in openAL
+  for (auto device : getDevices()) {
+    mGuiManager->getGui()->callJavascript("CosmoScout.gui.addDropdownValue",
+        "audio.outputDevice", device, device, false);
+
+    /*
+    if (active) {
+      noneActive = false;
+      setWMSServer(overlay->second, server.getTitle());
+    }
+    */
+  }
+
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
