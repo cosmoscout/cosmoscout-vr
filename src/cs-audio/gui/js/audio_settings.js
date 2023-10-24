@@ -19,7 +19,7 @@
        * @inheritDoc
        */
       init() {
-        CosmoScout.gui.initSlider("audio.masterVolume", 0.0, 10, 0.1, [1]);
+        CosmoScout.gui.initSlider("audio.masterVolume", 0.0, 5, 0.05, [1]);
       }
     }
   
