@@ -392,6 +392,7 @@ void from_json(nlohmann::json const& j, Settings& o) {
   Settings::deserialize(j, "sceneScale", o.mSceneScale);
   Settings::deserialize(j, "guiPosition", o.mGuiPosition);
   Settings::deserialize(j, "graphics", o.mGraphics);
+  Settings::deserialize(j, "audio", o.mAudio);
   Settings::deserialize(j, "enableUserInterface", o.pEnableUserInterface);
   Settings::deserialize(j, "enableMouseRay", o.pEnableMouseRay);
   Settings::deserialize(j, "enableSensorSizeControl", o.pEnableSensorSizeControl);
