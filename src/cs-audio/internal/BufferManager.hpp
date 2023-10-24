@@ -28,6 +28,21 @@ struct Buffer {
   }
 };
 
+struct WavContainer {
+  unsigned int format;
+  int numberChannels;
+  int sampleRate;
+  int bitsPerSample;
+  int size;
+  char* data;
+
+  ~WavContainer() {
+    if (data != nullptr) {
+      delete[] data;
+    }
+  }
+};
+
 class CS_AUDIO_EXPORT BufferManager {
  public:
   BufferManager(const BufferManager& obj) = delete;
@@ -41,7 +56,7 @@ class CS_AUDIO_EXPORT BufferManager {
 
   // returns an OpenAL id to a buffer for this file; The BufferManager will
   // check if a buffer for this file already exists and if so reuse the existing one
-  ALuint getBuffer(std::string file);
+  std::pair<bool, ALuint> getBuffer(std::string file);
   // signals to the bufferManager that a Source is not using a buffer to this file anymore
   void removeBuffer(std::string file);
   
@@ -50,7 +65,7 @@ class CS_AUDIO_EXPORT BufferManager {
   
   BufferManager();
   // creates a new buffer
-  ALuint createBuffer(std::string file);
+  std::pair<bool, ALuint> createBuffer(std::string file);
   // deletes a buffer if it is not used in any source
   void deleteBuffer(std::shared_ptr<Buffer> buffer);
 };

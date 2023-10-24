@@ -6,6 +6,7 @@
 // SPDX-License-Identifier: MIT
 
 #include "FileReader.hpp"
+#include "BufferManager.hpp"
 
 #include <iostream>
 #include <fstream>
@@ -14,62 +15,52 @@
 
 namespace cs::audio {
 
-char* FileReader::loadWAV(const char* fn, int& chan, int& samplerate, int& bps, int& size, unsigned int& format)
+bool FileReader::loadWAV(const char* fn, WavContainer& wavContainer)
 {
-    char fileBuffer[4];
-    std::ifstream in(fn, std::ios::binary);
-    in.read(fileBuffer, 4);
-    if (strncmp(fileBuffer, "RIFF", 4) != 0)
-    {
-        std::cout << "this is not a valid WAVE file" << std::endl;
-        return NULL;
-    }
-    in.read(fileBuffer, 4);
-    in.read(fileBuffer, 4);      //WAVE
-    in.read(fileBuffer, 4);      //fmt
-    in.read(fileBuffer, 4);      //16
-    in.read(fileBuffer, 2);      //1
-    in.read(fileBuffer, 2);
-    chan = convertToInt(fileBuffer, 2);
-    in.read(fileBuffer, 4);
-    samplerate = convertToInt(fileBuffer, 4);
-    in.read(fileBuffer, 4);
-    in.read(fileBuffer, 2);
-    in.read(fileBuffer, 2);
-    bps = convertToInt(fileBuffer, 2);
-    in.read(fileBuffer, 4);      //data
-    in.read(fileBuffer, 4);
-    size = convertToInt(fileBuffer, 4);
-    char* data = new char[size];
-    in.read(data, size);
-
-	if (chan == 1)
-	{
-		if (bps == 8)
-		{
-			format = AL_FORMAT_MONO8;
-		}
-		else {
-			format = AL_FORMAT_MONO16;
-		}
-	}
-	else {
-		if (bps == 8)
-		{
-			format = AL_FORMAT_STEREO8;
-		}
-		else {
-			format = AL_FORMAT_STEREO16;
-		}
-	}
-
-    return data;
+  char fileBuffer[4];
+  std::ifstream in(fn, std::ios::binary);
+  
+  // check if it us a valid wave file:
+  in.read(fileBuffer, 4);
+  if (strncmp(fileBuffer, "RIFF", 4) != 0) {
+    return false;
+  }
+  
+  in.read(fileBuffer, 4); // ChunkSize            -- RIFF chunk descriptor
+  in.read(fileBuffer, 4); // Format
+  in.read(fileBuffer, 4); // SubChunk 1 id        -- fmt sub-chunk
+  in.read(fileBuffer, 4); // SubChunk 1 size
+  in.read(fileBuffer, 2); // AudioFormat
+  in.read(fileBuffer, 2); // Number Channels
+  wavContainer.numberChannels = convertToInt(fileBuffer, 2);
+  in.read(fileBuffer, 4); // Sample Rate
+  wavContainer.sampleRate = convertToInt(fileBuffer, 4);
+  in.read(fileBuffer, 4); // Byte Rate
+  in.read(fileBuffer, 2); // Block Align
+  in.read(fileBuffer, 2); // Bits per Sample
+  wavContainer.bitsPerSample = convertToInt(fileBuffer, 2);
+  in.read(fileBuffer, 4); // SubChunk 2 id        -- data sub-chunk
+  in.read(fileBuffer, 4); // SubChunk 2 Size
+  wavContainer.size = convertToInt(fileBuffer, 4);
+  wavContainer.data = new char[wavContainer.size];
+  in.read(wavContainer.data, wavContainer.size); // data
+  
+  if (wavContainer.numberChannels == 1) {
+    wavContainer.format = 
+      (wavContainer.bitsPerSample == 8 ? AL_FORMAT_MONO8 : AL_FORMAT_MONO16);
+  } else {
+    wavContainer.format = 
+      (wavContainer.bitsPerSample == 8 ? AL_FORMAT_STEREO8 : AL_FORMAT_STEREO16);
+  }
+  
+  return true;
 }
 
 int FileReader::convertToInt(char* buffer, int len)
 {
+    static bool bigEndian = isBigEndian();
     int a = 0;
-    if (!isBigEndian())
+    if (!bigEndian)
         for (int i = 0; i < len; i++)
             ((char*)&a)[i] = buffer[i];
     else

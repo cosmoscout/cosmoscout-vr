@@ -21,8 +21,7 @@ class CS_AUDIO_EXPORT FileReader {
   FileReader& operator=(const FileReader&) = delete;
   FileReader& operator=(FileReader&&) = delete;
 
-  // to be replaced in the future
-  static char* loadWAV(const char* fn, int& chan, int& samplerate, int& bps, int& size, unsigned int& format);
+  static bool loadWAV(const char* fn, WavContainer& wavContainer);
   
  private:
   // wave files

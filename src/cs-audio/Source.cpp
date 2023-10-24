@@ -37,7 +37,11 @@ Source::Source(std::shared_ptr<BufferManager> bufferManager,
   }
 
   // get buffer and bind buffer to source
-  alSourcei(mOpenAlId, AL_BUFFER, mBufferManager->getBuffer(mFile));
+  std::pair<bool, ALuint> buffer = mBufferManager->getBuffer(mFile);
+  if (!buffer.first) {
+    return;
+  }
+  alSourcei(mOpenAlId, AL_BUFFER, buffer.second);
   if (alErrorHandling::errorOccurred()) {
     logger().warn("Failed to bind buffer to source!");
     return;
@@ -83,7 +87,7 @@ bool Source::stop() const {
 
 bool Source::setFile(std::string file) {
   alGetError(); // clear error code
-  // alSourceStop(mOpenAlId);
+  // remove current buffer
   alSourcei(mOpenAlId, AL_BUFFER, NULL);
   if (alErrorHandling::errorOccurred()) {
     logger().warn("Failed to remove buffer from source!");
@@ -94,7 +98,16 @@ bool Source::setFile(std::string file) {
   // TODO: check if file exists
   
   mFile = file;
-  mBufferManager->getBuffer(mFile);
+  // get buffer and bind buffer to source
+  std::pair<bool, ALuint> buffer = mBufferManager->getBuffer(mFile);
+  if (!buffer.first) {
+    return false;
+  }
+  alSourcei(mOpenAlId, AL_BUFFER, buffer.second);
+  if (alErrorHandling::errorOccurred()) {
+    logger().warn("Failed to bind buffer to source!");
+    return false;
+  }
   return true;
 }
 

@@ -46,41 +46,53 @@ BufferManager::~BufferManager() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-ALuint BufferManager::getBuffer(std::string file) {
+std::pair<bool, ALuint> BufferManager::getBuffer(std::string file) {
   for (std::shared_ptr<Buffer> buffer : mBufferList) {
     if (buffer->mFile == file) {
       buffer->mUsageNumber++;
-      return buffer->mOpenAlId;
+      return std::make_pair(true, buffer->mOpenAlId);
     }
   }
-  return createBuffer(file);
+  logger().debug(-1);
+  auto x = createBuffer(file);
+  logger().debug(2);
+  return x;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-ALuint BufferManager::createBuffer(std::string file) {
+std::pair<bool, ALuint> BufferManager::createBuffer(std::string file) {
   alGetError(); // clear error code
 
+  // create buffer
   ALuint newBufferId;
-  alGenBuffers(1, &newBufferId);
+  alGenBuffers((ALsizei) 1, &newBufferId);
   if (alErrorHandling::errorOccurred()) {
     logger().warn("Failed to generate buffer!");
+    return std::make_pair(false, newBufferId);
   }
 
-  // read wave file and load into buffer
-  unsigned int format;
-	int channel, sampleRate, bps, size;	
-	char* data = FileReader::loadWAV(file.c_str(), channel, sampleRate, bps, size, format);
-	alBufferData(newBufferId, format, data, size, sampleRate);
-	delete[] data;
+  // read wave file
+  WavContainer wavContainer;
+  if (!FileReader::loadWAV(file.c_str(), wavContainer)) {
+    logger().warn("{} is not a valid wave file! Unable to create buffer!", file);
+    alDeleteBuffers((ALsizei) 1, &newBufferId);
+    return std::make_pair(false, newBufferId);
+  }
+
+  // load wave into buffer
+  alBufferData(newBufferId, wavContainer.format, wavContainer.data, 
+    wavContainer.size, wavContainer.sampleRate);
   if (alErrorHandling::errorOccurred()) {
     logger().warn("Failed to fill buffer with data!");
+    alDeleteBuffers((ALsizei) 1, &newBufferId);
+    return std::make_pair(false, newBufferId);
   }
 
   // add Buffer 
   mBufferList.push_back(std::make_shared<Buffer>(file, newBufferId));
 
-  return newBufferId;
+  return std::make_pair(true, newBufferId);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

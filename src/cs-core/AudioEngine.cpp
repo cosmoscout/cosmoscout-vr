@@ -163,7 +163,7 @@ std::shared_ptr<audio::AudioController> AudioEngine::createAudioController() {
 void AudioEngine::playAmbient() {
   audioController = createAudioController();
 
-  testSourceA = audioController->createSource("C:/Users/sass_fl/audioCS/audioCSNotes/testFiles/scifi_stereo.wav"); 
+  testSourceA = audioController->createSource("C:/Users/sass_fl/audioCS/audioCSNotes/testFiles/123.wav"); 
   testSourceB = audioController->createSource("C:/Users/sass_fl/audioCS/audioCSNotes/testFiles/exotic_mono.wav");
 
   testSourceA->play();
