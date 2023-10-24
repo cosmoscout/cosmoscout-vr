@@ -39,9 +39,9 @@ class CS_CORE_EXPORT AudioEngine {
   std::shared_ptr<SolarSystem> solarSystem, std::shared_ptr<GuiManager> guiManager);
   ~AudioEngine();
 
-  /// Returns a list of all possible Output Devices 
+  /// Returns a list of all possible Output Devices (wrapper to the OpenAlManager function)
   std::vector<std::string> getDevices();
-  /// Sets the output device for the audioEngine
+  /// Sets the output device for the audioEngine (wrapper to the OpenAlManager function)
   bool setDevice(std::string outputDevice);
   /// Sets the master volume for the audioEngine 
   bool setMasterVolume(float gain);
@@ -56,7 +56,7 @@ class CS_CORE_EXPORT AudioEngine {
   std::shared_ptr<audio::BufferManager>                mBufferManager;
   std::shared_ptr<audio::ProcessingStepsManager>       mProcessingStepsManager;
   cs::scene::CelestialObserver                         mObserver; // ?
-  std::shared_ptr<core::GuiManager>                    mGuiManager; // ?
+  std::shared_ptr<core::GuiManager>                    mGuiManager;
   utils::Property<float>                               mMasterVolume;
   std::vector<std::shared_ptr<audio::AudioController>> mAudioControllers;
 

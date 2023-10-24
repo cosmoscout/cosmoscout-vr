@@ -36,14 +36,18 @@ OpenAlManager::~OpenAlManager() {
 
 bool OpenAlManager::initOpenAl(core::Settings::Audio settings) {
   // create settings for context
-  ALCint attrlist[] = {
-    ALC_FREQUENCY, settings.pMixerFrequency.get(),
-	  ALC_MONO_SOURCES, settings.pNumberMonoSources.get(),
-	  ALC_STEREO_SOURCES, settings.pNumberStereoSources.get(),
-	  ALC_REFRESH, settings.pRefreshRate.get(),
-	  ALC_SYNC, settings.pContextSync.get(),
-	  ALC_HRTF_SOFT, settings.pEnableHRTF.get()
-  };
+  mAttributeList[0]  = ALC_FREQUENCY;
+  mAttributeList[1]  = settings.pMixerFrequency.get();
+  mAttributeList[2]  = ALC_MONO_SOURCES;
+  mAttributeList[3]  = settings.pNumberMonoSources.get();
+  mAttributeList[4]  = ALC_STEREO_SOURCES;
+  mAttributeList[5]  = settings.pNumberStereoSources.get();
+  mAttributeList[6]  = ALC_REFRESH;
+  mAttributeList[7]  = settings.pRefreshRate.get();
+  mAttributeList[8]  = ALC_SYNC;
+  mAttributeList[9]  = settings.pContextSync.get();
+  mAttributeList[10] = ALC_HRTF_SOFT;
+  mAttributeList[11] = settings.pEnableHRTF.get();
 
   // open default device
   mDevice = alcOpenDevice(nullptr);
@@ -53,7 +57,7 @@ bool OpenAlManager::initOpenAl(core::Settings::Audio settings) {
   }
 
   // create context
-  mContext = alcCreateContext(mDevice, attrlist);
+  mContext = alcCreateContext(mDevice, mAttributeList);
   if (contextErrorOccurd()) {
     logger().warn("Failed to create context!");
     return false;
@@ -68,6 +72,60 @@ bool OpenAlManager::initOpenAl(core::Settings::Audio settings) {
 
   return true;
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+bool OpenAlManager::setDevice(std::string outputDevice) {
+  if (alcIsExtensionPresent(NULL, "ALC_SOFT_reopen_device") == ALC_FALSE) {
+    logger().warn("OpenAL Extensions 'ALC_SOFT_reopen_device' not found. Unable to change the output device!");
+    return false;
+  }
+
+  if (alcReopenDeviceSOFT == nullptr) {
+    alcReopenDeviceSOFT = (LPALCREOPENDEVICESOFT)alGetProcAddress("alcReopenDeviceSOFT");
+  }
+
+  if (alcReopenDeviceSOFT(mDevice, outputDevice.c_str(), mAttributeList) == ALC_FALSE) { // schlägt hier manchmal fehl, wenn in playAmbient() aufgerufen wird
+    contextErrorOccurd();
+    logger().warn("Failed to set the new output device! Playback remains on the current device!");
+    return false;
+  }
+  return true;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+std::vector<std::string> OpenAlManager::getDevices() {
+  std::vector<std::string> result;
+  int macro;
+
+  if (alcIsExtensionPresent(NULL, "ALC_ENUMERATE_ALL_EXT") == ALC_TRUE) {
+    macro = ALC_ALL_DEVICES_SPECIFIER;
+  
+  } else if (alcIsExtensionPresent(NULL, "ALC_ENUMERATION_EXT") == ALC_TRUE) {
+    logger().warn("OpenAL Extensions 'ALC_ENUMERATE_ALL_EXT' not found. Not all available devices might be found!");
+    macro = ALC_DEVICE_SPECIFIER;
+
+  } else {
+    logger().warn("OpenAL Extensions 'ALC_ENUMERATE_ALL_EXT' and 'ALC_ENUMERATION_EXT' not found. Unable to find available devices!");
+    return result;
+  }
+
+  const ALCchar* device = alcGetString(nullptr, macro);
+  const ALCchar* next = alcGetString(nullptr, macro) + 1;
+  size_t len = 0;
+
+  while (device && *device != '\0' && next && *next != '\0') {
+    result.push_back(device);
+    len = strlen(device);
+    device += (len + 1);
+    next += (len + 2);
+  }
+
+  return result;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool OpenAlManager::contextErrorOccurd() {
   ALCenum error;

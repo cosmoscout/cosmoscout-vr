@@ -50,7 +50,7 @@ AudioEngine::AudioEngine(std::shared_ptr<Settings> settings, std::shared_ptr<Sol
   logger().debug("Creating AudioEngine.");
 
   if (!mOpenAlManager->initOpenAl(mSettings->mAudio)) {
-    logger().warn("Failed to (fully) initialize OpenAL!");
+    logger().error("Failed to (fully) initialize OpenAL!");
     return;
   }
   logger().info("OpenAL-Soft Vendor:  {}", alGetString(AL_VENDOR));
@@ -70,38 +70,18 @@ AudioEngine::~AudioEngine() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 std::vector<std::string> AudioEngine::getDevices() {
-  std::vector<std::string> result;
-  int macro;
-
-  if (alcIsExtensionPresent(NULL, "ALC_ENUMERATE_ALL_EXT") == AL_TRUE) {
-    macro = ALC_ALL_DEVICES_SPECIFIER;
-  
-  } else if (alcIsExtensionPresent(NULL, "ALC_ENUMERATION_EXT") == AL_TRUE) {
-    logger().warn("OpenAL Extensions 'ALC_ENUMERATE_ALL_EXT' not found. Not all available devices might be found!");
-    macro = ALC_DEVICE_SPECIFIER;
-
-  } else {
-    logger().warn("OpenAL Extensions 'ALC_ENUMERATE_ALL_EXT' and 'ALC_ENUMERATION_EXT' not found. Unable to find available devices!");
-    return result;
-  }
-
-  const ALCchar* device = alcGetString(nullptr, macro);
-  const ALCchar* next = alcGetString(nullptr, macro) + 1;
-  size_t len = 0;
-
-  while (device && *device != '\0' && next && *next != '\0') {
-    result.push_back(device);
-    len = strlen(device);
-    device += (len + 1);
-    next += (len + 2);
-  }
-
-  return result;
+  return mOpenAlManager->getDevices();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool AudioEngine::setDevice(std::string outputDevice) {
+  if (mOpenAlManager->setDevice(outputDevice)) {
+    // update gui:
+    mGuiManager->getGui()->callJavascript("CosmoScout.gui.setDropdownValue", 
+      "audio.outputDevice", outputDevice); 
+    return true;
+  }
   return false;
 }
 
@@ -137,21 +117,18 @@ void AudioEngine::createGUI() {
   mMasterVolume.connectAndTouch(
       [this](float value) { mGuiManager->setSliderValue("audio.masterVolume", value); }); 
 
-
-  // Fill the dropdowns with the availabe output devices
+  // Fill the dropdowns with the available output devices
   // TODO: make device selectable and change in openAL
   for (auto device : getDevices()) {
     mGuiManager->getGui()->callJavascript("CosmoScout.gui.addDropdownValue",
-        "audio.outputDevice", device, device, false);
-
-    /*
-    if (active) {
-      noneActive = false;
-      setWMSServer(overlay->second, server.getTitle());
-    }
-    */
+        "audio.outputDevice", device, device.substr(14, device.length()), false);
   }
 
+  // register callback for dropdown output devices
+  mGuiManager->getGui()->registerCallback("audio.outputDevice",
+      "Sets the audio output device.", std::function([this](std::string value) {
+        setDevice(static_cast<std::string>(value));
+      }));
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -201,6 +178,12 @@ void AudioEngine::playAmbient() {
   testSourceA->set("pitch", 1.0f);
 
   audioController->update(); 
+
+  /*
+  auto x = getDevices();
+  logger().debug("change to: {}", x[1]);
+  setDevice(x[1]);
+  */
 }
 
 } // namespace cs::core

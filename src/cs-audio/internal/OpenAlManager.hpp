@@ -10,9 +10,11 @@
 
 #include "cs_audio_export.hpp"
 #include "../../cs-core/Settings.hpp"
+#include "../../cs-utils/Property.hpp"
 
 #include <AL/al.h>
 #include <AL/alc.h>
+#include <AL/alext.h>
 
 namespace cs::audio {
 
@@ -28,13 +30,21 @@ class CS_AUDIO_EXPORT OpenAlManager {
   ~OpenAlManager();
 
   bool initOpenAl(core::Settings::Audio settings);
+  /// Returns a list of all possible Output Devices 
+  std::vector<std::string> getDevices();
+  /// Sets the output device for the audioEngine
+  bool setDevice(std::string outputDevice);
 
  private:
-  ALCdevice* mDevice;
+  ALCdevice*  mDevice;
   ALCcontext* mContext;
-  
+  ALCint      mAttributeList[12];
+
   OpenAlManager();
   bool contextErrorOccurd();
+
+  // OpenALSoft extensions function pointers:
+  LPALCREOPENDEVICESOFT alcReopenDeviceSOFT;
 };
 
 } // namespace cs::audio
