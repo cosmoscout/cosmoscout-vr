@@ -18,6 +18,7 @@
 #include "../cs-audio/internal/BufferManager.hpp"
 #include "../cs-audio/internal/ProcessingStepsManager.hpp"
 #include "../cs-audio/internal/alErrorHandling.hpp"
+#include "../cs-utils/Property.hpp"
 
 // for testing:
 #include <any>
@@ -43,7 +44,7 @@ AudioEngine::AudioEngine(std::shared_ptr<Settings> settings, std::shared_ptr<Sol
     , mProcessingStepsManager(audio::ProcessingStepsManager::createProcessingStepsManager())
     , mObserver(solarSystem->getObserver())
     , mSolarSystem(std::move(solarSystem))
-    , mMasterVolume(1.f) {
+    , mMasterVolume(utils::Property<float>(1.f)) {
 
   // Tell the user what's going on.
   logger().debug("Creating AudioEngine.");
@@ -68,8 +69,8 @@ AudioEngine::~AudioEngine() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::shared_ptr<std::vector<std::string>> AudioEngine::getDevices() {
-  std::shared_ptr<std::vector<std::string>> result = std::make_shared<std::vector<std::string>>();
+std::vector<std::string> AudioEngine::getDevices() {
+  std::vector<std::string> result;
   int macro;
 
   if (alcIsExtensionPresent(NULL, "ALC_ENUMERATE_ALL_EXT") == AL_TRUE) {
@@ -89,7 +90,7 @@ std::shared_ptr<std::vector<std::string>> AudioEngine::getDevices() {
   size_t len = 0;
 
   while (device && *device != '\0' && next && *next != '\0') {
-    result->push_back(device);
+    result.push_back(device);
     len = strlen(device);
     device += (len + 1);
     next += (len + 2);
@@ -158,7 +159,7 @@ void AudioEngine::update() {
 
 /////////////////////////////////////////////////////////////////////// /////////////////////////////
 
-void AudioEngine::createAudioController() {
+std::shared_ptr<audio::AudioController> AudioEngine::createAudioController() {
   auto controller = std::make_shared<audio::AudioController>(mBufferManager, mProcessingStepsManager);
   mAudioControllers.push_back(controller);
   return controller;

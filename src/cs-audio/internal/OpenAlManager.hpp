@@ -27,7 +27,7 @@ class CS_AUDIO_EXPORT OpenAlManager {
   static std::shared_ptr<OpenAlManager> createOpenAlManager();
   ~OpenAlManager();
 
-  bool initOpenAl(std::shared_ptr<core::Settings> settings);
+  bool initOpenAl(core::Settings::Audio settings);
 
  private:
   ALCdevice* mDevice;

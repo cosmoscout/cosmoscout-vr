@@ -34,7 +34,7 @@ OpenAlManager::~OpenAlManager() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool OpenAlManager::initOpenAl(core::Settings::mAudio settings) {
+bool OpenAlManager::initOpenAl(core::Settings::Audio settings) {
   // create settings for context
   ALCint attrlist[] = {
     ALC_FREQUENCY, settings.pMixerFrequency.get(),

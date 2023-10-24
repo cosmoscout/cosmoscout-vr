@@ -39,7 +39,7 @@ class CS_CORE_EXPORT AudioEngine {
   ~AudioEngine();
 
   /// Returns a list of all possible Output Devices 
-  std::shared_ptr<std::vector<std::string>> getDevices();
+  std::vector<std::string> getDevices();
   /// Sets the output device for the audioEngine
   bool setDevice(std::string outputDevice);
   /// Sets the master volume for the audioEngine 
