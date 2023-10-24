@@ -35,6 +35,7 @@ source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}" PREFIX "src" FILES
 # install the library ------------------------------------------------------------------------------
 
 install(TARGETS cs-audio DESTINATION lib)
+install(DIRECTORY "gui"              DESTINATION "share/resources")
 
 # export header ------------------------------------------------------------------------------------
 
