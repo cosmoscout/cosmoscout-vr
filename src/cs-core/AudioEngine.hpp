@@ -34,8 +34,8 @@ class CS_CORE_EXPORT AudioEngine {
   AudioEngine& operator=(const AudioEngine&) = delete;
   AudioEngine& operator=(AudioEngine&&) = delete;
 
-  explicit AudioEngine(std::shared_ptr<Settings> settings, 
-    std::shared_ptr<SolarSystem> solarSystem, std::shared_ptr<GuiManager> guiManager);
+  static std::shared_ptr<AudioEngine> createAudioEngine(std::shared_ptr<Settings> settings, 
+  std::shared_ptr<SolarSystem> solarSystem, std::shared_ptr<GuiManager> guiManager);
   ~AudioEngine();
 
   /// Returns a list of all possible Output Devices 
@@ -51,13 +51,14 @@ class CS_CORE_EXPORT AudioEngine {
 
  private:
   std::shared_ptr<core::Settings>                      mSettings;
-  std::unique_ptr<audio::OpenAlManager>                mOpenAlManager;
+  std::shared_ptr<audio::OpenAlManager>                mOpenAlManager;
   std::shared_ptr<audio::BufferManager>                mBufferManager;
   std::shared_ptr<audio::ProcessingStepsManager>       mProcessingStepsManager;
   cs::scene::CelestialObserver                         mObserver; // ?
   std::shared_ptr<core::GuiManager>                    mGuiManager; // ?
-  float                                                mMasterVolume;
-  std::vector<std::shared_ptr<audio::AudioController>> mAudioControllers
+
+  AudioEngine(std::shared_ptr<Settings> settings, 
+    std::shared_ptr<SolarSystem> solarSystem, std::shared_ptr<GuiManager> guiManager);
 
   void createGUI();
 

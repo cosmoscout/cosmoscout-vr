@@ -17,13 +17,15 @@
 
 namespace cs::audio {
 
+std::shared_ptr<ProcessingStepsManager> ProcessingStepsManager::createProcessingStepsManager() {
+  static auto psManager = std::shared_ptr<ProcessingStepsManager>(new ProcessingStepsManager());
+  return psManager;
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 ProcessingStepsManager::ProcessingStepsManager() 
-  : mPipelines(std::map<AudioController*, std::set<std::shared_ptr<ProcessingStep>>>())
-  , mExistingProcessingSteps(std::map<std::string, std::shared_ptr<ProcessingStep>>()) {
-  
-  mExistingProcessingSteps["Default"] = std::make_shared<Default_PS>(); 
+  : mPipelines(std::map<AudioController*, std::set<std::shared_ptr<ProcessingStep>>>()) {  
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -32,7 +34,7 @@ void ProcessingStepsManager::createPipeline(std::vector<std::string> processingS
   AudioController* audioController) {
   
   std::set<std::shared_ptr<ProcessingStep>> pipeline;
-  pipeline.insert(mExistingProcessingSteps["Default"]);
+  pipeline.insert(Default_PS::create());
 
   for (std::string processingStep : processingSteps) {
     auto ps = getProcessingStep(processingStep);
@@ -48,22 +50,16 @@ void ProcessingStepsManager::createPipeline(std::vector<std::string> processingS
 
 void ProcessingStepsManager::createPipeline(AudioController* audioController) {
   std::set<std::shared_ptr<ProcessingStep>> pipeline;
-  pipeline.insert(mExistingProcessingSteps["Default"]);
+  pipeline.insert(Default_PS::create());
   mPipelines[audioController] = pipeline;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 std::shared_ptr<ProcessingStep> ProcessingStepsManager::getProcessingStep(std::string processingStep) {
-  // Search for processing step and reuse it if it already exists:
-  if (auto search = mExistingProcessingSteps.find(processingStep); search != mExistingProcessingSteps.end()) {
-    return mExistingProcessingSteps[processingStep];
-  }
 
-  // Create not yet existing processing step:
   if (processingStep == "Spatialization") {
-    mExistingProcessingSteps[processingStep] = std::make_shared<Spatialization_PS>();
-    return mExistingProcessingSteps[processingStep];
+    return Spatialization_PS::create();
   }
 
   // ...

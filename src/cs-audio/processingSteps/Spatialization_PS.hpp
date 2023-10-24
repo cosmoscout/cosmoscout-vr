@@ -17,11 +17,15 @@ namespace cs::audio {
 
 class CS_AUDIO_EXPORT Spatialization_PS : public ProcessingStep {
  public:
+
+  static std::shared_ptr<ProcessingStep> create();
+
   void process(ALuint openAlId, 
     std::shared_ptr<std::map<std::string, std::any>> settings,
     std::shared_ptr<std::vector<std::string>> failedSettings);
 
  private:
+  Spatialization_PS();
 };
 
 } // namespace cs::audio

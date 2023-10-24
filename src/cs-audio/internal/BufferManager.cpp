@@ -15,6 +15,19 @@
 
 namespace cs::audio {
 
+std::shared_ptr<BufferManager> BufferManager::createBufferManager() {
+  static auto bufferManager = std::shared_ptr<BufferManager>(new BufferManager());
+  return bufferManager;  
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+BufferManager::BufferManager()
+  : mBufferList(std::vector<std::shared_ptr<Buffer>>()) {
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 BufferManager::~BufferManager() {
   alGetError(); // clear error code
   // delete all buffers

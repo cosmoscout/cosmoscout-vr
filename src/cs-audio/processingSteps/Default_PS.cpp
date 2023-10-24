@@ -14,6 +14,17 @@
 
 namespace cs::audio {
 
+std::shared_ptr<ProcessingStep> Default_PS::create() {
+  static auto default_ps = std::shared_ptr<Default_PS>(new Default_PS());
+  return default_ps;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+Default_PS::Default_PS() {}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void Default_PS::process(ALuint openAlId, 
   std::shared_ptr<std::map<std::string, std::any>> settings,
   std::shared_ptr<std::vector<std::string>> failedSettings) {

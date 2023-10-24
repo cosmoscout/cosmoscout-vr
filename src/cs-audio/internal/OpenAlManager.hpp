@@ -24,6 +24,7 @@ class CS_AUDIO_EXPORT OpenAlManager {
   OpenAlManager& operator=(const OpenAlManager&) = delete;
   OpenAlManager& operator=(OpenAlManager&&) = delete;
 
+  static std::shared_ptr<OpenAlManager> createOpenAlManager();
   ~OpenAlManager();
 
   bool initOpenAl(std::shared_ptr<core::Settings> settings);
@@ -32,6 +33,7 @@ class CS_AUDIO_EXPORT OpenAlManager {
   ALCdevice* mDevice;
   ALCcontext* mContext;
   
+  OpenAlManager();
   bool contextErrorOccurd();
 };
 

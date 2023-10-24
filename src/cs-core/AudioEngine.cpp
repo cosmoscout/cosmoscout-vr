@@ -25,15 +25,22 @@
 
 namespace cs::core {
 
+std::shared_ptr<AudioEngine> AudioEngine::createAudioEngine(std::shared_ptr<Settings> settings, 
+  std::shared_ptr<SolarSystem> solarSystem, std::shared_ptr<GuiManager> guiManager) {
+
+  static auto audioEngine = std::shared_ptr<AudioEngine>(new AudioEngine(settings, solarSystem, guiManager));
+  return audioEngine;
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 AudioEngine::AudioEngine(std::shared_ptr<Settings> settings, std::shared_ptr<SolarSystem> solarSystem,
   std::shared_ptr<GuiManager> guiManager) 
     : mSettings(std::move(settings)) 
     , mGuiManager(std::move(guiManager))
-    , mOpenAlManager(std::make_unique<audio::OpenAlManager>())
-    , mBufferManager(std::make_shared<audio::BufferManager>()) 
-    , mProcessingStepsManager(std::make_shared<audio::ProcessingStepsManager>()) 
+    , mOpenAlManager(audio::OpenAlManager::createOpenAlManager())
+    , mBufferManager(audio::BufferManager::createBufferManager()) 
+    , mProcessingStepsManager(audio::ProcessingStepsManager::createProcessingStepsManager())
     , mObserver(solarSystem->getObserver())
     , mSolarSystem(std::move(solarSystem))
     , mMasterVolume(1.f) {

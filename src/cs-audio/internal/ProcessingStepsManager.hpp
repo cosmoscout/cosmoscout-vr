@@ -29,7 +29,7 @@ class CS_AUDIO_EXPORT ProcessingStepsManager {
   ProcessingStepsManager& operator=(const ProcessingStepsManager&) = delete;
   ProcessingStepsManager& operator=(ProcessingStepsManager&&) = delete;
 
-  ProcessingStepsManager();
+  static std::shared_ptr<ProcessingStepsManager> createProcessingStepsManager();
 
   void createPipeline(std::vector<std::string> processingSteps, AudioController* audioController);
   void createPipeline(AudioController* audioController);
@@ -38,8 +38,8 @@ class CS_AUDIO_EXPORT ProcessingStepsManager {
     
  private:                                                                                                                                                     
   std::map<AudioController*, std::set<std::shared_ptr<ProcessingStep>>> mPipelines;
-  std::map<std::string, std::shared_ptr<ProcessingStep>>                                mExistingProcessingSteps; 
 
+  ProcessingStepsManager();
   std::shared_ptr<ProcessingStep> getProcessingStep(std::string processingStep);
 };
 

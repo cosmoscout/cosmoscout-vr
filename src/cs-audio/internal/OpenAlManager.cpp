@@ -15,6 +15,17 @@
 
 namespace cs::audio {
 
+std::shared_ptr<OpenAlManager> OpenAlManager::createOpenAlManager() {
+  auto static openAlManager = std::shared_ptr<OpenAlManager>(new OpenAlManager());
+  return openAlManager;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+OpenAlManager::OpenAlManager() {}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 OpenAlManager::~OpenAlManager() {
   alcMakeContextCurrent(nullptr);
 	alcDestroyContext(mContext);

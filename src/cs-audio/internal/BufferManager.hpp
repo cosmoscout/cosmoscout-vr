@@ -36,7 +36,7 @@ class CS_AUDIO_EXPORT BufferManager {
   BufferManager& operator=(const BufferManager&) = delete;
   BufferManager& operator=(BufferManager&&) = delete;
 
-  BufferManager() {}
+  static std::shared_ptr<BufferManager> createBufferManager();
   ~BufferManager();
 
   // returns an OpenAL id to a buffer for this file; The BufferManager will
@@ -48,6 +48,7 @@ class CS_AUDIO_EXPORT BufferManager {
  private:
   std::vector<std::shared_ptr<Buffer>> mBufferList;
   
+  BufferManager();
   // creates a new buffer
   ALuint createBuffer(std::string file);
   // deletes a buffer if it is not used in any source
