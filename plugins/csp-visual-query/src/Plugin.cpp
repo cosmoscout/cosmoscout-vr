@@ -10,12 +10,11 @@
 #include "../../../src/cs-core/GuiManager.hpp"
 #include "logger.hpp"
 
-#include "outputNodes/OverlayRenderer/OverlayRender.hpp"
-#include "sourceNodes/WCSSource.hpp"
-#include "sourceNodes/WCSCoverage.hpp"
-#include "sourceNodes/WCSCoverageImage.hpp"
-#include "sourceNodes/RandomDataSource/RandomDataSource.hpp"
-#include "commonNodes/NumberNode.hpp"
+#include "common-nodes/Real/Real.hpp"
+#include "output-nodes/OverlayRenderer/OverlayRender.hpp"
+#include "source-nodes/RandomDataSource/RandomDataSource.hpp"
+#include "source-nodes/WCSCoverage/WCSCoverage.hpp"
+#include "source-nodes/WCSCoverageImage/WCSCoverageImage.hpp"
 
 #include <vector>
 
@@ -61,11 +60,11 @@ void Plugin::init() {
   onLoad();
 
   // load WCS
-  for (std::string url : mPluginSettings.mWcsUrl) {
-    mPluginSettings.mWebCoverages.push_back(csl::ogc::WebCoverageService(
+  for (std::string const& url : mPluginSettings.mWcsUrl) {
+    mPluginSettings.mWebCoverages.emplace_back(
       url, csl::ogc::WebServiceBase::CacheMode::eAlways,
       "../../install/windows-Release/share/csp-visual-query/wcs-cache"
-      )
+
     );
   }
 
@@ -133,27 +132,30 @@ void Plugin::setupNodeEditor(uint16_t port) {
   // The name of the socket will be used by the custom nodes when defining their inputs and outputs.
   // factory.registerSocketType("Number Value", "#b08ab3");
 
-  factory.registerSocketType("GreyScaleGeoTexture", "#ffff00");
-  factory.registerSocketType("WCSScalarField", "#b08ab3");
-  factory.registerSocketType("Image2D", "#3333ff");
 
   factory.registerSocketType("Coverage", "#8e38ff");
-  factory.registerSocketType("WCSImage", "#b08ab3");
-  factory.registerSocketType("WCSMinMax", "#b08ab3");
-  factory.registerSocketType("WCSResolution", "#b08ab3");
+  factory.registerSocketType("Image2D", "#3333ff");
   factory.registerSocketType("WCSTime", "#b08ab3");
-  factory.registerSocketType("WCSBound", "#b08ab3");
-  factory.registerSocketType("Number Value", "#FFD480");
+  factory.registerSocketType("WCSBounds", "#b08ab3");
+
+  factory.registerSocketType("Real", "#b2e2e2");
+  factory.registerSocketType("RVec2", "#66c2a4");
+  factory.registerSocketType("RVec3", "#2ca25f");
+  factory.registerSocketType("RVec4", "#006d2c");
+
+  factory.registerSocketType("Int", "#fecc5c");
+  factory.registerSocketType("IVec2", "#fd8d3c");
+  factory.registerSocketType("IVec3", "#f03b20");
+  factory.registerSocketType("IVec4", "#bd0026");
 
   // Now, we register our custom node types. Any parameter given to this method, will later be
   // passed to the constructor of the node instances. For more information, see the documentation of
   // NodeFactory::registerNodeType().
-  factory.registerNodeType<WCSSource>();
   factory.registerNodeType<WCSCoverage>(
     std::shared_ptr<std::vector<csl::ogc::WebCoverageService>>(&mPluginSettings.mWebCoverages));
   factory.registerNodeType<RandomDataSource>();
   factory.registerNodeType<WCSCoverageImage>();
-  factory.registerNodeType<NumberNode>();
+  factory.registerNodeType<Real>();
   factory.registerNodeType<OverlayRender>(mSolarSystem);
 
   // Finally, create the node editor. It will start the server so that we can now open a web browser

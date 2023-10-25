@@ -5,51 +5,65 @@
 // SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
 // SPDX-License-Identifier: MIT
 
-#include "WCSSource.hpp"
+#include "Real.hpp"
 
-#include "../../../../src/cs-utils/filesystem.hpp"
+#include "../../../../../src/cs-utils/filesystem.hpp"
 
 namespace csp::visualquery {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-const std::string WCSSource::sName = "WCSSource";
+const std::string Real::sName = "Real";
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::string WCSSource::sSource() {
+std::string Real::sSource() {
   return cs::utils::filesystem::loadToString(
-      "../share/resources/nodes/csp-visual-query/WCSSource.js");
+      "../share/resources/nodes/csp-visual-query/Real.js");
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::unique_ptr<WCSSource> WCSSource::sCreate() {
-  return std::make_unique<WCSSource>();
+std::unique_ptr<Real> Real::sCreate() {
+  return std::make_unique<Real>();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-WCSSource::WCSSource() {
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-WCSSource::~WCSSource() {
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-std::string const& WCSSource::getName() const {
+std::string const& Real::getName() const {
   return sName;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void WCSSource::process() {
+void Real::process() {
+  writeOutput("value", mValue);
+}
 
-  // The name of the port must match the name given in the JavaScript code above.
-  writeOutput("scalar-field", 0);
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Real::onMessageFromJS(nlohmann::json const& message) {
+
+  // The message sent via CosmoScout.sendMessageToCPP() contains the selected number.
+  mValue = message;
+
+  // Whenever the user entered a number, we write it to the output socket by calling the process()
+  // method. Writing the output will not trigger a graph reprocessing right away, it will only queue
+  // up the connected nodes for being processed in the next update step (and only if the value
+  // actually changed).
+  process();
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+nlohmann::json Real::getData() const {
+  return {{"value", mValue}};
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Real::setData(nlohmann::json const& json) {
+  mValue = json["value"];
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

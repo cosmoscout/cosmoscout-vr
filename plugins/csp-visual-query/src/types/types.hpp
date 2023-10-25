@@ -11,6 +11,7 @@
 #include <ctime>
 #include <stdint.h>
 #include <string>
+#include <utility>
 #include <variant>
 #include <vector>
 
@@ -40,7 +41,7 @@ struct Image2D {
       , mNumScalars(numScalars)
       , mDimension(dimension)
       , mBounds(bounds)
-      , mTimeStamp(timeStamp) {
+      , mTimeStamp(std::move(timeStamp)) {
   }
 
   PointsType mPoints;
@@ -61,7 +62,7 @@ struct Volume3D {
       , mNumScalars(numScalars)
       , mDimension(dimension)
       , mBounds(bounds)
-      , mTimeStamp(timeStamp) {
+      , mTimeStamp(std::move(timeStamp)) {
   }
 
   PointsType mPoints;

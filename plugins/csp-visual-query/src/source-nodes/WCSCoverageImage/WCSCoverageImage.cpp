@@ -7,12 +7,12 @@
 
 #include "WCSCoverageImage.hpp"
 
-#include "../../../../src/cs-utils/filesystem.hpp"
-#include "../../../csl-ogc/src/wcs/WebCoverageService.hpp"
-#include "../../../csl-ogc/src/wcs/WebCoverageTextureLoader.hpp"
-#include "../types/CoverageContainer.hpp"
-#include "../types/types.hpp"
-#include "../logger.hpp"
+#include "../../../../../src/cs-utils/filesystem.hpp"
+#include "../../../../csl-ogc/src/wcs/WebCoverageService.hpp"
+#include "../../../../csl-ogc/src/wcs/WebCoverageTextureLoader.hpp"
+#include "../../logger.hpp"
+#include "../../types/CoverageContainer.hpp"
+#include "../../types/types.hpp"
 
 namespace csp::visualquery {
 
