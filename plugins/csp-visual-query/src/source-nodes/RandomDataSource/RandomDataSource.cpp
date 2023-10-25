@@ -60,12 +60,16 @@ void RandomDataSource::process() noexcept {
 
   for (double lat = mMinLat; lat <= mMaxLat; lat += 1.0) {
     for (double lon = mMinLon; lon <= mMaxLon; lon += 1.0) {
-      points.emplace_back(std::vector{static_cast<float>(mDistribution(mRandomNumberGenerator))});
+      points.emplace_back(std::vector{static_cast<float>(mDistribution(mRandomNumberGenerator)),
+          static_cast<float>(mDistribution(mRandomNumberGenerator)),
+          static_cast<float>(mDistribution(mRandomNumberGenerator)),
+          static_cast<float>(mDistribution(mRandomNumberGenerator))});
     }
   }
 
-  mData = std::make_shared<Image2D>(points, 1,
-      glm::uvec2{static_cast<uint32_t>((mMaxLon - mMinLon)), static_cast<uint32_t>((mMaxLat - mMinLat))},
+  mData = std::make_shared<Image2D>(points, 4,
+      glm::uvec2{
+          static_cast<uint32_t>((mMaxLon - mMinLon)), static_cast<uint32_t>((mMaxLat - mMinLat))},
       csl::ogc::Bounds{mMinLon, mMaxLon, mMinLat, mMaxLat}, std::nullopt);
 
   writeOutput("Image2D", mData);
