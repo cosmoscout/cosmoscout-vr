@@ -34,15 +34,17 @@ using PointsType = std::variant<U8ValueVector, U16ValueVector, U32ValueVector, I
 struct Image2D {
   Image2D() = default;
 
-  Image2D(PointsType points, glm::uvec2 dimension, csl::ogc::Bounds bounds,
+  Image2D(PointsType points, size_t numScalars, glm::uvec2 dimension, csl::ogc::Bounds bounds,
       std::optional<csl::ogc::TimeInterval> timeStamp = std::nullopt)
       : mPoints(std::move(points))
+      , mNumScalars(numScalars)
       , mDimension(dimension)
       , mBounds(bounds)
       , mTimeStamp(timeStamp) {
   }
 
   PointsType mPoints;
+  size_t     mNumScalars;
 
   glm::uvec2       mDimension;
   csl::ogc::Bounds mBounds;
@@ -51,7 +53,19 @@ struct Image2D {
 };
 
 struct Volume3D {
+  Volume3D() = default;
+
+  Volume3D(PointsType points, size_t numScalars, glm::uvec3 dimension, csl::ogc::Bounds bounds,
+      std::optional<csl::ogc::TimeInterval> timeStamp = std::nullopt)
+      : mPoints(std::move(points))
+      , mNumScalars(numScalars)
+      , mDimension(dimension)
+      , mBounds(bounds)
+      , mTimeStamp(timeStamp) {
+  }
+
   PointsType mPoints;
+  size_t     mNumScalars;
 
   glm::uvec3       mDimension;
   csl::ogc::Bounds mBounds;

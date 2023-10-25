@@ -90,6 +90,7 @@ void WCSCoverageImage::process() {
     auto textureSize = texture.x * texture.y;
 
     Image2D image;
+    image.mNumScalars = 1;
     image.mDimension = {texture.x, texture.y};
     image.mBounds    = {texture.lnglatBounds[0], texture.lnglatBounds[1], texture.lnglatBounds[2],
            texture.lnglatBounds[3]};

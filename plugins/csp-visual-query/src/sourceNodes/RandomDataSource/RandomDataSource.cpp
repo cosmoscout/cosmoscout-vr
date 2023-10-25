@@ -60,7 +60,7 @@ void RandomDataSource::process() noexcept {
     }
   }
 
-  mData = std::make_shared<Image2D>(points,
+  mData = std::make_shared<Image2D>(points, 1,
       glm::uvec2{static_cast<uint32_t>((mMaxLon - mMinLon)), static_cast<uint32_t>((mMaxLat - mMinLat))},
       csl::ogc::Bounds{mMinLon, mMaxLon, mMinLat, mMaxLat}, std::nullopt);
 
