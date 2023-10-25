@@ -61,9 +61,8 @@ void Plugin::init() {
 
   // load WCS
   for (std::string const& url : mPluginSettings.mWcsUrl) {
-    mPluginSettings.mWebCoverages.emplace_back(
-      url, csl::ogc::WebServiceBase::CacheMode::eAlways,
-      "../../install/windows-Release/share/csp-visual-query/wcs-cache"
+    mPluginSettings.mWebCoverages.emplace_back(url, csl::ogc::WebServiceBase::CacheMode::eAlways,
+        "../../install/windows-Release/share/csp-visual-query/wcs-cache"
 
     );
   }
@@ -132,7 +131,6 @@ void Plugin::setupNodeEditor(uint16_t port) {
   // The name of the socket will be used by the custom nodes when defining their inputs and outputs.
   // factory.registerSocketType("Number Value", "#b08ab3");
 
-
   factory.registerSocketType("Coverage", "#8e38ff");
   factory.registerSocketType("Image2D", "#3333ff");
   factory.registerSocketType("WCSTime", "#b08ab3");
@@ -152,11 +150,11 @@ void Plugin::setupNodeEditor(uint16_t port) {
   // passed to the constructor of the node instances. For more information, see the documentation of
   // NodeFactory::registerNodeType().
   factory.registerNodeType<WCSCoverage>(
-    std::shared_ptr<std::vector<csl::ogc::WebCoverageService>>(&mPluginSettings.mWebCoverages));
+      std::shared_ptr<std::vector<csl::ogc::WebCoverageService>>(&mPluginSettings.mWebCoverages));
   factory.registerNodeType<RandomDataSource>();
   factory.registerNodeType<WCSCoverageImage>();
   factory.registerNodeType<Real>();
-  factory.registerNodeType<OverlayRender>(mSolarSystem);
+  factory.registerNodeType<OverlayRender>(mSolarSystem, mAllSettings);
 
   // Finally, create the node editor. It will start the server so that we can now open a web browser
   // and navigate to localhost:<port>.

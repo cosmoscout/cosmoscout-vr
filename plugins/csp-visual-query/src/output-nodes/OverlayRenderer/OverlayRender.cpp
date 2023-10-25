@@ -9,6 +9,12 @@
 
 #include "../../../../../src/cs-utils/filesystem.hpp"
 
+#include <VistaKernel/VistaSystem.h>
+#include <VistaKernel/GraphicsManager/VistaGraphicsManager.h>
+#include <VistaKernel/GraphicsManager/VistaOpenGLNode.h>
+#include <VistaKernel/GraphicsManager/VistaSceneGraph.h>
+#include <VistaKernelOpenSGExt/VistaOpenSGMaterialTools.h>
+
 namespace csp::visualquery {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -25,8 +31,9 @@ std::string OverlayRender::sSource() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 std::unique_ptr<OverlayRender> OverlayRender::sCreate(
-    std::shared_ptr<cs::core::SolarSystem> solarSystem) {
-  return std::make_unique<OverlayRender>(std::move(solarSystem));
+    std::shared_ptr<cs::core::SolarSystem> solarSystem,
+    std::shared_ptr<cs::core::Settings>    settings) {
+  return std::make_unique<OverlayRender>(std::move(solarSystem), std::move(settings));
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -37,8 +44,17 @@ std::string const& OverlayRender::getName() const {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-OverlayRender::OverlayRender(std::shared_ptr<cs::core::SolarSystem> solarSystem)
-    : mSolarSystem(std::move(solarSystem)) {
+OverlayRender::OverlayRender(std::shared_ptr<cs::core::SolarSystem> solarSystem,
+    std::shared_ptr<cs::core::Settings>                             settings)
+    : mSolarSystem(std::move(solarSystem))
+    , mSettings(std::move(settings)) {
+  mRenderer = std::make_unique<Renderer>("Earth", mSolarSystem, mSettings);
+
+  // Add to scenegraph.
+  VistaSceneGraph* pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
+  mGLNode.reset(pSG->NewOpenGLNode(pSG->GetRoot(), mRenderer.get()));
+  VistaOpenSGMaterialTools::SetSortKeyOnSubtree(
+      mGLNode.get(), static_cast<int>(cs::utils::DrawOrder::ePlanets) + 10);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -53,6 +69,8 @@ void OverlayRender::process() {
     return;
   }
 
+  mRenderer->setData(*input);
+  /*
   if (std::holds_alternative<U8ValueVector>(input->mPoints)) {
     for (auto const& entry : std::get<U8ValueVector>(input->mPoints)) {
       logger().info(entry.at(0));
@@ -79,7 +97,7 @@ void OverlayRender::process() {
     }
   } else {
     logger().error("Unknown type!");
-  }
+  }*/
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

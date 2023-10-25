@@ -51,6 +51,10 @@ std::string const& RandomDataSource::getName() const noexcept {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void RandomDataSource::process() noexcept {
+  if (mMaxLat < mMinLat || mMaxLon < mMinLon) {
+    return;
+  }
+
   F32ValueVector points;
   points.reserve(static_cast<size_t>((mMaxLat - mMinLat) * (mMaxLon - mMinLon)));
 

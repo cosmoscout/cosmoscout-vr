@@ -13,6 +13,7 @@
 #include "VistaOGLExt/VistaGLSLShader.h"
 #include "VistaOGLExt/VistaTexture.h"
 
+#include "../../types/types.hpp"
 #include "glm/vec3.hpp"
 
 #include <map>
@@ -26,7 +27,8 @@ namespace csp::visualquery {
 
 class Renderer final : public IVistaOpenGLDraw {
  public:
-  explicit Renderer(std::string objectName, std::shared_ptr<cs::core::SolarSystem> solarSystem);
+  Renderer(std::string objectName, std::shared_ptr<cs::core::SolarSystem> solarSystem,
+      std::shared_ptr<cs::core::Settings> settings);
   ~Renderer() override;
   bool Do() override;
   bool GetBoundingBox(VistaBoundingBox& bb) override;
@@ -36,6 +38,7 @@ class Renderer final : public IVistaOpenGLDraw {
  private:
   std::string                            mObjectName;
   std::shared_ptr<cs::core::SolarSystem> mSolarSystem;
+  std::shared_ptr<cs::core::Settings>    mSettings;
 
   std::unique_ptr<VistaOpenGLNode> mGLNode;
 
