@@ -10,10 +10,10 @@
 
 #include "../../../../csl-ogc/src/common/utils.hpp"
 
-#include <VistaOGLExt/VistaGLSLShader.h>
-#include <VistaOGLExt/VistaTexture.h>
+#include "VistaOGLExt/VistaGLSLShader.h"
+#include "VistaOGLExt/VistaTexture.h"
 
-#include <glm/vec3.hpp>
+#include "glm/vec3.hpp"
 
 #include <map>
 #include <memory>

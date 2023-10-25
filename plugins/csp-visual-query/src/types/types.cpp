@@ -32,7 +32,7 @@ void TimeStamp::setTimeStamp(double timeStamp) {
 
 // Dimension/////////////////////////////////////////////////////////////////////////////////////////
 
-Dimension::Dimension(int width, int length, int depth)
+Dimensions::Dimensions(uint32_t width, uint32_t length, uint32_t depth)
     : mWidth(width)
     , mLength(length)
     , mDepth(depth) {
@@ -40,46 +40,58 @@ Dimension::Dimension(int width, int length, int depth)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::optional<int> Dimension::getDimension(const std::string& dimensionType) {
-  if (dimensionType == "width") {
-    return std::make_optional(mWidth);
-  }
-  if (dimensionType == "length") {
-    return std::make_optional(mLength);
-  }
-  if (dimensionType == "depth") {
-    return std::make_optional(mDepth);
-  }
-  return std::nullopt;
+glm::uvec3 Dimensions::getDimensions() const {
+  return {mWidth, mLength, mDepth};
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Dimension::setDimension(int width, int length, int depth) {
+void Dimensions::setDimensions(uint32_t width, uint32_t length, uint32_t depth) {
   mWidth  = width;
   mLength = length;
   mDepth  = depth;
 }
 
-void Dimension::setDimension(const std::string& dimensionType, int value) {
-  if (dimensionType == "width") {
-    mWidth = value;
-    return;
-  }
-  if (dimensionType == "length") {
-    mLength = value;
-    return;
-  }
-  if (dimensionType == "depth") {
-    mDepth = value;
-    return;
-  }
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+uint32_t Dimensions::getWidth() const {
+  return mWidth;
 }
 
-// Image2D///////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Dimensions::setWidth(uint32_t width) {
+  mWidth = width;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+uint32_t Dimensions::getLength() const {
+  return mLength;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Dimensions::setLength(uint32_t length) {
+  mLength = length;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+uint32_t Dimensions::getDepth() const {
+  return mDepth;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Dimensions::setDepth(uint32_t depth) {
+  mDepth = depth;
+}
+
+// Image2D /////////////////////////////////////////////////////////////////////////////////////////
 
 Image2D::Image2D(
-    std::vector<Point2D> points, double timeStamp, Bound boundX, Bound boundY, Dimension dimension)
+    std::vector<Point2D> points, double timeStamp, Bound boundX, Bound boundY, Dimensions dimension)
     : mTimeStamp(timeStamp)
     , mPoints(std::move(points))
     , mBoundX(boundX)
@@ -135,7 +147,7 @@ std::optional<Bound> Image2D::getBound(const std::string& boundType) {
 // LayeredImage2D////////////////////////////////////////////////////////////////////////////////////
 
 LayeredImage2D::LayeredImage2D(std::vector<std::vector<Point2D>> points, double timeStamp,
-    Bound boundX, Bound boundY, Dimension dimension)
+    Bound boundX, Bound boundY, Dimensions dimension)
     : mTimeStamp(timeStamp)
     , mPoints(std::move(points))
     , mBoundX(boundX)
@@ -181,7 +193,7 @@ std::optional<Bound> LayeredImage2D::getBound(const std::string& boundType) {
 // Volume3D//////////////////////////////////////////////////////////////////////////////////////////
 
 Volume3D::Volume3D(std::vector<Point3D> points, double timeStamp, Bound boundX, Bound boundY,
-    Bound boundZ, Dimension dimension)
+    Bound boundZ, Dimensions dimension)
     : mTimeStamp(timeStamp)
     , mPoints(std::move(points))
     , mBoundX(boundX)

@@ -10,6 +10,7 @@
 #include "../../../../src/cs-utils/filesystem.hpp"
 #include "../../../csl-ogc/src/wcs/WebCoverageService.hpp"
 #include "../../../csl-ogc/src/wcs/WebCoverageTextureLoader.hpp"
+#include "../logger.hpp"
 #include "../types/types.hpp"
 
 namespace csp::visualquery {
@@ -66,15 +67,15 @@ void WCSImageLoader::onMessageFromJS(nlohmann::json const& message) {
   // set newly selected server
   if (message.find("server") != message.end()) {
 
-    // reset server and image channel selection    
+    // reset server and image channel selection
     if (message["server"] == "none") {
       mSelectedServer = nullptr;
       mSelectedImageChannel = nullptr;
-      
+
       nlohmann::json imageChannel;
       imageChannel["imageChannel"] = "reset";
       sendMessageToJS(imageChannel);
-    
+
     // set new server and send available image channels
     } else {
       for (auto wcs : (*mWcs)) {
@@ -90,7 +91,7 @@ void WCSImageLoader::onMessageFromJS(nlohmann::json const& message) {
 
   // set newly selected image channel
   else if (message.find("imageChannel") !=  message.end()) {
-    
+
     // reset image channel selection
     if (message["imageChannel"] == "none") {
       mSelectedImageChannel = nullptr;
@@ -159,9 +160,9 @@ void WCSImageLoader::process() {
   logger().debug("process!");
 
   csl::ogc::WebCoverageTextureLoader::Request request;
-  
+
   request.mTime = std::to_string(readInput<double>("wcsTime", 0.0));
-  
+
   logger().debug(0);
 
   csl::ogc::Bounds bound;
@@ -182,7 +183,7 @@ void WCSImageLoader::process() {
   logger().debug(3);
 
   auto texLoader = csl::ogc::WebCoverageTextureLoader();
-  auto texture = texLoader.loadTexture(*mSelectedServer, *mSelectedImageChannel, request, 
+  auto texture = texLoader.loadTexture(*mSelectedServer, *mSelectedImageChannel, request,
     "../../../install/windows-Release/share/cache/csp-visual-query/texture-cache", true);
 
   logger().debug(4);

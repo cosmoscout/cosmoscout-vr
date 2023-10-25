@@ -26,22 +26,22 @@ class WCSImageLoaderComponent extends Rete.Component {
     // parameter references a socket type which has been registered with the node factory
     // before. It is required that the class is called <NAME>Component.
 
-    let xBoundMinInput = new Rete.Input('xBoundMin', "Longitude Min", CosmoScout.socketTypes['number Value']);
+    let xBoundMinInput = new Rete.Input('xBoundMin', "Longitude Min", CosmoScout.socketTypes['Number Value']);
     node.addInput(xBoundMinInput);
 
-    let xBoundMaxInput = new Rete.Input('xBoundMax', "Longitude Max", CosmoScout.socketTypes['number Value']);
+    let xBoundMaxInput = new Rete.Input('xBoundMax', "Longitude Max", CosmoScout.socketTypes['Number Value']);
     node.addInput(xBoundMaxInput);
 
-    let yBoundMinInput = new Rete.Input('yBoundMin', "Latitude Min", CosmoScout.socketTypes['number Value']);
+    let yBoundMinInput = new Rete.Input('yBoundMin', "Latitude Min", CosmoScout.socketTypes['Number Value']);
     node.addInput(yBoundMinInput);
 
-    let yBoundMaxInput = new Rete.Input('yBoundMax', "Latitude Max", CosmoScout.socketTypes['number Value']);
+    let yBoundMaxInput = new Rete.Input('yBoundMax', "Latitude Max", CosmoScout.socketTypes['Number Value']);
     node.addInput(yBoundMaxInput);
     
-    let timeInput = new Rete.Input('wcsTime', "Time", CosmoScout.socketTypes['WCSTime']);
+    let timeInput = new Rete.Input('time', "Time", CosmoScout.socketTypes['Number Value']);
     node.addInput(timeInput);
     
-    let resolutionInput = new Rete.Input('resolution', "Resolution", CosmoScout.socketTypes['WCSResolution']);
+    let resolutionInput = new Rete.Input('resolution', "Resolution", CosmoScout.socketTypes['Number Value']);
     node.addInput(resolutionInput);
 
     let imageOutput = new Rete.Output('image', 'Image 2D', CosmoScout.socketTypes['Image2D']);
@@ -78,11 +78,11 @@ class WCSImageLoaderComponent extends Rete.Component {
           // rest image channels selection
           if (message["imageChannel"] === "reset") {
             node.data.imageChannel = [];
-            imageChannelControl.resetImageChannelSelection();  
+            imageChannelControl.resetImageChannelSelection();
 
           // add new image channels to dropdown
           } else {
-            node.data.imageChannel = message["imageChannel"];        
+            node.data.imageChannel = message["imageChannel"];
             imageChannelControl.createImageChannelSelection(message["imageChannel"]);
           }
         
@@ -142,14 +142,14 @@ class ServerControl extends Rete.Control {
     // Send an update to the node editor server whenever the user selects a new server.
     this.selectElement.addEventListener('change',
       (e) => {
-        CosmoScout.sendMessageToCPP({server: e.target.value}, this.parent.id); 
+        CosmoScout.sendMessageToCPP({server: e.target.value}, this.parent.id);
       });
   }
 
   // Send a request to get the available servers.
   sendServerRequest() {
     if (!this.parent.data.url) {
-      CosmoScout.sendMessageToCPP("requestServers", this.parent.id); 
+      CosmoScout.sendMessageToCPP("requestServers", this.parent.id);
     }
   }
 
@@ -157,7 +157,7 @@ class ServerControl extends Rete.Control {
     // add new elements
     for (let i = 0; i < values.length; i++) {
       let option = document.createElement("option");
-      option.value = values[i]; 
+      option.value = values[i];
       option.innerHTML = values[i];
       this.selectElement.appendChild(option);
     }
@@ -205,17 +205,17 @@ class ImageChannelControl extends Rete.Control {
     // Send an update to the node editor server whenever the user selects a new channel.
     this.selectElement.addEventListener('change',
       (e) => {
-        CosmoScout.sendMessageToCPP({imageChannel: e.target.value}, this.parent.id); 
+        CosmoScout.sendMessageToCPP({imageChannel: e.target.value}, this.parent.id);
       });
   }
 
-  createImageChannelSelection(values) {    
+  createImageChannelSelection(values) {
     this.resetImageChannelSelection();
 
     // add new elements
     for (let i = 0; i < values.length; i++) {
       let option = document.createElement("option");
-      option.value = values[i]; 
+      option.value = values[i];
       option.innerHTML = values[i];
       this.selectElement.appendChild(option);
     }
@@ -231,7 +231,7 @@ class ImageChannelControl extends Rete.Control {
 
     // add "None" element
     let none = document.createElement("option");
-    none.value = 0; 
+    none.value = 0;
     none.innerHTML = "None";
     this.selectElement.appendChild(none);
 

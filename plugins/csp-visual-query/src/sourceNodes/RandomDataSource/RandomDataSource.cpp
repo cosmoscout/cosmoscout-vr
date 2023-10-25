@@ -64,7 +64,7 @@ void RandomDataSource::process() noexcept {
   mData = std::make_shared<Image2D>(points, 0,
       Bound{static_cast<float>(mMinLon), static_cast<float>(mMaxLon)},
       Bound{static_cast<float>(mMinLat), static_cast<float>(mMaxLat)},
-      Dimension{static_cast<int>((mMaxLon - mMinLon)), static_cast<int>((mMaxLat - mMinLat)), 1});
+      Dimensions{static_cast<uint32_t>((mMaxLon - mMinLon)), static_cast<uint32_t>((mMaxLat - mMinLat)), 1});
 
   writeOutput("Image2D", mData);
 }

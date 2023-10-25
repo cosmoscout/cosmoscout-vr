@@ -7,16 +7,16 @@
 
 #include "Renderer.hpp"
 
-#include "../../../../src/cs-core/SolarSystem.hpp"
+#include "../../../../../src/cs-core/SolarSystem.hpp"
 #include "glm/gtc/type_ptr.hpp"
 
-#include <VistaKernel/DisplayManager/VistaDisplayManager.h>
-#include <VistaKernel/DisplayManager/VistaViewport.h>
-#include <VistaKernel/GraphicsManager/VistaGroupNode.h>
-#include <VistaKernel/GraphicsManager/VistaOpenGLNode.h>
-#include <VistaKernel/GraphicsManager/VistaSceneGraph.h>
-#include <VistaKernel/VistaSystem.h>
-#include <VistaKernelOpenSGExt/VistaOpenSGMaterialTools.h>
+#include "VistaKernel/DisplayManager/VistaDisplayManager.h"
+#include "VistaKernel/DisplayManager/VistaViewport.h"
+#include "VistaKernel/GraphicsManager/VistaGroupNode.h"
+#include "VistaKernel/GraphicsManager/VistaOpenGLNode.h"
+#include "VistaKernel/GraphicsManager/VistaSceneGraph.h"
+#include "VistaKernel/VistaSystem.h"
+#include "VistaKernelOpenSGExt/VistaOpenSGMaterialTools.h"
 
 namespace csp::visualquery {
 
@@ -73,8 +73,7 @@ void Renderer::setData(Image2D image) {
     data.emplace_back(point.value.at(0));
   }
 
-  mTexture.UploadTexture(*image.mDimension.getDimension("width"),
-      *image.mDimension.getDimension("height"), data.data(), false);
+  mTexture.UploadTexture(image.mDimension.getWidth(), image.mDimension.getLength(), data.data(), false);
 }
 
 bool Renderer::Do() {

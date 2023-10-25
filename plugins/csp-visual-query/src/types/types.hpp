@@ -8,22 +8,22 @@
 #ifndef CSP_VISUAL_QUERY_TYPES_HPP
 #define CSP_VISUAL_QUERY_TYPES_HPP
 
+#include <ctime>
 #include <string>
 #include <vector>
-#include <ctime>
 
 namespace csp::visualquery {
 
 struct Point2D {
-  float x; // longitude
-  float y; // latitude
+  float              x; // longitude
+  float              y; // latitude
   std::vector<float> value;
 };
 
 struct Point3D {
-  float x; // longitude
-  float y; // latitude
-  float z; // height
+  float              x; // longitude
+  float              y; // latitude
+  float              z; // height
   std::vector<float> value;
 };
 
@@ -32,18 +32,26 @@ struct Bound {
   float max;
 };
 
-struct Dimension {
+struct Dimensions {
  public:
-  Dimension(int width, int length, int depth);
+  Dimensions(uint32_t width, uint32_t length, uint32_t depth = 1);
 
-  std::optional<int> getDimension(const std::string& dimensionType);
-  void setDimension(const std::string& dimensionType, int value);
-  void setDimension(int width, int length, int depth);
+  glm::uvec3 getDimensions() const;
+  void       setDimensions(uint32_t width, uint32_t length, uint32_t depth = 1);
+
+  uint32_t getWidth() const;
+  void     setWidth(uint32_t width);
+
+  uint32_t getLength() const;
+  void     setLength(uint32_t length);
+
+  uint32_t getDepth() const;
+  void     setDepth(uint32_t depth);
 
  private:
-  int mWidth;
-  int mLength;
-  int mDepth;
+  uint32_t mWidth;
+  uint32_t mLength;
+  uint32_t mDepth;
 };
 
 struct TimeStamp {
@@ -51,7 +59,7 @@ struct TimeStamp {
   TimeStamp(double timeStamp);
 
   double getTimeStamp() const;
-  void setTimeStamp(double timeStamp);
+  void   setTimeStamp(double timeStamp);
 
  private:
   double mTimeStamp; // time in TDB
@@ -59,7 +67,8 @@ struct TimeStamp {
 
 class Image2D {
  public:
-  Image2D(std::vector<Point2D> points, double timeStamp, Bound boundX, Bound boundY, Dimension dimension);
+  Image2D(std::vector<Point2D> points, double timeStamp, Bound boundX, Bound boundY,
+      Dimensions dimension);
   Image2D();
 
   std::vector<Point2D> getPoints();
@@ -68,8 +77,8 @@ class Image2D {
   void setPoints(std::vector<Point2D> points);
   void setBound(const std::string& boundType, float min, float max);
 
-  TimeStamp            mTimeStamp;
-  Dimension            mDimension;
+  std::optional<double> mTimeStamp;
+  Dimensions            mDimension;
 
  private:
   std::vector<Point2D> mPoints;
@@ -79,8 +88,8 @@ class Image2D {
 
 class LayeredImage2D {
  public:
-  LayeredImage2D(std::vector<std::vector<Point2D>> points, double timeStamp, Bound boundX, Bound boundY,
-    Dimension dimension);
+  LayeredImage2D(std::vector<std::vector<Point2D>> points, double timeStamp, Bound boundX,
+      Bound boundY, Dimensions dimension);
 
   std::vector<std::vector<Point2D>> getPoints();
   std::optional<Bound>              getBound(const std::string& boundType);
@@ -88,8 +97,8 @@ class LayeredImage2D {
   void setPoints(std::vector<std::vector<Point2D>> points);
   void setBound(const std::string& boundType, float min, float max);
 
-  TimeStamp                         mTimeStamp;
-  Dimension                         mDimension;
+  TimeStamp mTimeStamp;
+  Dimensions mDimension;
 
  private:
   std::vector<std::vector<Point2D>> mPoints;
@@ -100,7 +109,7 @@ class LayeredImage2D {
 class Volume3D {
  public:
   Volume3D(std::vector<Point3D> points, double timeStamp, Bound boundX, Bound boundY, Bound boundZ,
-    Dimension dimension);
+      Dimensions dimension);
 
   std::vector<Point3D> getPoints();
   std::optional<Bound> getBound(const std::string& boundType);
@@ -108,8 +117,8 @@ class Volume3D {
   void setPoints(std::vector<Point3D> points);
   void setBound(const std::string& boundType, float min, float max);
 
-  TimeStamp            mTimeStamp;
-  Dimension            mDimension;
+  TimeStamp mTimeStamp;
+  Dimensions mDimension;
 
  private:
   std::vector<Point3D> mPoints;

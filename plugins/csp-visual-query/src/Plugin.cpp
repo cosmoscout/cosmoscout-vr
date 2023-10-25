@@ -10,11 +10,12 @@
 #include "../../../src/cs-core/GuiManager.hpp"
 #include "logger.hpp"
 
-#include "output/OverlayRenderer/OverlayRender.hpp"
-#include "sources/RandomDataSource/RandomDataSource.hpp"
+#include "commonNodes/NumberNode.hpp"
+#include "outputNodes/OverlayRenderer/OverlayRender.hpp"
 #include "outputNodes/Render.hpp"
-#include "sourceNodes/WCSSource.hpp"
 #include "sourceNodes/WCSImageLoader.hpp"
+#include "sourceNodes/WCSSource.hpp"
+#include "sourceNodes/RandomDataSource/RandomDataSource.hpp"
 
 #include <vector>
 
@@ -150,6 +151,7 @@ void Plugin::setupNodeEditor(uint16_t port) {
   factory.registerNodeType<WCSImageLoader>(
     std::shared_ptr<std::vector<csl::ogc::WebCoverageService>>(&mPluginSettings.mWebCoverages));
   factory.registerNodeType<RandomDataSource>();
+  factory.registerNodeType<NumberNode>();
   factory.registerNodeType<OverlayRender>(mSolarSystem);
 
   // Finally, create the node editor. It will start the server so that we can now open a web browser
