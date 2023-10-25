@@ -53,8 +53,32 @@ void OverlayRender::process() {
     return;
   }
 
-  for (auto const& entry : input->getPoints()) {
-    logger().info(entry.value.at(0));
+  if (std::holds_alternative<U8ValueVector>(input->mPoints)) {
+    for (auto const& entry : std::get<U8ValueVector>(input->mPoints)) {
+      logger().info(entry.at(0));
+    }
+  } else if (std::holds_alternative<U16ValueVector>(input->mPoints)) {
+    for (auto const& entry : std::get<U16ValueVector>(input->mPoints)) {
+      logger().info(entry.at(0));
+    }
+  } else if (std::holds_alternative<U32ValueVector>(input->mPoints)) {
+    for (auto const& entry : std::get<U32ValueVector>(input->mPoints)) {
+      logger().info(entry.at(0));
+    }
+  } else if (std::holds_alternative<I16ValueVector>(input->mPoints)) {
+    for (auto const& entry : std::get<I16ValueVector>(input->mPoints)) {
+      logger().info(entry.at(0));
+    }
+  } else if (std::holds_alternative<I32ValueVector>(input->mPoints)) {
+    for (auto const& entry : std::get<I32ValueVector>(input->mPoints)) {
+      logger().info(entry.at(0));
+    }
+  } else if (std::holds_alternative<F32ValueVector>(input->mPoints)) {
+    for (auto const& entry : std::get<F32ValueVector>(input->mPoints)) {
+      logger().info(entry.at(0));
+    }
+  } else {
+    logger().error("Unknown type!");
   }
 }
 

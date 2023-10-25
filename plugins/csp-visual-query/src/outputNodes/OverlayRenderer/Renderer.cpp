@@ -61,19 +61,52 @@ Renderer::~Renderer() {
 }
 
 void Renderer::setData(Image2D image) {
-  std::vector<float> data{};
-  data.reserve(image.getPoints().size());
+  mBounds = image.mBounds;
 
-  mBounds = csl::ogc::Bounds(image.getBound("lon")->min, image.getBound("lon")->max,
-      image.getBound("lat")->min, image.getBound("lat")->max);
+  if (std::holds_alternative<U8ValueVector>(image.mPoints)) {
+    auto imageData = std::get<U8ValueVector>(image.mPoints);
 
-  for (auto const& point : image.getPoints()) {
-    data.emplace_back(point.value.at(0));
-    data.emplace_back(point.value.at(0));
-    data.emplace_back(point.value.at(0));
+    std::vector<uint8_t> data{};
+    data.reserve(imageData.size());
+
+    for (auto const& point : imageData) {
+      data.emplace_back(point.at(0));
+      data.emplace_back(point.at(0));
+      data.emplace_back(point.at(0));
+      data.emplace_back(255U);
+    }
+
+    mTexture.UploadTexture(image.mDimension.x, image.mDimension.y, data.data(), false, GL_RGBA, GL_UNSIGNED_BYTE);
+  } else if (std::holds_alternative<U16ValueVector>(image.mPoints)) {
+    auto imageData = std::get<U16ValueVector>(image.mPoints);
+    // TODO
+  } else if (std::holds_alternative<U32ValueVector>(image.mPoints)) {
+    auto imageData = std::get<U32ValueVector>(image.mPoints);
+    // TODO
+  } else if (std::holds_alternative<I16ValueVector>(image.mPoints)) {
+    auto imageData = std::get<I16ValueVector>(image.mPoints);
+    // TODO
+  } else if (std::holds_alternative<I32ValueVector>(image.mPoints)) {
+    auto imageData = std::get<I32ValueVector>(image.mPoints);
+    // TODO
+  } else if (std::holds_alternative<F32ValueVector>(image.mPoints)) {
+    auto imageData = std::get<F32ValueVector>(image.mPoints);
+
+    std::vector<float> data{};
+    data.reserve(imageData.size());
+
+    for (auto const& point : imageData) {
+      data.emplace_back(point.at(0));
+      data.emplace_back(point.at(0));
+      data.emplace_back(point.at(0));
+      data.emplace_back(1.0F);
+    }
+
+    mTexture.UploadTexture(image.mDimension.x, image.mDimension.y, data.data(), false, GL_RGBA, GL_FLOAT);
+  } else {
+    logger().error("Unknown type!");
   }
 
-  mTexture.UploadTexture(image.mDimension.getWidth(), image.mDimension.getLength(), data.data(), false);
 }
 
 bool Renderer::Do() {

@@ -11,10 +11,10 @@
 #include "logger.hpp"
 
 #include "outputNodes/OverlayRenderer/OverlayRender.hpp"
-#include "outputNodes/Render.hpp"
 #include "sourceNodes/WCSSource.hpp"
 #include "sourceNodes/WCSCoverage.hpp"
 #include "sourceNodes/WCSCoverageImage.hpp"
+#include "sourceNodes/RandomDataSource/RandomDataSource.hpp"
 #include "commonNodes/NumberNode.hpp"
 
 #include <vector>
@@ -153,7 +153,6 @@ void Plugin::setupNodeEditor(uint16_t port) {
     std::shared_ptr<std::vector<csl::ogc::WebCoverageService>>(&mPluginSettings.mWebCoverages));
   factory.registerNodeType<RandomDataSource>();
   factory.registerNodeType<WCSCoverageImage>();
-  factory.registerNodeType<Render>();
   factory.registerNodeType<NumberNode>();
   factory.registerNodeType<OverlayRender>(mSolarSystem);
 

@@ -51,20 +51,18 @@ std::string const& RandomDataSource::getName() const noexcept {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void RandomDataSource::process() noexcept {
-  std::vector<Point2D> points;
+  F32ValueVector points;
   points.reserve(static_cast<size_t>((mMaxLat - mMinLat) * (mMaxLon - mMinLon)));
 
   for (double lat = mMinLat; lat <= mMaxLat; lat += 1.0) {
     for (double lon = mMinLon; lon <= mMaxLon; lon += 1.0) {
-      points.emplace_back(Point2D{static_cast<float>(lon), static_cast<float>(lat),
-          std::vector{static_cast<float>(mDistribution(mRandomNumberGenerator))}});
+      points.emplace_back(std::vector{static_cast<float>(mDistribution(mRandomNumberGenerator))});
     }
   }
 
-  mData = std::make_shared<Image2D>(points, 0,
-      Bound{static_cast<float>(mMinLon), static_cast<float>(mMaxLon)},
-      Bound{static_cast<float>(mMinLat), static_cast<float>(mMaxLat)},
-      Dimensions{static_cast<uint32_t>((mMaxLon - mMinLon)), static_cast<uint32_t>((mMaxLat - mMinLat)), 1});
+  mData = std::make_shared<Image2D>(points,
+      glm::uvec2{static_cast<uint32_t>((mMaxLon - mMinLon)), static_cast<uint32_t>((mMaxLat - mMinLat))},
+      csl::ogc::Bounds{mMinLon, mMaxLon, mMinLat, mMaxLat}, std::nullopt);
 
   writeOutput("Image2D", mData);
 }
