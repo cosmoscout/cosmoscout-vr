@@ -12,6 +12,8 @@
 #include <utility>
 #include <vector>
 
+#include <glm/glm.hpp>
+
 namespace csp::visualquery {
 
 TimeStamp::TimeStamp(double timeStamp)

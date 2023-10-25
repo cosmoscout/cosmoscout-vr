@@ -10,12 +10,12 @@
 #include "../../../src/cs-core/GuiManager.hpp"
 #include "logger.hpp"
 
-#include "commonNodes/NumberNode.hpp"
 #include "outputNodes/OverlayRenderer/OverlayRender.hpp"
 #include "outputNodes/Render.hpp"
-#include "sourceNodes/WCSImageLoader.hpp"
 #include "sourceNodes/WCSSource.hpp"
-#include "sourceNodes/RandomDataSource/RandomDataSource.hpp"
+#include "sourceNodes/WCSCoverage.hpp"
+#include "sourceNodes/WCSCoverageImage.hpp"
+#include "commonNodes/NumberNode.hpp"
 
 #include <vector>
 
@@ -137,20 +137,23 @@ void Plugin::setupNodeEditor(uint16_t port) {
   factory.registerSocketType("WCSScalarField", "#b08ab3");
   factory.registerSocketType("Image2D", "#3333ff");
 
-  // factory.registerSocketType("WCSImage", "#b08ab3");
+  factory.registerSocketType("Coverage", "#8e38ff");
+  factory.registerSocketType("WCSImage", "#b08ab3");
   factory.registerSocketType("WCSMinMax", "#b08ab3");
   factory.registerSocketType("WCSResolution", "#b08ab3");
   factory.registerSocketType("WCSTime", "#b08ab3");
   factory.registerSocketType("WCSBound", "#b08ab3");
-  factory.registerSocketType("number Value", "#FFD480");
+  factory.registerSocketType("Number Value", "#FFD480");
 
   // Now, we register our custom node types. Any parameter given to this method, will later be
   // passed to the constructor of the node instances. For more information, see the documentation of
   // NodeFactory::registerNodeType().
   factory.registerNodeType<WCSSource>();
-  factory.registerNodeType<WCSImageLoader>(
+  factory.registerNodeType<WCSCoverage>(
     std::shared_ptr<std::vector<csl::ogc::WebCoverageService>>(&mPluginSettings.mWebCoverages));
   factory.registerNodeType<RandomDataSource>();
+  factory.registerNodeType<WCSCoverageImage>();
+  factory.registerNodeType<Render>();
   factory.registerNodeType<NumberNode>();
   factory.registerNodeType<OverlayRender>(mSolarSystem);
 

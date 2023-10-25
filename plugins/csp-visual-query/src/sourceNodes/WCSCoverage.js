@@ -7,11 +7,11 @@
 
 // The TimeNode is pretty simple as it only has a single output socket. The component serves as
 // a kind of factory. Whenever a new node is created, the builder() method is called.
-class WCSImageLoaderComponent extends Rete.Component {
+class WCSCoverageComponent extends Rete.Component {
 
   constructor() {
     // This name must match the WCSSourceNode::sName defined in WCSSource.cpp.
-    super("WCSImageLoader");
+    super("WCSCoverage");
 
     // This specifies the submenu from which this node can be created in the node editor.
     this.category = "Sources";
@@ -26,32 +26,26 @@ class WCSImageLoaderComponent extends Rete.Component {
     // parameter references a socket type which has been registered with the node factory
     // before. It is required that the class is called <NAME>Component.
 
-    let xBoundMinInput = new Rete.Input('xBoundMin', "Longitude Min", CosmoScout.socketTypes['Number Value']);
-    node.addInput(xBoundMinInput);
-
-    let xBoundMaxInput = new Rete.Input('xBoundMax', "Longitude Max", CosmoScout.socketTypes['Number Value']);
-    node.addInput(xBoundMaxInput);
-
-    let yBoundMinInput = new Rete.Input('yBoundMin', "Latitude Min", CosmoScout.socketTypes['Number Value']);
-    node.addInput(yBoundMinInput);
-
-    let yBoundMaxInput = new Rete.Input('yBoundMax', "Latitude Max", CosmoScout.socketTypes['Number Value']);
-    node.addInput(yBoundMaxInput);
-    
-    let timeInput = new Rete.Input('time', "Time", CosmoScout.socketTypes['Number Value']);
-    node.addInput(timeInput);
-    
-    let resolutionInput = new Rete.Input('resolution', "Resolution", CosmoScout.socketTypes['Number Value']);
-    node.addInput(resolutionInput);
-
-    let imageOutput = new Rete.Output('image', 'Image 2D', CosmoScout.socketTypes['Image2D']);
+    let imageOutput = new Rete.Output('coverageOut', 'Coverage', CosmoScout.socketTypes['Coverage']);
     node.addOutput(imageOutput);
     
-    let minOutput = new Rete.Output('minDataValue', 'Min', CosmoScout.socketTypes['number Value']);
-    node.addOutput(minOutput);
+    let minTimeOutput = new Rete.Output('minTimeValueOut', 'Min Time', CosmoScout.socketTypes['number Value']);
+    node.addOutput(minTimeOutput);
 
-    let maxOutput = new Rete.Output('maxDataValue', 'Max', CosmoScout.socketTypes['number Value']);
-    node.addOutput(maxOutput);
+    let maxTimeOutput = new Rete.Output('maxTimeValueOut', 'Max Time', CosmoScout.socketTypes['number Value']);
+    node.addOutput(maxTimeOutput);
+
+    let lngBoundMinOutput = new Rete.Output('lngBoundMinOut', "Longitude Min", CosmoScout.socketTypes['number Value']);
+    node.addOutput(lngBoundMinOutput);
+
+    let lngBoundMaxOutput = new Rete.Output('lngBoundMaxOut', "Longitude Max", CosmoScout.socketTypes['number Value']);
+    node.addOutput(lngBoundMaxOutput);
+
+    let latBoundMinOutput = new Rete.Output('latBoundMinOut', "Latitude Min", CosmoScout.socketTypes['number Value']);
+    node.addOutput(latBoundMinOutput);
+
+    let latBoundMaxOutput = new Rete.Output('latBoundMaxOut', "Latitude Max", CosmoScout.socketTypes['number Value']);
+    node.addOutput(latBoundMaxOutput);
 
     let serverControl = new ServerControl('selectServer');
     node.addControl(serverControl);
