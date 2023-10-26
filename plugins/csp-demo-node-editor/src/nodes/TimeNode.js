@@ -28,6 +28,51 @@ class TimeComponent extends Rete.Component {
     let output = new Rete.Output('time', "Seconds", CosmoScout.socketTypes['Number Value']);
     node.addOutput(output)
 
+    // Add the time display. The name parameter must be unique amongst all controls of this
+    // node. The TimeDisplayControl class is defined further below.
+    let control = new TimeDisplayControl('display');
+    node.addControl(control);
+
+    // Whenever a message from C++ arrives, we set the input value accordingly. This message is
+    // sent by the TimeNode::init() and TimeNode::process() methods.
+    node.onMessageFromCPP = (timeString) => { control.setValue(timeString); };
+
     return node;
+  }
+}
+
+// This is the widget which is used for displaying the time data.
+class TimeDisplayControl extends Rete.Control {
+  constructor(key) {
+    super(key);
+
+    // This HTML code will be used whenever a node is created with this widget.
+    this.template = `
+          <p class="display-value"></p>
+
+          <style>
+            p.display-value {
+              font-family: 'Ubuntu Mono', monospace;
+              border-radius: var(--cs-border-radius-medium);
+              background: rgba(255, 255, 255, 0.1);
+              width: 200px;
+              padding: 5px 15px;
+              margin: 10px;
+              text-align: right;
+              font-size: 1.1em;
+            }
+          </style>
+        `;
+  }
+
+  // This is called by the node.onMessageFromCPP method above whenever a new value is sent in
+  // from C++.
+  setValue(val) {
+
+    // Each node container gets the id "#node-<id>". This way we can select elements inside the
+    // node using a selector. Here we select the p element with the class "display-value" as
+    // defined by the template above.
+    const el     = document.querySelector("#node-" + this.parent.id + " .display-value");
+    el.innerHTML = val;
   }
 }

@@ -162,6 +162,7 @@ void NodeEditor::update() {
         node->setPosition(position);
         node->setGraph(mGraph);
         node->setSocket(mSocket);
+        node->init();
 
         mGraph->addNode(id, std::move(node));
       } break;
