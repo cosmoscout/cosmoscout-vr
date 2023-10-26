@@ -9,6 +9,7 @@
 
 #include "../../../src/cs-core/Settings.hpp"
 
+#include "../../../src/cs-utils/filesystem.hpp"
 #include "logger.hpp"
 #include "nodes/DisplayNode.hpp"
 #include "nodes/MathNode.hpp"
@@ -119,6 +120,11 @@ void Plugin::setupNodeEditor(uint16_t port) {
   // color which will be used by the sockets. In this simple example, we only have number sockets.
   // The name of the socket will be used by the custom nodes when defining their inputs and outputs.
   factory.registerSocketType("Number Value", "#b08ab3");
+
+  // Here we can register controls, that can be used by our nodes. You can either load them from
+  // .js files or you can define them as a string.
+  factory.registerControlType(cs::utils::filesystem::loadToString(
+      "../share/resources/nodes/csp-demo-node-editor/TextDisplayControl.js"));
 
   // Now, we register our custom node types. Any parameter given to this method, will later be
   // passed to the constructor of the node instances. For more information, see the documentation of

@@ -19,6 +19,12 @@ void NodeFactory::registerSocketType(std::string name, std::string color) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void NodeFactory::registerControlType(const std::string& controlSource) {
+  mControls.emplace_back(controlSource);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 std::string NodeFactory::getSocketSource() const {
   std::string source;
 
@@ -40,6 +46,20 @@ std::string NodeFactory::getNodeSource() const {
   // This concatenates all JavaScript source code snippets of the registered nodes.
   for (auto const& f : mNodeSourceFuncs) {
     source += f();
+  }
+
+  return source;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+std::string NodeFactory::getControlSource() const {
+  std::string source;
+
+  // This concatenates all JavaScript source code snippets of the registered nodes.
+  for (auto const& c : mControls) {
+    source += c;
+    source += '\n';
   }
 
   return source;

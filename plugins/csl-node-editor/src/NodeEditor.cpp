@@ -87,6 +87,7 @@ NodeEditor::NodeEditor(uint16_t port, NodeFactory factory)
     // Replace the placeholders with the respective source code snippets.
     cs::utils::replaceString(html, "//!SOCKET_SOURCE_CODE", mFactory.getSocketSource());
     cs::utils::replaceString(html, "//!NODE_SOURCE_CODE", mFactory.getNodeSource());
+    cs::utils::replaceString(html, "//!CONTROL_SOURCE_CODE", mFactory.getControlSource());
     cs::utils::replaceString(html, "//!REGISTER_COMPONENTS", mFactory.getRegisterSource());
 
     mg_send_http_ok(conn, "text/html", html.length());

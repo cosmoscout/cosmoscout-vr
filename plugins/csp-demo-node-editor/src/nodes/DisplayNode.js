@@ -29,8 +29,8 @@ class DisplayComponent extends Rete.Component {
     node.addInput(input);
 
     // Add the number display. The name parameter must be unique amongst all controls of this
-    // node. The DisplayControl class is defined further below.
-    let control = new DisplayControl('display');
+    // node. The TextDisplayControl class is defined in the controls folder.
+    let control = new TextDisplayControl('display', '0');
     node.addControl(control);
 
     // Whenever a message from C++ arrives, we set the input value accordingly. This message is
@@ -38,41 +38,5 @@ class DisplayComponent extends Rete.Component {
     node.onMessageFromCPP = (message) => { control.setValue(message.value); };
 
     return node;
-  }
-}
-
-// This is the widget which is used for displaying the data.
-class DisplayControl extends Rete.Control {
-  constructor(key) {
-    super(key);
-
-    // This HTML code will be used whenever a node is created with this widget.
-    this.template = `
-          <p class="display-value">0</p>
-
-          <style>
-            p.display-value {
-              font-family: 'Ubuntu Mono', monospace;
-              border-radius: var(--cs-border-radius-medium);
-              background: rgba(255, 255, 255, 0.1);
-              width: 200px;
-              padding: 5px 15px;
-              margin: 10px;
-              text-align: right;
-              font-size: 1.1em;
-            }
-          </style>
-        `;
-  }
-
-  // This is called by the node.onMessageFromCPP method above whenever a new value is sent in
-  // from C++.
-  setValue(val) {
-
-    // Each node container gets the id "#node-<id>". This way we can select elements inside the
-    // node using a selector. Here we select the p element with the class "display-value" as
-    // defined by the template above.
-    const el     = document.querySelector("#node-" + this.parent.id + " .display-value");
-    el.innerHTML = val;
   }
 }
