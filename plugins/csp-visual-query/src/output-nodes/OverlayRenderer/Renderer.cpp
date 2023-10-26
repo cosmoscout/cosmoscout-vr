@@ -25,7 +25,8 @@ Renderer::Renderer(std::string objectName, std::shared_ptr<cs::core::SolarSystem
     : mObjectName(std::move(objectName))
     , mSolarSystem(std::move(solarSystem))
     , mSettings(std::move(settings))
-    , mTexture(GL_TEXTURE_2D) {
+    , mTexture(GL_TEXTURE_2D)
+    , mHasTexture(false) {
   auto object = mSolarSystem->getObject(mObjectName);
   mMinBounds  = -object->getRadii();
   mMaxBounds  = object->getRadii();
@@ -90,45 +91,51 @@ std::vector<T> copyToTextureBuffer(
   return data;
 }
 
-void Renderer::setData(Image2D image) {
-  mBounds            = image.mBounds;
-  GLenum imageFormat = getPixelFormat(image.mNumScalars);
+void Renderer::setData(std::shared_ptr<Image2D> const& image) {
+  mHasTexture = image != nullptr;
 
-  if (std::holds_alternative<U8ValueVector>(image.mPoints)) {
-    auto                 imageData = std::get<U8ValueVector>(image.mPoints);
-    std::vector<uint8_t> data      = copyToTextureBuffer(imageData, image.mNumScalars);
-    mTexture.UploadTexture(
-        image.mDimension.x, image.mDimension.y, data.data(), false, imageFormat, GL_UNSIGNED_BYTE);
+  if (!mHasTexture) {
+    return;
+  }
 
-  } else if (std::holds_alternative<U16ValueVector>(image.mPoints)) {
-    auto                  imageData = std::get<U16ValueVector>(image.mPoints);
-    std::vector<uint16_t> data      = copyToTextureBuffer(imageData, image.mNumScalars);
-    mTexture.UploadTexture(
-        image.mDimension.x, image.mDimension.y, data.data(), false, imageFormat, GL_UNSIGNED_SHORT);
+  mBounds            = image->mBounds;
+  GLenum imageFormat = getPixelFormat(image->mNumScalars);
 
-  } else if (std::holds_alternative<U32ValueVector>(image.mPoints)) {
-    auto                  imageData = std::get<U32ValueVector>(image.mPoints);
-    std::vector<uint32_t> data      = copyToTextureBuffer(imageData, image.mNumScalars);
-    mTexture.UploadTexture(
-        image.mDimension.x, image.mDimension.y, data.data(), false, imageFormat, GL_UNSIGNED_INT);
+  if (std::holds_alternative<U8ValueVector>(image->mPoints)) {
+    auto                 imageData = std::get<U8ValueVector>(image->mPoints);
+    std::vector<uint8_t> data      = copyToTextureBuffer(imageData, image->mNumScalars);
+    mTexture.UploadTexture(image->mDimension.x, image->mDimension.y, data.data(), false,
+        imageFormat, GL_UNSIGNED_BYTE);
 
-  } else if (std::holds_alternative<I16ValueVector>(image.mPoints)) {
-    auto                 imageData = std::get<I16ValueVector>(image.mPoints);
-    std::vector<int16_t> data      = copyToTextureBuffer(imageData, image.mNumScalars);
-    mTexture.UploadTexture(
-        image.mDimension.x, image.mDimension.y, data.data(), false, imageFormat, GL_SHORT);
+  } else if (std::holds_alternative<U16ValueVector>(image->mPoints)) {
+    auto                  imageData = std::get<U16ValueVector>(image->mPoints);
+    std::vector<uint16_t> data      = copyToTextureBuffer(imageData, image->mNumScalars);
+    mTexture.UploadTexture(image->mDimension.x, image->mDimension.y, data.data(), false,
+        imageFormat, GL_UNSIGNED_SHORT);
 
-  } else if (std::holds_alternative<I32ValueVector>(image.mPoints)) {
-    auto                 imageData = std::get<I32ValueVector>(image.mPoints);
-    std::vector<int32_t> data      = copyToTextureBuffer(imageData, image.mNumScalars);
+  } else if (std::holds_alternative<U32ValueVector>(image->mPoints)) {
+    auto                  imageData = std::get<U32ValueVector>(image->mPoints);
+    std::vector<uint32_t> data      = copyToTextureBuffer(imageData, image->mNumScalars);
     mTexture.UploadTexture(
-        image.mDimension.x, image.mDimension.y, data.data(), false, imageFormat, GL_INT);
+        image->mDimension.x, image->mDimension.y, data.data(), false, imageFormat, GL_UNSIGNED_INT);
 
-  } else if (std::holds_alternative<F32ValueVector>(image.mPoints)) {
-    auto               imageData = std::get<F32ValueVector>(image.mPoints);
-    std::vector<float> data      = copyToTextureBuffer(imageData, image.mNumScalars);
+  } else if (std::holds_alternative<I16ValueVector>(image->mPoints)) {
+    auto                 imageData = std::get<I16ValueVector>(image->mPoints);
+    std::vector<int16_t> data      = copyToTextureBuffer(imageData, image->mNumScalars);
     mTexture.UploadTexture(
-        image.mDimension.x, image.mDimension.y, data.data(), false, imageFormat, GL_FLOAT);
+        image->mDimension.x, image->mDimension.y, data.data(), false, imageFormat, GL_SHORT);
+
+  } else if (std::holds_alternative<I32ValueVector>(image->mPoints)) {
+    auto                 imageData = std::get<I32ValueVector>(image->mPoints);
+    std::vector<int32_t> data      = copyToTextureBuffer(imageData, image->mNumScalars);
+    mTexture.UploadTexture(
+        image->mDimension.x, image->mDimension.y, data.data(), false, imageFormat, GL_INT);
+
+  } else if (std::holds_alternative<F32ValueVector>(image->mPoints)) {
+    auto               imageData = std::get<F32ValueVector>(image->mPoints);
+    std::vector<float> data      = copyToTextureBuffer(imageData, image->mNumScalars);
+    mTexture.UploadTexture(
+        image->mDimension.x, image->mDimension.y, data.data(), false, imageFormat, GL_FLOAT);
 
   } else {
     logger().error("Unknown type!");
@@ -136,6 +143,10 @@ void Renderer::setData(Image2D image) {
 }
 
 bool Renderer::Do() {
+  if (!mHasTexture) {
+    return false;
+  }
+
   if (mShaderDirty) {
     mShader = VistaGLSLShader();
 

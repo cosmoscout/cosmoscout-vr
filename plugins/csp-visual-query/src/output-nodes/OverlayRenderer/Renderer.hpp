@@ -33,7 +33,7 @@ class Renderer final : public IVistaOpenGLDraw {
   bool Do() override;
   bool GetBoundingBox(VistaBoundingBox& bb) override;
 
-  void setData(Image2D image);
+  void setData(std::shared_ptr<Image2D> const& image);
 
  private:
   std::string                            mObjectName;
@@ -46,6 +46,7 @@ class Renderer final : public IVistaOpenGLDraw {
   VistaGLSLShader mShader;
 
   VistaTexture mTexture;
+  bool         mHasTexture;
 
   /// Store one buffer per viewport
   std::map<VistaViewport*, VistaTexture> mDepthBufferData;

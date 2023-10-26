@@ -18,11 +18,6 @@ class OverlayRenderComponent extends Rete.Component {
 
   // Called whenever a new node of this type needs to be constructed.
   builder(node) {
-
-    // This node has a single input. The first parameter is the name of this input and must be
-    // unique amongst all sockets. It is also used in the RenderNode::process() to read the
-    // input of this node. The second parameter is shown as name on the node. The last parameter
-    // references a socket type which has been registered with the node factory before.
     let input = new Rete.Input('Image2D', "Image 2D", CosmoScout.socketTypes['Image2D']);
     node.addInput(input);
 

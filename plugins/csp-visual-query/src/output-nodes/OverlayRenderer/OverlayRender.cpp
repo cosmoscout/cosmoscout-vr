@@ -7,13 +7,13 @@
 
 #include "OverlayRender.hpp"
 
-#include "../../../../../src/cs-utils/filesystem.hpp"
-
 #include <VistaKernel/VistaSystem.h>
 #include <VistaKernel/GraphicsManager/VistaGraphicsManager.h>
 #include <VistaKernel/GraphicsManager/VistaOpenGLNode.h>
 #include <VistaKernel/GraphicsManager/VistaSceneGraph.h>
 #include <VistaKernelOpenSGExt/VistaOpenSGMaterialTools.h>
+
+#include "../../../src/cs-core/SolarSystem.hpp"
 
 namespace csp::visualquery {
 
@@ -65,39 +65,7 @@ OverlayRender::~OverlayRender() = default;
 
 void OverlayRender::process() {
   auto input = readInput<std::shared_ptr<Image2D>>("Image2D", nullptr);
-  if (!input) {
-    return;
-  }
-
-  mRenderer->setData(*input);
-  /*
-  if (std::holds_alternative<U8ValueVector>(input->mPoints)) {
-    for (auto const& entry : std::get<U8ValueVector>(input->mPoints)) {
-      logger().info(entry.at(0));
-    }
-  } else if (std::holds_alternative<U16ValueVector>(input->mPoints)) {
-    for (auto const& entry : std::get<U16ValueVector>(input->mPoints)) {
-      logger().info(entry.at(0));
-    }
-  } else if (std::holds_alternative<U32ValueVector>(input->mPoints)) {
-    for (auto const& entry : std::get<U32ValueVector>(input->mPoints)) {
-      logger().info(entry.at(0));
-    }
-  } else if (std::holds_alternative<I16ValueVector>(input->mPoints)) {
-    for (auto const& entry : std::get<I16ValueVector>(input->mPoints)) {
-      logger().info(entry.at(0));
-    }
-  } else if (std::holds_alternative<I32ValueVector>(input->mPoints)) {
-    for (auto const& entry : std::get<I32ValueVector>(input->mPoints)) {
-      logger().info(entry.at(0));
-    }
-  } else if (std::holds_alternative<F32ValueVector>(input->mPoints)) {
-    for (auto const& entry : std::get<F32ValueVector>(input->mPoints)) {
-      logger().info(entry.at(0));
-    }
-  } else {
-    logger().error("Unknown type!");
-  }*/
+  mRenderer->setData(input);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
