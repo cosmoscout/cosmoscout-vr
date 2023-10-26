@@ -10,6 +10,7 @@
 #include "../../../src/cs-core/GuiManager.hpp"
 #include "logger.hpp"
 
+#include "../../../src/cs-utils/filesystem.hpp"
 #include "common-nodes/Real/Real.hpp"
 #include "output-nodes/OverlayRenderer/OverlayRender.hpp"
 #include "source-nodes/RandomDataSource/RandomDataSource.hpp"
@@ -145,6 +146,10 @@ void Plugin::setupNodeEditor(uint16_t port) {
   factory.registerSocketType("IVec2", "#fd8d3c");
   factory.registerSocketType("IVec3", "#f03b20");
   factory.registerSocketType("IVec4", "#bd0026");
+
+  // Register control types:
+  factory.registerControlType(cs::utils::filesystem::loadToString(
+      "../share/resources/nodes/csp-visual-query/DropDownControl.js"));
 
   // Now, we register our custom node types. Any parameter given to this method, will later be
   // passed to the constructor of the node instances. For more information, see the documentation of

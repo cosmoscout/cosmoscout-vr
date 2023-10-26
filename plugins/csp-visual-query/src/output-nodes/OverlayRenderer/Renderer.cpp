@@ -20,16 +20,15 @@
 
 namespace csp::visualquery {
 
-Renderer::Renderer(std::string objectName, std::shared_ptr<cs::core::SolarSystem> solarSystem,
-    std::shared_ptr<cs::core::Settings> settings)
-    : mObjectName(std::move(objectName))
+Renderer::Renderer(std::shared_ptr<cs::core::SolarSystem> solarSystem,
+    std::shared_ptr<cs::core::Settings>                   settings)
+    : mObjectName("None")
     , mSolarSystem(std::move(solarSystem))
     , mSettings(std::move(settings))
     , mTexture(GL_TEXTURE_2D)
     , mHasTexture(false) {
-  auto object = mSolarSystem->getObject(mObjectName);
-  mMinBounds  = -object->getRadii();
-  mMaxBounds  = object->getRadii();
+  mMinBounds = glm::vec3(0);
+  mMaxBounds = glm::vec3(0);
 
   // create textures ---------------------------------------------------------
   for (auto const& viewport : GetVistaSystem()->GetDisplayManager()->GetViewports()) {
@@ -142,8 +141,28 @@ void Renderer::setData(std::shared_ptr<Image2D> const& image) {
   }
 }
 
+void Renderer::setCenter(std::string center) {
+  mObjectName = std::move(center);
+  if (mObjectName == "None" || mObjectName.empty()) {
+    return;
+  }
+
+  auto object = mSolarSystem->getObjectByCenterName(mObjectName);
+  if (!object) {
+    return;
+  }
+
+  mMinBounds = -object->getRadii();
+  mMaxBounds = object->getRadii();
+}
+
 bool Renderer::Do() {
-  if (!mHasTexture) {
+  if (!mHasTexture || mObjectName == "None" || mObjectName.empty()) {
+    return false;
+  }
+
+  auto object = mSolarSystem->getObjectByCenterName(mObjectName);
+  if (!object) {
     return false;
   }
 
@@ -178,7 +197,6 @@ bool Renderer::Do() {
   glCopyTexImage2D(GL_TEXTURE_RECTANGLE, 0, GL_DEPTH_COMPONENT, iViewport[0], iViewport[1],
       iViewport[2], iViewport[3], 0);
 
-  auto object    = mSolarSystem->getObject(mObjectName);
   auto radii     = object->getRadii();
   auto transform = object->getObserverRelativeTransform();
 

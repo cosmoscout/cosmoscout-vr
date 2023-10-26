@@ -48,7 +48,7 @@ OverlayRender::OverlayRender(std::shared_ptr<cs::core::SolarSystem> solarSystem,
     std::shared_ptr<cs::core::Settings>                             settings)
     : mSolarSystem(std::move(solarSystem))
     , mSettings(std::move(settings)) {
-  mRenderer = std::make_unique<Renderer>("Earth", mSolarSystem, mSettings);
+  mRenderer = std::make_unique<Renderer>(mSolarSystem, mSettings);
 
   // Add to scenegraph.
   VistaSceneGraph* pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
@@ -60,6 +60,27 @@ OverlayRender::OverlayRender(std::shared_ptr<cs::core::SolarSystem> solarSystem,
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 OverlayRender::~OverlayRender() = default;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void OverlayRender::init() {
+  std::set<std::string> centerNames{};
+
+  for (const auto& item : mSettings->mObjects) {
+    centerNames.insert(item.second->getCenterName());
+  }
+
+  std::vector<std::string> data{centerNames.begin(), centerNames.end()};
+  data.insert(data.begin(), "None");
+
+  sendMessageToJS(data);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void OverlayRender::onMessageFromJS(const nlohmann::json& message) {
+  mRenderer->setCenter(message.at("text").get<std::string>());
+}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 

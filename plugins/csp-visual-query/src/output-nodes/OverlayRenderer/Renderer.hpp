@@ -27,13 +27,14 @@ namespace csp::visualquery {
 
 class Renderer final : public IVistaOpenGLDraw {
  public:
-  Renderer(std::string objectName, std::shared_ptr<cs::core::SolarSystem> solarSystem,
+  Renderer(std::shared_ptr<cs::core::SolarSystem> solarSystem,
       std::shared_ptr<cs::core::Settings> settings);
   ~Renderer() override;
   bool Do() override;
   bool GetBoundingBox(VistaBoundingBox& bb) override;
 
   void setData(std::shared_ptr<Image2D> const& image);
+  void setCenter(std::string center);
 
  private:
   std::string                            mObjectName;

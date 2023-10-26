@@ -31,11 +31,14 @@ class OverlayRender final : public csl::nodeeditor::Node {
   /// Each node must override this. It simply returns the static sName.
   std::string const& getName() const override;
 
+  void init() override;
+
   /// Whenever the simulation time changes, the TimeNode will call this method itself. It simply
   /// updates the value of the 'time' output. This method may also get called occasionally by the
   /// node editor, for example if a new web client was connected hence needs updated values for all
   /// nodes.
   void process() override;
+  void onMessageFromJS(const nlohmann::json& message) override;
 
  private:
   std::unique_ptr<Renderer>        mRenderer;
