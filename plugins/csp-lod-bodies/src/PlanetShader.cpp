@@ -47,8 +47,6 @@ PlanetShader::PlanetShader(std::shared_ptr<cs::core::Settings> settings,
     , mFontTexture(VistaOGLUtils::LoadTextureFromTga("../share/resources/textures/font.tga")) {
 
   // clang-format off
-    pTextureIsRGB.connect(
-        [this](bool /*ignored*/) { mShaderDirty = true; });
     pEnableTexture.connect(
         [this](bool /*ignored*/) { mShaderDirty = true; });
     mPluginSettings->mEnableHeightlines.connect(
@@ -138,12 +136,9 @@ void PlanetShader::setSun(glm::vec3 direction, float illuminance) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void PlanetShader::compile() {
-  VistaShaderRegistry& reg = VistaShaderRegistry::GetInstance();
-  mVertexSource            = reg.RetrieveShader("Planet.vert");
-  mFragmentSource          = reg.RetrieveShader("Planet.frag");
+  mVertexSource   = cs::utils::filesystem::loadToString("../share/resources/shaders/Planet.vert");
+  mFragmentSource = cs::utils::filesystem::loadToString("../share/resources/shaders/Planet.frag");
 
-  cs::utils::replaceString(
-      mFragmentSource, "$TEXTURE_IS_RGB", cs::utils::toString(pTextureIsRGB.get()));
   cs::utils::replaceString(mFragmentSource, "$SHOW_HEIGHT_LINES",
       cs::utils::toString(mPluginSettings->mEnableHeightlines.get()));
   cs::utils::replaceString(
@@ -235,6 +230,9 @@ void PlanetShader::bind() {
 
   loc = mShader.GetUniformLocation("ambientBrightness");
   mShader.SetUniform(loc, mSettings->mGraphics.pAmbientBrightness.get());
+
+  loc = mShader.GetUniformLocation("ambientOcclusion");
+  mShader.SetUniform(loc, mSettings->mGraphics.pAmbientOcclusion.get());
 
   loc = mShader.GetUniformLocation("texGamma");
   mShader.SetUniform(loc, mPluginSettings->mTextureGamma.get());

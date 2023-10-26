@@ -27,13 +27,12 @@ class GuiManager;
 
 namespace csp::lodbodies {
 
-/// An LodBody renders a planet from databases of hierarchical tiles. The tile data consists of
+/// An LodBody renders a planet from a quad tree of hierarchical tiles. The tile data consists of
 /// two components. Image data which determines the texture of the tiles and elevation data
 /// (Digital Elevation Model or DEM) which determines the height map of each tile.
 ///
 /// Each planet can make use of multiple data sources for image and elevation data. The user can
 /// choose at runtime which data source should be used.
-// DocTODO There probably are a thousand more things to explain.
 class LodBody : public cs::scene::CelestialSurface,
                 public cs::scene::IntersectableObject,
                 public IVistaOpenGLDraw {
@@ -59,13 +58,13 @@ class LodBody : public cs::scene::CelestialSurface,
   std::string const& getObjectName() const;
 
   /// Sets the tile source for elevation data.
-  void setDEMtileSource(std::shared_ptr<TileSource> source);
+  void setDEMtileSource(std::shared_ptr<TileSource> source, uint32_t maxLevel);
 
   /// Gets the current tile source for elevation data.
   std::shared_ptr<TileSource> const& getDEMtileSource() const;
 
   /// Sets the tile source for image data.
-  void setIMGtileSource(std::shared_ptr<TileSource> source);
+  void setIMGtileSource(std::shared_ptr<TileSource> source, uint32_t maxLevel);
 
   /// Gets the current tile source for image data.
   std::shared_ptr<TileSource> const& getIMGtileSource() const;
@@ -95,7 +94,11 @@ class LodBody : public cs::scene::CelestialSurface,
 
   VistaPlanet  mPlanet;
   PlanetShader mShader;
-  int          mHeightScaleConnection = -1;
+
+  uint32_t mMaxLevelDEM = 0;
+  uint32_t mMaxLevelIMG = 0;
+
+  int mHeightScaleConnection = -1;
 };
 
 } // namespace csp::lodbodies

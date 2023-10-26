@@ -7,82 +7,38 @@
 
 #include "TileNode.hpp"
 
+#include "HEALPix.hpp"
+
 namespace csp::lodbodies {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-TileNode::TileNode()
-    : mTile() {
+TileNode::TileNode(TileId const& tileId)
+    : mTileId(tileId) {
+
+  // Precompute some values required during rendering.
+  auto baseXY      = HEALPix::getBaseXY(mTileId);
+  mTileOffsetScale = glm::ivec3(baseXY.y, baseXY.z, HEALPix::getNSide(mTileId));
+  mTileF1F2        = glm::ivec2(HEALPix::getF1(mTileId), HEALPix::getF2(mTileId));
+  mCornersLngLat   = HEALPix::getCornersLngLat(mTileId);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-TileNode::TileNode(TileBase* tile, int childMaxLevel)
-    : mTile(tile)
-    , mParent(nullptr)
-    , mChildMaxLevel(childMaxLevel) {
-  if (mChildMaxLevel < 0 && mTile) {
-    mChildMaxLevel = mTile->getLevel();
-  }
+std::shared_ptr<BaseTileData> const& TileNode::getTileData(TileDataType type) const {
+  return mTileData.get(type);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-TileNode::TileNode(std::unique_ptr<TileBase>&& tile, int childMaxLevel)
-    : mTile(std::move(tile))
-    , mParent(nullptr)
-    , mChildMaxLevel(childMaxLevel) {
-  if (mChildMaxLevel < 0 && mTile) {
-    mChildMaxLevel = mTile->getLevel();
-  }
+PerDataType<std::shared_ptr<BaseTileData>> const& TileNode::getTileData() const {
+  return mTileData;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-int TileNode::getLevel() const {
-  return mTile->getLevel();
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-glm::int64 TileNode::getPatchIdx() const {
-  return mTile->getPatchIdx();
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-TileId const& TileNode::getTileId() const {
-  return mTile->getTileId();
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-std::type_info const& TileNode::getTileTypeId() const {
-  return mTile->getTypeId();
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-TileDataType TileNode::getTileDataType() const {
-  return mTile->getDataType();
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-TileBase* TileNode::getTile() const {
-  return mTile.get();
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-TileBase* TileNode::releaseTile() {
-  return mTile.release();
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void TileNode::setTile(std::unique_ptr<TileBase> tile) {
-  mTile = std::move(tile);
+void TileNode::setTileData(std::shared_ptr<BaseTileData> tile) {
+  mTileData.set(tile->getDataType(), std::move(tile));
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -93,40 +49,12 @@ TileNode* TileNode::getChild(int childIdx) const {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-TileNode* TileNode::releaseChild(int childIdx) {
-  if (mChildren.at(childIdx)) {
-    mChildren.at(childIdx)->setParent(nullptr);
-  }
-
-  return mChildren.at(childIdx).release();
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
 void TileNode::setChild(int childIdx, TileNode* child) {
-  // unset OLD parent
-  if (mChildren.at(childIdx)) {
-    mChildren.at(childIdx)->setParent(nullptr);
-  }
-
   mChildren.at(childIdx).reset(child);
 
-  // set NEW parent
-  if (mChildren.at(childIdx)) {
-    mChildren.at(childIdx)->setParent(this);
+  if (child) {
+    child->mParent = this;
   }
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-int TileNode::getChildMaxLevel() const {
-  return mChildMaxLevel;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void TileNode::setChildMaxLevel(int maxLevel) {
-  mChildMaxLevel = maxLevel;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -137,27 +65,116 @@ TileNode* TileNode::getParent() const {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void TileNode::setParent(TileNode* parent) {
-  mParent = parent;
+bool TileNode::childrenAvailable() const {
+  for (int i = 0; i < 4; ++i) {
+
+    if (!mChildren[i]) {
+      return false;
+    }
+
+    auto dem = mChildren[i]->getTileData(TileDataType::eElevation);
+    auto img = mChildren[i]->getTileData(TileDataType::eColor);
+
+    // The child is available if the elevation and the image channel are uploaded. If there is no
+    // image data, it also does not need to be uploaded.
+    if (dem->getTexLayer() < 0 || (img && img->getTexLayer() < 0)) {
+      return false;
+    }
+  }
+
+  return true;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// NO CLASS methods
-bool isLeaf(TileNode const& node) {
-  return node.getLevel() == node.getChildMaxLevel();
+int TileNode::getLevel() const {
+  return mTileId.level();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool isInner(TileNode const& node) {
-  return node.getLevel() < node.getChildMaxLevel();
+glm::int64 TileNode::getPatchIdx() const {
+  return mTileId.patchIdx();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool isRefined(TileNode const& node) {
-  return node.getChild(0) && node.getChild(1) && node.getChild(2) && node.getChild(3);
+int TileNode::getLastFrame() const {
+  return mLastFrame;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void TileNode::setLastFrame(int frame) {
+  mLastFrame = frame;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+int TileNode::getAge(int frame) const {
+  return frame - mLastFrame;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+BoundingBox<double> const& TileNode::getBounds() const {
+  return mTb;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void TileNode::setBounds(BoundingBox<double> const& tb) {
+  mTb        = tb;
+  mHasBounds = true;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void TileNode::removeBounds() {
+  mTb        = BoundingBox<double>();
+  mHasBounds = false;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+bool TileNode::hasBounds() const {
+  return mHasBounds;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+TileId const& TileNode::getTileId() const {
+  return mTileId;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+MinMaxPyramid* TileNode::getMinMaxPyramid() const {
+  return mMinMaxPyramid.get();
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void TileNode::setMinMaxPyramid(std::unique_ptr<MinMaxPyramid> pyramid) {
+  mMinMaxPyramid = std::move(pyramid);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+glm::ivec3 const& TileNode::getTileOffsetScale() const {
+  return mTileOffsetScale;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+glm::ivec2 const& TileNode::getTileF1F2() const {
+  return mTileF1F2;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+std::array<glm::dvec2, 4> const& TileNode::getCornersLngLat() const {
+  return mCornersLngLat;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

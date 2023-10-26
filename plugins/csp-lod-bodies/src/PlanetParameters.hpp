@@ -19,6 +19,7 @@ struct PlanetParameters {
   double     mLodFactor   = 50.0; ///< DocTODO
 
   int mMinLevel = 0; ///< The minimum LOD level.
+  int mMaxLevel = 0; ///< The maximum LOD level.
 };
 
 } // namespace csp::lodbodies

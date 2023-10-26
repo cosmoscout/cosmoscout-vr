@@ -18,8 +18,8 @@
 namespace csp::lodbodies {
 
 class TileNode;
-class RenderData;
-class TreeManagerBase;
+class BaseTileData;
+class TreeManager;
 
 /// Responsible for handling tile data that is uploaded the GPU and for balancing additional upload
 /// requests.
@@ -31,7 +31,7 @@ class TreeManagerBase;
 /// dramatically while only low resolution tiles are on the GPU.
 class TileTextureArray {
  public:
-  explicit TileTextureArray(TileDataType dataType, int maxLayerCount);
+  explicit TileTextureArray(TileDataType dataType, int maxLayerCount, uint32_t resolution);
 
   TileTextureArray(TileTextureArray const& other) = delete;
   TileTextureArray(TileTextureArray&& other)      = delete;
@@ -41,11 +41,13 @@ class TileTextureArray {
 
   ~TileTextureArray();
 
-  /// Requests that data for the tile associated with rdata be uploaded to the GPU.
-  void allocateGPU(RenderData* rdata);
+  TileDataType getDataType() const;
 
-  /// Release GPU resources allocated for the tile associated with rdata.
-  void releaseGPU(RenderData* rdata);
+  /// Requests that data for the tile associated with data be uploaded to the GPU.
+  void allocateGPU(std::shared_ptr<BaseTileData> data);
+
+  /// Release GPU resources allocated for the tile associated with data.
+  void releaseGPU(std::shared_ptr<BaseTileData> const& data);
 
   /// Process up to maxItems upload requests.
   void processQueue(int maxItems);
@@ -64,8 +66,8 @@ class TileTextureArray {
   void allocateTexture(TileDataType dataType);
   void releaseTexture();
 
-  void allocateLayer(RenderData* rdata);
-  void releaseLayer(RenderData* rdata);
+  void allocateLayer(std::shared_ptr<BaseTileData> const& data);
+  void releaseLayer(std::shared_ptr<BaseTileData> const& data);
 
   void        preUpload();
   static void postUpload();
@@ -75,31 +77,25 @@ class TileTextureArray {
   GLenum       mFormat;
   GLenum       mType;
   TileDataType mDataType;
+  uint32_t     mResolution;
 
   const GLint        mNumLayers;
   std::vector<GLint> mFreeLayers;
 
-  std::vector<RenderData*> mUploadQueue;
+  std::vector<std::shared_ptr<BaseTileData>> mUploadQueue;
 };
 
 /// DocTODO
-class GLResources {
+class GLResources : public PerDataType<std::unique_ptr<TileTextureArray>> {
  public:
-  GLResources(int maxLayersFloat32, int maxLayersUInt8, int maxLayersU8Vec3) {
-    mextureArrays[static_cast<int>(TileDataType::eFloat32)] =
-        std::make_unique<TileTextureArray>(TileDataType::eFloat32, maxLayersFloat32);
-    mextureArrays[static_cast<int>(TileDataType::eUInt8)] =
-        std::make_unique<TileTextureArray>(TileDataType::eUInt8, maxLayersUInt8);
-    mextureArrays[static_cast<int>(TileDataType::eU8Vec3)] =
-        std::make_unique<TileTextureArray>(TileDataType::eU8Vec3, maxLayersU8Vec3);
+  GLResources(int maxElevationLayers, int maxColorLayers, uint32_t elevationResolution,
+      uint32_t colorResolution)
+      : PerDataType<std::unique_ptr<TileTextureArray>>(
+            {std::make_unique<TileTextureArray>(
+                 TileDataType::eElevation, maxElevationLayers, elevationResolution),
+                std::make_unique<TileTextureArray>(
+                    TileDataType::eColor, maxColorLayers, colorResolution)}) {
   }
-
-  TileTextureArray& operator[](TileDataType type) {
-    return *mextureArrays.at(static_cast<int>(type));
-  }
-
- private:
-  std::array<std::unique_ptr<TileTextureArray>, 3> mextureArrays;
 };
 } // namespace csp::lodbodies
 

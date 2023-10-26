@@ -9,7 +9,7 @@
 #define CSP_LOD_BODIES_TILESOURCEWMS_HPP
 
 #include "../../../src/cs-utils/ThreadPool.hpp"
-#include "Tile.hpp"
+#include "TileData.hpp"
 #include "TileSource.hpp"
 
 #include <cstdio>
@@ -21,7 +21,7 @@ namespace csp::lodbodies {
 /// The data of the tiles is fetched via a web map service.
 class TileSourceWebMapService : public TileSource {
  public:
-  TileSourceWebMapService();
+  TileSourceWebMapService(uint32_t resolution);
 
   TileSourceWebMapService(TileSourceWebMapService const& other) = delete;
   TileSourceWebMapService(TileSourceWebMapService&& other)      = delete;
@@ -37,13 +37,12 @@ class TileSourceWebMapService : public TileSource {
   void fini() override {
   }
 
-  TileNode* loadTile(int level, glm::int64 patchIdx) override;
+  std::shared_ptr<BaseTileData> loadTile(TileId const& tileId) override;
 
-  void loadTileAsync(int level, glm::int64 patchIdx, OnLoadCallback cb) override;
+  void loadTileAsync(TileId const& tileId, OnLoadCallback cb) override;
   int  getPendingRequests() override;
 
-  void     setMaxLevel(uint32_t maxLevel);
-  uint32_t getMaxLevel() const;
+  uint32_t getResolution() const;
 
   void               setCacheDirectory(std::string const& cacheDirectory);
   std::string const& getCacheDirectory() const;
@@ -61,25 +60,25 @@ class TileSourceWebMapService : public TileSource {
 
   /// These can be used to pre-populate the local cache, returns true if the tile is on the diagonal
   /// of base patch 4 (the one which is cut in two halves).
-  static bool getXY(int level, glm::int64 patchIdx, int& x, int& y);
+  static bool getXY(TileId const& tileId, int& x, int& y);
 
   // This downloads the tile with the given coordinates from the MapServer. It is stored in the
   // local map cache and the resulting file name is returned. If the tile is already present in the
-  // map cache, no request is made and the cahce file name is returned immediately. It may happen
+  // map cache, no request is made and the cache file name is returned immediately. It may happen
   // that a tile cannot be downloaded (e.g. if the server is offline) - in this case no error is
   // thrown but std::nullopt is returned. In several other cases (e.g. cache directory is not
   // writable) a std::runtime_error is thrown.
-  std::optional<std::string> loadData(int level, int x, int y);
+  std::optional<std::string> loadData(TileId const& tileId, int x, int y);
 
  private:
-  static std::mutex mTileSystemMutex;
+  static std::mutex mFileSystemMutex;
 
   cs::utils::ThreadPool mThreadPool;
   std::string           mUrl;
   std::string           mCache = "cache/img";
   std::string           mLayers;
-  TileDataType          mFormat   = TileDataType::eU8Vec3;
-  uint32_t              mMaxLevel = 10;
+  TileDataType          mFormat = TileDataType::eColor;
+  uint32_t              mResolution;
 };
 } // namespace csp::lodbodies
 

@@ -8,21 +8,21 @@
 #ifndef CSP_LOD_BODIES_MINMAXPYRAMID_HPP
 #define CSP_LOD_BODIES_MINMAXPYRAMID_HPP
 
+#include <cstdint>
 #include <limits>
 #include <vector>
 
 namespace csp::lodbodies {
 
 template <typename T>
-class Tile;
+class TileData;
 
 /// The MinMaxPyramid is a data structure for finding lod data in constant time. It's similar
 /// to a quad tree but it contains precomputed min and max values at each level.
 class MinMaxPyramid {
 
  public:
-  MinMaxPyramid();
-  explicit MinMaxPyramid(Tile<float>* tile);
+  explicit MinMaxPyramid(TileData<float>* tile);
 
   MinMaxPyramid(MinMaxPyramid const& other) = default;
   MinMaxPyramid(MinMaxPyramid&& other)      = default;
@@ -30,7 +30,7 @@ class MinMaxPyramid {
   MinMaxPyramid& operator=(MinMaxPyramid const& other) = default;
   MinMaxPyramid& operator=(MinMaxPyramid&& other) = default;
 
-  virtual ~MinMaxPyramid();
+  virtual ~MinMaxPyramid() = default;
 
   std::vector<std::vector<float>>& getMinPyramid();
   std::vector<std::vector<float>>& getMaxPyramid();
@@ -75,6 +75,9 @@ class MinMaxPyramid {
   static float getData(std::vector<std::vector<float>>& pyramid, std::vector<int> const& quadrants);
 
  private:
+  uint32_t mTileResolution{};
+  uint32_t mLevels{};
+
   std::vector<std::vector<float>> mMinPyramid;
   std::vector<std::vector<float>> mMaxPyramid;
 

@@ -35,6 +35,10 @@ class TimeNode : public csl::nodeeditor::Node {
   explicit TimeNode(std::shared_ptr<cs::core::TimeControl> timeControl);
   ~TimeNode() override;
 
+  /// This function gets called once after the node has been initialized. You can use it to send
+  /// initialization data to JavaScript.
+  void init() override;
+
   /// Each node must override this. It simply returns the static sName.
   std::string const& getName() const override;
 

@@ -8,6 +8,7 @@
 #include "TimeNode.hpp"
 
 #include "../../../../src/cs-core/TimeControl.hpp"
+#include "../../../../src/cs-utils/convert.hpp"
 #include "../../../../src/cs-utils/filesystem.hpp"
 
 namespace csp::demonodeeditor {
@@ -54,7 +55,16 @@ std::string const& TimeNode::getName() const {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void TimeNode::init() {
+  sendMessageToJS(boost::posix_time::to_simple_string(
+      cs::utils::convert::time::toPosix(mTimeControl->pSimulationTime.get())));
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void TimeNode::process() {
+  sendMessageToJS(boost::posix_time::to_simple_string(
+      cs::utils::convert::time::toPosix(mTimeControl->pSimulationTime.get())));
 
   // The name of the port must match the name given in the JavaScript code above.
   writeOutput("time", mTimeControl->pSimulationTime.get());

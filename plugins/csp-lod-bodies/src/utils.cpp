@@ -9,7 +9,7 @@
 
 #include "HEALPix.hpp"
 
-#include "RenderDataDEM.hpp"
+#include "BaseTileData.hpp"
 #include "VistaPlanet.hpp"
 
 #include "../../../src/cs-utils/convert.hpp"
@@ -26,12 +26,12 @@ double getHeight(
     VistaPlanet const* planet, HeightSamplePrecision precision, glm::dvec2 const& lngLat) {
 
   // Check if TreeManagerDEM is ok
-  if (planet->getTileRenderer().getTreeManagerDEM() == nullptr) {
+  if (planet->getTileRenderer().getTreeManager() == nullptr) {
     return 0.0F;
   }
 
   // Check if TreeManagerDEM -> GetTree is ok
-  if (planet->getTileRenderer().getTreeManagerDEM()->getTree() == nullptr) {
+  if (planet->getTileRenderer().getTreeManager()->getTree() == nullptr) {
     return 0.0F;
   }
 
@@ -44,7 +44,7 @@ double getHeight(
   relative1 = HEALPix::convertBaseLngLat2XY(rootIndex, lngLat);
 
   // Get the right root
-  TileNode* parent = planet->getTileRenderer().getTreeManagerDEM()->getTree()->getRoot(rootIndex);
+  TileNode* parent = planet->getTileRenderer().getTreeManager()->getTree()->getRoot(rootIndex);
 
   // Check if parent is valid
   if (parent == nullptr) {
@@ -61,7 +61,7 @@ double getHeight(
   int childIndex = -1;
 
   // Go down tree only if not coarse precision
-  while (child && !isLeaf(*child) && int(precision) > 1) {
+  while (child && int(precision) > 1) {
     parent = child;
 
     relative2 = relative1;
@@ -102,10 +102,10 @@ double getHeight(
 
       requested.push_back(HEALPix::getChildTileId(parent->getTileId(), childIndex));
 
-      planet->getTileRenderer().getTreeManagerDEM()->request(requested);
+      planet->getTileRenderer().getTreeManager()->request(requested);
 
-      // planet->getTileRenderer().getTreeManagerDEM()->merge();
-      planet->getTileRenderer().getTreeManagerDEM()->update();
+      // planet->getTileRenderer().getTreeManager()->merge();
+      planet->getTileRenderer().getTreeManager()->update();
 
       child = parent->getChild(childIndex);
     }
@@ -116,14 +116,13 @@ double getHeight(
     return 0.0;
   }
 
-  int sizeX = TileBase::SizeX;
-  int sizeY = TileBase::SizeY;
+  uint32_t size = child->getTileData().get(TileDataType::eElevation)->getResolution();
 
   // Figure out flip
   std::swap(relative1.x, relative1.y);
 
-  double u = relative1.x * (sizeX - 1);
-  double v = relative1.y * (sizeY - 1);
+  double u = relative1.x * (size - 1);
+  double v = relative1.y * (size - 1);
 
   int uB = static_cast<int>(u);
   int vB = static_cast<int>(v);
@@ -131,36 +130,16 @@ double getHeight(
   double uP = u - uB;
   double vP = v - vB;
 
-  // if (uB >= sizeX - 1)
-  // {
-  //     uB = sizeX - 2;
-  //     uP = 1;
-  // }
-
-  // if (vB >= sizeY - 1)
-  // {
-  //     vB = sizeY - 2;
-  //     vP = 1;
-  // }
-
   double h{};
   double hP1{};
   double hP2{};
   double hPP{};
 
-  if (child->getTileDataType() == TileDataType::eFloat32) {
-    const auto* ptr = child->getTile()->getTypedPtr<float>();
-    h   = ptr[vB + sizeY * uB];           // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-    hP1 = ptr[vB + sizeY * (uB + 1)];     // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-    hP2 = ptr[vB + 1 + sizeY * uB];       // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-    hPP = ptr[vB + 1 + sizeY * (uB + 1)]; // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-  } else {
-    const auto* ptr = child->getTile()->getTypedPtr<unsigned char>();
-    h   = ptr[vB + sizeY * uB];           // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-    hP1 = ptr[vB + sizeY * (uB + 1)];     // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-    hP2 = ptr[vB + 1 + sizeY * uB];       // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-    hPP = ptr[vB + 1 + sizeY * (uB + 1)]; // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-  }
+  const auto* ptr = child->getTileData().get(TileDataType::eElevation)->getTypedPtr<float>();
+  h               = ptr[vB + size * uB]; // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+  hP1 = ptr[vB + size * (uB + 1)];       // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+  hP2 = ptr[vB + 1 + size * uB];         // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+  hPP = ptr[vB + 1 + size * (uB + 1)];   // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
 
   double interpol1 = (1.0 - uP) * h + uP * hP1;
   double interpol2 = (1.0 - uP) * hP2 + uP * hPP;
@@ -173,10 +152,7 @@ double getHeight(
 
 bool intersectTileBounds(TileNode const* tileNode, VistaPlanet const* planet,
     glm::dvec4 const& origin, glm::dvec4 const& direction, double& minDist, double& maxDist) {
-  TileBase* tile   = tileNode->getTile();
-  auto      tileId = tile->getTileId();
-  auto*     rdDEM  = planet->getTileRenderer().getTreeManagerDEM()->find<RenderDataDEM>(tileId);
-  BoundingBox<double> tile_bounds = rdDEM->getBounds();
+  BoundingBox<double> tile_bounds = tileNode->getBounds();
   std::array dMin{tile_bounds.getMin()[0], tile_bounds.getMin()[1], tile_bounds.getMin()[2]};
   std::array dMax{tile_bounds.getMax()[0], tile_bounds.getMax()[1], tile_bounds.getMax()[2]};
 
@@ -195,21 +171,17 @@ bool intersectTileBounds(TileNode const* tileNode, VistaPlanet const* planet,
 bool intersectPlanet(
     VistaPlanet const* planet, glm::dvec3 rayOrigin, glm::dvec3 rayDir, glm::dvec3& pos) {
   // Check if TreeManagerDEM is ok
-  if (planet->getTileRenderer().getTreeManagerDEM() == nullptr) {
+  if (planet->getTileRenderer().getTreeManager() == nullptr) {
     return false;
   }
 
   // Check if TreeManagerDEM -> GetTree is ok
-  if (planet->getTileRenderer().getTreeManagerDEM()->getTree() == nullptr) {
+  if (planet->getTileRenderer().getTreeManager()->getTree() == nullptr) {
     return false;
   }
 
   // Initialize Result to Zero
   pos = glm::dvec3(0);
-
-  // Tile sizes
-  int sizeX = TileBase::SizeX;
-  int sizeY = TileBase::SizeY;
 
   // Planet transform -> Inverse -> so we are in planet space
   glm::dmat4 planet_transform = planet->getWorldTransform();
@@ -228,8 +200,7 @@ bool intersectPlanet(
   std::multimap<double, TileNode*> intersected_tiles;
   for (int rootIndex = 0; rootIndex < 12; ++rootIndex) {
 
-    TileNode* root_node =
-        planet->getTileRenderer().getTreeManagerDEM()->getTree()->getRoot(rootIndex);
+    TileNode* root_node = planet->getTileRenderer().getTreeManager()->getTree()->getRoot(rootIndex);
 
     if (root_node == nullptr) {
       return false;
@@ -256,7 +227,7 @@ bool intersectPlanet(
     }
 
     // Sample height field of cut leaf node
-    if (!isRefined(*parent)) {
+    if (!parent->childrenAvailable()) {
       // Get entry and exit point again:
       double min_dist{};
       double max_dist{};
@@ -289,13 +260,14 @@ bool intersectPlanet(
       //        |        \   /     |
       //        |         \/       |
       // BboxMin--------------------
-      TileBase* tile   = parent->getTile();
-      auto      tileId = tile->getTileId();
-      auto*     rdDEM  = planet->getTileRenderer().getTreeManagerDEM()->find<RenderDataDEM>(tileId);
-      auto      tile_bounds = rdDEM->getBounds();
+      auto const& tile        = parent->getTileData().get(TileDataType::eElevation);
+      auto        tile_bounds = parent->getBounds();
 
-      auto max_tile_samplings = sqrt((255.0 * 255.0) + (255.0 * 255.0));
-      auto max_bbox_samplings = sqrt(
+      // Tile sizes
+      int size = tile->getResolution();
+
+      auto max_tile_samplings = std::sqrt((size * size) + (size * size));
+      auto max_bbox_samplings = std::sqrt(
           (max_tile_samplings * max_tile_samplings) + (max_tile_samplings * max_tile_samplings));
 
       auto step_factor =
@@ -326,8 +298,8 @@ bool intersectPlanet(
         std::swap(HPixPt.x, HPixPt.y);
 
         // Calc coords in texture space
-        double u = HPixPt.x * (sizeX - 1);
-        double v = HPixPt.y * (sizeY - 1);
+        double u = HPixPt.x * (size - 1);
+        double v = HPixPt.y * (size - 1);
 
         int uB = static_cast<int>(u);
         int vB = static_cast<int>(v);
@@ -338,35 +310,23 @@ bool intersectPlanet(
         double hP1{};
         double hP2{};
         double hPP{};
-        if (uB >= sizeX - 1 || uB < 0) {
+        if (uB >= size - 1 || uB < 0) {
           continue;
         }
-        if (vB >= sizeY - 1 || vB < 0) {
+        if (vB >= size - 1 || vB < 0) {
           continue;
         }
 
         // Access height data
-        if (parent->getTileDataType() == TileDataType::eFloat32) {
-          const auto* ptr = parent->getTile()->getTypedPtr<float>();
-          // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-          height = ptr[vB + sizeY * uB];
-          // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-          hP1 = ptr[vB + sizeY * (uB + 1)];
-          // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-          hP2 = ptr[vB + 1 + sizeY * uB];
-          // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-          hPP = ptr[vB + 1 + sizeY * (uB + 1)];
-        } else {
-          const auto* ptr = parent->getTile()->getTypedPtr<unsigned char>();
-          // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-          height = ptr[vB + sizeY * uB];
-          // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-          hP1 = ptr[vB + sizeY * (uB + 1)];
-          // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-          hP2 = ptr[vB + 1 + sizeY * uB];
-          // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-          hPP = ptr[vB + 1 + sizeY * (uB + 1)];
-        }
+        const auto* ptr = parent->getTileData().get(TileDataType::eElevation)->getTypedPtr<float>();
+        // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+        height = ptr[vB + size * uB];
+        // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+        hP1 = ptr[vB + size * (uB + 1)];
+        // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+        hP2 = ptr[vB + 1 + size * uB];
+        // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+        hPP = ptr[vB + 1 + size * (uB + 1)];
 
         double interpol1 = (1.0 - uP) * height + uP * hP1;
         double interpol2 = (1.0 - uP) * hP2 + uP * hPP;

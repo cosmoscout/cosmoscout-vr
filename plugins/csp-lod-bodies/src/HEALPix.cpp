@@ -339,11 +339,13 @@ glm::dvec2 HEALPixLevel::bxy2geo(glm::i64vec3 const& bxy) const {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-/* static */ std::array<HEALPixLevel, 20> const HEALPix::sLevels = {
+/* static */ std::array<HEALPixLevel, 30> const HEALPix::sLevels = {
     {HEALPixLevel(0), HEALPixLevel(1), HEALPixLevel(2), HEALPixLevel(3), HEALPixLevel(4),
         HEALPixLevel(5), HEALPixLevel(6), HEALPixLevel(7), HEALPixLevel(8), HEALPixLevel(9),
         HEALPixLevel(10), HEALPixLevel(11), HEALPixLevel(12), HEALPixLevel(13), HEALPixLevel(14),
-        HEALPixLevel(15), HEALPixLevel(16), HEALPixLevel(17), HEALPixLevel(18), HEALPixLevel(19)}};
+        HEALPixLevel(15), HEALPixLevel(16), HEALPixLevel(17), HEALPixLevel(18), HEALPixLevel(19),
+        HEALPixLevel(20), HEALPixLevel(21), HEALPixLevel(22), HEALPixLevel(23), HEALPixLevel(24),
+        HEALPixLevel(25), HEALPixLevel(26), HEALPixLevel(27), HEALPixLevel(28), HEALPixLevel(29)}};
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
