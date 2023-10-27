@@ -161,8 +161,9 @@ bool Renderer::Do() {
     return false;
   }
 
-  auto object = mSolarSystem->getObjectByCenterName(mObjectName);
-  if (!object) {
+  auto object   = mSolarSystem->getObjectByCenterName(mObjectName);
+  auto observer = mSolarSystem->getObserver();
+  if (!object || object->getCenterName() != observer.getCenterName()) {
     return false;
   }
 

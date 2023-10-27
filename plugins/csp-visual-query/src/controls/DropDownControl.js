@@ -5,10 +5,31 @@
 // SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
 // SPDX-License-Identifier: MIT
 
-// This is the widget which is used for selecting an option from a drop down menu.
+/**
+ * @typedef {Object} DropDownOption
+ * @property {number} value
+ * @property {string} text
+ */
+
+/**
+ * @callback DropDownChangeCallback
+ * @param {DropDownOption}
+ */
+
+/** This is the widget which is used for selecting an option from a drop down menu. */
 class DropDownControl extends Rete.Control {
-  constructor(key, defaultOptions = []) {
+  /**
+   * Constructs a new DropDownControl.
+   *
+   * @param {string}                 key              A unique identifier within the parent node.
+   * @param {DropDownChangeCallback} onChangeCallback A callback, that gets called, when the user selects a new option.
+   * @param {string | undefined}     label            A label to show next to the options.
+   * @param {Array<DropDownOption>}  defaultOptions   A set of initial options.
+   */
+  constructor(key, onChangeCallback, label = undefined, defaultOptions = []) {
     super(key);
+
+    this.callback = onChangeCallback;
 
     let options = '';
 
@@ -17,22 +38,36 @@ class DropDownControl extends Rete.Control {
       options += '\n';
     }
 
-    this.template = `
-          <select>
-            ${options}
-          </select>
+    const id = crypto.randomUUID();
 
-          <style>
-            .dropdown {
-              margin: 10px 15px !important;
-              width: 150px !important;
-            }
-          </style>
-        `;
+    this.template = `<div id="dropdown-${id}" class="container-fluid">`;
+    if (label) {
+      this.template += `
+        <div class="row">
+          <label for="select-${id}">${label}:</label>
+        </div>
+      `;
+    }
+
+    this.template += `
+      <div class="row">
+        <select id="select-${id}">
+          ${options}
+        </select>
+      </div>
+    `;
+    this.template += `
+      </div>
+      <style>
+       #dropdown-${id} {
+          margin: 10px 15px !important;
+          width: 150px !important;
+        }
+      </style>
+    `;
   }
 
-  // This is called by the node.onInit() above once the HTML element for the node has been
-  // created.
+  /** This is called by the node.onInit() once the HTML element for the node has been created. */
   init(nodeDiv, data) {
 
     // Initialize the bootstrap select.
@@ -45,15 +80,19 @@ class DropDownControl extends Rete.Control {
     }
 
     // Send an update to the node editor server whenever the user selects a new operation.
-    el.addEventListener('change',
-      (e) => { CosmoScout.sendMessageToCPP({
+    el.addEventListener('change', (e) =>
+      this.callback({
         value: parseInt(e.target.value),
         text: e.target.options[e.target.selectedIndex].text
-      }, this.parent.id); });
+      }));
   }
 
+  /**
+   * Replaces the previous options with the new ones.
+   * @param {Array<DropDownOption>} newOptions The new options to be shown.
+   */
   setOptions(newOptions) {
-    const el= document.querySelector("#node-" + this.parent.id + " select");
+    const el = document.querySelector("#node-" + this.parent.id + " select");
     el.replaceChildren();
 
     for (let option of newOptions) {
@@ -66,12 +105,12 @@ class DropDownControl extends Rete.Control {
     // refresh bootstrap dropdown options
     $(el).selectpicker("refresh");
 
-
     // Send an update to the node editor server whenever the user selects a new operation.
     el.addEventListener('change',
-      (e) => { CosmoScout.sendMessageToCPP({
-        value: parseInt(e.target.value),
-        text: e.target.options[e.target.selectedIndex].text
-      }, this.parent.id); });
+      (e) =>
+        this.callback({
+          value: parseInt(e.target.value),
+          text: e.target.options[e.target.selectedIndex].text
+        }));
   }
 }
