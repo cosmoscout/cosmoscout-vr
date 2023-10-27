@@ -38,20 +38,20 @@ class DropDownControl extends Rete.Control {
       options += '\n';
     }
 
-    const id = crypto.randomUUID();
+    this.id = crypto.randomUUID();
 
-    this.template = `<div id="dropdown-${id}" class="container-fluid">`;
+    this.template = `<div id="dropdown-${this.id}" class="container-fluid">`;
     if (label) {
       this.template += `
         <div class="row">
-          <label for="select-${id}">${label}:</label>
+          <label for="select-${this.id}">${label}:</label>
         </div>
       `;
     }
 
     this.template += `
       <div class="row">
-        <select id="select-${id}">
+        <select id="select-${this.id}" class="dropdown-${this.key}">
           ${options}
         </select>
       </div>
@@ -59,7 +59,7 @@ class DropDownControl extends Rete.Control {
     this.template += `
       </div>
       <style>
-       #dropdown-${id} {
+       #dropdown-${this.id} {
           margin: 10px 15px !important;
           width: 150px !important;
         }
@@ -69,22 +69,17 @@ class DropDownControl extends Rete.Control {
 
   /** This is called by the node.onInit() once the HTML element for the node has been created. */
   init(nodeDiv, data) {
-
     // Initialize the bootstrap select.
-    const el = nodeDiv.querySelector("select");
-    $(el).selectpicker();
+    this.el = nodeDiv.querySelector(`#select-${this.id}`);
+    $(this.el).selectpicker();
 
-    // Preselect a math operation.
-    if (data.selectedValue) {
-      $(el).selectpicker('val', data.selectedValue);
+    if (data.options) {
+      this.setOptions(data.options);
+
+      if (data.selectedValue) {
+        $(this.el).selectpicker('val', data.options.findIndex((entry) => entry.value === data.selectedValue || entry.text === data.selectedValue));
+      }
     }
-
-    // Send an update to the node editor server whenever the user selects a new operation.
-    el.addEventListener('change', (e) =>
-      this.callback({
-        value: parseInt(e.target.value),
-        text: e.target.options[e.target.selectedIndex].text
-      }));
   }
 
   /**
@@ -92,21 +87,20 @@ class DropDownControl extends Rete.Control {
    * @param {Array<DropDownOption>} newOptions The new options to be shown.
    */
   setOptions(newOptions) {
-    const el = document.querySelector("#node-" + this.parent.id + " select");
-    el.replaceChildren();
+    this.el.replaceChildren();
 
     for (let option of newOptions) {
       let optionElement = document.createElement("option");
       optionElement.value = option.value;
       optionElement.innerHTML = option.text;
-      el.appendChild(optionElement);
+      this.el.appendChild(optionElement);
     }
 
     // refresh bootstrap dropdown options
-    $(el).selectpicker("refresh");
+    $(this.el).selectpicker("refresh");
 
-    // Send an update to the node editor server whenever the user selects a new operation.
-    el.addEventListener('change',
+    // Send an update to the node whenever the user selects a new option.
+    this.el.addEventListener('change',
       (e) =>
         this.callback({
           value: parseInt(e.target.value),

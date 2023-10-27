@@ -20,10 +20,10 @@ class WCSCoverage : public csl::nodeeditor::Node {
  public:
   // static interface ------------------------------------------------------------------------------
 
-  static const std::string          sName;
-  static std::string                sSource();
+  static const std::string            sName;
+  static std::string                  sSource();
   static std::unique_ptr<WCSCoverage> sCreate(
-    std::shared_ptr<std::vector<csl::ogc::WebCoverageService>> wcs);
+      std::shared_ptr<std::vector<csl::ogc::WebCoverageService>> wcs);
 
   // instance interface ----------------------------------------------------------------------------
 
@@ -55,8 +55,8 @@ class WCSCoverage : public csl::nodeeditor::Node {
   /// contain a server.
   void setData(nlohmann::json const& json) override;
 
-  void sendServersToJs();
   void sendImageChannelsToJs();
+  void init() override;
 
  private:
   // Image2D mImage;

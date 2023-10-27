@@ -59,27 +59,21 @@ void WCSCoverage::onMessageFromJS(nlohmann::json const& message) {
 
   logger().debug("WCSCoverage: Message form JS: {}", message.dump());
 
-  // Send available servers
-  if (message.dump() == "\"requestServers\"") {
-    sendServersToJs();
-    return;
-  }
-
   // set newly selected server
   if (message.find("server") != message.end()) {
 
     // reset server and image channel selection
-    if (message["server"] == "none") {
+    if (message["server"] == "None") {
       mSelectedServer = nullptr;
       mSelectedImageChannel = nullptr;
 
       nlohmann::json imageChannel;
-      imageChannel["imageChannel"] = "reset";
+      imageChannel["imageChannels"] = "reset";
       sendMessageToJS(imageChannel);
 
     // set new server and send available image channels
     } else {
-      for (auto wcs : (*mWcs)) {
+      for (auto const& wcs : (*mWcs)) {
         if (wcs.getTitle() == message["server"]) {
           mSelectedServer = std::make_shared<csl::ogc::WebCoverageService>(wcs);
           break;
@@ -91,10 +85,10 @@ void WCSCoverage::onMessageFromJS(nlohmann::json const& message) {
   }
 
   // set newly selected image channel
-  else if (message.find("imageChannel") !=  message.end()) {
+  if (message.find("imageChannel") !=  message.end()) {
 
     // reset image channel selection
-    if (message["imageChannel"] == "none") {
+    if (message["imageChannel"] == "None") {
       mSelectedImageChannel = nullptr;
 
     // set new image channel
@@ -114,11 +108,27 @@ void WCSCoverage::onMessageFromJS(nlohmann::json const& message) {
 
 nlohmann::json WCSCoverage::getData() const {
   nlohmann::json data;
+
+  std::vector<std::string> serverNames{"None"};
+  for (csl::ogc::WebCoverageService const& server : *mWcs) {
+    serverNames.push_back(server.getTitle());
+  }
+
+  data["servers"] = serverNames;
+
   if (mSelectedServer != nullptr) {
-    data["serverUrl"] = mSelectedServer->getUrl();
+    data["selectedURL"] = mSelectedServer->getUrl();
+    data["selectedServer"] = mSelectedServer->getTitle();
+
+    std::vector<std::string> imageChannelNames{"None"};
+
+    for (csl::ogc::WebCoverage const& imageChannel : mSelectedServer->getCoverages()) {
+      imageChannelNames.push_back(imageChannel.getTitle());
+    }
+    data["coverages"] = imageChannelNames;
 
     if (mSelectedImageChannel != nullptr) {
-      data["imageChannelId"] = mSelectedImageChannel->getId();
+      data["selectedCoverage"] = mSelectedImageChannel->getId();
     }
   }
   return data;
@@ -127,22 +137,34 @@ nlohmann::json WCSCoverage::getData() const {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void WCSCoverage::setData(nlohmann::json const& json) {
-  if (json.find("serverUrl") != json.end()) {
+  if (json.find("selectedURL") != json.end()) {
 
-    for (csl::ogc::WebCoverageService wcs : *mWcs) {
-      if (wcs.getUrl() == json["serverUrl"]) {
+    for (csl::ogc::WebCoverageService const& wcs : *mWcs) {
+      if (wcs.getUrl() == json["selectedURL"]) {
         mSelectedServer = std::make_shared<csl::ogc::WebCoverageService>(wcs);
         break;
       }
     }
 
-    if (mSelectedServer != nullptr && json.find("imageChannelId") != json.end()) {
+    if (mSelectedServer != nullptr && json.find("selectedCoverage") != json.end()) {
 
-      auto temp = mSelectedServer->getCoverage(json["imageChannelId"]);
+      auto temp = mSelectedServer->getCoverage(json["selectedCoverage"]);
       mSelectedImageChannel = (temp.has_value() ? std::make_shared<csl::ogc::WebCoverage>(temp.value()) : nullptr);
     }
   }
   // process() ?
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void WCSCoverage::init() {
+  std::vector<std::string> serverNames{"None"};
+  for (csl::ogc::WebCoverageService const& server : *mWcs) {
+    serverNames.push_back(server.getTitle());
+  }
+  nlohmann::json server;
+  server["servers"] = serverNames;
+  sendMessageToJS(server);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -164,26 +186,16 @@ void WCSCoverage::process() {
   writeOutput("coverageOut", std::make_shared<CoverageContainer>(mSelectedServer, mSelectedImageChannel));
 }
 
-void WCSCoverage::sendServersToJs() {
-  std::vector<std::string> serverNames;
-  for (csl::ogc::WebCoverageService server : *mWcs) {
-    serverNames.push_back(server.getTitle());
-  }
-  nlohmann::json server;
-  server["server"] = serverNames;
-  sendMessageToJS(server);
-}
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void WCSCoverage::sendImageChannelsToJs() {
-  std::vector<std::string> imageChannelNames;
+  std::vector<std::string> imageChannelNames{"None"};
   
-  for (csl::ogc::WebCoverage imageChannel : mSelectedServer->getCoverages()) {
+  for (csl::ogc::WebCoverage const& imageChannel : mSelectedServer->getCoverages()) {
     imageChannelNames.push_back(imageChannel.getTitle());
   }
   nlohmann::json imageChannels;
-  imageChannels["imageChannel"] = imageChannelNames;
+  imageChannels["imageChannels"] = imageChannelNames;
   sendMessageToJS(imageChannels);
 }
 
