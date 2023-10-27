@@ -128,7 +128,8 @@ nlohmann::json WCSCoverage::getData() const {
     data["coverages"] = imageChannelNames;
 
     if (mSelectedImageChannel != nullptr) {
-      data["selectedCoverage"] = mSelectedImageChannel->getId();
+      data["selectedCoverageId"] = mSelectedImageChannel->getId();
+      data["selectedCoverage"] = mSelectedImageChannel->getTitle();
     }
   }
   return data;
@@ -148,7 +149,7 @@ void WCSCoverage::setData(nlohmann::json const& json) {
 
     if (mSelectedServer != nullptr && json.find("selectedCoverage") != json.end()) {
 
-      auto temp = mSelectedServer->getCoverage(json["selectedCoverage"]);
+      auto temp = mSelectedServer->getCoverage(json["selectedCoverageId"]);
       mSelectedImageChannel = (temp.has_value() ? std::make_shared<csl::ogc::WebCoverage>(temp.value()) : nullptr);
     }
   }
