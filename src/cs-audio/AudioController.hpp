@@ -43,6 +43,8 @@ class CS_AUDIO_EXPORT AudioController
 
   void update();
 
+  std::shared_ptr<std::vector<std::shared_ptr<Source>>> getSources() const;
+
  private:
   std::shared_ptr<BufferManager>            mBufferManager;
   std::shared_ptr<ProcessingStepsManager>   mProcessingStepsManager;
