@@ -36,6 +36,8 @@ class CS_AUDIO_EXPORT Source
   bool setFile(std::string file);
   std::string getFile() const;
 
+  ALuint getOpenAlId() const;
+
   // TODO: Constructor in private ausprobieren
 
   Source(std::shared_ptr<BufferManager> bufferManager, 
@@ -46,12 +48,12 @@ class CS_AUDIO_EXPORT Source
   friend class SourceGroup;
   friend class UpdateConstructor;
     
-  ALuint                                           mOpenAlId; // temp
  private:
   std::string                                      mFile;
   std::shared_ptr<BufferManager>                   mBufferManager;
   std::shared_ptr<ProcessingStepsManager>          mProcessingStepsManager;
   std::shared_ptr<SourceGroup>                     mGroup;
+  ALuint                                           mOpenAlId; 
 
   void addToUpdateList();
 };
