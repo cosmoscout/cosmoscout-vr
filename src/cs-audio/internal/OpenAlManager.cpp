@@ -57,7 +57,7 @@ bool OpenAlManager::initOpenAl(core::Settings::Audio settings) {
   }
 
   // create context
-  mContext = alcCreateContext(mDevice, mAttributeList);
+  mContext = alcCreateContext(mDevice, mAttributeList.data());
   if (contextErrorOccurd()) {
     logger().warn("Failed to create context!");
     return false;
@@ -85,7 +85,7 @@ bool OpenAlManager::setDevice(std::string outputDevice) {
     alcReopenDeviceSOFT = (LPALCREOPENDEVICESOFT)alGetProcAddress("alcReopenDeviceSOFT");
   }
 
-  if (alcReopenDeviceSOFT(mDevice, outputDevice.c_str(), mAttributeList) == ALC_FALSE) { // schlägt hier manchmal fehl, wenn in playAmbient() aufgerufen wird
+  if (alcReopenDeviceSOFT(mDevice, outputDevice.c_str(), mAttributeList.data()) == ALC_FALSE) { // TODO: Fails sometimes?
     contextErrorOccurd();
     logger().warn("Failed to set the new output device! Playback remains on the current device!");
     return false;

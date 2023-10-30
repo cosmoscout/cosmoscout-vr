@@ -36,9 +36,9 @@ class CS_AUDIO_EXPORT OpenAlManager {
   bool setDevice(std::string outputDevice);
 
  private:
-  ALCdevice*  mDevice;
-  ALCcontext* mContext;
-  ALCint      mAttributeList[12];
+  ALCdevice*          mDevice;
+  ALCcontext*         mContext;
+  std::vector<ALCint> mAttributeList;
 
   OpenAlManager();
   bool contextErrorOccurd();
