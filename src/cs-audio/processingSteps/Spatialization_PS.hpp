@@ -12,6 +12,7 @@
 #include "ProcessingStep.hpp"
 
 #include <AL/al.h>
+#include <glm/fwd.hpp>
 
 namespace cs::audio {
 
@@ -30,6 +31,8 @@ class CS_AUDIO_EXPORT Spatialization_PS : public ProcessingStep {
 
  private:
   Spatialization_PS();
+
+  bool validatePosition(std::any position);
 };
 
 } // namespace cs::audio
