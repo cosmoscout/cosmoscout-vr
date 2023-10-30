@@ -28,7 +28,9 @@ class CS_AUDIO_EXPORT SourceGroup
   , public std::enable_shared_from_this<SourceGroup> {
     
  public:
-  explicit SourceGroup(std::shared_ptr<UpdateInstructor> UpdateInstructor);
+  explicit SourceGroup(std::shared_ptr<UpdateInstructor> UpdateInstructor,
+    std::shared_ptr<UpdateConstructor> updateConstructor,
+    std::shared_ptr<AudioController> audioController);
   ~SourceGroup();
 
   /// Add a new source to the group
@@ -41,7 +43,9 @@ class CS_AUDIO_EXPORT SourceGroup
   std::set<std::shared_ptr<Source>> getMembers() const;
     
  private:
-  std::set<std::shared_ptr<Source>> mMembers;
+  std::set<std::shared_ptr<Source>>  mMembers;
+  std::shared_ptr<UpdateConstructor> mUpdateConstructor;
+  std::shared_ptr<AudioController> mAudioController; // TODO: good idea?
   
   void addToUpdateList();
 };

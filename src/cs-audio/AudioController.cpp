@@ -33,7 +33,7 @@ AudioController::AudioController(
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 std::shared_ptr<SourceGroup> AudioController::createSourceGroup() {
-  auto group = std::make_shared<SourceGroup>(mUpdateInstructor);
+  auto group = std::make_shared<SourceGroup>(mUpdateInstructor, mUpdateConstructor, shared_from_this());
   mGroups.push_back(group);
   return group;
 }
@@ -43,6 +43,11 @@ std::shared_ptr<SourceGroup> AudioController::createSourceGroup() {
 std::shared_ptr<Source> AudioController::createSource(std::string file) {
   auto source = std::make_shared<Source>(mBufferManager, mProcessingStepsManager, file, mUpdateInstructor);
   mSources.push_back(source);
+
+  // apply audioController settings to newly creates source
+  if (!mCurrentSettings->empty()) {
+    mUpdateConstructor->applyCurrentControllerSettings(source, this, mCurrentSettings);
+  }
   return source;
 } 
 

@@ -124,4 +124,40 @@ void UpdateConstructor::updateSources(
   }
 }
 
+void UpdateConstructor::applyCurrentControllerSettings(
+  std::shared_ptr<Source> source,
+  AudioController* audioController,
+  std::shared_ptr<std::map<std::string, std::any>> settings) {
+  
+  // There is no need to check for already set values here because this functions only gets called when creating a new 
+  // source, at which point there cannot be any already set settings.
+
+  // run finalSetting through pipeline
+  auto failedSettings = mProcessingStepsManager->process(source->mOpenAlId, audioController, settings);
+  
+  // Update currently set settings for a source
+  source->mCurrentSettings = SettingsMixer::OverrideAdd_A_with_B(source->mCurrentSettings, 
+    SettingsMixer::A_Without_B(settings, failedSettings));
+}
+
+void UpdateConstructor::applyCurrentGroupSettings(
+  std::shared_ptr<Source> source,
+  AudioController* audioController,
+  std::shared_ptr<std::map<std::string, std::any>> settings) {
+  
+  // take group settings
+  std::map<std::string, std::any> x(*settings);
+  auto finalSettings = std::make_shared<std::map<std::string, std::any>>(x);
+
+  // remove settings that are already set
+  finalSettings = SettingsMixer::A_Without_B(finalSettings, source->mCurrentSettings);
+
+  // run finalSetting through pipeline
+  auto failedSettings = mProcessingStepsManager->process(source->mOpenAlId, audioController, finalSettings);
+
+  // Update currently set settings for a source
+  source->mCurrentSettings = SettingsMixer::OverrideAdd_A_with_B(source->mCurrentSettings, 
+    SettingsMixer::A_Without_B(finalSettings, failedSettings));
+}
+
 } // namespace cs::audio
