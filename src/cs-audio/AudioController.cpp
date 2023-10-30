@@ -17,11 +17,13 @@ namespace cs::audio {
 
 AudioController::AudioController(
   std::shared_ptr<BufferManager> bufferManager, 
-  std::shared_ptr<ProcessingStepsManager> processingStepsManager) 
+  std::shared_ptr<ProcessingStepsManager> processingStepsManager,
+  std::shared_ptr<UpdateConstructor> updateConstructor) 
   : SourceSettings()
   , mBufferManager(std::move(bufferManager))
   , mProcessingStepsManager(std::move(processingStepsManager))
   , mUpdateInstructor(std::make_shared<UpdateInstructor>())
+  , mUpdateConstructor(std::move(updateConstructor)) {
   
   setUpdateInstructor(mUpdateInstructor);  
   mProcessingStepsManager->createPipeline(this);
@@ -59,102 +61,31 @@ void AudioController::update() {
 
   // update every source and group with plugin settings
   if (updateInstructions.updateAll) {
-    updateAll();
+    mUpdateConstructor->updateAll(
+      std::make_shared<std::vector<std::shared_ptr<Source>>>(mSources),
+      std::make_shared<std::vector<std::shared_ptr<SourceGroup>>>(mGroups),
+      this);
     return;
   }
 
   // update changed groups with member sources
-  if (updateInstructions.updateWithGroup.size() > 0) {
-    updateGroups(updateInstructions.updateWithGroup);
+  if (updateInstructions.updateWithGroup->size() > 0) {
+    mUpdateConstructor->updateGroups(
+      updateInstructions.updateWithGroup,
+      std::make_shared<std::vector<std::shared_ptr<SourceGroup>>>(mGroups),
+      this);
   }
 
   // update leftover changed sources
-  if (updateInstructions.updateOnlySource.size() > 0) {
-    updateSources(updateInstructions.updateOnlySource);
+  if (updateInstructions.updateOnlySource->size() > 0) {
+    mUpdateConstructor->updateSources(
+      updateInstructions.updateOnlySource,
+      this);
   }
 }
 
-void AudioController::updateAll() {
-  
-  // possible improvement: disable mixing with group settings if there are no group updates -> change in createUpdateList() required
-
-  for (auto sourcePtr : mSources) {
-    // TODO: refactor
-
-    // take plugin settings
-    std::map<std::string, std::any> x(*mUpdateSettings);
-    auto finalSettings = std::make_shared<std::map<std::string, std::any>>(x);
-
-    // add group settings
-    if (sourcePtr->mGroup != nullptr) {
-      finalSettings = SettingsMixer::OverrideAdd_A_with_B(finalSettings, sourcePtr->mGroup->mUpdateSettings);
-    }
-
-    // remove settings that are already set
-    finalSettings = SettingsMixer::A_Without_B(finalSettings, sourcePtr->mCurrentSettings);
-
-    // add sourceSettings to finalSettings
-    finalSettings = SettingsMixer::OverrideAdd_A_with_B(finalSettings, sourcePtr->mUpdateSettings);
-
-    // run finalSetting through pipeline
-    auto failedSettings = mProcessingStepsManager->process(sourcePtr->mOpenAlId, this, finalSettings);
-
-    // Update currently set settings for a source
-    sourcePtr->mCurrentSettings = SettingsMixer::OverrideAdd_A_with_B(sourcePtr->mCurrentSettings, SettingsMixer::A_Without_B(finalSettings, failedSettings));
-    sourcePtr->mUpdateSettings->clear();
-  }
-
-  // Update currently set settings for a group
-  for (std::shared_ptr<SourceGroup> groupPtr : mGroups) {
-    groupPtr->mCurrentSettings = SettingsMixer::OverrideAdd_A_with_B(groupPtr->mCurrentSettings, groupPtr->mUpdateSettings);
-    groupPtr->mUpdateSettings->clear();
-  }
-
-  // Update currently set settings for the plugin
-  this->mCurrentSettings = SettingsMixer::OverrideAdd_A_with_B(this->mCurrentSettings, this->mUpdateSettings);
-  this->mUpdateSettings->clear();
-}
-
-void AudioController::updateGroups(std::vector<std::shared_ptr<Source>> sources) {
-  
-  for (auto sourcePtr : sources) {
-
-    // take group settings
-    std::map<std::string, std::any> x(*sourcePtr->mGroup->mUpdateSettings);
-    auto finalSettings = std::make_shared<std::map<std::string, std::any>>(x);
-
-    // remove settings that are already set
-    finalSettings = SettingsMixer::A_Without_B(finalSettings, sourcePtr->mCurrentSettings);
-
-    // add sourceSettings to finalSettings
-    finalSettings = SettingsMixer::OverrideAdd_A_with_B(finalSettings, sourcePtr->mUpdateSettings);
-
-    // run finalSetting through pipeline
-    auto failedSettings = mProcessingStepsManager->process(sourcePtr->mOpenAlId, this, finalSettings);
-  
-    // Update currently set settings for a source
-    sourcePtr->mCurrentSettings = SettingsMixer::OverrideAdd_A_with_B(sourcePtr->mCurrentSettings, SettingsMixer::A_Without_B(finalSettings, failedSettings));
-    sourcePtr->mUpdateSettings->clear();
-  }
-
-  // TODO: update only changed groups
-  // Update currently set settings for a group
-  for (std::shared_ptr<SourceGroup> group : mGroups) {
-    group->mCurrentSettings = SettingsMixer::OverrideAdd_A_with_B(group->mCurrentSettings, group->mUpdateSettings);
-    group->mUpdateSettings->clear();
-  }
-}
-
-void AudioController::updateSources(std::vector<std::shared_ptr<Source>> sources) {
-
-  for (auto sourcePtr : sources) {
-    // run finalSetting through pipeline
-    auto failedSettings = mProcessingStepsManager->process(sourcePtr->mOpenAlId, this, sourcePtr->mUpdateSettings);
-  
-    // Update currently set settings for a source
-    sourcePtr->mCurrentSettings = SettingsMixer::OverrideAdd_A_with_B(sourcePtr->mCurrentSettings, SettingsMixer::A_Without_B(sourcePtr->mUpdateSettings, failedSettings));
-    sourcePtr->mUpdateSettings->clear();
-  }
+std::shared_ptr<std::vector<std::shared_ptr<Source>>> AudioController::getSources() const {
+  return std::make_shared<std::vector<std::shared_ptr<Source>>>(mSources);
 }
 
 void AudioController::addToUpdateList() {

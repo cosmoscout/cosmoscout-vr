@@ -10,6 +10,7 @@
 
 #include "cs_audio_export.hpp"
 // #include "UpdateInstructor.hpp"
+#include "UpdateConstructor.hpp"
 
 #include <map>
 #include <any>
@@ -38,6 +39,8 @@ class CS_AUDIO_EXPORT SourceSettings {
   /// @brief Removes a key from the update settings.
   /// @param key key to remove
   void removeUpdate(std::string key);
+
+  friend class UpdateConstructor;
 
  protected:                 
   SourceSettings(std::shared_ptr<UpdateInstructor> UpdateInstructor);                       

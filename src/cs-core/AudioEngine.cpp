@@ -18,6 +18,7 @@
 #include "../cs-audio/internal/BufferManager.hpp"
 #include "../cs-audio/internal/ProcessingStepsManager.hpp"
 #include "../cs-audio/internal/alErrorHandling.hpp"
+#include "../cs-audio/internal/UpdateConstructor.hpp"
 #include "../cs-utils/Property.hpp"
 
 // for testing:
@@ -44,7 +45,8 @@ AudioEngine::AudioEngine(std::shared_ptr<Settings> settings, std::shared_ptr<Sol
     , mProcessingStepsManager(audio::ProcessingStepsManager::createProcessingStepsManager())
     , mObserver(solarSystem->getObserver())
     , mSolarSystem(std::move(solarSystem))
-    , mMasterVolume(utils::Property<float>(1.f)) {
+    , mMasterVolume(utils::Property<float>(1.f))
+    , mUpdateConstructor(audio::UpdateConstructor::createUpdateConstructor(mProcessingStepsManager)) {
 
   // Tell the user what's going on.
   logger().debug("Creating AudioEngine.");

@@ -41,7 +41,7 @@ class CS_AUDIO_EXPORT Source : public SourceSettings{
 
   // friend class cs::core::AudioEngine;
   friend class SourceGroup;
-  friend class AudioController;
+  friend class UpdateConstructor;
     
  private:
   std::string                                      mFile;

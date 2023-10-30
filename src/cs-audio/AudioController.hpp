@@ -28,7 +28,8 @@ class CS_AUDIO_EXPORT AudioController : public SourceSettings {
  public:
   AudioController(
     std::shared_ptr<BufferManager> bufferManager, 
-    std::shared_ptr<ProcessingStepsManager> processingStepsManager);
+    std::shared_ptr<ProcessingStepsManager> processingStepsManager,
+    std::shared_ptr<UpdateConstructor> updateConstructor);
 
   /// Creates a new audio source
   std::shared_ptr<Source> createSource(std::string file);
@@ -45,12 +46,9 @@ class CS_AUDIO_EXPORT AudioController : public SourceSettings {
   std::vector<std::shared_ptr<Source>>      mSources;
   std::vector<std::shared_ptr<SourceGroup>> mGroups;
   std::shared_ptr<UpdateInstructor>         mUpdateInstructor;
+  std::shared_ptr<UpdateConstructor>        mUpdateConstructor;
 
   void addToUpdateList();
-
-  void updateAll();
-  void updateGroups(std::vector<std::shared_ptr<Source>> sources);
-  void updateSources(std::vector<std::shared_ptr<Source>> sources);
 };
 
 } // namespace cs::audio
