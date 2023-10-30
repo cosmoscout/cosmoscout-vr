@@ -38,6 +38,9 @@ class CS_AUDIO_EXPORT Source
 
   ALuint getOpenAlId() const;
 
+  /// Returns all settings (Source + Group + Controller) currently set and playing.
+  std::shared_ptr<std::map<std::string, std::any>> getPlaybackSettings() const;
+
   // TODO: Constructor in private ausprobieren
 
   Source(std::shared_ptr<BufferManager> bufferManager, 
@@ -54,6 +57,8 @@ class CS_AUDIO_EXPORT Source
   std::shared_ptr<ProcessingStepsManager>          mProcessingStepsManager;
   std::shared_ptr<SourceGroup>                     mGroup;
   ALuint                                           mOpenAlId; 
+  /// Contains all settings (Source + Group + Controller) currently set and playing. 
+  std::shared_ptr<std::map<std::string, std::any>> mPlaybackSettings;
 
   void addToUpdateList();
 };

@@ -39,27 +39,40 @@ void UpdateConstructor::updateAll(
   for (auto sourcePtr : *sources) {
     // TODO: refactor
 
-    // take plugin settings
+    // take controller settings
     std::map<std::string, std::any> x(*audioController->mUpdateSettings);
-    auto finalSettings = std::make_shared<std::map<std::string, std::any>>(x);  
+    auto finalSettings = std::make_shared<std::map<std::string, std::any>>(x);
 
-    // add group settings
-    if (sourcePtr->mGroup != nullptr) {
-      SettingsMixer::OverrideAdd_A_with_B(finalSettings, sourcePtr->mGroup->mUpdateSettings);
-    }
-
-    // remove settings that are already set
+    // remove controller settings that are already set by the source
     SettingsMixer::A_Without_B(finalSettings, sourcePtr->mCurrentSettings);
 
-    // add sourceSettings to finalSettings
+    if (sourcePtr->mGroup != nullptr) {
+      // remove controller settings that are already set by the group
+      SettingsMixer::A_Without_B(finalSettings, sourcePtr->mGroup->mCurrentSettings);
+
+      // take group settings
+      auto finalGroup = std::make_shared<std::map<std::string, std::any>>(*(sourcePtr->mGroup->mUpdateSettings));
+
+      // remove group settings that are already set by the source
+      SettingsMixer::A_Without_B(finalGroup, sourcePtr->mCurrentSettings);
+
+      // Mix controller and group Settings
+      SettingsMixer::OverrideAdd_A_with_B(finalSettings, finalGroup);
+    }
+
+    // add source update settings to finalSettings
     SettingsMixer::OverrideAdd_A_with_B(finalSettings, sourcePtr->mUpdateSettings);
 
     // run finalSetting through pipeline
     auto failedSettings = mProcessingStepsManager->process(sourcePtr->getOpenAlId(), audioController, finalSettings);
 
-    // Update currently set settings for a source
+    // update current source playback settings 
     SettingsMixer::A_Without_B(finalSettings, failedSettings);
-    SettingsMixer::OverrideAdd_A_with_B(sourcePtr->mCurrentSettings, finalSettings);
+    SettingsMixer::OverrideAdd_A_with_B(sourcePtr->mPlaybackSettings, finalSettings);
+
+    // Update current source settings
+    SettingsMixer::A_Without_B(sourcePtr->mUpdateSettings, failedSettings);
+    SettingsMixer::OverrideAdd_A_with_B(sourcePtr->mCurrentSettings, sourcePtr->mUpdateSettings);
     sourcePtr->mUpdateSettings->clear();
   }
 
@@ -85,18 +98,22 @@ void UpdateConstructor::updateGroups(
     std::map<std::string, std::any> x(*sourcePtr->mGroup->mUpdateSettings);
     auto finalSettings = std::make_shared<std::map<std::string, std::any>>(x);
 
-    // remove settings that are already set
+    // remove settings that are already set by the source
     SettingsMixer::A_Without_B(finalSettings, sourcePtr->mCurrentSettings);
 
-    // add sourceSettings to finalSettings
+    // add source update settings to finalSettings
     SettingsMixer::OverrideAdd_A_with_B(finalSettings, sourcePtr->mUpdateSettings);
 
     // run finalSetting through pipeline
     auto failedSettings = mProcessingStepsManager->process(sourcePtr->getOpenAlId(), audioController, finalSettings);
   
-    // Update currently set settings for a source
+    // update current source playback settings 
     SettingsMixer::A_Without_B(finalSettings, failedSettings);
-    SettingsMixer::OverrideAdd_A_with_B(sourcePtr->mCurrentSettings, finalSettings);
+    SettingsMixer::OverrideAdd_A_with_B(sourcePtr->mPlaybackSettings, finalSettings);
+
+    // Update current source settings 
+    SettingsMixer::A_Without_B(sourcePtr->mUpdateSettings, failedSettings);
+    SettingsMixer::OverrideAdd_A_with_B(sourcePtr->mCurrentSettings, sourcePtr->mUpdateSettings);
     sourcePtr->mUpdateSettings->clear();
   }
 
@@ -117,8 +134,11 @@ void UpdateConstructor::updateSources(
     // run finalSetting through pipeline
     auto failedSettings = mProcessingStepsManager->process(sourcePtr->getOpenAlId(), audioController, sourcePtr->mUpdateSettings);
   
-    // Update currently set settings for a source
+    // update current source playback settings 
     SettingsMixer::A_Without_B(sourcePtr->mUpdateSettings, failedSettings);
+    SettingsMixer::OverrideAdd_A_with_B(sourcePtr->mPlaybackSettings, sourcePtr->mUpdateSettings);
+
+    // Update currently set settings for a source
     SettingsMixer::OverrideAdd_A_with_B(sourcePtr->mCurrentSettings, sourcePtr->mUpdateSettings);
     sourcePtr->mUpdateSettings->clear();
   }
@@ -130,15 +150,15 @@ void UpdateConstructor::applyCurrentControllerSettings(
   std::shared_ptr<std::map<std::string, std::any>> settings) {
   
   // There is no need to check for already set values here because this functions only gets called when creating a new 
-  // source, at which point there cannot be any already set settings.
+  // source, at which point there cannot be any previous settings.
 
   // run finalSetting through pipeline
   auto failedSettings = mProcessingStepsManager->process(source->getOpenAlId(), audioController, settings);
   
   // Update currently set settings for a source
-  auto x(settings);
-  SettingsMixer::A_Without_B(x, failedSettings);
-  SettingsMixer::OverrideAdd_A_with_B(source->mCurrentSettings, x);
+  auto settingsCopy(settings);
+  SettingsMixer::A_Without_B(settingsCopy, failedSettings);
+  SettingsMixer::OverrideAdd_A_with_B(source->mPlaybackSettings, settingsCopy);
 }
 
 void UpdateConstructor::applyCurrentGroupSettings(
@@ -158,7 +178,7 @@ void UpdateConstructor::applyCurrentGroupSettings(
 
   // Update currently set settings for a source
   SettingsMixer::A_Without_B(finalSettings, failedSettings);
-  SettingsMixer::OverrideAdd_A_with_B(source->mCurrentSettings, finalSettings);
+  SettingsMixer::OverrideAdd_A_with_B(source->mPlaybackSettings, finalSettings);
 }
 
 } // namespace cs::audio

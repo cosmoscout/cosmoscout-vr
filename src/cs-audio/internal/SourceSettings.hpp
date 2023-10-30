@@ -28,7 +28,8 @@ class CS_AUDIO_EXPORT SourceSettings {
   /// @param value setting value 
   void set(std::string key, std::any value);
 
-  /// @brief Returns the currently set settings 
+  /// @brief Returns the currently set settings for the source/group/controller.
+  /// To get all settings currently playing on a source call source.getPlaybackSettings().
   /// @return Pointer to the settings map
   std::shared_ptr<std::map<std::string, std::any>> getCurrentSettings() const;
 
@@ -53,7 +54,8 @@ class CS_AUDIO_EXPORT SourceSettings {
   /// steps. When finished, all set values will be written into mCurrentSettings
   /// and mUpdateSettings gets reset.
   std::shared_ptr<std::map<std::string, std::any>> mUpdateSettings;
-  /// Contains all settings currently set and playing.
+  /// Contains all settings currently set and playing which were defined 
+  /// by source/group/controller itself
   std::shared_ptr<std::map<std::string, std::any>> mCurrentSettings;
   /// UpdateInstructor to call to add Source/Group/Plugin to updateList 
   std::shared_ptr<UpdateInstructor>                   mUpdateInstructor;

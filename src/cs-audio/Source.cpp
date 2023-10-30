@@ -24,7 +24,8 @@ Source::Source(std::shared_ptr<BufferManager> bufferManager,
   , std::enable_shared_from_this<Source>()
   , mFile(std::move(file)) 
   , mBufferManager(std::move(bufferManager)) 
-  , mProcessingStepsManager(std::move(processingStepsManager)) {
+  , mProcessingStepsManager(std::move(processingStepsManager))
+  , mPlaybackSettings(std::make_shared<std::map<std::string, std::any>>()) {
   
   alGetError(); // clear error code
 
@@ -129,6 +130,10 @@ std::string Source::getFile() const {
 
 ALuint Source::getOpenAlId() const {
   return mOpenAlId;
+}
+
+std::shared_ptr<std::map<std::string, std::any>> Source::getPlaybackSettings() const {
+  return mPlaybackSettings;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
