@@ -136,52 +136,19 @@ void AudioEngine::createGUI() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void AudioEngine::update() {
-  /*
-  auto pos = mObserver.getPosition();
-  std::cout << "observer pos:   " << pos.x << ", " << pos.y << ", " << pos.z << std::endl;
-  std::cout << "observer speed: " << mSolarSystem->pCurrentObserverSpeed << std::endl;
-  */
   
   mProcessingStepsManager->callPsUpdateFunctions();
 
-  /*
-  static int x = 0;
-  auto sources = audioController->getSources();
+  static glm::dvec3 coordinates(-1.6477e+06, -301549, -6.1542e+06); // Spitze vom Italienischen Stiefel(?)
+  auto celesObj = mSolarSystem->getObject("Earth");
+  if (celesObj == nullptr) { return; }
+  
+  glm::dvec3 sourceRelPosToObs = celesObj->getObserverRelativePosition(coordinates);
+  sourceRelPosToObs *= static_cast<float>(mSolarSystem->getObserver().getScale());
 
-  for (auto sourcePtr : *sources) {
-    
-    auto sourceSettings = sourcePtr->getCurrentSettings();
-    if (sourceSettings->find("center") == sourceSettings->end() ||
-        sourceSettings->find("position") == sourceSettings->end()) {
-      continue;
-    }
+  testSourcePosition->set("position", sourceRelPosToObs);
 
-    // std::string center = std::any_cast<std::string>(sourceSettings->at("center"));
-    // std::cout << "center: " << center << std::endl;
-
-    auto celesObj = mSolarSystem->getObject("Earth");
-    if (celesObj == nullptr) { continue; }
-
-    glm::dvec3 sourceRelPosToObs = celesObj->getObserverRelativePosition(std::any_cast<glm::dvec3>(sourceSettings->at("position")));
-    
-    if (x % 120 == 0) {
-      std::cout << "source relative position: " 
-      << sourceRelPosToObs.x << ", " 
-      << sourceRelPosToObs.y << ", "
-      << sourceRelPosToObs.z << std::endl;
-      
-      std::cout << "scale : " << static_cast<float>(mSolarSystem->getObserver().getScale()) << std::endl;
-    }
-    sourceRelPosToObs *= static_cast<float>(mSolarSystem->getObserver().getScale());
-
-    alSource3f(sourcePtr->mOpenAlId, AL_POSITION, 
-      (ALfloat)sourceRelPosToObs.x, (ALfloat)sourceRelPosToObs.y, (ALfloat)sourceRelPosToObs.z);
-  }
-  ++x;
-  */
-  // cs::audio::Listener::setPosition();
-  // cs::audio::Listener::setVelocity();
-  // cs::audio::Listener::setOrientation();
+  audioController->update();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -202,32 +169,23 @@ void AudioEngine::playAmbient() {
   audioController->set("looping", true);
 
   testSourceAmbient = audioController->createSource("C:/Users/sass_fl/audioCS/audioCSNotes/testFiles/scifi_stereo.wav"); 
-  
   testSourceAmbient->play();
   
-  // glm::dvec3 coordinates(-1.6477e+06, -301549, -6.1542e+06); // Spitze vom Italienischen Stiefel(?)
-  glm::dvec3 coordinates(2, 5, 1); // Spitze vom Italienischen Stiefel(?)
   testSourcePosition = audioController->createSource("C:/Users/sass_fl/audioCS/audioCSNotes/testFiles/exotic_mono.wav");
-  testSourcePosition->set("position", coordinates);
   testSourcePosition->play();
-
-  audioController->update(); 
+  testSourcePosition->set("gain", 1.5f);
 
   // Group Testing
-  /*
   testSourceGroup = audioController->createSourceGroup();
-  testSourceGroup->join(testSourceA);
-  testSourceGroup->join(testSourceB);
- 
-  testSourceGroup->set("pitch", 1.0f);
-  testSourceA->set("pitch", 1.0f);
-  */
+  testSourceGroup->set("pitch", 2.0f);
 
-  /*
-  auto x = getDevices();
-  logger().debug("change to: {}", x[1]);
-  setDevice(x[1]);
-  */
+  testSourceGroup->join(testSourceAmbient);
+  testSourceGroup->join(testSourcePosition);
+   
+  audioController->update(); 
+
+  audioController->set("looping", false);
+  audioController->update();
 }
 
 } // namespace cs::core
