@@ -51,8 +51,20 @@ Source::Source(std::shared_ptr<BufferManager> bufferManager,
     logger().warn("Failed to bind buffer to source!");
     return;
   }
-  // TODO: call process() with group and plugin settings
-  // mProcessingStepsManager->process(mOpenAlId, mAudioControllerId, mCurrentSettings);
+  
+  // positions needs to be set relative in case the listener moves:
+  // set position to listener relative
+  alSourcei(mOpenAlId, AL_SOURCE_RELATIVE, AL_TRUE);
+  if (alErrorHandling::errorOccurred()) {
+    logger().warn("Failed to set source position specification to relative!");
+    return;
+  }
+
+  alSource3i(mOpenAlId, AL_POSITION, 0, 0, 0);
+  if (alErrorHandling::errorOccurred()) {
+    logger().warn("Failed to set source position to (0, 0, 0)!");
+    return;
+  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

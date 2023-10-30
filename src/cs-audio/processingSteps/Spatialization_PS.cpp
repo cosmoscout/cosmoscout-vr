@@ -49,6 +49,12 @@ bool Spatialization_PS::processPosition(ALuint openAlId, std::any value) {
     return false;
   }
 
+  alSourcei(openAlId, AL_SOURCE_RELATIVE, AL_FALSE);
+  if (alErrorHandling::errorOccurred()) {
+    logger().warn("Failed to set source position specification to absolute!");
+    return false;
+  }
+
   positionValue = std::any_cast<glm::dvec3>(value);
 
   alSource3f(openAlId, AL_POSITION, 
