@@ -14,6 +14,10 @@
 #include <memory>
 #include <vector>
 #include <string>
+#include <iostream>
+
+#include <chrono>
+#include <thread>
 
 namespace cs::audio {
 
@@ -24,7 +28,9 @@ std::shared_ptr<ProcessingStep> Spatialization_PS::create() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-Spatialization_PS::Spatialization_PS() {}
+Spatialization_PS::Spatialization_PS()
+  : mSourcePositions(std::map<ALuint, SourcePosition>()) {
+}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -67,19 +73,70 @@ bool Spatialization_PS::processPosition(ALuint openAlId, std::any value) {
     return false;
   }
 
+  mSourcePositions[openAlId].current = positionValue; 
+
   return true;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void Spatialization_PS::calculateSpeed() {
+  
+  static int x = 0;
+
+  static std::chrono::system_clock::time_point lastTime; 
+  std::chrono::system_clock::time_point currentTime = std::chrono::system_clock::now();
+	
+  static std::chrono::duration<float> elapsed_seconds = currentTime - lastTime; 
+  auto elapsed_secondsf = elapsed_seconds.count();
+
+  for (auto [openAlId, sourcePos] : mSourcePositions) {
+    
+    glm::dvec3 speed;
+
+    if (sourcePos.current != sourcePos.last) {
+
+      glm::dvec3 delta = sourcePos.current - sourcePos.last; // position
+      speed.x = delta.x / elapsed_secondsf;
+      speed.x = delta.y / elapsed_secondsf;
+      speed.x = delta.z / elapsed_secondsf;
+
+      sourcePos.last = sourcePos.current;
+      
+    } else {
+      speed.x = 0;
+      speed.y = 0;
+      speed.z = 0;
+    }
+
+    alSource3f(openAlId, AL_VELOCITY, 
+    (ALfloat)speed.x, 
+    (ALfloat)speed.y, 
+    (ALfloat)speed.z);
+
+    if (x % 60 == 0) {
+      std::cout << "speed: " << speed.x << ", " << speed.y << ", " << speed.z << std::endl;
+    }
+    
+    if (alErrorHandling::errorOccurred()) {
+      logger().warn("Failed to set source speed!");
+    }
+  }
+
+  lastTime = currentTime;
+  ++x;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 bool Spatialization_PS::requiresUpdate() const {
-  return false;  
+  return true;  
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Spatialization_PS::update() {
-
+  calculateSpeed();
 }
 
 } // namespace cs::audio

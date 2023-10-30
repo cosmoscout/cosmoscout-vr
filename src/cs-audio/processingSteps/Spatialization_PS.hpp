@@ -30,9 +30,17 @@ class CS_AUDIO_EXPORT Spatialization_PS : public ProcessingStep {
   void update();
 
  private:
+
+  struct SourcePosition {
+    glm::dvec3 current;
+    glm::dvec3 last;
+  };
+
   Spatialization_PS();
 
   bool processPosition(ALuint openAlId, std::any position);
+  void calculateSpeed();
+  std::map<ALuint, SourcePosition> mSourcePositions;
 };
 
 } // namespace cs::audio
