@@ -46,9 +46,9 @@ class CS_AUDIO_EXPORT Source
   friend class SourceGroup;
   friend class UpdateConstructor;
     
+  ALuint                                           mOpenAlId; // temp
  private:
   std::string                                      mFile;
-  ALuint                                           mOpenAlId;
   std::shared_ptr<BufferManager>                   mBufferManager;
   std::shared_ptr<ProcessingStepsManager>          mProcessingStepsManager;
   std::shared_ptr<SourceGroup>                     mGroup;
