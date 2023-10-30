@@ -19,6 +19,8 @@ namespace cs::audio {
 
 Source::Source(std::shared_ptr<BufferManager> bufferManager, 
   std::shared_ptr<ProcessingStepsManager> processingStepsManager,
+  std::string file, std::shared_ptr<UpdateInstructor> UpdateInstructor)
+  : SourceSettings(UpdateInstructor) 
   , std::enable_shared_from_this<Source>()
   , mFile(std::move(file)) 
   , mBufferManager(std::move(bufferManager)) 
