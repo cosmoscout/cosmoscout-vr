@@ -22,7 +22,12 @@ std::shared_ptr<OpenAlManager> OpenAlManager::createOpenAlManager() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-OpenAlManager::OpenAlManager() {}
+OpenAlManager::OpenAlManager()
+  : mDevice(nullptr)
+  , mContext(nullptr)
+  , alcReopenDeviceSOFT(nullptr)
+  , mAttributeList(std::vector<ALCint>(12)) {
+}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -69,7 +74,7 @@ bool OpenAlManager::initOpenAl(core::Settings::Audio settings) {
     logger().warn("Faild to select current context!");
     return false;
   }
-
+  
   return true;
 }
 
