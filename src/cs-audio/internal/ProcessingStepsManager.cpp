@@ -38,8 +38,13 @@ void ProcessingStepsManager::createPipeline(std::vector<std::string> processingS
 
   for (std::string processingStep : processingSteps) {
     auto ps = getProcessingStep(processingStep);
+    
     if (ps != nullptr) {
       pipeline.insert(ps);
+
+      if (ps->requiresUpdate()) {
+        mUpdateProcessingSteps.insert(ps);
+      }
     }
   }
 
@@ -64,7 +69,7 @@ std::shared_ptr<ProcessingStep> ProcessingStepsManager::getProcessingStep(std::s
 
   // ...
 
-  logger().warn("Audio Processing Warning: Unable to create '{}' processing step!", processingStep);
+  logger().warn("Audio Processing Warning: Processing step '{}' is not defined!", processingStep);
   return nullptr;
 }
 
@@ -78,6 +83,12 @@ std::shared_ptr<std::vector<std::string>> ProcessingStepsManager::process(ALuint
     step->process(openAlId, settings, failedSettings);
   }
   return failedSettings;
+}
+
+void ProcessingStepsManager::callPsUpdateFunctions() {
+  for (auto psPtr : mUpdateProcessingSteps) {
+    psPtr->update();
+  }
 }
 
 } // namespace cs::audio

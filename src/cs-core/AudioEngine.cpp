@@ -137,6 +137,7 @@ void AudioEngine::createGUI() {
 
 void AudioEngine::update() {
 
+  mProcessingStepsManager->callPsUpdateFunctions();
   static int x = 0;
 
   if (x % 60 == 0) {

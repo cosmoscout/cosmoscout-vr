@@ -24,6 +24,10 @@ class CS_AUDIO_EXPORT ProcessingStep {
     std::shared_ptr<std::map<std::string, std::any>> settings,
     std::shared_ptr<std::vector<std::string>> failedSettings) = 0;
  
+  virtual bool requiresUpdate() const = 0;
+
+  virtual void update() = 0;
+
  private:
 
 };
