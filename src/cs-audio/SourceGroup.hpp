@@ -23,8 +23,10 @@ namespace cs::audio {
 // forward declarations
 class UpdateInstructor;
 
-class CS_AUDIO_EXPORT SourceGroup : public SourceSettings
-{
+class CS_AUDIO_EXPORT SourceGroup 
+  : public SourceSettings
+  , public std::enable_shared_from_this<SourceGroup> {
+    
  public:
   explicit SourceGroup(std::shared_ptr<UpdateInstructor> UpdateInstructor);
   ~SourceGroup();

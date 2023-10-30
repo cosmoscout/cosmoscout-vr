@@ -15,6 +15,7 @@ namespace cs::audio {
 
 SourceGroup::SourceGroup(std::shared_ptr<UpdateInstructor> UpdateInstructor) 
   : SourceSettings(UpdateInstructor)
+  , std::enable_shared_from_this<SourceGroup>()
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -61,7 +62,7 @@ std::set<std::shared_ptr<Source>> SourceGroup::getMembers() const {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void SourceGroup::addToUpdateList() {
-  mUpdateBuilder->update(this);
+  mUpdateInstructor->update(shared_from_this());
 }
 
 } // namespace cs::audio

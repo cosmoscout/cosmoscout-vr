@@ -20,6 +20,7 @@ AudioController::AudioController(
   std::shared_ptr<ProcessingStepsManager> processingStepsManager,
   std::shared_ptr<UpdateConstructor> updateConstructor) 
   : SourceSettings()
+  , std::enable_shared_from_this<AudioController>()
   , mBufferManager(std::move(bufferManager))
   , mProcessingStepsManager(std::move(processingStepsManager))
   , mUpdateInstructor(std::make_shared<UpdateInstructor>())
@@ -89,7 +90,7 @@ std::shared_ptr<std::vector<std::shared_ptr<Source>>> AudioController::getSource
 }
 
 void AudioController::addToUpdateList() {
-  mUpdateBuilder->updatePlugin();
+  mUpdateInstructor->update(shared_from_this());
 }
 
 } // namespace cs::audio

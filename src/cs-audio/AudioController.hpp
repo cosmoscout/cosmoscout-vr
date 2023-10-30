@@ -24,7 +24,10 @@ namespace cs::audio {
 // forward declarations
 class ProcessingStepsManager;
 
-class CS_AUDIO_EXPORT AudioController : public SourceSettings {
+class CS_AUDIO_EXPORT AudioController 
+  : public SourceSettings
+  , public std::enable_shared_from_this<AudioController> {
+    
  public:
   AudioController(
     std::shared_ptr<BufferManager> bufferManager, 
