@@ -16,6 +16,7 @@ namespace cs::audio {
 SourceGroup::SourceGroup(std::shared_ptr<UpdateInstructor> UpdateInstructor) 
   : SourceSettings(UpdateInstructor)
   , std::enable_shared_from_this<SourceGroup>()
+  , mMembers(std::set<std::shared_ptr<Source>>()) {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -26,37 +27,42 @@ SourceGroup::~SourceGroup() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void SourceGroup::add(std::shared_ptr<Source> source) {
+void SourceGroup::join(std::shared_ptr<Source> source) {
   if (source->mGroup != nullptr) {
     logger().warn("Audio Group Warning: Remove Source form previous group before assigning a new one!");
     return;
   }
-  mMemberSources.insert(source);
+  mMembers.insert(source);
   source->mGroup = std::shared_ptr<SourceGroup>(this);
+  // TODO: Apply groups settings to source
+
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void SourceGroup::remove(std::shared_ptr<Source> sourceToRemove) {
-  // if removal was successful
-  if (mMemberSources.erase(sourceToRemove) == 1) {
+  if (mMembers.erase(sourceToRemove) == 1) {
     sourceToRemove->mGroup = nullptr;
+
+    // TODO: Remove group setting from sources
   }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void SourceGroup::reset() {
-  for (auto sourcePtr : mMemberSources) {
+  for (auto sourcePtr : mMembers) {
     sourcePtr->mGroup = nullptr;
+
+    // TODO: Remove group setting from sources
   }
-  mMemberSources.clear();
+  mMembers.clear();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 std::set<std::shared_ptr<Source>> SourceGroup::getMembers() const {
-  return mMemberSources;
+  return mMembers;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

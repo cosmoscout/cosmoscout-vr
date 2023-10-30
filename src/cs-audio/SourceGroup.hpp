@@ -32,7 +32,7 @@ class CS_AUDIO_EXPORT SourceGroup
   ~SourceGroup();
 
   /// Add a new source to the group
-  void add(std::shared_ptr<Source> source);
+  void join(std::shared_ptr<Source> source);
   /// Remove a source from the group
   void remove(std::shared_ptr<Source> source);
   /// Remove all sources form the group
@@ -40,10 +40,8 @@ class CS_AUDIO_EXPORT SourceGroup
 
   std::set<std::shared_ptr<Source>> getMembers() const;
     
-  friend class AudioController;
-
  private:
-  std::set<std::shared_ptr<Source>> mMemberSources;
+  std::set<std::shared_ptr<Source>> mMembers;
   
   void addToUpdateList();
 };
