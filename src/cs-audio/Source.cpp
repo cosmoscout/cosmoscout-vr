@@ -26,20 +26,23 @@ Source::Source(std::shared_ptr<BufferManager> bufferManager,
   
   alGetError(); // clear error code
 
-  // TODO: check if file actually exists
-
   // generate new source  
   alGenSources((ALuint)1, &mOpenAlId);
   if (alErrorHandling::errorOccurred()) {
     logger().warn("Failed to generate OpenAL-Soft Source!");
     return;
   }
-
-  // get buffer and bind buffer to source
+  // check if file exists
+  if (!std::filesystem::exists(mFile)) {
+    logger().warn("{} file does not exist! Unable to fill buffer!", mFile);
+    return;
+  }
+  // get buffer
   std::pair<bool, ALuint> buffer = mBufferManager->getBuffer(mFile);
   if (!buffer.first) {
     return;
   }
+  // bind buffer to source
   alSourcei(mOpenAlId, AL_BUFFER, buffer.second);
   if (alErrorHandling::errorOccurred()) {
     logger().warn("Failed to bind buffer to source!");
@@ -94,9 +97,13 @@ bool Source::setFile(std::string file) {
   }
   mBufferManager->removeBuffer(mFile);
   
-  // TODO: check if file exists
-  
+  // check if file exists
+  if (!std::filesystem::exists(file)) {
+    logger().warn("{} file does not exist! Unable to fill buffer!", file);
+    return false;
+  }
   mFile = file;
+  
   // get buffer and bind buffer to source
   std::pair<bool, ALuint> buffer = mBufferManager->getBuffer(mFile);
   if (!buffer.first) {
