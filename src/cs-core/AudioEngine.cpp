@@ -15,6 +15,7 @@
 #include "../cs-audio/internal/Listener.hpp"
 #include "../cs-audio/Source.hpp"
 #include "../cs-audio/SourceGroup.hpp"
+#include "../cs-audio/test_utils.hpp"
 #include "../cs-audio/internal/BufferManager.hpp"
 #include "../cs-audio/internal/ProcessingStepsManager.hpp"
 #include "../cs-audio/internal/alErrorHandling.hpp"
@@ -120,7 +121,6 @@ void AudioEngine::createGUI() {
       [this](float value) { mGuiManager->setSliderValue("audio.masterVolume", value); }); 
 
   // Fill the dropdowns with the available output devices
-  // TODO: make device selectable and change in openAL
   for (auto device : getDevices()) {
     mGuiManager->getGui()->callJavascript("CosmoScout.gui.addDropdownValue",
         "audio.outputDevice", device, device.substr(14, device.length()), false);
@@ -136,24 +136,55 @@ void AudioEngine::createGUI() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void AudioEngine::update() {
-
+  /*
+  auto pos = mObserver.getPosition();
+  std::cout << "observer pos:   " << pos.x << ", " << pos.y << ", " << pos.z << std::endl;
+  std::cout << "observer speed: " << mSolarSystem->pCurrentObserverSpeed << std::endl;
+  */
+  
   mProcessingStepsManager->callPsUpdateFunctions();
+
+  /*
   static int x = 0;
+  auto sources = audioController->getSources();
 
-  if (x % 60 == 0) {
-    auto pos = mObserver.getPosition();
-    std::cout << "observer pos:   " << pos.x << ", " << pos.y << ", " << pos.z << std::endl;
+  for (auto sourcePtr : *sources) {
+    
+    auto sourceSettings = sourcePtr->getCurrentSettings();
+    if (sourceSettings->find("center") == sourceSettings->end() ||
+        sourceSettings->find("position") == sourceSettings->end()) {
+      continue;
+    }
 
-    std::cout << "observer speed: " << mSolarSystem->pCurrentObserverSpeed << std::endl;
+    // std::string center = std::any_cast<std::string>(sourceSettings->at("center"));
+    // std::cout << "center: " << center << std::endl;
+
+    auto celesObj = mSolarSystem->getObject("Earth");
+    if (celesObj == nullptr) { continue; }
+
+    glm::dvec3 sourceRelPosToObs = celesObj->getObserverRelativePosition(std::any_cast<glm::dvec3>(sourceSettings->at("position")));
+    
+    if (x % 120 == 0) {
+      std::cout << "source relative position: " 
+      << sourceRelPosToObs.x << ", " 
+      << sourceRelPosToObs.y << ", "
+      << sourceRelPosToObs.z << std::endl;
+      
+      std::cout << "scale : " << static_cast<float>(mSolarSystem->getObserver().getScale()) << std::endl;
+    }
+    sourceRelPosToObs *= static_cast<float>(mSolarSystem->getObserver().getScale());
+
+    alSource3f(sourcePtr->mOpenAlId, AL_POSITION, 
+      (ALfloat)sourceRelPosToObs.x, (ALfloat)sourceRelPosToObs.y, (ALfloat)sourceRelPosToObs.z);
   }
   ++x;
-
+  */
   // cs::audio::Listener::setPosition();
   // cs::audio::Listener::setVelocity();
   // cs::audio::Listener::setOrientation();
 }
 
-/////////////////////////////////////////////////////////////////////// /////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
 std::shared_ptr<audio::AudioController> AudioEngine::createAudioController() {
   auto controller = std::make_shared<audio::AudioController>(mBufferManager, 
@@ -166,22 +197,31 @@ std::shared_ptr<audio::AudioController> AudioEngine::createAudioController() {
 
 void AudioEngine::playAmbient() {
   audioController = createAudioController();
+  audioController->setPipeline(std::vector<std::string>{"Spatialization"});
 
-  testSourceA = audioController->createSource("C:/Users/sass_fl/audioCS/audioCSNotes/testFiles/123.wav"); 
-  testSourceB = audioController->createSource("C:/Users/sass_fl/audioCS/audioCSNotes/testFiles/exotic_mono.wav");
+  audioController->set("looping", true);
 
-  testSourceA->play();
-  testSourceB->play();
-
-  testSourceGroup = audioController->createSourceGroup();
-  testSourceGroup->add(testSourceA);
-  testSourceGroup->add(testSourceB);
+  testSourceAmbient = audioController->createSource("C:/Users/sass_fl/audioCS/audioCSNotes/testFiles/scifi_stereo.wav"); 
   
-  testSourceGroup->set("looping", true);
-  audioController->set("pitch", 3.0f);
-  testSourceA->set("pitch", 1.0f);
+  testSourceAmbient->play();
+  
+  // glm::dvec3 coordinates(-1.6477e+06, -301549, -6.1542e+06); // Spitze vom Italienischen Stiefel(?)
+  glm::dvec3 coordinates(2, 5, 1); // Spitze vom Italienischen Stiefel(?)
+  testSourcePosition = audioController->createSource("C:/Users/sass_fl/audioCS/audioCSNotes/testFiles/exotic_mono.wav");
+  testSourcePosition->set("position", coordinates);
+  testSourcePosition->play();
 
   audioController->update(); 
+
+  // Group Testing
+  /*
+  testSourceGroup = audioController->createSourceGroup();
+  testSourceGroup->join(testSourceA);
+  testSourceGroup->join(testSourceB);
+ 
+  testSourceGroup->set("pitch", 1.0f);
+  testSourceA->set("pitch", 1.0f);
+  */
 
   /*
   auto x = getDevices();
