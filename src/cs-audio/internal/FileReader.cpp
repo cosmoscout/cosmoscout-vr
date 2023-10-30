@@ -42,8 +42,8 @@ bool FileReader::loadWAV(const char* fn, WavContainer& wavContainer)
   in.read(fileBuffer, 4); // SubChunk 2 id        -- data sub-chunk
   in.read(fileBuffer, 4); // SubChunk 2 Size
   wavContainer.size = convertToInt(fileBuffer, 4);
-  wavContainer.data = new char[wavContainer.size];
-  in.read(wavContainer.data, wavContainer.size); // data
+  wavContainer.pcm = std::vector<char>(wavContainer.size);
+  in.read(wavContainer.pcm.data(), wavContainer.size); // data
   
   if (wavContainer.numberChannels == 1) {
     wavContainer.format = 

@@ -53,10 +53,7 @@ std::pair<bool, ALuint> BufferManager::getBuffer(std::string file) {
       return std::make_pair(true, buffer->mOpenAlId);
     }
   }
-  logger().debug(-1);
-  auto x = createBuffer(file);
-  logger().debug(2);
-  return x;
+  return createBuffer(file);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -81,7 +78,7 @@ std::pair<bool, ALuint> BufferManager::createBuffer(std::string file) {
   }
 
   // load wave into buffer
-  alBufferData(newBufferId, wavContainer.format, wavContainer.data, 
+  alBufferData(newBufferId, wavContainer.format, wavContainer.pcm.data(), 
     wavContainer.size, wavContainer.sampleRate);
   if (alErrorHandling::errorOccurred()) {
     logger().warn("Failed to fill buffer with data!");

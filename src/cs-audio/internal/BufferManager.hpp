@@ -34,13 +34,7 @@ struct WavContainer {
   int sampleRate;
   int bitsPerSample;
   int size;
-  char* data;
-
-  ~WavContainer() {
-    if (data != nullptr) {
-      delete[] data;
-    }
-  }
+  std::vector<char> pcm; // actual audio data
 };
 
 class CS_AUDIO_EXPORT BufferManager {
