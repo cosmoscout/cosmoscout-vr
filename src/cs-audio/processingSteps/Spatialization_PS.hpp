@@ -32,7 +32,7 @@ class CS_AUDIO_EXPORT Spatialization_PS : public ProcessingStep {
  private:
   Spatialization_PS();
 
-  bool validatePosition(std::any position);
+  bool processPosition(ALuint openAlId, std::any position);
 };
 
 } // namespace cs::audio
