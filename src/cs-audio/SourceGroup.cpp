@@ -8,14 +8,13 @@
 #include "SourceGroup.hpp"
 #include "Source.hpp"
 #include "internal/SettingsMixer.hpp"
-#include "internal/UpdateBuilder.hpp"
+#include "internal/UpdateInstructor.hpp"
 #include "internal/SourceSettings.hpp"
 
 namespace cs::audio {
 
-SourceGroup::SourceGroup(std::shared_ptr<UpdateBuilder> updateBuilder) 
-  : SourceSettings(updateBuilder)
-  , mMemberSources(std::set<std::shared_ptr<Source>>()) {
+SourceGroup::SourceGroup(std::shared_ptr<UpdateInstructor> UpdateInstructor) 
+  : SourceSettings(UpdateInstructor)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

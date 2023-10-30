@@ -21,13 +21,12 @@
 namespace cs::audio {
 
 // forward declarations
-class Source;
-class UpdateBuilder;
+class UpdateInstructor;
 
 class CS_AUDIO_EXPORT SourceGroup : public SourceSettings
 {
  public:
-  explicit SourceGroup(std::shared_ptr<UpdateBuilder> updateBuilder);
+  explicit SourceGroup(std::shared_ptr<UpdateInstructor> UpdateInstructor);
   ~SourceGroup();
 
   /// Add a new source to the group

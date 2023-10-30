@@ -9,7 +9,7 @@
 #define CS_AUDIO_SOURCE_SETTINGS_HPP
 
 #include "cs_audio_export.hpp"
-// #include "UpdateBuilder.hpp"
+// #include "UpdateInstructor.hpp"
 
 #include <map>
 #include <any>
@@ -18,7 +18,7 @@
 
 namespace cs::audio {
 
-class UpdateBuilder;
+class UpdateInstructor;
 
 class CS_AUDIO_EXPORT SourceSettings {
  public:
@@ -40,11 +40,11 @@ class CS_AUDIO_EXPORT SourceSettings {
   void removeUpdate(std::string key);
 
  protected:                 
-  SourceSettings(std::shared_ptr<UpdateBuilder> updateBuilder);                       
-  /// Later assignment of updateBuilder needed because the audioController, which initializes the 
-  /// updateBuilder, needs to initialize SourceSettings first.                                                                                                              
+  SourceSettings(std::shared_ptr<UpdateInstructor> UpdateInstructor);                       
+  /// Later assignment of UpdateInstructor needed because the audioController, which initializes the 
+  /// UpdateInstructor, needs to initialize SourceSettings first.                                                                                                              
   SourceSettings();
-  void setUpdateBuilder(std::shared_ptr<UpdateBuilder> updateBuilder);                                                                                                                                    
+  void setUpdateInstructor(std::shared_ptr<UpdateInstructor> UpdateInstructor);                                                                                                                                    
   /// Contains all settings that are about to be set using the update() function. 
   /// If update() is called these settings will be used to call all the processing 
   /// steps. When finished, all set values will be written into mCurrentSettings
@@ -52,8 +52,8 @@ class CS_AUDIO_EXPORT SourceSettings {
   std::shared_ptr<std::map<std::string, std::any>> mUpdateSettings;
   /// Contains all settings currently set and playing.
   std::shared_ptr<std::map<std::string, std::any>> mCurrentSettings;
-  /// UpdateBuilder to call to add Source/Group/Plugin to updateList 
-  std::shared_ptr<UpdateBuilder>                   mUpdateBuilder;
+  /// UpdateInstructor to call to add Source/Group/Plugin to updateList 
+  std::shared_ptr<UpdateInstructor>                   mUpdateInstructor;
 
   virtual void addToUpdateList() = 0;
 };
