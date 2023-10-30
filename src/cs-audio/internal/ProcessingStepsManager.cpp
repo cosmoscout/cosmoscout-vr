@@ -49,6 +49,7 @@ void ProcessingStepsManager::createPipeline(std::vector<std::string> processingS
   }
 
   mPipelines[audioController] = pipeline;
+  removeObsoletePsFromUpdateList();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -57,6 +58,7 @@ void ProcessingStepsManager::createPipeline(AudioController* audioController) {
   std::set<std::shared_ptr<ProcessingStep>> pipeline;
   pipeline.insert(Default_PS::create());
   mPipelines[audioController] = pipeline;
+  removeObsoletePsFromUpdateList();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -85,9 +87,33 @@ std::shared_ptr<std::vector<std::string>> ProcessingStepsManager::process(ALuint
   return failedSettings;
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void ProcessingStepsManager::callPsUpdateFunctions() {
   for (auto psPtr : mUpdateProcessingSteps) {
     psPtr->update();
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void ProcessingStepsManager::removeObsoletePsFromUpdateList() {
+  // get active PS
+  std::set<std::shared_ptr<ProcessingStep>> activePS;
+  for (auto const& [key, val] : mPipelines) {
+    activePS.insert(val.begin(), val.end());
+  }
+
+  // get all PS that are in mUpdateProcessingSteps but not in activePS
+  std::set<std::shared_ptr<ProcessingStep>> obsoletePS;
+  std::set_difference(
+    mUpdateProcessingSteps.begin(), mUpdateProcessingSteps.end(),
+    activePS.begin(), activePS.end(),
+    std::inserter(obsoletePS, obsoletePS.end()));
+
+  // erase obsoletePS from mUpdateProcessingSteps
+  for (auto ps : obsoletePS) {
+    mUpdateProcessingSteps.erase(ps);
   }
 }
 

@@ -35,11 +35,11 @@ class CS_AUDIO_EXPORT ProcessingStepsManager {
   void createPipeline(AudioController* audioController);
   std::shared_ptr<std::vector<std::string>> process(ALuint openAlId, AudioController* audioController,
     std::shared_ptr<std::map<std::string, std::any>> sourceSettings);
-    
+
   /// @brief This functions will call all update function of processing steps that are active and required.
   void callPsUpdateFunctions();
 
- private:                                                                                                                                                     
+ private:                                                                          
   // TODO: replace AudioController* with smart pointer                                                                           
   std::map<AudioController*, std::set<std::shared_ptr<ProcessingStep>>> mPipelines;
   /// Contains all processing steps that require an update call every frame
@@ -47,6 +47,10 @@ class CS_AUDIO_EXPORT ProcessingStepsManager {
 
   ProcessingStepsManager();
   std::shared_ptr<ProcessingStep> getProcessingStep(std::string processingStep);
+  
+  /// Check if any PS was removed form a pipeline that is set in mUpdateProcessingSteps and
+  /// if so, remove the given PS from mUpdateProcessingSteps.
+  void removeObsoletePsFromUpdateList();
 };
 
 } // namespace cs::audio
