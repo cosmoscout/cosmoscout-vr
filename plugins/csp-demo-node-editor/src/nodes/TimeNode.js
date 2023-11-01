@@ -28,6 +28,15 @@ class TimeComponent extends Rete.Component {
     let output = new Rete.Output('time', "Seconds", CosmoScout.socketTypes['Number Value']);
     node.addOutput(output)
 
+    // Add the time display. The name parameter must be unique amongst all controls of this
+    // node. The TextDisplayControl class is defined in the controls folder.
+    let control = new TextDisplayControl('display');
+    node.addControl(control);
+
+    // Whenever a message from C++ arrives, we set the input value accordingly. This message is
+    // sent by the TimeNode::init() and TimeNode::process() methods.
+    node.onMessageFromCPP = (timeString) => { control.setValue(timeString); };
+
     return node;
   }
 }
