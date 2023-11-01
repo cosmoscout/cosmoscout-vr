@@ -29,7 +29,8 @@ std::shared_ptr<ProcessingStep> Spatialization_PS::create() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 Spatialization_PS::Spatialization_PS()
-  : mSourcePositions(std::map<ALuint, SourcePosition>()) {
+  : mSourcePositions(std::map<ALuint, SourcePosition>())
+  , mLastTime(std::chrono::system_clock::now()) {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -80,51 +81,39 @@ bool Spatialization_PS::processPosition(ALuint openAlId, std::any value) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Spatialization_PS::calculateSpeed() {
-  
-  static int x = 0;
-
-  static std::chrono::system_clock::time_point lastTime; 
+void Spatialization_PS::calculateVelocity() {
   std::chrono::system_clock::time_point currentTime = std::chrono::system_clock::now();
-	
-  static std::chrono::duration<float> elapsed_seconds = currentTime - lastTime; 
+  std::chrono::duration<float> elapsed_seconds = currentTime - mLastTime; 
   auto elapsed_secondsf = elapsed_seconds.count();
 
   for (auto [openAlId, sourcePos] : mSourcePositions) {
     
-    glm::dvec3 speed;
+    glm::dvec3 velocity;
 
     if (sourcePos.current != sourcePos.last) {
-
-      glm::dvec3 delta = sourcePos.current - sourcePos.last; // position
-      speed.x = delta.x / elapsed_secondsf;
-      speed.x = delta.y / elapsed_secondsf;
-      speed.x = delta.z / elapsed_secondsf;
-
-      sourcePos.last = sourcePos.current;
+      glm::dvec3 posDelta = sourcePos.current - sourcePos.last;
+      velocity.x = posDelta.x / elapsed_secondsf;
+      velocity.y = posDelta.y / elapsed_secondsf;
+      velocity.z = posDelta.z / elapsed_secondsf;
+      mSourcePositions[openAlId].last = sourcePos.current;
       
     } else {
-      speed.x = 0;
-      speed.y = 0;
-      speed.z = 0;
+      velocity.x = 0;
+      velocity.y = 0;
+      velocity.z = 0;
     }
 
     alSource3f(openAlId, AL_VELOCITY, 
-    (ALfloat)speed.x, 
-    (ALfloat)speed.y, 
-    (ALfloat)speed.z);
+    (ALfloat)velocity.x, 
+    (ALfloat)velocity.y, 
+    (ALfloat)velocity.z);
 
-    if (x % 60 == 0) {
-      std::cout << "speed: " << speed.x << ", " << speed.y << ", " << speed.z << std::endl;
-    }
-    
     if (alErrorHandling::errorOccurred()) {
-      logger().warn("Failed to set source speed!");
+      logger().warn("Failed to set source velocity!");
     }
   }
 
-  lastTime = currentTime;
-  ++x;
+  mLastTime = currentTime;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -136,7 +125,7 @@ bool Spatialization_PS::requiresUpdate() const {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Spatialization_PS::update() {
-  calculateSpeed();
+  calculateVelocity();
 }
 
 } // namespace cs::audio

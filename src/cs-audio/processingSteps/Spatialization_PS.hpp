@@ -13,6 +13,7 @@
 
 #include <AL/al.h>
 #include <glm/fwd.hpp>
+#include <chrono>
 
 namespace cs::audio {
 
@@ -39,8 +40,9 @@ class CS_AUDIO_EXPORT Spatialization_PS : public ProcessingStep {
   Spatialization_PS();
 
   bool processPosition(ALuint openAlId, std::any position);
-  void calculateSpeed();
+  void calculateVelocity();
   std::map<ALuint, SourcePosition> mSourcePositions;
+  std::chrono::system_clock::time_point mLastTime;
 };
 
 } // namespace cs::audio
