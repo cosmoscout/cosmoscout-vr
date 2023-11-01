@@ -119,6 +119,7 @@ void Plugin::init() {
 
             auto settings = mPluginSettings->mAtmospheres.at(atmosphere.first);
             mGuiManager->setCheckboxValue("atmosphere.setEnableWater", settings.mEnableWater.get());
+            mGuiManager->setCheckboxValue("atmosphere.setEnableWaves", settings.mEnableWaves.get());
             mGuiManager->setSliderValue("atmosphere.setWaterLevel", settings.mWaterLevel.get());
             mGuiManager->setCheckboxValue(
                 "atmosphere.setEnableClouds", settings.mEnableClouds.get());

@@ -51,6 +51,7 @@ SPDX-License-Identifier: CC-BY-4.0
 * In order to improve the rendering performance, the stars of `csp-stars` are not drawn anymore if the observer is on the day-side of a planet with an atmosphere.
 * The default exposure and glare values as well as the glare-slider mapping have been tweaked for a better appearance of the atmospheres in HDR mode.
 * The default star rendering mode has been changed to `eSmoothDisc`
+* When saving the scene with `CosmoScout.callbacks.core.save(...)`, optional properties of the celestial objects are not written anymore. This also fixes a warning about the Barycenter having no radii.
 
 #### Bug Fixes
 

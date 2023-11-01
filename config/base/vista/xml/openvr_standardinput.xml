@@ -11,7 +11,7 @@ SPDX-License-Identifier: MIT
       <node name="flystick_source" type="DriverSensor">
          <param name="type" value="STICK"/>
          <param name="sensor_index" value="0"/>
-         <param name="driver" value="VIVEDRIVER"/>
+         <param name="driver" value="OPENVRDRIVER"/>
       </node>
 
     <node name="flystick" type="HistoryProject">
@@ -43,6 +43,7 @@ SPDX-License-Identifier: MIT
     <node name="pointer_matrix" type="MatrixCompose"/>
 
     <!-- Button Handling -->
+    <node name="button_or"    type="Or[bool]"/>
     <node name="button_01"    tag="button_01"    type="EventSource"/>
     <node name="button_02"    tag="button_02"    type="EventSource"/>
     <node name="button_change_detect_01" type="ChangeDetect[bool]"/>
@@ -70,7 +71,10 @@ SPDX-License-Identifier: MIT
   <edge fromnode="pointer_matrix"        tonode="intention_transform"   fromport="out"         toport="in"/>
 
   <!-- Button Handling -->
-  <edge fromnode="flystick" tonode="button_change_detect_01" fromport="TRACKPAD_PRESSED" toport="in"/>
+  <edge fromnode="flystick" tonode="button_or" fromport="TRACKPAD_PRESSED" toport="first"/>
+  <edge fromnode="flystick" tonode="button_or" fromport="BUTTON_A_PRESSED" toport="second"/>
+  
+  <edge fromnode="button_or" tonode="button_change_detect_01" fromport="out" toport="in"/>
   <edge fromnode="button_change_detect_01" tonode="button_01" fromport="out" toport="value"/>
 
   <edge fromnode="flystick" tonode="button_change_detect_02" fromport="GRIP_PRESSED" toport="in"/>
