@@ -19,8 +19,8 @@ void NodeFactory::registerSocketType(std::string name, std::string color) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void NodeFactory::registerControlType(const std::string& controlSource) {
-  mControls.emplace_back(controlSource);
+void NodeFactory::registerControlType(std::string controlSource) {
+  mControls.emplace_back(std::move(controlSource));
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
