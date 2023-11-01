@@ -209,6 +209,7 @@ void Plugin::init() {
       std::function([this](bool enable) { mPluginSettings->mAutoLOD = enable; }));
   mPluginSettings->mAutoLOD.connectAndTouch([this](bool enable) {
     mGuiManager->setCheckboxValue("lodBodies.setEnableAutoTerrainLod", enable);
+    mGuiManager->getGui()->callJavascript("CosmoScout.lodBodies.enableTerrainLodSlider", !enable);
   });
 
   mGuiManager->getGui()->registerCallback("lodBodies.setAutoLoDRange",
