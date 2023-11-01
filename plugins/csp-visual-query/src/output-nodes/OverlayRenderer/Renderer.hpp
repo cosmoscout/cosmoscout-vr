@@ -8,27 +8,33 @@
 #ifndef CSP_VISUAL_QUERY_RENDERER_HPP
 #define CSP_VISUAL_QUERY_RENDERER_HPP
 
-#include "../../../../csl-ogc/src/common/utils.hpp"
-
-#include "VistaOGLExt/VistaGLSLShader.h"
-#include "VistaOGLExt/VistaTexture.h"
-
 #include "../../types/types.hpp"
-#include "glm/vec3.hpp"
+
+#include <VistaKernel/GraphicsManager/VistaOpenGLDraw.h>
+#include <VistaOGLExt/VistaGLSLShader.h>
+#include <VistaOGLExt/VistaTexture.h>
 
 #include <map>
 #include <memory>
 #include <string>
 
-class VistaOpenGLNode;
+// FORWARD DEFINITIONS
 class VistaViewport;
+class VistaGLSLShader;
+class VistaOpenGLNode;
+class VistaTexture;
+
+namespace cs::core {
+class SolarSystem;
+class Settings;
+} // namespace cs::core
 
 namespace csp::visualquery {
 
 class Renderer final : public IVistaOpenGLDraw {
  public:
   Renderer(std::shared_ptr<cs::core::SolarSystem> solarSystem,
-      std::shared_ptr<cs::core::Settings> settings);
+      std::shared_ptr<cs::core::Settings>         settings);
   ~Renderer() override;
   bool Do() override;
   bool GetBoundingBox(VistaBoundingBox& bb) override;

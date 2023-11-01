@@ -13,6 +13,7 @@
 #include "OGCExceptionReport.hpp"
 
 #include <VistaTools/tinyXML/tinyxml.h>
+#include <nlohmann/json.hpp>
 #include <optional>
 
 namespace csl::ogc {
@@ -78,9 +79,9 @@ class CSL_OGC_EXPORT WebServiceBase {
   checkUpdateSequence(VistaXML::TiXmlDocument cacheDoc);
 
   const std::string mUrl{};
+  const CacheMode   mCacheMode{};
   const std::string mCacheDir{};
   const std::string mCacheFileName{};
-  const CacheMode   mCacheMode{};
 
   std::string mTitle{};
 

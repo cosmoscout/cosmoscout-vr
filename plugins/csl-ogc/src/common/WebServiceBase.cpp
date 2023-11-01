@@ -8,10 +8,13 @@
 #include "WebServiceBase.hpp"
 
 #include "../../../../src/cs-utils/filesystem.hpp"
+#include "../common/utils.hpp"
+#include "../logger.hpp"
 #include "../wms/WebMapException.hpp"
-#include "curlpp/Easy.hpp"
-#include "curlpp/Options.hpp"
+
 #include <boost/filesystem.hpp>
+#include <curlpp/Easy.hpp>
+#include <curlpp/Options.hpp>
 #include <utility>
 
 namespace csl::ogc {

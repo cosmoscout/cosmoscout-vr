@@ -7,16 +7,20 @@
 
 #include "Renderer.hpp"
 
+#include "../../../../../src/cs-core/Settings.hpp"
 #include "../../../../../src/cs-core/SolarSystem.hpp"
-#include "glm/gtc/type_ptr.hpp"
+#include "../../../../../src/cs-utils/utils.hpp"
+#include "../../logger.hpp"
 
-#include "VistaKernel/DisplayManager/VistaDisplayManager.h"
-#include "VistaKernel/DisplayManager/VistaViewport.h"
-#include "VistaKernel/GraphicsManager/VistaGroupNode.h"
-#include "VistaKernel/GraphicsManager/VistaOpenGLNode.h"
-#include "VistaKernel/GraphicsManager/VistaSceneGraph.h"
-#include "VistaKernel/VistaSystem.h"
-#include "VistaKernelOpenSGExt/VistaOpenSGMaterialTools.h"
+#include <VistaKernel/DisplayManager/VistaDisplayManager.h>
+#include <VistaKernel/DisplayManager/VistaViewport.h>
+#include <VistaKernel/GraphicsManager/VistaGroupNode.h>
+#include <VistaKernel/GraphicsManager/VistaOpenGLNode.h>
+#include <VistaKernel/GraphicsManager/VistaSceneGraph.h>
+#include <VistaKernel/VistaSystem.h>
+#include <VistaKernelOpenSGExt/VistaOpenSGMaterialTools.h>
+
+#include <glm/gtc/type_ptr.hpp>
 
 namespace csp::visualquery {
 

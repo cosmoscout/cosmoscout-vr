@@ -7,6 +7,8 @@
 
 #include "WebMapException.hpp"
 
+#include "../common/utils.hpp"
+
 namespace csl::ogc {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -44,7 +46,7 @@ std::vector<std::unique_ptr<OGCException>> WebMapExceptionReport::parseException
     exceptions.push_back(std::make_unique<WebMapException>(exceptionElement));
   }
 
-  return std::move(exceptions);
+  return exceptions;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

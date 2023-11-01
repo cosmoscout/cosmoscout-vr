@@ -8,6 +8,8 @@
 #ifndef CSP_VISUAL_QUERY_TYPES_HPP
 #define CSP_VISUAL_QUERY_TYPES_HPP
 
+#include "../../../csl-ogc/src/common/utils.hpp"
+
 #include <ctime>
 #include <stdint.h>
 #include <string>

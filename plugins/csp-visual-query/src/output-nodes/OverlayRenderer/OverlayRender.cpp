@@ -7,13 +7,17 @@
 
 #include "OverlayRender.hpp"
 
-#include <VistaKernel/VistaSystem.h>
+#include "../../../../src/cs-utils/filesystem.hpp"
+#include "../../../../src/cs-utils/utils.hpp"
+#include "../../../src/cs-core/SolarSystem.hpp"
+#include "../../../src/cs-core/Settings.hpp"
+
 #include <VistaKernel/GraphicsManager/VistaGraphicsManager.h>
+#include <VistaKernel/GraphicsManager/VistaOpenGLDraw.h>
 #include <VistaKernel/GraphicsManager/VistaOpenGLNode.h>
 #include <VistaKernel/GraphicsManager/VistaSceneGraph.h>
+#include <VistaKernel/VistaSystem.h>
 #include <VistaKernelOpenSGExt/VistaOpenSGMaterialTools.h>
-
-#include "../../../src/cs-core/SolarSystem.hpp"
 
 namespace csp::visualquery {
 
