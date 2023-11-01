@@ -46,7 +46,7 @@ class CSL_NODE_EDITOR_EXPORT NodeFactory {
   /// Register a new control type. The string should contain a JavaScript class that inherits from
   /// Rete.Control.
   /// @param controlSource The source code of a JavaScript class derived from Rete.Control.
-  void registerControlType(std::string const& controlSource);
+  void registerControlType(std::string controlSource);
 
   // Node Editor API -------------------------------------------------------------------------------
 
