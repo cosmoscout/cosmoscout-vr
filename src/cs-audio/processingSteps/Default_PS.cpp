@@ -53,14 +53,26 @@ void Default_PS::process(std::shared_ptr<Source> source,
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool Default_PS::processGain(ALuint openAlId, std::any value) {
-    float floatValue;
-
     if (value.type() != typeid(float)) {
+      
+      // remove gain
+      if (value.type() == typeid(std::string) && std::any_cast<std::string>(value) == "remove") { 
+        std::cout << "gain removed" << std::endl;
+        
+        alSourcef(openAlId, AL_GAIN, 1.f);
+        if (alErrorHandling::errorOccurred()) {
+          logger().warn("Failed to reset source gain!");
+          return false;
+        }
+        return true;
+      }
+
+      // wrong type provided
       logger().warn("Audio source settings error! Wrong type used for gain setting! Allowed Type: float");
       return false;
     }
 
-    floatValue = std::any_cast<float>(value);
+    float floatValue = std::any_cast<float>(value);
 
     if (floatValue < 0.f) {
       logger().warn("Audio source settings error! Unable to set a negative gain!");
@@ -79,14 +91,26 @@ bool Default_PS::processGain(ALuint openAlId, std::any value) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool Default_PS::processLooping(ALuint openAlId, std::any value) {
-  bool boolValue;
-
   if (value.type() != typeid(bool)) {
+
+    // remove looping
+    if (value.type() == typeid(std::string) && std::any_cast<std::string>(value) == "remove") { 
+      std::cout << "looping removed" << std::endl;
+      
+      alSourcei(openAlId, AL_LOOPING, AL_FALSE);
+      if (alErrorHandling::errorOccurred()) {
+        logger().warn("Failed to reset source looping!");
+        return false;
+      }
+      return true;
+    }
+
+    // wrong type provided
     logger().warn("Audio source settings error! Wrong type used for looping setting! Allowed Type: bool");
     return false;
   }
 
-  boolValue = std::any_cast<bool>(value);
+  bool boolValue = std::any_cast<bool>(value);
 
   alSourcei(openAlId, AL_LOOPING, boolValue);
 
@@ -100,14 +124,26 @@ bool Default_PS::processLooping(ALuint openAlId, std::any value) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool Default_PS::processPitch(ALuint openAlId, std::any value) {
-  float floatValue;
-
   if (value.type() != typeid(float)) {
+
+    // remove pitch
+    if (value.type() == typeid(std::string) && std::any_cast<std::string>(value) == "remove") { 
+      std::cout << "pitch removed" << std::endl;
+      
+      alSourcef(openAlId, AL_PITCH, 1.f);
+      if (alErrorHandling::errorOccurred()) {
+        logger().warn("Failed to reset source pitch!");
+        return false;
+      }
+      return true;
+    }
+
+    // wrong type provided
     logger().warn("Audio source settings error! Wrong type used for pitch setting! Allowed Type: float");
     return false;
   }
 
-  floatValue = std::any_cast<float>(value);
+  float floatValue = std::any_cast<float>(value);
 
   if (floatValue < 0.f) {
     logger().warn("Audio source error! Unable to set a negative pitch!");

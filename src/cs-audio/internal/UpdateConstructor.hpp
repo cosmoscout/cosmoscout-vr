@@ -65,6 +65,7 @@ class CS_AUDIO_EXPORT UpdateConstructor {
 
  private:
   UpdateConstructor(std::shared_ptr<ProcessingStepsManager> processingStepsManager);
+  void eraseRemoveSettings(std::shared_ptr<std::map<std::string, std::any>> settings);
 
   std::shared_ptr<ProcessingStepsManager> mProcessingStepsManager;         
 };

@@ -6,6 +6,7 @@
 // SPDX-License-Identifier: MIT
 
 #include "SourceSettings.hpp"
+#include <string>
 
 namespace cs::audio {
 
@@ -42,8 +43,10 @@ std::shared_ptr<std::map<std::string, std::any>> SourceSettings::getCurrentSetti
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void SourceSettings::remove(std::string key) {
-  mCurrentSettings->erase(key);
-  mUpdateSettings->erase(key);
+  // mCurrentSettings->erase(key);
+  // mUpdateSettings->erase(key);
+  mUpdateSettings->operator[](key) = std::string("remove");
+  // mCurrentSettings->erase(key); ???
   addToUpdateList();
 }
 

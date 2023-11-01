@@ -37,6 +37,19 @@ void SettingsMixer::A_Without_B(
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void SettingsMixer::A_Without_B_Value(
+  std::shared_ptr<std::map<std::string, std::any>> A, 
+  std::string B) {
+  
+  for (auto it = A->begin(); it != A->end(); ++it) {
+     if (it->second.type() == typeid(std::string) && std::any_cast<std::string>(it->second) == "remove") {
+      A->erase(it);
+    }
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void SettingsMixer::OverrideAdd_A_with_B(
   std::shared_ptr<std::map<std::string, std::any>> A, 
   std::shared_ptr<std::map<std::string, std::any>> B) {

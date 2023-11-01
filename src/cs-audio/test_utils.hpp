@@ -3,6 +3,7 @@
 #define TEST_UTILS
 
 #include <memory>
+#include <string>
 #include <map>
 #include <any>
 #include <vector>
@@ -28,6 +29,13 @@ void printMap(std::shared_ptr<std::map<std::string, std::any>> map) {
 
     try {
       float x = std::any_cast<float>(val);
+      std::cout << x << std::endl;
+      continue;
+    } catch (std::bad_any_cast&) {
+    }
+
+    try {
+      auto x = std::any_cast<std::string>(val);
       std::cout << x << std::endl;
       continue;
     } catch (std::bad_any_cast&) {

@@ -51,6 +51,31 @@ void Spatialization_PS::process(std::shared_ptr<Source> source,
 bool Spatialization_PS::processPosition(std::shared_ptr<Source> source, std::any value) {
   
   if (value.type() != typeid(glm::dvec3)) {
+
+    // remove position
+    if (value.type() == typeid(std::string) && std::any_cast<std::string>(value) == "remove") { 
+      std::cout << "position removed" << std::endl;
+
+      ALuint openAlId = source->getOpenAlId();
+      
+      alSourcei(openAlId, AL_SOURCE_RELATIVE, AL_TRUE);
+      if (alErrorHandling::errorOccurred()) {
+        logger().warn("Failed to reset source position specification to relative!");
+        return false;
+      }
+      
+      alSource3f(openAlId, AL_POSITION, 
+        (ALfloat)0.f, 
+        (ALfloat)0.f, 
+        (ALfloat)0.f);
+      if (alErrorHandling::errorOccurred()) {
+        logger().warn("Failed to reset source position!");
+        return false;
+      }
+      
+      return true;
+    }
+
     logger().warn("Audio source settings error! Wrong type used for position setting! Allowed Type: glm::dvec3");
     return false;
   }

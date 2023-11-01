@@ -169,23 +169,31 @@ void AudioEngine::playAmbient() {
   audioController->set("looping", true);
 
   testSourceAmbient = audioController->createSource("C:/Users/sass_fl/audioCS/audioCSNotes/testFiles/scifi_stereo.wav"); 
-  testSourceAmbient->play();
+  // testSourceAmbient->play();
   
   testSourcePosition = audioController->createSource("C:/Users/sass_fl/audioCS/audioCSNotes/testFiles/exotic_mono.wav");
   testSourcePosition->play();
-  testSourcePosition->set("gain", 1.5f);
+  // testSourcePosition->set("gain", 3.f);
 
   // Group Testing
   testSourceGroup = audioController->createSourceGroup();
-  testSourceGroup->set("pitch", 2.0f);
+  // testSourceGroup->set("pitch", 2.0f);
 
   testSourceGroup->join(testSourceAmbient);
   testSourceGroup->join(testSourcePosition);
    
   audioController->update(); 
 
-  audioController->set("looping", false);
+  testSourcePosition->remove("looping");
   audioController->update();
+
+  std::cout << "testSourcePosition setting:" << std::endl;
+  printMap(testSourcePosition->getCurrentSettings());
+  std::cout << "testSourcePosition playback setting:" << std::endl;
+  printMap(testSourcePosition->getPlaybackSettings());
+
+  // audioController->set("looping", false);
+  // audioController->update();
 }
 
 } // namespace cs::core

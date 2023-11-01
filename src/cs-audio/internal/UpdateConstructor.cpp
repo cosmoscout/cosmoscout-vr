@@ -11,6 +11,9 @@
 #include "../Source.hpp"
 #include "../SourceGroup.hpp"
 
+#include <vector>
+#include <string>
+
 namespace cs::audio {
 
 std::shared_ptr<UpdateConstructor> UpdateConstructor::createUpdateConstructor(
@@ -66,6 +69,11 @@ void UpdateConstructor::updateAll(
     // run finalSetting through pipeline
     auto failedSettings = mProcessingStepsManager->process(sourcePtr, audioController, finalSettings);
 
+    SettingsMixer::A_Without_B_Value(finalSettings, "remove");
+    SettingsMixer::A_Without_B_Value(sourcePtr->mUpdateSettings, "remove");
+
+    // TODO: removed settings auch aus playbackSettings entfernen
+
     // update current source playback settings 
     SettingsMixer::A_Without_B(finalSettings, failedSettings);
     SettingsMixer::OverrideAdd_A_with_B(sourcePtr->mPlaybackSettings, finalSettings);
@@ -78,11 +86,15 @@ void UpdateConstructor::updateAll(
 
   // Update currently set settings for a group
   for (std::shared_ptr<SourceGroup> groupPtr : *groups) {
-    SettingsMixer::OverrideAdd_A_with_B(groupPtr->mCurrentSettings, groupPtr->mUpdateSettings);
-    groupPtr->mUpdateSettings->clear();
+    if (!groupPtr->mUpdateSettings->empty()) {
+      SettingsMixer::A_Without_B_Value(groupPtr->mUpdateSettings, "remove");
+      SettingsMixer::OverrideAdd_A_with_B(groupPtr->mCurrentSettings, groupPtr->mUpdateSettings);
+      groupPtr->mUpdateSettings->clear();
+    }
   }
 
   // Update currently set settings for the plugin
+  SettingsMixer::A_Without_B_Value(audioController->mUpdateSettings, "remove");
   SettingsMixer::OverrideAdd_A_with_B(audioController->mCurrentSettings, audioController->mUpdateSettings);
   audioController->mUpdateSettings->clear();
 }
@@ -106,7 +118,10 @@ void UpdateConstructor::updateGroups(
 
     // run finalSetting through pipeline
     auto failedSettings = mProcessingStepsManager->process(sourcePtr, audioController, finalSettings);
-  
+
+    SettingsMixer::A_Without_B_Value(finalSettings, "remove");
+    SettingsMixer::A_Without_B_Value(sourcePtr->mUpdateSettings, "remove");
+
     // update current source playback settings 
     SettingsMixer::A_Without_B(finalSettings, failedSettings);
     SettingsMixer::OverrideAdd_A_with_B(sourcePtr->mPlaybackSettings, finalSettings);
@@ -118,10 +133,11 @@ void UpdateConstructor::updateGroups(
   }
 
   // Update currently set settings for a group
-  for (std::shared_ptr<SourceGroup> group : *groups) {
-    if (!group->mUpdateSettings->empty()) {
-      SettingsMixer::OverrideAdd_A_with_B(group->mCurrentSettings, group->mUpdateSettings);
-      group->mUpdateSettings->clear();
+  for (std::shared_ptr<SourceGroup> groupPtr : *groups) {
+    if (!groupPtr->mUpdateSettings->empty()) {
+      SettingsMixer::A_Without_B_Value(groupPtr->mUpdateSettings, "remove");
+      SettingsMixer::OverrideAdd_A_with_B(groupPtr->mCurrentSettings, groupPtr->mUpdateSettings);
+      groupPtr->mUpdateSettings->clear();
     }
   }
 }
@@ -133,7 +149,9 @@ void UpdateConstructor::updateSources(
   for (auto sourcePtr : *sources) {
     // run finalSetting through pipeline
     auto failedSettings = mProcessingStepsManager->process(sourcePtr, audioController, sourcePtr->mUpdateSettings);
-  
+
+    SettingsMixer::A_Without_B_Value(sourcePtr->mUpdateSettings, "remove");
+
     // update current source playback settings 
     SettingsMixer::A_Without_B(sourcePtr->mUpdateSettings, failedSettings);
     SettingsMixer::OverrideAdd_A_with_B(sourcePtr->mPlaybackSettings, sourcePtr->mUpdateSettings);
