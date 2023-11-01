@@ -21,7 +21,7 @@ class CS_AUDIO_EXPORT Default_PS : public ProcessingStep {
 
   static std::shared_ptr<ProcessingStep> create();
 
-  void process(ALuint openAlId,
+  void process(std::shared_ptr<Source> source,
     std::shared_ptr<std::map<std::string, std::any>> settings,
     std::shared_ptr<std::vector<std::string>> failedSettings) override;
 

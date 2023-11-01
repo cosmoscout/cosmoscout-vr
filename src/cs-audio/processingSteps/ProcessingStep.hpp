@@ -27,7 +27,7 @@ class CS_AUDIO_EXPORT ProcessingStep {
 
   // virtual static std::shared_ptr<ProcessingStep> create() = 0; // TODO: rename getInstance()?
 
-  virtual void process(ALuint openAlId, 
+  virtual void process(std::shared_ptr<Source> source, 
     std::shared_ptr<std::map<std::string, std::any>> settings,
     std::shared_ptr<std::vector<std::string>> failedSettings) = 0;
 

@@ -64,7 +64,7 @@ void UpdateConstructor::updateAll(
     SettingsMixer::OverrideAdd_A_with_B(finalSettings, sourcePtr->mUpdateSettings);
 
     // run finalSetting through pipeline
-    auto failedSettings = mProcessingStepsManager->process(sourcePtr->getOpenAlId(), audioController, finalSettings);
+    auto failedSettings = mProcessingStepsManager->process(sourcePtr, audioController, finalSettings);
 
     // update current source playback settings 
     SettingsMixer::A_Without_B(finalSettings, failedSettings);
@@ -105,7 +105,7 @@ void UpdateConstructor::updateGroups(
     SettingsMixer::OverrideAdd_A_with_B(finalSettings, sourcePtr->mUpdateSettings);
 
     // run finalSetting through pipeline
-    auto failedSettings = mProcessingStepsManager->process(sourcePtr->getOpenAlId(), audioController, finalSettings);
+    auto failedSettings = mProcessingStepsManager->process(sourcePtr, audioController, finalSettings);
   
     // update current source playback settings 
     SettingsMixer::A_Without_B(finalSettings, failedSettings);
@@ -132,7 +132,7 @@ void UpdateConstructor::updateSources(
 
   for (auto sourcePtr : *sources) {
     // run finalSetting through pipeline
-    auto failedSettings = mProcessingStepsManager->process(sourcePtr->getOpenAlId(), audioController, sourcePtr->mUpdateSettings);
+    auto failedSettings = mProcessingStepsManager->process(sourcePtr, audioController, sourcePtr->mUpdateSettings);
   
     // update current source playback settings 
     SettingsMixer::A_Without_B(sourcePtr->mUpdateSettings, failedSettings);
@@ -153,7 +153,7 @@ void UpdateConstructor::applyCurrentControllerSettings(
   // source, at which point there cannot be any previous settings.
 
   // run finalSetting through pipeline
-  auto failedSettings = mProcessingStepsManager->process(source->getOpenAlId(), audioController, settings);
+  auto failedSettings = mProcessingStepsManager->process(source, audioController, settings);
   
   // Update currently set settings for a source
   auto settingsCopy(settings);
@@ -174,7 +174,7 @@ void UpdateConstructor::applyCurrentGroupSettings(
   SettingsMixer::A_Without_B(finalSettings, source->mCurrentSettings);
 
   // run finalSetting through pipeline
-  auto failedSettings = mProcessingStepsManager->process(source->getOpenAlId(), audioController, finalSettings);
+  auto failedSettings = mProcessingStepsManager->process(source, audioController, finalSettings);
 
   // Update currently set settings for a source
   SettingsMixer::A_Without_B(finalSettings, failedSettings);

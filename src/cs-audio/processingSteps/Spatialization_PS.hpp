@@ -10,6 +10,7 @@
 
 #include "cs_audio_export.hpp"
 #include "ProcessingStep.hpp"
+#include "../Source.hpp"
 
 #include <AL/al.h>
 #include <glm/fwd.hpp>
@@ -22,7 +23,7 @@ class CS_AUDIO_EXPORT Spatialization_PS : public ProcessingStep {
 
   static std::shared_ptr<ProcessingStep> create();
 
-  void process(ALuint openAlId, 
+  void process(std::shared_ptr<Source> source, 
     std::shared_ptr<std::map<std::string, std::any>> settings,
     std::shared_ptr<std::vector<std::string>> failedSettings) override;
 
@@ -32,16 +33,17 @@ class CS_AUDIO_EXPORT Spatialization_PS : public ProcessingStep {
 
  private:
 
-  struct SourcePosition {
-    glm::dvec3 current;
-    glm::dvec3 last;
+  struct SourceContainer {
+    std::weak_ptr<Source> sourcePtr;
+    glm::dvec3 currentPos;
+    glm::dvec3 lastPos;
   };
 
   Spatialization_PS();
 
-  bool processPosition(ALuint openAlId, std::any position);
+  bool processPosition(std::shared_ptr<Source> source, std::any position);
   void calculateVelocity();
-  std::map<ALuint, SourcePosition> mSourcePositions;
+  std::map<ALuint, SourceContainer> mSourcePositions;
   std::chrono::system_clock::time_point mLastTime;
 };
 

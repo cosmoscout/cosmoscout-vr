@@ -77,12 +77,12 @@ std::shared_ptr<ProcessingStep> ProcessingStepsManager::getProcessingStep(std::s
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::shared_ptr<std::vector<std::string>> ProcessingStepsManager::process(ALuint openAlId, 
+std::shared_ptr<std::vector<std::string>> ProcessingStepsManager::process(std::shared_ptr<Source> source, 
   AudioController* audioController, std::shared_ptr<std::map<std::string, std::any>> settings) {
 
   auto failedSettings = std::make_shared<std::vector<std::string>>();
   for (auto step : mPipelines[audioController]) {
-    step->process(openAlId, settings, failedSettings);
+    step->process(source, settings, failedSettings);
   }
   return failedSettings;
 }

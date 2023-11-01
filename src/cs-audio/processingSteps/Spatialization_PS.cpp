@@ -29,18 +29,18 @@ std::shared_ptr<ProcessingStep> Spatialization_PS::create() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 Spatialization_PS::Spatialization_PS()
-  : mSourcePositions(std::map<ALuint, SourcePosition>())
+  : mSourcePositions(std::map<ALuint, SourceContainer>())
   , mLastTime(std::chrono::system_clock::now()) {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Spatialization_PS::process(ALuint openAlId, 
+void Spatialization_PS::process(std::shared_ptr<Source> source, 
   std::shared_ptr<std::map<std::string, std::any>> settings,
   std::shared_ptr<std::vector<std::string>> failedSettings) {
   
   if (auto search = settings->find("position"); search != settings->end()) { 
-    if (!processPosition(openAlId, search->second)) {
+    if (!processPosition(source, search->second)) {
       failedSettings->push_back("position");
     }
   }
@@ -48,13 +48,14 @@ void Spatialization_PS::process(ALuint openAlId,
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool Spatialization_PS::processPosition(ALuint openAlId, std::any value) {
-  glm::dvec3 positionValue;
+bool Spatialization_PS::processPosition(std::shared_ptr<Source> source, std::any value) {
   
   if (value.type() != typeid(glm::dvec3)) {
     logger().warn("Audio source settings error! Wrong type used for position setting! Allowed Type: glm::dvec3");
     return false;
   }
+
+  ALuint openAlId = source->getOpenAlId();
 
   alSourcei(openAlId, AL_SOURCE_RELATIVE, AL_FALSE);
   if (alErrorHandling::errorOccurred()) {
@@ -62,7 +63,7 @@ bool Spatialization_PS::processPosition(ALuint openAlId, std::any value) {
     return false;
   }
 
-  positionValue = std::any_cast<glm::dvec3>(value);
+  glm::dvec3 positionValue = std::any_cast<glm::dvec3>(value);
 
   alSource3f(openAlId, AL_POSITION, 
     (ALfloat)positionValue.x, 
@@ -74,8 +75,7 @@ bool Spatialization_PS::processPosition(ALuint openAlId, std::any value) {
     return false;
   }
 
-  mSourcePositions[openAlId].current = positionValue; 
-
+  mSourcePositions[openAlId] = SourceContainer{std::weak_ptr<Source>(source), positionValue, positionValue};
   return true;
 }
 
@@ -86,27 +86,33 @@ void Spatialization_PS::calculateVelocity() {
   std::chrono::duration<float> elapsed_seconds = currentTime - mLastTime; 
   auto elapsed_secondsf = elapsed_seconds.count();
 
-  for (auto [openAlId, sourcePos] : mSourcePositions) {
+  for (auto source : mSourcePositions) {
     
-    glm::dvec3 velocity;
+    if (source.second.sourcePtr.expired()) {
+      mSourcePositions.erase(source.first);
+      continue;
+    }
 
-    if (sourcePos.current != sourcePos.last) {
-      glm::dvec3 posDelta = sourcePos.current - sourcePos.last;
+    glm::dvec3 velocity;
+    ALuint openAlId = source.second.sourcePtr.lock()->getOpenAlId(); 
+
+    if (source.second.currentPos != source.second.lastPos) {
+      glm::dvec3 posDelta = source.second.currentPos - source.second.lastPos;
       velocity.x = posDelta.x / elapsed_secondsf;
       velocity.y = posDelta.y / elapsed_secondsf;
       velocity.z = posDelta.z / elapsed_secondsf;
-      mSourcePositions[openAlId].last = sourcePos.current;
+      mSourcePositions[openAlId].lastPos = source.second.currentPos;
       
-    } else {
+    } else {  
       velocity.x = 0;
       velocity.y = 0;
       velocity.z = 0;
     }
 
     alSource3f(openAlId, AL_VELOCITY, 
-    (ALfloat)velocity.x, 
-    (ALfloat)velocity.y, 
-    (ALfloat)velocity.z);
+      (ALfloat)velocity.x, 
+      (ALfloat)velocity.y, 
+      (ALfloat)velocity.z);
 
     if (alErrorHandling::errorOccurred()) {
       logger().warn("Failed to set source velocity!");

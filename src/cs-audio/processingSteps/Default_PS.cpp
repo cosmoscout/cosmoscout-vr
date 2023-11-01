@@ -25,10 +25,12 @@ Default_PS::Default_PS() {}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Default_PS::process(ALuint openAlId, 
+void Default_PS::process(std::shared_ptr<Source> source, 
   std::shared_ptr<std::map<std::string, std::any>> settings,
   std::shared_ptr<std::vector<std::string>> failedSettings) {
 
+  ALuint openAlId = source->getOpenAlId();
+  
   if (auto search = settings->find("gain"); search != settings->end()) { 
     if (!processGain(openAlId, search->second)) {
       failedSettings->push_back("gain");
