@@ -9,9 +9,6 @@
 #define CS_AUDIO_UPDATE_CONSTRUCTOR_HPP
 
 #include "cs_audio_export.hpp"
-// #include "../Source.hpp"
-// #include "../SourceGroup.hpp"
-// #include "../AudioController.hpp"
 
 #include <vector>
 #include <memory>
@@ -30,7 +27,7 @@ class CS_AUDIO_EXPORT UpdateConstructor {
  public:
   static std::shared_ptr<UpdateConstructor> createUpdateConstructor(
     std::shared_ptr<ProcessingStepsManager> processingStepsManager);
-
+  
   void updateAll(
     std::shared_ptr<std::vector<std::shared_ptr<Source>>> sources, 
     std::shared_ptr<std::vector<std::shared_ptr<SourceGroup>>> groups,
