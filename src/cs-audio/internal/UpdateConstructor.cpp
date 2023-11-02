@@ -43,12 +43,12 @@ void UpdateConstructor::updateAll(
     // TODO: refactor
 
     // take controller settings
-    std::map<std::string, std::any> x(*audioController->mUpdateSettings);
-    auto finalSettings = std::make_shared<std::map<std::string, std::any>>(x);
+    // std::map<std::string, std::any> x(*audioController->mUpdateSettings);
+    auto finalSettings = std::make_shared<std::map<std::string, std::any>>(*(audioController->mUpdateSettings));
 
     // remove controller settings that are already set by the source
     SettingsMixer::A_Without_B(finalSettings, sourcePtr->mCurrentSettings);
-
+ 
     if (sourcePtr->mGroup != nullptr) {
       // remove controller settings that are already set by the group
       SettingsMixer::A_Without_B(finalSettings, sourcePtr->mGroup->mCurrentSettings);
