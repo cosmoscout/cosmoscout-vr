@@ -160,6 +160,10 @@ void Renderer::setCenter(std::string center) {
   mMaxBounds = object->getRadii();
 }
 
+std::string Renderer::getCenter() const {
+  return mObjectName;
+}
+
 bool Renderer::Do() {
   if (!mHasTexture || mObjectName == "None" || mObjectName.empty()) {
     return false;

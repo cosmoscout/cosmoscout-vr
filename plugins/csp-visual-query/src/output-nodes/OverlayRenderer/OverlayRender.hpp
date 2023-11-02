@@ -39,6 +39,8 @@ class OverlayRender final : public csl::nodeeditor::Node {
   /// nodes.
   void process() override;
   void onMessageFromJS(const nlohmann::json& message) override;
+  nlohmann::json getData() const override;
+  void           setData(const nlohmann::json& json) override;
 
  private:
   std::unique_ptr<Renderer>        mRenderer;

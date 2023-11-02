@@ -9,8 +9,8 @@
 
 #include "../../../../src/cs-utils/filesystem.hpp"
 #include "../../../../src/cs-utils/utils.hpp"
-#include "../../../src/cs-core/SolarSystem.hpp"
 #include "../../../src/cs-core/Settings.hpp"
+#include "../../../src/cs-core/SolarSystem.hpp"
 
 #include <VistaKernel/GraphicsManager/VistaGraphicsManager.h>
 #include <VistaKernel/GraphicsManager/VistaOpenGLDraw.h>
@@ -64,6 +64,34 @@ OverlayRender::OverlayRender(std::shared_ptr<cs::core::SolarSystem> solarSystem,
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 OverlayRender::~OverlayRender() = default;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+nlohmann::json OverlayRender::getData() const {
+  nlohmann::json data;
+
+  std::set<std::string> centerNames{};
+
+  for (const auto& item : mSettings->mObjects) {
+    centerNames.insert(item.second->getCenterName());
+  }
+
+  std::vector<std::string> list{centerNames.begin(), centerNames.end()};
+  list.insert(list.begin(), "None");
+
+  data["options"]      = list;
+  data["selectedBody"] = mRenderer->getCenter();
+
+  return data;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void OverlayRender::setData(nlohmann::json const& json) {
+  if (json.find("selectedBody") != json.end()) {
+    mRenderer->setCenter(json["selectedBody"]);
+  }
+}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 

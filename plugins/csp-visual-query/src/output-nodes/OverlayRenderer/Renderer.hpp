@@ -39,8 +39,9 @@ class Renderer final : public IVistaOpenGLDraw {
   bool Do() override;
   bool GetBoundingBox(VistaBoundingBox& bb) override;
 
-  void setData(std::shared_ptr<Image2D> const& image);
-  void setCenter(std::string center);
+  void        setData(std::shared_ptr<Image2D> const& image);
+  void        setCenter(std::string center);
+  std::string getCenter() const;
 
  private:
   std::string                            mObjectName;

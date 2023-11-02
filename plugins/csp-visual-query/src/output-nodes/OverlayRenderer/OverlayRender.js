@@ -31,6 +31,16 @@ class OverlayRenderComponent extends Rete.Component {
       text: centerName
     })));
 
+    node.onInit = (nodeDiv) => {
+      centerControl.init(nodeDiv, {
+        options: node.data.options?.map((body, index) => ({
+          value: index,
+          text: body
+        })),
+        selectedValue: node.data.selectedBody
+      });
+    }
+
     return node;
   }
 }
