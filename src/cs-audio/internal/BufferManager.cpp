@@ -12,6 +12,7 @@
 
 #include <AL/al.h>
 #include <iostream>
+#include <variant>
 
 namespace cs::audio {
 
@@ -71,15 +72,39 @@ std::pair<bool, ALuint> BufferManager::createBuffer(std::string file) {
 
   // read wave file
   WavContainer wavContainer;
-  if (!FileReader::loadWAV(file.c_str(), wavContainer)) {
+  if (!FileReader::loadWAV(file, wavContainer)) {
     logger().warn("{} is not a valid wave file! Unable to create buffer!", file);
     alDeleteBuffers((ALsizei) 1, &newBufferId);
     return std::make_pair(false, newBufferId);
   }
 
+  // testing
+  wavContainer.print();
+
+  if (wavContainer.bitsPerSample == 32) {
+    int i = 0;
+    for (auto x : std::get<std::vector<float>>(wavContainer.pcm)) {
+      if (i < 200) {
+        std::cout << x << ", ";
+        ++i;
+      }
+    }
+    std::cout << std::endl;
+  }
+  // -------------------
+
   // load wave into buffer
+  if (wavContainer.bitsPerSample == 32) {
+    alBufferData(newBufferId, wavContainer.format, std::get<std::vector<float>>(wavContainer.pcm).data(), 
+      wavContainer.size, wavContainer.sampleRate);
+  } else {
+    alBufferData(newBufferId, wavContainer.format, std::get<std::vector<char>>(wavContainer.pcm).data(), 
+      wavContainer.size, wavContainer.sampleRate);
+  }
+  /*
   alBufferData(newBufferId, wavContainer.format, wavContainer.pcm.data(), 
-    wavContainer.size, wavContainer.sampleRate);
+      wavContainer.size, wavContainer.sampleRate);
+  */
   if (alErrorHandling::errorOccurred()) {
     logger().warn("Failed to fill buffer with data!");
     alDeleteBuffers((ALsizei) 1, &newBufferId);

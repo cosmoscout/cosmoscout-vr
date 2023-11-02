@@ -11,16 +11,18 @@
 #include <iostream>
 #include <fstream>
 #include <cstring>
+#include <variant>
 #include <AL/al.h>
+#include <AL/alext.h>
 
 namespace cs::audio {
 
-bool FileReader::loadWAV(const char* fn, WavContainer& wavContainer)
+bool FileReader::loadWAV(std::string fileName, WavContainer& wavContainer)
 {
   char fileBuffer[4];
-  std::ifstream in(fn, std::ios::binary);
+  std::ifstream in(fileName, std::ios::binary);
   
-  // check if it us a valid wave file:
+  // check if it is a valid wave file:
   in.read(fileBuffer, 4);
   if (strncmp(fileBuffer, "RIFF", 4) != 0) {
     return false;
@@ -41,18 +43,43 @@ bool FileReader::loadWAV(const char* fn, WavContainer& wavContainer)
   wavContainer.bitsPerSample = convertToInt(fileBuffer, 2);
   in.read(fileBuffer, 4); // SubChunk 2 id        -- data sub-chunk
   in.read(fileBuffer, 4); // SubChunk 2 Size
-  wavContainer.size = convertToInt(fileBuffer, 4);
-  wavContainer.pcm = std::vector<char>(wavContainer.size);
-  in.read(wavContainer.pcm.data(), wavContainer.size); // data
-  
+  wavContainer.size = convertToInt(fileBuffer, 4);  
+  // wavContainer.pcm = std::vector<char>(wavContainer.size);
+  // in.read(wavContainer.pcm.data(), wavContainer.size); // data
+
+  // Mono
   if (wavContainer.numberChannels == 1) {
-    wavContainer.format = 
-      (wavContainer.bitsPerSample == 8 ? AL_FORMAT_MONO8 : AL_FORMAT_MONO16);
+    switch (wavContainer.bitsPerSample) {
+      case 8:
+        wavContainer.format = AL_FORMAT_MONO8;
+        break;
+      case 16:
+        wavContainer.format = AL_FORMAT_MONO16;
+        break;
+      case 32:
+        wavContainer.format = AL_FORMAT_MONO_FLOAT32;
+    }
+  // Stereo
   } else {
-    wavContainer.format = 
-      (wavContainer.bitsPerSample == 8 ? AL_FORMAT_STEREO8 : AL_FORMAT_STEREO16);
+    switch (wavContainer.bitsPerSample) {
+      case 8:
+        wavContainer.format = AL_FORMAT_STEREO8;
+        break;
+      case 16:
+        wavContainer.format = AL_FORMAT_STEREO16;
+        break;
+      case 32:
+        wavContainer.format = AL_FORMAT_STEREO_FLOAT32;
+    }
   }
-  
+  if (wavContainer.bitsPerSample == 32) {
+    wavContainer.pcm = std::vector<float>(wavContainer.size);
+    in.read(reinterpret_cast<char*>(std::get<std::vector<float>>(wavContainer.pcm).data()), wavContainer.size); // data
+  } else {
+    wavContainer.pcm = std::vector<char>(wavContainer.size);
+    in.read(std::get<std::vector<char>>(wavContainer.pcm).data(), wavContainer.size); // data
+  }
+
   return true;
 }
 
