@@ -28,13 +28,12 @@ class CS_AUDIO_EXPORT SourceSettings {
   /// @param value setting value 
   void set(std::string key, std::any value);
 
-  /// @brief Returns the currently set settings for the source/group/controller.
-  /// To get all settings currently playing on a source call source.getPlaybackSettings().
+  /// @brief Returns the currently set settings for the sourceSettings instance.
+  /// To get all settings currently playing on a source call Source::getPlaybackSettings().
   /// @return Pointer to the settings map
   std::shared_ptr<std::map<std::string, std::any>> getCurrentSettings() const;
 
-  /// @brief Removes a key from the current and update settings.
-  /// @param key key to remove
+  /// TODO
   void remove(std::string key);
 
   /// @brief Removes a key from the update settings.
@@ -45,21 +44,24 @@ class CS_AUDIO_EXPORT SourceSettings {
 
  protected:                 
   SourceSettings(std::shared_ptr<UpdateInstructor> UpdateInstructor);                       
+  SourceSettings();
   /// Later assignment of UpdateInstructor needed because the audioController, which initializes the 
   /// UpdateInstructor, needs to initialize SourceSettings first.                                                                                                              
-  SourceSettings();
-  void setUpdateInstructor(std::shared_ptr<UpdateInstructor> UpdateInstructor);                                                                                                                                    
-  /// Contains all settings that are about to be set using the update() function. 
-  /// If update() is called these settings will be used to call all the processing 
-  /// steps. When finished, all set values will be written into mCurrentSettings
+  void setUpdateInstructor(std::shared_ptr<UpdateInstructor> UpdateInstructor);   
+
+  /// Contains all settings that are about to be set using the AudioController::update() function. 
+  /// If update() is called these settings will be used to apply to a source. Not all settings might be set
+  /// as they can be be overwritten by other settings higher up in the hierarchy (take a look at the UpdateConstructor
+  /// for more details on this). After the update all set values will be written into mCurrentSettings 
   /// and mUpdateSettings gets reset.
   std::shared_ptr<std::map<std::string, std::any>> mUpdateSettings;
-  /// Contains all settings currently set and playing which were defined 
-  /// by source/group/controller itself
+  /// Contains all settings currently set by sourceSettings instance itself
   std::shared_ptr<std::map<std::string, std::any>> mCurrentSettings;
-  /// UpdateInstructor to call to add Source/Group/Plugin to updateList 
-  std::shared_ptr<UpdateInstructor>                   mUpdateInstructor;
+  /// UpdateInstructor to call to add sourceSettings instance to updateList 
+  std::shared_ptr<UpdateInstructor>                mUpdateInstructor;
 
+  /// @brief Function to add sourceSettings instance to the updateList. Each derived class needs to implement
+  /// this by calling UpdateInstructor::update(shared_from_this())
   virtual void addToUpdateList() = 0;
 };
 

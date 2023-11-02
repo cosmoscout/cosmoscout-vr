@@ -13,7 +13,7 @@ namespace cs::audio {
 UpdateInstructor::UpdateInstructor() 
   : mSourceUpdateList(std::set<std::shared_ptr<Source>>())
   , mGroupUpdateList(std::set<std::shared_ptr<SourceGroup>>())
-  , mPluginUpdate(false) { 
+  , mAudioControllerUpdate(false) { 
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -31,7 +31,7 @@ void UpdateInstructor::update(std::shared_ptr<SourceGroup> sourceGroup) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void UpdateInstructor::update(std::shared_ptr<AudioController> audioController) {
-  mPluginUpdate = true;
+  mAudioControllerUpdate = true;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -39,14 +39,14 @@ void UpdateInstructor::update(std::shared_ptr<AudioController> audioController) 
 UpdateInstructor::UpdateInstruction UpdateInstructor::createUpdateInstruction() {
   UpdateInstruction result;
 
-  if (mPluginUpdate) {
+  if (mAudioControllerUpdate) {
     // update every source and group
     result.updateAll = true;
     return result;
   }
 
   result.updateWithGroup = std::make_shared<std::vector<std::shared_ptr<Source>>>();
-  result.updateOnlySource = std::make_shared<std::vector<std::shared_ptr<Source>>>();
+  result.updateSourceOnly = std::make_shared<std::vector<std::shared_ptr<Source>>>();
 
   // add group members to updateList
   for (auto groupPtr : mGroupUpdateList) {
@@ -58,14 +58,14 @@ UpdateInstructor::UpdateInstruction UpdateInstructor::createUpdateInstruction() 
   // that are not already in the group update.
   for (auto sourcePtr : mSourceUpdateList) {
     if (std::find(result.updateWithGroup->begin(), result.updateWithGroup->end(), sourcePtr) == result.updateWithGroup->end()) {
-      result.updateOnlySource->push_back(sourcePtr);
+      result.updateSourceOnly->push_back(sourcePtr);
     }
   }
 
   // reset update state
   mSourceUpdateList.clear();
   mGroupUpdateList.clear();
-  mPluginUpdate = false;
+  mAudioControllerUpdate = false;
 
   return result;
 }

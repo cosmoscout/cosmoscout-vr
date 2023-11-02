@@ -13,12 +13,14 @@
 #include <AL/al.h>
 
 // forward declaration
-class AudioEngine;
+// class AudioEngine;
 
 namespace cs::audio {
-
+ 
 class CS_AUDIO_EXPORT alErrorHandling {
  public:
+  /// @brief Checks if an OpenAL Error occurred and if so prints a logger warning containing the error.
+  /// @return True if error occurred 
   static bool errorOccurred();
 
 }; // namespace cs::audio

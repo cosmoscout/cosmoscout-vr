@@ -29,30 +29,45 @@ class CS_AUDIO_EXPORT AudioController
   , public std::enable_shared_from_this<AudioController> {
     
  public:
-  AudioController(
+  AudioController( // TODO: private machen
     std::shared_ptr<BufferManager> bufferManager, 
     std::shared_ptr<ProcessingStepsManager> processingStepsManager,
     std::shared_ptr<UpdateConstructor> updateConstructor);
 
-  /// Creates a new audio source
+  /// @brief Creates a new audio source
+  /// @return Pointer to the new source
   std::shared_ptr<Source> createSource(std::string file);
-  /// Creates a new audio source group
+
+  /// @brief Creates a new audio source group
+  /// @return Pointer to the new source group
   std::shared_ptr<SourceGroup> createSourceGroup();
-  /// Define processing pipeline
+
+  /// @brief Defines a new pipeline for the audioController
+  /// @param processingSteps list of all processing steps that should be part of the pipeline
   void setPipeline(std::vector<std::string> processingSteps);
 
+  /// @brief Calls the pipeline for all newly set settings for the audioController, Groups and Sources since
+  /// the last update call.
   void update();
 
+  /// @return Return a list of all sources which live on the audioController
   std::shared_ptr<std::vector<std::shared_ptr<Source>>> getSources() const;
 
  private:
+  /// Ptr to the single BufferManager of the audioEngine
   std::shared_ptr<BufferManager>            mBufferManager;
+  /// Ptr to the single ProcessingStepsManager of the audioEngine
   std::shared_ptr<ProcessingStepsManager>   mProcessingStepsManager;
+  /// List of all Sources that live on the AudioController
   std::vector<std::shared_ptr<Source>>      mSources;
+  /// List of all Groups that live on the AudioController
   std::vector<std::shared_ptr<SourceGroup>> mGroups;
+  /// Ptr to the UpdateInstructor. Each AudioController has their own Instructor
   std::shared_ptr<UpdateInstructor>         mUpdateInstructor;
+  /// Ptr to the single UpdateConstructor of the audioEngine
   std::shared_ptr<UpdateConstructor>        mUpdateConstructor;
 
+  /// @brief registers itself to the updateInstructor to be updated 
   void addToUpdateList();
 };
 

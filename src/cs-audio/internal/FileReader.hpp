@@ -21,11 +21,19 @@ class CS_AUDIO_EXPORT FileReader {
   FileReader& operator=(const FileReader&) = delete;
   FileReader& operator=(FileReader&&) = delete;
 
-  static bool loadWAV(const char* fn, WavContainer& wavContainer);
+  /// @brief Reads the content of a .wav file and writes all the important information for OpenAL
+  /// into the wavContainer.
+  /// @param fileName path to the file to read
+  /// @param wavContainer wavContainer to write into
+  /// @return Whether the provided file path is a valid .wav file 
+  static bool loadWAV(std::string fileName, WavContainer& wavContainer);
   
  private:
-  // wave files
+  /// @brief Converts data in buffer up to the provided length to and int value
+  /// @return int value
   static int convertToInt(char* buffer, int len);
+  /// @brief Checks if the system is big or little endian
+  /// @return True if big endian
   static bool isBigEndian();
 };
 

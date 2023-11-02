@@ -40,15 +40,22 @@ class CS_CORE_EXPORT AudioEngine {
   std::shared_ptr<SolarSystem> solarSystem, std::shared_ptr<GuiManager> guiManager);
   ~AudioEngine();
 
-  /// Returns a list of all possible Output Devices (wrapper to the OpenAlManager function)
+  /// @brief Returns a list of all possible Output Devices (wrapper to the OpenAlManager function)
   std::vector<std::string> getDevices();
-  /// Sets the output device for the audioEngine (wrapper to the OpenAlManager function)
+  
+  /// @brief Sets the output device for the audioEngine (wrapper to the OpenAlManager function)
   bool setDevice(std::string outputDevice);
-  /// Sets the master volume for the audioEngine 
+  
+  /// @brief Sets the master volume for the audioEngine 
+  /// @return Whether it was successful
   bool setMasterVolume(float gain);
-  /// Update OpenAL Listener
+  
+  /// @brief Update function to call every frame. Currently calls only the update function of the 
+  /// processing steps manager. 
   void update();
-  /// Create a new AudioController
+  
+  /// @brief Create a new AudioController
+  /// @return Ptr to the new controller
   std::shared_ptr<audio::AudioController> createAudioController();
 
  private:
@@ -56,7 +63,6 @@ class CS_CORE_EXPORT AudioEngine {
   std::shared_ptr<audio::OpenAlManager>                mOpenAlManager;
   std::shared_ptr<audio::BufferManager>                mBufferManager;
   std::shared_ptr<audio::ProcessingStepsManager>       mProcessingStepsManager;
-  cs::scene::CelestialObserver                         mObserver; // ?
   std::shared_ptr<core::GuiManager>                    mGuiManager;
   utils::Property<float>                               mMasterVolume;
   std::vector<std::shared_ptr<audio::AudioController>> mAudioControllers;
@@ -65,6 +71,7 @@ class CS_CORE_EXPORT AudioEngine {
   AudioEngine(std::shared_ptr<Settings> settings, 
     std::shared_ptr<SolarSystem> solarSystem, std::shared_ptr<GuiManager> guiManager);
 
+  /// Creates the Audio GUI Settings
   void createGUI();
 
   // for testing
@@ -75,6 +82,7 @@ class CS_CORE_EXPORT AudioEngine {
   std::shared_ptr<audio::SourceGroup> testSourceGroup;
   std::map<std::string, std::any> testSettings;
 
+  cs::scene::CelestialObserver                         mObserver; // ?
   std::shared_ptr<SolarSystem> mSolarSystem; // ?
 };
 

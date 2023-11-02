@@ -31,25 +31,45 @@ class CS_AUDIO_EXPORT ProcessingStepsManager {
 
   static std::shared_ptr<ProcessingStepsManager> createProcessingStepsManager();
 
+  /// @brief creates a new Pipeline for an AudioController
+  /// @param processingSteps List of name of all processing steps, which should be part of the pipeline
+  /// @param audioController Pointer to audioController requesting the pipeline
   void createPipeline(std::vector<std::string> processingSteps, AudioController* audioController);
+
+  /// @brief creates a new Pipeline for an AudioController. The Pipeline will only consist of the default
+  /// processing step. This pipeline gets automatically created when creating a new audioController.
+  /// @param audioController Pointer to audioController requesting the pipeline
   void createPipeline(AudioController* audioController);
+
+  /// @brief Calls all processing steps part of the audioControllers pipeline for a source and applies all provided settings.
+  /// @param source Source to process.
+  /// @param audioController AudioController on which the source lives. Specifies the pipeline.
+  /// @param sourceSettings Settings to apply to the provided source
+  /// @return List of settings keys that failed when trying to apply the settings to the source.
   std::shared_ptr<std::vector<std::string>> process(std::shared_ptr<Source> source, AudioController* audioController,
     std::shared_ptr<std::map<std::string, std::any>> sourceSettings);
 
-  /// @brief This functions will call all update function of processing steps that are active and required.
+  /// @brief This functions will call all update functions of processing steps that are active and require
+  /// an every frame update.
   void callPsUpdateFunctions();
 
  private:                                                                          
-  // TODO: replace AudioController* with smart pointer                                                                           
+  // TODO: replace AudioController* with smart pointer    
+  /// Holds all pipeline to a specific audioController                                                                       
   std::map<AudioController*, std::set<std::shared_ptr<ProcessingStep>>> mPipelines;
-  /// Contains all processing steps that require an update call every frame
+  /// List that contains all processing steps that require an update call every frame
   std::set<std::shared_ptr<ProcessingStep>>                             mUpdateProcessingSteps;
 
   ProcessingStepsManager();
+
+  /// @brief Searches for and creates a processing step when defining a pipeline. If you want to add a new 
+  /// processing step then you need to define the name and the corresponding create call here.
+  /// @param processingStep Name of the processing step to create
+  /// @return Pointer to the processing step instance. Nullptr if processing step was not found. 
   std::shared_ptr<ProcessingStep> getProcessingStep(std::string processingStep);
   
-  /// Check if any PS was removed form a pipeline that is set in mUpdateProcessingSteps and
-  /// if so, remove the given PS from mUpdateProcessingSteps.
+  /// @brief Check if any processing step was removed during a redefinition of a pipeline that
+  /// is part of mUpdateProcessingSteps. If so, removes the given processing step from mUpdateProcessingSteps.
   void removeObsoletePsFromUpdateList();
 };
 

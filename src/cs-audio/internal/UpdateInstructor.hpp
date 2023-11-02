@@ -22,35 +22,42 @@ class CS_AUDIO_EXPORT UpdateInstructor {
  public:
   UpdateInstructor();
   
-  /// @brief Adds a source to the updateList
+  /// @brief Adds a Source to the updateList
   /// @param source Source to add 
   void update(std::shared_ptr<Source> source);
 
-  /// @brief Adds a source group to the updateList
-  /// @param sourceGroup sourceGroup to add
+  /// @brief Adds a Source Group, and therefor all Member Sources, to the updateList
+  /// @param sourceGroup Source Group to add
   void update(std::shared_ptr<SourceGroup> sourceGroup);
   
-  /// @brief TODO 
+  /// @brief Adds an AudioController, and therefor all Sources and Groups 
+  /// which live in the controller, to the updateList.
+  /// @param audioController AudioController to add
   void update(std::shared_ptr<AudioController> audioController);
 
   /// Struct to hold all update instructions
   struct UpdateInstruction {
     bool updateAll;
     std::shared_ptr<std::vector<std::shared_ptr<Source>>> updateWithGroup = nullptr;
-    std::shared_ptr<std::vector<std::shared_ptr<Source>>> updateOnlySource = nullptr;
+    std::shared_ptr<std::vector<std::shared_ptr<Source>>> updateSourceOnly = nullptr;
 
     // temporary:
     void print() {
       std::cout << "-----Update Instructions-----" << std::endl;
       std::cout << "updateAll: " << (updateAll ? "true" : "false") << std::endl;
       std::cout << "size group update: " << (updateWithGroup == nullptr ? 0 : updateWithGroup->size()) << std::endl;
-      std::cout << "size source update: " << (updateOnlySource == nullptr ? 0 : updateOnlySource->size()) << std::endl;
+      std::cout << "size source update: " << (updateSourceOnly == nullptr ? 0 : updateSourceOnly->size()) << std::endl;
       std::cout << "-----------------------------" << std::endl;
     }
   };
 
-  /// @brief Creates Update instructions for the audioController to 
-  /// only call sources that need to be updated within their update scope.
+  /// @brief Creates the update instructions when calling AudioController::update().
+  /// These UpdateInstructions will contain all sources which need to be updated with their update scope.
+  /// There are 3 update scopes: updateAll(When updating the audioController settings. The pipeline will process the audioController and all
+  /// Groups and Source on the controller), updateWithGroup(When updating a Group. The pipeline will process all changed groups and all their
+  /// members) and updateSourceOnly(When updating a Source. The pipeline will only process the changed source itself). If the updateAll scope is active 
+  /// the updateWithGroup and updateSourceOnly Lists get ignored. Otherwise both will be used to determine the sources which need to be updated.
+  /// There is a filtering step to ensure that no source is part of both update scopes.
   UpdateInstruction createUpdateInstruction();
 
  private:                 
@@ -58,8 +65,8 @@ class CS_AUDIO_EXPORT UpdateInstructor {
   std::set<std::shared_ptr<Source>>      mSourceUpdateList;
   /// List of all source groups to be updated.
   std::set<std::shared_ptr<SourceGroup>> mGroupUpdateList;
-  /// Indicates if the plugin settings changed.
-  bool                                   mPluginUpdate;
+  /// Indicates if the audioController settings changed.
+  bool                                   mAudioControllerUpdate;
 };
 
 } // namespace cs::audio

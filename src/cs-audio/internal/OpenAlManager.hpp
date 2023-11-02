@@ -29,18 +29,32 @@ class CS_AUDIO_EXPORT OpenAlManager {
   static std::shared_ptr<OpenAlManager> createOpenAlManager();
   ~OpenAlManager();
 
+  /// @brief Initializes OpenAL by opening a device and creating a context.
+  /// @return Wether the initialization was successful.
   bool initOpenAl(core::Settings::Audio settings);
-  /// Returns a list of all possible Output Devices 
+
+  /// @brief Checks for all available output devices. Either by the ALC_ENUMERATE_ALL_EXT extension
+  /// or if not available, the ALC_ENUMERATE_EXT extension if possible.
+  /// @return List of name of all available devices
   std::vector<std::string> getDevices();
-  /// Sets the output device for the audioEngine
+  
+  /// @brief Try's to set the provided device name as the OpenAL output device via the 
+  /// alcReopenDeviceSOFT extension.
+  /// @return Wether the change of device was successful.
   bool setDevice(std::string outputDevice);
 
  private:
+  /// Pointer to the current device
   ALCdevice*          mDevice;
+  /// Pointer to the current content
   ALCcontext*         mContext;
+  /// Specifies the current settings for OpenAL. The attributes are set via the config file.
   std::vector<ALCint> mAttributeList;
 
   OpenAlManager();
+
+  /// @brief Checks if an OpenAL Context Error occurred and if so prints a logger warning containing the error. 
+  /// @return True if error occurred
   bool contextErrorOccurd();
 
   // OpenALSoft extensions function pointers:

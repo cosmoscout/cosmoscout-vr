@@ -48,19 +48,25 @@ class CS_AUDIO_EXPORT BufferManager {
   static std::shared_ptr<BufferManager> createBufferManager();
   ~BufferManager();
 
-  // returns an OpenAL id to a buffer for this file; The BufferManager will
-  // check if a buffer for this file already exists and if so reuse the existing one
+  /// @brief Returns an OpenAL id to a buffer containing the data for the provided file path.
+  /// The BufferManager will check if a buffer for this file already exists and if so reuse the 
+  /// the existing one. 
+  /// @return Pair of bool and potential OpenAL id. Bool is false if an error occurred, which means the 
+  /// OpenAL id is not a valid buffer.
   std::pair<bool, ALuint> getBuffer(std::string file);
-  // signals to the bufferManager that a Source is not using a buffer to this file anymore
+  /// @brief Signals to the BufferManager that a Source is no longer using a buffer to the provided file.
+  /// If there are no more Sources using a buffer to a specific file the BufferManager will automatically delete
+  /// the buffer.
   void removeBuffer(std::string file);
   
  private:
+  /// @brief List of all current buffers with 
   std::vector<std::shared_ptr<Buffer>> mBufferList;
   
   BufferManager();
-  // creates a new buffer
+  /// @brief Creates a new Buffer if none already exists for the provided file path.
   std::pair<bool, ALuint> createBuffer(std::string file);
-  // deletes a buffer if it is not used in any source
+  /// @brief Deletes a buffer if it is no longer used by any Source.
   void deleteBuffer(std::shared_ptr<Buffer> buffer);
 };
 

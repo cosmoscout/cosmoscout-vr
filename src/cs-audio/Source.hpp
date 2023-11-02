@@ -30,15 +30,25 @@ class CS_AUDIO_EXPORT Source
  public:
   ~Source();
   
+  /// @brief Starts playing the Source
+  /// @return Whether it was successful
   bool play() const;
+
+  /// @brief Stops playing the Source
+  /// @return Whether it was successful
   bool stop() const;
 
-  bool setFile(std::string file);
+  /// @brief Sets a new file to be played by the source.
+  /// @return Whether it was successful
+  bool setFile(std::string file); // TODO: what happens if the source is currently playing?
+
+  /// @return Returns the current file that is getting played by the source.
   std::string getFile() const;
 
+  /// @return Returns to OpenAL ID
   ALuint getOpenAlId() const;
 
-  /// Returns all settings (Source + Group + Controller) currently set and playing.
+  /// @return Returns all settings (Source + Group + Controller) currently set and playing.
   std::shared_ptr<std::map<std::string, std::any>> getPlaybackSettings() const;
 
   // TODO: Constructor in private ausprobieren
@@ -52,14 +62,17 @@ class CS_AUDIO_EXPORT Source
   friend class UpdateConstructor;
     
  private:
-  std::string                                      mFile;
   std::shared_ptr<BufferManager>                   mBufferManager;
   std::shared_ptr<ProcessingStepsManager>          mProcessingStepsManager;
-  std::shared_ptr<SourceGroup>                     mGroup;
   ALuint                                           mOpenAlId; 
+  /// Currently set file to play
+  std::string                                      mFile;
+  /// Ptr to the group that the source is part of
+  std::shared_ptr<SourceGroup>                     mGroup;
   /// Contains all settings (Source + Group + Controller) currently set and playing. 
   std::shared_ptr<std::map<std::string, std::any>> mPlaybackSettings;
 
+  /// @brief registers itself to the updateInstructor to be updated 
   void addToUpdateList();
 };
 

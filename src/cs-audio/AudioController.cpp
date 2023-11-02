@@ -83,9 +83,9 @@ void AudioController::update() {
   }
 
   // update leftover changed sources
-  if (updateInstructions.updateOnlySource->size() > 0) {
+  if (updateInstructions.updateSourceOnly->size() > 0) {
     mUpdateConstructor->updateSources(
-      updateInstructions.updateOnlySource,
+      updateInstructions.updateSourceOnly,
       this);
   }
 }
