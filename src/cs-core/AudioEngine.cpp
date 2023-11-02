@@ -167,23 +167,57 @@ void AudioEngine::playAmbient() {
   audioController->setPipeline(std::vector<std::string>{"Spatialization"});
 
   audioController->set("looping", true);
+  audioController->set("pitch", 3.f);
 
-  testSourceAmbient = audioController->createSource("C:/Users/sass_fl/audioCS/audioCSNotes/testFiles/scifi_stereo.wav"); 
-  // testSourceAmbient->play();
-  
   testSourcePosition = audioController->createSource("C:/Users/sass_fl/audioCS/audioCSNotes/testFiles/exotic_mono.wav");
   testSourcePosition->play();
+  
+  /*
+  ALint x;
+  alGetSourcei(testSourcePosition->getOpenAlId(), AL_SOURCE_STATE, &x);
+  if (x == AL_PLAYING) {
+    std::cout << "testSourcePosition is playing" << std::endl; 
+  } else {
+    std::cout << "testSourcePosition is not playing" << std::endl; 
+  }  
+  */
+
+  testSourceAmbient = audioController->createSource("C:/Users/sass_fl/audioCS/audioCSNotes/testFiles/scifi_stereo.wav"); 
+  testSourceAmbient->set("pitch", 0.5f);
+  testSourceAmbient->play();
+
+  /*
+  alGetSourcei(testSourceAmbient->getOpenAlId(), AL_SOURCE_STATE, &x);
+  if (x == AL_PLAYING) {
+    std::cout << "testSourceAmbient is playing" << std::endl; 
+  } else {
+    std::cout << "testSourceAmbient is not playing" << std::endl; 
+  }
+
+  alGetSourcei(testSourcePosition->getOpenAlId(), AL_SOURCE_STATE, &x);
+  if (x == AL_PLAYING) {
+    std::cout << "testSourcePosition is playing" << std::endl; 
+  } else {
+    std::cout << "testSourcePosition is not playing" << std::endl; 
+  }
+  */
+  
   // testSourcePosition->set("gain", 3.f);
 
+  /*
   // Group Testing
   testSourceGroup = audioController->createSourceGroup();
   // testSourceGroup->set("pitch", 2.0f);
 
   testSourceGroup->join(testSourceAmbient);
   testSourceGroup->join(testSourcePosition);
-   
+  */
   audioController->update(); 
 
+  testSourceAmbient->remove("pitch");
+  audioController->update(); 
+
+  /*
   testSourcePosition->remove("looping");
   audioController->update();
 
@@ -191,7 +225,7 @@ void AudioEngine::playAmbient() {
   printMap(testSourcePosition->getCurrentSettings());
   std::cout << "testSourcePosition playback setting:" << std::endl;
   printMap(testSourcePosition->getPlaybackSettings());
-
+  */
   // audioController->set("looping", false);
   // audioController->update();
 }
