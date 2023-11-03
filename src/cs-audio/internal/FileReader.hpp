@@ -35,6 +35,8 @@ class CS_AUDIO_EXPORT FileReader {
   /// @brief Checks if the system is big or little endian
   /// @return True if big endian
   static bool isBigEndian();
+
+  static std::vector<float> castToFloat(std::vector<char> input);
 };
 
 } // namespace cs::audio

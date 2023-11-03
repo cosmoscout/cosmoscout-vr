@@ -81,16 +81,16 @@ std::pair<bool, ALuint> BufferManager::createBuffer(std::string file) {
   // testing
   wavContainer.print();
 
-  if (wavContainer.bitsPerSample == 32) {
-    int i = 0;
-    for (auto x : std::get<std::vector<float>>(wavContainer.pcm)) {
-      if (i < 200) {
-        std::cout << x << ", ";
-        ++i;
-      }
-    }
-    std::cout << std::endl;
-  }
+  // if (wavContainer.bitsPerSample == 32) {
+  //   int i = 0;
+  //   for (auto x : std::get<std::vector<float>>(wavContainer.pcm)) {
+  //     if (i < 200) {
+  //       std::cout << x << ", ";
+  //       ++i;
+  //     }
+  //   }
+  //   std::cout << std::endl;
+  // }
   // -------------------
 
   // load wave into buffer

@@ -12,6 +12,8 @@
 #include <fstream>
 #include <cstring>
 #include <variant>
+#include <algorithm>
+#include <cstdlib>
 #include <AL/al.h>
 #include <AL/alext.h>
 
@@ -73,8 +75,10 @@ bool FileReader::loadWAV(std::string fileName, WavContainer& wavContainer)
     }
   }
   if (wavContainer.bitsPerSample == 32) {
-    wavContainer.pcm = std::vector<float>(wavContainer.size);
-    in.read(reinterpret_cast<char*>(std::get<std::vector<float>>(wavContainer.pcm).data()), wavContainer.size); // data
+    auto charData = std::vector<char>(wavContainer.size);
+    in.read(charData.data(), wavContainer.size); // data
+    wavContainer.pcm = castToFloat(charData);
+
   } else {
     wavContainer.pcm = std::vector<char>(wavContainer.size);
     in.read(std::get<std::vector<char>>(wavContainer.pcm).data(), wavContainer.size); // data
@@ -101,5 +105,15 @@ bool FileReader::isBigEndian()
     int a = 1;
     return !((char*)&a)[0];
 }
+
+std::vector<float> FileReader::castToFloat(std::vector<char> input)
+{
+  std::vector<float> output;
+  for (char element : input) {
+    output.push_back( (+element + 128) / 255.0f * 2.0f - 1.0f );
+  }
+  return output;
+}
+
 
 } // namespace cs::audio
