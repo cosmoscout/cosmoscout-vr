@@ -42,10 +42,17 @@ class CS_AUDIO_EXPORT SettingsMixer {
     std::shared_ptr<std::map<std::string, std::any>> A, 
     std::string B);
 
-  /// @brief Modifies A. Adds all values of B to A or, if the key already exists, overrides them.
+  /// @brief Modifies A. Adds all elements of B to A or, if the key already exists, overrides them.
   /// @param A source settings
   /// @param B source settings
   static void OverrideAdd_A_with_B(
+    std::shared_ptr<std::map<std::string, std::any>> A, 
+    std::shared_ptr<std::map<std::string, std::any>> B);
+
+  /// @brief Modifies A. Adds all elements of B to A if A is not already defining the same key.
+  /// @param A source settings
+  /// @param B source settings
+  static void Add_A_with_B_if_not_defined(
     std::shared_ptr<std::map<std::string, std::any>> A, 
     std::shared_ptr<std::map<std::string, std::any>> B);
 };

@@ -7,6 +7,7 @@
 
 #include "SourceSettings.hpp"
 #include <string>
+#include <iostream>
 
 namespace cs::audio {
 
@@ -43,10 +44,12 @@ std::shared_ptr<std::map<std::string, std::any>> SourceSettings::getCurrentSetti
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void SourceSettings::remove(std::string key) {
-  // mCurrentSettings->erase(key);
-  // mUpdateSettings->erase(key);
+  // a settings instance is not allowed to remove settings that it did not define itself
+  mUpdateSettings->erase(key);
+  if (mCurrentSettings->find(key) == mCurrentSettings->end()) {
+    return;
+  }
   mUpdateSettings->operator[](key) = std::string("remove");
-  // mCurrentSettings->erase(key); ???
   addToUpdateList();
 }
 

@@ -59,4 +59,13 @@ void SettingsMixer::OverrideAdd_A_with_B(
   }
 }
 
+void SettingsMixer::Add_A_with_B_if_not_defined(
+  std::shared_ptr<std::map<std::string, std::any>> A, 
+  std::shared_ptr<std::map<std::string, std::any>> B) {
+  
+  for (auto const& element : *B) {
+    A->insert(element);
+  }
+}
+
 } // namespace cs::audio
