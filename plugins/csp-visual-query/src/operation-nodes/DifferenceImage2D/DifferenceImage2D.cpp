@@ -36,8 +36,9 @@ std::string const& DifferenceImage2D::getName() const {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-template<typename T>
-std::vector<std::vector<T>> getDifference(std::vector<std::vector<T>> first, std::vector<std::vector<T>> second) {
+template <typename T>
+std::vector<std::vector<T>> getDifference(
+    std::vector<std::vector<T>> first, std::vector<std::vector<T>> second) {
   // Init Result
   std::vector<std::vector<T>> result;
   // Resize result vector to input size
@@ -98,25 +99,31 @@ void DifferenceImage2D::process() {
   PointsType diffPoints;
 
   // Check wich type is held by variant to calculate differnce
-  if (std::holds_alternative<U8ValueVector>(first->mPoints) && std::holds_alternative<U8ValueVector>(second->mPoints)) {
-    diffPoints = getDifference(std::get<U8ValueVector>(first->mPoints), std::get<U8ValueVector>(second->mPoints));
-  }
-  else if (std::holds_alternative<U16ValueVector>(first->mPoints) && std::holds_alternative<U16ValueVector>(second->mPoints)) {
-    diffPoints = getDifference(std::get<U16ValueVector>(first->mPoints), std::get<U16ValueVector>(second->mPoints));
-  }
-  else if (std::holds_alternative<U32ValueVector>(first->mPoints) && std::holds_alternative<U32ValueVector>(second->mPoints)) {
-    diffPoints = getDifference(std::get<U32ValueVector>(first->mPoints), std::get<U32ValueVector>(second->mPoints));
-  }
-  else if (std::holds_alternative<I16ValueVector>(first->mPoints) && std::holds_alternative<I16ValueVector>(second->mPoints)) {
-    diffPoints = getDifference(std::get<I16ValueVector>(first->mPoints), std::get<I16ValueVector>(second->mPoints));
-  }
-  else if (std::holds_alternative<I32ValueVector>(first->mPoints) && std::holds_alternative<I32ValueVector>(second->mPoints)) {
-    diffPoints = getDifference(std::get<I32ValueVector>(first->mPoints), std::get<I32ValueVector>(second->mPoints));
-  }
-  else if (std::holds_alternative<F32ValueVector>(first->mPoints) && std::holds_alternative<F32ValueVector>(second->mPoints)) {
-    diffPoints = getDifference(std::get<F32ValueVector>(first->mPoints), std::get<F32ValueVector>(second->mPoints));
-  }
-  else {
+  if (std::holds_alternative<U8ValueVector>(first->mPoints) &&
+      std::holds_alternative<U8ValueVector>(second->mPoints)) {
+    diffPoints = getDifference(
+        std::get<U8ValueVector>(first->mPoints), std::get<U8ValueVector>(second->mPoints));
+  } else if (std::holds_alternative<U16ValueVector>(first->mPoints) &&
+             std::holds_alternative<U16ValueVector>(second->mPoints)) {
+    diffPoints = getDifference(
+        std::get<U16ValueVector>(first->mPoints), std::get<U16ValueVector>(second->mPoints));
+  } else if (std::holds_alternative<U32ValueVector>(first->mPoints) &&
+             std::holds_alternative<U32ValueVector>(second->mPoints)) {
+    diffPoints = getDifference(
+        std::get<U32ValueVector>(first->mPoints), std::get<U32ValueVector>(second->mPoints));
+  } else if (std::holds_alternative<I16ValueVector>(first->mPoints) &&
+             std::holds_alternative<I16ValueVector>(second->mPoints)) {
+    diffPoints = getDifference(
+        std::get<I16ValueVector>(first->mPoints), std::get<I16ValueVector>(second->mPoints));
+  } else if (std::holds_alternative<I32ValueVector>(first->mPoints) &&
+             std::holds_alternative<I32ValueVector>(second->mPoints)) {
+    diffPoints = getDifference(
+        std::get<I32ValueVector>(first->mPoints), std::get<I32ValueVector>(second->mPoints));
+  } else if (std::holds_alternative<F32ValueVector>(first->mPoints) &&
+             std::holds_alternative<F32ValueVector>(second->mPoints)) {
+    diffPoints = getDifference(
+        std::get<F32ValueVector>(first->mPoints), std::get<F32ValueVector>(second->mPoints));
+  } else {
     logger().error("Unknown type in input variants!");
   }
 
