@@ -10,10 +10,10 @@ find_path(SDL2_INCLUDE_DIR SDL2/SDL.h
     HINTS ${SDL2_ROOT_DIR}/include)
 
 # Locate library.
-find_library(SDL2_LIBRARY NAMES SDL2
+find_library(SDL2_LIBRARY NAMES SDL2 SDL2d
     HINTS ${SDL2_ROOT_DIR}/lib)
     
-find_library(SDL2_MAIN_LIBRARY NAMES SDL2main
+find_library(SDL2_MAIN_LIBRARY NAMES SDL2main SDL2maind
     HINTS ${SDL2_ROOT_DIR}/lib)
 
 include(FindPackageHandleStandardArgs)

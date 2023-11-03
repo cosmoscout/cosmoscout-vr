@@ -10,7 +10,7 @@ find_path(SDL2_TTF_INCLUDE_DIR SDL2/SDL_ttf.h
     HINTS ${SDL2_TTF_ROOT_DIR}/include)
 
 # Locate library.
-find_library(SDL2_TTF_LIBRARY NAMES SDL2_ttf
+find_library(SDL2_TTF_LIBRARY NAMES SDL2_ttf SDL2_ttfd
     HINTS ${SDL2_TTF_ROOT_DIR}/lib)
 
 include(FindPackageHandleStandardArgs)
