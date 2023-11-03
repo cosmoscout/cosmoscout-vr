@@ -42,9 +42,10 @@ UpdateInstructor::UpdateInstruction UpdateInstructor::createUpdateInstruction() 
   if (mAudioControllerUpdate) {
     // update every source and group
     result.updateAll = true;
-    return result;
+    goto end;
   }
 
+  result.updateAll = false;
   result.updateWithGroup = std::make_shared<std::vector<std::shared_ptr<Source>>>();
   result.updateSourceOnly = std::make_shared<std::vector<std::shared_ptr<Source>>>();
 
@@ -55,13 +56,14 @@ UpdateInstructor::UpdateInstruction UpdateInstructor::createUpdateInstruction() 
   }
 
   // Compute mSourceUpdateList without result.updateWithGroup in order to later only process sources 
-  // that are not already in the group update.
+  // that are not already in the group update. // TODO: rewrite comment
   for (auto sourcePtr : mSourceUpdateList) {
     if (std::find(result.updateWithGroup->begin(), result.updateWithGroup->end(), sourcePtr) == result.updateWithGroup->end()) {
       result.updateSourceOnly->push_back(sourcePtr);
     }
   }
 
+  end:
   // reset update state
   mSourceUpdateList.clear();
   mGroupUpdateList.clear();
