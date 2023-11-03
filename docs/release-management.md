@@ -31,7 +31,7 @@ When a new version of CosmoScout VR is released, the following steps are perform
 
 ```bash
 git checkout main
-git submodule update --init
+git submodule update --init --recursive
 ```
 
 First, the [changelog.md](https://github.com/cosmoscout/cosmoscout-vr/blob/main/docs/changelog.md) has to be updated.
