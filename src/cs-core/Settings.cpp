@@ -110,14 +110,31 @@ void to_json(nlohmann::json&                                                    
     cs::core::Settings::serialize(i, "center", object->getCenterName());
     cs::core::Settings::serialize(i, "frame", object->getFrameName());
     cs::core::Settings::serialize(i, "existence", object->getExistenceAsStrings());
-    cs::core::Settings::serialize(i, "position", object->getPosition());
-    cs::core::Settings::serialize(i, "rotation", object->getRotation());
-    cs::core::Settings::serialize(i, "size", object->getScale());
-    cs::core::Settings::serialize(i, "radii", object->getRadii());
-    cs::core::Settings::serialize(i, "bodyCullingRadius", object->getBodyCullingRadius());
-    cs::core::Settings::serialize(i, "orbitCullingRadius", object->getOrbitCullingRadius());
-    cs::core::Settings::serialize(i, "trackable", object->getIsTrackable());
-    cs::core::Settings::serialize(i, "collidable", object->getIsCollidable());
+
+    if (object->getPosition() != glm::dvec3(0.0, 0.0, 0.0)) {
+      cs::core::Settings::serialize(i, "position", object->getPosition());
+    }
+    if (object->getRotation() != glm::dquat(1.0, 0.0, 0.0, 0.0)) {
+      cs::core::Settings::serialize(i, "rotation", object->getRotation());
+    }
+    if (object->getScale() != 1.0) {
+      cs::core::Settings::serialize(i, "scale", object->getScale());
+    }
+    if (object->hasCustomRadii()) {
+      cs::core::Settings::serialize(i, "radii", object->getRadii());
+    }
+    if (object->getBodyCullingRadius() != 0) {
+      cs::core::Settings::serialize(i, "bodyCullingRadius", object->getBodyCullingRadius());
+    }
+    if (object->getOrbitCullingRadius() != 0) {
+      cs::core::Settings::serialize(i, "orbitCullingRadius", object->getOrbitCullingRadius());
+    }
+    if (!object->getIsTrackable()) {
+      cs::core::Settings::serialize(i, "trackable", object->getIsTrackable());
+    }
+    if (!object->getIsCollidable()) {
+      cs::core::Settings::serialize(i, "collidable", object->getIsCollidable());
+    }
 
     j[name] = i;
   }
@@ -298,6 +315,7 @@ void from_json(nlohmann::json const& j, Settings::Graphics& o) {
   Settings::deserialize(j, "sensorDiagonal", o.pSensorDiagonal);
   Settings::deserialize(j, "focalLength", o.pFocalLength);
   Settings::deserialize(j, "ambientBrightness", o.pAmbientBrightness);
+  Settings::deserialize(j, "ambientOcclusion", o.pAmbientOcclusion);
   Settings::deserialize(j, "glareIntensity", o.pGlareIntensity);
   Settings::deserialize(j, "glareRadius", o.pGlareQuality);
   Settings::deserialize(j, "glareMode", o.pGlareMode);
@@ -333,6 +351,7 @@ void to_json(nlohmann::json& j, Settings::Graphics const& o) {
   Settings::serialize(j, "sensorDiagonal", o.pSensorDiagonal);
   Settings::serialize(j, "focalLength", o.pFocalLength);
   Settings::serialize(j, "ambientBrightness", o.pAmbientBrightness);
+  Settings::serialize(j, "ambientOcclusion", o.pAmbientOcclusion);
   Settings::serialize(j, "glareIntensity", o.pGlareIntensity);
   Settings::serialize(j, "glareRadius", o.pGlareQuality);
   Settings::serialize(j, "glareMode", o.pGlareMode);

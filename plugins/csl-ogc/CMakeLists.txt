@@ -13,6 +13,8 @@ endif()
 
 if (DEFINED ENV{GDAL_ROOT_DIR})
   SET(GDAL_ROOT_DIR "$ENV{GDAL_ROOT_DIR}")
+elseif(UNIX)
+  SET(GDAL_ROOT_DIR "/usr")
 endif()
 
 find_package(GDAL)
@@ -58,8 +60,12 @@ target_include_directories(csl-ogc PUBLIC
 # install plugin -----------------------------------------------------------------------------------
 
 install(TARGETS csl-ogc DESTINATION "lib")
-install(DIRECTORY "${GDAL_ROOT_DIR}/bin" DESTINATION "${CMAKE_INSTALL_PREFIX}")
-install(DIRECTORY "${GDAL_ROOT_DIR}/lib" DESTINATION "${CMAKE_INSTALL_PREFIX}")
+
+# Only install GDAL binaries on Windows. On Linux we assume a globally installed gdal.
+if (MSVC)
+  install(DIRECTORY "${GDAL_ROOT_DIR}/bin" DESTINATION "${CMAKE_INSTALL_PREFIX}")
+  install(DIRECTORY "${GDAL_ROOT_DIR}/lib" DESTINATION "${CMAKE_INSTALL_PREFIX}")
+endif()
 
 # export header ------------------------------------------------------------------------------------
 

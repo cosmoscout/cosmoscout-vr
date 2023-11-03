@@ -8,11 +8,11 @@
 if (UNIX)
     # Locate header.
     find_path(GDAL_INCLUDE_DIR gdal.h
-        HINTS ${GDAL_ROOT_DIR}/gdal)
+        HINTS ${GDAL_ROOT_DIR}/include/gdal)
 
     # Locate libraries.
-    find_library(GDAL_LIBRARY NAMES gdal_i
-        HINTS ${GDAL_ROOT_DIR}/gdal/lib ${GDAL_ROOT_DIR}/gdal/bin)
+    find_library(GDAL_LIBRARY NAMES gdal
+        HINTS ${GDAL_ROOT_DIR}/lib)
 endif()
 
 if (MSVC)

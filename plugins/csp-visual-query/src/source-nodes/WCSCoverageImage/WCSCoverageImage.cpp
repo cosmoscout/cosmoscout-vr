@@ -7,9 +7,9 @@
 
 #include "WCSCoverageImage.hpp"
 
-#include "../../../../../src/cs-utils/filesystem.hpp"
 #include "../../../../csl-ogc/src/wcs/WebCoverageService.hpp"
 #include "../../../../csl-ogc/src/wcs/WebCoverageTextureLoader.hpp"
+#include "../../../../src/cs-utils/filesystem.hpp"
 #include "../../logger.hpp"
 #include "../../types/CoverageContainer.hpp"
 #include "../../types/types.hpp"
@@ -91,9 +91,9 @@ void WCSCoverageImage::process() {
 
     Image2D image;
     image.mNumScalars = 1;
-    image.mDimension = {texture.x, texture.y};
-    image.mBounds    = {texture.lnglatBounds[0], texture.lnglatBounds[1], texture.lnglatBounds[2],
-           texture.lnglatBounds[3]};
+    image.mDimension  = {texture.x, texture.y};
+    image.mBounds     = {texture.lnglatBounds[0], texture.lnglatBounds[1], texture.lnglatBounds[2],
+        texture.lnglatBounds[3]};
 
     switch (texture.type) {
     case 1: // UInt8
@@ -173,8 +173,8 @@ void WCSCoverageImage::process() {
 
     case 6: // Float32
     case 7: {
-      std::vector<float> textureData(static_cast<float*>(texture.buffer),
-          static_cast<float*>(texture.buffer) + textureSize);
+      std::vector<float> textureData(
+          static_cast<float*>(texture.buffer), static_cast<float*>(texture.buffer) + textureSize);
 
       F32ValueVector pointData{};
 

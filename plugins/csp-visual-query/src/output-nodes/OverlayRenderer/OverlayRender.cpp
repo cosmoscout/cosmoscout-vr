@@ -7,12 +7,16 @@
 
 #include "OverlayRender.hpp"
 
-#include "../../../../../src/cs-utils/filesystem.hpp"
+#include "../../../../src/cs-utils/filesystem.hpp"
+#include "../../../../src/cs-utils/utils.hpp"
+#include "../../../src/cs-core/Settings.hpp"
+#include "../../../src/cs-core/SolarSystem.hpp"
 
-#include <VistaKernel/VistaSystem.h>
 #include <VistaKernel/GraphicsManager/VistaGraphicsManager.h>
+#include <VistaKernel/GraphicsManager/VistaOpenGLDraw.h>
 #include <VistaKernel/GraphicsManager/VistaOpenGLNode.h>
 #include <VistaKernel/GraphicsManager/VistaSceneGraph.h>
+#include <VistaKernel/VistaSystem.h>
 #include <VistaKernelOpenSGExt/VistaOpenSGMaterialTools.h>
 
 namespace csp::visualquery {
@@ -48,7 +52,7 @@ OverlayRender::OverlayRender(std::shared_ptr<cs::core::SolarSystem> solarSystem,
     std::shared_ptr<cs::core::Settings>                             settings)
     : mSolarSystem(std::move(solarSystem))
     , mSettings(std::move(settings)) {
-  mRenderer = std::make_unique<Renderer>("Earth", mSolarSystem, mSettings);
+  mRenderer = std::make_unique<Renderer>(mSolarSystem, mSettings);
 
   // Add to scenegraph.
   VistaSceneGraph* pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
@@ -63,41 +67,58 @@ OverlayRender::~OverlayRender() = default;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void OverlayRender::process() {
-  auto input = readInput<std::shared_ptr<Image2D>>("Image2D", nullptr);
-  if (!input) {
-    return;
+nlohmann::json OverlayRender::getData() const {
+  nlohmann::json data;
+
+  std::set<std::string> centerNames{};
+
+  for (const auto& item : mSettings->mObjects) {
+    centerNames.insert(item.second->getCenterName());
   }
 
-  mRenderer->setData(*input);
-  /*
-  if (std::holds_alternative<U8ValueVector>(input->mPoints)) {
-    for (auto const& entry : std::get<U8ValueVector>(input->mPoints)) {
-      logger().info(entry.at(0));
-    }
-  } else if (std::holds_alternative<U16ValueVector>(input->mPoints)) {
-    for (auto const& entry : std::get<U16ValueVector>(input->mPoints)) {
-      logger().info(entry.at(0));
-    }
-  } else if (std::holds_alternative<U32ValueVector>(input->mPoints)) {
-    for (auto const& entry : std::get<U32ValueVector>(input->mPoints)) {
-      logger().info(entry.at(0));
-    }
-  } else if (std::holds_alternative<I16ValueVector>(input->mPoints)) {
-    for (auto const& entry : std::get<I16ValueVector>(input->mPoints)) {
-      logger().info(entry.at(0));
-    }
-  } else if (std::holds_alternative<I32ValueVector>(input->mPoints)) {
-    for (auto const& entry : std::get<I32ValueVector>(input->mPoints)) {
-      logger().info(entry.at(0));
-    }
-  } else if (std::holds_alternative<F32ValueVector>(input->mPoints)) {
-    for (auto const& entry : std::get<F32ValueVector>(input->mPoints)) {
-      logger().info(entry.at(0));
-    }
-  } else {
-    logger().error("Unknown type!");
-  }*/
+  std::vector<std::string> list{centerNames.begin(), centerNames.end()};
+  list.insert(list.begin(), "None");
+
+  data["options"]      = list;
+  data["selectedBody"] = mRenderer->getCenter();
+
+  return data;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void OverlayRender::setData(nlohmann::json const& json) {
+  if (json.find("selectedBody") != json.end()) {
+    mRenderer->setCenter(json["selectedBody"]);
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void OverlayRender::init() {
+  std::set<std::string> centerNames{};
+
+  for (const auto& item : mSettings->mObjects) {
+    centerNames.insert(item.second->getCenterName());
+  }
+
+  std::vector<std::string> data{centerNames.begin(), centerNames.end()};
+  data.insert(data.begin(), "None");
+
+  sendMessageToJS(data);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void OverlayRender::onMessageFromJS(const nlohmann::json& message) {
+  mRenderer->setCenter(message.at("text").get<std::string>());
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void OverlayRender::process() {
+  auto input = readInput<std::shared_ptr<Image2D>>("Image2D", nullptr);
+  mRenderer->setData(input);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

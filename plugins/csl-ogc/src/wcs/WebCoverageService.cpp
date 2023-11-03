@@ -24,8 +24,8 @@ namespace csl::ogc {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 WebCoverageService::WebCoverageService(std::string url, CacheMode cacheMode, std::string cacheDir)
-    : WebServiceBase(std::move(url), cacheMode, std::move(cacheDir), "WCS", "2.0.1",
-          {"wcs:Capabilities"}) {
+    : WebServiceBase(
+          std::move(url), cacheMode, std::move(cacheDir), "WCS", "2.0.1", {"wcs:Capabilities"}) {
   setTitle(parseTitle());
   parseCoverages();
 }
@@ -86,9 +86,7 @@ void WebCoverageService::parseCoverages() {
     if (!coverage->NoChildren()) {
       try {
         mRequestableCoverages.emplace_back(WebCoverage(coverage->ToElement(), settings, getUrl()));
-      } catch (std::exception const&) {
-        // Coverage has no ID
-      }
+      } catch (std::exception const& e) { logger().trace(e.what()); }
     }
   }
 }

@@ -35,38 +35,7 @@ namespace csp::lodbodies {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void from_json(nlohmann::json const& j, TileDataType& o) {
-  auto s = j.get<std::string>();
-  if (s == "Float32") {
-    o = TileDataType::eFloat32;
-  } else if (s == "UInt8") {
-    o = TileDataType::eUInt8;
-  } else if (s == "U8Vec3") {
-    o = TileDataType::eU8Vec3;
-  } else {
-    throw std::runtime_error(
-        "Failed to parse TileDataType! Only 'Float32', 'UInt8' or 'U8Vec3' are allowed.");
-  }
-}
-
-void to_json(nlohmann::json& j, TileDataType o) {
-  switch (o) {
-  case TileDataType::eFloat32:
-    j = "Float32";
-    break;
-  case TileDataType::eUInt8:
-    j = "UInt8";
-    break;
-  case TileDataType::eU8Vec3:
-    j = "U8Vec3";
-    break;
-  }
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
 void from_json(nlohmann::json const& j, Plugin::Settings::Dataset& o) {
-  cs::core::Settings::deserialize(j, "format", o.mFormat);
   cs::core::Settings::deserialize(j, "copyright", o.mCopyright);
   cs::core::Settings::deserialize(j, "layers", o.mLayers);
   cs::core::Settings::deserialize(j, "maxLevel", o.mMaxLevel);
@@ -74,7 +43,6 @@ void from_json(nlohmann::json const& j, Plugin::Settings::Dataset& o) {
 }
 
 void to_json(nlohmann::json& j, Plugin::Settings::Dataset const& o) {
-  cs::core::Settings::serialize(j, "format", o.mFormat);
   cs::core::Settings::serialize(j, "copyright", o.mCopyright);
   cs::core::Settings::serialize(j, "layers", o.mLayers);
   cs::core::Settings::serialize(j, "maxLevel", o.mMaxLevel);
@@ -121,6 +89,8 @@ void from_json(nlohmann::json const& j, Plugin::Settings& o) {
   cs::core::Settings::deserialize(j, "terrainProjectionType", o.mTerrainProjectionType);
   cs::core::Settings::deserialize(j, "lodFactor", o.mLODFactor);
   cs::core::Settings::deserialize(j, "autoLod", o.mAutoLOD);
+  cs::core::Settings::deserialize(j, "autoLodRange", o.mAutoLODRange);
+  cs::core::Settings::deserialize(j, "autoLodFrameTimeRange", o.mAutoLODFrameTimeRange);
   cs::core::Settings::deserialize(j, "textureGamma", o.mTextureGamma);
   cs::core::Settings::deserialize(j, "enableHeightlines", o.mEnableHeightlines);
   cs::core::Settings::deserialize(j, "enableLatLongGrid", o.mEnableLatLongGrid);
@@ -133,8 +103,9 @@ void from_json(nlohmann::json const& j, Plugin::Settings& o) {
   cs::core::Settings::deserialize(j, "enableTilesDebug", o.mEnableTilesDebug);
   cs::core::Settings::deserialize(j, "enableTilesFreeze", o.mEnableTilesFreeze);
   cs::core::Settings::deserialize(j, "maxGPUTilesColor", o.mMaxGPUTilesColor);
-  cs::core::Settings::deserialize(j, "maxGPUTilesGray", o.mMaxGPUTilesGray);
   cs::core::Settings::deserialize(j, "maxGPUTilesDEM", o.mMaxGPUTilesDEM);
+  cs::core::Settings::deserialize(j, "tileResolutionDEM", o.mTileResolutionDEM);
+  cs::core::Settings::deserialize(j, "tileResolutionIMG", o.mTileResolutionIMG);
   cs::core::Settings::deserialize(j, "mapCache", o.mMapCache);
   cs::core::Settings::deserialize(j, "bodies", o.mBodies);
 }
@@ -143,6 +114,8 @@ void to_json(nlohmann::json& j, Plugin::Settings const& o) {
   cs::core::Settings::serialize(j, "terrainProjectionType", o.mTerrainProjectionType);
   cs::core::Settings::serialize(j, "lodFactor", o.mLODFactor);
   cs::core::Settings::serialize(j, "autoLod", o.mAutoLOD);
+  cs::core::Settings::serialize(j, "autoLodRange", o.mAutoLODRange);
+  cs::core::Settings::serialize(j, "autoLodFrameTimeRange", o.mAutoLODFrameTimeRange);
   cs::core::Settings::serialize(j, "textureGamma", o.mTextureGamma);
   cs::core::Settings::serialize(j, "enableHeightlines", o.mEnableHeightlines);
   cs::core::Settings::serialize(j, "enableLatLongGrid", o.mEnableLatLongGrid);
@@ -155,8 +128,9 @@ void to_json(nlohmann::json& j, Plugin::Settings const& o) {
   cs::core::Settings::serialize(j, "enableTilesDebug", o.mEnableTilesDebug);
   cs::core::Settings::serialize(j, "enableTilesFreeze", o.mEnableTilesFreeze);
   cs::core::Settings::serialize(j, "maxGPUTilesColor", o.mMaxGPUTilesColor);
-  cs::core::Settings::serialize(j, "maxGPUTilesGray", o.mMaxGPUTilesGray);
   cs::core::Settings::serialize(j, "maxGPUTilesDEM", o.mMaxGPUTilesDEM);
+  cs::core::Settings::serialize(j, "tileResolutionDEM", o.mTileResolutionDEM);
+  cs::core::Settings::serialize(j, "tileResolutionIMG", o.mTileResolutionIMG);
   cs::core::Settings::serialize(j, "mapCache", o.mMapCache);
   cs::core::Settings::serialize(j, "bodies", o.mBodies);
 }
@@ -231,6 +205,15 @@ void Plugin::init() {
       std::function([this](bool enable) { mPluginSettings->mAutoLOD = enable; }));
   mPluginSettings->mAutoLOD.connectAndTouch([this](bool enable) {
     mGuiManager->setCheckboxValue("lodBodies.setEnableAutoTerrainLod", enable);
+  });
+
+  mGuiManager->getGui()->registerCallback("lodBodies.setAutoLoDRange",
+      "Sets the minimum and maximum LoD value for auto-level-of-detail.",
+      std::function([this](double val1, double val2) {
+        mPluginSettings->mAutoLODRange = glm::vec2(val1, val2);
+      }));
+  mPluginSettings->mAutoLODRange.connectAndTouch([this](glm::vec2 const& val) {
+    mGuiManager->setSliderValue("lodBodies.setAutoLoDRange", val);
   });
 
   mGuiManager->getGui()->registerCallback("lodBodies.setTextureGamma",
@@ -437,6 +420,7 @@ void Plugin::deInit() {
 
   mGuiManager->getGui()->callJavascript("CosmoScout.removeApi", "lodBodies");
 
+  mGuiManager->getGui()->unregisterCallback("lodBodies.setAutoLoDRange");
   mGuiManager->getGui()->unregisterCallback("lodBodies.setEnableTilesFreeze");
   mGuiManager->getGui()->unregisterCallback("lodBodies.setEnableTilesDebug");
   mGuiManager->getGui()->unregisterCallback("lodBodies.setEnableWireframe");
@@ -465,10 +449,13 @@ void Plugin::deInit() {
 void Plugin::update() {
   if (mPluginSettings->mAutoLOD.get()) {
 
-    double minLODFactor = 15.0;
-    double maxLODFactor = 50.0;
-    double minTime      = 13.5;
-    double maxTime      = 14.5;
+    double minLODFactor = mPluginSettings->mAutoLODRange.get().x;
+    double maxLODFactor = mPluginSettings->mAutoLODRange.get().y;
+
+    // These numbers shall ensure that the frame rate stays above 60 Hz (16.6ms). Somehow we should
+    // try to retrieve the actual refresh rate of the display in the future.
+    double minTime = mPluginSettings->mAutoLODFrameTimeRange.get().x;
+    double maxTime = mPluginSettings->mAutoLODFrameTimeRange.get().y;
 
     if (cs::utils::FrameStats::get().pFrameTime.get() > maxTime) {
       mPluginSettings->mLODFactor = static_cast<float>(std::max(minLODFactor,
@@ -495,23 +482,28 @@ void Plugin::onLoad() {
 
   // For now, we cannot re-create the GLResources.
   if (!mGLResources) {
-    mGLResources =
-        std::make_shared<csp::lodbodies::GLResources>(mPluginSettings->mMaxGPUTilesDEM.get(),
-            mPluginSettings->mMaxGPUTilesGray.get(), mPluginSettings->mMaxGPUTilesColor.get());
+    mGLResources = std::make_shared<csp::lodbodies::GLResources>(
+        mPluginSettings->mMaxGPUTilesDEM.get(), mPluginSettings->mMaxGPUTilesColor.get(),
+        mPluginSettings->mTileResolutionDEM.get(), mPluginSettings->mTileResolutionIMG.get());
 
     mPluginSettings->mMaxGPUTilesColor.connect([](uint32_t /*val*/) {
       logger().warn("Changing the maximum number of allocated color tiles at run-time is not "
                     "supported. Please restart CosmoScout VR!");
     });
 
-    mPluginSettings->mMaxGPUTilesGray.connect([](uint32_t /*val*/) {
-      logger().warn("Changing the maximum number of allocated gray-scale tiles at run-time is not "
-                    "supported. Please restart CosmoScout VR!");
-    });
-
     mPluginSettings->mMaxGPUTilesDEM.connect([](uint32_t /*val*/) {
       logger().warn("Changing the maximum number of allocated elevation tiles at run-time is not "
                     "supported. Please restart CosmoScout VR!");
+    });
+
+    mPluginSettings->mTileResolutionDEM.connect([](uint32_t /*val*/) {
+      logger().warn("Changing the tile resolution at run-time is not supported. Please restart "
+                    "CosmoScout VR!");
+    });
+
+    mPluginSettings->mTileResolutionIMG.connect([](uint32_t /*val*/) {
+      logger().warn("Changing the tile resolution at run-time is not supported. Please restart "
+                    "CosmoScout VR!");
     });
   }
 
@@ -589,7 +581,7 @@ void Plugin::setImageSource(std::shared_ptr<LodBody> const& body, std::string co
   auto& settings = getBodySettings(body);
 
   if (name == "None") {
-    body->setIMGtileSource(nullptr);
+    body->setIMGtileSource(nullptr, 0);
     mGuiManager->getGui()->callJavascript("CosmoScout.lodBodies.setMapDataCopyright", "");
     settings.mActiveImgDataset = "None";
   } else {
@@ -603,14 +595,14 @@ void Plugin::setImageSource(std::shared_ptr<LodBody> const& body, std::string co
 
     settings.mActiveImgDataset = dataset->first;
 
-    auto source = std::make_shared<TileSourceWebMapService>();
+    auto source =
+        std::make_shared<TileSourceWebMapService>(mPluginSettings->mTileResolutionIMG.get());
     source->setCacheDirectory(mPluginSettings->mMapCache.get());
-    source->setMaxLevel(dataset->second.mMaxLevel);
     source->setLayers(dataset->second.mLayers);
     source->setUrl(dataset->second.mURL);
-    source->setDataType(dataset->second.mFormat);
+    source->setDataType(TileDataType::eColor);
 
-    body->setIMGtileSource(source);
+    body->setIMGtileSource(source, dataset->second.mMaxLevel);
 
     mGuiManager->getGui()->callJavascript(
         "CosmoScout.lodBodies.setMapDataCopyright", dataset->second.mCopyright);
@@ -633,14 +625,14 @@ void Plugin::setElevationSource(
 
   settings.mActiveDemDataset = dataset->first;
 
-  auto source = std::make_shared<TileSourceWebMapService>();
+  auto source =
+      std::make_shared<TileSourceWebMapService>(mPluginSettings->mTileResolutionDEM.get());
   source->setCacheDirectory(mPluginSettings->mMapCache.get());
-  source->setMaxLevel(dataset->second.mMaxLevel);
   source->setLayers(dataset->second.mLayers);
   source->setUrl(dataset->second.mURL);
-  source->setDataType(dataset->second.mFormat);
+  source->setDataType(TileDataType::eElevation);
 
-  body->setDEMtileSource(source);
+  body->setDEMtileSource(source, dataset->second.mMaxLevel);
 
   mGuiManager->getGui()->callJavascript(
       "CosmoScout.lodBodies.setElevationDataCopyright", dataset->second.mCopyright);

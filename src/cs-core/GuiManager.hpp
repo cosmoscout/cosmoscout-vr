@@ -78,9 +78,13 @@ class CS_CORE_EXPORT GuiManager {
   /// available.
   gui::ScreenSpaceGuiArea& getLocalGuiArea() const;
 
-  /// Returns the GUI area which is drawn in world-space. This may be a nullptr - the global GUI
-  /// area is only created if the "gui: {...}" settings key is present.
+  /// Returns the GUI area which is drawn in world-space. This may not be available - the global
+  /// GUI area is only created if the "gui: {...}" settings key is present. So check
+  /// hasGlobalGuiArea() first!
   gui::WorldSpaceGuiArea& getGlobalGuiArea() const;
+
+  /// Returns true if a global world-space GUI area is configured.
+  bool hasGlobalGuiArea() const;
 
   /// This is called once a frame from the Application.
   void update();

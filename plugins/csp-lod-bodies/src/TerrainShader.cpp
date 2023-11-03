@@ -7,6 +7,7 @@
 
 #include "TerrainShader.hpp"
 
+#include "../../../src/cs-utils/filesystem.hpp"
 #include "../../../src/cs-utils/utils.hpp"
 
 #include <VistaOGLExt/VistaGLSLShader.h>
@@ -43,17 +44,19 @@ void TerrainShader::release() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void TerrainShader::compile() {
-  VistaShaderRegistry& reg = VistaShaderRegistry::GetInstance();
-
   cs::utils::replaceString(mVertexSource, "$VP_TERRAIN_SHADER_FUNCTIONS",
-      reg.RetrieveShader("VistaPlanetTerrainShaderFunctions.vert"));
+      cs::utils::filesystem::loadToString(
+          "../share/resources/shaders/VistaPlanetTerrainShaderFunctions.vert"));
   cs::utils::replaceString(mVertexSource, "$VP_TERRAIN_SHADER_UNIFORMS",
-      reg.RetrieveShader("VistaPlanetTerrainShaderUniforms.glsl"));
+      cs::utils::filesystem::loadToString(
+          "../share/resources/shaders/VistaPlanetTerrainShaderUniforms.glsl"));
 
   cs::utils::replaceString(mFragmentSource, "$VP_TERRAIN_SHADER_FUNCTIONS",
-      reg.RetrieveShader("VistaPlanetTerrainShaderFunctions.frag"));
+      cs::utils::filesystem::loadToString(
+          "../share/resources/shaders/VistaPlanetTerrainShaderFunctions.frag"));
   cs::utils::replaceString(mFragmentSource, "$VP_TERRAIN_SHADER_UNIFORMS",
-      reg.RetrieveShader("VistaPlanetTerrainShaderUniforms.glsl"));
+      cs::utils::filesystem::loadToString(
+          "../share/resources/shaders/VistaPlanetTerrainShaderUniforms.glsl"));
 
   mShader = VistaGLSLShader();
   mShader.InitVertexShaderFromString(mVertexSource);

@@ -7,28 +7,32 @@
 
 #include "Renderer.hpp"
 
+#include "../../../../../src/cs-core/Settings.hpp"
 #include "../../../../../src/cs-core/SolarSystem.hpp"
-#include "glm/gtc/type_ptr.hpp"
+#include "../../../../../src/cs-utils/utils.hpp"
+#include "../../logger.hpp"
 
-#include "VistaKernel/DisplayManager/VistaDisplayManager.h"
-#include "VistaKernel/DisplayManager/VistaViewport.h"
-#include "VistaKernel/GraphicsManager/VistaGroupNode.h"
-#include "VistaKernel/GraphicsManager/VistaOpenGLNode.h"
-#include "VistaKernel/GraphicsManager/VistaSceneGraph.h"
-#include "VistaKernel/VistaSystem.h"
-#include "VistaKernelOpenSGExt/VistaOpenSGMaterialTools.h"
+#include <VistaKernel/DisplayManager/VistaDisplayManager.h>
+#include <VistaKernel/DisplayManager/VistaViewport.h>
+#include <VistaKernel/GraphicsManager/VistaGroupNode.h>
+#include <VistaKernel/GraphicsManager/VistaOpenGLNode.h>
+#include <VistaKernel/GraphicsManager/VistaSceneGraph.h>
+#include <VistaKernel/VistaSystem.h>
+#include <VistaKernelOpenSGExt/VistaOpenSGMaterialTools.h>
+
+#include <glm/gtc/type_ptr.hpp>
 
 namespace csp::visualquery {
 
-Renderer::Renderer(std::string objectName, std::shared_ptr<cs::core::SolarSystem> solarSystem,
-    std::shared_ptr<cs::core::Settings> settings)
-    : mObjectName(std::move(objectName))
+Renderer::Renderer(std::shared_ptr<cs::core::SolarSystem> solarSystem,
+    std::shared_ptr<cs::core::Settings>                   settings)
+    : mObjectName("None")
     , mSolarSystem(std::move(solarSystem))
     , mSettings(std::move(settings))
-    , mTexture(GL_TEXTURE_2D) {
-  auto object = mSolarSystem->getObject(mObjectName);
-  mMinBounds  = -object->getRadii();
-  mMaxBounds  = object->getRadii();
+    , mTexture(GL_TEXTURE_2D)
+    , mHasTexture(false) {
+  mMinBounds = glm::vec3(0);
+  mMaxBounds = glm::vec3(0);
 
   // create textures ---------------------------------------------------------
   for (auto const& viewport : GetVistaSystem()->GetDisplayManager()->GetViewports()) {
@@ -90,52 +94,87 @@ std::vector<T> copyToTextureBuffer(
   return data;
 }
 
-void Renderer::setData(Image2D image) {
-  mBounds            = image.mBounds;
-  GLenum imageFormat = getPixelFormat(image.mNumScalars);
+void Renderer::setData(std::shared_ptr<Image2D> const& image) {
+  mHasTexture = image != nullptr;
 
-  if (std::holds_alternative<U8ValueVector>(image.mPoints)) {
-    auto                 imageData = std::get<U8ValueVector>(image.mPoints);
-    std::vector<uint8_t> data      = copyToTextureBuffer(imageData, image.mNumScalars);
-    mTexture.UploadTexture(
-        image.mDimension.x, image.mDimension.y, data.data(), false, imageFormat, GL_UNSIGNED_BYTE);
+  if (!mHasTexture) {
+    return;
+  }
 
-  } else if (std::holds_alternative<U16ValueVector>(image.mPoints)) {
-    auto                  imageData = std::get<U16ValueVector>(image.mPoints);
-    std::vector<uint16_t> data      = copyToTextureBuffer(imageData, image.mNumScalars);
-    mTexture.UploadTexture(
-        image.mDimension.x, image.mDimension.y, data.data(), false, imageFormat, GL_UNSIGNED_SHORT);
+  mBounds            = image->mBounds;
+  GLenum imageFormat = getPixelFormat(image->mNumScalars);
 
-  } else if (std::holds_alternative<U32ValueVector>(image.mPoints)) {
-    auto                  imageData = std::get<U32ValueVector>(image.mPoints);
-    std::vector<uint32_t> data      = copyToTextureBuffer(imageData, image.mNumScalars);
-    mTexture.UploadTexture(
-        image.mDimension.x, image.mDimension.y, data.data(), false, imageFormat, GL_UNSIGNED_INT);
+  if (std::holds_alternative<U8ValueVector>(image->mPoints)) {
+    auto                 imageData = std::get<U8ValueVector>(image->mPoints);
+    std::vector<uint8_t> data      = copyToTextureBuffer(imageData, image->mNumScalars);
+    mTexture.UploadTexture(image->mDimension.x, image->mDimension.y, data.data(), false,
+        imageFormat, GL_UNSIGNED_BYTE);
 
-  } else if (std::holds_alternative<I16ValueVector>(image.mPoints)) {
-    auto                 imageData = std::get<I16ValueVector>(image.mPoints);
-    std::vector<int16_t> data      = copyToTextureBuffer(imageData, image.mNumScalars);
-    mTexture.UploadTexture(
-        image.mDimension.x, image.mDimension.y, data.data(), false, imageFormat, GL_SHORT);
+  } else if (std::holds_alternative<U16ValueVector>(image->mPoints)) {
+    auto                  imageData = std::get<U16ValueVector>(image->mPoints);
+    std::vector<uint16_t> data      = copyToTextureBuffer(imageData, image->mNumScalars);
+    mTexture.UploadTexture(image->mDimension.x, image->mDimension.y, data.data(), false,
+        imageFormat, GL_UNSIGNED_SHORT);
 
-  } else if (std::holds_alternative<I32ValueVector>(image.mPoints)) {
-    auto                 imageData = std::get<I32ValueVector>(image.mPoints);
-    std::vector<int32_t> data      = copyToTextureBuffer(imageData, image.mNumScalars);
+  } else if (std::holds_alternative<U32ValueVector>(image->mPoints)) {
+    auto                  imageData = std::get<U32ValueVector>(image->mPoints);
+    std::vector<uint32_t> data      = copyToTextureBuffer(imageData, image->mNumScalars);
     mTexture.UploadTexture(
-        image.mDimension.x, image.mDimension.y, data.data(), false, imageFormat, GL_INT);
+        image->mDimension.x, image->mDimension.y, data.data(), false, imageFormat, GL_UNSIGNED_INT);
 
-  } else if (std::holds_alternative<F32ValueVector>(image.mPoints)) {
-    auto               imageData = std::get<F32ValueVector>(image.mPoints);
-    std::vector<float> data      = copyToTextureBuffer(imageData, image.mNumScalars);
+  } else if (std::holds_alternative<I16ValueVector>(image->mPoints)) {
+    auto                 imageData = std::get<I16ValueVector>(image->mPoints);
+    std::vector<int16_t> data      = copyToTextureBuffer(imageData, image->mNumScalars);
     mTexture.UploadTexture(
-        image.mDimension.x, image.mDimension.y, data.data(), false, imageFormat, GL_FLOAT);
+        image->mDimension.x, image->mDimension.y, data.data(), false, imageFormat, GL_SHORT);
+
+  } else if (std::holds_alternative<I32ValueVector>(image->mPoints)) {
+    auto                 imageData = std::get<I32ValueVector>(image->mPoints);
+    std::vector<int32_t> data      = copyToTextureBuffer(imageData, image->mNumScalars);
+    mTexture.UploadTexture(
+        image->mDimension.x, image->mDimension.y, data.data(), false, imageFormat, GL_INT);
+
+  } else if (std::holds_alternative<F32ValueVector>(image->mPoints)) {
+    auto               imageData = std::get<F32ValueVector>(image->mPoints);
+    std::vector<float> data      = copyToTextureBuffer(imageData, image->mNumScalars);
+    mTexture.UploadTexture(
+        image->mDimension.x, image->mDimension.y, data.data(), false, imageFormat, GL_FLOAT);
 
   } else {
     logger().error("Unknown type!");
   }
 }
 
+void Renderer::setCenter(std::string center) {
+  mObjectName = std::move(center);
+  if (mObjectName == "None" || mObjectName.empty()) {
+    return;
+  }
+
+  auto object = mSolarSystem->getObjectByCenterName(mObjectName);
+  if (!object) {
+    return;
+  }
+
+  mMinBounds = -object->getRadii();
+  mMaxBounds = object->getRadii();
+}
+
+std::string Renderer::getCenter() const {
+  return mObjectName;
+}
+
 bool Renderer::Do() {
+  if (!mHasTexture || mObjectName == "None" || mObjectName.empty()) {
+    return false;
+  }
+
+  auto object   = mSolarSystem->getObjectByCenterName(mObjectName);
+  auto observer = mSolarSystem->getObserver();
+  if (!object || object->getCenterName() != observer.getCenterName()) {
+    return false;
+  }
+
   if (mShaderDirty) {
     mShader = VistaGLSLShader();
 
@@ -167,7 +206,6 @@ bool Renderer::Do() {
   glCopyTexImage2D(GL_TEXTURE_RECTANGLE, 0, GL_DEPTH_COMPONENT, iViewport[0], iViewport[1],
       iViewport[2], iViewport[3], 0);
 
-  auto object    = mSolarSystem->getObject(mObjectName);
   auto radii     = object->getRadii();
   auto transform = object->getObserverRelativeTransform();
 

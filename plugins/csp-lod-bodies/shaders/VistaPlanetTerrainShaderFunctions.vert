@@ -5,17 +5,6 @@
 // SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
 // SPDX-License-Identifier: MIT
 
-// -----------------------------------------------------------------------------
-// Helper functions for VistaPlanet terrain shaders.
-// The two most commonly used functions are 
-//      vec4 VP_getVertexPosition(in ivec2 vtxPos)
-//      vec3 VP_getVertexNormal(in ivec2 vtxPos)
-// near the bottom of the file. They respectively compute the vertex position
-// and normal from the elevation data.
-// -----------------------------------------------------------------------------
-
-// inputs ----------------------------------------------------------------------
-
 layout(location = 0) in ivec2 VP_iPosition;
 
 float VP_getJR(vec2 posXY)
@@ -23,131 +12,41 @@ float VP_getJR(vec2 posXY)
     return VP_f1f2.x - posXY.x - posXY.y;
 }
 
+// Returns coordinates inside the tile in [0..1]. The coordinates are clamped to the skirt. This
+// means, the coordinates range from [0..1] on top of the tile, the additional skirt vertices have
+// the same coordinates as the vertices at the tile boundary.
+vec2 VP_getTileCoords(vec2 iPosition)
+{
+    return clamp((iPosition - vec2(1.0)) / (VP_getResolutionDEM() - 1), vec2(0.0), vec2(1.0));
+}
+
 //  Calculates the position (in [0,1]^2) relative to the base patch from
 //  integer vertex coordinates @a vtxPos (in [0,256]^2).
 vec2 VP_getXY(ivec2 iPosition)
 {
     // First convert vtxPos to a relative position ([0,1]^2) within the patch.
-    // Then apply VP_tileOffsetScale to obtain relative position within the
+    // Then apply VP_offsetScale to obtain relative position within the
     // base patch.
-    return ((iPosition + VP_demOffsetScale.xy) * VP_VERTEXDISTANCE + VP_tileOffsetScale.xy) / 
-            VP_tileOffsetScale.z;
+    return (VP_getTileCoords(iPosition) + VP_offsetScale.xy) / VP_offsetScale.z;
 }
 
-// Find DEM texture coordinates given integer vertex coordinates
-// @a vtxPos (in [0,256]^2).
-vec2 VP_getTexCoordDEM(vec2 iPosition)
-{
-    return iPosition / VP_MAXVERTEX;
-}
-
-// Find IMG texture coordinates given integer vertex coordinates
-// @a vtxPos (in [0,256]^2).
-vec2 VP_getTexCoordIMG(vec2 iPosition)
-{
-    return (iPosition + VP_imgOffsetScale.xy) / VP_imgOffsetScale.z;
-}
-
+// Returns the height in meters of the vertex at the given position inside the current tile. The
+// outer-most ring of vertices create the skirt around the tile and are therefore moved down. The
+// distance which they are moved, depends on the topography of the tile: Flat tiles have a smaller
+// skirt than mountainous tiles.
 float VP_getVertexHeight(ivec2 iPosition)
 {
-    // For edges where the resolution changes, data is taken from the lower
-    // resolution neighbour to avoid creating gaps. When the resolution is the
-    // same, data is taken from the western neighbour.
-    // VP_edgeDelta contains information about the neighbour's resolution
-    // (along edge NE, NW, SW, SE in that order). If it is < 0 the neighbour's
-    // resolution is lower than this tile's and data from the neighbour should
-    // be used.
-    // In that case the position along the edge needs to be adjusted (since
-    // the neighbour has lower resolution) by applying a scaling factor
-    // that depends on the difference in levels (from VP_edgeDelta) and
-    // an offset (VP_edgeOffset).
-    // If it is == 0, the resolution is the same
-    ivec2 basePos = iPosition + VP_demOffsetScale.xy;
+    // Make sure to sample at the pixel centers.
+    float pixelSize = 1.0 / VP_getResolutionDEM();
+    vec2 texcoords = VP_getTileCoords(iPosition) * (1.0 - pixelSize) + 0.5 * pixelSize;
+    float height = texture(VP_texDEM, vec3(texcoords, VP_dataLayers.x)).x;
 
-    // SW edge - sample neightbour patch if same or lower resolution
-    if(basePos.x == 0 && VP_edgeDelta.z <= 0 || basePos.x < 0)
-    {
-        float scale = 1.0 / (1 << max(0, -VP_edgeDelta.z));
-
-        // determine where on neighbour tile to sample (NE)
-        vec2  pos = vec2(basePos.x + VP_MAXVERTEX, scale * basePos.y + VP_edgeOffset.z);
-        vec2  tc  = VP_getTexCoordDEM(pos);
-
-        // if we are at an edge of a souther basepatch we need to sample SE
-        if (VP_getJR(VP_getXY(iPosition)) >= 3.0 &&          // southern quarter
-           VP_tileOffsetScale.x == 0)                        // first tile in x
-        {
-            tc = vec2(tc.y, 1.0 - tc.x);
-        }
-
-        return texture(VP_texDEM, vec3(tc, VP_edgeLayerDEM.z)).x;
-    }
-    
-    // NW edge - sample neightbour patch if same or lower resolution
-    if(basePos.y == VP_MAXVERTEX && VP_edgeDelta.y <= 0 || basePos.y > VP_MAXVERTEX)
-    {
-        float scale = 1.0 / (1 << max(0, -VP_edgeDelta.y));
-
-        // determine where on neighbour tile to sample (SE)
-        vec2  pos = vec2(scale * basePos.x + VP_edgeOffset.y, basePos.y - VP_MAXVERTEX);
-        vec2  tc  = VP_getTexCoordDEM(pos);
-
-        // if we are at an edge of a northern basepatch we need to sample NE
-        if (VP_getJR(VP_getXY(iPosition)) <= 1.0 &&          // northern quarter
-           VP_tileOffsetScale.y == VP_tileOffsetScale.z - 1) // last tile in y
-        {
-            tc = vec2(1.0 - tc.y, tc.x);
-        }
-
-        return texture(VP_texDEM, vec3(tc, VP_edgeLayerDEM.y)).x;
-    }
-    
-    // NE edge - sample neightbour patch if lower resolution or if same
-    // resolution and position beyond VP_MAXVERTEX is requested
-    if((basePos.x == VP_MAXVERTEX && VP_edgeDelta.x < 0) || basePos.x > VP_MAXVERTEX)
-    {
-        float scale = 1.0 / (1 << max(0, -VP_edgeDelta.x));
-
-        // determine where on neighbour tile to sample (SW)
-        vec2  pos = vec2(basePos.x - VP_MAXVERTEX, scale * basePos.y + VP_edgeOffset.x);
-        vec2  tc  = VP_getTexCoordDEM(pos);
-
-        // if we are at an edge of a northern basepatch we need to sample NW
-        if (VP_getJR(VP_getXY(iPosition)) <= 1.0 &&          // northern quarter
-           VP_tileOffsetScale.x == VP_tileOffsetScale.z - 1) // last tile in x
-        {
-            tc = vec2(tc.y, 1.0 - tc.x);
-        }
-
-        return texture(VP_texDEM, vec3(tc, VP_edgeLayerDEM.x)).x;
-    }
-    
-    // SE edge - sample neightbour patch if lower resolution or if same
-    // resolution and position beyond 0 is requested
-    if((basePos.y == 0 && VP_edgeDelta.w < 0) || basePos.y < 0)
-    {
-        float scale = 1.0 / (1 << max(0, -VP_edgeDelta.w));
-
-        // determine where on neighbour tile to sample (NW)
-        vec2  pos = vec2(scale * basePos.x + VP_edgeOffset.w, basePos.y + VP_MAXVERTEX);
-        vec2  tc  = VP_getTexCoordDEM(pos);
-
-        // if we are at an edge of a souther basepatch we need to sample SW
-        if (VP_getJR(VP_getXY(iPosition)) >= 3.0 &&          // southern quarter
-           VP_tileOffsetScale.y == 0)                        // first tile in y
-        {
-            tc = vec2(1.0 - tc.y, tc.x);
-        }
-
-        return texture(VP_texDEM, vec3(tc, VP_edgeLayerDEM.w)).x;
+    // Move skirt vertices down by half the maximum elevation difference inside the tile.
+    if (any(equal(iPosition, ivec2(0.0))) || any(equal(iPosition, ivec2(VP_getResolutionDEM() + 1)))) {
+        height -= VP_heightInfo.y * 0.5;
     }
 
-    // multiple cases here:
-    //  non-edge vertex
-    //  edge vertex in western direction and neighbours have higher resolution
-    //  edge vertex in eastern direction and neighbours have same or higher resolution
-    vec2 tc = VP_getTexCoordDEM(basePos);
-    return texture(VP_texDEM, vec3(tc, VP_layerDEM)).x;
+    return height;
 }
 
 // Converts point posXY (in [0, 1]^2), which are relative coordinates inside a
@@ -186,7 +85,8 @@ vec2 VP_convertXY2lnglat(vec2 posXY)
     return result;
 }
 
-vec3 VP_toNormal(vec2 lnglat, vec3 radii) {
+// Returns the geodetic normal vector with unit length at geodetic coordinates (lng, lat) lnglat.
+vec3 VP_toNormal(vec2 lnglat) {
   return vec3(cos(lnglat.y) * sin(lnglat.x), 
               sin(lnglat.y),
               cos(lnglat.y) * cos(lnglat.x));
@@ -196,18 +96,22 @@ vec3 VP_toNormal(vec2 lnglat, vec3 radii) {
 // coordinates (x,y,z) for an ellipsoid with radii @a radii.
 vec3 VP_toCartesian(vec2 lnglat, vec3 radii)
 {
-  vec3 normal  = VP_toNormal(lnglat, radii);
+  vec3 normal  = VP_toNormal(lnglat);
   vec3 normal2 = normal * normal;
   vec3 radii2  = radii * radii;
   return (radii2 * normal) / sqrt(dot(radii2, normal2));
 }
 
+// This computes the cartesian coordinates for the given patch-relative vertix position using the
+// HEALPix projection. This works well if the celestial body is rather small or if the view is far
+// from the surface. If the viewer is close to the surface of a large body, precision issues will
+// arise.
 vec3 VP_getVertexPositionHEALPix(ivec2 iPosition)
 {
     vec2  posXY  = VP_getXY(iPosition);
     vec2  lnglat = VP_convertXY2lnglat(posXY);
     float height = VP_heightScale * VP_getVertexHeight(iPosition);
-    vec3  normal = VP_toNormal(lnglat, VP_radii);
+    vec3  normal = VP_toNormal(lnglat);
     vec3  posXYZ = VP_toCartesian(lnglat, VP_radii);
 
     posXYZ += height * normal;
@@ -215,6 +119,10 @@ vec3 VP_getVertexPositionHEALPix(ivec2 iPosition)
     return (VP_matModel * vec4(posXYZ, 1)).xyz;
 }
 
+// This computes the cartesian coordinates for the given patch-relative vertix position using linear
+// interpolation of the CPU-based cartesian coordinates given in VP_corners. This results in a
+// piece-wise linear celestial body. However, if the observer is close to the surface of a large
+// body, the approximation error is very small and there are no precision issues.
 vec3 VP_getVertexPositionInterpolated(ivec2 iPosition)
 {
     //   direction   index      alpha
@@ -223,17 +131,17 @@ vec3 VP_getVertexPositionInterpolated(ivec2 iPosition)
     //     W   E     1   3    0,1   1,0           
     //       S         2         0,0           
     //  
-    vec2 alpha = vec2(iPosition) / VP_demOffsetScale.z;
+    vec2 alpha = VP_getTileCoords(iPosition);
 
     // calculate normal direction by slerping
     vec3 normalSW = mix(VP_normals[2], VP_normals[1], alpha.y);
     vec3 normalNE = mix(VP_normals[3], VP_normals[0], alpha.y);
     vec3 normal   = mix(normalSW, normalNE, alpha.x);
 
-    // calculate height above surface
-    // VP_demAverageHeight is substracted in order to increase the accuracy on high mountains and in deep valleys
+    // Calculate height above surface average height is substracted in order to increase the
+    // accuracy on high mountains and in deep valleys.
     float height = length(VP_matModel[0]) * VP_heightScale 
-                   * (VP_getVertexHeight(iPosition) - VP_demAverageHeight);
+                   * (VP_getVertexHeight(iPosition) - VP_heightInfo.x);
 
     // calculate final position
     vec3 result = height * normalize(normal);
@@ -282,11 +190,17 @@ vec3 VP_getVertexPosition(ivec2 iPosition, int mode)
 // VP_texDEM.
 vec3 VP_getVertexNormal(ivec2 iPosition, int mode)
 {
-    // neighbour vertices (p: positive direction, n: negative direction)
-    ivec2 pp = ivec2(iPosition.x + 1, iPosition.y);
-    ivec2 nn = ivec2(iPosition.x - 1, iPosition.y);
-    ivec2 np = ivec2(iPosition.x, iPosition.y + 1);
-    ivec2 pn = ivec2(iPosition.x, iPosition.y - 1);
+    int resolution = VP_getResolutionDEM();
+
+    // Make sure to handle bottom skirt vertices the same as top skirt vertices.
+    iPosition = clamp(iPosition, ivec2(1), ivec2(resolution));
+
+    // Neighbour vertices (p: positive direction, n: negative direction). We clamp the positions to
+    // the upper border of the tiles in order to not sample at the bottom of the skirt.
+    ivec2 pp = ivec2(min(iPosition.x + 1, resolution), iPosition.y);
+    ivec2 nn = ivec2(max(iPosition.x - 1, 1), iPosition.y);
+    ivec2 np = ivec2(iPosition.x, min(iPosition.y + 1, resolution));
+    ivec2 pn = ivec2(iPosition.x, max(iPosition.y - 1, 1));
 
     // euclidian position of neighbour vertices
     vec3 p_pp = VP_getVertexPosition(pp, mode);
@@ -307,9 +221,13 @@ vec3 VP_getVertexNormal(ivec2 iPosition, int mode)
 // VP_texDEM.
 vec3 VP_getVertexNormalLow(vec3 centerPos, ivec2 iPosition, int mode)
 {
-    // neighbour vertices (px: x direction, py: y direction)
-    ivec2 px = ivec2(iPosition.x + 1, iPosition.y);
-    ivec2 py = ivec2(iPosition.x, iPosition.y + 1);
+    // Make sure to handle bottom skirt vertices the same as top skirt vertices.
+    iPosition = clamp(iPosition, ivec2(1), ivec2(VP_getResolutionDEM()));
+
+    // Sample neighbour vertices. If we are close to a border, we sample in the other direction
+    // instead. At iPosition.x == 0 is the bottom skirt vertex.
+    ivec2 px = ivec2(iPosition.x == 1 ? 2 : iPosition.x - 1, iPosition.y);
+    ivec2 py = ivec2(iPosition.x, iPosition.y == 1 ? 2 : iPosition.y - 1);
 
     // euclidian position of neighbour vertices
     vec3 p_px = VP_getVertexPosition(px, mode);
@@ -318,6 +236,12 @@ vec3 VP_getVertexNormalLow(vec3 centerPos, ivec2 iPosition, int mode)
     // central differences as approximation for surface tangents
     vec3 dx = p_px - centerPos;
     vec3 dy = p_py - centerPos;
+
+    // If we sampled close to either of the sides, we flipped the lookup and hence have to flip the
+    // normal as well.
+    if (iPosition.x == 1 ^^ iPosition.y == 1) {
+        dx = -dx;
+    }
 
     // cross product of tangents -> normal
     return normalize(cross(dx, dy));

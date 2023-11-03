@@ -28,208 +28,78 @@ class WCSCoverageComponent extends Rete.Component {
 
     let imageOutput = new Rete.Output('coverageOut', 'Coverage', CosmoScout.socketTypes['Coverage']);
     node.addOutput(imageOutput);
-    
-    let minTimeOutput = new Rete.Output('minTimeValueOut', 'Min Time', CosmoScout.socketTypes['number Value']);
+
+    let minTimeOutput = new Rete.Output('minTimeValueOut', 'Min Time', CosmoScout.socketTypes['Real']);
     node.addOutput(minTimeOutput);
 
-    let maxTimeOutput = new Rete.Output('maxTimeValueOut', 'Max Time', CosmoScout.socketTypes['number Value']);
+    let maxTimeOutput = new Rete.Output('maxTimeValueOut', 'Max Time', CosmoScout.socketTypes['Real']);
     node.addOutput(maxTimeOutput);
 
-    let lngBoundMinOutput = new Rete.Output('lngBoundMinOut', "Longitude Min", CosmoScout.socketTypes['number Value']);
+    let lngBoundMinOutput = new Rete.Output('lngBoundMinOut', "Longitude Min", CosmoScout.socketTypes['Real']);
     node.addOutput(lngBoundMinOutput);
 
-    let lngBoundMaxOutput = new Rete.Output('lngBoundMaxOut', "Longitude Max", CosmoScout.socketTypes['number Value']);
+    let lngBoundMaxOutput = new Rete.Output('lngBoundMaxOut', "Longitude Max", CosmoScout.socketTypes['Real']);
     node.addOutput(lngBoundMaxOutput);
 
-    let latBoundMinOutput = new Rete.Output('latBoundMinOut', "Latitude Min", CosmoScout.socketTypes['number Value']);
+    let latBoundMinOutput = new Rete.Output('latBoundMinOut', "Latitude Min", CosmoScout.socketTypes['Real']);
     node.addOutput(latBoundMinOutput);
 
-    let latBoundMaxOutput = new Rete.Output('latBoundMaxOut', "Latitude Max", CosmoScout.socketTypes['number Value']);
+    let latBoundMaxOutput = new Rete.Output('latBoundMaxOut', "Latitude Max", CosmoScout.socketTypes['Real']);
     node.addOutput(latBoundMaxOutput);
 
-    let serverControl = new ServerControl('selectServer');
-    node.addControl(serverControl);
+    let serverDropDown = new DropDownControl('selectServer', (newServer) => {
+      CosmoScout.sendMessageToCPP({server: newServer.text}, node.id);
+    }, "Server", [{value: 0, text: "None"}]);
+    node.addControl(serverDropDown);
 
-    let imageChannelControl = new ImageChannelControl('selectImageChannel');
-    node.addControl(imageChannelControl);
+    let coverageDropDown = new DropDownControl('selectCoverage', (newCoverage) => {
+      CosmoScout.sendMessageToCPP({imageChannel: newCoverage.text}, node.id);
+    }, "Coverage", [{value: 0, text: "None"}]);
+    node.addControl(coverageDropDown);
 
-    node.onInit = (nodeDiv) => { 
+    node.onMessageFromCPP = (message) => {
+      if (message["servers"]) {
+        const servers = message["servers"].map((server, index) => ({value: index, text: server}));
+        node.data.servers = servers;
+        serverDropDown.setOptions(servers);
+      }
 
-      serverControl.init(nodeDiv, node.data); 
-      imageChannelControl.init(nodeDiv, node.data);
+      // new image channels received
+      else if (message["imageChannels"]) {
 
-      node.onMessageFromCPP = (message) => {
-
-        // display servers in dropdown
-        if (message["server"]) {
-          node.data.url = message["server"];
-          serverControl.createServerSelection(message["server"]);  
-        }
-
-        // new image channels received
-        else if (message["imageChannel"]) {
-
-          // rest image channels selection
-          if (message["imageChannel"] === "reset") {
-            node.data.imageChannel = [];
-            imageChannelControl.resetImageChannelSelection();
-
-          // add new image channels to dropdown
-          } else {
-            node.data.imageChannel = message["imageChannel"];
-            imageChannelControl.createImageChannelSelection(message["imageChannel"]);
-          }
-        
+        // rest image channels selection
+        if (message["imageChannels"] === "reset") {
+          node.data.imageChannels = [];
+          coverageDropDown.setOptions([{value: 0, text: "None"}]);
         } else {
-          console.log("Unknown cpp message:");
-          console.log(message);
+          const coverages = message["imageChannels"].map((channel, index) => ({value: index, text: channel}));
+          node.data.coverages = coverages;
+          coverageDropDown.setOptions(coverages);
         }
-      };
-    }
+      } else {
+        console.log("Unknown cpp message:");
+        console.log(message);
+      }
+    };
 
-    let button1 = document.createElement("button");
-    button1.innerHTML = "request server";
-    button1.addEventListener("click", (e) => {
-      serverControl.sendServerRequest();
-    });
-    document.body.insertBefore(button1, document.body.firstChild);
+    node.onInit = (nodeDiv) => {
+      serverDropDown.init(nodeDiv, {
+        options: node.data.servers?.map((server, index) => ({
+          value: index,
+          text: server
+        })),
+        selectedValue: node.data.selectedServer
+      });
+
+      coverageDropDown.init(nodeDiv, {
+        options: node.data.coverages?.map((channel, index) => ({
+          value: index,
+          text: channel
+        })),
+        selectedValue: node.data.selectedCoverage
+      });
+    };
 
     return node;
-  }
-}
-
-// This is the widget which is used for selecting the server.
-class ServerControl extends Rete.Control {
-  constructor(key) {
-    super(key);
-    this.selectElement;
-
-    // This HTML code will be used whenever a node is created with this widget.
-    this.template = `
-          <select>
-            <option value="none">None</option>
-          </select>
-
-          <style>
-            .dropdown {
-              margin: 10px 15px !important;
-              width: 150px !important;
-            }
-          </style>
-        `;
-  }
-
-  // This is called by the node.onInit() above once the HTML element for the node has been
-  // created. If present, the data object may contain a math operation as returned by
-  // MathNode::getData() which - if present - should be preselected.
-  init(nodeDiv, data) {
-
-    // Initialize the bootstrap select.
-    this.selectElement = nodeDiv.querySelector("select");
-    $(this.selectElement).selectpicker();
-
-    // Preselect a server.
-    if (data.url) {
-      $(this.selectElement).selectpicker('val', data.url);
-    }
-
-    // Send an update to the node editor server whenever the user selects a new server.
-    this.selectElement.addEventListener('change',
-      (e) => {
-        CosmoScout.sendMessageToCPP({server: e.target.value}, this.parent.id);
-      });
-  }
-
-  // Send a request to get the available servers.
-  sendServerRequest() {
-    if (!this.parent.data.url) {
-      CosmoScout.sendMessageToCPP("requestServers", this.parent.id);
-    }
-  }
-
-  createServerSelection(values) {
-    // add new elements
-    for (let i = 0; i < values.length; i++) {
-      let option = document.createElement("option");
-      option.value = values[i];
-      option.innerHTML = values[i];
-      this.selectElement.appendChild(option);
-    }
-    // refresh bootstrap dropdown options
-    $(this.selectElement).selectpicker("refresh");     
-  }
-}
-
-// This is the widget which is used for selecting the image Channel.
-class ImageChannelControl extends Rete.Control {
-  constructor(key) {
-    super(key);
-    this.selectElement;
-
-    // This HTML code will be used whenever a node is created with this widget.
-    this.template = `
-          <select>
-            <option value="0">None</option>
-          </select>
-
-          <style>
-            .dropdown {
-              margin: 10px 15px !important;
-              width: 150px !important;
-            }
-          </style>
-        `;
-  }
-
-  // This is called by the node.onInit() above once the HTML element for the node has been
-  // created. If present, the data object may contain a math operation as returned by
-  // MathNode::getData() which - if present - should be preselected.
-  init(nodeDiv, data) {
-
-    // Initialize the bootstrap select.
-    this.selectElement = nodeDiv.querySelectorAll("select")[1];
-
-    $(this.selectElement).selectpicker();
-
-    // Preselect a server.
-    if (data.imageChannel) {
-      $(this.selectElement).selectpicker('val', data.imageChannel);
-    }
-
-    // Send an update to the node editor server whenever the user selects a new channel.
-    this.selectElement.addEventListener('change',
-      (e) => {
-        CosmoScout.sendMessageToCPP({imageChannel: e.target.value}, this.parent.id);
-      });
-  }
-
-  createImageChannelSelection(values) {
-    this.resetImageChannelSelection();
-
-    // add new elements
-    for (let i = 0; i < values.length; i++) {
-      let option = document.createElement("option");
-      option.value = values[i];
-      option.innerHTML = values[i];
-      this.selectElement.appendChild(option);
-    }
-    // refresh bootstrap dropdown options
-    $(this.selectElement).selectpicker("refresh");
-  }
-
-  resetImageChannelSelection() {
-    // remove all elements
-    while (this.selectElement.firstChild) {
-      this.selectElement.removeChild(this.selectElement.lastChild);
-    }
-
-    // add "None" element
-    let none = document.createElement("option");
-    none.value = 0;
-    none.innerHTML = "None";
-    this.selectElement.appendChild(none);
-
-    // refresh bootstrap dropdown options
-    $(this.selectElement).selectpicker("refresh");
   }
 }

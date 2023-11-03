@@ -7,6 +7,8 @@
 
 #include "WebCoverageException.hpp"
 
+#include "../common/utils.hpp"
+
 namespace csl::ogc {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -45,7 +47,7 @@ std::vector<std::unique_ptr<OGCException>> WebCoverageExceptionReport::parseExce
     exceptions.push_back(std::make_unique<WebCoverageException>(exceptionElement));
   }
 
-  return std::move(exceptions);
+  return exceptions;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

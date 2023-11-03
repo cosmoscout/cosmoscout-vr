@@ -156,7 +156,8 @@ bool ObserverNavigationNode::DoEvalNode() {
       glm::angle(qRotation) * dDeltaTime * mMaxAngularSpeed * mAngularSpeed.get(dTtime);
 
   if (dRotationAngle != 0.0) {
-    oObs.setRotation(oObs.getRotation() * glm::angleAxis(dRotationAngle, vRotationAxis));
+    oObs.setRotation(
+        glm::normalize(oObs.getRotation() * glm::angleAxis(dRotationAngle, vRotationAxis)));
   }
 
   return true;

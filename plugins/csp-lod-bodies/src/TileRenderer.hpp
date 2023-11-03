@@ -24,65 +24,36 @@ namespace csp::lodbodies {
 
 struct PlanetParameters;
 class TileNode;
-class RenderData;
-class RenderDataDEM;
-class RenderDataImg;
-class TreeManagerBase;
+class TreeManager;
 
 /// Renders tiles with elevation (DEM) and optionally image (IMG) data.
 class TileRenderer {
  public:
-  explicit TileRenderer(PlanetParameters const& params, TreeManagerBase* treeMgrDEM = nullptr,
-      TreeManagerBase* treeMgrIMG = nullptr);
+  explicit TileRenderer(
+      PlanetParameters const& params, TreeManager* treeMgr, uint32_t tileResolution);
   virtual ~TileRenderer() = default;
 
   TileRenderer(TileRenderer const& other) = delete;
-  TileRenderer(TileRenderer&& other)      = default;
+  TileRenderer(TileRenderer&& other)      = delete;
 
   TileRenderer& operator=(TileRenderer const& other) = delete;
-  TileRenderer& operator=(TileRenderer&& other) = default;
+  TileRenderer& operator=(TileRenderer&& other) = delete;
 
-  TreeManagerBase* getTreeManagerDEM() const;
-  void             setTreeManagerDEM(TreeManagerBase* treeMgr);
-
-  TreeManagerBase* getTreeManagerIMG() const;
-  void             setTreeManagerIMG(TreeManagerBase* treeMgr);
+  TreeManager* getTreeManager() const;
 
   /// Set the shader for rendering terrain tiles. Initially (or when shader is nullptr) a
   /// default shader is used. The shader must declare certain inputs and uniforms detailed below.
-  ///
-  /// @code
-  /// | Kind    | Type           | Name                 | Description |
-  /// |---------|----------------|----------------------|-------------|
-  /// | uniform | vec3           | VP_PatchOffsetScale  |             |
-  /// | uniform | vec3           | VP_IMG_TCOffsetScale |             |
-  /// | uniform | ivec4          | VP_EdgeDelta         |             |
-  /// | uniform | ivec2          | VP_f1f2              |             |
-  /// | uniform | int            | VP_LayerDEM          |             |
-  /// | uniform | int            | VP_LayerIMG          |             |
-  /// | uniform | vec3           | VP_Radii             |             |
-  /// | uniform | float          | VP_HeightScale       |             |
-  /// | uniform | sampler2DArray | VP_TexDEM            |             |
-  /// | uniform | sampler2DArray | VP_TexIMG            |             |
-  /// | in      | ivec2          | vtxPosition          |             |
-  /// @endcode
   void setTerrainShader(TerrainShader* shader);
 
   /// Returns the currently set shader for rendering terrain tiles.
   TerrainShader* getTerrainShader() const;
 
-  void setFrameCount(int frameCount);
   void setModel(glm::dmat4 const& m);
   void setView(glm::mat4 const& m);
   void setProjection(glm::mat4 const& m);
 
-  /// Render the elevation and image tiles in reqDEM and reqIMG respectively.
-  void render(std::vector<RenderData*> const& reqDEM, std::vector<RenderData*> const& reqIMG,
-      cs::graphics::ShadowMap* shadowMap);
-
-  /// Enable or disable drawing of tiles.
-  void setDrawTiles(bool enable);
-  bool getDrawTiles() const;
+  /// Render the given nodes.
+  void render(std::vector<TileNode*> const& nodes, cs::graphics::ShadowMap* shadowMap);
 
   /// Enable or disable drawing of tile bounding boxes.
   void setDrawBounds(bool enable);
@@ -98,29 +69,21 @@ class TileRenderer {
 
  private:
   struct UniformLocs {
-    GLint demAverageHeight;
-    GLint tileOffsetScale;
-    GLint demOffsetScale;
-    GLint imgOffsetScale;
-    GLint edgeDelta;
-    GLint edgeLayerDEM;
-    GLint edgeOffset;
+    GLint heightInfo;
+    GLint offsetScale;
     GLint f1f2;
-    GLint layerDEM;
-    GLint layerIMG;
+    GLint dataLayers;
   };
 
   void preRenderTiles(cs::graphics::ShadowMap* shadowMap);
-  void renderTiles(
-      std::vector<RenderData*> const& renderDEM, std::vector<RenderData*> const& renderIMG);
-  void renderTile(RenderDataDEM* rdDEM, RenderDataImg* rdIMG, UniformLocs const& locs);
+  void renderTiles(std::vector<TileNode*> const& nodes);
+  void renderTile(TileNode* node, UniformLocs const& locs);
   void postRenderTiles(cs::graphics::ShadowMap* shadowMap);
 
-  void preRenderBounds();
-  void renderBounds(std::vector<RenderData*> const& reqDEM, std::vector<RenderData*> const& reqIMG);
+  void        preRenderBounds();
+  void        renderBounds(std::vector<TileNode*> const& nodes);
   static void postRenderBounds();
 
-  void                                           init() const;
   static std::unique_ptr<VistaBufferObject>      makeVBOTerrain();
   static std::unique_ptr<VistaBufferObject>      makeIBOTerrain();
   static std::unique_ptr<VistaVertexArrayObject> makeVAOTerrain(
@@ -133,10 +96,10 @@ class TileRenderer {
   static std::unique_ptr<VistaGLSLShader> makeProgBounds();
 
   PlanetParameters const* mParams;
-  TreeManagerBase*        mTreeMgrDEM;
-  TreeManagerBase*        mTreeMgrIMG;
+  TreeManager*            mTreeMgr;
 
   glm::dmat4 mMatM;
+  glm::dmat4 mMatN;
   glm::mat4  mMatV;
   glm::mat4  mMatP;
 
@@ -150,11 +113,18 @@ class TileRenderer {
   static std::unique_ptr<VistaVertexArrayObject> mVaoBounds;
   static std::unique_ptr<VistaGLSLShader>        mProgBounds;
 
-  int  mFrameCount;
-  bool mEnableDrawTiles;
   bool mEnableDrawBounds;
   bool mEnableWireframe;
   bool mEnableFaceCulling;
+
+  // The mTileResolution describes the number of vertices which are used in x and y direction for
+  // rendering the elevation data. The mGridResolution is the actual amount of vertices in x and y
+  // direction which is drawn, which also includes the additional vertices required for the skirt
+  // around the tile. mIndexCount contains the number of entries required in the index buffer to
+  // draw this grid.
+  const uint32_t mTileResolution;
+  const uint32_t mGridResolution;
+  const uint32_t mIndexCount;
 };
 
 } // namespace csp::lodbodies

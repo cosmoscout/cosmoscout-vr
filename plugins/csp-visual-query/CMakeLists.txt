@@ -15,6 +15,7 @@ endif()
 
 file(GLOB SOURCE_FILES src/*.cpp src/*/*.cpp src/*/*/*.cpp)
 file(GLOB NODE_FILES src/*/*.js src/*/*/*.js)
+file(GLOB CONTROL_FILES src/controls/*.js)
 
 # Resource files and header files are only added in order to make them available in your IDE.
 file(GLOB HEADER_FILES src/*.hpp src/*/*.hpp src/*/*/*.hpp)
@@ -24,6 +25,7 @@ add_library(csp-visual-query SHARED
   ${SOURCE_FILES}
   ${HEADER_FILES}
   ${NODE_FILES}
+  ${CONTROL_FILES}
   ${RESOURCE_FILES}
 )
 
@@ -39,10 +41,12 @@ set_property(TARGET csp-visual-query PROPERTY FOLDER "plugins")
 
 # We mark all resource files as "header" in order to make sure that no one tries to compile them.
 set_source_files_properties(${RESOURCE_FILES} PROPERTIES HEADER_FILE_ONLY true)
+set_source_files_properties(${NODE_FILES}     PROPERTIES HEADER_FILE_ONLY true)
+set_source_files_properties(${CONTROL_FILES}  PROPERTIES HEADER_FILE_ONLY true)
 
 # Make directory structure available in your IDE.
 source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}" FILES
-  ${SOURCE_FILES} ${HEADER_FILES} ${RESOURCE_FILES}
+  ${SOURCE_FILES} ${HEADER_FILES} ${NODE_FILES} ${CONTROL_FILES} ${RESOURCE_FILES}
 )
 
 # install plugin -----------------------------------------------------------------------------------
@@ -50,4 +54,5 @@ source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}" FILES
 install(TARGETS csp-visual-query DESTINATION "share/plugins")
 install(DIRECTORY "gui" DESTINATION "share/resources")
 install(FILES   ${NODE_FILES}         DESTINATION "share/resources/nodes/csp-visual-query")
+install(FILES   ${CONTROL_FILES}      DESTINATION "share/resources/nodes/csp-visual-query")
 

@@ -8,7 +8,9 @@
 #ifndef CSP_VISUAL_QUERY_RANDOMDATASOURCE_HPP
 #define CSP_VISUAL_QUERY_RANDOMDATASOURCE_HPP
 
+#include "../../../../csl-node-editor/src/Node.hpp"
 #include "../../types/types.hpp"
+
 #include <random>
 
 namespace csp::visualquery {

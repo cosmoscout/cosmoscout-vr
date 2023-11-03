@@ -13,7 +13,7 @@
 
 namespace csp::lodbodies {
 
-class TileNode;
+class BaseTileData;
 
 /// Base class/interface for sources of tile data. Defines interfaces for synchronous (blocking) and
 /// asynchronous (non-blocking) loading of tiles, optionally allocating objects as needed or reusing
@@ -21,7 +21,7 @@ class TileNode;
 class TileSource {
  public:
   /// Type of the callback functor that can be passed to loadTileAsync.
-  using OnLoadCallback = std::function<void(TileSource*, int, glm::int64, TileNode*)>;
+  using OnLoadCallback = std::function<void(TileId, std::shared_ptr<BaseTileData>)>;
 
   TileSource() = default;
 
@@ -46,17 +46,12 @@ class TileSource {
   /// Returns the enum value for the data type stored in tiles produced by this TileSource.
   virtual TileDataType getDataType() const = 0;
 
-  /// Loads a node with given level and patchIx synchronously (i.e. the call blocks until data is
-  /// loaded). Optionally the node to store data in is passed as node - it must own a Tile of
-  /// correct type or not own a tile at all (in which case a new one is allocated). If node is
-  /// a nullptr a new node is allocated.
-  virtual TileNode* loadTile(int level, glm::int64 patchIdx) = 0;
+  /// Loads a node with given tileId synchronously (i.e. the call blocks until data is loaded).
+  virtual std::shared_ptr<BaseTileData> loadTile(TileId const& tileId) = 0;
 
-  /// Loads a node with given level and patchIdx asynchronously (i.e. the call returns immediately).
-  /// Optionally the node to store data in is passed as node - it must own a Tile of correct type or
-  /// not own a tile at all (in which case a new one is allocated). If node is a nullptr a new node
-  /// is allocated. Once the node is loaded the given OnLoadCallack is invoked.
-  virtual void loadTileAsync(int level, glm::int64 patchIdx, OnLoadCallback cb) = 0;
+  /// Loads a node with given tileId asynchronously (i.e. the call returns immediately).
+  /// Once the node is loaded the given OnLoadCallack is invoked.
+  virtual void loadTileAsync(TileId const& tileId, OnLoadCallback cb) = 0;
 
   /// Returns the number of currently active async requests.
   virtual int getPendingRequests() = 0;
