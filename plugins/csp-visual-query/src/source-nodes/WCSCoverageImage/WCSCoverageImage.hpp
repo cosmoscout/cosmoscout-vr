@@ -19,8 +19,8 @@ class WCSCoverageImage : public csl::nodeeditor::Node {
  public:
   // static interface ------------------------------------------------------------------------------
 
-  static const std::string          sName;
-  static std::string                sSource();
+  static const std::string                 sName;
+  static std::string                       sSource();
   static std::unique_ptr<WCSCoverageImage> sCreate();
 
   // instance interface ----------------------------------------------------------------------------

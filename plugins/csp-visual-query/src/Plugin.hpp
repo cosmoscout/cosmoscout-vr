@@ -31,7 +31,7 @@ class Plugin : public cs::core::PluginBase {
     std::optional<nlohmann::json> mGraph;
 
     // URL which contains the WCS server
-    std::vector<std::string> mWcsUrl;
+    std::vector<std::string>                  mWcsUrl;
     std::vector<csl::ogc::WebCoverageService> mWebCoverages;
   };
 

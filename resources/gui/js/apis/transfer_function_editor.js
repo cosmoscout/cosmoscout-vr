@@ -182,9 +182,9 @@ class TransferFunctionEditor {
 
     // Access the svg dom element
     this._svg = d3.select(this.element)
-        .select("#transferFunctionEditor\\.graph-" + this.id)
-        .attr("width", this.options.width)
-        .attr("height", this.options.height);
+                    .select("#transferFunctionEditor\\.graph-" + this.id)
+                    .attr("width", this.options.width)
+                    .attr("height", this.options.height);
     this._width  = +this._svg.attr("width") - this._margin.left - this._margin.right;
     this._height = +this._svg.attr("height") - this._margin.top - this._margin.bottom;
   }
@@ -303,9 +303,9 @@ class TransferFunctionEditor {
 
     // Draw graph
     const graph = g.append("svg")
-        .attr("width", this._width)
-        .attr("height", this._height)
-        .attr("overflow", "hidden");
+                      .attr("width", this._width)
+                      .attr("height", this._height)
+                      .attr("overflow", "hidden");
 
     graph.append("path")
         .datum(this._controlPoints)
@@ -318,14 +318,14 @@ class TransferFunctionEditor {
     const xTicks              = this._xScale.ticks(this.options.numberTicks);
     xTicks[xTicks.length - 1] = this._xScale.domain()[1];
     this._xAxis               = g.append("g")
-        .attr("class", "axis axis--x")
-        .attr("transform", "translate(0," + this._height + ")")
-        .call(d3.axisBottom(this._xScale).tickValues(xTicks));
+                      .attr("class", "axis axis--x")
+                      .attr("transform", "translate(0," + this._height + ")")
+                      .call(d3.axisBottom(this._xScale).tickValues(xTicks));
 
     this._yAxis = g.append("g")
-        .attr("class", "axis axis--y")
-        .attr("transform", "translate(0, 0)")
-        .call(d3.axisLeft(this._yScale).ticks(this.options.numberTicks));
+                      .attr("class", "axis axis--y")
+                      .attr("transform", "translate(0, 0)")
+                      .call(d3.axisLeft(this._yScale).ticks(this.options.numberTicks));
 
     // Mouse interaction handler
     g.append("rect")
@@ -359,8 +359,8 @@ class TransferFunctionEditor {
 
   _updateControlPoints(controlPoints) {
     const updateScale = d3.scaleLinear()
-        .domain(d3.extent(controlPoints, point => point.x))
-        .range(this._xScale.domain());
+                            .domain(d3.extent(controlPoints, point => point.x))
+                            .range(this._xScale.domain());
     controlPoints.forEach(point => point.x = updateScale(point.x));
     this._controlPoints = controlPoints;
   }
@@ -381,7 +381,7 @@ class TransferFunctionEditor {
 
       if (!point.locked) {
         const right = this._controlPoints.slice(index, this._controlPoints.length)
-            .find(point => point.locked);
+                          .find(point => point.locked);
         const left = this._controlPoints.slice(0, index).reverse().find(point => point.locked);
         if (left && right) {
           point.color =
@@ -457,8 +457,8 @@ class TransferFunctionEditor {
         });
 
     gradient.attr("stop-color", (d) => {
-      return d.color;
-    }).attr("stop-opacity", (d) => { return d.opacity; }).attr("offset", (d) => {
+              return d.color;
+            }).attr("stop-opacity", (d) => { return d.opacity; }).attr("offset", (d) => {
       const l = (this._controlPoints[this._controlPoints.length - 1].x - this._controlPoints[0].x);
       return "" + ((d.x - this._controlPoints[0].x) / l * 100) + "%";
     });
@@ -600,8 +600,8 @@ class TransferFunctionEditor {
    * @param jsonTransferFunction {string} json string describing the transfer function
    */
   loadTransferFunction(jsonTransferFunction) {
-    let   transferFunction = JSON.parse(jsonTransferFunction);
-    const points           = [];
+    let transferFunction = JSON.parse(jsonTransferFunction);
+    const points         = [];
     if (Array.isArray(transferFunction)) {
       // Paraview transfer function format
       transferFunction = transferFunction[0];
@@ -617,7 +617,7 @@ class TransferFunctionEditor {
       if (transferFunction.Points != null) {
         for (let i = 0; i < transferFunction.Points.length;) {
           if (!points.some(
-              point => Number(point.position) === Number(transferFunction.Points[i]))) {
+                  point => Number(point.position) === Number(transferFunction.Points[i]))) {
             points[index]          = {};
             points[index].position = transferFunction.Points[i++];
             points[index].a        = transferFunction.Points[i++];
@@ -694,15 +694,15 @@ class TransferFunctionEditor {
       var maxLog      = isFinite(Math.log(max_cP)) ? Math.log(max_cP) : 0;
       return {
         x: (this.options.logScaleEnabled)
-            ? Math.pow(
-                10, (local_value - min_cP) / (max_cP - min_cP) * (maxLog - minLog) + minLog)
-            : (point.position - min) * (255.0 / (max - min)),
+               ? Math.pow(
+                     10, (local_value - min_cP) / (max_cP - min_cP) * (maxLog - minLog) + minLog)
+               : (point.position - min) * (255.0 / (max - min)),
         opacity: point.a,
         color:
             (typeof point.r !== 'undefined')
                 ? "#" + (0x1000000 + (point.b * 255 | (point.g * 255 << 8) | (point.r * 255 << 16)))
-                .toString(16)
-                .slice(1)
+                            .toString(16)
+                            .slice(1)
                 : "#000000",
         locked: (typeof point.r !== 'undefined')
       };
@@ -755,7 +755,7 @@ class TransferFunctionEditorApi extends IApi {
    * @inheritDoc
    */
   init() {
-    const templateHtml        = `
+    const templateHtml = `
         <div>
           <div class="row">
             <div class="col-7 offset-5">

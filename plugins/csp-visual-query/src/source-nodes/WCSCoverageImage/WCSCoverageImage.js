@@ -26,37 +26,42 @@ class WCSCoverageImageComponent extends Rete.Component {
     // parameter references a socket type which has been registered with the node factory
     // before. It is required that the class is called <NAME>Component.
 
-    let coverageInput = new Rete.Input('coverageIn', "Coverage", CosmoScout.socketTypes['Coverage']);
+    let coverageInput =
+        new Rete.Input('coverageIn', "Coverage", CosmoScout.socketTypes['Coverage']);
     node.addInput(coverageInput);
 
-    let lngBoundMinInput = new Rete.Input('lngBoundMinIn', "Longitude Min", CosmoScout.socketTypes['number Value']);
+    let lngBoundMinInput =
+        new Rete.Input('lngBoundMinIn', "Longitude Min", CosmoScout.socketTypes['number Value']);
     node.addInput(lngBoundMinInput);
 
-    let lngBoundMaxInput = new Rete.Input('lngBoundMaxIn', "Longitude Max", CosmoScout.socketTypes['number Value']);
+    let lngBoundMaxInput =
+        new Rete.Input('lngBoundMaxIn', "Longitude Max", CosmoScout.socketTypes['number Value']);
     node.addInput(lngBoundMaxInput);
 
-    let latBoundMinInput = new Rete.Input('latBoundMinIn', "Latitude Min", CosmoScout.socketTypes['number Value']);
+    let latBoundMinInput =
+        new Rete.Input('latBoundMinIn', "Latitude Min", CosmoScout.socketTypes['number Value']);
     node.addInput(latBoundMinInput);
 
-    let latBoundMaxInput = new Rete.Input('latBoundMaxIn', "Latitude Max", CosmoScout.socketTypes['number Value']);
+    let latBoundMaxInput =
+        new Rete.Input('latBoundMaxIn', "Latitude Max", CosmoScout.socketTypes['number Value']);
     node.addInput(latBoundMaxInput);
-    
+
     let timeInput = new Rete.Input('wcsTimeIn', "Time", CosmoScout.socketTypes['WCSTime']);
     node.addInput(timeInput);
-    
-    let resolutionInput = new Rete.Input('resolutionIn', "Resolution", CosmoScout.socketTypes['number Value']);
+
+    let resolutionInput =
+        new Rete.Input('resolutionIn', "Resolution", CosmoScout.socketTypes['number Value']);
     node.addInput(resolutionInput);
 
     let imageOutput = new Rete.Output('imageOut', 'Image 2D', CosmoScout.socketTypes['WCSImage']);
     node.addOutput(imageOutput);
-    
-    node.onInit = (nodeDiv) => { 
 
-     
-      node.onMessageFromCPP = (message) => {
-        
-      };
-    }
+    node.onInit =
+        (nodeDiv) => {
+          node.onMessageFromCPP = (message) => {
+
+          };
+        }
 
     return node;
   }
