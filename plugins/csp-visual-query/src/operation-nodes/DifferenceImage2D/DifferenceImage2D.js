@@ -94,9 +94,6 @@ class StatusDisplay extends Rete.Control {
         case 'BoundsMismatch':
           elem.innerHTML += 'Input bounds do not match';
           break;
-        case 'TimestampMismatch':
-          elem.innerHTML += 'Input timestamps do not match';
-          break;
         case 'NumScalarsMismatch':
           elem.innerHTML += 'Input scalar sizes do not match';
           break;

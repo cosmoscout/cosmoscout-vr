@@ -37,21 +37,22 @@ std::string const& DifferenceImage2D::getName() const {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-std::vector<std::vector<T>> getDifference(
-    std::vector<std::vector<T>> first, std::vector<std::vector<T>> second) {
+PointsType getDifference(PointsType const& first, PointsType const& second) {
+  T const& v1 = std::get<T>(first);
+  T const& v2 = std::get<T>(second);
   // Init Result
-  std::vector<std::vector<T>> result;
+  T result;
   // Resize result vector to input size
-  result.resize(first.size());
+  result.resize(v1.size());
 
   // Loop over available points
-  for (int iPoint = 0; iPoint < first.size(); iPoint++) {
+  for (int iPoint = 0; iPoint < v1.size(); iPoint++) {
     // Resize point's vector (scalars) to size of input points
-    result[iPoint].resize(first[iPoint].size());
+    result[iPoint].resize(v1[iPoint].size());
 
     // Loop over vector of each point (scalars)
-    for (int iScalar = 0; iScalar < first[iPoint].size(); iScalar++) {
-      result[iPoint][iScalar] = first[iPoint][iScalar] - second[iPoint][iScalar];
+    for (int iScalar = 0; iScalar < v1[iPoint].size(); iScalar++) {
+      result[iPoint][iScalar] = v1[iPoint][iScalar] - v2[iPoint][iScalar];
     }
   }
   return result;
@@ -78,10 +79,6 @@ void DifferenceImage2D::process() {
     message["status"] = "ERROR";
     message["error"].push_back("BoundsMismatch");
   }
-  if (first->mTimeStamp != second->mTimeStamp) {
-    message["status"] = "ERROR";
-    message["error"].push_back("TimestampMismatch");
-  }
   if (first->mNumScalars != second->mNumScalars) {
     message["status"] = "ERROR";
     message["error"].push_back("NumScalarsMismatch");
@@ -98,38 +95,42 @@ void DifferenceImage2D::process() {
   // Init return value
   PointsType diffPoints;
 
-  // Check wich type is held by variant to calculate differnce
-  if (std::holds_alternative<U8ValueVector>(first->mPoints) &&
-      std::holds_alternative<U8ValueVector>(second->mPoints)) {
-    diffPoints = getDifference(
-        std::get<U8ValueVector>(first->mPoints), std::get<U8ValueVector>(second->mPoints));
-  } else if (std::holds_alternative<U16ValueVector>(first->mPoints) &&
-             std::holds_alternative<U16ValueVector>(second->mPoints)) {
-    diffPoints = getDifference(
-        std::get<U16ValueVector>(first->mPoints), std::get<U16ValueVector>(second->mPoints));
-  } else if (std::holds_alternative<U32ValueVector>(first->mPoints) &&
-             std::holds_alternative<U32ValueVector>(second->mPoints)) {
-    diffPoints = getDifference(
-        std::get<U32ValueVector>(first->mPoints), std::get<U32ValueVector>(second->mPoints));
-  } else if (std::holds_alternative<I16ValueVector>(first->mPoints) &&
-             std::holds_alternative<I16ValueVector>(second->mPoints)) {
-    diffPoints = getDifference(
-        std::get<I16ValueVector>(first->mPoints), std::get<I16ValueVector>(second->mPoints));
-  } else if (std::holds_alternative<I32ValueVector>(first->mPoints) &&
-             std::holds_alternative<I32ValueVector>(second->mPoints)) {
-    diffPoints = getDifference(
-        std::get<I32ValueVector>(first->mPoints), std::get<I32ValueVector>(second->mPoints));
-  } else if (std::holds_alternative<F32ValueVector>(first->mPoints) &&
-             std::holds_alternative<F32ValueVector>(second->mPoints)) {
-    diffPoints = getDifference(
-        std::get<F32ValueVector>(first->mPoints), std::get<F32ValueVector>(second->mPoints));
-  } else {
-    logger().error("Unknown type in input variants!");
+  switch (first->mPoints.index()) {
+  case cs::utils::variantIndex<PointsType, U8ValueVector>():
+    logger().info("U8ValueVector found!");
+    diffPoints = getDifference<U8ValueVector>(first->mPoints, second->mPoints);
+    break;
+  case cs::utils::variantIndex<PointsType, U16ValueVector>():
+    logger().info("U16ValueVector found!");
+    diffPoints = getDifference<U16ValueVector>(first->mPoints, second->mPoints);
+    break;
+  case cs::utils::variantIndex<PointsType, U32ValueVector>():
+    logger().info("U16ValueVector found!");
+    diffPoints = getDifference<U32ValueVector>(first->mPoints, second->mPoints);
+    break;
+  case cs::utils::variantIndex<PointsType, I16ValueVector>():
+    logger().info("I16ValueVector found!");
+    diffPoints = getDifference<I16ValueVector>(first->mPoints, second->mPoints);
+    break;
+  case cs::utils::variantIndex<PointsType, I32ValueVector>():
+    logger().info("I32ValueVector found!");
+    diffPoints = getDifference<I32ValueVector>(first->mPoints, second->mPoints);
+    break;
+  case cs::utils::variantIndex<PointsType, F32ValueVector>():
+    logger().info("F32ValueVector found!");
+    diffPoints = getDifference<F32ValueVector>(first->mPoints, second->mPoints);
+    break;
+  default:
+    logger().warn("Unexpected Type!");
+    break;
   }
 
-  // Fill output value (reuse first socket metadata)
-  mValue = std::make_shared<Image2D>(
-      diffPoints, first->mNumScalars, first->mDimension, first->mBounds, first->mTimeStamp);
+  // Fill output value
+  mValue = std::make_shared<Image2D>(diffPoints,
+      // Reuse first socket's metadata
+      first->mNumScalars, first->mDimension, first->mBounds,
+      // Reuse timestamp if both are identical, else drop timestamp
+      first->mTimeStamp == second->mTimeStamp ? first->mTimeStamp : std::nullopt);
 
   writeOutput("value", mValue);
 }
