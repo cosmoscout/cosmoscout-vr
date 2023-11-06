@@ -5,9 +5,10 @@
 // SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
 // SPDX-License-Identifier: MIT
 
-// The DifferenceImage2DNode has two input sockets accepting Image2D connections and a single Image2D output socket.
-// The DifferenceImage2DComponent serves as a kind of factory. Whenever a new node is created, the
-// builder() method is called. It is required that the class is called <NAME>Component.
+// The DifferenceImage2DNode has two input sockets accepting Image2D connections and a single
+// Image2D output socket. The DifferenceImage2DComponent serves as a kind of factory. Whenever a new
+// node is created, the builder() method is called. It is required that the class is called
+// <NAME>Component.
 class DifferenceImage2DComponent extends Rete.Component {
   constructor() {
     // This name must match the DifferenceImage2DNode::sName defined in DifferenceImage2DNode.cpp.
@@ -24,7 +25,8 @@ class DifferenceImage2DComponent extends Rete.Component {
     // The first parameter is the name of the socket and must be unique amngst all sockets.
     // It is also used in the DifferenceImage2DComponent::process() to read the inputs of this node.
     // The second parameter is the display name of the socket on the node.
-    // The last parameter references a socket type which has been registered with the node factory before.
+    // The last parameter references a socket type which has been registered with the node factory
+    // before.
     let firstInput = new Rete.Input('first', "First", CosmoScout.socketTypes['Image2D']);
     node.addInput(firstInput);
 
@@ -33,9 +35,9 @@ class DifferenceImage2DComponent extends Rete.Component {
 
     // This node has a single output.
     // The first parameter is the name of the socket and must be unique amongst all sockets.
-    // It is also used in the DifferenceImage2DComponent::process() to write the output of this node.
-    // The second parameter is shown as name on the node.
-    // The last parameter references a socket type which has been registered with the node factory before.
+    // It is also used in the DifferenceImage2DComponent::process() to write the output of this
+    // node. The second parameter is shown as name on the node. The last parameter references a
+    // socket type which has been registered with the node factory before.
     let output = new Rete.Output('value', "Output", CosmoScout.socketTypes['Image2D']);
     node.addOutput(output);
 
@@ -49,7 +51,6 @@ class DifferenceImage2DComponent extends Rete.Component {
     return node;
   }
 }
-
 
 class StatusDisplay extends Rete.Control {
   constructor(key) {
@@ -80,31 +81,31 @@ class StatusDisplay extends Rete.Control {
     console.log(value);
     if (value.status == 'OK') {
       elem.style['display'] = 'none';
-    }
-    else {
+    } else {
       elem.style['display'] = 'block'
-      elem.style['color'] = 'red';
+      elem.style['color']   = 'red';
 
       elem.innerHTML = ''
       value.error.forEach((err) => {
         switch (err) {
-          case 'DimensionMismatch':
-            elem.innerHTML += 'Input dimensions do not match';
-            break;
-          case 'BoundsMismatch':
-            elem.innerHTML += 'Input bounds do not match';
-            break;
-          case 'TimestampMismatch':
-            elem.innerHTML += 'Input timestamps do not match';
-            break;
-          case 'NumScalarsMismatch':
-            elem.innerHTML += 'Input scalar sizes do not match';
-            break;
-          case 'PointsTypeMismatch':
-            elem.innerHTML += 'Input scalar types do not match'
-          default:
-            elem.innerHTML += value.status;
-            break;
+        case 'DimensionMismatch':
+          elem.innerHTML += 'Input dimensions do not match';
+          break;
+        case 'BoundsMismatch':
+          elem.innerHTML += 'Input bounds do not match';
+          break;
+        case 'TimestampMismatch':
+          elem.innerHTML += 'Input timestamps do not match';
+          break;
+        case 'NumScalarsMismatch':
+          elem.innerHTML += 'Input scalar sizes do not match';
+          break;
+        case 'PointsTypeMismatch':
+          elem.innerHTML += 'Input scalar types do not match';
+          break;
+        default:
+          elem.innerHTML += value.status;
+          break;
         }
         elem.innerHTML += '<br>'
       })

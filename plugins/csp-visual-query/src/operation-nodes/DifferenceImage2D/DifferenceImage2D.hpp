@@ -14,14 +14,15 @@
 namespace csp::visualquery {
 
 /// The DifferenceImage2DNode calculates the difference between the first and second input.
-/// The node will write a new value to its output whenever a reprocessing of the connected nodes is triggered.
-/// The current value is stored as a private member and will be serialized and deserialized whenever the node graph is saved or loaded.
+/// The node will write a new value to its output whenever a reprocessing of the connected nodes is
+/// triggered. The current value is stored as a private member and will be serialized and
+/// deserialized whenever the node graph is saved or loaded.
 class DifferenceImage2D : public csl::nodeeditor::Node {
  public:
   // static interface ------------------------------------------------------------------------------
 
-  static const std::string           sName;
-  static std::string                 sSource();
+  static const std::string                  sName;
+  static std::string                        sSource();
   static std::unique_ptr<DifferenceImage2D> sCreate();
 
   // instance interface ----------------------------------------------------------------------------
