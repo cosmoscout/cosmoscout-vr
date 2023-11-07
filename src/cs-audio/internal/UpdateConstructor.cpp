@@ -35,7 +35,7 @@ UpdateConstructor::UpdateConstructor(std::shared_ptr<ProcessingStepsManager> pro
 void UpdateConstructor::updateAll(
   std::shared_ptr<std::vector<std::shared_ptr<Source>>> sources, 
   std::shared_ptr<std::vector<std::shared_ptr<SourceGroup>>> groups,
-  AudioController* audioController) {
+  std::shared_ptr<AudioController> audioController) {
 
   // possible improvement: disable mixing with group settings if there are no group updates -> change in createUpdateList() required
 
@@ -113,7 +113,7 @@ void UpdateConstructor::updateAll(
 void UpdateConstructor::updateGroups(
   std::shared_ptr<std::vector<std::shared_ptr<Source>>> sources,
   std::shared_ptr<std::vector<std::shared_ptr<SourceGroup>>> groups,
-  AudioController* audioController) {
+  std::shared_ptr<AudioController> audioController) {
 
   for (auto sourcePtr : *sources) {
 
@@ -157,7 +157,7 @@ void UpdateConstructor::updateGroups(
 
 void UpdateConstructor::updateSources(
   std::shared_ptr<std::vector<std::shared_ptr<Source>>> sources,
-  AudioController* audioController) {
+  std::shared_ptr<AudioController> audioController) {
 
   for (auto sourcePtr : *sources) {
 
@@ -183,7 +183,7 @@ void UpdateConstructor::updateSources(
 
 void UpdateConstructor::applyCurrentControllerSettings(
   std::shared_ptr<Source> source,
-  AudioController* audioController,
+  std::shared_ptr<AudioController> audioController,
   std::shared_ptr<std::map<std::string, std::any>> settings) {
   
   // There is no need to check for already set values here because this functions only gets called when creating a new 
@@ -202,7 +202,7 @@ void UpdateConstructor::applyCurrentControllerSettings(
 
 void UpdateConstructor::applyCurrentGroupSettings(
   std::shared_ptr<Source> source,
-  AudioController* audioController,
+  std::shared_ptr<AudioController> audioController,
   std::shared_ptr<std::map<std::string, std::any>> settings) {
   
   // take group settings
@@ -233,7 +233,7 @@ bool UpdateConstructor::containsRemove(std::shared_ptr<std::map<std::string, std
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void UpdateConstructor::rebuildPlaybackSettings(AudioController* audioController, std::shared_ptr<Source> source) {
+void UpdateConstructor::rebuildPlaybackSettings(std::shared_ptr<AudioController> audioController, std::shared_ptr<Source> source) {
   // take current controller settings
   auto finalSettings = std::make_shared<std::map<std::string, std::any>>(*(audioController->mCurrentSettings));
   // Mix with controller update settings

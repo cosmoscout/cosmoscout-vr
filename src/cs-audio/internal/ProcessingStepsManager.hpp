@@ -34,19 +34,16 @@ class CS_AUDIO_EXPORT ProcessingStepsManager {
   /// @brief creates a new Pipeline for an AudioController
   /// @param processingSteps List of name of all processing steps, which should be part of the pipeline
   /// @param audioController Pointer to audioController requesting the pipeline
-  void createPipeline(std::vector<std::string> processingSteps, AudioController* audioController);
-
-  /// @brief creates a new Pipeline for an AudioController. The Pipeline will only consist of the default
-  /// processing step. This pipeline gets automatically created when creating a new audioController.
-  /// @param audioController Pointer to audioController requesting the pipeline
-  void createPipeline(AudioController* audioController);
+  void createPipeline(std::vector<std::string> processingSteps, std::shared_ptr<AudioController> audioController);
 
   /// @brief Calls all processing steps part of the audioControllers pipeline for a source and applies all provided settings.
   /// @param source Source to process.
   /// @param audioController AudioController on which the source lives. Specifies the pipeline.
   /// @param sourceSettings Settings to apply to the provided source
   /// @return List of settings keys that failed when trying to apply the settings to the source.
-  std::shared_ptr<std::vector<std::string>> process(std::shared_ptr<Source> source, AudioController* audioController,
+  std::shared_ptr<std::vector<std::string>> process(
+    std::shared_ptr<Source> source, 
+    std::shared_ptr<AudioController> audioController,
     std::shared_ptr<std::map<std::string, std::any>> sourceSettings);
 
   /// @brief This functions will call all update functions of processing steps that are active and require
@@ -54,9 +51,8 @@ class CS_AUDIO_EXPORT ProcessingStepsManager {
   void callPsUpdateFunctions();
 
  private:                                                                          
-  // TODO: replace AudioController* with smart pointer    
   /// Holds all pipeline to a specific audioController                                                                       
-  std::map<AudioController*, std::set<std::shared_ptr<ProcessingStep>>> mPipelines;
+  std::map<std::shared_ptr<AudioController>, std::set<std::shared_ptr<ProcessingStep>>> mPipelines;
   /// List that contains all processing steps that require an update call every frame
   std::set<std::shared_ptr<ProcessingStep>>                             mUpdateProcessingSteps;
 

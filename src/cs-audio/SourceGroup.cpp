@@ -37,11 +37,11 @@ void SourceGroup::join(std::shared_ptr<Source> source) {
     return;
   }
   mMembers.insert(source);
-  source->mGroup = std::shared_ptr<SourceGroup>(this); // TODO: replace with shared_from_this()
+  source->mGroup = shared_from_this();
 
   // apply group settings to newly added source
   if (!mCurrentSettings->empty()) {
-    mUpdateConstructor->applyCurrentGroupSettings(source, mAudioController.get(), mCurrentSettings);
+    mUpdateConstructor->applyCurrentGroupSettings(source, mAudioController, mCurrentSettings);
   }
 }
 

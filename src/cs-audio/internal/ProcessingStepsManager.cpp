@@ -25,13 +25,13 @@ std::shared_ptr<ProcessingStepsManager> ProcessingStepsManager::createProcessing
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 ProcessingStepsManager::ProcessingStepsManager() 
-  : mPipelines(std::map<AudioController*, std::set<std::shared_ptr<ProcessingStep>>>()) {  
+  : mPipelines(std::map<std::shared_ptr<AudioController>, std::set<std::shared_ptr<ProcessingStep>>>()) {  
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void ProcessingStepsManager::createPipeline(std::vector<std::string> processingSteps, 
-  AudioController* audioController) {
+  std::shared_ptr<AudioController> audioController) {
   
   std::set<std::shared_ptr<ProcessingStep>> pipeline;
   pipeline.insert(Default_PS::create());
@@ -54,15 +54,6 @@ void ProcessingStepsManager::createPipeline(std::vector<std::string> processingS
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void ProcessingStepsManager::createPipeline(AudioController* audioController) {
-  std::set<std::shared_ptr<ProcessingStep>> pipeline;
-  pipeline.insert(Default_PS::create());
-  mPipelines[audioController] = pipeline;
-  removeObsoletePsFromUpdateList();
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
 std::shared_ptr<ProcessingStep> ProcessingStepsManager::getProcessingStep(std::string processingStep) {
 
   if (processingStep == "Spatialization") {
@@ -77,8 +68,10 @@ std::shared_ptr<ProcessingStep> ProcessingStepsManager::getProcessingStep(std::s
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::shared_ptr<std::vector<std::string>> ProcessingStepsManager::process(std::shared_ptr<Source> source, 
-  AudioController* audioController, std::shared_ptr<std::map<std::string, std::any>> settings) {
+std::shared_ptr<std::vector<std::string>> ProcessingStepsManager::process(
+  std::shared_ptr<Source> source, 
+  std::shared_ptr<AudioController> audioController, 
+  std::shared_ptr<std::map<std::string, std::any>> settings) {
 
   auto failedSettings = std::make_shared<std::vector<std::string>>();
   for (auto step : mPipelines[audioController]) {

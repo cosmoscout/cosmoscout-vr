@@ -156,6 +156,7 @@ void AudioEngine::update() {
 std::shared_ptr<audio::AudioController> AudioEngine::createAudioController() {
   auto controller = std::make_shared<audio::AudioController>(mBufferManager, 
     mProcessingStepsManager, mUpdateConstructor);
+  controller->setPipeline(std::vector<std::string>());
   mAudioControllers.push_back(controller);
   return controller;
 }

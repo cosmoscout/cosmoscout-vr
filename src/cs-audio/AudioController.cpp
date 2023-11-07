@@ -25,9 +25,7 @@ AudioController::AudioController(
   , mProcessingStepsManager(std::move(processingStepsManager))
   , mUpdateInstructor(std::make_shared<UpdateInstructor>())
   , mUpdateConstructor(std::move(updateConstructor)) {
-  
   setUpdateInstructor(mUpdateInstructor);  
-  mProcessingStepsManager->createPipeline(this);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -46,7 +44,7 @@ std::shared_ptr<Source> AudioController::createSource(std::string file) {
 
   // apply audioController settings to newly creates source
   if (!mCurrentSettings->empty()) {
-    mUpdateConstructor->applyCurrentControllerSettings(source, this, mCurrentSettings);
+    mUpdateConstructor->applyCurrentControllerSettings(source, shared_from_this(), mCurrentSettings);
   }
   return source;
 } 
@@ -54,7 +52,7 @@ std::shared_ptr<Source> AudioController::createSource(std::string file) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void AudioController::setPipeline(std::vector<std::string> processingSteps) {
-  mProcessingStepsManager->createPipeline(processingSteps, this);
+  mProcessingStepsManager->createPipeline(processingSteps, shared_from_this());
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -70,7 +68,7 @@ void AudioController::update() {
     mUpdateConstructor->updateAll(
       std::make_shared<std::vector<std::shared_ptr<Source>>>(mSources),
       std::make_shared<std::vector<std::shared_ptr<SourceGroup>>>(mGroups),
-      this);
+      shared_from_this());
     return;
   }
 
@@ -79,14 +77,14 @@ void AudioController::update() {
     mUpdateConstructor->updateGroups(
       updateInstructions.updateWithGroup,
       std::make_shared<std::vector<std::shared_ptr<SourceGroup>>>(mGroups),
-      this);
+      shared_from_this());
   }
 
   // update leftover changed sources
   if (updateInstructions.updateSourceOnly->size() > 0) {
     mUpdateConstructor->updateSources(
       updateInstructions.updateSourceOnly,
-      this);
+      shared_from_this());
   }
 }
 
