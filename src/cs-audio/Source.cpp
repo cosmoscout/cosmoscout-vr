@@ -104,6 +104,13 @@ bool Source::stop() const {
 
 bool Source::setFile(std::string file) {
   alGetError(); // clear error code
+
+  ALint state;
+  alGetSourcei(mOpenAlId, AL_SOURCE_STATE, &state);
+  if (state == AL_PLAYING) {
+    alSourceStop(mOpenAlId);
+  }
+
   // remove current buffer
   alSourcei(mOpenAlId, AL_BUFFER, NULL);
   if (alErrorHandling::errorOccurred()) {
@@ -129,6 +136,11 @@ bool Source::setFile(std::string file) {
     logger().warn("Failed to bind buffer to source!");
     return false;
   }
+
+  if (state == AL_PLAYING) {
+    alSourcePlay(mOpenAlId);
+  }
+
   return true;
 }
 
