@@ -46,7 +46,9 @@ class DifferenceImage2DComponent extends Rete.Component {
     node.addControl(statusDisplay);
 
     // This node has a listener for Messages to handle validation and error state
-    node.onMessageFromCPP = (message) => { statusDisplay.setStatus(message); };
+    node.onMessageFromCPP = (message) => {
+      statusDisplay.setStatus(message);
+    };
 
     return node;
   }
