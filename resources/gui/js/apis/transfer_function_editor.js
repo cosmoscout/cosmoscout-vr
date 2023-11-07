@@ -77,7 +77,9 @@ class TransferFunctionEditor {
       this._setExtents(data);
     }
     this._updateScales(resetSliderHandles);
-    this._data = this._bins(data).map((b) => { return {x0: b.x0, x1: b.x1, count: b.length}; });
+    this._data = this._bins(data).map((b) => {
+      return {x0: b.x0, x1: b.x1, count: b.length};
+    });
     this._updateAxis();
     if (resetSliderHandles) {
       this._updateControlPoints(this._controlPoints);
@@ -231,8 +233,13 @@ class TransferFunctionEditor {
           {'x': this._dataExtent[1], 'opacity': 1, 'color': '#FF0000', 'locked': true});
     }
     this._selected = this._controlPoints[1];
-    this._area.x(d => { return this._xScale(d.x); })
-        .y0(d => { return this._yScale(d.opacity); })
+    this._area
+        .x(d => {
+          return this._xScale(d.x);
+        })
+        .y0(d => {
+          return this._yScale(d.opacity);
+        })
         .y1(this._height);
 
     // Access the color selector
@@ -286,7 +293,9 @@ class TransferFunctionEditor {
     const g =
         this._svg.append("g")
             .attr("transform", "translate(" + this._margin.left + "," + this._margin.top + ")")
-            .on("mouseleave", () => { this._mouseup(); });
+            .on("mouseleave", () => {
+              this._mouseup();
+            });
 
     this._redrawHistogram();
 
@@ -334,9 +343,17 @@ class TransferFunctionEditor {
         .attr("width", this._width + 20)
         .attr("height", this._height + 20)
         .style("opacity", 0)
-        .on("mousedown", () => { this._mousedown(); })
-        .on("mouseup", () => { this._mouseup(); })
-        .on("mousemove", () => { this._mousemove(); });
+        .on("mousedown",
+            () => {
+              this._mousedown();
+            })
+        .on("mouseup",
+            () => {
+              this._mouseup();
+            })
+        .on("mousemove", () => {
+          this._mousemove();
+        });
   }
 
   // update scales with new data input
@@ -413,10 +430,22 @@ class TransferFunctionEditor {
 
     circle.enter()
         .append("circle")
-        .attr("cx", (d) => { return this._xScale(d.x); })
-        .attr("cy", (d) => { return this._yScale(d.opacity); })
-        .style("fill", (d) => { return d.color; })
-        .attr("r", (d) => { return d.locked ? 6.0 : 4.0; })
+        .attr("cx",
+            (d) => {
+              return this._xScale(d.x);
+            })
+        .attr("cy",
+            (d) => {
+              return this._yScale(d.opacity);
+            })
+        .style("fill",
+            (d) => {
+              return d.color;
+            })
+        .attr("r",
+            (d) => {
+              return d.locked ? 6.0 : 4.0;
+            })
         .on("mousedown",
             (d) => {
               this._selected = this._dragged = d;
@@ -424,8 +453,14 @@ class TransferFunctionEditor {
               this._redraw();
               this._updateLockButtonState();
             })
-        .on("mouseup", () => { this._mouseup(); })
-        .on("mousemove", () => { this._mousemove(); })
+        .on("mouseup",
+            () => {
+              this._mouseup();
+            })
+        .on("mousemove",
+            () => {
+              this._mousemove();
+            })
         .on("contextmenu", (d, i) => {
           // react on right-clicking
           d3.event.preventDefault();
@@ -435,11 +470,26 @@ class TransferFunctionEditor {
           this._updateLockButtonState();
         });
 
-    circle.classed("selected", (d) => { return d === this._selected; })
-        .style("fill", (d) => { return d.color; })
-        .attr("cx", (d) => { return this._xScale(d.x); })
-        .attr("cy", (d) => { return this._yScale(d.opacity); })
-        .attr("r", (d) => { return d.locked ? 6.0 : 4.0; });
+    circle
+        .classed("selected",
+            (d) => {
+              return d === this._selected;
+            })
+        .style("fill",
+            (d) => {
+              return d.color;
+            })
+        .attr("cx",
+            (d) => {
+              return this._xScale(d.x);
+            })
+        .attr("cy",
+            (d) => {
+              return this._yScale(d.opacity);
+            })
+        .attr("r", (d) => {
+          return d.locked ? 6.0 : 4.0;
+        });
 
     circle.exit().remove();
 
@@ -448,20 +498,34 @@ class TransferFunctionEditor {
 
     gradient.enter()
         .append("stop")
-        .attr("stop-color", (d) => { return d.color; })
-        .attr("stop-opacity", (d) => { return d.opacity; })
+        .attr("stop-color",
+            (d) => {
+              return d.color;
+            })
+        .attr("stop-opacity",
+            (d) => {
+              return d.opacity;
+            })
         .attr("offset", (d) => {
           const l =
               (this._controlPoints[this._controlPoints.length - 1].x - this._controlPoints[0].x);
           return "" + ((d.x - this._controlPoints[0].x) / l * 100) + "%";
         });
 
-    gradient.attr("stop-color", (d) => {
+    gradient
+        .attr("stop-color",
+            (d) => {
               return d.color;
-            }).attr("stop-opacity", (d) => { return d.opacity; }).attr("offset", (d) => {
-      const l = (this._controlPoints[this._controlPoints.length - 1].x - this._controlPoints[0].x);
-      return "" + ((d.x - this._controlPoints[0].x) / l * 100) + "%";
-    });
+            })
+        .attr("stop-opacity",
+            (d) => {
+              return d.opacity;
+            })
+        .attr("offset", (d) => {
+          const l =
+              (this._controlPoints[this._controlPoints.length - 1].x - this._controlPoints[0].x);
+          return "" + ((d.x - this._controlPoints[0].x) / l * 100) + "%";
+        });
 
     gradient.exit().remove();
 
@@ -478,7 +542,12 @@ class TransferFunctionEditor {
   _redrawHistogram() {
     this._svg.select("g").select(".histogram-group").selectAll(".bar").remove();
     if (this._data && this._data.length > 0) {
-      this._binScale.domain([0.1, d3.max(this._data, (d) => { return d.count; })]);
+      this._binScale.domain([
+        0.1, d3.max(this._data,
+                 (d) => {
+                   return d.count;
+                 })
+      ]);
       const bar =
           this._svg.select("g").select(".histogram-group").selectAll(".bar").data(this._data);
       const barEnter = bar.enter().append("g").attr("class", "bar").attr("transform", (d) => {
@@ -488,8 +557,13 @@ class TransferFunctionEditor {
       barEnter.append("rect")
           .attr("x", 1)
           .style("opacity", 0.5)
-          .attr("width", (d) => { return this._xScale(d.x1) - this._xScale(d.x0); })
-          .attr("height", (d) => { return this._height - this._binScale(d.count); });
+          .attr("width",
+              (d) => {
+                return this._xScale(d.x1) - this._xScale(d.x0);
+              })
+          .attr("height", (d) => {
+            return this._height - this._binScale(d.count);
+          });
 
       this._svg.select("g").select(".histogram-group").selectAll(".bar").lower();
 
@@ -506,7 +580,9 @@ class TransferFunctionEditor {
       "opacity": this._yScale.invert(Math.max(0, Math.min(pos[1] - this._margin.top, this._height)))
     };
     this._selected = this._dragged = point;
-    const bisect                   = d3.bisector((a, b) => { return a.x - b.x; }).left;
+    const bisect                   = d3.bisector((a, b) => {
+                       return a.x - b.x;
+                     }).left;
     const indexPos                 = bisect(this._controlPoints, point);
     this._controlPoints.splice(indexPos, 0, point);
     this._redraw();
@@ -531,8 +607,12 @@ class TransferFunctionEditor {
     }
     this._dragged.opacity =
         this._yScale.invert(Math.max(0, Math.min(this._height, m[1] - this._margin.top)));
-    const bisect        = d3.bisector((a, b) => { return a.x - b.x; }).left;
-    const bisect2       = d3.bisector((a, b) => { return a.x - b.x; }).right;
+    const bisect        = d3.bisector((a, b) => {
+                       return a.x - b.x;
+                     }).left;
+    const bisect2       = d3.bisector((a, b) => {
+                        return a.x - b.x;
+                      }).right;
     const virtualIndex  = bisect(this._controlPoints, this._dragged);
     const virtualIndex2 = bisect2(this._controlPoints, this._dragged);
     if (virtualIndex < index) {
@@ -657,7 +737,9 @@ class TransferFunctionEditor {
       });
     }
 
-    points.sort((a, b) => { return a.position - b.position; });
+    points.sort((a, b) => {
+      return a.position - b.position;
+    });
 
     if (Number(Number(this._xRangeSlider.noUiSlider.get()[0]).toPrecision(4)) >
         Number(this._dataExtent[0].toPrecision(4))) {
@@ -717,7 +799,9 @@ class TransferFunctionEditor {
    */
   setAvailableTransferFunctions(availableFiles) {
     let options = "";
-    availableFiles.forEach((file) => { options += `<option>${file}</option>`; });
+    availableFiles.forEach((file) => {
+      options += `<option>${file}</option>`;
+    });
     const importSelect = $(this.element).find("#transferFunctionEditor\\.importSelect-" + this.id);
     importSelect.html(options);
     importSelect.selectpicker();
@@ -858,8 +942,9 @@ class TransferFunctionEditorApi extends IApi {
    */
   setAvailableTransferFunctions(availableFilesJson) {
     this._availableFiles = JSON.parse(availableFilesJson);
-    this._editors.forEach(
-        (editor) => { editor.setAvailableTransferFunctions(this._availableFiles); });
+    this._editors.forEach((editor) => {
+      editor.setAvailableTransferFunctions(this._availableFiles);
+    });
   }
 
   /**

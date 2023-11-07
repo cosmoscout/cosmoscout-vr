@@ -44,7 +44,9 @@ class MathComponent extends Rete.Component {
     // called. This is used here to initialize the bootstrap select. The node.data object may
     // contain a math operation as returned by MathNode::getData() which - if present - should
     // be preselected.
-    node.onInit = (nodeDiv) => { control.init(nodeDiv, node.data); };
+    node.onInit = (nodeDiv) => {
+      control.init(nodeDiv, node.data);
+    };
 
     return node;
   }
@@ -88,7 +90,8 @@ class MathControl extends Rete.Control {
     }
 
     // Send an update to the node editor server whenever the user selects a new operation.
-    el.addEventListener('change',
-        (e) => { CosmoScout.sendMessageToCPP(parseInt(e.target.value), this.parent.id); });
+    el.addEventListener('change', (e) => {
+      CosmoScout.sendMessageToCPP(parseInt(e.target.value), this.parent.id);
+    });
   }
 }

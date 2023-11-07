@@ -54,9 +54,9 @@ class WCSCoverageComponent extends Rete.Component {
         new Rete.Output('latBoundMaxOut', "Latitude Max", CosmoScout.socketTypes['Real']);
     node.addOutput(latBoundMaxOutput);
 
-    let serverDropDown = new DropDownControl('selectServer',
-        (newServer) => { CosmoScout.sendMessageToCPP({server: newServer.text}, node.id); },
-        "Server", [{value: 0, text: "None"}]);
+    let serverDropDown = new DropDownControl('selectServer', (newServer) => {
+      CosmoScout.sendMessageToCPP({server: newServer.text}, node.id);
+    }, "Server", [{value: 0, text: "None"}]);
     node.addControl(serverDropDown);
 
     let coverageDropDown = new DropDownControl('selectCoverage', (newCoverage) => {
