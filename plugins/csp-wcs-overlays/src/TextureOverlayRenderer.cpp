@@ -13,8 +13,8 @@
 #include "../../../src/cs-core/Settings.hpp"
 #include "../../../src/cs-core/SolarSystem.hpp"
 #include "../../../src/cs-core/TimeControl.hpp"
-#include "../../../src/cs-graphics/TextureLoader.hpp"
 #include "../../../src/cs-scene/IntersectableObject.hpp"
+#include "../../../src/cs-graphics/TextureLoader.hpp"
 #include "../../../src/cs-utils/utils.hpp"
 
 // VISTA includes
@@ -208,23 +208,19 @@ void TextureOverlayRenderer::updateLonLatRange() {
   // Get the intersections of the camera rays at the corners of the screen with the body.
   std::array<std::pair<bool, glm::dvec3>, 4> intersections;
   intersections[0].first =
-      mSolarSystem->getObjectByCenterName(mCenterName)
-          ->getIntersectableObject()
+      mSolarSystem->getObjectByCenterName(mCenterName)->getIntersectableObject()
           ->getIntersection(glm::dvec3(0, 0, 0), glm::normalize(glm::dvec3(left, top, posZ)),
               intersections[0].second);
   intersections[1].first =
-      mSolarSystem->getObjectByCenterName(mCenterName)
-          ->getIntersectableObject()
+      mSolarSystem->getObjectByCenterName(mCenterName)->getIntersectableObject()
           ->getIntersection(glm::dvec3(0, 0, 0), glm::normalize(glm::dvec3(left, bottom, posZ)),
               intersections[1].second);
   intersections[2].first =
-      mSolarSystem->getObjectByCenterName(mCenterName)
-          ->getIntersectableObject()
+      mSolarSystem->getObjectByCenterName(mCenterName)->getIntersectableObject()
           ->getIntersection(glm::dvec3(0, 0, 0), glm::normalize(glm::dvec3(right, bottom, posZ)),
               intersections[2].second);
   intersections[3].first =
-      mSolarSystem->getObjectByCenterName(mCenterName)
-          ->getIntersectableObject()
+      mSolarSystem->getObjectByCenterName(mCenterName)->getIntersectableObject()
           ->getIntersection(glm::dvec3(0, 0, 0), glm::normalize(glm::dvec3(right, top, posZ)),
               intersections[3].second);
 
@@ -353,8 +349,8 @@ void TextureOverlayRenderer::getTimeIndependentTexture(
     std::thread(std::function([this, request]() {
       mGuiManager->getGui()->callJavascript(
           "CosmoScout.wcsOverlays.setCoverageSelectDisabled", true);
-      std::optional<csl::ogc::GDALReader::GreyScaleTexture> texture = mTextureLoader.loadTexture(
-          *mActiveWCS, *mActiveWCSCoverage, request, mPluginSettings->mCoverageCache.get(),
+      std::optional<csl::ogc::GDALReader::GreyScaleTexture> texture = mTextureLoader.loadTexture(*mActiveWCS,
+          *mActiveWCSCoverage, request, mPluginSettings->mCoverageCache.get(),
           request.mBounds == mActiveWCSCoverage->getSettings().mBounds);
       if (texture.has_value()) {
         mUpdateTexture = true;
@@ -426,11 +422,11 @@ bool TextureOverlayRenderer::Do() {
         request.mMaxSize = mPluginSettings->mMaxTextureSize.get();
         request.layer    = mActiveLayer;
 
-        mTexturesBuffer.insert(std::pair<std::string,
-            std::future<std::optional<csl::ogc::GDALReader::GreyScaleTexture>>>(
-            timeString, mTextureLoader.loadTextureAsync(*mActiveWCS, *mActiveWCSCoverage, request,
-                            mPluginSettings->mCoverageCache.get(),
-                            request.mBounds == mActiveWCSCoverage->getSettings().mBounds)));
+        mTexturesBuffer.insert(
+            std::pair<std::string, std::future<std::optional<csl::ogc::GDALReader::GreyScaleTexture>>>(
+                timeString, mTextureLoader.loadTextureAsync(*mActiveWCS, *mActiveWCSCoverage,
+                                request, mPluginSettings->mCoverageCache.get(),
+                                request.mBounds == mActiveWCSCoverage->getSettings().mBounds)));
       }
     }
 
@@ -441,8 +437,8 @@ bool TextureOverlayRenderer::Do() {
         std::optional<csl::ogc::GDALReader::GreyScaleTexture> texture = texIt->second.get();
 
         if (texture.has_value()) {
-          mTextures.insert(std::pair<std::string, csl::ogc::GDALReader::GreyScaleTexture>(
-              texIt->first, texture.value()));
+          mTextures.insert(
+              std::pair<std::string, csl::ogc::GDALReader::GreyScaleTexture>(texIt->first, texture.value()));
         } else {
           mWrongTextures.emplace_back(texIt->first);
         }
@@ -637,9 +633,9 @@ bool TextureOverlayRenderer::Do() {
   auto vWorldPos = glm::vec4(1);
   pTrans->GetWorldPosition(vWorldPos.x, vWorldPos.y, vWorldPos.z);
 
-  auto sunDirection = glm::normalize(
-      glm::inverse(matWorldTransform) *
-      (mSolarSystem->getSun()->getObserverRelativeTransform()[3] - matWorldTransform[3]));
+  auto sunDirection =
+      glm::normalize(glm::inverse(matWorldTransform) *
+                     (mSolarSystem->getSun()->getObserverRelativeTransform()[3] - matWorldTransform[3]));
   m_pSurfaceShader->SetUniform(m_pSurfaceShader->GetUniformLocation("uSunDirection"),
       static_cast<float>(sunDirection[0]), static_cast<float>(sunDirection[1]),
       static_cast<float>(sunDirection[2]));

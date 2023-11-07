@@ -22,8 +22,7 @@ class DropDownControl extends Rete.Control {
    * Constructs a new DropDownControl.
    *
    * @param {string}                 key              A unique identifier within the parent node.
-   * @param {DropDownChangeCallback} onChangeCallback A callback, that gets called, when the user
-   *     selects a new option.
+   * @param {DropDownChangeCallback} onChangeCallback A callback, that gets called, when the user selects a new option.
    * @param {string | undefined}     label            A label to show next to the options.
    * @param {Array<DropDownOption>}  defaultOptions   A set of initial options.
    */
@@ -78,9 +77,7 @@ class DropDownControl extends Rete.Control {
       this.setOptions(data.options);
 
       if (data.selectedValue) {
-        $(this.el).selectpicker(
-            'val', data.options.findIndex((entry) => entry.value === data.selectedValue ||
-                                                     entry.text === data.selectedValue));
+        $(this.el).selectpicker('val', data.options.findIndex((entry) => entry.value === data.selectedValue || entry.text === data.selectedValue));
       }
     }
   }
@@ -93,8 +90,8 @@ class DropDownControl extends Rete.Control {
     this.el.replaceChildren();
 
     for (let option of newOptions) {
-      let optionElement       = document.createElement("option");
-      optionElement.value     = option.value;
+      let optionElement = document.createElement("option");
+      optionElement.value = option.value;
       optionElement.innerHTML = option.text;
       this.el.appendChild(optionElement);
     }
@@ -103,9 +100,11 @@ class DropDownControl extends Rete.Control {
     $(this.el).selectpicker("refresh");
 
     // Send an update to the node whenever the user selects a new option.
-    this.el.addEventListener('change', (e) => this.callback({
-      value: parseInt(e.target.value),
-      text: e.target.options[e.target.selectedIndex].text
-    }));
+    this.el.addEventListener('change',
+      (e) =>
+        this.callback({
+          value: parseInt(e.target.value),
+          text: e.target.options[e.target.selectedIndex].text
+        }));
   }
 }

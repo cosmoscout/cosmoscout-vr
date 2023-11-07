@@ -13,8 +13,8 @@
 #include <array>
 #include <glm/glm.hpp>
 #include <memory>
-#include <string>
 #include <vector>
+#include <string>
 
 class VistaGLSLShader;
 

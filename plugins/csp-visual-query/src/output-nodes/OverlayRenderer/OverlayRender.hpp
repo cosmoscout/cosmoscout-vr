@@ -37,8 +37,8 @@ class OverlayRender final : public csl::nodeeditor::Node {
   /// updates the value of the 'time' output. This method may also get called occasionally by the
   /// node editor, for example if a new web client was connected hence needs updated values for all
   /// nodes.
-  void           process() override;
-  void           onMessageFromJS(const nlohmann::json& message) override;
+  void process() override;
+  void onMessageFromJS(const nlohmann::json& message) override;
   nlohmann::json getData() const override;
   void           setData(const nlohmann::json& json) override;
 

@@ -27,6 +27,7 @@ class RandomDataSourceComponent extends Rete.Component {
   }
 }
 
+
 class BoundsControl extends Rete.Control {
   constructor(key) {
     super(key);
@@ -49,17 +50,13 @@ class BoundsControl extends Rete.Control {
         </div>
         <div class="row">
           <div class="col-2">Min:</div>
-          <input id="min-lat-${
-        this.id}" class="offset-1 col-3" type="text" value="0" style="text-align: end" />
-          <input id="min-lon-${
-        this.id}" class="offset-1 col-3" type="text" value="0" style="text-align: end" />
+          <input id="min-lat-${this.id}" class="offset-1 col-3" type="text" value="0" style="text-align: end" />
+          <input id="min-lon-${this.id}" class="offset-1 col-3" type="text" value="0" style="text-align: end" />
         </div>
         <div class="row">
           <div class="col-2">Max:</div>
-          <input id="max-lat-${
-        this.id}" class="offset-1 col-3" type="text" value="0" style="text-align: end" />
-          <input id="max-lon-${
-        this.id}" class="offset-1 col-3" type="text" value="0" style="text-align: end" />
+          <input id="max-lat-${this.id}" class="offset-1 col-3" type="text" value="0" style="text-align: end" />
+          <input id="max-lon-${this.id}" class="offset-1 col-3" type="text" value="0" style="text-align: end" />
         </div>
       </div>
     `;

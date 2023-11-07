@@ -34,8 +34,8 @@ OGCExceptionReport::OGCExceptionReport(std::vector<std::unique_ptr<OGCException>
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::vector<std::unique_ptr<OGCException>> const&
-OGCExceptionReport::getExceptions() const noexcept {
+std::vector<std::unique_ptr<OGCException>> const& OGCExceptionReport::getExceptions() const
+    noexcept {
   return mExceptions;
 }
 

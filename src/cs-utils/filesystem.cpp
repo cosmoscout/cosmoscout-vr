@@ -15,8 +15,8 @@
 #include <curlpp/Options.hpp>
 
 #include <cmath>
-#include <fstream>
 #include <iostream>
+#include <fstream>
 
 namespace cs::utils::filesystem {
 
