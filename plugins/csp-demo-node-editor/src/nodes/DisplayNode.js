@@ -35,9 +35,7 @@ class DisplayComponent extends Rete.Component {
 
     // Whenever a message from C++ arrives, we set the input value accordingly. This message is
     // sent by the DisplayNode::process() method.
-    node.onMessageFromCPP = (message) => {
-      control.setValue(message.value);
-    };
+    node.onMessageFromCPP = (message) => { control.setValue(message.value); };
 
     return node;
   }
