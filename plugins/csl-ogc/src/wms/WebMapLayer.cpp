@@ -6,8 +6,8 @@
 // SPDX-License-Identifier: MIT
 
 #include "WebMapLayer.hpp"
-#include "../logger.hpp"
 #include "../common/utils.hpp"
+#include "../logger.hpp"
 
 #include "../../../src/cs-utils/utils.hpp"
 

@@ -68,11 +68,13 @@ class StatusbarApi extends IApi {
 
     // The 'console-has-input-focus' class on the _outputWrapper forces the console messages to not
     // fade when the text input field has input focus.
-    this._inputField.onfocus =
-        (e) => { this._outputWrapper.classList.add('console-has-input-focus'); };
+    this._inputField.onfocus = (e) => {
+      this._outputWrapper.classList.add('console-has-input-focus');
+    };
 
-    this._inputField.onblur =
-        (e) => { this._outputWrapper.classList.remove('console-has-input-focus'); };
+    this._inputField.onblur = (e) => {
+      this._outputWrapper.classList.remove('console-has-input-focus');
+    };
 
     this._inputField.onkeydown = (e) => {
       // Up pressed - history up.
@@ -253,7 +255,8 @@ class StatusbarApi extends IApi {
               // completion.
               this._suggestionField.insertAdjacentHTML("beforeend", `<span class='${classNames}'
                        onclick='CosmoScout.statusbar._setCompletion(${prefixBegin}, ${prefixEnd}, 
-                                                              ${finalCursorPos}, "${completion}");'>
+                                                              ${finalCursorPos}, "${
+                                                                        completion}");'>
                        ${element}
                 </span>`);
             });

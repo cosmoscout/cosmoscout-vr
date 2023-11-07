@@ -18,8 +18,7 @@ const std::string Real::sName = "Real";
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 std::string Real::sSource() {
-  return cs::utils::filesystem::loadToString(
-      "../share/resources/nodes/csp-visual-query/Real.js");
+  return cs::utils::filesystem::loadToString("../share/resources/nodes/csp-visual-query/Real.js");
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

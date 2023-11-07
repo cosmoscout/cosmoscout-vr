@@ -20,7 +20,6 @@
 #include <variant>
 #include <vector>
 
-
 /// These macros can be used to selectively disable specific gcc / clang or msvc warnings.
 #if defined(__clang__) || defined(__GNUC__)
 #define CS_DO_PRAGMA(X) _Pragma(#X)

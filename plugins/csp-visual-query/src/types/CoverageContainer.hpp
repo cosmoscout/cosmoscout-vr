@@ -14,12 +14,12 @@ namespace csp::visualquery {
 
 struct CoverageContainer {
 
-  CoverageContainer(std::shared_ptr<csl::ogc::WebCoverageService> server, 
-   std::shared_ptr<csl::ogc::WebCoverage> imageChannel)
-    : mServer(std::move(server))
-    , mImageChannel(std::move(imageChannel)) {
+  CoverageContainer(std::shared_ptr<csl::ogc::WebCoverageService> server,
+      std::shared_ptr<csl::ogc::WebCoverage>                      imageChannel)
+      : mServer(std::move(server))
+      , mImageChannel(std::move(imageChannel)) {
   }
-  
+
   std::shared_ptr<csl::ogc::WebCoverageService> mServer;
   std::shared_ptr<csl::ogc::WebCoverage>        mImageChannel;
 };

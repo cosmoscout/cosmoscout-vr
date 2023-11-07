@@ -24,8 +24,8 @@ namespace csl::ogc {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 WebMapService::WebMapService(std::string url, CacheMode cacheMode, std::string cacheDir)
-    : WebServiceBase(std::move(url), cacheMode, std::move(cacheDir), "WMS", "1.3.0",
-          {"WMS_Capabilities"})
+    : WebServiceBase(
+          std::move(url), cacheMode, std::move(cacheDir), "WMS", "1.3.0", {"WMS_Capabilities"})
     , mSettings(parseSettings())
     , mMapFormats(parseMapFormats())
     , mRootLayer(parseRootLayer()) {

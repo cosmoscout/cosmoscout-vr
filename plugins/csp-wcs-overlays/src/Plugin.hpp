@@ -8,8 +8,8 @@
 #ifndef CSP_WCS_OVERLAYS_PLUGIN_HPP
 #define CSP_WCS_OVERLAYS_PLUGIN_HPP
 
-#include "../../csl-ogc/src/wcs/WebCoverageService.hpp"
 #include "../../csl-ogc/src/common/utils.hpp"
+#include "../../csl-ogc/src/wcs/WebCoverageService.hpp"
 
 #include "../../../src/cs-core/PluginBase.hpp"
 #include "../../../src/cs-utils/DefaultProperty.hpp"
@@ -120,8 +120,8 @@ class Plugin : public cs::core::PluginBase {
   std::map<std::string, cs::utils::ThreadPool> mWcsCreationThreads;
   std::map<std::string, int>                   mWcsCreationProgress;
 
-  std::map<std::string, std::shared_ptr<TextureOverlayRenderer>> mWCSOverlays;
-  std::map<std::string, std::vector<csl::ogc::WebCoverageService>>         mWcs;
+  std::map<std::string, std::shared_ptr<TextureOverlayRenderer>>   mWCSOverlays;
+  std::map<std::string, std::vector<csl::ogc::WebCoverageService>> mWcs;
 
   std::shared_ptr<TextureOverlayRenderer> mActiveOverlay;
   /// The currently active WebCoverageService for each center name.

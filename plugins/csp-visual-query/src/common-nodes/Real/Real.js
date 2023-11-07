@@ -38,7 +38,9 @@ class RealComponent extends Rete.Component {
     // called. This is used here to initialize the input widget. The node.data object may
     // contain a number as returned by Real::getData() which - if present - should be
     // preselected.
-    node.onInit = (nodeDiv) => { control.init(nodeDiv, node.data); };
+    node.onInit = (nodeDiv) => {
+      control.init(nodeDiv, node.data);
+    };
 
     return node;
   }
@@ -76,8 +78,9 @@ class RealControl extends Rete.Control {
     }
 
     // Send an update to the node editor server whenever the user enters a new value.
-    el.addEventListener(
-        'input', e => { CosmoScout.sendMessageToCPP(parseFloat(e.target.value), this.parent.id); });
+    el.addEventListener('input', e => {
+      CosmoScout.sendMessageToCPP(parseFloat(e.target.value), this.parent.id);
+    });
 
     // Stop propagation of pointer move events. Else we would drag the node if we tried to
     // select some text in the input field.
