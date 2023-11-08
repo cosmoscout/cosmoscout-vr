@@ -78,6 +78,9 @@ struct CSL_OGC_EXPORT TimeInterval {
     return mStartTime == rhs.mStartTime && mEndTime == rhs.mEndTime && mFormat == rhs.mFormat &&
            mSampleDuration == rhs.mSampleDuration;
   }
+  inline bool operator!=(const TimeInterval& rhs) const {
+    return !(*this == rhs);
+  }
 };
 
 /// This namespace contains some utility functions for:

@@ -12,6 +12,7 @@
 
 #include "../../../src/cs-utils/filesystem.hpp"
 #include "common-nodes/Real/Real.hpp"
+#include "operation-nodes/DifferenceImage2D/DifferenceImage2D.hpp"
 #include "output-nodes/OverlayRenderer/OverlayRender.hpp"
 #include "source-nodes/RandomDataSource/RandomDataSource.hpp"
 #include "source-nodes/WCSCoverage/WCSCoverage.hpp"
@@ -154,11 +155,16 @@ void Plugin::setupNodeEditor(uint16_t port) {
   // Now, we register our custom node types. Any parameter given to this method, will later be
   // passed to the constructor of the node instances. For more information, see the documentation of
   // NodeFactory::registerNodeType().
+  // Commons
+  factory.registerNodeType<Real>();
+  // Operations
+  factory.registerNodeType<DifferenceImage2D>();
+  // Outputs
   factory.registerNodeType<WCSCoverage>(
       std::shared_ptr<std::vector<csl::ogc::WebCoverageService>>(&mPluginSettings.mWebCoverages));
+  // Sources
   factory.registerNodeType<RandomDataSource>();
   factory.registerNodeType<WCSCoverageImage>();
-  factory.registerNodeType<Real>();
   factory.registerNodeType<OverlayRender>(mSolarSystem, mAllSettings);
 
   // Finally, create the node editor. It will start the server so that we can now open a web browser
