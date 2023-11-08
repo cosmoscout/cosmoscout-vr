@@ -6,6 +6,7 @@
 // SPDX-License-Identifier: MIT
 
 #include "DifferenceImage2D.hpp"
+#include "../../../../src/cs-utils/filesystem.hpp"
 #include "../../../../src/cs-utils/utils.hpp"
 #include "../../logger.hpp"
 
@@ -46,12 +47,12 @@ PointsType getDifference(PointsType const& first, PointsType const& second) {
   result.resize(v1.size());
 
   // Loop over available points
-  for (int iPoint = 0; iPoint < v1.size(); iPoint++) {
+  for (size_t iPoint = 0; iPoint < v1.size(); iPoint++) {
     // Resize point's vector (scalars) to size of input points
     result[iPoint].resize(v1[iPoint].size());
 
     // Loop over vector of each point (scalars)
-    for (int iScalar = 0; iScalar < v1[iPoint].size(); iScalar++) {
+    for (size_t iScalar = 0; iScalar < v1[iPoint].size(); iScalar++) {
       result[iPoint][iScalar] = v1[iPoint][iScalar] - v2[iPoint][iScalar];
     }
   }
