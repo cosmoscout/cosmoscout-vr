@@ -30,13 +30,14 @@ class CS_AUDIO_EXPORT Source
  public:
   ~Source();
   
-  /// @brief Starts playing the Source
-  /// @return Whether it was successful
-  bool play() const;
+  /// @brief Sets setting to start playback
+  void play();
 
-  /// @brief Stops playing the Source
-  /// @return Whether it was successful
-  bool stop() const;
+  /// @brief Sets setting to stop playback
+  void stop();
+
+  /// @brief Sets setting to pause playback
+  void pause();
 
   /// @brief Sets a new file to be played by the source.
   /// @return Whether it was successful

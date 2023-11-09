@@ -13,7 +13,7 @@
 
 // processingSteps:
 # include "../processingSteps/Default_PS.hpp"
-# include "../processingSteps/Spatialization_PS.hpp"
+# include "../processingSteps/DirectPlay_PS.hpp"
 
 namespace cs::audio {
 
@@ -56,8 +56,9 @@ void ProcessingStepsManager::createPipeline(std::vector<std::string> processingS
 
 std::shared_ptr<ProcessingStep> ProcessingStepsManager::getProcessingStep(std::string processingStep) {
 
-  if (processingStep == "Spatialization") {
-    return Spatialization_PS::create();
+  if (processingStep == "DirectPlay") {
+    return DirectPlay_PS::create();
+  }
   }
 
   // ...

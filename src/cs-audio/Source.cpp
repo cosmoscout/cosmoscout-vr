@@ -80,24 +80,20 @@ Source::~Source() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool Source::play() const {
-  alSourcePlay(mOpenAlId);
-  if (alErrorHandling::errorOccurred()) {
-    logger().warn("Failed to start playback of source!");
-    return false;
-  }
-  return true;
+void Source::play() {
+  set("playback", std::string("play"));
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool Source::stop() const {
-  alSourceStop(mOpenAlId);
-  if (alErrorHandling::errorOccurred()) {
-    logger().warn("Failed to stop playback of source!");
-    return false;
-  }
-  return true;
+void Source::stop() {
+  set("playback", std::string("stop"));
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Source::pause() {
+  set("playback", std::string("pause"));
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
