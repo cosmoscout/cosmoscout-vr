@@ -5,7 +5,7 @@
 // SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
 // SPDX-License-Identifier: MIT
 
-#include "Spatialization_PS.hpp"
+#include "PointSpatialization_PS.hpp"
 #include "../internal/alErrorHandling.hpp"
 #include "../logger.hpp"
 
@@ -21,21 +21,21 @@
 
 namespace cs::audio {
 
-std::shared_ptr<ProcessingStep> Spatialization_PS::create() {
-  static auto spatialization_ps = std::shared_ptr<Spatialization_PS>(new Spatialization_PS());
+std::shared_ptr<ProcessingStep> PointSpatialization_PS::create() {
+  static auto spatialization_ps = std::shared_ptr<PointSpatialization_PS>(new PointSpatialization_PS());
   return spatialization_ps;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-Spatialization_PS::Spatialization_PS()
+PointSpatialization_PS::PointSpatialization_PS()
   : mSourcePositions(std::map<ALuint, SourceContainer>())
   , mLastTime(std::chrono::system_clock::now()) {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Spatialization_PS::process(std::shared_ptr<Source> source, 
+void PointSpatialization_PS::process(std::shared_ptr<Source> source, 
   std::shared_ptr<std::map<std::string, std::any>> settings,
   std::shared_ptr<std::vector<std::string>> failedSettings) {
   
@@ -48,16 +48,16 @@ void Spatialization_PS::process(std::shared_ptr<Source> source,
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool Spatialization_PS::processPosition(std::shared_ptr<Source> source, std::any value) {
+bool PointSpatialization_PS::processPosition(std::shared_ptr<Source> source, std::any value) {
   
   if (value.type() != typeid(glm::dvec3)) {
 
     // remove position
     if (value.type() == typeid(std::string) && std::any_cast<std::string>(value) == "remove") { 
-      std::cout << "position removed" << std::endl;
 
       ALuint openAlId = source->getOpenAlId();
-      
+      mSourcePositions.erase(openAlId);
+
       alSourcei(openAlId, AL_SOURCE_RELATIVE, AL_TRUE);
       if (alErrorHandling::errorOccurred()) {
         logger().warn("Failed to reset source position specification to relative!");
@@ -72,7 +72,7 @@ bool Spatialization_PS::processPosition(std::shared_ptr<Source> source, std::any
         logger().warn("Failed to reset source position!");
         return false;
       }
-      
+
       return true;
     }
 
@@ -106,7 +106,7 @@ bool Spatialization_PS::processPosition(std::shared_ptr<Source> source, std::any
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Spatialization_PS::calculateVelocity() {
+void PointSpatialization_PS::calculateVelocity() {
   std::chrono::system_clock::time_point currentTime = std::chrono::system_clock::now();
   std::chrono::duration<float> elapsed_seconds = currentTime - mLastTime; 
   auto elapsed_secondsf = elapsed_seconds.count();
@@ -149,13 +149,13 @@ void Spatialization_PS::calculateVelocity() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool Spatialization_PS::requiresUpdate() const {
+bool PointSpatialization_PS::requiresUpdate() const {
   return true;  
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Spatialization_PS::update() {
+void PointSpatialization_PS::update() {
   calculateVelocity();
 }
 

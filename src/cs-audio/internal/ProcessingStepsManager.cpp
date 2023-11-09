@@ -13,6 +13,7 @@
 
 // processingSteps:
 # include "../processingSteps/Default_PS.hpp"
+# include "../processingSteps/PointSpatialization_PS.hpp"
 # include "../processingSteps/DirectPlay_PS.hpp"
 # include "../processingSteps/VolumeCulling_PS.hpp"
 # include "../processingSteps/DistanceCulling_PS.hpp"
@@ -61,6 +62,11 @@ void ProcessingStepsManager::createPipeline(std::vector<std::string> processingS
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 std::shared_ptr<ProcessingStep> ProcessingStepsManager::getProcessingStep(std::string processingStep) {
+
+  if (processingStep == "PointSpatialization") {
+    return PointSpatialization_PS::create();
+  }
+
 
   if (processingStep == "DirectPlay") {
     return DirectPlay_PS::create();

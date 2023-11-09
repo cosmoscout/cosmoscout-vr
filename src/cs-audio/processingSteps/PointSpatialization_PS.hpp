@@ -5,22 +5,21 @@
 // SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
 // SPDX-License-Identifier: MIT
 
-#ifndef CS_AUDIO_PS_SPATIALIZATION_HPP
-#define CS_AUDIO_PS_SPATIALIZATION_HPP
+#ifndef CS_AUDIO_PS_POINT_SPATIALIZATION_HPP
+#define CS_AUDIO_PS_POINT_SPATIALIZATION_HPP
 
 #include "cs_audio_export.hpp"
 #include "ProcessingStep.hpp"
 #include "../Source.hpp"
-
 #include <AL/al.h>
 #include <glm/fwd.hpp>
 #include <chrono>
 
 namespace cs::audio {
 
-class CS_AUDIO_EXPORT Spatialization_PS : public ProcessingStep {
+class CS_AUDIO_EXPORT PointSpatialization_PS : public ProcessingStep {
  public:
-  /// @brief Creates new access to the single Default_PS object
+  /// @brief Creates new access to the single PointSpatialization_PS object
   /// @return Pointer to the PS
   static std::shared_ptr<ProcessingStep> create();
 
@@ -46,7 +45,7 @@ class CS_AUDIO_EXPORT Spatialization_PS : public ProcessingStep {
     glm::dvec3 lastPos;
   };
 
-  Spatialization_PS();
+  PointSpatialization_PS();
   bool processPosition(std::shared_ptr<Source> source, std::any position);
   /// @brief Calculates and applies the velocity for each spatialized source via the change of position
   void calculateVelocity();
@@ -59,4 +58,4 @@ class CS_AUDIO_EXPORT Spatialization_PS : public ProcessingStep {
 
 } // namespace cs::audio
 
-#endif // CS_AUDIO_PS_SPATIALIZATION_HPP
+#endif // CS_AUDIO_PS_POINT_SPATIALIZATION_HPP
