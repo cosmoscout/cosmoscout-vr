@@ -493,6 +493,12 @@ class CS_CORE_EXPORT Settings {
 
     ///	Frequency for mixing in the output buffer, measured in Hz
     utils::DefaultProperty<int> pMixerFrequency{48000};
+
+    /// Gain at which a source will stop playing if the volume culling PS is active
+    utils::DefaultProperty<float> pVolumeCullingThreshold{0.01f};
+
+    /// *real* Distance at which a source will stop playing if the distance culling PS is active
+    utils::DefaultProperty<double> pDistanceCullingThreshold{100.0};
   };
 
   Audio mAudio;
