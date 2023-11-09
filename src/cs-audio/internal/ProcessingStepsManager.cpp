@@ -14,6 +14,7 @@
 // processingSteps:
 # include "../processingSteps/Default_PS.hpp"
 # include "../processingSteps/DirectPlay_PS.hpp"
+# include "../processingSteps/VolumeCulling_PS.hpp"
 
 namespace cs::audio {
 
@@ -58,6 +59,10 @@ std::shared_ptr<ProcessingStep> ProcessingStepsManager::getProcessingStep(std::s
 
   if (processingStep == "DirectPlay") {
     return DirectPlay_PS::create();
+  }
+
+  if (processingStep == "VolumeCulling") {
+    return VolumeCulling_PS::create(mSettings->mAudio.pVolumeCullingThreshold.get());
   }
   }
 
