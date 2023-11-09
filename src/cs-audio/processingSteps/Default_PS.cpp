@@ -57,7 +57,6 @@ bool Default_PS::processGain(ALuint openAlId, std::any value) {
       
       // remove gain
       if (value.type() == typeid(std::string) && std::any_cast<std::string>(value) == "remove") { 
-        std::cout << "gain removed" << std::endl;
         
         alSourcef(openAlId, AL_GAIN, 1.f);
         if (alErrorHandling::errorOccurred()) {
