@@ -20,6 +20,7 @@
 namespace cs::audio {
 
 class AudioController;
+class ProcessingStep;
 
 class CS_AUDIO_EXPORT ProcessingStepsManager {
  public:
@@ -50,7 +51,7 @@ class CS_AUDIO_EXPORT ProcessingStepsManager {
   /// an every frame update.
   void callPsUpdateFunctions();
 
- private:                                                                          
+ private:                                                                            
   /// Holds all pipelines and their corresponding audioController                                                                       
   std::map<std::shared_ptr<AudioController>, std::set<std::shared_ptr<ProcessingStep>>> mPipelines;
   /// List that contains all processing steps that require an update call every frame

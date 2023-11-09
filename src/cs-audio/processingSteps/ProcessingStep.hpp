@@ -9,6 +9,7 @@
 #define CS_AUDIO_PROCESSING_STEP_HPP
 
 #include "cs_audio_export.hpp"
+#include "../Source.hpp"
 
 #include <AL/al.h>
 #include <map>
