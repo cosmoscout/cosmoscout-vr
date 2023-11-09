@@ -21,6 +21,7 @@ target_link_libraries(cs-audio
   PUBLIC
     ${OPENAL_LIBRARY}
     cs-utils
+    cs-scene
 )
 
 if(COSMOSCOUT_USE_PRECOMPILED_HEADERS)
