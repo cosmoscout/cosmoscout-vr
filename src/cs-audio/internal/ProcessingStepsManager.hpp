@@ -51,7 +51,7 @@ class CS_AUDIO_EXPORT ProcessingStepsManager {
   void callPsUpdateFunctions();
 
  private:                                                                          
-  /// Holds all pipeline to a specific audioController                                                                       
+  /// Holds all pipelines and their corresponding audioController                                                                       
   std::map<std::shared_ptr<AudioController>, std::set<std::shared_ptr<ProcessingStep>>> mPipelines;
   /// List that contains all processing steps that require an update call every frame
   std::set<std::shared_ptr<ProcessingStep>>                             mUpdateProcessingSteps;

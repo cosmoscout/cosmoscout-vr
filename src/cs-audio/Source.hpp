@@ -41,7 +41,7 @@ class CS_AUDIO_EXPORT Source
 
   /// @brief Sets a new file to be played by the source.
   /// @return Whether it was successful
-  bool setFile(std::string file); // TODO: what happens if the source is currently playing?
+  bool setFile(std::string file);
 
   /// @return Returns the current file that is getting played by the source.
   std::string getFile() const;
@@ -51,8 +51,6 @@ class CS_AUDIO_EXPORT Source
 
   /// @return Returns all settings (Source + Group + Controller) currently set and playing.
   std::shared_ptr<std::map<std::string, std::any>> getPlaybackSettings() const;
-
-  // TODO: Constructor in private ausprobieren
 
   Source(std::shared_ptr<BufferManager> bufferManager, 
   std::shared_ptr<ProcessingStepsManager> processingStepsManager,

@@ -33,7 +33,6 @@ class CS_AUDIO_EXPORT SourceSettings {
   /// @return Pointer to the settings map
   std::shared_ptr<std::map<std::string, std::any>> getCurrentSettings() const;
 
-  /// TODO
   void remove(std::string key);
 
   /// @brief Removes a key from the update settings.

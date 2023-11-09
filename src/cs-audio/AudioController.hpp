@@ -29,7 +29,7 @@ class CS_AUDIO_EXPORT AudioController
   , public std::enable_shared_from_this<AudioController> {
     
  public:
-  AudioController( // TODO: private machen
+  AudioController(
     std::shared_ptr<BufferManager> bufferManager, 
     std::shared_ptr<ProcessingStepsManager> processingStepsManager,
     std::shared_ptr<UpdateConstructor> updateConstructor);
