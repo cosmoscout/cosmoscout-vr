@@ -43,7 +43,7 @@ AudioEngine::AudioEngine(std::shared_ptr<Settings> settings, std::shared_ptr<Sol
     , mGuiManager(std::move(guiManager))
     , mOpenAlManager(audio::OpenAlManager::createOpenAlManager())
     , mBufferManager(audio::BufferManager::createBufferManager()) 
-    , mProcessingStepsManager(audio::ProcessingStepsManager::createProcessingStepsManager())
+    , mProcessingStepsManager(audio::ProcessingStepsManager::createProcessingStepsManager(mSettings))
     , mObserver(solarSystem->getObserver())
     , mSolarSystem(std::move(solarSystem))
     , mMasterVolume(utils::Property<float>(1.f))

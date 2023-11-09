@@ -29,7 +29,7 @@ class CS_AUDIO_EXPORT ProcessingStepsManager {
   ProcessingStepsManager& operator=(const ProcessingStepsManager&) = delete;
   ProcessingStepsManager& operator=(ProcessingStepsManager&&) = delete;
 
-  static std::shared_ptr<ProcessingStepsManager> createProcessingStepsManager();
+  static std::shared_ptr<ProcessingStepsManager> createProcessingStepsManager(std::shared_ptr<core::Settings> settings);
 
   /// @brief creates a new Pipeline for an AudioController
   /// @param processingSteps List of name of all processing steps, which should be part of the pipeline
@@ -55,8 +55,9 @@ class CS_AUDIO_EXPORT ProcessingStepsManager {
   std::map<std::shared_ptr<AudioController>, std::set<std::shared_ptr<ProcessingStep>>> mPipelines;
   /// List that contains all processing steps that require an update call every frame
   std::set<std::shared_ptr<ProcessingStep>>                             mUpdateProcessingSteps;
+  std::shared_ptr<core::Settings> mSettings;
 
-  ProcessingStepsManager();
+  ProcessingStepsManager(std::shared_ptr<core::Settings> settings);
 
   /// @brief Searches for and creates a processing step when defining a pipeline. If you want to add a new 
   /// processing step then you need to define the name and the corresponding create call here.

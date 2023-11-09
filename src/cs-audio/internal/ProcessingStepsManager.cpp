@@ -19,15 +19,19 @@
 
 namespace cs::audio {
 
-std::shared_ptr<ProcessingStepsManager> ProcessingStepsManager::createProcessingStepsManager() {
-  static auto psManager = std::shared_ptr<ProcessingStepsManager>(new ProcessingStepsManager());
+std::shared_ptr<ProcessingStepsManager> ProcessingStepsManager::createProcessingStepsManager(
+  std::shared_ptr<core::Settings> settings) {
+  
+  static auto psManager = std::shared_ptr<ProcessingStepsManager>(
+    new ProcessingStepsManager(std::move(settings)));
   return psManager;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-ProcessingStepsManager::ProcessingStepsManager() 
-  : mPipelines(std::map<std::shared_ptr<AudioController>, std::set<std::shared_ptr<ProcessingStep>>>()) {  
+ProcessingStepsManager::ProcessingStepsManager(std::shared_ptr<core::Settings> settings) 
+  : mPipelines(std::map<std::shared_ptr<AudioController>, std::set<std::shared_ptr<ProcessingStep>>>())
+  , mSettings(std::move(settings)) {  
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
