@@ -10,7 +10,7 @@
 
 #include "cs_audio_export.hpp"
 #include "ProcessingStep.hpp"
-#include "../Source.hpp"
+#include "../internal/SourceBase.hpp"
 #include <AL/al.h>
 #include <glm/fwd.hpp>
 #include <chrono>
@@ -27,7 +27,7 @@ class CS_AUDIO_EXPORT PointSpatialization_PS : public ProcessingStep {
   /// @param source Source to process
   /// @param settings settings to apply
   /// @param failedSettings Pointer to list which contains all failed settings
-  void process(std::shared_ptr<Source> source, 
+  void process(std::shared_ptr<SourceBase> source, 
     std::shared_ptr<std::map<std::string, std::any>> settings,
     std::shared_ptr<std::vector<std::string>> failedSettings) override;
 
@@ -40,13 +40,13 @@ class CS_AUDIO_EXPORT PointSpatialization_PS : public ProcessingStep {
  private:
   /// Strcut to hold all necessary information regarding a spatialized source
   struct SourceContainer {
-    std::weak_ptr<Source> sourcePtr;
+    std::weak_ptr<SourceBase> sourcePtr;
     glm::dvec3 currentPos;
     glm::dvec3 lastPos;
   };
 
   PointSpatialization_PS();
-  bool processPosition(std::shared_ptr<Source> source, std::any position);
+  bool processPosition(std::shared_ptr<SourceBase> source, std::any position);
   /// @brief Calculates and applies the velocity for each spatialized source via the change of position
   void calculateVelocity();
 

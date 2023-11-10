@@ -7,8 +7,9 @@
 
 #include "UpdateConstructor.hpp"
 #include "SettingsMixer.hpp"
+#include "SourceBase.hpp"
+#include "ProcessingStepsManager.hpp"
 #include "../AudioController.hpp"
-#include "../Source.hpp"
 #include "../SourceGroup.hpp"
 
 #include <vector>
@@ -33,7 +34,7 @@ UpdateConstructor::UpdateConstructor(std::shared_ptr<ProcessingStepsManager> pro
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void UpdateConstructor::updateAll(
-  std::shared_ptr<std::vector<std::shared_ptr<Source>>> sources, 
+  std::shared_ptr<std::vector<std::shared_ptr<SourceBase>>> sources, 
   std::shared_ptr<std::vector<std::shared_ptr<SourceGroup>>> groups,
   std::shared_ptr<AudioController> audioController) {
 
@@ -111,7 +112,7 @@ void UpdateConstructor::updateAll(
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void UpdateConstructor::updateGroups(
-  std::shared_ptr<std::vector<std::shared_ptr<Source>>> sources,
+  std::shared_ptr<std::vector<std::shared_ptr<SourceBase>>> sources,
   std::shared_ptr<std::vector<std::shared_ptr<SourceGroup>>> groups,
   std::shared_ptr<AudioController> audioController) {
 
@@ -156,7 +157,7 @@ void UpdateConstructor::updateGroups(
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void UpdateConstructor::updateSources(
-  std::shared_ptr<std::vector<std::shared_ptr<Source>>> sources,
+  std::shared_ptr<std::vector<std::shared_ptr<SourceBase>>> sources,
   std::shared_ptr<AudioController> audioController) {
 
   for (auto sourcePtr : *sources) {
@@ -182,7 +183,7 @@ void UpdateConstructor::updateSources(
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void UpdateConstructor::applyCurrentControllerSettings(
-  std::shared_ptr<Source> source,
+  std::shared_ptr<SourceBase> source,
   std::shared_ptr<AudioController> audioController,
   std::shared_ptr<std::map<std::string, std::any>> settings) {
   
@@ -201,7 +202,7 @@ void UpdateConstructor::applyCurrentControllerSettings(
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void UpdateConstructor::applyCurrentGroupSettings(
-  std::shared_ptr<Source> source,
+  std::shared_ptr<SourceBase> source,
   std::shared_ptr<AudioController> audioController,
   std::shared_ptr<std::map<std::string, std::any>> settings) {
   
@@ -233,7 +234,7 @@ bool UpdateConstructor::containsRemove(std::shared_ptr<std::map<std::string, std
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void UpdateConstructor::rebuildPlaybackSettings(std::shared_ptr<AudioController> audioController, std::shared_ptr<Source> source) {
+void UpdateConstructor::rebuildPlaybackSettings(std::shared_ptr<AudioController> audioController, std::shared_ptr<SourceBase> source) {
   // take current controller settings
   auto finalSettings = std::make_shared<std::map<std::string, std::any>>(*(audioController->mCurrentSettings));
   // Mix with controller update settings

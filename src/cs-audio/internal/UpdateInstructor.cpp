@@ -7,18 +7,19 @@
 
 #include "../logger.hpp"
 #include "UpdateInstructor.hpp"
+#include "../SourceGroup.hpp"
 
 namespace cs::audio {
 
 UpdateInstructor::UpdateInstructor() 
-  : mSourceUpdateList(std::set<std::shared_ptr<Source>>())
+  : mSourceUpdateList(std::set<std::shared_ptr<SourceBase>>())
   , mGroupUpdateList(std::set<std::shared_ptr<SourceGroup>>())
   , mAudioControllerUpdate(false) { 
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void UpdateInstructor::update(std::shared_ptr<Source> source) {
+void UpdateInstructor::update(std::shared_ptr<SourceBase> source) {
   mSourceUpdateList.insert(source);
 }
 
@@ -46,8 +47,8 @@ UpdateInstructor::UpdateInstruction UpdateInstructor::createUpdateInstruction() 
   }
 
   result.updateAll = false;
-  result.updateWithGroup = std::make_shared<std::vector<std::shared_ptr<Source>>>();
-  result.updateSourceOnly = std::make_shared<std::vector<std::shared_ptr<Source>>>();
+  result.updateWithGroup = std::make_shared<std::vector<std::shared_ptr<SourceBase>>>();
+  result.updateSourceOnly = std::make_shared<std::vector<std::shared_ptr<SourceBase>>>();
 
   // add group members to updateList
   for (auto groupPtr : mGroupUpdateList) {

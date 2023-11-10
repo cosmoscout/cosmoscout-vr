@@ -11,6 +11,9 @@
 
 #include <AL/al.h>
 #include <map>
+#include <glm/fwd.hpp>
+#include <glm/glm.hpp>
+#include <any>
 
 namespace cs::audio {
 
@@ -27,7 +30,7 @@ VolumeCulling_PS::VolumeCulling_PS(float gainThreshold)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void VolumeCulling_PS::process(std::shared_ptr<Source> source, 
+void VolumeCulling_PS::process(std::shared_ptr<SourceBase> source, 
   std::shared_ptr<std::map<std::string, std::any>> settings,
   std::shared_ptr<std::vector<std::string>> failedSettings) {
   
@@ -47,7 +50,7 @@ void VolumeCulling_PS::process(std::shared_ptr<Source> source,
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool VolumeCulling_PS::processPosition(std::shared_ptr<Source> source, std::any position, 
+bool VolumeCulling_PS::processPosition(std::shared_ptr<SourceBase> source, std::any position, 
   std::any newGain, std::any newPlayback) {
 
   ALuint openALId = source->getOpenAlId();

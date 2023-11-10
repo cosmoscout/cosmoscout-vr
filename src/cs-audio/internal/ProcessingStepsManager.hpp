@@ -43,7 +43,7 @@ class CS_AUDIO_EXPORT ProcessingStepsManager {
   /// @param sourceSettings Settings to apply to the provided source
   /// @return List of settings keys that failed when trying to apply the settings to the source.
   std::shared_ptr<std::vector<std::string>> process(
-    std::shared_ptr<Source> source, 
+    std::shared_ptr<SourceBase> source, 
     std::shared_ptr<AudioController> audioController,
     std::shared_ptr<std::map<std::string, std::any>> sourceSettings);
 

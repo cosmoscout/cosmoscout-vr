@@ -10,7 +10,7 @@
 
 #include "cs_audio_export.hpp"
 #include "ProcessingStep.hpp"
-#include "../Source.hpp"
+#include "../internal/SourceBase.hpp"
 
 #include <AL/al.h>
 
@@ -26,7 +26,7 @@ class CS_AUDIO_EXPORT DistanceCulling_PS : public ProcessingStep {
   /// @param source Source to process
   /// @param settings settings to apply
   /// @param failedSettings Pointer to list which contains all failed settings
-  void process(std::shared_ptr<Source> source, 
+  void process(std::shared_ptr<SourceBase> source, 
     std::shared_ptr<std::map<std::string, std::any>> settings,
     std::shared_ptr<std::vector<std::string>> failedSettings) override;
 
@@ -40,7 +40,7 @@ class CS_AUDIO_EXPORT DistanceCulling_PS : public ProcessingStep {
   double mDistanceThreshold;
 
   DistanceCulling_PS(double distanceThreshold);
-  bool processPosition(std::shared_ptr<Source>, std::any position, std::any newPlayback);
+  bool processPosition(std::shared_ptr<SourceBase>, std::any position, std::any newPlayback);
 };
 
 } // namespace cs::audio

@@ -9,14 +9,18 @@
 #define CS_AUDIO_UPDATE_INSTRUCTOR_HPP
 
 #include "cs_audio_export.hpp"
-#include "../Source.hpp"
-#include "../SourceGroup.hpp"
-#include "../AudioController.hpp"
+// #include "../SourceGroup.hpp"
+// #include "../AudioController.hpp"
 
 #include <set>
+#include <iostream>
 #include <memory>
 
 namespace cs::audio {
+
+class SourceBase;
+class SourceGroup;
+class AudioController;
 
 class CS_AUDIO_EXPORT UpdateInstructor {
  public:
@@ -24,7 +28,7 @@ class CS_AUDIO_EXPORT UpdateInstructor {
   
   /// @brief Adds a Source to the updateList
   /// @param source Source to add 
-  void update(std::shared_ptr<Source> source);
+  void update(std::shared_ptr<SourceBase> source);
 
   /// @brief Adds a Source Group, and therefor all Member Sources, to the updateList
   /// @param sourceGroup Source Group to add
@@ -38,8 +42,8 @@ class CS_AUDIO_EXPORT UpdateInstructor {
   /// Struct to hold all update instructions
   struct UpdateInstruction {
     bool updateAll;
-    std::shared_ptr<std::vector<std::shared_ptr<Source>>> updateWithGroup = nullptr;
-    std::shared_ptr<std::vector<std::shared_ptr<Source>>> updateSourceOnly = nullptr;
+    std::shared_ptr<std::vector<std::shared_ptr<SourceBase>>> updateWithGroup = nullptr;
+    std::shared_ptr<std::vector<std::shared_ptr<SourceBase>>> updateSourceOnly = nullptr;
 
     // temporary:
     void print() {
@@ -62,7 +66,7 @@ class CS_AUDIO_EXPORT UpdateInstructor {
 
  private:                 
   /// List of all source to be updated.
-  std::set<std::shared_ptr<Source>>      mSourceUpdateList;
+  std::set<std::shared_ptr<SourceBase>>      mSourceUpdateList;
   /// List of all source groups to be updated.
   std::set<std::shared_ptr<SourceGroup>> mGroupUpdateList;
   /// Indicates if the audioController settings changed.

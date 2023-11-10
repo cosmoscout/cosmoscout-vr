@@ -18,7 +18,7 @@
 
 namespace cs::audio {
 
-class Source;
+class SourceBase;
 class SourceGroup;
 class AudioController;
 class ProcessingStepsManager;
@@ -29,15 +29,15 @@ class CS_AUDIO_EXPORT UpdateConstructor {
     std::shared_ptr<ProcessingStepsManager> processingStepsManager);
   
   void updateAll(
-    std::shared_ptr<std::vector<std::shared_ptr<Source>>> sources, 
+    std::shared_ptr<std::vector<std::shared_ptr<SourceBase>>> sources, 
     std::shared_ptr<std::vector<std::shared_ptr<SourceGroup>>> groups,
     std::shared_ptr<AudioController> audioController);
   void updateGroups(
-    std::shared_ptr<std::vector<std::shared_ptr<Source>>> sources, 
+    std::shared_ptr<std::vector<std::shared_ptr<SourceBase>>> sources, 
     std::shared_ptr<std::vector<std::shared_ptr<SourceGroup>>> groups,
     std::shared_ptr<AudioController> audioController);
   void updateSources(
-    std::shared_ptr<std::vector<std::shared_ptr<Source>>> sources,
+    std::shared_ptr<std::vector<std::shared_ptr<SourceBase>>> sources,
     std::shared_ptr<AudioController> audioController);
     
   /// @brief Update source settings with the currently set settings of the audio Controller.
@@ -46,7 +46,7 @@ class CS_AUDIO_EXPORT UpdateConstructor {
   /// @param audioController audioController in which the source lives
   /// @param settings audio controller settings to apply to source
   void applyCurrentControllerSettings(
-    std::shared_ptr<Source> source,
+    std::shared_ptr<SourceBase> source,
     std::shared_ptr<AudioController> audioController,
     std::shared_ptr<std::map<std::string, std::any>> settings);
 
@@ -56,7 +56,7 @@ class CS_AUDIO_EXPORT UpdateConstructor {
   /// @param audioController audioController in which the source lives
   /// @param settings group settings to apply to source
   void applyCurrentGroupSettings(
-    std::shared_ptr<Source> source,
+    std::shared_ptr<SourceBase> source,
     std::shared_ptr<AudioController> audioController,
     std::shared_ptr<std::map<std::string, std::any>> settings);
 
@@ -64,7 +64,7 @@ class CS_AUDIO_EXPORT UpdateConstructor {
   UpdateConstructor(std::shared_ptr<ProcessingStepsManager> processingStepsManager);
   
   bool containsRemove(std::shared_ptr<std::map<std::string, std::any>> settings);
-  void rebuildPlaybackSettings(std::shared_ptr<AudioController> audioController, std::shared_ptr<Source> source);
+  void rebuildPlaybackSettings(std::shared_ptr<AudioController> audioController, std::shared_ptr<SourceBase> source);
 
   std::shared_ptr<ProcessingStepsManager> mProcessingStepsManager;         
 };

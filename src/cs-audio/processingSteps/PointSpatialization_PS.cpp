@@ -35,7 +35,7 @@ PointSpatialization_PS::PointSpatialization_PS()
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void PointSpatialization_PS::process(std::shared_ptr<Source> source, 
+void PointSpatialization_PS::process(std::shared_ptr<SourceBase> source, 
   std::shared_ptr<std::map<std::string, std::any>> settings,
   std::shared_ptr<std::vector<std::string>> failedSettings) {
   
@@ -48,7 +48,7 @@ void PointSpatialization_PS::process(std::shared_ptr<Source> source,
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool PointSpatialization_PS::processPosition(std::shared_ptr<Source> source, std::any value) {
+bool PointSpatialization_PS::processPosition(std::shared_ptr<SourceBase> source, std::any value) {
   
   if (value.type() != typeid(glm::dvec3)) {
 
@@ -100,7 +100,7 @@ bool PointSpatialization_PS::processPosition(std::shared_ptr<Source> source, std
     return false;
   }
 
-  mSourcePositions[openAlId] = SourceContainer{std::weak_ptr<Source>(source), positionValue, positionValue};
+  mSourcePositions[openAlId] = SourceContainer{std::weak_ptr<SourceBase>(source), positionValue, positionValue};
   return true;
 }
 

@@ -11,6 +11,9 @@
 
 #include <AL/al.h>
 #include <map>
+#include <glm/fwd.hpp>
+#include <glm/glm.hpp>
+#include <any>
 
 namespace cs::audio {
 
@@ -27,7 +30,7 @@ DistanceCulling_PS::DistanceCulling_PS(double distanceThreshold)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void DistanceCulling_PS::process(std::shared_ptr<Source> source, 
+void DistanceCulling_PS::process(std::shared_ptr<SourceBase> source, 
   std::shared_ptr<std::map<std::string, std::any>> settings,
   std::shared_ptr<std::vector<std::string>> failedSettings) {
   
@@ -44,7 +47,7 @@ void DistanceCulling_PS::process(std::shared_ptr<Source> source,
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool DistanceCulling_PS::processPosition(std::shared_ptr<Source> source, std::any position,
+bool DistanceCulling_PS::processPosition(std::shared_ptr<SourceBase> source, std::any position,
   std::any newPlayback) {
 
   ALuint openALId = source->getOpenAlId();

@@ -7,6 +7,7 @@
 
 #include "Default_PS.hpp"
 #include "../internal/alErrorHandling.hpp"
+#include "../logger.hpp"
 
 #include <AL/al.h>
 #include <map>
@@ -25,7 +26,7 @@ Default_PS::Default_PS() {}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Default_PS::process(std::shared_ptr<Source> source, 
+void Default_PS::process(std::shared_ptr<SourceBase> source, 
   std::shared_ptr<std::map<std::string, std::any>> settings,
   std::shared_ptr<std::vector<std::string>> failedSettings) {
 

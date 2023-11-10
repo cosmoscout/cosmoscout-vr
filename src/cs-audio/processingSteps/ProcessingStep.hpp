@@ -9,7 +9,7 @@
 #define CS_AUDIO_PROCESSING_STEP_HPP
 
 #include "cs_audio_export.hpp"
-#include "../Source.hpp"
+#include "../internal/SourceBase.hpp"
 
 #include <AL/al.h>
 #include <map>
@@ -31,7 +31,7 @@ class CS_AUDIO_EXPORT ProcessingStep {
   /// @param source Source to process
   /// @param settings settings to apply
   /// @param failedSettings Pointer to list which contains all failed settings
-  virtual void process(std::shared_ptr<Source> source, 
+  virtual void process(std::shared_ptr<SourceBase> source, 
     std::shared_ptr<std::map<std::string, std::any>> settings,
     std::shared_ptr<std::vector<std::string>> failedSettings) = 0;
 

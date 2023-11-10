@@ -6,7 +6,7 @@
 // SPDX-License-Identifier: MIT
 
 #include "SourceGroup.hpp"
-#include "Source.hpp"
+#include "internal/SourceBase.hpp"
 #include "internal/SettingsMixer.hpp"
 #include "internal/UpdateInstructor.hpp"
 #include "internal/SourceSettings.hpp"
@@ -18,7 +18,7 @@ SourceGroup::SourceGroup(std::shared_ptr<UpdateInstructor> UpdateInstructor,
   std::shared_ptr<AudioController> audioController) 
   : SourceSettings(std::move(UpdateInstructor))
   , std::enable_shared_from_this<SourceGroup>()
-  , mMembers(std::set<std::shared_ptr<Source>>())
+  , mMembers(std::set<std::shared_ptr<SourceBase>>())
   , mUpdateConstructor(std::move(updateConstructor))
   , mAudioController(std::move(audioController)) {
 }
@@ -31,7 +31,7 @@ SourceGroup::~SourceGroup() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void SourceGroup::join(std::shared_ptr<Source> source) {
+void SourceGroup::join(std::shared_ptr<SourceBase> source) {
   if (source->mGroup != nullptr) {
     logger().warn("Audio Group Warning: Remove Source form previous group before assigning a new one!");
     return;
@@ -47,7 +47,7 @@ void SourceGroup::join(std::shared_ptr<Source> source) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void SourceGroup::remove(std::shared_ptr<Source> sourceToRemove) {
+void SourceGroup::remove(std::shared_ptr<SourceBase> sourceToRemove) {
   if (mMembers.erase(sourceToRemove) == 1) {
     sourceToRemove->mGroup = nullptr;
 
@@ -68,7 +68,7 @@ void SourceGroup::reset() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::set<std::shared_ptr<Source>> SourceGroup::getMembers() const {
+std::set<std::shared_ptr<SourceBase>> SourceGroup::getMembers() const {
   return mMembers;
 }
 

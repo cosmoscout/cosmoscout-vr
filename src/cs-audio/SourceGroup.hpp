@@ -9,7 +9,7 @@
 #define CS_CORE_AUDIO_SOURCE_GROUP_HPP
 
 #include "cs_audio_export.hpp"
-#include "Source.hpp"
+#include "internal/SourceBase.hpp"
 #include "internal/SourceSettings.hpp"
 
 #include <memory>
@@ -34,17 +34,17 @@ class CS_AUDIO_EXPORT SourceGroup
   ~SourceGroup();
 
   /// @brief Adds a new source to the group
-  void join(std::shared_ptr<Source> source);
+  void join(std::shared_ptr<SourceBase> source);
   /// @brief Removes a source from the group
-  void remove(std::shared_ptr<Source> source);
+  void remove(std::shared_ptr<SourceBase> source);
   /// @brief Removes all sources form the group
   void reset();
 
   /// @return List to all members of the group
-  std::set<std::shared_ptr<Source>> getMembers() const;
+  std::set<std::shared_ptr<SourceBase>> getMembers() const;
     
  private:
-  std::set<std::shared_ptr<Source>>  mMembers;
+  std::set<std::shared_ptr<SourceBase>>  mMembers;
   std::shared_ptr<UpdateConstructor> mUpdateConstructor;
   std::shared_ptr<AudioController> mAudioController; // TODO: good idea?
   

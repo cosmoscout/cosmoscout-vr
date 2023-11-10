@@ -9,7 +9,7 @@
 #define CS_AUDIO_PS_DIRECT_PLAY_HPP
 
 #include "cs_audio_export.hpp"
-#include "../Source.hpp"
+#include "../internal/SourceBase.hpp"
 #include "ProcessingStep.hpp"
 
 #include <AL/al.h>
@@ -26,7 +26,7 @@ class CS_AUDIO_EXPORT DirectPlay_PS : public ProcessingStep {
   /// @param source Source to process
   /// @param settings settings to apply
   /// @param failedSettings Pointer to list which contains all failed settings 
-  void process(std::shared_ptr<Source> source,
+  void process(std::shared_ptr<SourceBase> source,
     std::shared_ptr<std::map<std::string, std::any>> settings,
     std::shared_ptr<std::vector<std::string>> failedSettings) override;
 
