@@ -75,6 +75,9 @@ bool OpenAlManager::initOpenAl(core::Settings::Audio settings) {
     return false;
   }
 
+  // enables the Option to set the distance model per source and not per context
+  alEnable(AL_SOURCE_DISTANCE_MODEL);
+
   return true;
 }
 

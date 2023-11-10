@@ -18,6 +18,7 @@
 # include "../processingSteps/DirectPlay_PS.hpp"
 # include "../processingSteps/VolumeCulling_PS.hpp"
 # include "../processingSteps/DistanceCulling_PS.hpp"
+# include "../processingSteps/DistanceModel_PS.hpp"
 
 namespace cs::audio {
 
@@ -82,6 +83,10 @@ std::shared_ptr<ProcessingStep> ProcessingStepsManager::getProcessingStep(std::s
 
   if (processingStep == "DistanceCulling") {
     return DistanceCulling_PS::create(mSettings->mAudio.pDistanceCullingThreshold.get());
+  }
+
+  if (processingStep == "DistanceModel") {
+    return DistanceModel_PS::create();
   }
 
   // ...
