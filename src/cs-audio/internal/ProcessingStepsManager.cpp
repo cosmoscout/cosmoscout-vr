@@ -14,6 +14,7 @@
 // processingSteps:
 # include "../processingSteps/Default_PS.hpp"
 # include "../processingSteps/PointSpatialization_PS.hpp"
+# include "../processingSteps/SphereSpatialization_PS.hpp"
 # include "../processingSteps/DirectPlay_PS.hpp"
 # include "../processingSteps/VolumeCulling_PS.hpp"
 # include "../processingSteps/DistanceCulling_PS.hpp"
@@ -67,6 +68,9 @@ std::shared_ptr<ProcessingStep> ProcessingStepsManager::getProcessingStep(std::s
     return PointSpatialization_PS::create();
   }
 
+  if (processingStep == "SphereSpatialization") {
+    return SphereSpatialization_PS::create();
+  }
 
   if (processingStep == "DirectPlay") {
     return DirectPlay_PS::create();
