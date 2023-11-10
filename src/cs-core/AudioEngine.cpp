@@ -24,6 +24,7 @@
 
 // for testing:
 #include <any>
+#include <cmath>
 #include <map>
 
 namespace cs::core {
@@ -108,7 +109,7 @@ bool AudioEngine::setMasterVolume(float gain) {
 
 void AudioEngine::createGUI() {
   // add settings to GUI
-  mGuiManager->addSettingsSectionToSideBarFromHTML("Audio", "accessibility_new",
+  mGuiManager->addSettingsSectionToSideBarFromHTML("Audio", "volume_up",
       "../share/resources/gui/audio_settings.html");
   mGuiManager->executeJavascriptFile("../share/resources/gui/js/audio_settings.js"); 
 
@@ -137,18 +138,61 @@ void AudioEngine::createGUI() {
 
 void AudioEngine::update() {
   
+  // Call all update functions of active Processing steps
   mProcessingStepsManager->callPsUpdateFunctions();
 
-  static glm::dvec3 coordinates(-1.6477e+06, -301549, -6.1542e+06); // Spitze vom Italienischen Stiefel(?)
+  // Check if a stream finished a buffer. If so refill and requeue buffer to the stream.
+  for (auto controller : mAudioControllers) {
+    controller->updateStreamingSources();
+  }
+
+  // Spatialization Test
+  static glm::dvec3 coordinates1(-588086.8558471624, 3727313.5198930562, 10001091.473068066);
+  static glm::dvec3 coordinates2(1326020.4340910933, 4085028.8301154007, 4703445.134519765);
   auto celesObj = mSolarSystem->getObject("Earth");
   if (celesObj == nullptr) { return; }
   
-  glm::dvec3 sourceRelPosToObs = celesObj->getObserverRelativePosition(coordinates);
-  sourceRelPosToObs *= static_cast<float>(mSolarSystem->getObserver().getScale());
+  static int y = 0;
+  if (y % 60 == 0) {
+    std::cout << "defined source length: " << glm::length(coordinates1) << std::endl;
+  }
+  y++;
+  glm::dvec3 sourceRelPosToObs1 = celesObj->getObserverRelativePosition(coordinates1);
+  sourceRelPosToObs1 *= static_cast<float>(mSolarSystem->getObserver().getScale());
+  testSourcePosition1->set("position", sourceRelPosToObs1);
+  testSourcePosition1->set("observerScale", mSolarSystem->getObserver().getScale());
 
-  testSourcePosition->set("position", sourceRelPosToObs);
+  // glm::dvec3 sourceRelPosToObs2 = celesObj->getObserverRelativePosition(coordinates2);
+  // sourceRelPosToObs2 *= static_cast<float>(mSolarSystem->getObserver().getScale());
+  // testSourcePosition2->set("position", sourceRelPosToObs2);
 
-  audioController->update();
+  controllerSpace->update();
+
+  /*
+  // Streaming Test
+  static bool x = true;
+  if (x) {
+    logger().debug("play streaming");
+    testSourceStreaming->play();
+    controllerAmbient->update();
+    x = false;
+
+    ALint state;
+    alGetSourcei(testSourceStreaming->getOpenAlId(), AL_SOURCE_STATE, &state);
+    switch(state) {
+      case AL_PLAYING:
+        logger().debug("playing");
+      case AL_PAUSED:
+        logger().debug("pause");
+
+      case AL_STOPPED:
+        logger().debug("stop");
+
+      case AL_INITIAL:
+        logger().debug("init");
+    }
+  }
+  */
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -164,17 +208,36 @@ std::shared_ptr<audio::AudioController> AudioEngine::createAudioController() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void AudioEngine::playAmbient() {
-  audioController = createAudioController();
-  audioController->setPipeline(std::vector<std::string>{"Spatialization"});
 
-  audioController->set("looping", true);
-  audioController->update();
+  // Spatialization Test
+  controllerAmbient = createAudioController();
+  controllerAmbient->set("looping", true);
+  controllerAmbient->setPipeline(std::vector<std::string>{"DirectPlay"});
 
-  testSourcePosition = audioController->createSource("C:/Users/sass_fl/audioCS/audioCSNotes/testFiles/exotic_mono.wav");
-  testSourcePosition->play();
+  controllerSpace = createAudioController();
+  controllerSpace->set("looping", true);
+  controllerSpace->setPipeline(std::vector<std::string>{"ScaledSphereSpatialization", "DirectPlay"});
 
-  testSourceAmbient = audioController->createSource("C:/Users/sass_fl/audioCS/audioCSNotes/testFiles/guitar_stereo_32.wav"); 
-  testSourceAmbient->play();
+  testSourcePosition1 = controllerSpace->createSource("C:/Users/sass_fl/audioCS/audioCSNotes/testFiles/exotic_mono.wav");
+  testSourcePosition1->play();
+
+  // testSourcePosition2 = controllerSpace->createSource("C:/Users/sass_fl/audioCS/audioCSNotes/testFiles/alarm_mono.wav");
+  // testSourcePosition2->play();
+
+  testSourceAmbient = controllerAmbient->createSource("C:/Users/sass_fl/audioCS/audioCSNotes/testFiles/scifi_stereo.wav"); 
+  // testSourceAmbient->play();
+  
+  controllerAmbient->update();
+  controllerSpace->update();
+
+  // Streaming Test
+  /*
+  controllerAmbient = createAudioController();
+  controllerAmbient->set("looping", true);
+  controllerAmbient->setPipeline(std::vector<std::string>{"DirectPlay"});
+
+  testSourceStreaming = controllerAmbient->createStreamingSource("C:/Users/sass_fl/audioCS/audioCSNotes/testFiles/scifi_stereo.wav");
+  */
 }
 
 } // namespace cs::core

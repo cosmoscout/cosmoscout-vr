@@ -15,6 +15,7 @@
 
 #include "../cs-audio/internal/OpenAlManager.hpp"
 #include "../cs-audio/Source.hpp"
+#include "../cs-audio/StreamingSource.hpp"
 #include "../cs-audio/SourceGroup.hpp"
 #include "../cs-audio/AudioController.hpp"
 #include "../cs-audio/internal/BufferManager.hpp"
@@ -75,14 +76,17 @@ class CS_CORE_EXPORT AudioEngine {
   void createGUI();
 
   // for testing
-  std::shared_ptr<audio::AudioController> audioController;
+  std::shared_ptr<audio::AudioController> controllerAmbient;
+  std::shared_ptr<audio::AudioController> controllerSpace;
   void playAmbient();
   std::shared_ptr<audio::Source> testSourceAmbient;
-  std::shared_ptr<audio::Source> testSourcePosition;
+  std::shared_ptr<audio::StreamingSource> testSourceStreaming;
+  std::shared_ptr<audio::Source> testSourcePosition1;
+  std::shared_ptr<audio::Source> testSourcePosition2;
   std::shared_ptr<audio::SourceGroup> testSourceGroup;
   std::map<std::string, std::any> testSettings;
 
-  cs::scene::CelestialObserver                         mObserver; // ?
+  cs::scene::CelestialObserver mObserver; // ?
   std::shared_ptr<SolarSystem> mSolarSystem; // ?
 };
 
