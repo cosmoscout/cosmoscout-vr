@@ -87,6 +87,85 @@ bool FileReader::loadWAV(std::string fileName, WavContainer& wavContainer)
   return true;
 }
 
+bool FileReader::loadWAVPartially(std::string fileName, WavContainerStreaming& wavContainer)
+{
+  // Read wav header if this is the first buffer for the stream being read
+  if (wavContainer.bufferCounter == -1) {
+    if (!readWAVHeader(fileName, wavContainer)) {
+      return false;
+    }
+    wavContainer.bufferCounter = 0;
+    wavContainer.pcm = std::vector<char>(wavContainer.bufferSize);
+  }
+
+  std::ifstream in(fileName, std::ios::binary);
+  // move reader to the next chunk of data
+  in.seekg(44 + (wavContainer.bufferCounter * wavContainer.bufferSize));
+
+  // Read the actual data from the file. If this buffer reaches the end of the file it will reset the 
+  // buffer counter and the next buffer will start from the start of the file again.
+  if ((wavContainer.bufferCounter + 1) * wavContainer.bufferSize >= wavContainer.size) {
+    in.read(std::get<std::vector<char>>(wavContainer.pcm).data(), 
+      wavContainer.size - (wavContainer.bufferCounter * wavContainer.bufferSize));
+    wavContainer.bufferCounter = 0;
+
+  } else {
+    in.read(std::get<std::vector<char>>(wavContainer.pcm).data(), wavContainer.bufferSize);
+    wavContainer.bufferCounter++;
+  }
+
+  return true;
+}
+
+bool FileReader::readWAVHeader(std::string fileName, WavContainer& wavContainer) {
+  char fileBuffer[4];
+  std::ifstream in(fileName, std::ios::binary);
+
+  // check if it is a valid wave file:
+  in.read(fileBuffer, 4);
+  if (strncmp(fileBuffer, "RIFF", 4) != 0) {
+    return false;
+  }
+
+  in.read(fileBuffer, 4); // ChunkSize            -- RIFF chunk descriptor
+  in.read(fileBuffer, 4); // Format
+  in.read(fileBuffer, 4); // SubChunk 1 id        -- fmt sub-chunk
+  in.read(fileBuffer, 4); // SubChunk 1 size
+  in.read(fileBuffer, 2); // AudioFormat
+  in.read(fileBuffer, 2); // Number Channels
+  wavContainer.numberChannels = convertToInt(fileBuffer, 2);
+  in.read(fileBuffer, 4); // Sample Rate
+  wavContainer.sampleRate = convertToInt(fileBuffer, 4);
+  in.read(fileBuffer, 4); // Byte Rate
+  in.read(fileBuffer, 2); // Block Align
+  in.read(fileBuffer, 2); // Bits per Sample
+  wavContainer.bitsPerSample = convertToInt(fileBuffer, 2);
+  in.read(fileBuffer, 4); // SubChunk 2 id        -- data sub-chunk
+  in.read(fileBuffer, 4); // SubChunk 2 Size
+  wavContainer.size = convertToInt(fileBuffer, 4);  
+
+  // Mono
+  if (wavContainer.numberChannels == 1) {
+    switch (wavContainer.bitsPerSample) {
+      case 8:
+        wavContainer.format = AL_FORMAT_MONO8;
+        break;
+      case 16:
+        wavContainer.format = AL_FORMAT_MONO16;
+    }
+  // Stereo
+  } else {
+    switch (wavContainer.bitsPerSample) {
+      case 8:
+        wavContainer.format = AL_FORMAT_STEREO8;
+        break;
+      case 16:
+        wavContainer.format = AL_FORMAT_STEREO16;
+    }
+  }
+  return false;
+}
+
 int FileReader::convertToInt(char* buffer, int len)
 {
     static bool bigEndian = isBigEndian();

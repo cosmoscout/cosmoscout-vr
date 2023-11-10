@@ -11,6 +11,7 @@
 #include "internal/SettingsMixer.hpp"
 #include "internal/UpdateInstructor.hpp"
 #include "Source.hpp"
+#include "StreamingSource.hpp"
 #include "SourceGroup.hpp"
 
 namespace cs::audio {
@@ -39,8 +40,22 @@ std::shared_ptr<SourceGroup> AudioController::createSourceGroup() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 std::shared_ptr<Source> AudioController::createSource(std::string file) {
-  auto source = std::make_shared<Source>(mBufferManager, mProcessingStepsManager, file, mUpdateInstructor);
+  auto source = std::make_shared<Source>(mBufferManager, file, mUpdateInstructor);
   mSources.push_back(source);
+
+  // apply audioController settings to newly creates source
+  if (!mCurrentSettings->empty()) {
+    mUpdateConstructor->applyCurrentControllerSettings(source, shared_from_this(), mCurrentSettings);
+  }
+  return source;
+} 
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+std::shared_ptr<StreamingSource> AudioController::createStreamingSource(std::string file) {
+  auto source = std::make_shared<StreamingSource>(file, mUpdateInstructor);
+  mSources.push_back(source);
+  mStreams.push_back(source);
 
   // apply audioController settings to newly creates source
   if (!mCurrentSettings->empty()) {
@@ -66,7 +81,7 @@ void AudioController::update() {
   // update every source and group with plugin settings
   if (updateInstructions.updateAll) {
     mUpdateConstructor->updateAll(
-      std::make_shared<std::vector<std::shared_ptr<Source>>>(mSources),
+      std::make_shared<std::vector<std::shared_ptr<SourceBase>>>(mSources),
       std::make_shared<std::vector<std::shared_ptr<SourceGroup>>>(mGroups),
       shared_from_this());
     return;
@@ -88,8 +103,14 @@ void AudioController::update() {
   }
 }
 
-std::shared_ptr<std::vector<std::shared_ptr<Source>>> AudioController::getSources() const {
-  return std::make_shared<std::vector<std::shared_ptr<Source>>>(mSources);
+void AudioController::updateStreamingSources() {
+  for (auto stream : mStreams) {
+    stream->updateStream();
+  }
+}
+
+std::vector<std::shared_ptr<SourceBase>> AudioController::getSources() const {
+  return std::vector<std::shared_ptr<SourceBase>>(mSources);
 }
 
 void AudioController::addToUpdateList() {

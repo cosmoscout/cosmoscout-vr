@@ -10,7 +10,9 @@
 
 #include "cs_audio_export.hpp"
 #include "Source.hpp"
+#include "StreamingSource.hpp"
 #include "SourceGroup.hpp"
+#include "internal/SourceBase.hpp"
 #include "internal/BufferManager.hpp"
 #include "internal/UpdateInstructor.hpp"
 
@@ -38,6 +40,10 @@ class CS_AUDIO_EXPORT AudioController
   /// @return Pointer to the new source
   std::shared_ptr<Source> createSource(std::string file);
 
+  /// @brief Creates a new streaming audio source
+  /// @return Pointer to the new source
+  std::shared_ptr<StreamingSource> createStreamingSource(std::string file);
+
   /// @brief Creates a new audio source group
   /// @return Pointer to the new source group
   std::shared_ptr<SourceGroup> createSourceGroup();
@@ -50,22 +56,26 @@ class CS_AUDIO_EXPORT AudioController
   /// the last update call.
   void update();
 
+  void updateStreamingSources();
+
   /// @return Return a list of all sources which live on the audioController
-  std::shared_ptr<std::vector<std::shared_ptr<Source>>> getSources() const;
+  std::vector<std::shared_ptr<SourceBase>> getSources() const;
 
  private:
   /// Ptr to the single BufferManager of the audioEngine
-  std::shared_ptr<BufferManager>            mBufferManager;
+  std::shared_ptr<BufferManager>                mBufferManager;
   /// Ptr to the single ProcessingStepsManager of the audioEngine
-  std::shared_ptr<ProcessingStepsManager>   mProcessingStepsManager;
+  std::shared_ptr<ProcessingStepsManager>       mProcessingStepsManager;
   /// List of all Sources that live on the AudioController
-  std::vector<std::shared_ptr<Source>>      mSources;
+  std::vector<std::shared_ptr<SourceBase>>      mSources;
+  /// List of Streaming Sources that live on the AudioController
+  std::vector<std::shared_ptr<StreamingSource>> mStreams;
   /// List of all Groups that live on the AudioController
-  std::vector<std::shared_ptr<SourceGroup>> mGroups;
+  std::vector<std::shared_ptr<SourceGroup>>     mGroups;
   /// Ptr to the UpdateInstructor. Each AudioController has their own Instructor
-  std::shared_ptr<UpdateInstructor>         mUpdateInstructor;
+  std::shared_ptr<UpdateInstructor>             mUpdateInstructor;
   /// Ptr to the single UpdateConstructor of the audioEngine
-  std::shared_ptr<UpdateConstructor>        mUpdateConstructor;
+  std::shared_ptr<UpdateConstructor>            mUpdateConstructor;
 
   /// @brief registers itself to the updateInstructor to be updated 
   void addToUpdateList();
