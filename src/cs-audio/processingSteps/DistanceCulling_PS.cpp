@@ -168,7 +168,6 @@ bool DistanceCulling_PS::processPosition(std::shared_ptr<SourceBase> source, std
     // start/pause source based on the distance compared to the specified threshold
     if (distance > mDistanceThreshold) {
       if (isState != AL_PAUSED && isState != AL_INITIAL) {
-        std::cout << "pause" << std::endl;
         alSourcePause(openALId);
         if (alErrorHandling::errorOccurred()) {
           logger().warn("Failed to pause playback of source!");
@@ -178,7 +177,6 @@ bool DistanceCulling_PS::processPosition(std::shared_ptr<SourceBase> source, std
     } else {
       if (isState != AL_PLAYING) {
         alSourcePlay(openALId);
-        std::cout << "play" << std::endl;
         if (alErrorHandling::errorOccurred()) {
           logger().warn("Failed to start playback of source!");
           return false;

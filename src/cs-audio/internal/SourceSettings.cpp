@@ -44,8 +44,8 @@ std::shared_ptr<std::map<std::string, std::any>> SourceSettings::getCurrentSetti
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void SourceSettings::remove(std::string key) {
-  // a settings instance is not allowed to remove settings that it did not define itself
   mUpdateSettings->erase(key);
+  // a settings instance is not allowed to remove settings that it did not define itself
   if (mCurrentSettings->find(key) == mCurrentSettings->end()) {
     return;
   }
