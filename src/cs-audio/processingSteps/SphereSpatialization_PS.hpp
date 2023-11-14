@@ -57,7 +57,6 @@ class CS_AUDIO_EXPORT SphereSpatialization_PS
   bool processRadius(ALuint openAlId, std::any sourceRadius);
   bool processSpatialization(std::shared_ptr<SourceBase> source, std::any position,
     std::any sourceRadius);
-  bool resetSpatialization(ALuint openAlId);
 };
 
 } // namespace cs::audio
