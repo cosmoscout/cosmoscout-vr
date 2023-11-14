@@ -14,7 +14,7 @@
 #include <glm/fwd.hpp>
 
 namespace cs::audio {
-// TODO: sourceRadius muss >0 sein 
+
 std::shared_ptr<ProcessingStep> SphereSpatialization_PS::create() {
   static auto sphereSpatialization_PS = 
     std::shared_ptr<SphereSpatialization_PS>(new SphereSpatialization_PS());
@@ -93,7 +93,7 @@ bool SphereSpatialization_PS::processPosition(ALuint openAlId, std::any position
 }
 
 bool SphereSpatialization_PS::processRadius(ALuint openAlId, std::any sourceRadius) {
-  if (sourceRadius.type() != typeid(double)) {
+  if (sourceRadius.type() != typeid(float)) {
     
     // remove source radius setting from source
     if (sourceRadius.type() == typeid(std::string) && std::any_cast<std::string>(sourceRadius) == "remove") {
@@ -102,6 +102,11 @@ bool SphereSpatialization_PS::processRadius(ALuint openAlId, std::any sourceRadi
 
     // wrong datatype used for position 
     logger().warn("Audio source settings error! Wrong type used for sourceRadius setting! Allowed Type: double");
+    return false;
+  }
+
+  if (std::any_cast<float>(sourceRadius) < 0.f) {
+    logger().warn("Audio source settings error! Unable to set a negative source radius!");
     return false;
   }
   return true;

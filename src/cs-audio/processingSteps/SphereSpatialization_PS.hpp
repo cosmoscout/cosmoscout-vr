@@ -32,7 +32,7 @@ The position must be specified relative to the observer.
 Name          Type          Range       Description
 ---------------------------------------------------------
 position      glm::dvec3                Position of a source relative to the observer.
-sourceRadius  double        0.0 -       Radius of the sphere.
+sourceRadius  float         0.0 -       Radius of the sphere.
 ---------------------------------------------------------
 */
 class CS_AUDIO_EXPORT SphereSpatialization_PS 
