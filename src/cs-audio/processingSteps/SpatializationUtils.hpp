@@ -20,9 +20,20 @@ namespace cs::audio {
 class CS_AUDIO_EXPORT SpatializationUtils {
  public:
   SpatializationUtils();
+  
   /// @brief Calculates and applies the velocity for each spatialized source via the change of position
   void calculateVelocity();
+
+  /// @brief Rotates the the position of source around the vista viewer orientation. This is needed
+  /// because the head rotation is not considered in CelestialObject::getObserverRelativePosition()
+  /// when using a VR headset.
+  /// @param position Relative position to observer
   void rotateSourcePosByViewer(glm::dvec3& position);
+
+  /// @brief Sets the position and Velocity of a source to zero and removes said source from the 
+  /// update list.
+  /// @param openAlId id of source to reset
+  /// @return True if successful. False otherwise.
   bool resetSpatialization(ALuint openAlId);
  
  protected:

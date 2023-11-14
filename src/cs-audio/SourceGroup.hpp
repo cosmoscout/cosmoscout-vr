@@ -45,8 +45,8 @@ class CS_AUDIO_EXPORT SourceGroup
     
  private:
   std::set<std::shared_ptr<SourceBase>>  mMembers;
-  std::shared_ptr<UpdateConstructor> mUpdateConstructor;
-  std::shared_ptr<AudioController> mAudioController; // TODO: good idea?
+  std::shared_ptr<UpdateConstructor>     mUpdateConstructor;
+  std::shared_ptr<AudioController>       mAudioController; // TODO: good idea?
   
   /// @brief registers itself to the updateInstructor to be updated 
   void addToUpdateList();
