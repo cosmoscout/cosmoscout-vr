@@ -23,6 +23,7 @@ class CS_AUDIO_EXPORT SpatializationUtils {
   /// @brief Calculates and applies the velocity for each spatialized source via the change of position
   void calculateVelocity();
   void rotateSourcePosByViewer(glm::dvec3& position);
+  bool resetSpatialization(ALuint openAlId);
  
  protected:
   /// Struct to hold all necessary information regarding a spatialized source

@@ -72,4 +72,34 @@ void SpatializationUtils::rotateSourcePosByViewer(glm::dvec3& position) {
   position.z = sourceRelPosToObsRot[2];
 }
 
+bool SpatializationUtils::resetSpatialization(ALuint openAlId) {
+  // TODO: erase source from list
+  mSourcePositions.erase(openAlId);
+  
+  alSourcei(openAlId, AL_SOURCE_RELATIVE, AL_TRUE);
+  if (alErrorHandling::errorOccurred()) {
+    logger().warn("Failed to reset source position specification to relative!");
+    return false;
+  }
+
+  alSource3f(openAlId, AL_POSITION, 
+    (ALfloat)0.f, 
+    (ALfloat)0.f, 
+    (ALfloat)0.f);
+  if (alErrorHandling::errorOccurred()) {
+    logger().warn("Failed to reset source position!");
+    return false;
+  }
+
+  alSource3f(openAlId, AL_VELOCITY, 
+    (ALfloat)0.f, 
+    (ALfloat)0.f, 
+    (ALfloat)0.f);
+  if (alErrorHandling::errorOccurred()) {
+    logger().warn("Failed to reset source velocity!");
+    return false;
+  }
+  return true;
+}
+
 } // namespace cs::audio

@@ -159,30 +159,6 @@ bool SphereSpatialization_PS::processSpatialization(std::shared_ptr<SourceBase> 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool SphereSpatialization_PS::resetSpatialization(ALuint openAlId) {
-  // TODO: erase source from list
-  alSource3f(openAlId, AL_POSITION, 
-    (ALfloat)0.f, 
-    (ALfloat)0.f, 
-    (ALfloat)0.f);
-  if (alErrorHandling::errorOccurred()) {
-    logger().warn("Failed to reset source position!");
-    return false;
-  }
-
-  alSource3f(openAlId, AL_VELOCITY, 
-    (ALfloat)0.f, 
-    (ALfloat)0.f, 
-    (ALfloat)0.f);
-  if (alErrorHandling::errorOccurred()) {
-    logger().warn("Failed to reset source velocity!");
-    return false;
-  }
-  return true;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
 bool SphereSpatialization_PS::requiresUpdate() const {
   return true;
 }
