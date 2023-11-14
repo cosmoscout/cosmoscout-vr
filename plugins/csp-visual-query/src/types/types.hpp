@@ -56,7 +56,7 @@ struct Image2D {
 struct Volume3D {
   Volume3D() = default;
 
-  Volume3D(PointsType points, size_t numScalars, glm::uvec3 dimension, csl::ogc::Bounds2D bounds,
+  Volume3D(PointsType points, size_t numScalars, glm::uvec3 dimension, csl::ogc::Bounds3D bounds,
       std::optional<csl::ogc::TimeInterval> timeStamp = std::nullopt)
       : mPoints(std::move(points))
       , mNumScalars(numScalars)
@@ -69,7 +69,7 @@ struct Volume3D {
   size_t     mNumScalars{};
 
   glm::uvec3         mDimension{};
-  csl::ogc::Bounds2D mBounds;
+  csl::ogc::Bounds3D mBounds;
 
   std::optional<csl::ogc::TimeInterval> mTimeStamp;
 };

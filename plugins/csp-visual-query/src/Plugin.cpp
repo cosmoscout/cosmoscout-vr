@@ -14,6 +14,7 @@
 #include "common-nodes/Real/Real.hpp"
 #include "operation-nodes/DifferenceImage2D/DifferenceImage2D.hpp"
 #include "output-nodes/OverlayRenderer/OverlayRender.hpp"
+#include "output-nodes/VolumeRenderer/VolumeRenderer.hpp"
 #include "source-nodes/RandomDataSource2D/RandomDataSource2D.hpp"
 #include "source-nodes/RandomDataSource3D/RandomDataSource3D.hpp"
 #include "source-nodes/WCSCoverage/WCSCoverage.hpp"
@@ -169,6 +170,7 @@ void Plugin::setupNodeEditor(uint16_t port) {
   factory.registerNodeType<RandomDataSource3D>();
   factory.registerNodeType<WCSCoverageImage>();
   factory.registerNodeType<OverlayRender>(mSolarSystem, mAllSettings);
+  factory.registerNodeType<VolumeRenderer>(mSolarSystem, mAllSettings);
 
   // Finally, create the node editor. It will start the server so that we can now open a web browser
   // and navigate to localhost:<port>.
