@@ -14,7 +14,8 @@ namespace cs::audio {
 
 class CS_AUDIO_EXPORT AudioUtil {
  public:
-  double getObserverScaleAt();
+  static double getObserverScaleAt(glm::dvec3 position, double ObserverScale, 
+    std::shared_ptr<cs::core::Settings> settings);
 
  private:
 

@@ -6,15 +6,16 @@
 // SPDX-License-Identifier: MIT
 
 #include "AudioUtil.hpp"
-#include "../logger.hpp"
-#include "../../cs-scene/CelestialAnchor.hpp"
-#include "../../cs-scene/CelestialSurface.hpp"
-#include "../../cs-utils/convert.hpp"
+#include "logger.hpp"
+#include "../cs-scene/CelestialAnchor.hpp"
+#include "../cs-scene/CelestialSurface.hpp"
+#include "../cs-utils/convert.hpp"
 #include <cmath>
 
 namespace cs::audio {
 
-double AudioUtil::getObserverScaleAt(glm::dvec3 position, double ObserverScale) {
+double AudioUtil::getObserverScaleAt(glm::dvec3 position, double ObserverScale,
+  std::shared_ptr<cs::core::Settings> settings) {
 
   // First we have to find the planet which is closest to the position.
   std::shared_ptr<const scene::CelestialObject> closestObject;
@@ -23,7 +24,7 @@ double AudioUtil::getObserverScaleAt(glm::dvec3 position, double ObserverScale) 
   // Here we will store the position of the source relative to the closestObject.
   glm::dvec3 vClosestPlanetPosition(0.0);
 
-  for (auto const& [name, object] : mSettings->mObjects) {
+  for (auto const& [name, object] : settings->mObjects) {
 
     // Skip non-existent objects.
     if (!object->getIsInExistence() || !object->getHasValidPosition() ||
@@ -43,9 +44,9 @@ double AudioUtil::getObserverScaleAt(glm::dvec3 position, double ObserverScale) 
     vObjectPosToObserver *= static_cast<float>(ObserverScale); 
 
     glm::dvec3 vSourcePosToObject(
-      vObjectPosToObserver.x - sourcePosToObserver.x,
-      vObjectPosToObserver.y - sourcePosToObserver.y,
-      vObjectPosToObserver.z - sourcePosToObserver.z
+      vObjectPosToObserver.x - position.x,
+      vObjectPosToObserver.y - position.y,
+      vObjectPosToObserver.z - position.z
     );
     double dDistance = glm::length(vSourcePosToObject) - radii[0];
 
@@ -57,42 +58,42 @@ double AudioUtil::getObserverScaleAt(glm::dvec3 position, double ObserverScale) 
   }
 
   // Now that we found a closest body, we will scale the  in such a way, that the closest
-  // body is rendered at a distance between mSettings->mSceneScale.mCloseVisualDistance and
-  // mSettings->mSceneScale.mFarVisualDistance (in meters).
+  // body is rendered at a distance between settings->mSceneScale.mCloseVisualDistance and
+  // settings->mSceneScale.mFarVisualDistance (in meters).
   if (closestObject) {
 
     // First we calculate the *real* world-space distance to the planet (incorporating surface
     // elevation).
     auto radii = closestObject->getRadii() * closestObject->getScale();
     auto lngLatHeight =
-        cs::utils::convert::cartesianToLngLatHeight(vClosestPlanetSourcePosition, radii);
+        cs::utils::convert::cartesianToLngLatHeight(vClosestPlanetPosition, radii);
     double dRealDistance = lngLatHeight.z;
 
     if (closestObject->getSurface()) {
       dRealDistance -= closestObject->getSurface()->getHeight(lngLatHeight.xy()) *
-                       mSettings->mGraphics.pHeightScale.get();
+                       settings->mGraphics.pHeightScale.get();
     }
 
     if (std::isnan(dRealDistance)) {
       return -1.0;
     }
 
-    // The render distance between mSettings->mSceneScale.mCloseVisualDistance and
-    // mSettings->mSceneScale.mFarVisualDistance is chosen based on the observer's world-space
-    // distance between mSettings->mSceneScale.mFarRealDistance and
-    // mSettings->mSceneScale.mCloseRealDistance (also in meters).
+    // The render distance between settings->mSceneScale.mCloseVisualDistance and
+    // settings->mSceneScale.mFarVisualDistance is chosen based on the observer's world-space
+    // distance between settings->mSceneScale.mFarRealDistance and
+    // settings->mSceneScale.mCloseRealDistance (also in meters).
     double interpolate = 1.0;
 
-    if (mSettings->mSceneScale.mFarRealDistance != mSettings->mSceneScale.mCloseRealDistance) {
+    if (settings->mSceneScale.mFarRealDistance != settings->mSceneScale.mCloseRealDistance) {
       interpolate = glm::clamp(
-          (dRealDistance - mSettings->mSceneScale.mCloseRealDistance) /
-              (mSettings->mSceneScale.mFarRealDistance - mSettings->mSceneScale.mCloseRealDistance),
+          (dRealDistance - settings->mSceneScale.mCloseRealDistance) /
+              (settings->mSceneScale.mFarRealDistance - settings->mSceneScale.mCloseRealDistance),
           0.0, 1.0);
     }
 
-    double dScale = dRealDistance / glm::mix(mSettings->mSceneScale.mCloseVisualDistance,
-                                        mSettings->mSceneScale.mFarVisualDistance, interpolate);
-    dScale = glm::clamp(dScale, mSettings->mSceneScale.mMinScale, mSettings->mSceneScale.mMaxScale);
+    double dScale = dRealDistance / glm::mix(settings->mSceneScale.mCloseVisualDistance,
+                                        settings->mSceneScale.mFarVisualDistance, interpolate);
+    dScale = glm::clamp(dScale, settings->mSceneScale.mMinScale, settings->mSceneScale.mMaxScale);
     
     return dScale;
   }
