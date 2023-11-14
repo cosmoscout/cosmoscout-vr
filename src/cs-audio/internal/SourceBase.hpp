@@ -40,13 +40,13 @@ class CS_AUDIO_EXPORT SourceBase
   virtual bool setFile(std::string file) = 0;
 
   /// @return Returns the current file that is being played by the source.
-  std::string getFile() const;
+  const std::string getFile() const;
 
   /// @return Returns to OpenAL ID
-  ALuint getOpenAlId() const;
+  const ALuint getOpenAlId() const;
 
   /// @return Returns all settings (Source + Group + Controller) currently set and playing.
-  std::shared_ptr<std::map<std::string, std::any>> getPlaybackSettings() const;
+  const std::shared_ptr<std::map<std::string, std::any>> getPlaybackSettings() const;
 
   SourceBase(std::string file, std::shared_ptr<UpdateInstructor> UpdateInstructor);
 

@@ -41,7 +41,7 @@ class CS_AUDIO_EXPORT SourceGroup
   void reset();
 
   /// @return List to all members of the group
-  std::set<std::shared_ptr<SourceBase>> getMembers() const;
+  const std::set<std::shared_ptr<SourceBase>> getMembers() const;
     
  private:
   std::set<std::shared_ptr<SourceBase>>  mMembers;

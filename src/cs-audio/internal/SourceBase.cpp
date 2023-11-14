@@ -77,19 +77,19 @@ void SourceBase::pause() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::string SourceBase::getFile() const {
+const std::string SourceBase::getFile() const {
   return mFile;   
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-ALuint SourceBase::getOpenAlId() const {
+const ALuint SourceBase::getOpenAlId() const {
   return mOpenAlId;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::shared_ptr<std::map<std::string, std::any>> SourceBase::getPlaybackSettings() const {
+const std::shared_ptr<std::map<std::string, std::any>> SourceBase::getPlaybackSettings() const {
   return mPlaybackSettings;
 }
 

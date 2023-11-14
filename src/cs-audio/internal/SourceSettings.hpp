@@ -30,7 +30,7 @@ class CS_AUDIO_EXPORT SourceSettings {
   /// @brief Returns the currently set settings for the sourceSettings instance.
   /// To get all settings currently playing on a source call Source::getPlaybackSettings().
   /// @return Pointer to the settings map
-  std::shared_ptr<std::map<std::string, std::any>> getCurrentSettings() const;
+  const std::shared_ptr<std::map<std::string, std::any>> getCurrentSettings() const;
 
   void remove(std::string key);
 

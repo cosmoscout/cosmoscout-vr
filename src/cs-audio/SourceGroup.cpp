@@ -68,7 +68,7 @@ void SourceGroup::reset() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::set<std::shared_ptr<SourceBase>> SourceGroup::getMembers() const {
+const std::set<std::shared_ptr<SourceBase>> SourceGroup::getMembers() const {
   return mMembers;
 }
 

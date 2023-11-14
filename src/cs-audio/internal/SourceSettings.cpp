@@ -37,7 +37,7 @@ void SourceSettings::set(std::string key, std::any value) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::shared_ptr<std::map<std::string, std::any>> SourceSettings::getCurrentSettings() const {
+const std::shared_ptr<std::map<std::string, std::any>> SourceSettings::getCurrentSettings() const {
   return mCurrentSettings;
 }
 
