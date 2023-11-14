@@ -28,10 +28,7 @@ std::shared_ptr<ProcessingStep> PointSpatialization_PS::create() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-PointSpatialization_PS::PointSpatialization_PS()
-  : mSourcePositions(std::map<ALuint, SourceContainer>())
-  , mLastTime(std::chrono::system_clock::now()) {
-}
+PointSpatialization_PS::PointSpatialization_PS() {}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -89,6 +86,7 @@ bool PointSpatialization_PS::processPosition(std::shared_ptr<SourceBase> source,
   }
 
   glm::dvec3 positionValue = std::any_cast<glm::dvec3>(value);
+  rotateSourcePosByViewer(positionValue);
 
   alSource3f(openAlId, AL_POSITION, 
     (ALfloat)positionValue.x, 
@@ -102,49 +100,6 @@ bool PointSpatialization_PS::processPosition(std::shared_ptr<SourceBase> source,
 
   mSourcePositions[openAlId] = SourceContainer{std::weak_ptr<SourceBase>(source), positionValue, positionValue};
   return true;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void PointSpatialization_PS::calculateVelocity() {
-  std::chrono::system_clock::time_point currentTime = std::chrono::system_clock::now();
-  std::chrono::duration<float> elapsed_seconds = currentTime - mLastTime; 
-  auto elapsed_secondsf = elapsed_seconds.count();
-
-  for (auto source : mSourcePositions) {
-    
-    if (source.second.sourcePtr.expired()) {
-      mSourcePositions.erase(source.first);
-      continue;
-    }
-
-    glm::dvec3 velocity;
-    ALuint openAlId = source.second.sourcePtr.lock()->getOpenAlId(); 
-
-    if (source.second.currentPos != source.second.lastPos) {
-      glm::dvec3 posDelta = source.second.currentPos - source.second.lastPos;
-      velocity.x = posDelta.x / elapsed_secondsf;
-      velocity.y = posDelta.y / elapsed_secondsf;
-      velocity.z = posDelta.z / elapsed_secondsf;
-      mSourcePositions[openAlId].lastPos = source.second.currentPos;
-      
-    } else {  
-      velocity.x = 0;
-      velocity.y = 0;
-      velocity.z = 0;
-    }
-
-    alSource3f(openAlId, AL_VELOCITY, 
-      (ALfloat)velocity.x, 
-      (ALfloat)velocity.y, 
-      (ALfloat)velocity.z);
-
-    if (alErrorHandling::errorOccurred()) {
-      logger().warn("Failed to set source velocity!");
-    }
-  }
-
-  mLastTime = currentTime;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

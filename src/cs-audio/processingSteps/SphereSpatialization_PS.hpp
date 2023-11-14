@@ -10,6 +10,7 @@
 
 #include "cs_audio_export.hpp"
 #include "ProcessingStep.hpp"
+#include "SpatializationUtils.hpp"
 #include "../internal/SourceBase.hpp"
 #include <memory>
 #include <AL/al.h>
@@ -34,6 +35,9 @@ position      glm::dvec3                Position of a source relative to the obs
 sourceRadius  double        0.0 -       Radius of the sphere.
 ---------------------------------------------------------
 */
+class CS_AUDIO_EXPORT SphereSpatialization_PS 
+  : public ProcessingStep
+  , public SpatializationUtils {
  public:
 
   static std::shared_ptr<ProcessingStep> create();
@@ -42,28 +46,18 @@ sourceRadius  double        0.0 -       Radius of the sphere.
    std::shared_ptr<std::map<std::string, std::any>> settings,
    std::shared_ptr<std::vector<std::string>> failedSettings);
 
-  bool processScaling(std::shared_ptr<SourceBase> source, std::any value, std::any obsScale);
-
   bool requiresUpdate() const;
 
   void update();
 
  private:
-  /// Struct to hold all necessary information regarding a spatialized source
-  struct SourceContainer {
-    std::weak_ptr<SourceBase> sourcePtr;
-    glm::dvec3 currentPos;
-    glm::dvec3 lastPos;
-  };
 
-  ScaledSphereSpatialization_PS();
-  double getSourceScale(glm::dvec3 sourcePosToObserver, double obsScale);
-  void calculateVelocity();
-
-  /// List of all Source which have a position
-  std::map<ALuint, SourceContainer> mSourcePositions;
-  /// Point in time since the last calculateVelocity() call
-  std::chrono::system_clock::time_point mLastTime;
+  SphereSpatialization_PS();
+  bool processPosition(ALuint openAlId, std::any position);
+  bool processRadius(ALuint openAlId, std::any sourceRadius);
+  bool processSpatialization(std::shared_ptr<SourceBase> source, std::any position,
+    std::any sourceRadius);
+  bool resetSpatialization(ALuint openAlId);
 };
 
 } // namespace cs::audio

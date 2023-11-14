@@ -39,7 +39,7 @@ void SphereSpatialization_PS::process(std::shared_ptr<SourceBase> source,
       processRequired = true;
       pos = searchPos->second;
     } else {
-        failedSettings->push_back("position");
+      failedSettings->push_back("position");
     }
   }
 
@@ -48,9 +48,9 @@ void SphereSpatialization_PS::process(std::shared_ptr<SourceBase> source,
       processRequired = true;
       radius = searchRad->second;
     } else {
-        failedSettings->push_back("sourceRadius");
-      }
+      failedSettings->push_back("sourceRadius");
     }
+  }
 
   if (processRequired) {
     if (!pos.has_value()) {
@@ -186,47 +186,6 @@ bool SphereSpatialization_PS::requiresUpdate() const {
 
 void SphereSpatialization_PS::update() {
   calculateVelocity();
-}
-
-void ScaledSphereSpatialization_PS::calculateVelocity() {
-  std::chrono::system_clock::time_point currentTime = std::chrono::system_clock::now();
-  std::chrono::duration<float> elapsed_seconds = currentTime - mLastTime; 
-  auto elapsed_secondsf = elapsed_seconds.count();
-
-  for (auto source : mSourcePositions) {
-    
-    if (source.second.sourcePtr.expired()) {
-      mSourcePositions.erase(source.first);
-      continue;
-    }
-
-    glm::dvec3 velocity;
-    ALuint openAlId = source.second.sourcePtr.lock()->getOpenAlId(); 
-
-    if (source.second.currentPos != source.second.lastPos) {
-      glm::dvec3 posDelta = source.second.currentPos - source.second.lastPos;
-      velocity.x = posDelta.x / elapsed_secondsf;
-      velocity.y = posDelta.y / elapsed_secondsf;
-      velocity.z = posDelta.z / elapsed_secondsf;
-      mSourcePositions[openAlId].lastPos = source.second.currentPos;
-      
-    } else {  
-      velocity.x = 0;
-      velocity.y = 0;
-      velocity.z = 0;
-    }
-
-    alSource3f(openAlId, AL_VELOCITY, 
-      (ALfloat)velocity.x, 
-      (ALfloat)velocity.y, 
-      (ALfloat)velocity.z);
-
-    if (alErrorHandling::errorOccurred()) {
-      logger().warn("Failed to set source velocity!");
-    }
-  }
-
-  mLastTime = currentTime;
 }
 
 } // namespace cs::audio

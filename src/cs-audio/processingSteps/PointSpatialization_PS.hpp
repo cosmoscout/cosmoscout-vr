@@ -10,6 +10,7 @@
 
 #include "cs_audio_export.hpp"
 #include "ProcessingStep.hpp"
+#include "SpatializationUtils.hpp"
 #include "../internal/SourceBase.hpp"
 #include <AL/al.h>
 #include <glm/fwd.hpp>
@@ -26,6 +27,9 @@ Name        Type          Range       Description
 position    glm::dvec3                Position of a source relative to the observer.   
 ---------------------------------------------------------
 */
+class CS_AUDIO_EXPORT PointSpatialization_PS 
+  : public ProcessingStep
+  , public SpatializationUtils {
  public:
   /// @brief Creates new access to the single PointSpatialization_PS object
   /// @return Pointer to the PS
@@ -46,22 +50,8 @@ position    glm::dvec3                Position of a source relative to the obser
   void update();
 
  private:
-  /// Strcut to hold all necessary information regarding a spatialized source
-  struct SourceContainer {
-    std::weak_ptr<SourceBase> sourcePtr;
-    glm::dvec3 currentPos;
-    glm::dvec3 lastPos;
-  };
-
   PointSpatialization_PS();
   bool processPosition(std::shared_ptr<SourceBase> source, std::any position);
-  /// @brief Calculates and applies the velocity for each spatialized source via the change of position
-  void calculateVelocity();
-
-  /// List of all Source which have a position
-  std::map<ALuint, SourceContainer> mSourcePositions;
-  /// Point in time since the last calculateVelocity() call
-  std::chrono::system_clock::time_point mLastTime;
 };
 
 } // namespace cs::audio
