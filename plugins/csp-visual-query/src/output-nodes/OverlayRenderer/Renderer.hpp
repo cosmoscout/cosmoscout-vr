@@ -65,7 +65,7 @@ class Renderer final : public IVistaOpenGLDraw {
   /// Upper Corner of the bounding volume for the planet.
   glm::vec3 mMaxBounds;
 
-  csl::ogc::Bounds mBounds;
+  csl::ogc::Bounds2D mBounds;
 
   bool mShaderDirty = true;
 

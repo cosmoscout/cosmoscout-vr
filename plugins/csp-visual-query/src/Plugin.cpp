@@ -14,7 +14,8 @@
 #include "common-nodes/Real/Real.hpp"
 #include "operation-nodes/DifferenceImage2D/DifferenceImage2D.hpp"
 #include "output-nodes/OverlayRenderer/OverlayRender.hpp"
-#include "source-nodes/RandomDataSource/RandomDataSource.hpp"
+#include "source-nodes/RandomDataSource2D/RandomDataSource2D.hpp"
+#include "source-nodes/RandomDataSource3D/RandomDataSource3D.hpp"
 #include "source-nodes/WCSCoverage/WCSCoverage.hpp"
 #include "source-nodes/WCSCoverageImage/WCSCoverageImage.hpp"
 
@@ -135,6 +136,7 @@ void Plugin::setupNodeEditor(uint16_t port) {
 
   factory.registerSocketType("Coverage", "#8e38ff");
   factory.registerSocketType("Image2D", "#3333ff");
+  factory.registerSocketType("Volume3D", "#ff3333");
   factory.registerSocketType("WCSTime", "#b08ab3");
   factory.registerSocketType("WCSBounds", "#b08ab3");
 
@@ -163,7 +165,8 @@ void Plugin::setupNodeEditor(uint16_t port) {
   factory.registerNodeType<WCSCoverage>(
       std::shared_ptr<std::vector<csl::ogc::WebCoverageService>>(&mPluginSettings.mWebCoverages));
   // Sources
-  factory.registerNodeType<RandomDataSource>();
+  factory.registerNodeType<RandomDataSource2D>();
+  factory.registerNodeType<RandomDataSource3D>();
   factory.registerNodeType<WCSCoverageImage>();
   factory.registerNodeType<OverlayRender>(mSolarSystem, mAllSettings);
 

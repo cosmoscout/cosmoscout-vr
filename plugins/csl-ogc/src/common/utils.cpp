@@ -11,23 +11,68 @@
 
 #include "../../../src/cs-utils/utils.hpp"
 
+#include "../../../../src/cs-core/Settings.hpp"
+
 namespace csl::ogc {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void from_json(const nlohmann::json& j, Bounds& o) {
-  std::array<double, 4> bounds{};
-  j.get_to(bounds);
-  o.mMinLon = bounds[0];
-  o.mMaxLon = bounds[1];
-  o.mMinLat = bounds[2];
-  o.mMaxLat = bounds[3];
+void from_json(const nlohmann::json& j, Bounds2D& o) {
+  if (j.is_array()) {
+    std::array<double, 4> bounds{};
+    j.get_to(bounds);
+    o.mMinLon = bounds[0];
+    o.mMaxLon = bounds[1];
+    o.mMinLat = bounds[2];
+    o.mMaxLat = bounds[3];
+  } else {
+    cs::core::Settings::deserialize(j, "minLon", o.mMinLon);
+    cs::core::Settings::deserialize(j, "maxLon", o.mMaxLon);
+    cs::core::Settings::deserialize(j, "minLat", o.mMinLat);
+    cs::core::Settings::deserialize(j, "maxLat", o.mMaxLat);
+  }
 }
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void to_json(nlohmann::json& j, const Bounds& o) {
-  std::array<double, 4> bounds{o.mMinLon, o.mMaxLon, o.mMinLat, o.mMaxLat};
-  j = bounds;
+void to_json(nlohmann::json& j, const Bounds2D& o) {
+  cs::core::Settings::serialize(j, "minLon", o.mMinLon);
+  cs::core::Settings::serialize(j, "maxLon", o.mMaxLon);
+  cs::core::Settings::serialize(j, "minLat", o.mMinLat);
+  cs::core::Settings::serialize(j, "maxLat", o.mMaxLat);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void from_json(const nlohmann::json& j, Bounds3D& o) {
+  if (j.is_array()) {
+    std::array<double, 6> bounds{};
+    j.get_to(bounds);
+    o.mMinLon    = bounds[0];
+    o.mMaxLon    = bounds[1];
+    o.mMinLat    = bounds[2];
+    o.mMaxLat    = bounds[3];
+    o.mMinHeight = bounds[4];
+    o.mMaxHeight = bounds[5];
+  } else {
+    cs::core::Settings::deserialize(j, "minLon", o.mMinLon);
+    cs::core::Settings::deserialize(j, "maxLon", o.mMaxLon);
+    cs::core::Settings::deserialize(j, "minLat", o.mMinLat);
+    cs::core::Settings::deserialize(j, "maxLat", o.mMaxLat);
+    cs::core::Settings::deserialize(j, "minHeight", o.mMinHeight);
+    cs::core::Settings::deserialize(j, "maxHeight", o.mMaxHeight);
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void to_json(nlohmann::json& j, const Bounds3D& o) {
+  cs::core::Settings::serialize(j, "minLon", o.mMinLon);
+  cs::core::Settings::serialize(j, "maxLon", o.mMaxLon);
+  cs::core::Settings::serialize(j, "minLat", o.mMinLat);
+  cs::core::Settings::serialize(j, "maxLat", o.mMaxLat);
+  cs::core::Settings::serialize(j, "minHeight", o.mMinHeight);
+  cs::core::Settings::serialize(j, "maxHeight", o.mMaxHeight);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -64,7 +109,7 @@ void matchDuration(std::string const& input, std::regex const& re, Duration& dur
     return;
   }
 
-  std::vector<int> vec = {0, 0, 0, 0, 0, 0}; // years, months, days, hours, minutes, seconds
+  std::vector vec = {0, 0, 0, 0, 0, 0}; // years, months, days, hours, minutes, seconds
 
   for (size_t i = 1; i < match.size(); ++i) {
     if (match[i].matched) {
@@ -346,7 +391,6 @@ std::optional<bool> getAttribute<bool>(
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-
 
 std::vector<std::string> split(const std::string& s, char delim) {
   std::vector<std::string> elems;

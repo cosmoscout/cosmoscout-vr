@@ -5,10 +5,10 @@
 // SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
 // SPDX-License-Identifier: MIT
 
-class RandomDataSourceComponent extends Rete.Component {
+class RandomDataSource2DComponent extends Rete.Component {
 
   constructor() {
-    super("RandomDataSource");
+    super("RandomDataSource2D");
     this.category = "Sources";
   }
 
@@ -45,17 +45,17 @@ class BoundsControl extends Rete.Control {
     this.template = `
       <div class="container-fluid" style="width: 200px">
         <div class="row">
-          <div class="offset-2 col-3" style="text-align: center">Latitude</div>
-          <div class="offset-1 col-3" style="text-align: center">Longitude</div>
+          <div class="offset-3 col-3" style="text-align: center">Min</div>
+          <div class="offset-1 col-3" style="text-align: center">Max</div>
         </div>
         <div class="row">
-          <div class="col-2">Min:</div>
+          <div class="col-2">Lat:</div>
           <input id="min-lat-${this.id}" class="offset-1 col-3" type="text" value="0" style="text-align: end" />
-          <input id="min-lon-${this.id}" class="offset-1 col-3" type="text" value="0" style="text-align: end" />
+          <input id="max-lat-${this.id}" class="offset-1 col-3" type="text" value="0" style="text-align: end" />
         </div>
         <div class="row">
-          <div class="col-2">Max:</div>
-          <input id="max-lat-${this.id}" class="offset-1 col-3" type="text" value="0" style="text-align: end" />
+          <div class="col-2">Lon:</div>
+          <input id="min-lon-${this.id}" class="offset-1 col-3" type="text" value="0" style="text-align: end" />
           <input id="max-lon-${this.id}" class="offset-1 col-3" type="text" value="0" style="text-align: end" />
         </div>
       </div>
@@ -68,7 +68,8 @@ class BoundsControl extends Rete.Control {
     const maxLatEl = nodeDiv.querySelector(`#max-lat-${this.id}`);
     const maxLonEl = nodeDiv.querySelector(`#max-lon-${this.id}`);
 
-    if (data.minLat && data.minLon && data.maxLat && data.maxLon) {
+    if (typeof data.minLat == 'number' && typeof data.minLon == 'number' &&
+        typeof data.maxLat == 'number' && typeof data.maxLon == 'number') {
       this.data = data;
     }
 

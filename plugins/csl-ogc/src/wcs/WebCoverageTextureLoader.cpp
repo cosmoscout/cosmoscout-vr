@@ -245,7 +245,7 @@ std::string WebCoverageTextureLoader::getRequestUrl(
   /// All special chars need to be in url encoded form
   /// This is only really an issue with tomcat servers
 
-  if (request.mBounds != coverage.getSettings().mBounds && request.mBounds != Bounds()) {
+  if (request.mBounds != coverage.getSettings().mBounds && request.mBounds != Bounds2D()) {
     // &SUBSET=Lat(...,...)
     url << "&SUBSET=Lat%28" << request.mBounds.mMinLat << "," << request.mBounds.mMaxLat << "%29";
     // &SUBSET=Long(...,...)

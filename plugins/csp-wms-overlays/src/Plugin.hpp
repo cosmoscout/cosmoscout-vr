@@ -71,7 +71,7 @@ class Plugin : public cs::core::PluginBase {
       /// The name of the style for the currently active WMS layer.
       cs::utils::DefaultProperty<std::string> mActiveStyle{""};
       /// The bounds for the currently active WMS layer.
-      cs::utils::DefaultProperty<csl::ogc::Bounds> mActiveBounds{{-180., 180., -90., 90.}};
+      cs::utils::DefaultProperty<csl::ogc::Bounds2D> mActiveBounds{{-180., 180., -90., 90.}};
       ///	URLs of WMS servers.
       std::vector<std::string> mWms;
     };
@@ -114,11 +114,11 @@ class Plugin : public cs::core::PluginBase {
       csl::ogc::WebMapLayer const& layer, std::string const& activeLayer, int depth = 0);
 
   /// Move the observer so that the given bounds are visible.
-  void goToBounds(csl::ogc::Bounds const& bounds);
+  void goToBounds(csl::ogc::Bounds2D const& bounds);
   /// Calculate the map scale for the given bounds and texture resolution. If it is outside the
   /// appropriate range specified in the layer capabilities, a warning will be displayed.
   void checkScale(
-      csl::ogc::Bounds const& bounds, csl::ogc::WebMapLayer const& layer, int maxTextureSize);
+      csl::ogc::Bounds2D const& bounds, csl::ogc::WebMapLayer const& layer, int maxTextureSize);
 
   std::shared_ptr<Settings>                    mPluginSettings = std::make_shared<Settings>();
   std::mutex                                   mWmsInsertMutex;

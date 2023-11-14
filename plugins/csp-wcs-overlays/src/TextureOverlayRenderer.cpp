@@ -104,7 +104,7 @@ TextureOverlayRenderer::TextureOverlayRenderer(std::string center,
   VistaOpenSGMaterialTools::SetSortKeyOnSubtree(
       mGLNode.get(), static_cast<int>(cs::utils::DrawOrder::eOpaqueItems) - 50);
 
-  pBounds.connect([this](csl::ogc::Bounds const& value) {
+  pBounds.connect([this](csl::ogc::Bounds2D const& value) {
     clearTextures();
 
     csl::ogc::WebCoverageTextureLoader::Request request = getRequest();
@@ -232,7 +232,7 @@ void TextureOverlayRenderer::updateLonLatRange() {
   } else {
     // All four corners of the screen show the body.
     // The intersection points can be converted to longitude and latitude.
-    csl::ogc::Bounds currentBounds;
+    csl::ogc::Bounds2D currentBounds;
 
     glm::dvec3                radii = mSolarSystem->getObjectByCenterName(mCenterName)->getRadii();
     std::array<glm::dvec2, 4> screenBounds{};
@@ -326,7 +326,7 @@ void TextureOverlayRenderer::updateLonLatRange() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-csl::ogc::Bounds TextureOverlayRenderer::getBounds() const {
+csl::ogc::Bounds2D TextureOverlayRenderer::getBounds() const {
   return pBounds.get();
 }
 

@@ -10,9 +10,7 @@
 
 #include "../../../csl-ogc/src/common/utils.hpp"
 
-#include <ctime>
-#include <stdint.h>
-#include <string>
+#include <cstdint>
 #include <utility>
 #include <variant>
 #include <vector>
@@ -37,7 +35,7 @@ using PointsType = std::variant<U8ValueVector, U16ValueVector, U32ValueVector, I
 struct Image2D {
   Image2D() = default;
 
-  Image2D(PointsType points, size_t numScalars, glm::uvec2 dimension, csl::ogc::Bounds bounds,
+  Image2D(PointsType points, size_t numScalars, glm::uvec2 dimension, csl::ogc::Bounds2D bounds,
       std::optional<csl::ogc::TimeInterval> timeStamp = std::nullopt)
       : mPoints(std::move(points))
       , mNumScalars(numScalars)
@@ -47,10 +45,10 @@ struct Image2D {
   }
 
   PointsType mPoints;
-  size_t     mNumScalars;
+  size_t     mNumScalars{};
 
-  glm::uvec2       mDimension;
-  csl::ogc::Bounds mBounds;
+  glm::uvec2         mDimension{};
+  csl::ogc::Bounds2D mBounds;
 
   std::optional<csl::ogc::TimeInterval> mTimeStamp;
 };
@@ -58,7 +56,7 @@ struct Image2D {
 struct Volume3D {
   Volume3D() = default;
 
-  Volume3D(PointsType points, size_t numScalars, glm::uvec3 dimension, csl::ogc::Bounds bounds,
+  Volume3D(PointsType points, size_t numScalars, glm::uvec3 dimension, csl::ogc::Bounds2D bounds,
       std::optional<csl::ogc::TimeInterval> timeStamp = std::nullopt)
       : mPoints(std::move(points))
       , mNumScalars(numScalars)
@@ -68,10 +66,10 @@ struct Volume3D {
   }
 
   PointsType mPoints;
-  size_t     mNumScalars;
+  size_t     mNumScalars{};
 
-  glm::uvec3       mDimension;
-  csl::ogc::Bounds mBounds;
+  glm::uvec3         mDimension{};
+  csl::ogc::Bounds2D mBounds;
 
   std::optional<csl::ogc::TimeInterval> mTimeStamp;
 };

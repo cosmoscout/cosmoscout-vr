@@ -5,8 +5,8 @@
 // SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
 // SPDX-License-Identifier: MIT
 
-#ifndef CSP_VISUAL_QUERY_RANDOMDATASOURCE_HPP
-#define CSP_VISUAL_QUERY_RANDOMDATASOURCE_HPP
+#ifndef CSP_VISUAL_QUERY_RANDOMDATASOURCE_3D_HPP
+#define CSP_VISUAL_QUERY_RANDOMDATASOURCE_3D_HPP
 
 #include "../../../../csl-node-editor/src/Node.hpp"
 #include "../../types/types.hpp"
@@ -15,14 +15,14 @@
 
 namespace csp::visualquery {
 
-class RandomDataSource final : public csl::nodeeditor::Node {
+class RandomDataSource3D final : public csl::nodeeditor::Node {
  public:
-  static const std::string                 sName;
-  static std::string                       sSource();
-  static std::unique_ptr<RandomDataSource> sCreate();
+  static const std::string                   sName;
+  static std::string                         sSource();
+  static std::unique_ptr<RandomDataSource3D> sCreate();
 
-  RandomDataSource() noexcept;
-  ~RandomDataSource() noexcept override;
+   RandomDataSource3D() noexcept;
+  ~RandomDataSource3D() noexcept override;
 
   const std::string& getName() const noexcept override;
 
@@ -34,18 +34,14 @@ class RandomDataSource final : public csl::nodeeditor::Node {
   void           setData(nlohmann::json const& json) override;
 
  private:
-  std::shared_ptr<Image2D> mData;
+  std::shared_ptr<Volume3D> mData;
 
-  double mMinLat;
-  double mMinLon;
+  csl::ogc::Bounds3D mBounds;
 
-  double mMaxLat;
-  double mMaxLon;
-
-  std::mt19937                           mRandomNumberGenerator;
-  std::uniform_real_distribution<double> mDistribution;
+  std::mt19937                     mRandomNumberGenerator;
+  std::uniform_real_distribution<> mDistribution;
 };
 
 } // namespace csp::visualquery
 
-#endif // CSP_VISUAL_QUERY_RANDOMDATASOURCE_HPP
+#endif // CSP_VISUAL_QUERY_RANDOMDATASOURCE_3D_HPP

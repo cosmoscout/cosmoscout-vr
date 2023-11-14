@@ -71,7 +71,7 @@ class TextureOverlayRenderer : public IVistaOpenGLDraw {
 
   /// The current map bounds of this overlay.
   /// This may be used for setting the bounds.
-  cs::utils::Property<csl::ogc::Bounds> pBounds;
+  cs::utils::Property<csl::ogc::Bounds2D> pBounds;
 
   /// Interface implementation of IVistaOpenGLDraw
   bool Do() override;
@@ -86,7 +86,7 @@ class TextureOverlayRenderer : public IVistaOpenGLDraw {
 
   /// Returns the manually set bounds if subsets are allowed by the active layer.
   /// Otherwise returns the default bounds of the layer.
-  csl::ogc::Bounds getBounds();
+  csl::ogc::Bounds2D getBounds();
 
   /// Gets an appropriate Request object for the current state.
   csl::ogc::WebMapTextureLoader::Request getRequest();

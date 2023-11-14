@@ -199,7 +199,7 @@ csl::ogc::WebCoverageTextureLoader::Request WCSCoverageImage::getRequest() {
 
   // request.mTime = std::to_string(readInput<double>("wcsTimeIn", 0.0));
 
-  csl::ogc::Bounds bound;
+  csl::ogc::Bounds2D bound;
   bound.mMinLon   = readInput<double>("lngBoundMinIn", -180.);
   bound.mMaxLon   = readInput<double>("lngBoundMaxIn", 180.);
   bound.mMinLat   = readInput<double>("latBoundMinIn", -90.);

@@ -50,7 +50,7 @@ class CSL_OGC_EXPORT WebMapLayer {
     /// Only textures with this height may be requested.
     std::optional<int> mFixedHeight;
     /// Default (maximum) bounds of the layer.
-    Bounds mBounds;
+    Bounds2D mBounds;
     /// Specifies whether the layer is opaque.
     bool mOpaque = false;
     /// List of styles for the layer.

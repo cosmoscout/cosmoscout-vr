@@ -68,7 +68,7 @@ class Plugin : public cs::core::PluginBase {
       /// The name of the currently active WCS coverage.
       cs::utils::DefaultProperty<std::string> mActiveCoverage{"None"};
       /// The bounds for the currently active WCS layer.
-      cs::utils::DefaultProperty<csl::ogc::Bounds> mActiveBounds{{-180., 180., -90., 90.}};
+      cs::utils::DefaultProperty<csl::ogc::Bounds2D> mActiveBounds{{-180., 180., -90., 90.}};
       ///	URLs of WCS servers.
       std::vector<std::string> mWcs;
     };
@@ -107,7 +107,7 @@ class Plugin : public cs::core::PluginBase {
       const csl::ogc::WebCoverage& coverage, std::string const& activeLayer);
 
   /// Move the observer so that the given bounds are visible.
-  void goToBounds(csl::ogc::Bounds const& bounds);
+  void goToBounds(csl::ogc::Bounds2D const& bounds);
 
   /// Gui Callbacks used in WCS settings
   void registerSettingCallbacks();

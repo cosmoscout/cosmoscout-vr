@@ -559,7 +559,7 @@ void Plugin::initOverlay(std::string const& bodyName, Settings::Body& settings) 
 
   overlay->configure(settings);
 
-  overlay->pBounds.connectAndTouch([this, &settings, center = bodyName](csl::ogc::Bounds bounds) {
+  overlay->pBounds.connectAndTouch([this, &settings, center = bodyName](csl::ogc::Bounds2D bounds) {
     settings.mActiveBounds = bounds;
     if (isActiveOverlay(center)) {
       mGuiManager->getGui()->callJavascript("CosmoScout.wmsOverlays.setCurrentBounds",
@@ -808,7 +808,7 @@ bool Plugin::addLayerToSelect(std::shared_ptr<TextureOverlayRenderer> const& wms
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Plugin::goToBounds(csl::ogc::Bounds const& bounds) {
+void Plugin::goToBounds(csl::ogc::Bounds2D const& bounds) {
   double lon      = (bounds.mMinLon + bounds.mMaxLon) / 2.;
   double lat      = (bounds.mMinLat + bounds.mMaxLat) / 2.;
   double lonRange = bounds.mMaxLon - bounds.mMinLon;
@@ -837,7 +837,7 @@ void Plugin::goToBounds(csl::ogc::Bounds const& bounds) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Plugin::checkScale(
-    csl::ogc::Bounds const& bounds, csl::ogc::WebMapLayer const& layer, int maxTextureSize) {
+    csl::ogc::Bounds2D const& bounds, csl::ogc::WebMapLayer const& layer, int maxTextureSize) {
   if (!mActiveOverlay) {
     return;
   }

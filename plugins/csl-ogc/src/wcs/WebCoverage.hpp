@@ -26,7 +26,7 @@ class CSL_OGC_EXPORT WebCoverage {
   /// Struct for storing general coverage settings.
   struct Settings {
     /// Default (maximum) bounds of the coverage.
-    Bounds mBounds;
+    Bounds2D mBounds;
     /// TimeIntervals, for which data is available.
     std::vector<TimeInterval> mTimeIntervals;
     /// Attribution for the coverage.

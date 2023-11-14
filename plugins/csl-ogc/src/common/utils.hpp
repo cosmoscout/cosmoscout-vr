@@ -23,34 +23,58 @@ namespace csl::ogc {
 
 /// Struct for storing a geographical bounding box for a map.
 /// Coordinates should be given in degrees.
-struct CSL_OGC_EXPORT Bounds {
+struct CSL_OGC_EXPORT Bounds2D {
   double mMinLon{-180.};
   double mMaxLon{180.};
   double mMinLat{-90.};
   double mMaxLat{90.};
 
-  Bounds() = default;
+  Bounds2D() = default;
 
-  Bounds(double minLon, double maxLon, double minLat, double maxLat)
+  Bounds2D(double minLon, double maxLon, double minLat, double maxLat)
       : mMinLon(minLon)
       , mMaxLon(maxLon)
       , mMinLat(minLat)
       , mMaxLat(maxLat) {
   }
 
-  inline bool operator!=(const Bounds& rhs) const {
+  bool operator!=(const Bounds2D& rhs) const {
     return mMinLon != rhs.mMinLon || mMaxLon != rhs.mMaxLon || mMinLat != rhs.mMinLat ||
            mMaxLat != rhs.mMaxLat;
   }
 
-  inline bool operator==(const Bounds& rhs) const {
+  bool operator==(const Bounds2D& rhs) const {
     return mMinLon == rhs.mMinLon && mMaxLon == rhs.mMaxLon && mMinLat == rhs.mMinLat &&
            mMaxLat == rhs.mMaxLat;
   }
 };
 
-void CSL_OGC_EXPORT from_json(nlohmann::json const& j, Bounds& o);
-void CSL_OGC_EXPORT to_json(nlohmann::json& j, Bounds const& o);
+struct CSL_OGC_EXPORT Bounds3D : public Bounds2D {
+  double mMinHeight = 0;
+  double mMaxHeight = 100'000;
+
+  Bounds3D() = default;
+
+  Bounds3D(double minLon, double maxLon, double minLat, double maxLat, double minHeight,
+      double maxHeight)
+      : Bounds2D(minLon, maxLon, minLat, maxLat)
+      , mMinHeight(minHeight)
+      , mMaxHeight(maxHeight) {
+  }
+
+  bool operator!=(const Bounds3D& rhs) const {
+    return mMinLon != rhs.mMinLon || mMaxLon != rhs.mMaxLon || mMinLat != rhs.mMinLat ||
+           mMaxLat != rhs.mMaxLat || mMinHeight != rhs.mMinHeight || mMaxHeight != rhs.mMaxHeight;
+  }
+
+  bool operator==(const Bounds3D& rhs) const {
+    return mMinLon == rhs.mMinLon && mMaxLon == rhs.mMaxLon && mMinLat == rhs.mMinLat &&
+           mMaxLat == rhs.mMaxLat && mMinHeight == rhs.mMinHeight && mMaxHeight == rhs.mMaxHeight;
+  }
+};
+
+void CSL_OGC_EXPORT from_json(nlohmann::json const& j, Bounds2D& o);
+void CSL_OGC_EXPORT to_json(nlohmann::json& j, Bounds2D const& o);
 
 /// Struct for the duration of the WMS time step.
 /// Ideally only one of the members should be non-zero.
