@@ -67,7 +67,6 @@ StreamingSource::~StreamingSource() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void StreamingSource::updateStream() {
-  logger().debug("update stream");
   ALint numBufferProcessed;
   alGetSourcei(mOpenAlId, AL_BUFFERS_PROCESSED, &numBufferProcessed);
 

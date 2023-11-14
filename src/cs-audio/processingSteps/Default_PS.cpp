@@ -95,7 +95,6 @@ bool Default_PS::processLooping(ALuint openAlId, std::any value) {
 
     // remove looping
     if (value.type() == typeid(std::string) && std::any_cast<std::string>(value) == "remove") { 
-      std::cout << "looping removed" << std::endl;
       
       alSourcei(openAlId, AL_LOOPING, AL_FALSE);
       if (alErrorHandling::errorOccurred()) {
@@ -128,7 +127,6 @@ bool Default_PS::processPitch(ALuint openAlId, std::any value) {
 
     // remove pitch
     if (value.type() == typeid(std::string) && std::any_cast<std::string>(value) == "remove") { 
-      std::cout << "pitch removed" << std::endl;
       
       alSourcef(openAlId, AL_PITCH, 1.f);
       if (alErrorHandling::errorOccurred()) {

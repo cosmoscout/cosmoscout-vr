@@ -159,12 +159,6 @@ bool DistanceCulling_PS::processPosition(std::shared_ptr<SourceBase> source, std
     glm::dvec3 sourcePosToObserver = std::any_cast<glm::dvec3>(position);
     double distance = glm::length(sourcePosToObserver);
     
-    static int x = 0;
-    if (x % 60 == 0) {
-      std::cout << distance << std::endl;
-    }
-    ++x;
-
     // start/pause source based on the distance compared to the specified threshold
     if (distance > mDistanceThreshold) {
       if (isState != AL_PAUSED && isState != AL_INITIAL) {
