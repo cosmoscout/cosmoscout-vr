@@ -16,6 +16,23 @@
 
 namespace cs::audio {
 
+/*
+VolumeCulling_PS is a playback control processing step. If the playback option is set to "play" it
+will play a source if it's theoretical volume is greater then the specified volume culling threshold.
+This theoretical volume is calculated according to a sources distance model formula and multiplied
+by the set gain via Default_PS. This volume does not necessarily reflect the actual volume of a source
+because there many more factors that can have an influence. This processing step will only get active if a 
+source has a postion. If this is not the case the source will never get played.
+As with all playback control processing steps the playback setting can be set via the play(), pause()
+and stop() functions of a source.
+--------------------------------------------
+Name      Type          Range     Description
+--------------------------------------------
+playback  std::string   "play"    playback option
+                        "stop"
+                        "pause"
+--------------------------------------------
+*/
 class CS_AUDIO_EXPORT VolumeCulling_PS : public ProcessingStep {
  public:
   /// @brief Creates new access to the single Default_PS object

@@ -16,6 +16,19 @@
 
 namespace cs::audio {
 
+/*
+DirectPlay_PS is the most basic playback control processing step. It will immediately apply 
+the specified playback setting. 
+As with all playback control processing steps the playback setting can be set via the play(), pause()
+and stop() functions of a source.
+--------------------------------------------
+Name      Type          Range     Description
+--------------------------------------------
+playback  std::string   "play"    playback option
+                        "stop"
+                        "pause"
+--------------------------------------------
+*/
 class CS_AUDIO_EXPORT DirectPlay_PS : public ProcessingStep {
  public:
   /// @brief Creates new access to the single DirectPlay_PS object

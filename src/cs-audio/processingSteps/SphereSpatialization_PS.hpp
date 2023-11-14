@@ -17,8 +17,23 @@
 #include <chrono>
 
 namespace cs::audio {
-
-class CS_AUDIO_EXPORT ScaledSphereSpatialization_PS : public ProcessingStep {
+/*
+The SphereSpatialization_PS is a spatialization processing step with which lets you define a position 
+as a 3D sphere in space. If the observer is inside the sphere you will hear the source at full volume 
+without spatialization. If the sphere is large and the observer leaves the sphere you will notice that 
+the source will most probably cut off immediately. This is because once the observer is outside the sphere 
+the source gets positioned at the center of the sphere and due to the distance attenuation the volume drops 
+to zero. If this is not the behaviour you want, you can use the DistanceModel processing step and set the 
+fallOffStart to the sphere radius. This will enable the distance attenuation only at the edge of the sphere.
+This processing step will also automatically compute the velocity of a source and the observer. 
+The position must be specified relative to the observer.
+---------------------------------------------------------
+Name          Type          Range       Description
+---------------------------------------------------------
+position      glm::dvec3                Position of a source relative to the observer.
+sourceRadius  double        0.0 -       Radius of the sphere.
+---------------------------------------------------------
+*/
  public:
 
   static std::shared_ptr<ProcessingStep> create();

@@ -16,8 +16,16 @@
 #include <chrono>
 
 namespace cs::audio {
-
-class CS_AUDIO_EXPORT PointSpatialization_PS : public ProcessingStep {
+/*
+The PointSpatialization_PS is a spatialization processing step with which lets you define a position 
+as a single point in space. This processing step will also automatically compute the velocity of a source
+and the observer. The position must be specified relative to the observer.
+---------------------------------------------------------
+Name        Type          Range       Description
+---------------------------------------------------------
+position    glm::dvec3                Position of a source relative to the observer.   
+---------------------------------------------------------
+*/
  public:
   /// @brief Creates new access to the single PointSpatialization_PS object
   /// @return Pointer to the PS

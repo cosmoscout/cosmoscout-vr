@@ -18,7 +18,23 @@
 #include <chrono>
 
 namespace cs::audio {
-
+/*
+The DistanceModel_PS introduces distance attenuation controls for a source.
+This processing step will only get active if a source has a postion.
+---------------------------------------------------------
+Name          Type          Range       Description
+---------------------------------------------------------
+distanceModel std::string   "inverse"   Defines the fallOff Shape.
+                            "linear"
+                            "exponent" 
+fallOffStart  float         0.0 -       Distance at which the fallOff Starts. If the distance is smaller 
+                                        you will hear the source at full volume but still spatialized.
+fallOffEnd    float         0.0 -       Distance at which the fallOff clamps. The does not disable the source
+                                        but stops a further fallOff, meaning the attenuation stays the same 
+                                        beyond this distance.
+fallOffFactor float         0.0 -       Multiplier to the distance attenuation. If set to 0.0, no attenuation occurs.
+---------------------------------------------------------
+*/
 class CS_AUDIO_EXPORT DistanceModel_PS : public ProcessingStep {
  public:
 

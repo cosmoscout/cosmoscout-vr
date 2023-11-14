@@ -16,6 +16,21 @@
 
 namespace cs::audio {
 
+/*
+DistanceCulling_PS is a playback control processing step. If the playback option is set to "play" it
+will play a source if it's distance to the observer is smaller then the specified distance culling 
+threshold distance. Otherwise it will pause the source. This processing step will only get active if a 
+source has a postion. If this is not the case the source will never get played.
+As with all playback control processing steps the playback setting can be set via the play(), pause()
+and stop() functions of a source.
+--------------------------------------------
+Name      Type          Range     Description
+--------------------------------------------
+playback  std::string   "play"    playback option
+                        "stop"
+                        "pause"
+--------------------------------------------
+*/
 class CS_AUDIO_EXPORT DistanceCulling_PS : public ProcessingStep {
  public:
   /// @brief Creates new access to the single DistanceCulling_PS object
