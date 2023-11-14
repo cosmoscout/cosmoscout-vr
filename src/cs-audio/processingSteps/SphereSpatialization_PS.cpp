@@ -8,80 +8,114 @@
 #include "SphereSpatialization_PS.hpp"
 #include "../internal/alErrorHandling.hpp"
 #include "../logger.hpp"
-#include "../../cs-scene/CelestialAnchor.hpp"
-#include "../../cs-scene/CelestialSurface.hpp"
-#include "../../cs-utils/convert.hpp"
 #include <cmath>
+#include <glm/detail/type_vec3.hpp>
+#include <glm/glm.hpp>
+#include <glm/fwd.hpp>
 
 namespace cs::audio {
-
-std::shared_ptr<ProcessingStep> ScaledSphereSpatialization_PS::create() {
-  static auto scaledSphereSpatialization_PS = 
-    std::shared_ptr<ScaledSphereSpatialization_PS>(new ScaledSphereSpatialization_PS());
-  return scaledSphereSpatialization_PS;
+// TODO: sourceRadius muss >0 sein 
+std::shared_ptr<ProcessingStep> SphereSpatialization_PS::create() {
+  static auto sphereSpatialization_PS = 
+    std::shared_ptr<SphereSpatialization_PS>(new SphereSpatialization_PS());
+  return sphereSpatialization_PS;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-ScaledSphereSpatialization_PS::ScaledSphereSpatialization_PS() {}
+SphereSpatialization_PS::SphereSpatialization_PS() {}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void ScaledSphereSpatialization_PS::process(std::shared_ptr<SourceBase> source, 
+void SphereSpatialization_PS::process(std::shared_ptr<SourceBase> source, 
   std::shared_ptr<std::map<std::string, std::any>> settings,
   std::shared_ptr<std::vector<std::string>> failedSettings) {
   
+  ALuint openAlId = source->getOpenAlId();
+  bool processRequired = false;
+  std::any pos, radius;
   if (auto searchPos = settings->find("position"); searchPos != settings->end()) {
-    if (auto searchRadius = settings->find("sourceRadius"); searchRadius != settings->end()) {
-      if (!processScaling(source, searchPos->second, searchRadius->second)) {
+    if (processPosition(openAlId, searchPos->second)) {
+      processRequired = true;
+      pos = searchPos->second;
+    } else {
         failedSettings->push_back("position");
+    }
+  }
+
+  if (auto searchRad = settings->find("sourceRadius"); searchRad != settings->end()) {
+    if (processRadius(openAlId, searchRad->second)) {
+      processRequired = true;
+      radius = searchRad->second;
+    } else {
         failedSettings->push_back("sourceRadius");
       }
     }
+
+  if (processRequired) {
+    if (!pos.has_value()) {
+      auto currentSettings = source->getPlaybackSettings();
+      if (auto searchPos = currentSettings->find("position"); searchPos != currentSettings->end()) {
+        pos = searchPos->second;
+      } else {
+        return;
+      }
+    }
+
+    if (!radius.has_value()) {
+      auto currentSettings = source->getPlaybackSettings();
+      if (auto searchRad = currentSettings->find("sourceRadius"); searchRad != currentSettings->end()) {
+        radius = searchRad->second;
+      } else {
+        return;
+      }
+    }
+
+    processSpatialization(source, pos, radius);
   }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool ScaledSphereSpatialization_PS::processScaling(std::shared_ptr<SourceBase> source, 
-  std::any position, std::any sourceRadius) {
-
-  ALuint openAlId = source->getOpenAlId();
-
+bool SphereSpatialization_PS::processPosition(ALuint openAlId, std::any position) {
   if (position.type() != typeid(glm::dvec3)) {
 
     // remove position setting from source
-    if ((position.type() == typeid(std::string) && std::any_cast<std::string>(position) == "remove") ||
-        (sourceRadius.type() == typeid(std::string) && std::any_cast<std::string>(sourceRadius) == "remove") ) {
-      
-      alSource3f(openAlId, AL_POSITION, 
-        (ALfloat)0.f, 
-        (ALfloat)0.f, 
-        (ALfloat)0.f);
-      if (alErrorHandling::errorOccurred()) {
-        logger().warn("Failed to reset source position!");
-        return false;
-      }
-
-      alSource3f(openAlId, AL_VELOCITY, 
-        (ALfloat)0.f, 
-        (ALfloat)0.f, 
-        (ALfloat)0.f);
-      if (alErrorHandling::errorOccurred()) {
-        logger().warn("Failed to reset source velocity!");
-        return false;
-      }
-
-      return true;
+    if (position.type() == typeid(std::string) && std::any_cast<std::string>(position) == "remove") {
+      return resetSpatialization(openAlId);      
     }
 
     // wrong datatype used for position 
     logger().warn("Audio source settings error! Wrong type used for position setting! Allowed Type: glm::dvec3");
     return false;
   }
-  ALuint openAlId = source->getOpenAlId();
+  return true;
+}
+
+bool SphereSpatialization_PS::processRadius(ALuint openAlId, std::any sourceRadius) {
+  if (sourceRadius.type() != typeid(double)) {
+    
+    // remove source radius setting from source
+    if (sourceRadius.type() == typeid(std::string) && std::any_cast<std::string>(sourceRadius) == "remove") {
+      return resetSpatialization(openAlId);
+    }
+
+    // wrong datatype used for position 
+    logger().warn("Audio source settings error! Wrong type used for sourceRadius setting! Allowed Type: double");
+    return false;
+  }
+  return true;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+bool SphereSpatialization_PS::processSpatialization(std::shared_ptr<SourceBase> source, 
+  std::any position ,std::any sourceRadius) {
+    
   auto sourcePosToObserver = std::any_cast<glm::dvec3>(position);
+  rotateSourcePosByViewer(sourcePosToObserver);
   auto radius = std::any_cast<double>(sourceRadius);
+  ALuint openAlId = source->getOpenAlId();
 
   // Set source position to Observer Pos if the Observer is inside the source radius.
   // Otherwise set to the real position.
@@ -91,7 +125,7 @@ bool ScaledSphereSpatialization_PS::processScaling(std::shared_ptr<SourceBase> s
     return false;
   }
 
-  if (glm::length(sourcePosToObserver) < sourceRadius) {
+  if (glm::length(sourcePosToObserver) < radius) {
     alSource3f(openAlId, AL_POSITION, 
       (ALfloat)0.f, 
       (ALfloat)0.f, 
@@ -120,13 +154,37 @@ bool ScaledSphereSpatialization_PS::processScaling(std::shared_ptr<SourceBase> s
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool ScaledSphereSpatialization_PS::requiresUpdate() const {
+bool SphereSpatialization_PS::resetSpatialization(ALuint openAlId) {
+  // TODO: erase source from list
+  alSource3f(openAlId, AL_POSITION, 
+    (ALfloat)0.f, 
+    (ALfloat)0.f, 
+    (ALfloat)0.f);
+  if (alErrorHandling::errorOccurred()) {
+    logger().warn("Failed to reset source position!");
+    return false;
+  }
+
+  alSource3f(openAlId, AL_VELOCITY, 
+    (ALfloat)0.f, 
+    (ALfloat)0.f, 
+    (ALfloat)0.f);
+  if (alErrorHandling::errorOccurred()) {
+    logger().warn("Failed to reset source velocity!");
+    return false;
+  }
   return true;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void ScaledSphereSpatialization_PS::update() {
+bool SphereSpatialization_PS::requiresUpdate() const {
+  return true;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void SphereSpatialization_PS::update() {
   calculateVelocity();
 }
 
