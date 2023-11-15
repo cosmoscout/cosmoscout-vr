@@ -39,6 +39,20 @@ struct WavContainerStreaming : public WavContainer {
   int bufferCounter = -1;
   int bufferSize;
   int currentBuffer = 0;
+
+  void print() {
+    std::cout << "----WavContainer Info----" << std::endl;
+    std::cout << "format: " << format << std::endl;
+    std::cout << "numberChannels: " << numberChannels << std::endl;
+    std::cout << "sampleRate: " << sampleRate << std::endl;
+    std::cout << "bitsPerSample: " << bitsPerSample << std::endl;
+    std::cout << "size: " << size << std::endl;
+    std::cout << "type: " << (std::holds_alternative<std::vector<char>>(pcm) ? "char" : "float") << std::endl;
+    std::cout << "bufferCounter: " << bufferCounter << std::endl;
+    std::cout << "bufferSize: " << bufferSize << std::endl;
+    std::cout << "currentBuffer: " << currentBuffer << std::endl;
+    std::cout << "-------------------------" << std::endl;
+  }
 };
 
 class CS_AUDIO_EXPORT FileReader {
