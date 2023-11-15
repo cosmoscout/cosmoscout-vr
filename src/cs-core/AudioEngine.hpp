@@ -41,6 +41,8 @@ class CS_CORE_EXPORT AudioEngine {
   std::shared_ptr<SolarSystem> solarSystem, std::shared_ptr<GuiManager> guiManager);
   ~AudioEngine();
 
+  static std::shared_ptr<AudioEngine> getAudioEngine();
+
   /// @brief Returns a list of all possible Output Devices (wrapper to the OpenAlManager function)
   std::vector<std::string> getDevices();
   
@@ -60,6 +62,7 @@ class CS_CORE_EXPORT AudioEngine {
   std::shared_ptr<audio::AudioController> createAudioController();
 
  private:
+  static std::shared_ptr<AudioEngine>                  mSelf;
   std::shared_ptr<core::Settings>                      mSettings;
   std::shared_ptr<audio::OpenAlManager>                mOpenAlManager;
   std::shared_ptr<audio::BufferManager>                mBufferManager;

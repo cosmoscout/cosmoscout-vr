@@ -29,11 +29,13 @@
 
 namespace cs::core {
 
+std::shared_ptr<AudioEngine> AudioEngine::mSelf = nullptr;
+
 std::shared_ptr<AudioEngine> AudioEngine::createAudioEngine(std::shared_ptr<Settings> settings, 
   std::shared_ptr<SolarSystem> solarSystem, std::shared_ptr<GuiManager> guiManager) {
 
-  static auto audioEngine = std::shared_ptr<AudioEngine>(new AudioEngine(settings, solarSystem, guiManager));
-  return audioEngine;
+  mSelf = std::shared_ptr<AudioEngine>(new AudioEngine(settings, solarSystem, guiManager));
+  return mSelf;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -61,7 +63,7 @@ AudioEngine::AudioEngine(std::shared_ptr<Settings> settings, std::shared_ptr<Sol
   logger().info("OpenAL-Soft Version:  {}", alGetString(AL_VERSION));
 
   createGUI();
-  playAmbient();
+  // playAmbient();
 }
  
 AudioEngine::~AudioEngine() {
@@ -69,6 +71,12 @@ AudioEngine::~AudioEngine() {
     // Tell the user what's going on.
     logger().debug("Deleting AudioEngine.");
   } catch (...) {}
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+std::shared_ptr<AudioEngine> AudioEngine::getAudioEngine() {
+  return mSelf;   
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
