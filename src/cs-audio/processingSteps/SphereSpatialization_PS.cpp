@@ -101,7 +101,7 @@ bool SphereSpatialization_PS::processRadius(ALuint openAlId, std::any sourceRadi
     }
 
     // wrong datatype used for position 
-    logger().warn("Audio source settings error! Wrong type used for sourceRadius setting! Allowed Type: double");
+    logger().warn("Audio source settings error! Wrong type used for sourceRadius setting! Allowed Type: float");
     return false;
   }
 
@@ -119,7 +119,7 @@ bool SphereSpatialization_PS::processSpatialization(std::shared_ptr<SourceBase> 
     
   auto sourcePosToObserver = std::any_cast<glm::dvec3>(position);
   rotateSourcePosByViewer(sourcePosToObserver);
-  auto radius = std::any_cast<double>(sourceRadius);
+  auto radius = std::any_cast<float>(sourceRadius);
   ALuint openAlId = source->getOpenAlId();
 
   // Set source position to Observer Pos if the Observer is inside the source radius.
