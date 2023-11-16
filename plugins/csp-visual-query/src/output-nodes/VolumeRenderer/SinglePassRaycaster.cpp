@@ -12,11 +12,14 @@
 #include "../../../../../src/cs-utils/utils.hpp"
 #include "../../logger.hpp"
 
+#include <VistaKernel/DisplayManager/VistaProjection.h>
 #include <VistaKernel/GraphicsManager/VistaGroupNode.h>
 #include <VistaKernel/GraphicsManager/VistaOpenGLNode.h>
 #include <VistaKernel/GraphicsManager/VistaSceneGraph.h>
 #include <VistaKernel/VistaSystem.h>
 #include <VistaKernelOpenSGExt/VistaOpenSGMaterialTools.h>
+
+#include <glm/gtc/type_ptr.hpp>
 
 namespace csp::visualquery {
 
@@ -41,7 +44,7 @@ SinglePassRaycaster::SinglePassRaycaster(std::shared_ptr<cs::core::SolarSystem> 
   VistaSceneGraph* pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
   mGLNode.reset(pSG->NewOpenGLNode(pSG->GetRoot(), this));
   VistaOpenSGMaterialTools::SetSortKeyOnSubtree(
-      mGLNode.get(), static_cast<int>(cs::utils::DrawOrder::ePlanets) + 10);
+      mGLNode.get(), static_cast<int>(cs::utils::DrawOrder::eAtmospheres) + 10);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -64,8 +67,88 @@ bool SinglePassRaycaster::Do() {
     return false;
   }
 
+  if (mShaderDirty) {
+    mShader = VistaGLSLShader();
 
+    std::string shaderRoot = "../share/resources/shaders/csp-visual-query/";
 
+    mShader.InitGeometryShaderFromString(
+        cs::utils::filesystem::loadToString(shaderRoot + "SPRaycaster.geom.glsl"));
+    mShader.InitVertexShaderFromString(
+        cs::utils::filesystem::loadToString(shaderRoot + "SPRaycaster.vert.glsl"));
+    mShader.InitFragmentShaderFromString(
+        cs::utils::filesystem::loadToString(shaderRoot + "SPRaycaster.frag.glsl"));
+    mShader.Link();
+
+    mUniforms.texture     = mShader.GetUniformLocation("uTexture");
+    mUniforms.matInvMV    = mShader.GetUniformLocation("uMatInvMV");
+    mUniforms.matInvP     = mShader.GetUniformLocation("uMatInvP");
+    mUniforms.lonRange    = mShader.GetUniformLocation("uLonRange");
+    mUniforms.latRange    = mShader.GetUniformLocation("uLatRange");
+    mUniforms.heightRange = mShader.GetUniformLocation("uHeightRange");
+    mUniforms.innerRadii  = mShader.GetUniformLocation("uInnerRadii");
+    mUniforms.outerRadii  = mShader.GetUniformLocation("uOuterRadii");
+    mUniforms.bodyRadii   = mShader.GetUniformLocation("uBodyRadii");
+
+    mShaderDirty = false;
+  }
+
+  glPushAttrib(GL_POLYGON_BIT | GL_ENABLE_BIT);
+  glEnable(GL_TEXTURE_3D);
+  glDisable(GL_CULL_FACE);
+  glDisable(GL_DEPTH_TEST);
+  glDepthMask(GL_FALSE);
+  glEnable(GL_BLEND);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+  auto radii     = object->getRadii();
+  auto transform = object->getObserverRelativeTransform();
+
+  glm::dmat4 matInverseEllipsoid(
+      1, 0, 0, 0, 0, radii[0] / radii[1], 0, 0, 0, 0, radii[0] / radii[2], 0, 0, 0, 0, 1);
+
+  // get matrices and related values
+  std::array<GLfloat, 16> glMatV{};
+  std::array<GLfloat, 16> glMatP{};
+  glGetFloatv(GL_MODELVIEW_MATRIX, glMatV.data());
+  glGetFloatv(GL_PROJECTION_MATRIX, glMatP.data());
+  auto matV = glm::make_mat4x4(glMatV.data());
+  auto matP = glm::make_mat4x4(glMatP.data());
+
+  glm::dmat4 matInvV     = glm::inverse(matV);
+  glm::dmat4 matInvWorld = glm::inverse(transform);
+
+  glm::mat4 matInvMV  = matInverseEllipsoid * matInvWorld * matInvV;
+  glm::mat4 matInvP   = glm::inverse(matP);
+
+  mShader.Bind();
+  mTexture.Bind(GL_TEXTURE0);
+
+  mShader.SetUniform(mUniforms.texture, 0);
+
+  glUniformMatrix4fv(mUniforms.matInvMV, 1, false, glm::value_ptr(matInvMV));
+  glUniformMatrix4fv(mUniforms.matInvP, 1, false, glm::value_ptr(matInvP));
+
+  glUniform3fv(mUniforms.bodyRadii, 1, glm::value_ptr(glm::vec3(radii)));
+
+  glUniform2f(mUniforms.lonRange, static_cast<float>(mBounds.mMinLon), static_cast<float>(mBounds.mMaxLon));
+  glUniform2f(mUniforms.latRange, static_cast<float>(mBounds.mMinLat), static_cast<float>(mBounds.mMaxLat));
+  glUniform2f(mUniforms.heightRange, static_cast<float>(mBounds.mMinHeight), static_cast<float>(mBounds.mMaxHeight));
+
+  glm::vec3 innerRadii = radii + mBounds.mMinHeight;
+  glUniform3fv(mUniforms.innerRadii, 1, glm::value_ptr(innerRadii));
+
+  glm::vec3 outerRadii = radii + mBounds.mMaxHeight;
+  glUniform3fv(mUniforms.outerRadii, 1, glm::value_ptr(outerRadii));
+
+  glDrawArrays(GL_POINTS, 0, 1);
+
+  mTexture.Unbind();
+  mShader.Release();
+
+  glEnable(GL_DEPTH_TEST);
+  glDepthMask(GL_TRUE);
+  glPopAttrib();
 
   return true;
 }
@@ -158,8 +241,8 @@ void SinglePassRaycaster::setData(std::shared_ptr<Volume3D> const& image) {
     auto imageData = std::get<F32ValueVector>(image->mPoints);
 
     std::vector<float> data = copyTo3DTextureBuffer(imageData, image->mNumScalars);
-    glTexImage3D(GL_TEXTURE_3D, 0, GL_FLOAT, image->mDimension.x, image->mDimension.y,
-        image->mDimension.z, 0, imageFormat, GL_INT, data.data());
+    glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA8, image->mDimension.x, image->mDimension.y,
+        image->mDimension.z, 0, imageFormat, GL_FLOAT, data.data());
 
   } else {
     logger().error("Unknown type!");

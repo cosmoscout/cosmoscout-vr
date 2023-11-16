@@ -16,7 +16,7 @@ class RandomDataSource3DComponent extends Rete.Component {
     let output = new Rete.Output('Volume3D', 'Volume 3D', CosmoScout.socketTypes['Volume3D']);
     node.addOutput(output)
 
-    const boundsControl = new BoundsControl3D('Bounds');
+    const boundsControl = new BoundsControl3D('Bounds3D');
     node.addControl(boundsControl);
 
     node.onInit = (nodeDiv) => boundsControl.init(nodeDiv, node.data);

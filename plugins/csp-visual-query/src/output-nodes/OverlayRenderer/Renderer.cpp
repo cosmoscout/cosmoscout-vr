@@ -30,9 +30,9 @@ Renderer::Renderer(std::shared_ptr<cs::core::SolarSystem> solarSystem,
     , mSolarSystem(std::move(solarSystem))
     , mSettings(std::move(settings))
     , mTexture(GL_TEXTURE_2D)
-    , mHasTexture(false) {
-  mMinBounds = glm::vec3(0);
-  mMaxBounds = glm::vec3(0);
+    , mHasTexture(false)
+    , mMinBounds(0)
+    , mMaxBounds(0) {
 
   // create textures ---------------------------------------------------------
   for (auto const& viewport : GetVistaSystem()->GetDisplayManager()->GetViewports()) {

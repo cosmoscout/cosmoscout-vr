@@ -7,6 +7,7 @@
 
 #include "RandomDataSource3D.hpp"
 
+#include "../../logger.hpp"
 #include "../../../../src/cs-utils/filesystem.hpp"
 
 namespace csp::visualquery {
@@ -71,7 +72,7 @@ void RandomDataSource3D::process() noexcept {
   mData = std::make_shared<Volume3D>(points, 4,
       glm::uvec3{static_cast<uint32_t>(mBounds.mMaxLon - mBounds.mMinLon),
           static_cast<uint32_t>(mBounds.mMaxLat - mBounds.mMinLat),
-          static_cast<uint32_t>(mBounds.mMaxHeight - mBounds.mMinHeight)},
+          static_cast<uint32_t>((mBounds.mMaxHeight - mBounds.mMinHeight) / 1000.0)},
       mBounds, std::nullopt);
 
   writeOutput("Volume3D", mData);
@@ -80,7 +81,7 @@ void RandomDataSource3D::process() noexcept {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void RandomDataSource3D::onMessageFromJS(nlohmann::json const& message) {
-  mBounds = message;
+  mBounds = message.get<csl::ogc::Bounds3D>();
 
   process();
 }
@@ -94,7 +95,7 @@ nlohmann::json RandomDataSource3D::getData() const {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void RandomDataSource3D::setData(nlohmann::json const& json) {
-  mBounds = json;
+  mBounds = json.get<csl::ogc::Bounds3D>();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -17,7 +17,7 @@ namespace csl::ogc {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void from_json(const nlohmann::json& j, Bounds2D& o) {
+void from_json(nlohmann::json const& j, Bounds2D& o) {
   if (j.is_array()) {
     std::array<double, 4> bounds{};
     j.get_to(bounds);
@@ -44,7 +44,7 @@ void to_json(nlohmann::json& j, const Bounds2D& o) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void from_json(const nlohmann::json& j, Bounds3D& o) {
+void from_json(nlohmann::json const& j, Bounds3D& o) {
   if (j.is_array()) {
     std::array<double, 6> bounds{};
     j.get_to(bounds);

@@ -17,6 +17,9 @@
 #include <memory>
 #include <string>
 
+namespace cs::core {
+class SolarSystem;
+}
 namespace csp::visualquery {
 
 class SinglePassRaycaster final : public IVistaOpenGLDraw {
@@ -33,7 +36,7 @@ class SinglePassRaycaster final : public IVistaOpenGLDraw {
   void        setCenter(std::string center);
   std::string getCenter() const;
 
-private:
+ private:
   std::string                            mObjectName;
   std::shared_ptr<cs::core::SolarSystem> mSolarSystem;
   std::shared_ptr<cs::core::Settings>    mSettings;
@@ -45,6 +48,22 @@ private:
 
   VistaTexture mTexture;
   bool         mHasTexture;
+
+  struct {
+    uint32_t texture{};
+
+    uint32_t matInvMV{};
+    uint32_t matInvP{};
+
+    uint32_t latRange{};
+    uint32_t lonRange{};
+    uint32_t heightRange{};
+
+    uint32_t innerRadii{};
+    uint32_t outerRadii{};
+
+    uint32_t bodyRadii{};
+  } mUniforms;
 
   /// Lower Corner of the bounding volume for the planet.
   glm::vec3 mMinBounds;

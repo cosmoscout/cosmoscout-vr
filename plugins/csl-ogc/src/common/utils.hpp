@@ -74,7 +74,10 @@ struct CSL_OGC_EXPORT Bounds3D : public Bounds2D {
 };
 
 void CSL_OGC_EXPORT from_json(nlohmann::json const& j, Bounds2D& o);
-void CSL_OGC_EXPORT to_json(nlohmann::json& j, Bounds2D const& o);
+void CSL_OGC_EXPORT to_json(nlohmann::json& j, Bounds2D const& o);;
+
+void CSL_OGC_EXPORT from_json(nlohmann::json const& j, Bounds3D& o);
+void CSL_OGC_EXPORT to_json(nlohmann::json& j, Bounds3D const& o);
 
 /// Struct for the duration of the WMS time step.
 /// Ideally only one of the members should be non-zero.
