@@ -43,28 +43,27 @@ UpdateInstructor::UpdateInstruction UpdateInstructor::createUpdateInstruction() 
   if (mAudioControllerUpdate) {
     // update every source and group
     result.updateAll = true;
-    goto end;
-  }
 
-  result.updateAll = false;
-  result.updateWithGroup = std::make_shared<std::vector<std::shared_ptr<SourceBase>>>();
-  result.updateSourceOnly = std::make_shared<std::vector<std::shared_ptr<SourceBase>>>();
+  } else {
+    result.updateAll = false;
+    result.updateWithGroup = std::make_shared<std::vector<std::shared_ptr<SourceBase>>>();
+    result.updateSourceOnly = std::make_shared<std::vector<std::shared_ptr<SourceBase>>>();
 
-  // add group members to updateList
-  for (auto groupPtr : mGroupUpdateList) {
-    auto groupMembers = groupPtr->getMembers();   
-    result.updateWithGroup->insert(std::end(*(result.updateWithGroup)), std::begin(groupMembers), std::end(groupMembers));
-  }
+    // add group members to updateList
+    for (auto groupPtr : mGroupUpdateList) {
+      auto groupMembers = groupPtr->getMembers();   
+      result.updateWithGroup->insert(std::end(*(result.updateWithGroup)), std::begin(groupMembers), std::end(groupMembers));
+    }
 
-  // Filter out all source that are already part of updateWithGroup and add the rest to updateSourceOnly. This is done to not run the 
-  // same source twice through the pipeline.
-  for (auto sourcePtr : mSourceUpdateList) {
-    if (std::find(result.updateWithGroup->begin(), result.updateWithGroup->end(), sourcePtr) == result.updateWithGroup->end()) {
-      result.updateSourceOnly->push_back(sourcePtr);
+    // Filter out all source that are already part of updateWithGroup and add the rest to updateSourceOnly. This is done to not run the 
+    // same source twice through the pipeline.
+    for (auto sourcePtr : mSourceUpdateList) {
+      if (std::find(result.updateWithGroup->begin(), result.updateWithGroup->end(), sourcePtr) == result.updateWithGroup->end()) {
+        result.updateSourceOnly->push_back(sourcePtr);
+      }
     }
   }
 
-  end:
   // reset update state
   mSourceUpdateList.clear();
   mGroupUpdateList.clear();

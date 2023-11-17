@@ -44,58 +44,57 @@ void UpdateConstructor::updateAll(
     for (auto sourcePtr : *sources) {
       rebuildPlaybackSettings(audioController, sourcePtr);
     }
-    goto sourcesProcessed;
+    
+  } else {
+    for (auto sourcePtr : *sources) {
+
+      if (containsRemove(sourcePtr->mUpdateSettings)) {
+        rebuildPlaybackSettings(audioController, sourcePtr);
+        continue;
+      }
+
+      if (sourcePtr->mGroup != nullptr && containsRemove(sourcePtr->mGroup->mUpdateSettings)) {
+        rebuildPlaybackSettings(audioController, sourcePtr);
+        continue;
+      }
+
+      // take controller settings
+      auto finalSettings = std::make_shared<std::map<std::string, std::any>>(*(audioController->mUpdateSettings));
+
+      // remove controller settings that are already set by the source
+      SettingsMixer::A_Without_B(finalSettings, sourcePtr->mCurrentSettings);
+  
+      if (sourcePtr->mGroup != nullptr) {
+        // remove controller settings that are already set by the group
+        SettingsMixer::A_Without_B(finalSettings, sourcePtr->mGroup->mCurrentSettings);
+
+        // take group settings
+        auto finalGroup = std::make_shared<std::map<std::string, std::any>>(*(sourcePtr->mGroup->mUpdateSettings));
+
+        // remove group settings that are already set by the source
+        SettingsMixer::A_Without_B(finalGroup, sourcePtr->mCurrentSettings);
+
+        // Mix controller and group Settings
+        SettingsMixer::OverrideAdd_A_with_B(finalSettings, finalGroup);
+      }
+
+      // add source update settings to finalSettings
+      SettingsMixer::OverrideAdd_A_with_B(finalSettings, sourcePtr->mUpdateSettings);
+
+      // run finalSetting through pipeline
+      auto failedSettings = mProcessingStepsManager->process(sourcePtr, audioController, finalSettings);
+
+      // update current source playback settings 
+      SettingsMixer::A_Without_B(finalSettings, failedSettings);
+      SettingsMixer::OverrideAdd_A_with_B(sourcePtr->mPlaybackSettings, finalSettings);
+
+      // Update current source settings
+      SettingsMixer::A_Without_B(sourcePtr->mUpdateSettings, failedSettings);
+      SettingsMixer::OverrideAdd_A_with_B(sourcePtr->mCurrentSettings, sourcePtr->mUpdateSettings);
+      sourcePtr->mUpdateSettings->clear();
+    }
   }
 
-  for (auto sourcePtr : *sources) {
-
-    if (containsRemove(sourcePtr->mUpdateSettings)) {
-      rebuildPlaybackSettings(audioController, sourcePtr);
-      continue;
-    }
-
-    if (sourcePtr->mGroup != nullptr && containsRemove(sourcePtr->mGroup->mUpdateSettings)) {
-      rebuildPlaybackSettings(audioController, sourcePtr);
-      continue;
-    }
-
-    // take controller settings
-    auto finalSettings = std::make_shared<std::map<std::string, std::any>>(*(audioController->mUpdateSettings));
-
-    // remove controller settings that are already set by the source
-    SettingsMixer::A_Without_B(finalSettings, sourcePtr->mCurrentSettings);
- 
-    if (sourcePtr->mGroup != nullptr) {
-      // remove controller settings that are already set by the group
-      SettingsMixer::A_Without_B(finalSettings, sourcePtr->mGroup->mCurrentSettings);
-
-      // take group settings
-      auto finalGroup = std::make_shared<std::map<std::string, std::any>>(*(sourcePtr->mGroup->mUpdateSettings));
-
-      // remove group settings that are already set by the source
-      SettingsMixer::A_Without_B(finalGroup, sourcePtr->mCurrentSettings);
-
-      // Mix controller and group Settings
-      SettingsMixer::OverrideAdd_A_with_B(finalSettings, finalGroup);
-    }
-
-    // add source update settings to finalSettings
-    SettingsMixer::OverrideAdd_A_with_B(finalSettings, sourcePtr->mUpdateSettings);
-
-    // run finalSetting through pipeline
-    auto failedSettings = mProcessingStepsManager->process(sourcePtr, audioController, finalSettings);
-
-    // update current source playback settings 
-    SettingsMixer::A_Without_B(finalSettings, failedSettings);
-    SettingsMixer::OverrideAdd_A_with_B(sourcePtr->mPlaybackSettings, finalSettings);
-
-    // Update current source settings
-    SettingsMixer::A_Without_B(sourcePtr->mUpdateSettings, failedSettings);
-    SettingsMixer::OverrideAdd_A_with_B(sourcePtr->mCurrentSettings, sourcePtr->mUpdateSettings);
-    sourcePtr->mUpdateSettings->clear();
-  }
-
-  sourcesProcessed:
   // Update currently set settings for a group
   for (std::shared_ptr<SourceGroup> groupPtr : *groups) {
     if (!groupPtr->mUpdateSettings->empty()) {
