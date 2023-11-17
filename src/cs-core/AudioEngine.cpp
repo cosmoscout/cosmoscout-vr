@@ -32,25 +32,22 @@ namespace cs::core {
 std::shared_ptr<AudioEngine> AudioEngine::mSelf = nullptr;
 
 std::shared_ptr<AudioEngine> AudioEngine::createAudioEngine(std::shared_ptr<Settings> settings, 
-  std::shared_ptr<SolarSystem> solarSystem, std::shared_ptr<GuiManager> guiManager) {
+  std::shared_ptr<GuiManager> guiManager) {
 
-  mSelf = std::shared_ptr<AudioEngine>(new AudioEngine(settings, solarSystem, guiManager));
+  mSelf = std::shared_ptr<AudioEngine>(new AudioEngine(settings, guiManager));
   return mSelf;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-AudioEngine::AudioEngine(std::shared_ptr<Settings> settings, std::shared_ptr<SolarSystem> solarSystem,
-  std::shared_ptr<GuiManager> guiManager) 
+AudioEngine::AudioEngine(std::shared_ptr<Settings> settings, std::shared_ptr<GuiManager> guiManager) 
     : mSettings(std::move(settings)) 
     , mGuiManager(std::move(guiManager))
     , mOpenAlManager(audio::OpenAlManager::createOpenAlManager())
     , mBufferManager(audio::BufferManager::createBufferManager()) 
     , mProcessingStepsManager(audio::ProcessingStepsManager::createProcessingStepsManager(mSettings))
-    , mObserver(solarSystem->getObserver())
-    , mSolarSystem(std::move(solarSystem))
-    , mMasterVolume(utils::Property<float>(1.f))
-    , mUpdateConstructor(audio::UpdateConstructor::createUpdateConstructor(mProcessingStepsManager)) {
+    , mUpdateConstructor(audio::UpdateConstructor::createUpdateConstructor(mProcessingStepsManager))
+    , mMasterVolume(utils::Property<float>(1.f)) {
 
   // Tell the user what's going on.
   logger().debug("Creating AudioEngine.");
@@ -153,55 +150,6 @@ void AudioEngine::update() {
   for (auto controller : mAudioControllers) {
     controller->updateStreamingSources();
   }
-
-  // Spatialization Test
-  /*
-  static bool x = true;
-  if (x) {
-    testSourcePosition1->play();
-    x = false;
-  }
-
-  static glm::dvec3 coordinates1(-588086.8558471624, 3727313.5198930562, 10001091.473068066);
-  auto celesObj = mSolarSystem->getObject("Earth");
-  if (celesObj == nullptr) { return; }
-
-  glm::dvec3 sourceRelPosToObs1 = celesObj->getObserverRelativePosition(coordinates1);  
-  sourceRelPosToObs1 *= static_cast<float>(mSolarSystem->getObserver().getScale());
-  testSourcePosition1->set("position", sourceRelPosToObs1);
-
-  // glm::dvec3 sourceRelPosToObs2 = celesObj->getObserverRelativePosition(coordinates2);
-  // sourceRelPosToObs2 *= static_cast<float>(mSolarSystem->getObserver().getScale());
-  // testSourcePosition2->set("position", sourceRelPosToObs2);
-
-  controllerSpace->update();
-  */
-  
-  // Streaming Test
-  static bool x = true;
-  if (x) {
-    logger().debug("play streaming");
-    testSourceStreaming->play();
-    controllerAmbient->update();
-    x = false;
-
-    ALint state;
-    alGetSourcei(testSourceStreaming->getOpenAlId(), AL_SOURCE_STATE, &state);
-    switch(state) {
-      case AL_PLAYING:
-        logger().debug("playing");
-        break;
-      case AL_PAUSED:
-        logger().debug("pause");
-        break;
-      case AL_STOPPED:
-        logger().debug("stop");
-        break;
-      case AL_INITIAL:
-        logger().debug("init");
-        break;
-    }
-  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -212,43 +160,6 @@ std::shared_ptr<audio::AudioController> AudioEngine::createAudioController() {
   controller->setPipeline(std::vector<std::string>());
   mAudioControllers.push_back(controller);
   return controller;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void AudioEngine::playAmbient() {
-
-  // Spatialization Test
-  /*
-  controllerAmbient = createAudioController();
-  controllerAmbient->set("looping", true);
-  controllerAmbient->setPipeline(std::vector<std::string>{"DirectPlay"});
-
-  controllerSpace = createAudioController();
-  controllerSpace->set("looping", true);
-  controllerSpace->setPipeline(std::vector<std::string>{"DistanceModel", "PointSpatialization", "DirectPlay"});
-
-  testSourcePosition1 = controllerSpace->createSource("C:/Users/sass_fl/audioCS/audioCSNotes/testFiles/exotic_mono.wav");
-  testSourcePosition1->set("sourceRadius", 1000000.0);
-  testSourcePosition1->set("fallOffStart", 1000000.0f);
-  testSourcePosition1->set("fallOffFactor", 10.f);
-
-  // testSourcePosition2 = controllerSpace->createSource("C:/Users/sass_fl/audioCS/audioCSNotes/testFiles/alarm_mono.wav");
-  // testSourcePosition2->play();
-
-  testSourceAmbient = controllerAmbient->createSource("C:/Users/sass_fl/audioCS/audioCSNotes/testFiles/scifi_stereo.wav"); 
-  testSourceAmbient->play();
-  
-  controllerAmbient->update();
-  controllerSpace->update();
-  */
-
-  // Streaming Test
-  controllerAmbient = createAudioController();
-  controllerAmbient->set("looping", true);
-  controllerAmbient->setPipeline(std::vector<std::string>{"DirectPlay"});
-
-  testSourceStreaming = controllerAmbient->createStreamingSource("C:/Users/sass_fl/audioCS/audioCSNotes/testFiles/scifi_stereo.wav");
 }
 
 } // namespace cs::core

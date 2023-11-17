@@ -37,8 +37,8 @@ class CS_CORE_EXPORT AudioEngine {
   AudioEngine& operator=(const AudioEngine&) = delete;
   AudioEngine& operator=(AudioEngine&&) = delete;
 
-  static std::shared_ptr<AudioEngine> createAudioEngine(std::shared_ptr<Settings> settings, 
-  std::shared_ptr<SolarSystem> solarSystem, std::shared_ptr<GuiManager> guiManager);
+  static std::shared_ptr<AudioEngine> createAudioEngine(std::shared_ptr<Settings> settings,
+   std::shared_ptr<GuiManager> guiManager);
   ~AudioEngine();
 
   static std::shared_ptr<AudioEngine> getAudioEngine();
@@ -72,25 +72,10 @@ class CS_CORE_EXPORT AudioEngine {
   std::vector<std::shared_ptr<audio::AudioController>> mAudioControllers;
   std::shared_ptr<audio::UpdateConstructor>            mUpdateConstructor;
 
-  AudioEngine(std::shared_ptr<Settings> settings, 
-    std::shared_ptr<SolarSystem> solarSystem, std::shared_ptr<GuiManager> guiManager);
+  AudioEngine(std::shared_ptr<Settings> settings, std::shared_ptr<GuiManager> guiManager);
 
   /// Creates the Audio GUI Settings
   void createGUI();
-
-  // for testing
-  std::shared_ptr<audio::AudioController> controllerAmbient;
-  std::shared_ptr<audio::AudioController> controllerSpace;
-  void playAmbient();
-  std::shared_ptr<audio::Source> testSourceAmbient;
-  std::shared_ptr<audio::StreamingSource> testSourceStreaming;
-  std::shared_ptr<audio::Source> testSourcePosition1;
-  std::shared_ptr<audio::Source> testSourcePosition2;
-  std::shared_ptr<audio::SourceGroup> testSourceGroup;
-  std::map<std::string, std::any> testSettings;
-
-  cs::scene::CelestialObserver mObserver; // ?
-  std::shared_ptr<SolarSystem> mSolarSystem; // ?
 };
 
 } // namespace cs::core
