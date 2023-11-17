@@ -115,7 +115,7 @@ bool Application::Init(VistaSystem* pVistaSystem) {
   mSolarSystem = std::make_shared<cs::core::SolarSystem>(mSettings, mGraphicsEngine, mTimeControl);
   mDragNavigation =
       std::make_unique<cs::core::DragNavigation>(mSolarSystem, mInputManager, mTimeControl);
-  mAudioEngine = cs::core::AudioEngine::createAudioEngine(mSettings, mSolarSystem, mGuiManager);
+  mAudioEngine = cs::core::AudioEngine::createAudioEngine(mSettings, mGuiManager);
 
   // The ObserverNavigationNode is used by several DFN networks to move the celestial observer.
   VdfnNodeFactory* pNodeFactory = VdfnNodeFactory::GetSingleton();
