@@ -63,6 +63,7 @@ class SinglePassRaycaster final : public IVistaOpenGLDraw {
     uint32_t outerRadii{};
 
     uint32_t bodyRadii{};
+    uint32_t farClip{};
   } mUniforms;
 
   /// Lower Corner of the bounding volume for the planet.

@@ -94,15 +94,16 @@ bool SinglePassRaycaster::Do() {
   }
 
   glPushAttrib(GL_POLYGON_BIT | GL_ENABLE_BIT);
-  glEnable(GL_TEXTURE_3D);
   glDisable(GL_CULL_FACE);
   glDisable(GL_DEPTH_TEST);
-  glDepthMask(GL_FALSE);
   glEnable(GL_BLEND);
+  glDepthMask(GL_FALSE);
+  glEnable(GL_TEXTURE_3D);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-  auto radii     = object->getRadii();
-  auto transform = object->getObserverRelativeTransform();
+  float scale     = mSettings->mGraphics.pHeightScale.get();
+  auto  radii     = object->getRadii();
+  auto  transform = object->getObserverRelativeTransform();
 
   glm::dmat4 matInverseEllipsoid(
       1, 0, 0, 0, 0, radii[0] / radii[1], 0, 0, 0, 0, radii[0] / radii[2], 0, 0, 0, 0, 1);
@@ -118,8 +119,8 @@ bool SinglePassRaycaster::Do() {
   glm::dmat4 matInvV     = glm::inverse(matV);
   glm::dmat4 matInvWorld = glm::inverse(transform);
 
-  glm::mat4 matInvMV  = matInverseEllipsoid * matInvWorld * matInvV;
-  glm::mat4 matInvP   = glm::inverse(matP);
+  glm::mat4 matInvMV = matInverseEllipsoid * matInvWorld * matInvV;
+  glm::mat4 matInvP  = glm::inverse(matP);
 
   mShader.Bind();
   mTexture.Bind(GL_TEXTURE0);
@@ -131,14 +132,21 @@ bool SinglePassRaycaster::Do() {
 
   glUniform3fv(mUniforms.bodyRadii, 1, glm::value_ptr(glm::vec3(radii)));
 
-  glUniform2f(mUniforms.lonRange, static_cast<float>(mBounds.mMinLon), static_cast<float>(mBounds.mMaxLon));
-  glUniform2f(mUniforms.latRange, static_cast<float>(mBounds.mMinLat), static_cast<float>(mBounds.mMaxLat));
-  glUniform2f(mUniforms.heightRange, static_cast<float>(mBounds.mMinHeight), static_cast<float>(mBounds.mMaxHeight));
+  double    toRad     = glm::pi<double>() / 180.0;
+  glm::vec2 lonBounds = glm::dvec2(mBounds.mMinLon, mBounds.mMaxLon) * toRad;
+  glm::vec2 latBounds = glm::dvec2(mBounds.mMinLat, mBounds.mMaxLat) * toRad;
 
-  glm::vec3 innerRadii = radii + mBounds.mMinHeight;
+  glm::dvec2 heightBounds =
+      glm::dvec2(mBounds.mMinHeight, mBounds.mMaxHeight) * static_cast<double>(scale);
+
+  glUniform2f(mUniforms.lonRange, lonBounds.x, lonBounds.y);
+  glUniform2f(mUniforms.latRange, latBounds.x, latBounds.y);
+  glUniform2f(mUniforms.heightRange, static_cast<float>(heightBounds.x), static_cast<float>(heightBounds.y));
+
+  glm::vec3 innerRadii = radii + heightBounds.x;
   glUniform3fv(mUniforms.innerRadii, 1, glm::value_ptr(innerRadii));
 
-  glm::vec3 outerRadii = radii + mBounds.mMaxHeight;
+  glm::vec3 outerRadii = radii + heightBounds.y;
   glUniform3fv(mUniforms.outerRadii, 1, glm::value_ptr(outerRadii));
 
   glDrawArrays(GL_POINTS, 0, 1);

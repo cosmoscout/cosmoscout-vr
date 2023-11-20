@@ -1,18 +1,18 @@
 #version 440
 
-uniform sampler3D     uTexture;
+uniform sampler3D uTexture;
 
-uniform mat4          uMatInvMV;
-uniform mat4          uMatInvP;
+uniform mat4      uMatInvMV;
+uniform mat4      uMatInvP;
 
-uniform vec2          uLonRange;
-uniform vec2          uLatRange;
-uniform vec2          uHeightRange;
+uniform vec2      uLonRange;
+uniform vec2      uLatRange;
+uniform vec2      uHeightRange;
 
-uniform vec3          uInnerRadii;
-uniform vec3          uOuterRadii;
+uniform vec3      uInnerRadii;
+uniform vec3      uOuterRadii;
 
-uniform vec3          uBodyRadii;
+uniform vec3      uBodyRadii;
 
 in vec3 rayDirection;
 
@@ -36,8 +36,16 @@ bool raySphereIntersect(Ray ray, float radius, out float entry, out float exit) 
 
   det = sqrt(det);
 
-  entry = -b - det;
-  exit = -b + det;
+  float d1 = -b - det;
+  float d2 = -b + det;
+
+  if (d1 < 0 && d2 < 0) {
+    return false;
+  }
+
+  entry = d1;
+  exit = d2;
+
   return true;
 }
 
@@ -45,7 +53,7 @@ vec3 getLngLatHeight(vec3 position) {
   vec3 result;
 
   if (position.z != 0.0) {
-    result.x = atan(float(position.x / position.z));
+    result.x = atan(position.x / position.z);
 
     if (position.z < 0 && position.x < 0) {
       result.x -= PI;
@@ -63,8 +71,8 @@ vec3 getLngLatHeight(vec3 position) {
     result.x = PI * 0.5;
   }
 
-  result.y = asin(float(position.y / length(position)));
-  result.xy *= 180.0 / PI;
+  result.y = asin(position.y / length(position));
+  // result.xy *= 180.0 / PI;
 
   result.z = length(position) - uBodyRadii.x;
 
@@ -98,32 +106,50 @@ vec4 getColor(vec3 lngLatHeight) {
 void main() {
   Ray r = Ray(uMatInvMV[3].xyz, normalize(rayDirection));
 
-  float entry;
-  float exit;
-  if (raySphereIntersect(r, uOuterRadii.x, entry, exit)) {
+  float outerEntry;
+  float outerExit;
+  if (raySphereIntersect(r, uOuterRadii.x, outerEntry, outerExit)) {
+
     float innerExit;
-    raySphereIntersect(r, uInnerRadii.x, exit, innerExit);
-    if (entry < 0.0) {
-      entry = 0.0;
+    float innerEntry;
+    bool intersectsInner = raySphereIntersect(r, uInnerRadii.x, innerEntry, innerExit);
+
+    float entry;
+    float exit;
+    if (!intersectsInner) {
+      entry = outerEntry;
+      exit = outerExit;
+    } else if (innerEntry > 0) {
+      entry = outerEntry;
+      exit = innerEntry;
+    } else if (outerEntry < 0 && innerEntry < 0 && !raySphereIntersect(r, uBodyRadii.x, entry, exit)) {
+      entry = innerExit;
+      exit = outerExit;
+    } else {
+      discard;
     }
 
-    vec4 color = vec4(0);
+    const float stepLength = 100.0;
+    entry = max(stepLength, entry);
+
+    vec4 finalColor = vec4(0.0, 0.0, 0.0, 0.0);
 
     float distance = exit - entry;
-    vec3 entryPoint = r.origin + (r.direction * (entry + 100.0));
+    vec3 entryPoint = r.origin + (r.direction * (entry + stepLength));
     vec3 llhEntry = getLngLatHeight(entryPoint);
 
     if (pointInsideVolume(llhEntry)) {
-      for (float travelled = 0.0; travelled < distance && color.a < 1.0; travelled += 500.0) {
+      for (float travelled = stepLength; travelled < distance && finalColor.a < 1.0; travelled += stepLength) {
         vec3 p = entryPoint + (r.direction * travelled);
         vec3 llh = getLngLatHeight(p);
-        vec4 c = getColor(llh);
+        vec4 currentColor = getColor(llh);
+        float currentAlpha = currentColor.a;
 
-        color.rgb = c.a * c.rgb + (1.0 - c.a) * color.a * color.rgb;
-        color.a = c.a + (1.0 - c.a) * color.a;
+        currentColor.rgb *= currentAlpha;
+        finalColor = (1.0 - finalColor.a) * currentColor + finalColor;
       }
 
-      FragColor = color;
+      FragColor = finalColor;
     } else {
       discard;
     }
