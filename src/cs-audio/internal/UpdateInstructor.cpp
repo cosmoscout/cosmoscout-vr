@@ -17,6 +17,12 @@ UpdateInstructor::UpdateInstructor()
   , mAudioControllerUpdate(false) { 
 }
 
+UpdateInstructor::~UpdateInstructor() {
+  std::cout << "close update instructor" << std::endl;
+  mSourceUpdateList.clear();
+  mGroupUpdateList.clear();
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void UpdateInstructor::update(std::shared_ptr<SourceBase> source) {

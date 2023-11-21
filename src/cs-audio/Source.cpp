@@ -46,6 +46,9 @@ Source::Source(std::shared_ptr<BufferManager> bufferManager,
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 Source::~Source() {
+  std::cout << "close source" << std::endl;
+  alSourceStop(mOpenAlId);
+  alSourcei(mOpenAlId, AL_BUFFER, NULL);
   mBufferManager->removeBuffer(mFile);
 }
 

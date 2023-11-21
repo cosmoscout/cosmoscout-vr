@@ -31,6 +31,7 @@ class CS_AUDIO_EXPORT ProcessingStepsManager {
   ProcessingStepsManager& operator=(ProcessingStepsManager&&) = delete;
 
   static std::shared_ptr<ProcessingStepsManager> createProcessingStepsManager(std::shared_ptr<core::Settings> settings);
+  ~ProcessingStepsManager();
 
   /// @brief creates a new Pipeline for an AudioController
   /// @param processingSteps List of name of all processing steps, which should be part of the pipeline

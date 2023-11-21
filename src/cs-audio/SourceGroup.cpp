@@ -26,6 +26,7 @@ SourceGroup::SourceGroup(std::shared_ptr<UpdateInstructor> UpdateInstructor,
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 SourceGroup::~SourceGroup() {
+  std::cout << "close group" << std::endl;
   reset();
   removeFromUpdateList();
 }

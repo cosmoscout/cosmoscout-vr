@@ -32,9 +32,13 @@ OpenAlManager::OpenAlManager()
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 OpenAlManager::~OpenAlManager() {
+  std::cout << "close openAL" << std::endl;
   alcMakeContextCurrent(nullptr);
 	alcDestroyContext(mContext);
 	alcCloseDevice(mDevice);
+  if (contextErrorOccurd()) {
+    logger().warn("Error occurred during OpenAL deconstruction!");
+  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

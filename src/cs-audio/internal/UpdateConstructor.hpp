@@ -27,6 +27,7 @@ class CS_AUDIO_EXPORT UpdateConstructor {
  public:
   static std::shared_ptr<UpdateConstructor> createUpdateConstructor(
     std::shared_ptr<ProcessingStepsManager> processingStepsManager);
+  ~UpdateConstructor();
   
   void updateAll(
     std::shared_ptr<std::vector<std::shared_ptr<SourceBase>>> sources, 

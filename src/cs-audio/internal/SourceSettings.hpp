@@ -22,6 +22,8 @@ class UpdateInstructor;
 
 class CS_AUDIO_EXPORT SourceSettings {
  public:
+  ~SourceSettings();
+  
   /// @brief Sets a value in mUpdateSettings
   /// @param key setting type 
   /// @param value setting value 

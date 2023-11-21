@@ -24,6 +24,10 @@ SourceSettings::SourceSettings()
   , mCurrentSettings(std::make_shared<std::map<std::string, std::any>>()) {
 }
 
+SourceSettings::~SourceSettings() {
+  std::cout << "close Source settings" << std::endl;
+}
+
 void SourceSettings::setUpdateInstructor(std::shared_ptr<UpdateInstructor> UpdateInstructor) {
   mUpdateInstructor = UpdateInstructor;
 }

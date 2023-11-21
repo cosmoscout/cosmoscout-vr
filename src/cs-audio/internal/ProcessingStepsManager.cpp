@@ -32,6 +32,14 @@ std::shared_ptr<ProcessingStepsManager> ProcessingStepsManager::createProcessing
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+ProcessingStepsManager::~ProcessingStepsManager() {
+  std::cout << "close ProcessingStepsManager" << std::endl;
+  mPipelines.clear();
+  mUpdateProcessingSteps.clear();
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 ProcessingStepsManager::ProcessingStepsManager(std::shared_ptr<core::Settings> settings) 
   : mPipelines(std::map<std::shared_ptr<AudioController>, std::set<std::shared_ptr<ProcessingStep>>>())
   , mSettings(std::move(settings)) {  

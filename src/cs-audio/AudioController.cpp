@@ -28,7 +28,13 @@ AudioController::AudioController(
   , mUpdateConstructor(std::move(updateConstructor)) {
   setUpdateInstructor(mUpdateInstructor);  
 }
+
+AudioController::~AudioController() {
+  std::cout << "close controller" << std::endl;
+  mSources.clear();
+  mGroups.clear();
   removeFromUpdateList();
+} 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 

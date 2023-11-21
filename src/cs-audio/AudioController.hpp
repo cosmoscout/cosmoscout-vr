@@ -35,6 +35,7 @@ class CS_AUDIO_EXPORT AudioController
     std::shared_ptr<BufferManager> bufferManager, 
     std::shared_ptr<ProcessingStepsManager> processingStepsManager,
     std::shared_ptr<UpdateConstructor> updateConstructor);
+  ~AudioController();
 
   /// @brief Creates a new audio source
   /// @return Pointer to the new source

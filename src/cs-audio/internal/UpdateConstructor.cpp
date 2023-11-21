@@ -31,6 +31,10 @@ UpdateConstructor::UpdateConstructor(std::shared_ptr<ProcessingStepsManager> pro
   : mProcessingStepsManager(std::move(processingStepsManager)) {
 }
 
+UpdateConstructor::~UpdateConstructor() {
+  std::cout << "close UpdateConstructor" << std::endl;
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void UpdateConstructor::updateAll(

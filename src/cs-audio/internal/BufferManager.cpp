@@ -30,16 +30,15 @@ BufferManager::BufferManager()
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 BufferManager::~BufferManager() {
+  std::cout << "close buffer manager" << std::endl;
   alGetError(); // clear error code
   // delete all buffers
   // gather all buffer Ids to delete them in a single OpenAL call
-  std::unique_ptr<ALuint[]> bufferIds(new ALuint[mBufferList.size()]);
-  int i = 0;
+  std::vector<ALuint> bufferIds(mBufferList.size());
   for (std::shared_ptr<Buffer> buffer : mBufferList) {
-    bufferIds[i] = buffer->mOpenAlId;
-    i++;   
+    bufferIds.push_back(buffer->mOpenAlId);
   }
-  alDeleteBuffers((ALsizei) mBufferList.size(), bufferIds.get());
+  alDeleteBuffers((ALsizei) mBufferList.size(), bufferIds.data());
   if (alErrorHandling::errorOccurred()) {
     logger().warn("Failed to delete (all) buffers!");
   }

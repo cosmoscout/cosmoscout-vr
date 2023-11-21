@@ -64,9 +64,12 @@ AudioEngine::AudioEngine(std::shared_ptr<Settings> settings, std::shared_ptr<Gui
 }
  
 AudioEngine::~AudioEngine() {
+  std::cout << "close AudioEngine" << std::endl;
   try {
     // Tell the user what's going on.
     logger().debug("Deleting AudioEngine.");
+
+    mAudioControllers.clear();
   } catch (...) {}
 }
 
