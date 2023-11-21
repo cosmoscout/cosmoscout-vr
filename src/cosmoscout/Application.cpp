@@ -213,6 +213,9 @@ void Application::Quit() {
   assertCleanUp("mTimeControl", mTimeControl.use_count());
   mTimeControl.reset();
 
+  assertCleanUp("mAudioEngine", mAudioEngine.use_count());
+  mAudioEngine.reset();
+
   assertCleanUp("mGuiManager", mGuiManager.use_count());
   mGuiManager.reset();
 
@@ -222,8 +225,6 @@ void Application::Quit() {
   assertCleanUp("mInputManager", mInputManager.use_count());
   mInputManager.reset();
 
-  assertCleanUp("mAudioEngine", mAudioEngine.use_count());
-  mAudioEngine.reset();
 
   VistaFrameLoop::Quit();
 }
