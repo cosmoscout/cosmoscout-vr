@@ -123,6 +123,17 @@ void JsonVolumeFileLoader::onMessageFromJS(nlohmann::json const& message) {
   csl::ogc::Bounds3D bounds{
       v.origin.x, maxBounds.x, v.origin.y, maxBounds.y, v.origin.z, maxBounds.z};
 
+  /* Use this, once we have a transfer function editor.
+
+  std::vector<std::vector<float>> points;
+  for (double p : v.data) {
+    points.emplace_back(std::vector{static_cast<float>(p)});
+  }
+
+  mData = std::make_shared<Volume3D>(points, 1, v.dimensions, bounds);
+  */
+
+  // For now we tranform this data to RGB right away, this can be skipped later
   auto   minMax = std::minmax_element(v.data.begin(), v.data.end());
   double min    = *minMax.first;
   double max    = *minMax.second;
