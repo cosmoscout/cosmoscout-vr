@@ -25,6 +25,7 @@ class AudioController;
 class CS_AUDIO_EXPORT UpdateInstructor {
  public:
   UpdateInstructor();
+  ~UpdateInstructor();
   
   /// @brief Adds a Source to the updateList
   /// @param source Source to add 
