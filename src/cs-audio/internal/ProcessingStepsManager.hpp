@@ -32,7 +32,7 @@ class CS_AUDIO_EXPORT ProcessingStepsManager {
 
   static std::shared_ptr<ProcessingStepsManager> createProcessingStepsManager(std::shared_ptr<core::Settings> settings);
   ~ProcessingStepsManager();
-
+  
   /// @brief creates a new Pipeline for an AudioController
   /// @param processingSteps List of name of all processing steps, which should be part of the pipeline
   /// @param audioController Pointer to audioController requesting the pipeline
@@ -52,6 +52,7 @@ class CS_AUDIO_EXPORT ProcessingStepsManager {
   /// an every frame update.
   void callPsUpdateFunctions();
 
+  ProcessingStepsManager(std::shared_ptr<core::Settings> settings);
  private:                                                                            
   /// Holds all pipelines and their corresponding audioController                                                                       
   std::map<std::shared_ptr<AudioController>, std::set<std::shared_ptr<ProcessingStep>>> mPipelines;
@@ -59,7 +60,6 @@ class CS_AUDIO_EXPORT ProcessingStepsManager {
   std::set<std::shared_ptr<ProcessingStep>>                             mUpdateProcessingSteps;
   std::shared_ptr<core::Settings> mSettings;
 
-  ProcessingStepsManager(std::shared_ptr<core::Settings> settings);
 
   /// @brief Searches for and creates a processing step when defining a pipeline. If you want to add a new 
   /// processing step then you need to define the name and the corresponding create call here.

@@ -61,8 +61,8 @@ class CS_AUDIO_EXPORT UpdateConstructor {
     std::shared_ptr<AudioController> audioController,
     std::shared_ptr<std::map<std::string, std::any>> settings);
 
- private:
   UpdateConstructor(std::shared_ptr<ProcessingStepsManager> processingStepsManager);
+ private:
   
   bool containsRemove(std::shared_ptr<std::map<std::string, std::any>> settings);
   void rebuildPlaybackSettings(std::shared_ptr<AudioController> audioController, std::shared_ptr<SourceBase> source);

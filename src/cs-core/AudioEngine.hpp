@@ -28,7 +28,7 @@
 
 namespace cs::core {
 
-class CS_CORE_EXPORT AudioEngine {
+class CS_CORE_EXPORT AudioEngine : public std::enable_shared_from_this<AudioEngine> {
 
  public:
   AudioEngine(const AudioEngine& obj) = delete;
@@ -37,11 +37,8 @@ class CS_CORE_EXPORT AudioEngine {
   AudioEngine& operator=(const AudioEngine&) = delete;
   AudioEngine& operator=(AudioEngine&&) = delete;
 
-  static std::shared_ptr<AudioEngine> createAudioEngine(std::shared_ptr<Settings> settings,
-   std::shared_ptr<GuiManager> guiManager);
+  AudioEngine(std::shared_ptr<Settings> settings, std::shared_ptr<GuiManager> guiManager);
   ~AudioEngine();
-
-  static std::shared_ptr<AudioEngine> getAudioEngine();
 
   /// @brief Returns a list of all possible Output Devices (wrapper to the OpenAlManager function)
   std::vector<std::string> getDevices();
@@ -62,7 +59,6 @@ class CS_CORE_EXPORT AudioEngine {
   std::shared_ptr<audio::AudioController> createAudioController();
 
  private:
-  static std::shared_ptr<AudioEngine>                  mSelf;
   std::shared_ptr<core::Settings>                      mSettings;
   std::shared_ptr<audio::OpenAlManager>                mOpenAlManager;
   std::shared_ptr<audio::BufferManager>                mBufferManager;
@@ -71,9 +67,7 @@ class CS_CORE_EXPORT AudioEngine {
   utils::Property<float>                               mMasterVolume;
   std::vector<std::shared_ptr<audio::AudioController>> mAudioControllers;
   std::shared_ptr<audio::UpdateConstructor>            mUpdateConstructor;
-
-  AudioEngine(std::shared_ptr<Settings> settings, std::shared_ptr<GuiManager> guiManager);
-
+  
   /// Creates the Audio GUI Settings
   void createGUI();
 };

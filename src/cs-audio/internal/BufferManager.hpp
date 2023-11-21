@@ -53,11 +53,11 @@ class CS_AUDIO_EXPORT BufferManager {
   /// the buffer.
   void removeBuffer(std::string file);
   
+  BufferManager();
  private:
   /// @brief List of all current buffers with 
   std::vector<std::shared_ptr<Buffer>> mBufferList;
   
-  BufferManager();
   /// @brief Creates a new Buffer if none already exists for the provided file path.
   std::pair<bool, ALuint> createBuffer(std::string file);
   

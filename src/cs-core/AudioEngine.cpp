@@ -29,25 +29,15 @@
 
 namespace cs::core {
 
-std::shared_ptr<AudioEngine> AudioEngine::mSelf = nullptr;
-
-std::shared_ptr<AudioEngine> AudioEngine::createAudioEngine(std::shared_ptr<Settings> settings, 
-  std::shared_ptr<GuiManager> guiManager) {
-
-  mSelf = std::shared_ptr<AudioEngine>(new AudioEngine(settings, guiManager));
-  return mSelf;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
 AudioEngine::AudioEngine(std::shared_ptr<Settings> settings, std::shared_ptr<GuiManager> guiManager) 
-    : mSettings(std::move(settings)) 
-    , mGuiManager(std::move(guiManager))
-    , mOpenAlManager(audio::OpenAlManager::createOpenAlManager())
-    , mBufferManager(audio::BufferManager::createBufferManager()) 
-    , mProcessingStepsManager(audio::ProcessingStepsManager::createProcessingStepsManager(mSettings))
-    , mUpdateConstructor(audio::UpdateConstructor::createUpdateConstructor(mProcessingStepsManager))
-    , mMasterVolume(utils::Property<float>(1.f)) {
+  : std::enable_shared_from_this<AudioEngine>()
+  , mSettings(std::move(settings)) 
+  , mGuiManager(std::move(guiManager))
+  , mOpenAlManager(std::make_shared<audio::OpenAlManager>())// audio::OpenAlManager::createOpenAlManager())
+  , mBufferManager(std::make_shared<audio::BufferManager>())// audio::BufferManager::createBufferManager()) 
+  , mProcessingStepsManager(std::make_shared<audio::ProcessingStepsManager>(mSettings))// audio::ProcessingStepsManager::createProcessingStepsManager(mSettings))
+  , mUpdateConstructor(std::make_shared<audio::UpdateConstructor>(mProcessingStepsManager))// audio::UpdateConstructor::createUpdateConstructor(mProcessingStepsManager))
+  , mMasterVolume(utils::Property<float>(1.f)) {
 
   // Tell the user what's going on.
   logger().debug("Creating AudioEngine.");
@@ -60,7 +50,6 @@ AudioEngine::AudioEngine(std::shared_ptr<Settings> settings, std::shared_ptr<Gui
   logger().info("OpenAL-Soft Version:  {}", alGetString(AL_VERSION));
 
   createGUI();
-  // playAmbient();
 }
  
 AudioEngine::~AudioEngine() {
@@ -71,12 +60,6 @@ AudioEngine::~AudioEngine() {
 
     mAudioControllers.clear();
   } catch (...) {}
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-std::shared_ptr<AudioEngine> AudioEngine::getAudioEngine() {
-  return mSelf;   
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

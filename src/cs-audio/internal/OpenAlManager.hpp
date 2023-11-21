@@ -43,6 +43,7 @@ class CS_AUDIO_EXPORT OpenAlManager {
   /// @return Wether the change of device was successful.
   bool setDevice(std::string outputDevice);
 
+  OpenAlManager();
  private:
   /// Pointer to the current device
   ALCdevice*          mDevice;
@@ -51,7 +52,6 @@ class CS_AUDIO_EXPORT OpenAlManager {
   /// Specifies the current settings for OpenAL. The attributes are set via the config file.
   std::vector<ALCint> mAttributeList;
 
-  OpenAlManager();
 
   /// @brief Checks if an OpenAL Context Error occurred and if so prints a logger warning containing the error. 
   /// @return True if error occurred
