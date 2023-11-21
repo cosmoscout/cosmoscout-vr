@@ -67,7 +67,7 @@ bool FileReader::loadWAVPartially(std::string fileName, WavContainerStreaming& w
     wavContainer.currentBufferSize = wavContainer.bufferSize;
     wavContainer.bufferCounter++;
   }
-
+  
   wavContainer.in.read(std::get<std::vector<char>>(wavContainer.pcm).data(), wavContainer.currentBufferSize);
   
   if (rewind) {
@@ -111,6 +111,9 @@ bool FileReader::readWAVHeader(std::string fileName, WavContainer& wavContainer)
         break;
       case 16:
         wavContainer.format = AL_FORMAT_MONO16;
+        break;
+      case 32:
+        wavContainer.format = AL_FORMAT_MONO_FLOAT32;
     }
   // Stereo
   } else {
@@ -120,6 +123,9 @@ bool FileReader::readWAVHeader(std::string fileName, WavContainer& wavContainer)
         break;
       case 16:
         wavContainer.format = AL_FORMAT_STEREO16;
+        break;
+      case 32:
+        wavContainer.format = AL_FORMAT_STEREO_FLOAT32;
     }
   }
   return true;
@@ -147,11 +153,19 @@ bool FileReader::isBigEndian()
 std::vector<float> FileReader::castToFloat(std::vector<char> input)
 {
   std::vector<float> output;
+  int c = 0;
+
   for (char element : input) {
-    output.push_back( (+element + 128) / 255.0f * 2.0f - 1.0f );
+    float f = ((float) element) / (float) 128;
+    if (c++ < 50) {std::cout << f << std::endl;}
+    output.push_back(f);
   }
+
   return output;
 }
 
+float FileReader::normalizeToRange(char value, float minInput, float maxInput, float minOutput, float maxOutput) {
+    return ((value - minInput) / (maxInput - minInput)) * (maxOutput - minOutput) + minOutput;
+}
 
 } // namespace cs::audio

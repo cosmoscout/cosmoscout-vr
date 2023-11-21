@@ -100,6 +100,7 @@ class CS_AUDIO_EXPORT FileReader {
   static bool readWAVHeader(std::string fileName, WavContainer& wavContainer);
 
   static std::vector<float> castToFloat(std::vector<char> input);
+  static float normalizeToRange(char value, float minInput, float maxInput, float minOutput, float maxOutput);
 };
 
 } // namespace cs::audio
