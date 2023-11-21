@@ -53,7 +53,7 @@ void UpdateConstructor::updateAll(
         continue;
       }
 
-      if (sourcePtr->mGroup != nullptr && containsRemove(sourcePtr->mGroup->mUpdateSettings)) {
+      if (!sourcePtr->mGroup.expired() && containsRemove(sourcePtr->mGroup.lock()->mUpdateSettings)) {
         rebuildPlaybackSettings(audioController, sourcePtr);
         continue;
       }
@@ -64,12 +64,12 @@ void UpdateConstructor::updateAll(
       // remove controller settings that are already set by the source
       SettingsMixer::A_Without_B(finalSettings, sourcePtr->mCurrentSettings);
   
-      if (sourcePtr->mGroup != nullptr) {
+      if (!sourcePtr->mGroup.expired()) {
         // remove controller settings that are already set by the group
-        SettingsMixer::A_Without_B(finalSettings, sourcePtr->mGroup->mCurrentSettings);
+        SettingsMixer::A_Without_B(finalSettings, sourcePtr->mGroup.lock()->mCurrentSettings);
 
         // take group settings
-        auto finalGroup = std::make_shared<std::map<std::string, std::any>>(*(sourcePtr->mGroup->mUpdateSettings));
+        auto finalGroup = std::make_shared<std::map<std::string, std::any>>(*(sourcePtr->mGroup.lock()->mUpdateSettings));
 
         // remove group settings that are already set by the source
         SettingsMixer::A_Without_B(finalGroup, sourcePtr->mCurrentSettings);
@@ -117,13 +117,13 @@ void UpdateConstructor::updateGroups(
 
   for (auto sourcePtr : *sources) {
 
-    if (containsRemove(sourcePtr->mUpdateSettings) || containsRemove(sourcePtr->mGroup->mUpdateSettings)) {
+    if (containsRemove(sourcePtr->mUpdateSettings) || containsRemove(sourcePtr->mGroup.lock()->mUpdateSettings)) {
       rebuildPlaybackSettings(audioController, sourcePtr);
       continue;
     }
 
     // take group settings
-    auto finalSettings = std::make_shared<std::map<std::string, std::any>>(*(sourcePtr->mGroup->mUpdateSettings));
+    auto finalSettings = std::make_shared<std::map<std::string, std::any>>(*(sourcePtr->mGroup.lock()->mUpdateSettings));
 
     // remove settings that are already set by the source
     SettingsMixer::A_Without_B(finalSettings, sourcePtr->mCurrentSettings);
@@ -247,12 +247,12 @@ void UpdateConstructor::rebuildPlaybackSettings(std::shared_ptr<AudioController>
   audioController->mCurrentSettings = controllerSettings;
   audioController->mUpdateSettings->clear();
 
-  if (source->mGroup != nullptr) {
+  if (!source->mGroup.expired()) {
     // take current group settings
-    auto groupSettings = std::make_shared<std::map<std::string, std::any>>(*(source->mGroup->mCurrentSettings));
+    auto groupSettings = std::make_shared<std::map<std::string, std::any>>(*(source->mGroup.lock()->mCurrentSettings));
 
     // Mix with group update Settings   
-    SettingsMixer::OverrideAdd_A_with_B(groupSettings, source->mGroup->mUpdateSettings);
+    SettingsMixer::OverrideAdd_A_with_B(groupSettings, source->mGroup.lock()->mUpdateSettings);
 
     // filter out remove settings
     auto normalGroupSettings = std::make_shared<std::map<std::string, std::any>>(*(groupSettings));
@@ -269,8 +269,8 @@ void UpdateConstructor::rebuildPlaybackSettings(std::shared_ptr<AudioController>
     SettingsMixer::Add_A_with_B_if_not_defined(finalSettings, removeGroupSettings);
 
     // update current group settings
-    source->mGroup->mCurrentSettings = normalGroupSettings;
-    source->mGroup->mUpdateSettings->clear();
+    source->mGroup.lock()->mCurrentSettings = normalGroupSettings;
+    source->mGroup.lock()->mUpdateSettings->clear();
   }
 
   // take current source settings

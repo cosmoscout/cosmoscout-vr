@@ -54,7 +54,7 @@ void SourceGroup::join(std::shared_ptr<SourceBase> source) {
 
 void SourceGroup::remove(std::shared_ptr<SourceBase> sourceToRemove) {
   if (mMembers.erase(sourceToRemove) == 1) {
-    sourceToRemove->mGroup = nullptr;
+    sourceToRemove->mGroup.reset();
 
     // TODO: Remove group setting from sources
   }
@@ -64,8 +64,7 @@ void SourceGroup::remove(std::shared_ptr<SourceBase> sourceToRemove) {
 
 void SourceGroup::reset() {
   for (auto sourcePtr : mMembers) {
-    sourcePtr->mGroup = nullptr;
-
+    sourcePtr->mGroup.reset();
     // TODO: Remove group setting from sources
   }
   mMembers.clear();

@@ -59,7 +59,7 @@ class CS_AUDIO_EXPORT SourceBase
   /// Currently set file to play
   std::string                                      mFile;
   /// Ptr to the group that the source is part of
-  std::shared_ptr<SourceGroup>                     mGroup;
+  std::weak_ptr<SourceGroup>                       mGroup;
   /// Contains all settings (Source + Group + Controller) currently set and playing. 
   std::shared_ptr<std::map<std::string, std::any>> mPlaybackSettings;
 
