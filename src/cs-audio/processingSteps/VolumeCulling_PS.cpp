@@ -233,7 +233,7 @@ bool VolumeCulling_PS::processPosition(std::shared_ptr<SourceBase> source, std::
 }
 
 double VolumeCulling_PS::inverseClamped(double distance, ALfloat rollOffFactor, 
-  ALfloat referenceDistance, ALfloat maxDistance) {
+  ALfloat referenceDistance, ALfloat maxDistance) const {
   return 
     referenceDistance / (referenceDistance + rollOffFactor * (distance - referenceDistance));
 }
@@ -241,7 +241,7 @@ double VolumeCulling_PS::inverseClamped(double distance, ALfloat rollOffFactor,
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 double VolumeCulling_PS::linearClamped(double distance, ALfloat rollOffFactor,
-  ALfloat referenceDistance, ALfloat maxDistance) {
+  ALfloat referenceDistance, ALfloat maxDistance) const {
   return 
     (1 - rollOffFactor * (distance - referenceDistance) / (maxDistance - referenceDistance));
 }
@@ -249,7 +249,7 @@ double VolumeCulling_PS::linearClamped(double distance, ALfloat rollOffFactor,
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 double VolumeCulling_PS::exponentClamped(double distance, ALfloat rollOffFactor,
-  ALfloat referenceDistance, ALfloat maxDistance) {
+  ALfloat referenceDistance, ALfloat maxDistance) const {
   return
     std::pow((distance / referenceDistance), -1 * rollOffFactor);
 }

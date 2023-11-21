@@ -57,10 +57,14 @@ class CS_AUDIO_EXPORT VolumeCulling_PS : public ProcessingStep {
   float mGainThreshold;
 
   VolumeCulling_PS(float gainThreshold);
-  bool processPosition(std::shared_ptr<SourceBase>, std::any position, std::any newGain, std::any newPlayback);
-  double inverseClamped(double distance, ALfloat rollOffFactor, ALfloat referenceDistance, ALfloat maxDistance);
-  double linearClamped(double distance, ALfloat rollOffFactor, ALfloat referenceDistance, ALfloat maxDistance);
-  double exponentClamped(double distance, ALfloat rollOffFactor, ALfloat referenceDistance, ALfloat maxDistance);
+  bool processPosition(std::shared_ptr<SourceBase>, std::any position, 
+    std::any newGain, std::any newPlayback);
+  double inverseClamped(double distance, ALfloat rollOffFactor, 
+    ALfloat referenceDistance, ALfloat maxDistance) const;
+  double linearClamped(double distance, ALfloat rollOffFactor, 
+    ALfloat referenceDistance, ALfloat maxDistance) const;
+  double exponentClamped(double distance, ALfloat rollOffFactor, 
+    ALfloat referenceDistance, ALfloat maxDistance) const;
 };
 
 } // namespace cs::audio
