@@ -32,8 +32,12 @@ SourceGroup::~SourceGroup() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void SourceGroup::join(std::shared_ptr<SourceBase> source) {
-  if (source->mGroup != nullptr) {
-    logger().warn("Audio Group Warning: Remove Source form previous group before assigning a new one!");
+  if (mAudioController.expired()) {
+    logger().warn("Audio Group Warning: Failed to add source to group. Audio controller is expired!");
+    return;
+  }
+  if (!source->mGroup.expired()) {
+    logger().warn("Audio Group Warning: Remove source form previous group before assigning a new one!");
     return;
   }
   mMembers.insert(source);
@@ -41,7 +45,7 @@ void SourceGroup::join(std::shared_ptr<SourceBase> source) {
 
   // apply group settings to newly added source
   if (!mCurrentSettings->empty()) {
-    mUpdateConstructor->applyCurrentGroupSettings(source, mAudioController, mCurrentSettings);
+    mUpdateConstructor->applyCurrentGroupSettings(source, mAudioController.lock(), mCurrentSettings);
   }
 }
 
