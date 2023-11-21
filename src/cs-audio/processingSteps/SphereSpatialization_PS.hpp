@@ -19,7 +19,7 @@
 
 namespace cs::audio {
 /*
-The SphereSpatialization_PS is a spatialization processing step with which lets you define a position 
+The SphereSpatialization_PS is a spatialization processing step which lets you define a position 
 as a 3D sphere in space. If the observer is inside the sphere you will hear the source at full volume 
 without spatialization. If the sphere is large and the observer leaves the sphere you will notice that 
 the source will most probably cut off immediately. This is because once the observer is outside the sphere 

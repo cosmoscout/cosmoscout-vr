@@ -33,7 +33,7 @@ void DistanceModel_PS::process(std::shared_ptr<SourceBase> source,
   std::shared_ptr<std::vector<std::string>> failedSettings) {
   
   ALuint openALId = source->getOpenAlId();
-
+  // TODO: remove settings
   auto searchModel = settings->find("distanceModel");
   if (searchModel != settings->end()) { 
     if (!processModel(openALId, searchModel->second)) {

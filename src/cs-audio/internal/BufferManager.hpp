@@ -47,6 +47,7 @@ class CS_AUDIO_EXPORT BufferManager {
   /// @return Pair of bool and potential OpenAL id. Bool is false if an error occurred, which means the 
   /// OpenAL id is not a valid buffer.
   std::pair<bool, ALuint> getBuffer(std::string file);
+
   /// @brief Signals to the BufferManager that a Source is no longer using a buffer to the provided file.
   /// If there are no more Sources using a buffer to a specific file the BufferManager will automatically delete
   /// the buffer.
@@ -59,6 +60,7 @@ class CS_AUDIO_EXPORT BufferManager {
   BufferManager();
   /// @brief Creates a new Buffer if none already exists for the provided file path.
   std::pair<bool, ALuint> createBuffer(std::string file);
+  
   /// @brief Deletes a buffer if it is no longer used by any Source.
   void deleteBuffer(std::shared_ptr<Buffer> buffer);
 };

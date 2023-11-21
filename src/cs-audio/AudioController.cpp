@@ -129,9 +129,13 @@ void AudioController::updateStreamingSources() {
   }
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 std::vector<std::shared_ptr<SourceBase>> AudioController::getSources() const {
   return std::vector<std::shared_ptr<SourceBase>>(mSources);
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void AudioController::addToUpdateList() {
   mUpdateInstructor->update(shared_from_this());

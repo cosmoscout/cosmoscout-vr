@@ -35,7 +35,7 @@ class CS_AUDIO_EXPORT UpdateInstructor {
   void update(std::shared_ptr<SourceGroup> sourceGroup);
   
   /// @brief Adds an AudioController, and therefor all Sources and Groups 
-  /// which live in the controller, to the updateList.
+  /// which live on the controller, to the updateList.
   /// @param audioController AudioController to add
   void update(std::shared_ptr<AudioController> audioController);
 
@@ -79,7 +79,7 @@ class CS_AUDIO_EXPORT UpdateInstructor {
 
  private:                 
   /// List of all source to be updated.
-  std::set<std::shared_ptr<SourceBase>>      mSourceUpdateList;
+  std::set<std::shared_ptr<SourceBase>>  mSourceUpdateList;
   /// List of all source groups to be updated.
   std::set<std::shared_ptr<SourceGroup>> mGroupUpdateList;
   /// Indicates if the audioController settings changed.

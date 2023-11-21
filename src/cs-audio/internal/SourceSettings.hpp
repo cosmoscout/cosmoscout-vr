@@ -34,6 +34,8 @@ class CS_AUDIO_EXPORT SourceSettings {
   /// @return Pointer to the settings map
   const std::shared_ptr<std::map<std::string, std::any>> getCurrentSettings() const;
 
+  /// @brief Remove a setting and reset it to the default value.
+  /// @param key Setting to remove.
   void remove(std::string key);
 
   /// @brief Removes a key from the update settings.
@@ -60,7 +62,7 @@ class CS_AUDIO_EXPORT SourceSettings {
   /// UpdateInstructor to call to add sourceSettings instance to updateList 
   std::shared_ptr<UpdateInstructor>                mUpdateInstructor;
 
-  /// @brief Function to add sourceSettings instance to the updateList. Each derived class needs to implement
+  /// @brief Add sourceSettings instance to the updateList. Each derived class needs to implement
   /// this by calling UpdateInstructor::update(shared_from_this())
   virtual void addToUpdateList() = 0;
   /// @brief Remove sourceSettings instance from the updateList. Each derived class needs to implement
