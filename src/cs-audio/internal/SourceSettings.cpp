@@ -57,6 +57,9 @@ void SourceSettings::remove(std::string key) {
 
 void SourceSettings::removeUpdate(std::string key) {
   mUpdateSettings->erase(key);
+  if (mUpdateSettings->empty()) {
+    removeFromUpdateList();
+  }
 }
 
 } // namespace cs::audio

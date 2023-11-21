@@ -61,6 +61,9 @@ class CS_AUDIO_EXPORT SourceSettings {
   /// @brief Function to add sourceSettings instance to the updateList. Each derived class needs to implement
   /// this by calling UpdateInstructor::update(shared_from_this())
   virtual void addToUpdateList() = 0;
+  /// @brief Remove sourceSettings instance from the updateList. Each derived class needs to implement
+  /// this by calling UpdateInstructor::removeUpdate(shared_from_this())
+  virtual void removeFromUpdateList() = 0;
 };
 
 } // namespace cs::audio

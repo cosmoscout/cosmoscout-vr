@@ -50,6 +50,7 @@ SourceBase::SourceBase(std::string file,
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 SourceBase::~SourceBase() {
+  removeFromUpdateList();
   alGetError(); // clear error code
   alDeleteSources(1, &mOpenAlId);
   if (alErrorHandling::errorOccurred()) {
@@ -97,6 +98,12 @@ const std::shared_ptr<std::map<std::string, std::any>> SourceBase::getPlaybackSe
 
 void SourceBase::addToUpdateList() {
   mUpdateInstructor->update(shared_from_this());
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void SourceBase::removeFromUpdateList() {
+  mUpdateInstructor->removeUpdate(shared_from_this());  
 }
 
 } // namespace cs::audio

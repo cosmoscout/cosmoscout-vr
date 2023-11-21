@@ -63,8 +63,8 @@ class CS_AUDIO_EXPORT SourceBase
   /// Contains all settings (Source + Group + Controller) currently set and playing. 
   std::shared_ptr<std::map<std::string, std::any>> mPlaybackSettings;
 
-  /// @brief registers itself to the updateInstructor to be updated 
-  void addToUpdateList();
+  /// @brief deregister itself from the updateInstructor 
+  void removeFromUpdateList() override;
 };
 
 } // namespace cs::audio

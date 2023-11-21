@@ -28,6 +28,7 @@ AudioController::AudioController(
   , mUpdateConstructor(std::move(updateConstructor)) {
   setUpdateInstructor(mUpdateInstructor);  
 }
+  removeFromUpdateList();
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -115,6 +116,12 @@ std::vector<std::shared_ptr<SourceBase>> AudioController::getSources() const {
 
 void AudioController::addToUpdateList() {
   mUpdateInstructor->update(shared_from_this());
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void AudioController::removeFromUpdateList() {
+  mUpdateInstructor->removeUpdate(shared_from_this());
 }
 
 } // namespace cs::audio

@@ -27,6 +27,7 @@ SourceGroup::SourceGroup(std::shared_ptr<UpdateInstructor> UpdateInstructor,
 
 SourceGroup::~SourceGroup() {
   reset();
+  removeFromUpdateList();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -80,6 +81,12 @@ const std::set<std::shared_ptr<SourceBase>> SourceGroup::getMembers() const {
 
 void SourceGroup::addToUpdateList() {
   mUpdateInstructor->update(shared_from_this());
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void SourceGroup::removeFromUpdateList() {
+  mUpdateInstructor->removeUpdate(shared_from_this());
 }
 
 } // namespace cs::audio

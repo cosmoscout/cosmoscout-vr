@@ -39,6 +39,19 @@ class CS_AUDIO_EXPORT UpdateInstructor {
   /// @param audioController AudioController to add
   void update(std::shared_ptr<AudioController> audioController);
 
+  /// @brief Removes a Source from the updateList
+  /// @param source Source to remove 
+  void removeUpdate(std::shared_ptr<SourceBase> source);
+
+  /// @brief Removes a Source Group, and therefor all Member Sources, from the updateList
+  /// @param sourceGroup Source Group to remove
+  void removeUpdate(std::shared_ptr<SourceGroup> sourceGroup);
+  
+  /// @brief Removes an AudioController, and therefor all Sources and Groups 
+  /// which live on the controller, from the updateList.
+  /// @param audioController AudioController to remove
+  void removeUpdate(std::shared_ptr<AudioController> audioController);
+
   /// Struct to hold all update instructions
   struct UpdateInstruction {
     bool updateAll;

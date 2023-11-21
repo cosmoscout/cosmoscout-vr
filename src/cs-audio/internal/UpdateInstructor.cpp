@@ -37,6 +37,24 @@ void UpdateInstructor::update(std::shared_ptr<AudioController> audioController) 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void UpdateInstructor::removeUpdate(std::shared_ptr<SourceBase> source) {
+  mSourceUpdateList.erase(source);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void UpdateInstructor::removeUpdate(std::shared_ptr<SourceGroup> sourceGroup) {
+    mGroupUpdateList.erase(sourceGroup);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void UpdateInstructor::removeUpdate(std::shared_ptr<AudioController> audioController) {
+  mAudioControllerUpdate = false;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 UpdateInstructor::UpdateInstruction UpdateInstructor::createUpdateInstruction() {
   UpdateInstruction result;
 
