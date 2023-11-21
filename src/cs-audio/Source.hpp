@@ -28,7 +28,7 @@ class CS_AUDIO_EXPORT Source : public SourceBase {
   
   /// @brief Sets a new file to be played by the source.
   /// @return Whether it was successful
-  bool setFile(std::string file);
+  bool setFile(std::string file) override;
 
   Source(std::shared_ptr<BufferManager> bufferManager, 
   std::string file, std::shared_ptr<UpdateInstructor> UpdateInstructor);

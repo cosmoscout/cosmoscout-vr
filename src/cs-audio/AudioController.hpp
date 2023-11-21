@@ -81,6 +81,7 @@ class CS_AUDIO_EXPORT AudioController
   std::shared_ptr<UpdateConstructor>            mUpdateConstructor;
 
   /// @brief registers itself to the updateInstructor to be updated 
+  void addToUpdateList() override;
   /// @brief deregister itself from the updateInstructor 
   void removeFromUpdateList() override;
 
