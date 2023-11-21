@@ -73,6 +73,19 @@ std::shared_ptr<StreamingSource> AudioController::createStreamingSource(std::str
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void AudioController::destroySource(std::shared_ptr<SourceBase> source) {
+  mSources.erase(std::remove(mSources.begin(), mSources.end(), source), mSources.end());
+  if (auto streamingSource = std::dynamic_pointer_cast<StreamingSource>(source)) {
+    mStreams.erase(std::remove(mStreams.begin(), mStreams.end(), streamingSource), mStreams.end());
+  }
+}
+
+void AudioController::destroyGroup(std::shared_ptr<SourceGroup> group) {
+  mGroups.erase(std::remove(mGroups.begin(), mGroups.end(), group), mGroups.end());
+} 
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void AudioController::setPipeline(std::vector<std::string> processingSteps) {
   mProcessingStepsManager->createPipeline(processingSteps, shared_from_this());
 }
