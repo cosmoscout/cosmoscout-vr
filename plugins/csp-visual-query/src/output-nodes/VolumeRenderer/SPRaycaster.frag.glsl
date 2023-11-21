@@ -129,7 +129,7 @@ void main() {
       discard;
     }
 
-    const float stepLength = 100.0;
+    const float stepLength = 200.0;
     entry = max(stepLength, entry);
 
     vec4 finalColor = vec4(0.0, 0.0, 0.0, 0.0);
