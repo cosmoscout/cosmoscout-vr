@@ -59,8 +59,10 @@ std::shared_ptr<Source> AudioController::createSource(std::string file) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::shared_ptr<StreamingSource> AudioController::createStreamingSource(std::string file) {
-  auto source = std::make_shared<StreamingSource>(file, mUpdateInstructor);
+std::shared_ptr<StreamingSource> AudioController::createStreamingSource(std::string file, 
+  int bufferSize, int queueSize) {
+
+  auto source = std::make_shared<StreamingSource>(file, bufferSize, queueSize, mUpdateInstructor);
   mSources.push_back(source);
   mStreams.push_back(source);
 
@@ -82,7 +84,7 @@ void AudioController::destroySource(std::shared_ptr<SourceBase> source) {
 
 void AudioController::destroyGroup(std::shared_ptr<SourceGroup> group) {
   mGroups.erase(std::remove(mGroups.begin(), mGroups.end(), group), mGroups.end());
-} 
+}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 

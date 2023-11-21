@@ -43,6 +43,9 @@ class CS_AUDIO_EXPORT AudioController
 
   /// @brief Creates a new streaming audio source
   /// @return Pointer to the new source
+  std::shared_ptr<StreamingSource> createStreamingSource(std::string file, 
+    int bufferSize=8192, int queueSize=4);
+
   void destroySource(std::shared_ptr<SourceBase> source);
 
   void destroyGroup(std::shared_ptr<SourceGroup> group);

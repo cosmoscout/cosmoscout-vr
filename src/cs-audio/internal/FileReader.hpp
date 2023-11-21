@@ -9,6 +9,7 @@
 #define CS_AUDIO_FILE_READER_HPP
 
 #include "cs_audio_export.hpp"
+#include <fstream>
 
 
 namespace cs::audio {
@@ -37,8 +38,9 @@ struct WavContainer {
 
 struct WavContainerStreaming : public WavContainer {
   int bufferCounter = -1;
-  int bufferSize;
-  int currentBuffer = 0;
+  int bufferSize; // size of 
+  int currentBufferSize;
+  std::ifstream in;
 
   void print() {
     std::cout << "----WavContainer Info----" << std::endl;
@@ -50,8 +52,24 @@ struct WavContainerStreaming : public WavContainer {
     std::cout << "type: " << (std::holds_alternative<std::vector<char>>(pcm) ? "char" : "float") << std::endl;
     std::cout << "bufferCounter: " << bufferCounter << std::endl;
     std::cout << "bufferSize: " << bufferSize << std::endl;
-    std::cout << "currentBuffer: " << currentBuffer << std::endl;
     std::cout << "-------------------------" << std::endl;
+  }
+
+  ~WavContainerStreaming() {
+    in.close();
+  }
+
+  void reset() {
+    bufferCounter = -1;
+    bufferSize = 0;
+    currentBufferSize = 0;
+    format = 0; 
+    numberChannels = 0;
+    sampleRate = 0;
+    bitsPerSample = 0;
+    size = 0;
+    in.close();
+    pcm = std::variant<std::vector<char>, std::vector<float>>();
   }
 };
 

@@ -19,16 +19,17 @@
 
 namespace cs::audio {
 
-StreamingSource::StreamingSource(std::string file, 
+StreamingSource::StreamingSource(std::string file, int bufferSize, int queueSize,
   std::shared_ptr<UpdateInstructor> UpdateInstructor)
   : SourceBase(file, UpdateInstructor)
-  , mBuffers(std::vector<ALuint>(2)) 
-  , mWavContainer(WavContainerStreaming()){ 
-  
+  , mBufferSize(std::move(bufferSize))
+  , mBuffers(std::vector<ALuint>(queueSize)) 
+  , mWavContainer(WavContainerStreaming()) { 
+
   alGetError(); // clear error code
 
   // get buffer
-  alGenBuffers((ALsizei) 2, mBuffers.data());
+  alGenBuffers((ALsizei) mBuffers.size(), mBuffers.data());
   if (alErrorHandling::errorOccurred()) {
     logger().warn("Failed to generate buffers!");
     return;
@@ -39,23 +40,22 @@ StreamingSource::StreamingSource(std::string file,
     logger().warn("{} file does not exist! Unable to fill buffer!", mFile);
     return;
   }
-  
+
   // fill buffer
-  mWavContainer.bufferSize = 10240;
-  FileReader::loadWAVPartially(mFile, mWavContainer);
-  
-  alBufferData(mBuffers[0], mWavContainer.format, 
-    std::get<std::vector<char>>(mWavContainer.pcm).data(), 
-    mWavContainer.size, mWavContainer.sampleRate);
+  mWavContainer.bufferSize = mBufferSize;
+  for (auto buffer : mBuffers) {
 
-  FileReader::loadWAVPartially(mFile, mWavContainer);
+    if (!FileReader::loadWAVPartially(mFile, mWavContainer)) {
+      logger().debug("Failed to loadWAVPartially");
+    }
 
-  alBufferData(mBuffers[1], mWavContainer.format, 
-    std::get<std::vector<char>>(mWavContainer.pcm).data(), 
-    mWavContainer.size, mWavContainer.sampleRate);
+    alBufferData(buffer, mWavContainer.format, 
+      std::get<std::vector<char>>(mWavContainer.pcm).data(), 
+      mWavContainer.currentBufferSize, mWavContainer.sampleRate);
+  }
 
   // queue buffer
-  alSourceQueueBuffers(mOpenAlId, 2, mBuffers.data());
+  alSourceQueueBuffers(mOpenAlId, (ALsizei)mBuffers.size(), mBuffers.data());
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -69,20 +69,51 @@ StreamingSource::~StreamingSource() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void StreamingSource::updateStream() {
-  ALint numBufferProcessed;
+  // update the stream only if the source is supposed to be playing
+  auto search = mPlaybackSettings->find("playback");
+  if (search == mPlaybackSettings->end() || 
+      search->second.type() != typeid(std::string) ||
+      std::any_cast<std::string>(search->second) != "play") {
+    return;
+  }
+
+  ALint numBufferProcessed, state;
   alGetSourcei(mOpenAlId, AL_BUFFERS_PROCESSED, &numBufferProcessed);
 
-  if (numBufferProcessed == 1) {
-    alSourceUnqueueBuffers(mOpenAlId, 1, &(mBuffers[mWavContainer.currentBuffer]));
+  while (numBufferProcessed > 0) {
+    ALuint bufferId;
+    alSourceUnqueueBuffers(mOpenAlId, 1, &bufferId);
+    if (alErrorHandling::errorOccurred()) {
+      logger().warn("Failed to unqueue buffer!");
+      return;
+    }
     
     FileReader::loadWAVPartially(mFile, mWavContainer);
   
-    alBufferData(mBuffers[mWavContainer.currentBuffer], mWavContainer.format, 
+    alBufferData(bufferId, mWavContainer.format, 
       std::get<std::vector<char>>(mWavContainer.pcm).data(), 
-      mWavContainer.size, mWavContainer.sampleRate);
+      mWavContainer.bufferSize, mWavContainer.sampleRate);
+    if (alErrorHandling::errorOccurred()) {
+      logger().warn("Failed to refill streaming buffer!");
+      return;
+    }
 
-    alSourceQueueBuffers(mOpenAlId, 1, &(mBuffers[mWavContainer.currentBuffer]));
-    mWavContainer.currentBuffer = !mWavContainer.currentBuffer;
+    alSourceQueueBuffers(mOpenAlId, 1, &bufferId);
+    if (alErrorHandling::errorOccurred()) {
+      logger().warn("Failed to requeue buffer!");
+      return;
+    }
+    numBufferProcessed--;
+  } 
+  
+  // restart source if underrun occurred
+  alGetSourcei(mOpenAlId, AL_SOURCE_STATE, &state);
+  if (state != AL_PLAYING) {
+    alSourcePlay(mOpenAlId);
+    if (alErrorHandling::errorOccurred()) {
+      logger().warn("Failed to restart playback of streaming source!");
+      return;
+    }
   }
 }
 
@@ -91,21 +122,57 @@ void StreamingSource::updateStream() {
 bool StreamingSource::setFile(std::string file) {
   alGetError(); // clear error code
 
-  ALint state;
-  alGetSourcei(mOpenAlId, AL_SOURCE_STATE, &state);
-  if (state == AL_PLAYING) {
+  bool isPlaying = false;
+  auto search = mPlaybackSettings->find("playback");
+  if (search != mPlaybackSettings->end() && 
+      search->second.type() == typeid(std::string) &&
+      std::any_cast<std::string>(search->second) == "play") {
+    
+    isPlaying = true;
     alSourceStop(mOpenAlId);
+    if (alErrorHandling::errorOccurred()) {
+      logger().warn("Failed to stop source!");
+      return false;
+    }
   }
 
-  // remove current buffer
+  // remove current buffers
+  ALuint x; // TODO: do better
+  alSourceUnqueueBuffers(mOpenAlId, (ALsizei)mBuffers.size(), &x);
+  if (alErrorHandling::errorOccurred()) {
+    logger().warn("Failed to unqueue buffers!");
+  }
   
   // check if file exists
-  
-  // get buffer and bind buffer to source
+  if (!std::filesystem::exists(file)) {
+    logger().warn("{} file does not exist! Unable to fill buffer!", file);
+    return false;
+  }
+  mFile = file;
 
+  mWavContainer.reset();
+  mWavContainer.bufferSize = mBufferSize;
 
-  if (state == AL_PLAYING) {
+  // fill buffer
+  for (auto buffer : mBuffers) {
+    if (!FileReader::loadWAVPartially(mFile, mWavContainer)) {
+      logger().debug("Failed to loadWAVPartially");
+    }
+
+    alBufferData(buffer, mWavContainer.format, 
+      std::get<std::vector<char>>(mWavContainer.pcm).data(), 
+      mWavContainer.currentBufferSize, mWavContainer.sampleRate);
+  }
+
+  // queue buffer
+  alSourceQueueBuffers(mOpenAlId, (ALsizei)mBuffers.size(), mBuffers.data());
+
+  if (isPlaying) {
     alSourcePlay(mOpenAlId);
+    if (alErrorHandling::errorOccurred()) {
+      logger().warn("Failed to restart source!");
+      return false;
+    }
   }
 
   return true;

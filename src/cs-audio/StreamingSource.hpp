@@ -29,21 +29,21 @@ class CS_AUDIO_EXPORT StreamingSource : public SourceBase {
   ~StreamingSource();
 
   /// @brief Sets a new file to be played by the source.
-  /// @return Whether it was successful
-  bool setFile(std::string file);
+  /// @return true if successful
+  bool setFile(std::string file) override;
 
-  void updateStream();
+  void updateStream();  
 
-  StreamingSource(std::string file,
-   std::shared_ptr<UpdateInstructor> UpdateInstructor);
+  StreamingSource(std::string file, int bufferSize, int queueSize,
+    std::shared_ptr<UpdateInstructor> UpdateInstructor);
 
-  // friend class cs::core::AudioEngine;
   friend class SourceGroup;
   friend class UpdateConstructor;
     
  private:
-  std::vector<ALuint> mBuffers;
+  std::vector<ALuint>   mBuffers;
   WavContainerStreaming mWavContainer;
+  int mBufferSize;
 };
 
 } // namespace cs::audio

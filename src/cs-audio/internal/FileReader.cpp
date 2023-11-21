@@ -7,6 +7,7 @@
 
 #include "FileReader.hpp"
 #include "BufferManager.hpp"
+#include "../logger.hpp"
 
 #include <iostream>
 #include <fstream>
@@ -49,25 +50,29 @@ bool FileReader::loadWAVPartially(std::string fileName, WavContainerStreaming& w
       return false;
     }
     wavContainer.bufferCounter = 0;
-    wavContainer.pcm = std::vector<char>(wavContainer.bufferSize);
+    wavContainer.pcm = std::vector<char>(wavContainer.bufferSize / sizeof(char));
+    wavContainer.in = std::ifstream(fileName, std::ios::binary);
+    wavContainer.in.seekg(44); // move to the data chunk. '44' is the size of the WAV header
   }
-
-  std::ifstream in(fileName, std::ios::binary);
-  // move reader to the next chunk of data
-  in.seekg(44 + (wavContainer.bufferCounter * wavContainer.bufferSize));
 
   // Read the actual data from the file. If this buffer reaches the end of the file it will reset the 
   // buffer counter and the next buffer will start from the start of the file again.
+  bool rewind = false;
   if ((wavContainer.bufferCounter + 1) * wavContainer.bufferSize >= wavContainer.size) {
-    in.read(std::get<std::vector<char>>(wavContainer.pcm).data(), 
-      wavContainer.size - (wavContainer.bufferCounter * wavContainer.bufferSize));
+    wavContainer.currentBufferSize = wavContainer.size - (wavContainer.bufferCounter * wavContainer.bufferSize);
     wavContainer.bufferCounter = 0;
+    rewind = true;
 
   } else {
-    in.read(std::get<std::vector<char>>(wavContainer.pcm).data(), wavContainer.bufferSize);
+    wavContainer.currentBufferSize = wavContainer.bufferSize;
     wavContainer.bufferCounter++;
   }
 
+  wavContainer.in.read(std::get<std::vector<char>>(wavContainer.pcm).data(), wavContainer.currentBufferSize);
+  
+  if (rewind) {
+    wavContainer.in.seekg(44);
+  }
   return true;
 }
 
