@@ -6,6 +6,7 @@
 // SPDX-License-Identifier: MIT
 
 #include "SourceGroup.hpp"
+#include "logger.hpp"
 #include "internal/SourceBase.hpp"
 #include "internal/SettingsMixer.hpp"
 #include "internal/UpdateInstructor.hpp"
