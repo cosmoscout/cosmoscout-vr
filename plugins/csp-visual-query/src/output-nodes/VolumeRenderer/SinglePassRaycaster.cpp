@@ -194,6 +194,8 @@ GLenum get3DPixelFormat(size_t numComponents) {
   }
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 template <typename T>
 std::vector<T> copyTo3DTextureBuffer(
     std::vector<std::vector<T>> const& imageData, size_t numScalars) {
@@ -209,13 +211,16 @@ std::vector<T> copyTo3DTextureBuffer(
   return data;
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/// This function checks if any cell in a subvolume has a non-transperent value.
 template <typename T>
 bool hasCellValue(std::shared_ptr<Volume3D> const& volume, glm::dvec3 start, glm::dvec3 end) {
-
   for (auto dz = static_cast<uint32_t>(start.z); dz < end.z; ++dz) {
     for (auto dy = static_cast<uint32_t>(start.y); dy < end.y; ++dy) {
       for (auto dx = static_cast<uint32_t>(start.x); dx < end.x; ++dx) {
         auto data = volume->at<T>(dx, dy, dz);
+        // Check for transparency.
         if (data[3] != 0) {
           return true;
         }
@@ -225,6 +230,8 @@ bool hasCellValue(std::shared_ptr<Volume3D> const& volume, glm::dvec3 start, glm
 
   return false;
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T, GLenum GLType>
 void SinglePassRaycaster::uploadVolume(std::shared_ptr<Volume3D> const& volume) {
@@ -243,9 +250,9 @@ void SinglePassRaycaster::uploadVolume(std::shared_ptr<Volume3D> const& volume) 
   constexpr uint32_t xyExtends = 256;
   constexpr uint32_t zExtends  = sizeof(uint8_t) * 8;
 
-  uint32_t threads = std::thread::hardware_concurrency();
+  uint32_t              threads = std::thread::hardware_concurrency();
   cs::utils::ThreadPool tp(threads);
-  uint32_t taskSize = (xyExtends / threads) + 1;
+  uint32_t              taskSize = (xyExtends / threads) + 1;
 
   std::vector<uint8_t> data256{};
   data256.resize(xyExtends * xyExtends);
@@ -260,14 +267,20 @@ void SinglePassRaycaster::uploadVolume(std::shared_ptr<Volume3D> const& volume) 
       for (uint32_t ay = t * taskSize; ay < t * taskSize + taskSize && ay < xyExtends; ++ay) {
         double startY = ay * stepY;
         double endY   = startY + stepY;
+        startY        = std::max(0.0, startY - stepY / 2.0);
+        endY          = std::min(static_cast<double>(volume->mDimension.y), endY + stepY / 2.0);
 
         for (uint32_t ax = 0; ax < xyExtends; ++ax) {
           double startX = ax * stepX;
           double endX   = startX + stepX;
+          startX        = std::max(0.0, startX - stepX / 2.0);
+          endX          = std::min(static_cast<double>(volume->mDimension.x), endX + stepX / 2.0);
 
           for (uint32_t az = 0; az < zExtends; ++az) {
             double startZ = az * stepZ;
             double endZ   = startZ + stepZ;
+            startZ        = std::max(0.0, startZ - stepZ / 2.0);
+            endZ          = std::min(static_cast<double>(volume->mDimension.z), endZ + stepZ / 2.0);
 
             if (hasCellValue<T>(volume, {startX, startY, startZ}, {endX, endY, endZ})) {
               data256[ay * xyExtends + ax] |= static_cast<uint8_t>(std::pow(2, az));
@@ -288,6 +301,8 @@ void SinglePassRaycaster::uploadVolume(std::shared_ptr<Volume3D> const& volume) 
   glTexParameteri(mPreLookupTexture.GetTarget(), GL_TEXTURE_MIN_FILTER, GL_NEAREST);
   mPreLookupTexture.Unbind();
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void SinglePassRaycaster::setData(std::shared_ptr<Volume3D> const& image) {
   mHasTexture = image != nullptr;

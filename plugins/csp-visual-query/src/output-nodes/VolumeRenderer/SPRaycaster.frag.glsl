@@ -73,8 +73,6 @@ vec3 getLngLatHeight(vec3 position) {
   }
 
   result.y = asin(position.y / length(position));
-  // result.xy *= 180.0 / PI;
-
   result.z = length(position) - uBodyRadii.x;
 
   return result;
@@ -164,16 +162,16 @@ void main() {
         uint heightMap = texture(uPreLookupTexture, texCoords.xy).r;
         uint heightByte = uint(pow(2, uint(texCoords.z * 8.0)));
 
-        if ((heightMap/* & heightByte*/) != 0) {
+        if ((heightMap & heightByte) != 0) {
           vec4 currentColor = texture(uTexture, texCoords);
           float currentAlpha = currentColor.a;
 
           currentColor.rgb *= currentAlpha;
           finalColor = (1.0 - finalColor.a) * currentColor + finalColor;
 
-          travelled += stepLength;
+          travelled += (uHeightRange.y - uHeightRange.x) / 160;
         } else {
-          travelled += stepLength * 100;
+          travelled += (uHeightRange.y - uHeightRange.x) / 16;
         }
       }
 
