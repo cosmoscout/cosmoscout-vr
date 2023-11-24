@@ -31,6 +31,7 @@ SinglePassRaycaster::SinglePassRaycaster(std::shared_ptr<cs::core::SolarSystem> 
     , mSolarSystem(std::move(solarSystem))
     , mSettings(std::move(settings))
     , mTexture(GL_TEXTURE_3D)
+    , mPreLookupTexture(GL_TEXTURE_2D)
     , mHasTexture(false)
     , mMinBounds(0)
     , mMaxBounds(0) {
@@ -39,6 +40,11 @@ SinglePassRaycaster::SinglePassRaycaster(std::shared_ptr<cs::core::SolarSystem> 
   mTexture.SetWrapS(GL_CLAMP_TO_EDGE);
   mTexture.SetWrapT(GL_CLAMP_TO_EDGE);
   mTexture.Unbind();
+
+  mPreLookupTexture.Bind();
+  mPreLookupTexture.SetWrapS(GL_CLAMP_TO_EDGE);
+  mPreLookupTexture.SetWrapT(GL_CLAMP_TO_EDGE);
+  mPreLookupTexture.Unbind();
 
   // Add to scenegraph.
   VistaSceneGraph* pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
@@ -80,15 +86,16 @@ bool SinglePassRaycaster::Do() {
         cs::utils::filesystem::loadToString(shaderRoot + "SPRaycaster.frag.glsl"));
     mShader.Link();
 
-    mUniforms.texture     = mShader.GetUniformLocation("uTexture");
-    mUniforms.matInvMV    = mShader.GetUniformLocation("uMatInvMV");
-    mUniforms.matInvP     = mShader.GetUniformLocation("uMatInvP");
-    mUniforms.lonRange    = mShader.GetUniformLocation("uLonRange");
-    mUniforms.latRange    = mShader.GetUniformLocation("uLatRange");
-    mUniforms.heightRange = mShader.GetUniformLocation("uHeightRange");
-    mUniforms.innerRadii  = mShader.GetUniformLocation("uInnerRadii");
-    mUniforms.outerRadii  = mShader.GetUniformLocation("uOuterRadii");
-    mUniforms.bodyRadii   = mShader.GetUniformLocation("uBodyRadii");
+    mUniforms.texture          = mShader.GetUniformLocation("uTexture");
+    mUniforms.preLookupTexture = mShader.GetUniformLocation("uPreLookupTexture");
+    mUniforms.matInvMV         = mShader.GetUniformLocation("uMatInvMV");
+    mUniforms.matInvP          = mShader.GetUniformLocation("uMatInvP");
+    mUniforms.lonRange         = mShader.GetUniformLocation("uLonRange");
+    mUniforms.latRange         = mShader.GetUniformLocation("uLatRange");
+    mUniforms.heightRange      = mShader.GetUniformLocation("uHeightRange");
+    mUniforms.innerRadii       = mShader.GetUniformLocation("uInnerRadii");
+    mUniforms.outerRadii       = mShader.GetUniformLocation("uOuterRadii");
+    mUniforms.bodyRadii        = mShader.GetUniformLocation("uBodyRadii");
 
     mShaderDirty = false;
   }
@@ -99,6 +106,7 @@ bool SinglePassRaycaster::Do() {
   glEnable(GL_BLEND);
   glDepthMask(GL_FALSE);
   glEnable(GL_TEXTURE_3D);
+  glEnable(GL_TEXTURE_2D);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
   float scale     = mSettings->mGraphics.pHeightScale.get();
@@ -124,8 +132,10 @@ bool SinglePassRaycaster::Do() {
 
   mShader.Bind();
   mTexture.Bind(GL_TEXTURE0);
+  mPreLookupTexture.Bind(GL_TEXTURE1);
 
   mShader.SetUniform(mUniforms.texture, 0);
+  mShader.SetUniform(mUniforms.preLookupTexture, 1);
 
   glUniformMatrix4fv(mUniforms.matInvMV, 1, false, glm::value_ptr(matInvMV));
   glUniformMatrix4fv(mUniforms.matInvP, 1, false, glm::value_ptr(matInvP));
@@ -141,7 +151,8 @@ bool SinglePassRaycaster::Do() {
 
   glUniform2f(mUniforms.lonRange, lonBounds.x, lonBounds.y);
   glUniform2f(mUniforms.latRange, latBounds.x, latBounds.y);
-  glUniform2f(mUniforms.heightRange, static_cast<float>(heightBounds.x), static_cast<float>(heightBounds.y));
+  glUniform2f(mUniforms.heightRange, static_cast<float>(heightBounds.x),
+      static_cast<float>(heightBounds.y));
 
   glm::vec3 innerRadii = radii + heightBounds.x;
   glUniform3fv(mUniforms.innerRadii, 1, glm::value_ptr(innerRadii));
@@ -198,6 +209,86 @@ std::vector<T> copyTo3DTextureBuffer(
   return data;
 }
 
+template <typename T>
+bool hasCellValue(std::shared_ptr<Volume3D> const& volume, glm::dvec3 start, glm::dvec3 end) {
+
+  for (auto dz = static_cast<uint32_t>(start.z); dz < end.z; ++dz) {
+    for (auto dy = static_cast<uint32_t>(start.y); dy < end.y; ++dy) {
+      for (auto dx = static_cast<uint32_t>(start.x); dx < end.x; ++dx) {
+        auto data = volume->at<T>(dx, dy, dz);
+        if (data[3] != 0) {
+          return true;
+        }
+      }
+    }
+  }
+
+  return false;
+}
+
+template <typename T, GLenum GLType>
+void SinglePassRaycaster::uploadVolume(std::shared_ptr<Volume3D> const& volume) {
+  auto   imageData   = std::get<T>(volume->mPoints);
+  GLenum imageFormat = get3DPixelFormat(volume->mNumScalars);
+
+  auto data = copyTo3DTextureBuffer(imageData, volume->mNumScalars);
+
+  mTexture.Bind();
+  glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA8, volume->mDimension.x, volume->mDimension.y,
+      volume->mDimension.z, 0, imageFormat, GLType, data.data());
+
+  glTexParameteri(mTexture.GetTarget(), GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+  mTexture.Unbind();
+
+  constexpr uint32_t xyExtends = 256;
+  constexpr uint32_t zExtends  = sizeof(uint8_t) * 8;
+
+  uint32_t threads = std::thread::hardware_concurrency();
+  cs::utils::ThreadPool tp(threads);
+  uint32_t taskSize = (xyExtends / threads) + 1;
+
+  std::vector<uint8_t> data256{};
+  data256.resize(xyExtends * xyExtends);
+  std::fill(data256.begin(), data256.end(), 0);
+
+  double stepZ = volume->mDimension.z / static_cast<double>(zExtends);
+  double stepY = volume->mDimension.y / static_cast<double>(xyExtends);
+  double stepX = volume->mDimension.x / static_cast<double>(xyExtends);
+
+  for (uint32_t t = 0; t < threads; ++t) {
+    tp.enqueue([=, &data256] {
+      for (uint32_t ay = t * taskSize; ay < t * taskSize + taskSize && ay < xyExtends; ++ay) {
+        double startY = ay * stepY;
+        double endY   = startY + stepY;
+
+        for (uint32_t ax = 0; ax < xyExtends; ++ax) {
+          double startX = ax * stepX;
+          double endX   = startX + stepX;
+
+          for (uint32_t az = 0; az < zExtends; ++az) {
+            double startZ = az * stepZ;
+            double endZ   = startZ + stepZ;
+
+            if (hasCellValue<T>(volume, {startX, startY, startZ}, {endX, endY, endZ})) {
+              data256[ay * xyExtends + ax] |= static_cast<uint8_t>(std::pow(2, az));
+            }
+          }
+        }
+      }
+    });
+  }
+
+  while (!tp.hasFinished()) {
+    std::this_thread::sleep_for(std::chrono::milliseconds(1));
+  }
+
+  mPreLookupTexture.Bind();
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_R8UI, xyExtends, xyExtends, 0, GL_RED_INTEGER, GL_UNSIGNED_BYTE,
+      data256.data());
+  glTexParameteri(mPreLookupTexture.GetTarget(), GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  mPreLookupTexture.Unbind();
+}
+
 void SinglePassRaycaster::setData(std::shared_ptr<Volume3D> const& image) {
   mHasTexture = image != nullptr;
 
@@ -205,59 +296,36 @@ void SinglePassRaycaster::setData(std::shared_ptr<Volume3D> const& image) {
     return;
   }
 
-  mBounds            = image->mBounds;
-  GLenum imageFormat = get3DPixelFormat(image->mNumScalars);
+  mBounds = image->mBounds;
 
-  mTexture.Bind();
+  switch (image->mPoints.index()) {
+  case cs::utils::variantIndex<PointsType, U8ValueVector>():
+    uploadVolume<U8ValueVector, GL_UNSIGNED_BYTE>(image);
+    break;
 
-  if (std::holds_alternative<U8ValueVector>(image->mPoints)) {
-    auto imageData = std::get<U8ValueVector>(image->mPoints);
+  case cs::utils::variantIndex<PointsType, U16ValueVector>():
+    uploadVolume<U16ValueVector, GL_UNSIGNED_SHORT>(image);
+    break;
 
-    std::vector<uint8_t> data = copyTo3DTextureBuffer(imageData, image->mNumScalars);
-    glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA8, image->mDimension.x, image->mDimension.y,
-        image->mDimension.z, 0, imageFormat, GL_UNSIGNED_BYTE, data.data());
+  case cs::utils::variantIndex<PointsType, U32ValueVector>():
+    uploadVolume<U32ValueVector, GL_UNSIGNED_INT>(image);
+    break;
 
-  } else if (std::holds_alternative<U16ValueVector>(image->mPoints)) {
-    auto imageData = std::get<U16ValueVector>(image->mPoints);
+  case cs::utils::variantIndex<PointsType, I16ValueVector>():
+    uploadVolume<I16ValueVector, GL_SHORT>(image);
+    break;
 
-    std::vector<uint16_t> data = copyTo3DTextureBuffer(imageData, image->mNumScalars);
-    glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA8, image->mDimension.x, image->mDimension.y,
-        image->mDimension.z, 0, imageFormat, GL_UNSIGNED_SHORT, data.data());
+  case cs::utils::variantIndex<PointsType, I32ValueVector>():
+    uploadVolume<I32ValueVector, GL_INT>(image);
+    break;
 
-  } else if (std::holds_alternative<U32ValueVector>(image->mPoints)) {
-    auto imageData = std::get<U32ValueVector>(image->mPoints);
+  case cs::utils::variantIndex<PointsType, F32ValueVector>():
+    uploadVolume<F32ValueVector, GL_FLOAT>(image);
+    break;
 
-    std::vector<uint32_t> data = copyTo3DTextureBuffer(imageData, image->mNumScalars);
-    glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA8, image->mDimension.x, image->mDimension.y,
-        image->mDimension.z, 0, imageFormat, GL_UNSIGNED_INT, data.data());
-
-  } else if (std::holds_alternative<I16ValueVector>(image->mPoints)) {
-    auto imageData = std::get<I16ValueVector>(image->mPoints);
-
-    std::vector<int16_t> data = copyTo3DTextureBuffer(imageData, image->mNumScalars);
-    glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA8, image->mDimension.x, image->mDimension.y,
-        image->mDimension.z, 0, imageFormat, GL_SHORT, data.data());
-
-  } else if (std::holds_alternative<I32ValueVector>(image->mPoints)) {
-    auto imageData = std::get<I32ValueVector>(image->mPoints);
-
-    std::vector<int32_t> data = copyTo3DTextureBuffer(imageData, image->mNumScalars);
-    glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA8, image->mDimension.x, image->mDimension.y,
-        image->mDimension.z, 0, imageFormat, GL_INT, data.data());
-
-  } else if (std::holds_alternative<F32ValueVector>(image->mPoints)) {
-    auto imageData = std::get<F32ValueVector>(image->mPoints);
-
-    std::vector<float> data = copyTo3DTextureBuffer(imageData, image->mNumScalars);
-    glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA8, image->mDimension.x, image->mDimension.y,
-        image->mDimension.z, 0, imageFormat, GL_FLOAT, data.data());
-
-  } else {
+  default:
     logger().error("Unknown type!");
   }
-
-  glTexParameteri(mTexture.GetTarget(), GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-  mTexture.Unbind();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

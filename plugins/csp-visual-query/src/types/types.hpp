@@ -51,6 +51,11 @@ struct Image2D {
   csl::ogc::Bounds2D mBounds;
 
   std::optional<csl::ogc::TimeInterval> mTimeStamp;
+
+  template <typename T>
+  T at(uint32_t x, uint32_t y) {
+    return std::get<T>(mPoints).at(y * mDimension.x + x);
+  }
 };
 
 struct Volume3D {
@@ -72,6 +77,11 @@ struct Volume3D {
   csl::ogc::Bounds3D mBounds;
 
   std::optional<csl::ogc::TimeInterval> mTimeStamp;
+
+  template <typename T>
+  auto at(uint32_t x, uint32_t y, uint32_t z) {
+    return std::get<T>(mPoints).at(x + (y * mDimension.x) + (z * mDimension.x * mDimension.y));
+  }
 };
 
 } // namespace csp::visualquery

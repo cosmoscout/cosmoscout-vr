@@ -1,18 +1,19 @@
 #version 440
 
-uniform sampler3D uTexture;
+uniform sampler3D  uTexture;
+uniform usampler2D uPreLookupTexture;
 
-uniform mat4      uMatInvMV;
-uniform mat4      uMatInvP;
+uniform mat4 uMatInvMV;
+uniform mat4 uMatInvP;
 
-uniform vec2      uLonRange;
-uniform vec2      uLatRange;
-uniform vec2      uHeightRange;
+uniform vec2 uLonRange;
+uniform vec2 uLatRange;
+uniform vec2 uHeightRange;
 
-uniform vec3      uInnerRadii;
-uniform vec3      uOuterRadii;
+uniform vec3 uInnerRadii;
+uniform vec3 uOuterRadii;
 
-uniform vec3      uBodyRadii;
+uniform vec3 uBodyRadii;
 
 in vec3 rayDirection;
 
@@ -92,15 +93,30 @@ bool pointInsideVolume(vec3 lngLatHeight) {
   ;
 }
 
-vec4 getColor(vec3 lngLatHeight) {
+vec3 getTexCoords(vec3 lngLatHeight) {
   float lon    = lngLatHeight.x;
   float lat    = lngLatHeight.y;
   float height = lngLatHeight.z;
-  return texture(uTexture, vec3(
-      (lon - uLonRange.x) / (uLonRange.y - uLonRange.x),
-      (lat - uLatRange.x) / (uLatRange.y - uLatRange.x),
-      (height - uHeightRange.x) / (uHeightRange.y - uHeightRange.x)
-  ));
+
+  return vec3(
+    (lon - uLonRange.x) / (uLonRange.y - uLonRange.x),
+    (lat - uLatRange.x) / (uLatRange.y - uLatRange.x),
+    (height - uHeightRange.x) / (uHeightRange.y - uHeightRange.x)
+  );
+}
+
+vec4 getColor(vec3 lngLatHeight) {
+  vec3 texCoords = getTexCoords(lngLatHeight);
+
+  uint heightMap = texture(uPreLookupTexture, texCoords.xy).r;
+
+  uint heightByte = uint(pow(2, uint(texCoords.z * 8.0)));
+
+  if ((heightMap & heightByte) != 0) {
+    return texture(uTexture, texCoords);
+  }
+
+  return vec4(0);
 }
 
 void main() {
@@ -129,7 +145,7 @@ void main() {
       discard;
     }
 
-    const float stepLength = 200.0;
+    const float stepLength = 100.0;
     entry = max(stepLength, entry);
 
     vec4 finalColor = vec4(0.0, 0.0, 0.0, 0.0);
@@ -139,14 +155,26 @@ void main() {
     vec3 llhEntry = getLngLatHeight(entryPoint);
 
     if (pointInsideVolume(llhEntry)) {
-      for (float travelled = stepLength; travelled < distance && finalColor.a < 1.0; travelled += stepLength) {
+      for (float travelled = stepLength; travelled < distance && finalColor.a < 1.0;) {
+
         vec3 p = entryPoint + (r.direction * travelled);
         vec3 llh = getLngLatHeight(p);
-        vec4 currentColor = getColor(llh);
-        float currentAlpha = currentColor.a;
 
-        currentColor.rgb *= currentAlpha;
-        finalColor = (1.0 - finalColor.a) * currentColor + finalColor;
+        vec3 texCoords = getTexCoords(llh);
+        uint heightMap = texture(uPreLookupTexture, texCoords.xy).r;
+        uint heightByte = uint(pow(2, uint(texCoords.z * 8.0)));
+
+        if ((heightMap/* & heightByte*/) != 0) {
+          vec4 currentColor = texture(uTexture, texCoords);
+          float currentAlpha = currentColor.a;
+
+          currentColor.rgb *= currentAlpha;
+          finalColor = (1.0 - finalColor.a) * currentColor + finalColor;
+
+          travelled += stepLength;
+        } else {
+          travelled += stepLength * 100;
+        }
       }
 
       FragColor = finalColor;

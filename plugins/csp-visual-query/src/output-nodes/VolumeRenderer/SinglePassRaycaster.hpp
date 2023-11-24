@@ -20,6 +20,7 @@
 namespace cs::core {
 class SolarSystem;
 }
+
 namespace csp::visualquery {
 
 class SinglePassRaycaster final : public IVistaOpenGLDraw {
@@ -37,6 +38,9 @@ class SinglePassRaycaster final : public IVistaOpenGLDraw {
   std::string getCenter() const;
 
  private:
+  template <typename T, GLenum GLType>
+  void uploadVolume(std::shared_ptr<Volume3D> const& volume);
+
   std::string                            mObjectName;
   std::shared_ptr<cs::core::SolarSystem> mSolarSystem;
   std::shared_ptr<cs::core::Settings>    mSettings;
@@ -47,10 +51,12 @@ class SinglePassRaycaster final : public IVistaOpenGLDraw {
   VistaGLSLShader mShader;
 
   VistaTexture mTexture;
+  VistaTexture mPreLookupTexture;
   bool         mHasTexture;
 
   struct {
     uint32_t texture{};
+    uint32_t preLookupTexture{};
 
     uint32_t matInvMV{};
     uint32_t matInvP{};
