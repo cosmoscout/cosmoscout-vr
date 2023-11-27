@@ -39,16 +39,17 @@ void SourceGroup::join(std::shared_ptr<SourceBase> source) {
     logger().warn("Audio Group Warning: Failed to add source to group. Audio controller is expired!");
     return;
   }
-  if (!source->mGroup.expired()) {
-    logger().warn("Audio Group Warning: Remove source form previous group before assigning a new one!");
-    return;
-  }
-  mMembers.insert(source);
-  source->mGroup = shared_from_this();
 
-  // apply group settings to newly added source
-  if (!mCurrentSettings->empty()) {
-    mUpdateConstructor->applyCurrentGroupSettings(source, mAudioController.lock(), mCurrentSettings);
+  auto currentGroup = source->getGroup();
+  if (currentGroup != shared_from_this()) {
+    source->setGroup(shared_from_this());
+
+    mMembers.insert(source);
+
+    // apply group settings to newly added source
+    if (!mCurrentSettings->empty()) {
+      mUpdateConstructor->applyCurrentGroupSettings(source, mAudioController.lock(), mCurrentSettings);
+    }
   }
 }
 
@@ -56,8 +57,7 @@ void SourceGroup::join(std::shared_ptr<SourceBase> source) {
 
 void SourceGroup::remove(std::shared_ptr<SourceBase> sourceToRemove) {
   if (mMembers.erase(sourceToRemove) == 1) {
-    sourceToRemove->mGroup.reset();
-
+    sourceToRemove->leaveGroup();
     // TODO: Remove group setting from sources
   }
 }
@@ -66,7 +66,7 @@ void SourceGroup::remove(std::shared_ptr<SourceBase> sourceToRemove) {
 
 void SourceGroup::reset() {
   for (auto sourcePtr : mMembers) {
-    sourcePtr->mGroup.reset();
+    sourcePtr->leaveGroup();
     // TODO: Remove group setting from sources
   }
   mMembers.clear();

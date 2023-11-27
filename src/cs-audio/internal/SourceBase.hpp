@@ -42,8 +42,19 @@ class CS_AUDIO_EXPORT SourceBase
   /// @return Returns the current file that is being played by the source.
   const std::string getFile() const;
 
-  /// @return Returns to OpenAL ID
+  /// @return Returns the OpenAL ID
   const ALuint getOpenAlId() const;
+
+  /// @brief Returns the current group
+  /// @return Assigned group or nullptr if not part of any group
+  const std::shared_ptr<SourceGroup> getGroup();
+
+  /// @brief Assigned the source to a new group
+  /// @param newGroup group to join
+  void setGroup(std::shared_ptr<SourceGroup> newGroup);
+
+  /// @brief leaves the current group
+  void leaveGroup();
 
   /// @return Returns all settings (Source + Group + Controller) currently set and playing.
   const std::shared_ptr<std::map<std::string, std::any>> getPlaybackSettings() const;

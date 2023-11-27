@@ -10,6 +10,7 @@
 #include "alErrorHandling.hpp"
 #include "SettingsMixer.hpp"
 #include "../logger.hpp"
+#include "../SourceGroup.hpp"
 
 #include <AL/al.h>
 #include <map>
@@ -105,6 +106,27 @@ void SourceBase::addToUpdateList() {
 
 void SourceBase::removeFromUpdateList() {
   mUpdateInstructor->removeUpdate(shared_from_this());  
+}
+
+const std::shared_ptr<SourceGroup> SourceBase::getGroup() {
+  if (mGroup.expired()) {
+    return nullptr;
+  }
+  return mGroup.lock();
+}
+
+void SourceBase::setGroup(std::shared_ptr<SourceGroup> newGroup) {
+  leaveGroup();
+  mGroup = newGroup;
+  newGroup->join(shared_from_this());
+}
+
+void SourceBase::leaveGroup() {
+  if (!mGroup.expired()) {
+    auto sharedGroup = mGroup.lock();
+    mGroup.reset();
+    sharedGroup->remove(shared_from_this());
+  }
 }
 
 } // namespace cs::audio
