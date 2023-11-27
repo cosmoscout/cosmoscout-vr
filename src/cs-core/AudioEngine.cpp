@@ -22,11 +22,6 @@
 #include "../cs-audio/internal/UpdateConstructor.hpp"
 #include "../cs-utils/Property.hpp"
 
-// for testing:
-#include <any>
-#include <cmath>
-#include <map>
-
 namespace cs::core {
 
 AudioEngine::AudioEngine(std::shared_ptr<Settings> settings, std::shared_ptr<GuiManager> guiManager) 
