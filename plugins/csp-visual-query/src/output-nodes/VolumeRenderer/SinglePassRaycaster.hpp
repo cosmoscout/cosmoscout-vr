@@ -11,6 +11,7 @@
 #include "../../types/types.hpp"
 
 #include <VistaKernel/GraphicsManager/VistaOpenGLDraw.h>
+#include <VistaKernel/GraphicsManager/VistaOpenGLNode.h>
 #include <VistaOGLExt/VistaGLSLShader.h>
 #include <VistaOGLExt/VistaTexture.h>
 
@@ -19,6 +20,7 @@
 
 namespace cs::core {
 class SolarSystem;
+class Settings;
 }
 
 namespace csp::visualquery {

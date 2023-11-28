@@ -146,7 +146,7 @@ void JsonVolumeFileLoader::onMessageFromJS(nlohmann::json const& message) {
     float v     = 1.F - (1 / a) * std::log2(1 - std::exp(-a) + value + std::exp(-a));
     glm::vec3 rgb   = hueToRGB(v * 0.8F);
     float     alpha = value != 0.f ? v : 0.f;
-    points.emplace_back(std::vector{rgb.r, rgb.g, rgb.b, alpha});
+    points.emplace_back(std::vector{rgb.r, rgb.g, rgb.b, alpha * .5F});
   }
 
   mData = std::make_shared<Volume3D>(points, 4, v.dimensions, bounds);
