@@ -149,7 +149,11 @@ else()
   SET(ENV{OPENALDIR} ${COSMOSCOUT_EXTERNALS_DIR})
 endif()
 
-message(STATUS "$ENV{OPENALDIR}")
+if (DEFINED ENV{LIBSNDFILE_ROOT_DIR})
+  SET(ENV{LIBSNDFILE_DIR} "$ENV{LIBSNDFILE_ROOT_DIR}")
+else()
+  SET(ENV{LIBSNDFILE_DIR} ${COSMOSCOUT_EXTERNALS_DIR})
+endif()
 
 find_package(GLM REQUIRED)
 find_package(GLI REQUIRED)
@@ -170,6 +174,7 @@ find_package(VistaCoreLibs REQUIRED
   COMPONENTS "VistaBase" "VistaKernel" "VistaKernelOpenSGExt" "VistaOGLExt"
 )
 find_package(OpenAL REQUIRED)
+find_package(SndFile REQUIRED)
 
 # X11 is used on Linux to set the application window's name and icon.
 if (UNIX)

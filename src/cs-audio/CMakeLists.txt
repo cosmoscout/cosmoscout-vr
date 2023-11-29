@@ -19,6 +19,7 @@ add_library(cs-audio SHARED
 
 target_link_libraries(cs-audio
   PUBLIC
+    ${SNDFILE_LIBRARY}
     ${OPENAL_LIBRARY}
     cs-utils
     cs-scene
