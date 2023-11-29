@@ -41,9 +41,18 @@ class CS_AUDIO_EXPORT SourceGroup
   void reset();
 
   /// @return List to all members of the group
-  const std::set<std::shared_ptr<SourceBase>> getMembers() const;
+  const std::vector<std::shared_ptr<SourceBase>> getMembers();
     
  private:
+  struct WeakPtrComparatorSource {
+    bool operator()(const std::weak_ptr<SourceBase>& left, const std::weak_ptr<SourceBase>& right) const {
+        std::owner_less<std::shared_ptr<SourceBase>> sharedPtrLess;
+        return sharedPtrLess(left.lock(), right.lock());
+    }
+  };
+
+  std::set<std::weak_ptr<SourceBase>, WeakPtrComparatorSource> mMembers;
+  std::shared_ptr<UpdateConstructor>                           mUpdateConstructor;
   int                                                          mAudioControllerId;
   
   /// @brief registers itself to the updateInstructor to be updated 

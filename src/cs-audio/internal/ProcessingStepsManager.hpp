@@ -38,6 +38,8 @@ class CS_AUDIO_EXPORT ProcessingStepsManager {
   /// @param audioControllerId ID of the audioController requesting the pipeline
   void createPipeline(std::vector<std::string> processingSteps, int audioControllerId);
 
+  void removeAudioController(int audioControllerId);
+
   /// @brief Calls all processing steps part of the audioControllers pipeline for a source and applies all provided settings.
   /// @param source Source to process.
   /// @param audioControllerId AudioController on which the source lives. Specifies the pipeline.

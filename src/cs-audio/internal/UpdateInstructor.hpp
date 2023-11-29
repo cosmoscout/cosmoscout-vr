@@ -79,12 +79,27 @@ class CS_AUDIO_EXPORT UpdateInstructor {
   UpdateInstruction createUpdateInstruction();
 
  private:                 
+
+  struct WeakPtrComparatorGroup {
+    bool operator()(const std::weak_ptr<SourceGroup>& left, const std::weak_ptr<SourceGroup>& right) const {
+        std::owner_less<std::shared_ptr<SourceGroup>> sharedPtrLess;
+        return sharedPtrLess(left.lock(), right.lock());
+    }
+  };
+
+  struct WeakPtrComparatorSource {
+    bool operator()(const std::weak_ptr<SourceBase>& left, const std::weak_ptr<SourceBase>& right) const {
+        std::owner_less<std::shared_ptr<SourceBase>> sharedPtrLess;
+        return sharedPtrLess(left.lock(), right.lock());
+    }
+  };
+
   /// List of all source to be updated.
-  std::set<std::shared_ptr<SourceBase>>  mSourceUpdateList;
+  std::set<std::weak_ptr<SourceBase>, WeakPtrComparatorSource> mSourceUpdateList;
   /// List of all source groups to be updated.
-  std::set<std::shared_ptr<SourceGroup>> mGroupUpdateList;
+  std::set<std::weak_ptr<SourceGroup>, WeakPtrComparatorGroup> mGroupUpdateList;
   /// Indicates if the audioController settings changed.
-  bool                                   mAudioControllerUpdate;
+  bool                                                    mAudioControllerUpdate;
 };
 
 } // namespace cs::audio

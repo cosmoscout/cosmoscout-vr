@@ -47,10 +47,6 @@ class CS_AUDIO_EXPORT AudioController
   std::shared_ptr<StreamingSource> createStreamingSource(std::string file, 
     int bufferSize=8192, int queueSize=4);
 
-  void destroySource(std::shared_ptr<SourceBase> source);
-
-  void destroyGroup(std::shared_ptr<SourceGroup> group);
-
   /// @brief Creates a new audio source group
   /// @return Pointer to the new source group
   std::shared_ptr<SourceGroup> createSourceGroup();
@@ -66,6 +62,10 @@ class CS_AUDIO_EXPORT AudioController
   void updateStreamingSources();
 
   /// @return Return a list of all sources which live on the audioController
+  std::vector<std::shared_ptr<SourceBase>> getSources();
+
+  std::vector<std::shared_ptr<SourceGroup>> getGroups();
+
   const int getControllerId() const;
 
  private:
@@ -75,11 +75,11 @@ class CS_AUDIO_EXPORT AudioController
   /// Ptr to the single ProcessingStepsManager of the audioEngine
   std::shared_ptr<ProcessingStepsManager>       mProcessingStepsManager;
   /// List of all Sources that live on the AudioController
-  std::vector<std::shared_ptr<SourceBase>>      mSources;
+  std::vector<std::weak_ptr<SourceBase>>        mSources;
   /// List of Streaming Sources that live on the AudioController
-  std::vector<std::shared_ptr<StreamingSource>> mStreams;
+  std::vector<std::weak_ptr<StreamingSource>>   mStreams;
   /// List of all Groups that live on the AudioController
-  std::vector<std::shared_ptr<SourceGroup>>     mGroups;
+  std::vector<std::weak_ptr<SourceGroup>>       mGroups;
   /// Ptr to the UpdateInstructor. Each AudioController has their own Instructor
   std::shared_ptr<UpdateInstructor>             mUpdateInstructor;
   /// Ptr to the single UpdateConstructor of the audioEngine
@@ -90,6 +90,8 @@ class CS_AUDIO_EXPORT AudioController
   /// @brief deregister itself from the updateInstructor 
   void removeFromUpdateList() override;
 
+  template<typename T> 
+  void removeExpiredElements(std::vector<std::weak_ptr<T>> elements);
 };
 
 } // namespace cs::audio

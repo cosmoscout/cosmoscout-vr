@@ -28,14 +28,21 @@ AudioController::AudioController(
   , mUpdateInstructor(std::make_shared<UpdateInstructor>())
   , mUpdateConstructor(std::move(updateConstructor))
   , mControllerId(id) 
+  , mSources(std::vector<std::weak_ptr<SourceBase>>()) 
+  , mStreams(std::vector<std::weak_ptr<StreamingSource>>()) 
+  , mGroups(std::vector<std::weak_ptr<SourceGroup>>()) {
   setUpdateInstructor(mUpdateInstructor);  
 }
 
 AudioController::~AudioController() {
   std::cout << "close controller" << std::endl;
+  mProcessingStepsManager->removeAudioController(mControllerId);
+  // for (auto source : mSources) { // TODO: ???
+  //   source->leaveGroup();
+  // }
   mSources.clear();
+  mStreams.clear();
   mGroups.clear();
-  removeFromUpdateList();
 } 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -75,18 +82,6 @@ std::shared_ptr<StreamingSource> AudioController::createStreamingSource(std::str
   return source;
 } 
 
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void AudioController::destroySource(std::shared_ptr<SourceBase> source) {
-  mSources.erase(std::remove(mSources.begin(), mSources.end(), source), mSources.end());
-  if (auto streamingSource = std::dynamic_pointer_cast<StreamingSource>(source)) {
-    mStreams.erase(std::remove(mStreams.begin(), mStreams.end(), streamingSource), mStreams.end());
-  }
-}
-
-void AudioController::destroyGroup(std::shared_ptr<SourceGroup> group) {
-  mGroups.erase(std::remove(mGroups.begin(), mGroups.end(), group), mGroups.end());
-}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -97,7 +92,6 @@ void AudioController::setPipeline(std::vector<std::string> processingSteps) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void AudioController::update() {
-  
   auto updateInstructions = mUpdateInstructor->createUpdateInstruction();
 
   // updateInstructions.print();
@@ -105,8 +99,8 @@ void AudioController::update() {
   // update every source and group with plugin settings
   if (updateInstructions.updateAll) {
     mUpdateConstructor->updateAll(
-      std::make_shared<std::vector<std::shared_ptr<SourceBase>>>(mSources),
-      std::make_shared<std::vector<std::shared_ptr<SourceGroup>>>(mGroups),
+      std::make_shared<std::vector<std::shared_ptr<SourceBase>>>(getSources()),
+      std::make_shared<std::vector<std::shared_ptr<SourceGroup>>>(getGroups()),
       shared_from_this());
     return;
   }
@@ -115,7 +109,7 @@ void AudioController::update() {
   if (updateInstructions.updateWithGroup->size() > 0) {
     mUpdateConstructor->updateGroups(
       updateInstructions.updateWithGroup,
-      std::make_shared<std::vector<std::shared_ptr<SourceGroup>>>(mGroups),
+      std::make_shared<std::vector<std::shared_ptr<SourceGroup>>>(getGroups()),
       shared_from_this());
   }
 
@@ -128,9 +122,69 @@ void AudioController::update() {
 }
 
 void AudioController::updateStreamingSources() {
+  bool streamExpired = false;
   for (auto stream : mStreams) {
-    stream->updateStream();
+    if (stream.expired()) {
+      streamExpired = true;
+      continue;
+    }
+    stream.lock()->updateStream();
   }
+  if (streamExpired) {
+    removeExpiredElements<StreamingSource>(mStreams);
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+std::vector<std::shared_ptr<SourceBase>> AudioController::getSources() {
+  std::vector<std::shared_ptr<SourceBase>> sourcesShared;
+  bool sourceExpired = false;
+
+  for (auto source : mSources) {
+    if (source.expired()) {
+      sourceExpired = true;
+      continue;
+    }
+    sourcesShared.push_back(source.lock()); 
+  }
+
+  if (sourceExpired) {
+    removeExpiredElements<SourceBase>(mSources);
+  }
+
+  return sourcesShared;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+std::vector<std::shared_ptr<SourceGroup>> AudioController::getGroups() {
+  std::vector<std::shared_ptr<SourceGroup>> groupsShared;
+  bool groupExpired = false;
+
+  for (auto group : mGroups) {
+    if (group.expired()) {
+      groupExpired = true;
+      continue;
+    }
+    groupsShared.push_back(group.lock());
+  }
+
+  if (groupExpired) {
+    removeExpiredElements<SourceGroup>(mGroups);
+  }
+  return groupsShared;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+template<typename T> 
+void AudioController::removeExpiredElements(std::vector<std::weak_ptr<T>> elements) {
+  elements.erase(std::remove_if(elements.begin(), elements.end(),
+  [](const std::weak_ptr<T>& ptr) {
+      return ptr.expired();
+  }),
+  elements.end()); 
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

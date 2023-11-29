@@ -8,12 +8,13 @@
 #include "../logger.hpp"
 #include "UpdateInstructor.hpp"
 #include "../SourceGroup.hpp"
+#include <memory>
 
 namespace cs::audio {
 
 UpdateInstructor::UpdateInstructor() 
-  : mSourceUpdateList(std::set<std::shared_ptr<SourceBase>>())
-  , mGroupUpdateList(std::set<std::shared_ptr<SourceGroup>>())
+  : mSourceUpdateList(std::set<std::weak_ptr<SourceBase>, WeakPtrComparatorSource>())
+  , mGroupUpdateList(std::set<std::weak_ptr<SourceGroup>, WeakPtrComparatorGroup>())
   , mAudioControllerUpdate(false) { 
 }
 
@@ -75,15 +76,20 @@ UpdateInstructor::UpdateInstruction UpdateInstructor::createUpdateInstruction() 
 
     // add group members to updateList
     for (auto groupPtr : mGroupUpdateList) {
-      auto groupMembers = groupPtr->getMembers();   
-      result.updateWithGroup->insert(std::end(*(result.updateWithGroup)), std::begin(groupMembers), std::end(groupMembers));
+      if (groupPtr.expired()) { continue; }
+      auto groupMembers = groupPtr.lock()->getMembers();   
+      result.updateWithGroup->insert(
+        std::end(*(result.updateWithGroup)), std::begin(groupMembers), std::end(groupMembers));
     }
 
-    // Filter out all source that are already part of updateWithGroup and add the rest to updateSourceOnly. This is done to not run the 
-    // same source twice through the pipeline.
+    // Filter out all source that are already part of updateWithGroup and add the rest to 
+    // updateSourceOnly. This is done to not run the same source twice through the pipeline.
     for (auto sourcePtr : mSourceUpdateList) {
-      if (std::find(result.updateWithGroup->begin(), result.updateWithGroup->end(), sourcePtr) == result.updateWithGroup->end()) {
-        result.updateSourceOnly->push_back(sourcePtr);
+      if (sourcePtr.expired()) { continue; }
+      auto sourceShared = sourcePtr.lock();
+      if (std::find(result.updateWithGroup->begin(), result.updateWithGroup->end(), sourceShared)
+          == result.updateWithGroup->end()) {
+        result.updateSourceOnly->push_back(sourceShared);
       }
     }
   }

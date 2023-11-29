@@ -19,7 +19,7 @@ SourceGroup::SourceGroup(std::shared_ptr<UpdateInstructor> UpdateInstructor,
   int audioControllerId) 
   : SourceSettings(std::move(UpdateInstructor))
   , std::enable_shared_from_this<SourceGroup>()
-  , mMembers(std::set<std::shared_ptr<SourceBase>>())
+  , mMembers(std::set<std::weak_ptr<SourceBase>, WeakPtrComparatorSource>())
   , mUpdateConstructor(std::move(updateConstructor))
   , mAudioControllerId(audioControllerId) {
 }
@@ -29,17 +29,11 @@ SourceGroup::SourceGroup(std::shared_ptr<UpdateInstructor> UpdateInstructor,
 SourceGroup::~SourceGroup() {
   std::cout << "close group" << std::endl;
   reset();
-  removeFromUpdateList();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void SourceGroup::join(std::shared_ptr<SourceBase> source) {
-  if (mAudioController.expired()) {
-    logger().warn("Audio Group Warning: Failed to add source to group. Audio controller is expired!");
-    return;
-  }
-
   auto currentGroup = source->getGroup();
   if (currentGroup != shared_from_this()) {
     source->setGroup(shared_from_this());
@@ -66,7 +60,10 @@ void SourceGroup::remove(std::shared_ptr<SourceBase> sourceToRemove) {
 
 void SourceGroup::reset() {
   for (auto sourcePtr : mMembers) {
-    sourcePtr->leaveGroup();
+    if (sourcePtr.expired()) {
+      continue;
+    }
+    sourcePtr.lock()->leaveGroup();
     // TODO: Remove group setting from sources
   }
   mMembers.clear();
@@ -74,8 +71,18 @@ void SourceGroup::reset() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-const std::set<std::shared_ptr<SourceBase>> SourceGroup::getMembers() const {
-  return mMembers;
+const std::vector<std::shared_ptr<SourceBase>> SourceGroup::getMembers() {
+  std::vector<std::shared_ptr<SourceBase>> membersShared(mMembers.size());
+  for (auto member : mMembers) {
+
+    if (member.expired()) {
+      mMembers.erase(member);
+      continue;
+    }
+
+    membersShared.emplace_back(member.lock());
+  }
+  return membersShared;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

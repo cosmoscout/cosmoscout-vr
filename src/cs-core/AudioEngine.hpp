@@ -65,7 +65,7 @@ class CS_CORE_EXPORT AudioEngine : public std::enable_shared_from_this<AudioEngi
   std::shared_ptr<audio::ProcessingStepsManager>       mProcessingStepsManager;
   std::shared_ptr<core::GuiManager>                    mGuiManager;
   utils::Property<float>                               mMasterVolume;
-  std::vector<std::shared_ptr<audio::AudioController>> mAudioControllers;
+  std::vector<std::weak_ptr<audio::AudioController>>   mAudioControllers;
   std::shared_ptr<audio::UpdateConstructor>            mUpdateConstructor;
   
   /// Creates the Audio GUI Settings

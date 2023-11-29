@@ -147,4 +147,11 @@ void ProcessingStepsManager::removeObsoletePsFromUpdateList() {
   }
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void ProcessingStepsManager::removeAudioController(int audioControllerId) {
+  mPipelines.erase(audioControllerId);
+  removeObsoletePsFromUpdateList();
+}
+
 } // namespace cs::audio
