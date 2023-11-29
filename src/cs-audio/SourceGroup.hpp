@@ -36,7 +36,7 @@ class CS_AUDIO_EXPORT SourceGroup
   /// @brief Adds a new source to the group
   void join(std::shared_ptr<SourceBase> source);
   /// @brief Removes a source from the group
-  void remove(std::shared_ptr<SourceBase> source);
+  void leave(std::shared_ptr<SourceBase> source);
   /// @brief Removes all sources form the group
   void reset();
 

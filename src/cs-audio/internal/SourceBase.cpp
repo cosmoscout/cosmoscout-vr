@@ -124,7 +124,7 @@ void SourceBase::leaveGroup() {
   if (!mGroup.expired()) {
     auto sharedGroup = mGroup.lock();
     mGroup.reset();
-    sharedGroup->remove(shared_from_this());
+    sharedGroup->leave(shared_from_this());
   }
 }
 
