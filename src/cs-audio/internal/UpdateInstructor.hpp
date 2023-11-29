@@ -9,15 +9,13 @@
 #define CS_AUDIO_UPDATE_INSTRUCTOR_HPP
 
 #include "cs_audio_export.hpp"
-// #include "../SourceGroup.hpp"
-// #include "../AudioController.hpp"
-
 #include <set>
 #include <iostream>
 #include <memory>
 
 namespace cs::audio {
 
+// forward declarations
 class SourceBase;
 class SourceGroup;
 class AudioController;

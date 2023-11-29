@@ -15,7 +15,6 @@
 #include "../cs-audio/internal/Listener.hpp"
 #include "../cs-audio/Source.hpp"
 #include "../cs-audio/SourceGroup.hpp"
-#include "../cs-audio/test_utils.hpp"
 #include "../cs-audio/internal/BufferManager.hpp"
 #include "../cs-audio/internal/ProcessingStepsManager.hpp"
 #include "../cs-audio/internal/alErrorHandling.hpp"
@@ -116,7 +115,7 @@ void AudioEngine::createGUI() {
 
   // register callback for dropdown output devices
   mGuiManager->getGui()->registerCallback("audio.outputDevice",
-      "Sets the audio output device.", std::function([this](std::string value) {
+      "Set the audio output device.", std::function([this](std::string value) {
         setDevice(static_cast<std::string>(value));
       }));
 }
