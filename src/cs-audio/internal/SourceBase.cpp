@@ -91,7 +91,7 @@ const ALuint SourceBase::getOpenAlId() const {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-const std::shared_ptr<std::map<std::string, std::any>> SourceBase::getPlaybackSettings() const {
+const std::shared_ptr<const std::map<std::string, std::any>> SourceBase::getPlaybackSettings() const {
   return mPlaybackSettings;
 }
 
@@ -104,7 +104,7 @@ void SourceBase::addToUpdateList() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void SourceBase::removeFromUpdateList() {
-  mUpdateInstructor->removeUpdate(shared_from_this());  
+  mUpdateInstructor->removeUpdate(shared_from_this());
 }
 
 const std::shared_ptr<SourceGroup> SourceBase::getGroup() {

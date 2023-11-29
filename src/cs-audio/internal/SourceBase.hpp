@@ -58,8 +58,7 @@ class CS_AUDIO_EXPORT SourceBase
   void leaveGroup();
 
   /// @return Returns all settings (Source + Group + Controller) currently set and playing.
-  const std::shared_ptr<std::map<std::string, std::any>> getPlaybackSettings() const;
-
+  const std::shared_ptr<const std::map<std::string, std::any>> getPlaybackSettings() const;
 
   friend class UpdateConstructor;
     
