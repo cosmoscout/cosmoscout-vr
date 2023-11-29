@@ -16,12 +16,12 @@ namespace cs::audio {
 
 SourceGroup::SourceGroup(std::shared_ptr<UpdateInstructor> UpdateInstructor, 
   std::shared_ptr<UpdateConstructor> updateConstructor,
-  std::shared_ptr<AudioController> audioController) 
+  int audioControllerId) 
   : SourceSettings(std::move(UpdateInstructor))
   , std::enable_shared_from_this<SourceGroup>()
   , mMembers(std::set<std::shared_ptr<SourceBase>>())
   , mUpdateConstructor(std::move(updateConstructor))
-  , mAudioController(std::move(audioController)) {
+  , mAudioControllerId(audioControllerId) {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -48,7 +48,7 @@ void SourceGroup::join(std::shared_ptr<SourceBase> source) {
 
     // apply group settings to newly added source
     if (!mCurrentSettings->empty()) {
-      mUpdateConstructor->applyCurrentGroupSettings(source, mAudioController.lock(), mCurrentSettings);
+      mUpdateConstructor->applyCurrentGroupSettings(source, mAudioControllerId, mCurrentSettings);
     }
   }
 }

@@ -19,13 +19,15 @@ namespace cs::audio {
 AudioController::AudioController(
   std::shared_ptr<BufferManager> bufferManager, 
   std::shared_ptr<ProcessingStepsManager> processingStepsManager,
-  std::shared_ptr<UpdateConstructor> updateConstructor) 
+  std::shared_ptr<UpdateConstructor> updateConstructor, 
+  int id) 
   : SourceSettings()
   , std::enable_shared_from_this<AudioController>()
   , mBufferManager(std::move(bufferManager))
   , mProcessingStepsManager(std::move(processingStepsManager))
   , mUpdateInstructor(std::make_shared<UpdateInstructor>())
-  , mUpdateConstructor(std::move(updateConstructor)) {
+  , mUpdateConstructor(std::move(updateConstructor))
+  , mControllerId(id) 
   setUpdateInstructor(mUpdateInstructor);  
 }
 
@@ -39,7 +41,7 @@ AudioController::~AudioController() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 std::shared_ptr<SourceGroup> AudioController::createSourceGroup() {
-  auto group = std::make_shared<SourceGroup>(mUpdateInstructor, mUpdateConstructor, shared_from_this());
+  auto group = std::make_shared<SourceGroup>(mUpdateInstructor, mUpdateConstructor, mControllerId);
   mGroups.push_back(group);
   return group;
 }
@@ -89,7 +91,7 @@ void AudioController::destroyGroup(std::shared_ptr<SourceGroup> group) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void AudioController::setPipeline(std::vector<std::string> processingSteps) {
-  mProcessingStepsManager->createPipeline(processingSteps, shared_from_this());
+  mProcessingStepsManager->createPipeline(processingSteps, mControllerId);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -133,8 +135,8 @@ void AudioController::updateStreamingSources() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::vector<std::shared_ptr<SourceBase>> AudioController::getSources() const {
-  return std::vector<std::shared_ptr<SourceBase>>(mSources);
+const int AudioController::getControllerId() const {
+  return mControllerId;  
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

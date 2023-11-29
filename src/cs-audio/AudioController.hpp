@@ -34,7 +34,8 @@ class CS_AUDIO_EXPORT AudioController
   AudioController(
     std::shared_ptr<BufferManager> bufferManager, 
     std::shared_ptr<ProcessingStepsManager> processingStepsManager,
-    std::shared_ptr<UpdateConstructor> updateConstructor);
+    std::shared_ptr<UpdateConstructor> updateConstructor,
+    int id);
   ~AudioController();
 
   /// @brief Creates a new audio source
@@ -65,9 +66,10 @@ class CS_AUDIO_EXPORT AudioController
   void updateStreamingSources();
 
   /// @return Return a list of all sources which live on the audioController
-  std::vector<std::shared_ptr<SourceBase>> getSources() const;
+  const int getControllerId() const;
 
  private:
+  const int                                     mControllerId;
   /// Ptr to the single BufferManager of the audioEngine
   std::shared_ptr<BufferManager>                mBufferManager;
   /// Ptr to the single ProcessingStepsManager of the audioEngine

@@ -35,17 +35,17 @@ class CS_AUDIO_EXPORT ProcessingStepsManager {
   
   /// @brief creates a new Pipeline for an AudioController
   /// @param processingSteps List of name of all processing steps, which should be part of the pipeline
-  /// @param audioController Pointer to audioController requesting the pipeline
-  void createPipeline(std::vector<std::string> processingSteps, std::shared_ptr<AudioController> audioController);
+  /// @param audioControllerId ID of the audioController requesting the pipeline
+  void createPipeline(std::vector<std::string> processingSteps, int audioControllerId);
 
   /// @brief Calls all processing steps part of the audioControllers pipeline for a source and applies all provided settings.
   /// @param source Source to process.
-  /// @param audioController AudioController on which the source lives. Specifies the pipeline.
+  /// @param audioControllerId AudioController on which the source lives. Specifies the pipeline.
   /// @param sourceSettings Settings to apply to the provided source
   /// @return List of settings keys that failed when trying to apply the settings to the source.
   std::shared_ptr<std::vector<std::string>> process(
     std::shared_ptr<SourceBase> source, 
-    std::shared_ptr<AudioController> audioController,
+    int audioControllerId,
     std::shared_ptr<std::map<std::string, std::any>> sourceSettings);
 
   /// @brief This functions will call all update functions of processing steps that are active and require
@@ -55,10 +55,10 @@ class CS_AUDIO_EXPORT ProcessingStepsManager {
   ProcessingStepsManager(std::shared_ptr<core::Settings> settings);
  private:                                                                            
   /// Holds all pipelines and their corresponding audioController                                                                       
-  std::map<std::shared_ptr<AudioController>, std::set<std::shared_ptr<ProcessingStep>>> mPipelines;
+  std::map<int, std::set<std::shared_ptr<ProcessingStep>>> mPipelines;
   /// List that contains all processing steps that require an update call every frame
-  std::set<std::shared_ptr<ProcessingStep>>                             mUpdateProcessingSteps;
-  std::shared_ptr<core::Settings> mSettings;
+  std::set<std::shared_ptr<ProcessingStep>>                mUpdateProcessingSteps;
+  std::shared_ptr<core::Settings>                          mSettings;
 
 
   /// @brief Searches for and creates a processing step when defining a pipeline. If you want to add a new 

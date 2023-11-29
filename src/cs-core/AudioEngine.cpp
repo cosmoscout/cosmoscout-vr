@@ -136,8 +136,9 @@ void AudioEngine::update() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 std::shared_ptr<audio::AudioController> AudioEngine::createAudioController() {
+  static int controllerId = 0;
   auto controller = std::make_shared<audio::AudioController>(mBufferManager, 
-    mProcessingStepsManager, mUpdateConstructor);
+    mProcessingStepsManager, mUpdateConstructor, controllerId++);
   controller->setPipeline(std::vector<std::string>{"DirectPlay"});
   mAudioControllers.push_back(controller);
   return controller;
