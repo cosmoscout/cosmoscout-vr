@@ -24,18 +24,13 @@ class SourceGroup;
 class CS_AUDIO_EXPORT Source : public SourceBase {
 
  public:
+  Source(std::shared_ptr<BufferManager> bufferManager, 
+  std::string file, std::shared_ptr<UpdateInstructor> UpdateInstructor);
   ~Source();
   
   /// @brief Sets a new file to be played by the source.
   /// @return Whether it was successful
   bool setFile(std::string file) override;
-
-  Source(std::shared_ptr<BufferManager> bufferManager, 
-  std::string file, std::shared_ptr<UpdateInstructor> UpdateInstructor);
-
-  // friend class cs::core::AudioEngine;
-  friend class SourceGroup;
-  friend class UpdateConstructor;
     
  private:
   std::shared_ptr<BufferManager>                   mBufferManager;

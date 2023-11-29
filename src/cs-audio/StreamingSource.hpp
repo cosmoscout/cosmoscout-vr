@@ -37,9 +37,6 @@ class CS_AUDIO_EXPORT StreamingSource : public SourceBase {
   StreamingSource(std::string file, int bufferSize, int queueSize,
     std::shared_ptr<UpdateInstructor> UpdateInstructor);
 
-  friend class SourceGroup;
-  friend class UpdateConstructor;
-    
  private:
   std::vector<ALuint>   mBuffers;
   WavContainerStreaming mWavContainer;

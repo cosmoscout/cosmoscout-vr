@@ -26,6 +26,7 @@ class CS_AUDIO_EXPORT SourceBase
   , public std::enable_shared_from_this<SourceBase> {
     
  public:
+  SourceBase(std::string file, std::shared_ptr<UpdateInstructor> UpdateInstructor);
   ~SourceBase();
   
   /// @brief Sets setting to start playback
@@ -59,10 +60,7 @@ class CS_AUDIO_EXPORT SourceBase
   /// @return Returns all settings (Source + Group + Controller) currently set and playing.
   const std::shared_ptr<std::map<std::string, std::any>> getPlaybackSettings() const;
 
-  SourceBase(std::string file, std::shared_ptr<UpdateInstructor> UpdateInstructor);
 
-  // friend class cs::core::AudioEngine;
-  friend class SourceGroup;
   friend class UpdateConstructor;
     
  protected:
