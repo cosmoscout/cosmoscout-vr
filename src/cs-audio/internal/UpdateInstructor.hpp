@@ -56,8 +56,8 @@ class CS_AUDIO_EXPORT UpdateInstructor {
   /// Struct to hold all update instructions
   struct UpdateInstruction {
     bool updateAll;
-    std::shared_ptr<std::vector<std::shared_ptr<SourceBase>>> updateWithGroup = nullptr;
-    std::shared_ptr<std::vector<std::shared_ptr<SourceBase>>> updateSourceOnly = nullptr;
+    std::shared_ptr<std::vector<std::shared_ptr<SourceBase>>> updateWithGroup;
+    std::shared_ptr<std::vector<std::shared_ptr<SourceBase>>> updateSourceOnly;
 
     // temporary:
     void print() {

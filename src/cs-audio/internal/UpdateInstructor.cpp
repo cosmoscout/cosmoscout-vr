@@ -68,6 +68,8 @@ UpdateInstructor::UpdateInstruction UpdateInstructor::createUpdateInstruction() 
   if (mAudioControllerUpdate) {
     // update every source and group
     result.updateAll = true;
+    result.updateWithGroup = nullptr;
+    result.updateSourceOnly = nullptr;
 
   } else {
     result.updateAll = false;
