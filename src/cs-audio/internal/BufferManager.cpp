@@ -11,6 +11,7 @@
 #include "../logger.hpp"
 
 #include <AL/al.h>
+#include <AL/alext.h>
 #include <iostream>
 #include <variant>
 
@@ -70,28 +71,30 @@ std::pair<bool, ALuint> BufferManager::createBuffer(std::string file) {
   }
 
   // read wave file
-  WavContainer wavContainer;
-  if (!FileReader::loadWAV(file, wavContainer)) {
+  AudioContainer audioContainer;
+  if (!FileReader::loadWAV(file, audioContainer)) {
     logger().warn("{} is not a valid wave file! Unable to create buffer!", file);
     alDeleteBuffers((ALsizei) 1, &newBufferId);
     return std::make_pair(false, newBufferId);
   }
 
   // testing
-  wavContainer.print();
+  audioContainer.print();
 
   // load wave into buffer
-  if (wavContainer.bitsPerSample == 32) {
-    alBufferData(newBufferId, wavContainer.format, std::get<std::vector<float>>(wavContainer.pcm).data(), 
-      wavContainer.size, wavContainer.sampleRate);
+  if(audioContainer.splblockalign > 1)
+      alBufferi(newBufferId, AL_UNPACK_BLOCK_ALIGNMENT_SOFT, audioContainer.splblockalign);
+
+  if (std::holds_alternative<std::vector<short>>(audioContainer.audioData)) {
+    alBufferData(newBufferId, audioContainer.format, std::get<std::vector<short>>(audioContainer.audioData).data(), audioContainer.size, audioContainer.sampleRate);
+  
+  } else if (std::holds_alternative<std::vector<float>>(audioContainer.audioData)) {
+    alBufferData(newBufferId, audioContainer.format, std::get<std::vector<float>>(audioContainer.audioData).data(), audioContainer.size, audioContainer.sampleRate);
+    
   } else {
-    alBufferData(newBufferId, wavContainer.format, std::get<std::vector<char>>(wavContainer.pcm).data(), 
-      wavContainer.size, wavContainer.sampleRate);
+    alBufferData(newBufferId, audioContainer.format, std::get<std::vector<int>>(audioContainer.audioData).data(), audioContainer.size, audioContainer.sampleRate);
   }
-  /*
-  alBufferData(newBufferId, wavContainer.format, wavContainer.pcm.data(), 
-      wavContainer.size, wavContainer.sampleRate);
-  */
+
   if (alErrorHandling::errorOccurred()) {
     logger().warn("Failed to fill buffer with data!");
     alDeleteBuffers((ALsizei) 1, &newBufferId);
@@ -121,14 +124,13 @@ void BufferManager::removeBuffer(std::string file) {
 
 void BufferManager::deleteBuffer(std::shared_ptr<Buffer> bufferToDelete) {
   alGetError(); // clear error code
-  
   // delete buffer in OpenAL
   alDeleteBuffers((ALsizei) 1, &(bufferToDelete->mOpenAlId));
   if (alErrorHandling::errorOccurred()) {
     logger().warn("Failed to delete single buffer!");
   }
 
-  // delete buffer from bufferList
+  // delete buffer from bufferList // TODO: make erase simpler 
   int counter = 0;
   for (std::shared_ptr<Buffer> buffer : mBufferList) {
     if (buffer == bufferToDelete) {

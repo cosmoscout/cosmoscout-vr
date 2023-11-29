@@ -24,7 +24,7 @@ StreamingSource::StreamingSource(std::string file, int bufferSize, int queueSize
   : SourceBase(file, UpdateInstructor)
   , mBufferSize(std::move(bufferSize))
   , mBuffers(std::vector<ALuint>(queueSize)) 
-  , mWavContainer(WavContainerStreaming()) { 
+  , mAudioContainer(AudioContainerStreaming()) { 
 
   alGetError(); // clear error code
 
@@ -42,16 +42,18 @@ StreamingSource::StreamingSource(std::string file, int bufferSize, int queueSize
   }
 
   // fill buffer
-  mWavContainer.bufferSize = mBufferSize;
+  mAudioContainer.bufferSize = mBufferSize;
   for (auto buffer : mBuffers) {
 
-    if (!FileReader::loadWAVPartially(mFile, mWavContainer)) {
-      logger().debug("Failed to loadWAVPartially");
-    }
-
-    alBufferData(buffer, mWavContainer.format, 
-      std::get<std::vector<char>>(mWavContainer.pcm).data(), 
-      mWavContainer.currentBufferSize, mWavContainer.sampleRate);
+    // if (!FileReader::loadWAVPartially(mFile, mAudioContainer)) {
+    //   logger().warn("Failed to loadWAVPartially");
+    // }
+    
+    /*
+    alBufferData(buffer, mAudioContainer.format, 
+      std::get<std::vector<char>>(mAudioContainer.pcm).data(), 
+      mAudioContainer.currentBufferSize, mAudioContainer.sampleRate);
+    */
   }
 
   // queue buffer
@@ -88,11 +90,12 @@ void StreamingSource::updateStream() {
       return;
     }
     
-    FileReader::loadWAVPartially(mFile, mWavContainer);
-  
-    alBufferData(bufferId, mWavContainer.format, 
-      std::get<std::vector<char>>(mWavContainer.pcm).data(), 
-      mWavContainer.bufferSize, mWavContainer.sampleRate);
+    // FileReader::loadWAVPartially(mFile, mAudioContainer);
+    /*
+    alBufferData(bufferId, mAudioContainer.format, 
+      std::get<std::vector<char>>(mAudioContainer.pcm).data(), 
+      mAudioContainer.bufferSize, mAudioContainer.sampleRate);
+    */
     if (alErrorHandling::errorOccurred()) {
       logger().warn("Failed to refill streaming buffer!");
       return;
@@ -150,18 +153,20 @@ bool StreamingSource::setFile(std::string file) {
   }
   mFile = file;
 
-  mWavContainer.reset();
-  mWavContainer.bufferSize = mBufferSize;
+  mAudioContainer.reset();
+  mAudioContainer.bufferSize = mBufferSize;
 
   // fill buffer
   for (auto buffer : mBuffers) {
-    if (!FileReader::loadWAVPartially(mFile, mWavContainer)) {
-      logger().debug("Failed to loadWAVPartially");
-    }
-
-    alBufferData(buffer, mWavContainer.format, 
-      std::get<std::vector<char>>(mWavContainer.pcm).data(), 
-      mWavContainer.currentBufferSize, mWavContainer.sampleRate);
+    // if (!FileReader::loadWAVPartially(mFile, mAudioContainer)) {
+    //   logger().warn("Failed to loadWAVPartially");
+    // }
+    
+    /*
+    alBufferData(buffer, mAudioContainer.format, 
+      std::get<std::vector<char>>(mAudioContainer.pcm).data(), 
+      mAudioContainer.currentBufferSize, mAudioContainer.sampleRate);
+    */
   }
 
   // queue buffer

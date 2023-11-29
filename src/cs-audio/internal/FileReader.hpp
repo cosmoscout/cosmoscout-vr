@@ -14,29 +14,27 @@
 
 namespace cs::audio {
 
-struct WavContainer {
+struct AudioContainer {
   unsigned int format; 
-  int numberChannels;
   int sampleRate;
-  int bitsPerSample;
   int size;
-  std::variant<std::vector<char>, std::vector<float>> pcm; // actual audio data
-  // std::vector<char> pcm;
+  int splblockalign;
+  std::variant<
+   std::vector<short>, 
+   std::vector<int>, 
+   std::vector<float>> audioData;
 
   void print() {
-
     std::cout << "----WavContainer Info----" << std::endl;
     std::cout << "format: " << format << std::endl;
-    std::cout << "numberChannels: " << numberChannels << std::endl;
-    std::cout << "sampleRate: " << sampleRate << std::endl;
-    std::cout << "bitsPerSample: " << bitsPerSample << std::endl;
+    std::cout << "sampleRate: " << sampleRate << "hz" << std::endl;
     std::cout << "size: " << size << std::endl;
-    std::cout << "type: " << (std::holds_alternative<std::vector<char>>(pcm) ? "char" : "float") << std::endl;
+    std::cout << "splblockalign: " << splblockalign << std::endl;
     std::cout << "-------------------------" << std::endl;
   }
 };
 
-struct WavContainerStreaming : public WavContainer {
+struct AudioContainerStreaming : public AudioContainer {
   int bufferCounter = -1;
   int bufferSize; // size of 
   int currentBufferSize;
@@ -45,17 +43,15 @@ struct WavContainerStreaming : public WavContainer {
   void print() {
     std::cout << "----WavContainer Info----" << std::endl;
     std::cout << "format: " << format << std::endl;
-    std::cout << "numberChannels: " << numberChannels << std::endl;
-    std::cout << "sampleRate: " << sampleRate << std::endl;
-    std::cout << "bitsPerSample: " << bitsPerSample << std::endl;
+    std::cout << "sampleRate: " << sampleRate << "hz" << std::endl;
     std::cout << "size: " << size << std::endl;
-    std::cout << "type: " << (std::holds_alternative<std::vector<char>>(pcm) ? "char" : "float") << std::endl;
+    std::cout << "splblockalign: " << splblockalign << std::endl;
     std::cout << "bufferCounter: " << bufferCounter << std::endl;
     std::cout << "bufferSize: " << bufferSize << std::endl;
     std::cout << "-------------------------" << std::endl;
   }
 
-  ~WavContainerStreaming() {
+  ~AudioContainerStreaming() {
     in.close();
   }
 
@@ -64,12 +60,13 @@ struct WavContainerStreaming : public WavContainer {
     bufferSize = 0;
     currentBufferSize = 0;
     format = 0; 
-    numberChannels = 0;
     sampleRate = 0;
-    bitsPerSample = 0;
     size = 0;
     in.close();
-    pcm = std::variant<std::vector<char>, std::vector<float>>();
+    // audioData = std::variant<
+    //     std::vector<short>, 
+    //     std::vector<int>, 
+    //     std::vector<float>>();
   }
 };
 
@@ -86,21 +83,17 @@ class CS_AUDIO_EXPORT FileReader {
   /// @param fileName path to the file to read
   /// @param wavContainer wavContainer to write into
   /// @return Whether the provided file path is a valid .wav file 
-  static bool loadWAV(std::string fileName, WavContainer& wavContainer);
-  static bool loadWAVPartially(std::string fileName, WavContainerStreaming& wavContainer);
+  static bool loadWAV(std::string fileName, AudioContainer& audioContainer);
+
+  static const char* FormatName(ALenum format);
   
  private:
-  /// @brief Converts data in buffer up to the provided length to and int value
-  /// @return int value
-  static int convertToInt(char* buffer, int len);
-  /// @brief Checks if the system is big or little endian
-  /// @return True if big endian
-  static bool isBigEndian();
-
-  static bool readWAVHeader(std::string fileName, WavContainer& wavContainer);
-
-  static std::vector<float> castToFloat(std::vector<char> input);
-  static float normalizeToRange(char value, float minInput, float maxInput, float minOutput, float maxOutput);
+  enum FormatType {
+    Int16,
+    Float,
+    IMA4,
+    MSADPCM
+  };
 };
 
 } // namespace cs::audio

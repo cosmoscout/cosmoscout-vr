@@ -38,9 +38,9 @@ class CS_AUDIO_EXPORT StreamingSource : public SourceBase {
     std::shared_ptr<UpdateInstructor> UpdateInstructor);
 
  private:
-  std::vector<ALuint>   mBuffers;
-  WavContainerStreaming mWavContainer;
-  int mBufferSize;
+  std::vector<ALuint>     mBuffers;
+  AudioContainerStreaming mAudioContainer;
+  int                     mBufferSize;
 };
 
 } // namespace cs::audio
