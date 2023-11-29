@@ -11,6 +11,7 @@
 #include "../cs-scene/CelestialSurface.hpp"
 #include "../cs-utils/convert.hpp"
 #include <cmath>
+#include <iostream>
 
 namespace cs::audio {
 
@@ -41,7 +42,7 @@ double AudioUtil::getObserverScaleAt(glm::dvec3 position, double ObserverScale,
     // Finally check if the current body is closest to the source. We won't incorporate surface
     // elevation in this check.
     auto vObjectPosToObserver = object->getObserverRelativePosition();
-    vObjectPosToObserver *= static_cast<float>(ObserverScale); 
+    vObjectPosToObserver *= static_cast<float>(ObserverScale);
 
     glm::dvec3 vSourcePosToObject(
       vObjectPosToObserver.x - position.x,
@@ -99,7 +100,46 @@ double AudioUtil::getObserverScaleAt(glm::dvec3 position, double ObserverScale,
   }
   return -1.0;
 }
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void AudioUtil::printAudioSettings(std::shared_ptr<std::map<std::string, std::any>> map) {
+  for (auto [key, val] : (*map)) {
+
+    std::cout << key << ": ";
+
+    if (val.type() == typeid(int)) {
+      std::cout << std::any_cast<int>(val) << std::endl;           
+      continue;
+    }
+
+    if (val.type() == typeid(bool)) {
+      std::cout << (std::any_cast<bool>(val) ? "true" : "false") << std::endl;           
+      continue;
+    }
+
+    if (val.type() == typeid(float)) {
+      std::cout << std::any_cast<float>(val) << std::endl;           
+      continue;
+    }
+
+    if (val.type() == typeid(std::string)) {
+      std::cout << std::any_cast<std::string>(val) << std::endl;           
+      continue;
+    }
+
+    if (val.type() == typeid(glm::dvec3)) {
+      auto v3 = std::any_cast<glm::dvec3>(val);
+      std::cout << v3.x << ", " << v3.y << ", " << v3.z << std::endl;           
+      continue;
+    }
+
+    std::cout << "type not yet supported for printing in cs::audio::AudioUtil::printAudioSettings()" << std::endl;
+  }
+}
+
+void AudioUtil::printAudioSettings(const std::shared_ptr<const std::map<std::string, std::any>> map) {
+  printAudioSettings(std::const_pointer_cast<std::map<std::string, std::any>>(map));
+}
 
 } // namespace cs::audio

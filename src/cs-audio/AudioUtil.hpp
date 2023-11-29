@@ -17,6 +17,11 @@ class CS_AUDIO_EXPORT AudioUtil {
   static double getObserverScaleAt(glm::dvec3 position, double ObserverScale, 
     std::shared_ptr<cs::core::Settings> settings);
 
+  static void printAudioSettings(
+    std::shared_ptr<std::map<std::string, std::any>> map);
+  static void printAudioSettings(
+    const std::shared_ptr<const std::map<std::string, std::any>> map);
+
  private:
 
 };
