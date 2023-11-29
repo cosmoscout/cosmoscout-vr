@@ -110,10 +110,10 @@ std::pair<bool, ALuint> BufferManager::createBuffer(std::string file) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void BufferManager::removeBuffer(std::string file) {
-  for (std::shared_ptr<Buffer> buffer : mBufferList) {
-    if (buffer->mFile == file) {
-      if (--buffer->mUsageNumber == 0) {
-        deleteBuffer(buffer);
+  for (auto it = mBufferList.begin(); it != mBufferList.end(); it++) {
+    if ((*it)->mFile == file) {
+      if (--(*it)->mUsageNumber == 0) {
+        deleteBuffer(it);
       }
       break;
     }
@@ -122,23 +122,15 @@ void BufferManager::removeBuffer(std::string file) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void BufferManager::deleteBuffer(std::shared_ptr<Buffer> bufferToDelete) {
+void BufferManager::deleteBuffer(std::vector<std::shared_ptr<Buffer>>::iterator bufferIt) {
   alGetError(); // clear error code
-  // delete buffer in OpenAL
-  alDeleteBuffers((ALsizei) 1, &(bufferToDelete->mOpenAlId));
+
+  alDeleteBuffers((ALsizei) 1, &(*bufferIt)->mOpenAlId);
   if (alErrorHandling::errorOccurred()) {
     logger().warn("Failed to delete single buffer!");
   }
 
-  // delete buffer from bufferList // TODO: make erase simpler 
-  int counter = 0;
-  for (std::shared_ptr<Buffer> buffer : mBufferList) {
-    if (buffer == bufferToDelete) {
-       mBufferList.erase(mBufferList.begin() + counter);   
-       break;
-    }
-    counter++;
-  }
+  mBufferList.erase(bufferIt);
 }
 
 } // namespace cs::audio

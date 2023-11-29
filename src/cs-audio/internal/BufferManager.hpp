@@ -62,7 +62,7 @@ class CS_AUDIO_EXPORT BufferManager {
   std::pair<bool, ALuint> createBuffer(std::string file);
   
   /// @brief Deletes a buffer if it is no longer used by any Source.
-  void deleteBuffer(std::shared_ptr<Buffer> buffer);
+  void deleteBuffer(std::vector<std::shared_ptr<Buffer>>::iterator bufferIt);
 };
 
 } // namespace cs::audio
