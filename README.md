@@ -55,7 +55,7 @@ You can also read the [**changelog**](docs/changelog.md) to learn what's new in 
 - [ ] System Architecture
   - [X] Plugin-based - most functionality is loaded at run-time
   - [ ] Network synchronization of multiple instances
-- [ ] Hardware device support - CosmoScout VR basically supports everything which is supported by [ViSTA](https://github.com/cosmoscout/vista) and [VRPN](https://github.com/vrpn/vrpn). The devices below are actively supported (or planned to be supported).
+- [x] Hardware device support - CosmoScout VR basically supports everything which is supported by [ViSTA](https://github.com/cosmoscout/vista) and [VRPN](https://github.com/vrpn/vrpn). The devices below are actively supported (or planned to be supported).
   - [X] Mouse
   - [X] Keyboard
   - [X] HTC-Vive
@@ -66,7 +66,7 @@ You can also read the [**changelog**](docs/changelog.md) to learn what's new in 
   - [X] Side-by-side stereo systems
   - [X] Quad-buffer stereo systems
   - [X] Anaglyph stereo systems
-  - [ ] Game Pads like the X-Box controller
+  - [x] Game Pads like the X-Box controller
 
 # Getting Started
 
