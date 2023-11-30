@@ -78,13 +78,11 @@ const char * FileReader::FormatName(ALenum format)
   return "Unknown Format";
 }
 
-bool FileReader::loadWAV(std::string fileName, AudioContainer& audioContainer) {
-  enum FormatType sample_format  = Int16;
+bool FileReader::readMetaData(std::string fileName, AudioContainer& audioContainer) {
+  FormatType      sample_format  = Int16;
   ALint           byteblockalign = 0;
   ALint           splblockalign  = 0;
-  sf_count_t      num_frames;
   ALenum          format;
-  ALsizei         num_bytes;
   SNDFILE*        sndfile;
   SF_INFO         sfinfo;
 
@@ -230,47 +228,129 @@ bool FileReader::loadWAV(std::string fileName, AudioContainer& audioContainer) {
     return false;
   }
 
-  /* Decode the whole audio file to a buffer. */
+  audioContainer.format = format;
+  audioContainer.formatType = sample_format;
+  audioContainer.sfInfo = sfinfo; 
+  audioContainer.splblockalign = splblockalign;
+  audioContainer.byteblockalign = byteblockalign;
+  audioContainer.sndFile = sndfile;
+  return true;
+}
 
-  if (sample_format == Int16) {
-    audioContainer.audioData =
-        std::vector<short>((size_t)(sfinfo.frames / splblockalign * byteblockalign));
-    num_frames = sf_readf_short(
-        sndfile, std::get<std::vector<short>>(audioContainer.audioData).data(), sfinfo.frames);
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
-  } else if (sample_format == Float) {
-    audioContainer.audioData =
-        std::vector<float>((size_t)(sfinfo.frames / splblockalign * byteblockalign));
-    num_frames = sf_readf_float(
-        sndfile, std::get<std::vector<float>>(audioContainer.audioData).data(), sfinfo.frames);
-
-  } else {
-    audioContainer.audioData =
-        std::vector<int>((size_t)(sfinfo.frames / splblockalign * byteblockalign));
-    sf_count_t count = sfinfo.frames / splblockalign * byteblockalign;
-    num_frames =
-        sf_read_raw(sndfile, std::get<std::vector<int>>(audioContainer.audioData).data(), count);
-    if (num_frames > 0)
-      num_frames = num_frames / byteblockalign * splblockalign;
+bool FileReader::loadFile(std::string fileName, AudioContainer& audioContainer) {
+  
+  if (!readMetaData(fileName, audioContainer)) {
+    return false;
   }
+
+  /* Decode the whole audio file to a buffer. */
+  sf_count_t num_frames;
+  switch (audioContainer.formatType) {
+    case Int16:
+      audioContainer.audioData =
+        std::vector<short>((size_t)(audioContainer.sfInfo.frames / audioContainer.splblockalign * audioContainer.byteblockalign));
+      num_frames = sf_readf_short(
+        audioContainer.sndFile, 
+        std::get<std::vector<short>>(audioContainer.audioData).data(), 
+        audioContainer.sfInfo.frames);
+      break;
+
+    case Float:
+      audioContainer.audioData =
+        std::vector<float>((size_t)(audioContainer.sfInfo.frames / audioContainer.splblockalign * audioContainer.byteblockalign));
+      num_frames = sf_readf_float(
+        audioContainer.sndFile, 
+        std::get<std::vector<float>>(audioContainer.audioData).data(),
+        audioContainer.sfInfo.frames);
+      break;
+
+    default:
+      audioContainer.audioData =
+        std::vector<int>((size_t)(audioContainer.sfInfo.frames / audioContainer.splblockalign * audioContainer.byteblockalign));
+      sf_count_t count = audioContainer.sfInfo.frames / audioContainer.splblockalign * audioContainer.byteblockalign;
+      num_frames =
+        sf_read_raw(audioContainer.sndFile, 
+        std::get<std::vector<int>>(audioContainer.audioData).data(), 
+        count);
+      if (num_frames > 0) {
+        num_frames = num_frames / audioContainer.byteblockalign * audioContainer.splblockalign;    
+      }
+  }
+
   if (num_frames < 1) {
-    audioContainer.audioData =
-        std::variant<std::vector<short>, std::vector<int>, std::vector<float>>();
-    sf_close(sndfile);
+    audioContainer.reset();
     logger().warn("Failed to read samples in {} ({})", fileName, num_frames);
     return false;
   }
-  num_bytes = (ALsizei)(num_frames / splblockalign * byteblockalign);
 
-  // Buffer the audio data into the audioContainer, then close the file.
-  audioContainer.format        = format;
-  audioContainer.sampleRate    = sfinfo.samplerate;
-  audioContainer.size          = num_bytes;
-  audioContainer.format        = format;
-  audioContainer.splblockalign = splblockalign;
+  audioContainer.size = (ALsizei)(num_frames / audioContainer.splblockalign * audioContainer.byteblockalign);
+  sf_close(audioContainer.sndFile);
+  return true;
+}
 
-  sf_close(sndfile);
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
+bool FileReader::openStream(std::string fileName, AudioContainerStreaming& audioContainer) {
+
+  audioContainer.reset();
+  if (!readMetaData(fileName, audioContainer)) {
+    logger().warn("readMetaData() failed");
+    return false;
+  }
+
+  audioContainer.blockCount = audioContainer.sfInfo.samplerate / audioContainer.splblockalign;
+  audioContainer.blockCount = audioContainer.blockCount * audioContainer.bufferLength / 1000;
+
+  switch (audioContainer.formatType) {
+    case Int16:
+      audioContainer.audioData = std::vector<short>((size_t)(audioContainer.blockCount * audioContainer.byteblockalign));
+      break;
+    case Float:
+      audioContainer.audioData = std::vector<float>((size_t)(audioContainer.blockCount * audioContainer.byteblockalign));
+      break;
+    default:
+      audioContainer.audioData = std::vector<int>((size_t)(audioContainer.blockCount * audioContainer.byteblockalign));
+  }
+
+  return true;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+bool FileReader::getNextStreamBlock(AudioContainerStreaming& audioContainer) {
+
+  sf_count_t slen;
+  switch (audioContainer.formatType) {
+    case Int16:
+      slen = sf_readf_short(audioContainer.sndFile, std::get<std::vector<short>>(audioContainer.audioData).data(),
+        audioContainer.blockCount * audioContainer.splblockalign);
+
+      if (slen < 1) {
+        sf_seek(audioContainer.sndFile, 0, SEEK_SET);
+      }
+      slen *= audioContainer.byteblockalign;
+      break;
+
+    case Float:
+      slen = sf_readf_float(audioContainer.sndFile, std::get<std::vector<float>>(audioContainer.audioData).data(),
+        audioContainer.blockCount * audioContainer.splblockalign);
+      if (slen < 1) {
+        sf_seek(audioContainer.sndFile, 0, SEEK_SET);
+      }
+      slen *= audioContainer.byteblockalign;
+      break;
+
+    default:
+      slen = sf_read_raw(audioContainer.sndFile, std::get<std::vector<int>>(audioContainer.audioData).data(),
+        audioContainer.blockCount * audioContainer.splblockalign);
+      if (slen > 0)
+        slen -= slen % audioContainer.byteblockalign;
+      if (slen < 1)
+        sf_seek(audioContainer.sndFile, 0, SEEK_SET);
+  }
+  audioContainer.bufferSize = slen;
   return true;
 }
 

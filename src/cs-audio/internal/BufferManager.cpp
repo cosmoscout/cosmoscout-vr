@@ -72,8 +72,8 @@ std::pair<bool, ALuint> BufferManager::createBuffer(std::string file) {
 
   // read wave file
   AudioContainer audioContainer;
-  if (!FileReader::loadWAV(file, audioContainer)) {
-    logger().warn("{} is not a valid wave file! Unable to create buffer!", file);
+  if (!FileReader::loadFile(file, audioContainer)) {
+    logger().warn("{} is not a valid file! Unable to create buffer!", file);
     alDeleteBuffers((ALsizei) 1, &newBufferId);
     return std::make_pair(false, newBufferId);
   }
@@ -85,14 +85,21 @@ std::pair<bool, ALuint> BufferManager::createBuffer(std::string file) {
   if(audioContainer.splblockalign > 1)
       alBufferi(newBufferId, AL_UNPACK_BLOCK_ALIGNMENT_SOFT, audioContainer.splblockalign);
 
-  if (std::holds_alternative<std::vector<short>>(audioContainer.audioData)) {
-    alBufferData(newBufferId, audioContainer.format, std::get<std::vector<short>>(audioContainer.audioData).data(), audioContainer.size, audioContainer.sampleRate);
+  if (audioContainer.formatType == Int16) {
+    alBufferData(newBufferId, 
+    audioContainer.format, std::get<std::vector<short>>(audioContainer.audioData).data(), 
+    audioContainer.size, audioContainer.sfInfo.samplerate);
   
-  } else if (std::holds_alternative<std::vector<float>>(audioContainer.audioData)) {
-    alBufferData(newBufferId, audioContainer.format, std::get<std::vector<float>>(audioContainer.audioData).data(), audioContainer.size, audioContainer.sampleRate);
+  } else if (audioContainer.formatType == Float) {
+    alBufferData(newBufferId, 
+      audioContainer.format,
+      std::get<std::vector<float>>(audioContainer.audioData).data(), 
+      audioContainer.size, audioContainer.sfInfo.samplerate);
     
   } else {
-    alBufferData(newBufferId, audioContainer.format, std::get<std::vector<int>>(audioContainer.audioData).data(), audioContainer.size, audioContainer.sampleRate);
+    alBufferData(newBufferId, 
+    audioContainer.format, std::get<std::vector<int>>(audioContainer.audioData).data(),
+    audioContainer.size, audioContainer.sfInfo.samplerate);
   }
 
   if (alErrorHandling::errorOccurred()) {

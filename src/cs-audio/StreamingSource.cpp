@@ -13,51 +13,32 @@
 #include "internal/FileReader.hpp"
 
 #include <AL/al.h>
+#include <AL/alext.h>
 #include <map>
 #include <filesystem>
 #include <any>
 
 namespace cs::audio {
 
-StreamingSource::StreamingSource(std::string file, int bufferSize, int queueSize,
+StreamingSource::StreamingSource(std::string file, int bufferLength, int queueSize,
   std::shared_ptr<UpdateInstructor> UpdateInstructor)
   : SourceBase(file, UpdateInstructor)
-  , mBufferSize(std::move(bufferSize))
+  , mBufferLength(std::move(bufferLength))
   , mBuffers(std::vector<ALuint>(queueSize)) 
   , mAudioContainer(AudioContainerStreaming()) { 
 
+  mAudioContainer.bufferLength = mBufferLength;
+
   alGetError(); // clear error code
 
-  // get buffer
+  // create buffers
   alGenBuffers((ALsizei) mBuffers.size(), mBuffers.data());
   if (alErrorHandling::errorOccurred()) {
     logger().warn("Failed to generate buffers!");
     return;
   }
 
-  // check if file exists
-  if (!std::filesystem::exists(mFile)) {
-    logger().warn("{} file does not exist! Unable to fill buffer!", mFile);
-    return;
-  }
-
-  // fill buffer
-  mAudioContainer.bufferSize = mBufferSize;
-  for (auto buffer : mBuffers) {
-
-    // if (!FileReader::loadWAVPartially(mFile, mAudioContainer)) {
-    //   logger().warn("Failed to loadWAVPartially");
-    // }
-    
-    /*
-    alBufferData(buffer, mAudioContainer.format, 
-      std::get<std::vector<char>>(mAudioContainer.pcm).data(), 
-      mAudioContainer.currentBufferSize, mAudioContainer.sampleRate);
-    */
-  }
-
-  // queue buffer
-  alSourceQueueBuffers(mOpenAlId, (ALsizei)mBuffers.size(), mBuffers.data());
+  startStream();  
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -71,6 +52,7 @@ StreamingSource::~StreamingSource() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void StreamingSource::updateStream() {
+
   // update the stream only if the source is supposed to be playing
   auto search = mPlaybackSettings->find("playback");
   if (search == mPlaybackSettings->end() || 
@@ -81,7 +63,7 @@ void StreamingSource::updateStream() {
 
   ALint numBufferProcessed, state;
   alGetSourcei(mOpenAlId, AL_BUFFERS_PROCESSED, &numBufferProcessed);
-
+  
   while (numBufferProcessed > 0) {
     ALuint bufferId;
     alSourceUnqueueBuffers(mOpenAlId, 1, &bufferId);
@@ -90,16 +72,8 @@ void StreamingSource::updateStream() {
       return;
     }
     
-    // FileReader::loadWAVPartially(mFile, mAudioContainer);
-    /*
-    alBufferData(bufferId, mAudioContainer.format, 
-      std::get<std::vector<char>>(mAudioContainer.pcm).data(), 
-      mAudioContainer.bufferSize, mAudioContainer.sampleRate);
-    */
-    if (alErrorHandling::errorOccurred()) {
-      logger().warn("Failed to refill streaming buffer!");
-      return;
-    }
+    FileReader::getNextStreamBlock(mAudioContainer);
+    fillBuffer(bufferId);
 
     alSourceQueueBuffers(mOpenAlId, 1, &bufferId);
     if (alErrorHandling::errorOccurred()) {
@@ -125,6 +99,7 @@ void StreamingSource::updateStream() {
 bool StreamingSource::setFile(std::string file) {
   alGetError(); // clear error code
 
+  // stop source if source is currently playing
   bool isPlaying = false;
   auto search = mPlaybackSettings->find("playback");
   if (search != mPlaybackSettings->end() && 
@@ -140,37 +115,17 @@ bool StreamingSource::setFile(std::string file) {
   }
 
   // remove current buffers
-  ALuint x; // TODO: do better
-  alSourceUnqueueBuffers(mOpenAlId, (ALsizei)mBuffers.size(), &x);
+  ALuint buffers;
+  alSourceUnqueueBuffers(mOpenAlId, (ALsizei)mBuffers.size(), &buffers);
   if (alErrorHandling::errorOccurred()) {
     logger().warn("Failed to unqueue buffers!");
   }
+
+  mFile = file;
   
-  // check if file exists
-  if (!std::filesystem::exists(file)) {
-    logger().warn("{} file does not exist! Unable to fill buffer!", file);
+  if (!startStream()) {
     return false;
   }
-  mFile = file;
-
-  mAudioContainer.reset();
-  mAudioContainer.bufferSize = mBufferSize;
-
-  // fill buffer
-  for (auto buffer : mBuffers) {
-    // if (!FileReader::loadWAVPartially(mFile, mAudioContainer)) {
-    //   logger().warn("Failed to loadWAVPartially");
-    // }
-    
-    /*
-    alBufferData(buffer, mAudioContainer.format, 
-      std::get<std::vector<char>>(mAudioContainer.pcm).data(), 
-      mAudioContainer.currentBufferSize, mAudioContainer.sampleRate);
-    */
-  }
-
-  // queue buffer
-  alSourceQueueBuffers(mOpenAlId, (ALsizei)mBuffers.size(), mBuffers.data());
 
   if (isPlaying) {
     alSourcePlay(mOpenAlId);
@@ -179,8 +134,70 @@ bool StreamingSource::setFile(std::string file) {
       return false;
     }
   }
+  return true;
+}
+
+bool StreamingSource::startStream() {
+  // check if file exists
+  if (!std::filesystem::exists(mFile)) {
+    logger().warn("{} file does not exist! Unable to fill buffer!", mFile);
+    return false;
+  }
+
+  if (!FileReader::openStream(mFile, mAudioContainer)) {
+    logger().warn("Failed to open stream for: {}!", mFile);
+    return false;
+  }
+
+  // fill buffer
+  for (auto buffer : mBuffers) {
+    FileReader::getNextStreamBlock(mAudioContainer);
+    if(mAudioContainer.splblockalign > 1) {
+      alBufferi(buffer, AL_UNPACK_BLOCK_ALIGNMENT_SOFT, mAudioContainer.splblockalign);
+    }
+    fillBuffer(buffer);
+  }
+
+  if (alErrorHandling::errorOccurred()) {
+    logger().warn("Failed the inital stream buffering for: {}", mFile);
+    return false;
+  }
+
+  // queue buffer
+  alSourceQueueBuffers(mOpenAlId, (ALsizei)mBuffers.size(), mBuffers.data());
+
+  if (alErrorHandling::errorOccurred()) {
+    logger().warn("Failed to queue the stream buffers for: {}", mFile);
+    return false;
+  }
 
   return true;
+}
+
+void StreamingSource::fillBuffer(ALuint buffer) {
+  switch (mAudioContainer.formatType) {
+    case Int16:
+      alBufferData(buffer, mAudioContainer.format, 
+        std::get<std::vector<short>>(mAudioContainer.audioData).data(),
+        (ALsizei)mAudioContainer.bufferSize, mAudioContainer.sfInfo.samplerate);
+      break;
+
+    case Float:
+      alBufferData(buffer, mAudioContainer.format, 
+        std::get<std::vector<float>>(mAudioContainer.audioData).data(),
+        (ALsizei)mAudioContainer.bufferSize, mAudioContainer.sfInfo.samplerate);
+      break;
+
+    default:
+      alBufferData(buffer, mAudioContainer.format, 
+        std::get<std::vector<int>>(mAudioContainer.audioData).data(),
+        (ALsizei)mAudioContainer.bufferSize, mAudioContainer.sfInfo.samplerate);
+  }
+  if (alErrorHandling::errorOccurred()) {
+    logger().warn("Failed to fill buffer for: {}...", mFile);
+    mAudioContainer.print();
+    return;
+  }
 }
 
 } // namespace cs::audio

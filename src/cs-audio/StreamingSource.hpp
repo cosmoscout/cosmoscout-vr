@@ -34,13 +34,16 @@ class CS_AUDIO_EXPORT StreamingSource : public SourceBase {
 
   void updateStream();  
 
-  StreamingSource(std::string file, int bufferSize, int queueSize,
+  StreamingSource(std::string file, int bufferLength, int queueSize,
     std::shared_ptr<UpdateInstructor> UpdateInstructor);
 
  private:
+  void fillBuffer(ALuint buffer);
+  bool startStream();
+
   std::vector<ALuint>     mBuffers;
   AudioContainerStreaming mAudioContainer;
-  int                     mBufferSize;
+  int                     mBufferLength;
 };
 
 } // namespace cs::audio

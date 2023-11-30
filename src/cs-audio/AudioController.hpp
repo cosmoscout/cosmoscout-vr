@@ -43,9 +43,12 @@ class CS_AUDIO_EXPORT AudioController
   std::shared_ptr<Source> createSource(std::string file);
 
   /// @brief Creates a new streaming audio source
+  /// @param file audio file to stream
+  /// @param bufferLength time in milliseconds of each buffer
+  /// @param queueSize number of buffers used for the stream
   /// @return Pointer to the new source
   std::shared_ptr<StreamingSource> createStreamingSource(std::string file, 
-    int bufferSize=8192, int queueSize=4);
+    int bufferLength=200, int queueSize=4);
 
   /// @brief Creates a new audio source group
   /// @return Pointer to the new source group
