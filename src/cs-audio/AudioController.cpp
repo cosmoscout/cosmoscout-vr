@@ -48,7 +48,7 @@ AudioController::~AudioController() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 std::shared_ptr<SourceGroup> AudioController::createSourceGroup() {
-  auto group = std::make_shared<SourceGroup>(mUpdateInstructor, mUpdateConstructor, mControllerId);
+  auto group = std::make_shared<SourceGroup>(mUpdateInstructor, mUpdateConstructor, shared_from_this());
   mGroups.push_back(group);
   return group;
 }

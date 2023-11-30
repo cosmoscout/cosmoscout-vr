@@ -206,7 +206,7 @@ void UpdateConstructor::applyCurrentControllerSettings(
 
 void UpdateConstructor::applyCurrentGroupSettings(
   std::shared_ptr<SourceBase> source,
-  int audioControllerId,
+  std::shared_ptr<AudioController> audioController,
   std::shared_ptr<std::map<std::string, std::any>> settings) {
   
   // take group settings
@@ -217,11 +217,18 @@ void UpdateConstructor::applyCurrentGroupSettings(
   SettingsMixer::A_Without_B(finalSettings, source->mCurrentSettings);
 
   // run finalSetting through pipeline
-  auto failedSettings = mProcessingStepsManager->process(source, audioControllerId, finalSettings);
+  auto failedSettings = mProcessingStepsManager->process(source, audioController->getControllerId(), finalSettings);
 
   // Update currently set settings for a source
   SettingsMixer::A_Without_B(finalSettings, failedSettings);
   SettingsMixer::OverrideAdd_A_with_B(source->mPlaybackSettings, finalSettings);
+}
+
+void UpdateConstructor::removeCurrentGroupSettings(
+  std::shared_ptr<SourceBase> source,
+  std::shared_ptr<AudioController> audioController) {
+  
+  rebuildPlaybackSettings(audioController, source);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

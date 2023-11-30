@@ -30,7 +30,7 @@ class CS_AUDIO_EXPORT SourceGroup
  public:
   explicit SourceGroup(std::shared_ptr<UpdateInstructor> UpdateInstructor,
     std::shared_ptr<UpdateConstructor> updateConstructor,
-    int audioControllerId);
+    std::shared_ptr<AudioController> audioController);
   ~SourceGroup();
 
   /// @brief Adds a new source to the group
@@ -53,7 +53,7 @@ class CS_AUDIO_EXPORT SourceGroup
 
   std::set<std::weak_ptr<SourceBase>, WeakPtrComparatorSource> mMembers;
   std::shared_ptr<UpdateConstructor>                           mUpdateConstructor;
-  int                                                          mAudioControllerId;
+  std::weak_ptr<AudioController>                               mAudioController;
   
   /// @brief registers itself to the updateInstructor to be updated 
   void addToUpdateList() override;

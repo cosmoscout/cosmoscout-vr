@@ -58,8 +58,12 @@ class CS_AUDIO_EXPORT UpdateConstructor {
   /// @param settings group settings to apply to source
   void applyCurrentGroupSettings(
     std::shared_ptr<SourceBase> source,
-    int audioControllerId,
+    std::shared_ptr<AudioController> audioController,
     std::shared_ptr<std::map<std::string, std::any>> settings);
+
+  void removeCurrentGroupSettings(
+    std::shared_ptr<SourceBase> source,
+    std::shared_ptr<AudioController> audioController);
 
   UpdateConstructor(std::shared_ptr<ProcessingStepsManager> processingStepsManager);
  private:
