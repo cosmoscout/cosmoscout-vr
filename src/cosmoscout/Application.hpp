@@ -8,6 +8,8 @@
 #ifndef CS_APPLICATION_HPP
 #define CS_APPLICATION_HPP
 
+#include "../cs-core/AudioEngine.hpp"
+
 #include <VistaKernel/VistaFrameLoop.h>
 #include <limits>
 #include <map>
@@ -33,6 +35,7 @@ class GraphicsEngine;
 class TimeControl;
 class SolarSystem;
 class DragNavigation;
+// class AudioEngine;
 } // namespace cs::core
 
 namespace cs::graphics {
@@ -173,6 +176,7 @@ class Application : public VistaFrameLoop {
   std::shared_ptr<cs::core::TimeControl>    mTimeControl;
   std::shared_ptr<cs::core::SolarSystem>    mSolarSystem;
   std::unique_ptr<cs::core::DragNavigation> mDragNavigation;
+  std::shared_ptr<cs::core::AudioEngine>    mAudioEngine;
   std::map<std::string, Plugin>             mPlugins;
   std::unique_ptr<cs::utils::Downloader>    mDownloader;
   std::unique_ptr<IVistaClusterDataSync>    mSceneSync;

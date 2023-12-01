@@ -423,7 +423,29 @@ if %USING_NINJA%==true (
   cmake -E copy "%BUILD_DIR%/cef/libcef_dll_wrapper/%BUILD_TYPE%/libcef_dll_wrapper.lib"  "%INSTALL_DIR%/lib"
 )
 
-rem ------------------------------------------------------------------------------------------------
+rem openal-soft --------------------------------------------------------------------------------------
+:openal-soft
+
+echo.
+echo Building and installing openal-soft ...
+echo.
+
+cmake -E make_directory "%BUILD_DIR%/openal-soft" && cd "%BUILD_DIR%/openal-soft"
+cmake %CMAKE_FLAGS% -DCMAKE_BUILD_TYPE=%BUILD_TYPE% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%"^
+     -DALSOFT_INSTALL_EXAMPLES=Off -DALSOFT_EXAMPLES=Off "%EXTERNALS_DIR%/openal-soft" || goto :error
+cmake --build . --config %BUILD_TYPE% --target install --parallel %NUMBER_OF_PROCESSORS% || goto :error
+
+rem libsndfile ----------------------------------------------------------------------------------------
+:libsndfile
+
+echo.
+echo Building and installing libsndfile ...
+echo.
+
+cmake -E make_directory "%BUILD_DIR%/libsndfile" && cd "%BUILD_DIR%/libsndfile"
+cmake %CMAKE_FLAGS% -DCMAKE_BUILD_TYPE=%BUILD_TYPE% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%"^
+     -DBUILD_SHARED_LIBS=On "%EXTERNALS_DIR%/libsndfile" || goto :error
+cmake --build . --config %BUILD_TYPE% --target install --parallel %NUMBER_OF_PROCESSORS% || goto :error
 
 :finish
 echo Finished successfully.

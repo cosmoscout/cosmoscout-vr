@@ -56,3 +56,9 @@
 [submodule "externals/openvr"]
 	path = externals/openvr
 	url = https://github.com/ValveSoftware/openvr.git
+[submodule "externals/openal-soft"]
+	path = externals/openal-soft
+	url = https://github.com/kcat/openal-soft.git
+[submodule "externals/libsndfile"]
+	path = externals/libsndfile
+	url = https://github.com/libsndfile/libsndfile.git
