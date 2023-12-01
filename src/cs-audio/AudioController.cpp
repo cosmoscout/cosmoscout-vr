@@ -13,6 +13,7 @@
 #include "Source.hpp"
 #include "StreamingSource.hpp"
 #include "SourceGroup.hpp"
+#include "../cs-utils/FrameStats.hpp"
 
 namespace cs::audio {
 
@@ -92,6 +93,9 @@ void AudioController::setPipeline(std::vector<std::string> processingSteps) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void AudioController::update() {
+  auto frameStats = cs::utils::FrameStats::ScopedTimer("AudioEngineController", cs::utils::FrameStats::TimerMode::eCPU);
+
+
   auto updateInstructions = mUpdateInstructor->createUpdateInstruction();
 
   // updateInstructions.print();

@@ -20,6 +20,7 @@
 #include "../cs-audio/internal/alErrorHandling.hpp"
 #include "../cs-audio/internal/UpdateConstructor.hpp"
 #include "../cs-utils/Property.hpp"
+#include "../cs-utils/FrameStats.hpp"
 
 namespace cs::core {
 
@@ -123,6 +124,8 @@ void AudioEngine::createGUI() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void AudioEngine::update() {
+  auto frameStats = cs::utils::FrameStats::ScopedTimer("AudioEngineMain", cs::utils::FrameStats::TimerMode::eCPU);
+
   // Call all update functions of active Processing steps
   mProcessingStepsManager->callPsUpdateFunctions();
 
