@@ -213,8 +213,6 @@ class ${pascalCaseName}Component extends Rete.Component {
     return node;
   }
 }
-
-//# sourceMappingURL=$nodeRootDir/$pascalCaseName.js
 "@
 
     Write-Host "Creating: '$nodeRootDir/$pascalCaseName.js'"
