@@ -10,16 +10,9 @@
 #include "SinglePassRaycaster.hpp"
 
 #include "../../../../src/cs-utils/filesystem.hpp"
-#include "../../../../src/cs-utils/utils.hpp"
 #include "../../../src/cs-core/Settings.hpp"
 #include "../../../src/cs-core/SolarSystem.hpp"
 #include "../../types/types.hpp"
-
-#include <VistaKernel/GraphicsManager/VistaGraphicsManager.h>
-#include <VistaKernel/GraphicsManager/VistaOpenGLNode.h>
-#include <VistaKernel/GraphicsManager/VistaSceneGraph.h>
-#include <VistaKernel/VistaSystem.h>
-#include <VistaKernelOpenSGExt/VistaOpenSGMaterialTools.h>
 
 namespace csp::visualquery {
 
@@ -55,12 +48,6 @@ VolumeRenderer::VolumeRenderer(std::shared_ptr<cs::core::SolarSystem> solarSyste
     : mSolarSystem(std::move(solarSystem))
     , mSettings(std::move(settings)) {
   mRenderer = std::make_unique<SinglePassRaycaster>(mSolarSystem, mSettings);
-
-  // Add to scenegraph.
-  VistaSceneGraph* pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
-  mGLNode.reset(pSG->NewOpenGLNode(pSG->GetRoot(), mRenderer.get()));
-  VistaOpenSGMaterialTools::SetSortKeyOnSubtree(
-      mGLNode.get(), static_cast<int>(cs::utils::DrawOrder::ePlanets) + 10);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -9,6 +9,7 @@
 
 #include "../../../../../src/cs-core/Settings.hpp"
 #include "../../../../../src/cs-core/SolarSystem.hpp"
+#include "../../../../../src/cs-utils/FrameStats.hpp"
 #include "../../../../../src/cs-utils/utils.hpp"
 #include "../../../../../src/cs-utils/filesystem.hpp"
 #include "../../logger.hpp"
@@ -72,6 +73,8 @@ bool SinglePassRaycaster::Do() {
   if (!object || object->getCenterName() != observer.getCenterName()) {
     return false;
   }
+
+  cs::utils::FrameStats::ScopedTimer timer("VolumeRenderer");
 
   if (mShaderDirty) {
     mShader = VistaGLSLShader();
