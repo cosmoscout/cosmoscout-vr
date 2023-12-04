@@ -51,7 +51,7 @@ class CS_AUDIO_EXPORT Default_PS : public ProcessingStep {
  private:
   Default_PS();
   bool processGain(ALuint openAlId, std::any value);
-  bool processLooping(ALuint openAlId, std::any value);
+  bool processLooping(std::shared_ptr<SourceBase> source, std::any value);
   bool processPitch(ALuint openAlId, std::any value);
 };
 

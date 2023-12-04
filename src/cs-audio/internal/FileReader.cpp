@@ -329,6 +329,12 @@ bool FileReader::getNextStreamBlock(AudioContainerStreaming& audioContainer) {
 
       if (slen < 1) {
         sf_seek(audioContainer.sndFile, 0, SEEK_SET);
+
+        if (audioContainer.isLooping) {
+          return getNextStreamBlock(audioContainer);
+        } else {
+          return false;
+        }
       }
       slen *= audioContainer.byteblockalign;
       break;
@@ -338,6 +344,12 @@ bool FileReader::getNextStreamBlock(AudioContainerStreaming& audioContainer) {
         audioContainer.blockCount * audioContainer.splblockalign);
       if (slen < 1) {
         sf_seek(audioContainer.sndFile, 0, SEEK_SET);
+
+        if (audioContainer.isLooping) {
+          return getNextStreamBlock(audioContainer);
+        } else {
+          return false;
+        }
       }
       slen *= audioContainer.byteblockalign;
       break;
@@ -349,6 +361,12 @@ bool FileReader::getNextStreamBlock(AudioContainerStreaming& audioContainer) {
         slen -= slen % audioContainer.byteblockalign;
       if (slen < 1)
         sf_seek(audioContainer.sndFile, 0, SEEK_SET);
+        
+        if (audioContainer.isLooping) {
+          return getNextStreamBlock(audioContainer);
+        } else {
+          return false;
+        }
   }
   audioContainer.bufferSize = slen;
   return true;

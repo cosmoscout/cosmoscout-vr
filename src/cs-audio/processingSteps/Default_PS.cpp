@@ -8,6 +8,7 @@
 #include "Default_PS.hpp"
 #include "../internal/alErrorHandling.hpp"
 #include "../logger.hpp"
+#include "../StreamingSource.hpp"
 
 #include <AL/al.h>
 #include <map>
@@ -39,7 +40,7 @@ void Default_PS::process(std::shared_ptr<SourceBase> source,
   }
 
   if (auto search = settings->find("looping"); search != settings->end()) {
-    if (!processLooping(openAlId, search->second)) {
+    if (!processLooping(source, search->second)) {
       failedSettings->push_back("looping");
     }
   }
@@ -90,7 +91,8 @@ bool Default_PS::processGain(ALuint openAlId, std::any value) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool Default_PS::processLooping(ALuint openAlId, std::any value) {
+bool Default_PS::processLooping(std::shared_ptr<SourceBase> source, std::any value) {
+  ALuint openAlId = source->getOpenAlId();
   if (value.type() != typeid(bool)) {
 
     // remove looping
@@ -109,14 +111,19 @@ bool Default_PS::processLooping(ALuint openAlId, std::any value) {
     return false;
   }
 
-  bool boolValue = std::any_cast<bool>(value);
+  // Looping via OpenAL is not set for streaming sources. Doing this would make it impossible to
+  // stream because a buffer would never reach the 'processed' state. Instead we will check for looping 
+  // inside the StreamingSource::updateStream() function and implement looping there.
+  if (auto derivedPtr = std::dynamic_pointer_cast<StreamingSource>(source)) {
+    return true;
+  }
 
-  alSourcei(openAlId, AL_LOOPING, boolValue);
-
+  alSourcei(openAlId, AL_LOOPING, std::any_cast<bool>(value));
   if (alErrorHandling::errorOccurred()) {
     logger().warn("Failed to set source looping!");
     return false;
   }
+
   return true;
 }
 

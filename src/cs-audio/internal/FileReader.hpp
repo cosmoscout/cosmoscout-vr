@@ -67,6 +67,7 @@ struct AudioContainerStreaming : public AudioContainer {
   int bufferCounter;
   int bufferLength; // in milliseconds 
   int blockCount;
+  bool isLooping;
   sf_count_t bufferSize;
 
   void print() {
@@ -96,6 +97,7 @@ struct AudioContainerStreaming : public AudioContainer {
     byteblockalign = 0;
     blockCount = 0;
     formatType = Int16;
+    isLooping = false;
     sf_close(sndFile);
 
     if (std::holds_alternative<std::vector<short>>(audioData)) {

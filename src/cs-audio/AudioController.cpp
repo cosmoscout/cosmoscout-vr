@@ -132,7 +132,9 @@ void AudioController::updateStreamingSources() {
       streamExpired = true;
       continue;
     }
-    stream.lock()->updateStream();
+    if (stream.lock()->updateStream()) {
+      update();
+    }
   }
   if (streamExpired) {
     removeExpiredElements<StreamingSource>(mStreams);

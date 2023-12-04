@@ -32,7 +32,7 @@ class CS_AUDIO_EXPORT StreamingSource : public SourceBase {
   /// @return true if successful
   bool setFile(std::string file) override;
 
-  void updateStream();  
+  bool updateStream();  
 
   StreamingSource(std::string file, int bufferLength, int queueSize,
     std::shared_ptr<UpdateInstructor> UpdateInstructor);
@@ -44,6 +44,12 @@ class CS_AUDIO_EXPORT StreamingSource : public SourceBase {
   std::vector<ALuint>     mBuffers;
   AudioContainerStreaming mAudioContainer;
   int                     mBufferLength;
+  
+  /// Specifies whether buffers should still be filled in a stream update.
+  /// Is false if no new buffer is required to play the remaining content.
+  bool                    mRefillBuffer;
+  /// Specifies whether the source was playing in the last frame
+  bool                    mNotPlaying;
 };
 
 } // namespace cs::audio
