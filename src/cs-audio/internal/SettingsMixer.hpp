@@ -14,6 +14,7 @@
 #include <map>
 #include <any>
 #include <string>
+#include <vector>
 
 namespace cs::audio {
 

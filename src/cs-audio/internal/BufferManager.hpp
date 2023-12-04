@@ -15,6 +15,7 @@
 #include <variant>
 #include <AL/al.h>
 #include <iostream>
+#include <memory>
 
 namespace cs::audio {
 

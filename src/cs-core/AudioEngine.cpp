@@ -9,6 +9,7 @@
 #include "Settings.hpp"
 #include "SolarSystem.hpp"
 #include "GuiManager.hpp"
+#include "logger.hpp"
 
 #include "../cs-audio/internal/FileReader.hpp"
 #include "../cs-audio/internal/OpenAlManager.hpp"
@@ -27,13 +28,13 @@ namespace cs::core {
 AudioEngine::AudioEngine(std::shared_ptr<Settings> settings, std::shared_ptr<GuiManager> guiManager) 
   : std::enable_shared_from_this<AudioEngine>()
   , mSettings(std::move(settings)) 
-  , mGuiManager(std::move(guiManager))
   , mOpenAlManager(std::make_shared<audio::OpenAlManager>())// audio::OpenAlManager::createOpenAlManager())
   , mBufferManager(std::make_shared<audio::BufferManager>())// audio::BufferManager::createBufferManager()) 
   , mProcessingStepsManager(std::make_shared<audio::ProcessingStepsManager>(mSettings))// audio::ProcessingStepsManager::createProcessingStepsManager(mSettings))
+  , mGuiManager(std::move(guiManager))
+  , mAudioControllers(std::vector<std::weak_ptr<audio::AudioController>>()) 
   , mUpdateConstructor(std::make_shared<audio::UpdateConstructor>(mProcessingStepsManager))// audio::UpdateConstructor::createUpdateConstructor(mProcessingStepsManager))
-  , mMasterVolume(utils::Property<float>(1.f)) 
-  , mAudioControllers(std::vector<std::weak_ptr<audio::AudioController>>()) {
+  , mMasterVolume(utils::Property<float>(1.f)) {
 
   // Tell the user what's going on.
   logger().debug("Creating AudioEngine.");

@@ -9,6 +9,12 @@
 #define CS_AUDIO_UTILS_HPP
 
 #include "cs_audio_export.hpp"
+#include "../cs-core/Settings.hpp"
+#include <memory>
+#include <map>
+#include <string>
+#include <any>
+#include <glm/fwd.hpp>
 
 namespace cs::audio {
 

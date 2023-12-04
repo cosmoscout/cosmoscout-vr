@@ -20,10 +20,11 @@
 #include <sndfile.h>
 #include <stdio.h>
 #include <cstdint>
+#include <limits.h>
 
 namespace cs::audio {
 
-const char * FileReader::FormatName(ALenum format)
+const char * FileReader::formatName(ALenum format)
 {
   switch(format)
   {

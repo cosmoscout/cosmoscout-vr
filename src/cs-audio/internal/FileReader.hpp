@@ -10,7 +10,10 @@
 
 #include "cs_audio_export.hpp"
 #include <sndfile.h>
-
+#include <variant>
+#include <iostream>
+#include <vector>
+#include <AL/al.h>
 
 namespace cs::audio {
 
@@ -123,7 +126,7 @@ class CS_AUDIO_EXPORT FileReader {
   /// @return Whether the provided file path is a valid .wav file 
   static bool loadFile(std::string fileName, AudioContainer& audioContainer);
 
-  static const char* FormatName(ALenum format);
+  static const char* formatName(ALenum format);
 
   static bool openStream(std::string fileName, AudioContainerStreaming& audioContainer);
 

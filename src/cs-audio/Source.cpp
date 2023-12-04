@@ -48,7 +48,7 @@ Source::Source(std::shared_ptr<BufferManager> bufferManager,
 Source::~Source() {
   std::cout << "close source" << std::endl;
   alSourceStop(mOpenAlId);
-  alSourcei(mOpenAlId, AL_BUFFER, NULL);
+  alSourcei(mOpenAlId, AL_BUFFER, 0);
   mBufferManager->removeBuffer(mFile);
 }
 
@@ -64,7 +64,7 @@ bool Source::setFile(std::string file) {
   }
 
   // remove current buffer
-  alSourcei(mOpenAlId, AL_BUFFER, NULL);
+  alSourcei(mOpenAlId, AL_BUFFER, 0);
   if (alErrorHandling::errorOccurred()) {
     logger().warn("Failed to remove buffer from source!");
     return false;

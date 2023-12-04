@@ -6,6 +6,7 @@
 // SPDX-License-Identifier: MIT
 
 #include "OpenAlManager.hpp"
+#include "../logger.hpp"
 #include "../../cs-core/Settings.hpp"
 #include <memory>
 
@@ -25,8 +26,8 @@ std::shared_ptr<OpenAlManager> OpenAlManager::createOpenAlManager() {
 OpenAlManager::OpenAlManager()
   : mDevice(nullptr)
   , mContext(nullptr)
-  , alcReopenDeviceSOFT(nullptr)
-  , mAttributeList(std::vector<ALCint>(12)) {
+  , mAttributeList(std::vector<ALCint>(12))
+  , alcReopenDeviceSOFT(nullptr) {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

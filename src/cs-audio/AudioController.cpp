@@ -24,14 +24,14 @@ AudioController::AudioController(
   int id) 
   : SourceSettings()
   , std::enable_shared_from_this<AudioController>()
+  , mControllerId(id)
   , mBufferManager(std::move(bufferManager))
   , mProcessingStepsManager(std::move(processingStepsManager))
-  , mUpdateInstructor(std::make_shared<UpdateInstructor>())
-  , mUpdateConstructor(std::move(updateConstructor))
-  , mControllerId(id) 
   , mSources(std::vector<std::weak_ptr<SourceBase>>()) 
   , mStreams(std::vector<std::weak_ptr<StreamingSource>>()) 
-  , mGroups(std::vector<std::weak_ptr<SourceGroup>>()) {
+  , mGroups(std::vector<std::weak_ptr<SourceGroup>>()) 
+  , mUpdateInstructor(std::make_shared<UpdateInstructor>())
+  , mUpdateConstructor(std::move(updateConstructor)) {
   setUpdateInstructor(mUpdateInstructor);  
 }
 

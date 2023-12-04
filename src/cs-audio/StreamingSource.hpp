@@ -41,9 +41,9 @@ class CS_AUDIO_EXPORT StreamingSource : public SourceBase {
   void fillBuffer(ALuint buffer);
   bool startStream();
 
+  int                     mBufferLength;
   std::vector<ALuint>     mBuffers;
   AudioContainerStreaming mAudioContainer;
-  int                     mBufferLength;
 };
 
 } // namespace cs::audio
