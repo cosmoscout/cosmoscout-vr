@@ -111,8 +111,15 @@ void AudioEngine::createGUI() {
 
   // Fill the dropdowns with the available output devices
   for (auto device : getDevices()) {
+
+    std::string displayName;
+    if (device.find(std::string{"OpenAL Soft on"}) != std::string::npos) {
+      displayName = device.substr(14, device.length());
+    } else {
+      displayName = device;
+    }
     mGuiManager->getGui()->callJavascript("CosmoScout.gui.addDropdownValue",
-        "audio.outputDevice", device, device.substr(14, device.length()), false);
+        "audio.outputDevice", device, displayName, false);
   }
 
   // register callback for dropdown output devices
