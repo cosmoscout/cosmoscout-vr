@@ -31,6 +31,8 @@ class SourceGroup;
 class CS_AUDIO_EXPORT StreamingSource : public SourceBase {
     
  public:
+  StreamingSource(std::string file, int bufferLength, int queueSize,
+    std::shared_ptr<UpdateInstructor> UpdateInstructor);
   ~StreamingSource();
 
   /// @brief Sets a new file to be played by the source.
@@ -41,9 +43,6 @@ class CS_AUDIO_EXPORT StreamingSource : public SourceBase {
   /// @return True if a AudioController::update() is required. This is done to set the playback 
   /// state after the stream finished playing and looping is not enabled.
   bool updateStream();  
-
-  StreamingSource(std::string file, int bufferLength, int queueSize,
-    std::shared_ptr<UpdateInstructor> UpdateInstructor);
 
  private:
   /// @brief Fills an OpenAL buffer with already read data from a file

@@ -28,7 +28,7 @@ class CS_AUDIO_EXPORT OpenAlManager {
   OpenAlManager& operator=(const OpenAlManager&) = delete;
   OpenAlManager& operator=(OpenAlManager&&) = delete;
 
-  static std::shared_ptr<OpenAlManager> createOpenAlManager();
+  OpenAlManager();
   ~OpenAlManager();
 
   /// @brief Initializes OpenAL by opening a device and creating a context.
@@ -45,7 +45,6 @@ class CS_AUDIO_EXPORT OpenAlManager {
   /// @return True if successful
   bool setDevice(std::string outputDevice);
 
-  OpenAlManager();
  private:
   /// Pointer to the current device
   ALCdevice*          mDevice;

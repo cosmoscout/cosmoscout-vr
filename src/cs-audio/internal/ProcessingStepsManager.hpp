@@ -29,7 +29,7 @@ class CS_AUDIO_EXPORT ProcessingStepsManager {
   ProcessingStepsManager& operator=(const ProcessingStepsManager&) = delete;
   ProcessingStepsManager& operator=(ProcessingStepsManager&&) = delete;
 
-  static std::shared_ptr<ProcessingStepsManager> createProcessingStepsManager(std::shared_ptr<core::Settings> settings);
+  ProcessingStepsManager(std::shared_ptr<core::Settings> settings);
   ~ProcessingStepsManager();
   
   /// @brief Creates a new Pipeline. A pipeline is a just a list of processing steps that should 
@@ -57,7 +57,6 @@ class CS_AUDIO_EXPORT ProcessingStepsManager {
   /// active and require an update every frame.
   void callPsUpdateFunctions();
 
-  ProcessingStepsManager(std::shared_ptr<core::Settings> settings);
  private:                                                                            
   /// Holds all pipelines and their corresponding audioController                                                                       
   std::map<int, std::set<std::shared_ptr<ProcessingStep>>> mPipelines;

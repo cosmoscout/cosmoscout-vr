@@ -22,16 +22,6 @@
 
 namespace cs::audio {
 
-std::shared_ptr<ProcessingStepsManager> ProcessingStepsManager::createProcessingStepsManager(
-  std::shared_ptr<core::Settings> settings) {
-  
-  static auto psManager = std::shared_ptr<ProcessingStepsManager>(
-    new ProcessingStepsManager(std::move(settings)));
-  return psManager;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
 ProcessingStepsManager::~ProcessingStepsManager() {
   std::cout << "close ProcessingStepsManager" << std::endl;
   mPipelines.clear();

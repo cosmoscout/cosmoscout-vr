@@ -32,8 +32,7 @@ class ProcessingStepsManager;
 /// playbackSettings. This class should only be instantiated once.
 class CS_AUDIO_EXPORT UpdateConstructor {
  public:
-  static std::shared_ptr<UpdateConstructor> createUpdateConstructor(
-    std::shared_ptr<ProcessingStepsManager> processingStepsManager);
+  UpdateConstructor(std::shared_ptr<ProcessingStepsManager> processingStepsManager);
   ~UpdateConstructor();
   
   /// @brief Updates the controller, all groups and all sources
@@ -89,7 +88,6 @@ class CS_AUDIO_EXPORT UpdateConstructor {
     std::shared_ptr<SourceBase> source,
     std::shared_ptr<AudioController> audioController);
 
-  UpdateConstructor(std::shared_ptr<ProcessingStepsManager> processingStepsManager);
  private:
   /// @brief Checks whether a settings map contains a remove setting
   /// @param settings settings to check

@@ -40,7 +40,7 @@ class CS_AUDIO_EXPORT BufferManager {
   BufferManager& operator=(const BufferManager&) = delete;
   BufferManager& operator=(BufferManager&&) = delete;
 
-  static std::shared_ptr<BufferManager> createBufferManager();
+  BufferManager();
   ~BufferManager();
 
   /// @brief Returns a buffer id containing the data for the provided file path.
@@ -55,7 +55,6 @@ class CS_AUDIO_EXPORT BufferManager {
   /// BufferManager will automatically delete the buffer.
   void removeBuffer(std::string file);
   
-  BufferManager();
  private:
   /// @brief List of all current buffers
   std::vector<std::shared_ptr<Buffer>> mBufferList;
