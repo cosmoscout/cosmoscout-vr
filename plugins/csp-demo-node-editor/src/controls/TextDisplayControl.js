@@ -5,6 +5,8 @@
 // SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
 // SPDX-License-Identifier: MIT
 
+import formatNumberWithColor from "../third-party/js/csp-demo-node-editor/FormatNumberWithColor.js"
+
 // This is the widget which is used for displaying text data.
 class TextDisplayControl extends Rete.Control {
   constructor(key, initialValue = '') {
@@ -36,7 +38,7 @@ class TextDisplayControl extends Rete.Control {
     // Each node container gets the id "#node-<id>". This way we can select elements inside the
     // node using a selector. Here we select the p element with the class "text-value" as
     // defined by the template above.
-    const el     = document.querySelector("#node-" + this.parent.id + " .text-value");
-    el.innerHTML = val;
+    const el = document.querySelector("#node-" + this.parent.id + " .text-value");
+    formatNumberWithColor(val, el);
   }
 }

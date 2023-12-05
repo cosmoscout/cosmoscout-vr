@@ -121,6 +121,10 @@ void Plugin::setupNodeEditor(uint16_t port) {
   // The name of the socket will be used by the custom nodes when defining their inputs and outputs.
   factory.registerSocketType("Number Value", "#b08ab3");
 
+  factory.registerStyleSheet(R"HTML(<link type="text/css" rel="stylesheet" href="third-party/csp-demo-node-editor/FormatNumber.css" />)HTML");
+
+  factory.registerLibrary(R"HTML(<script type="module" src="third-party/csp-demo-node-editor/FormatNumber.js"></script>)HTML");
+
   // Here we can register controls, that can be used by our nodes. You can either load them from
   // .js files or you can define them as a string.
   factory.registerControlType(cs::utils::filesystem::loadToString(
