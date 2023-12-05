@@ -45,7 +45,6 @@ struct AudioContainer {
     std::cout << "splblockalign: " << splblockalign << std::endl;
     std::cout << "byteblockalign: " << byteblockalign << std::endl;
     std::cout << "formatType: " << formatType << std::endl;
-    std::cout << "-------------------------" << std::endl;
   }
 
    void reset() {
@@ -74,17 +73,10 @@ struct AudioContainerStreaming : public AudioContainer {
   sf_count_t bufferSize;
 
   void print() {
-    std::cout << "----AudioContainer Info----" << std::endl;
-    std::cout << "format: " << format << std::endl;
-    std::cout << "sampleRate: " << sfInfo.samplerate << "hz" << std::endl;
-    std::cout << "size: " << size << std::endl;
-    std::cout << "splblockalign: " << splblockalign << std::endl;
+      AudioContainer::print();
     std::cout << "bufferCounter: " << bufferCounter << std::endl;
-    std::cout << "byteblockalign: " << byteblockalign << std::endl;
     std::cout << "blockCount: " << blockCount << std::endl;
     std::cout << "bufferSize: " << bufferSize << std::endl;
-    std::cout << "formatType: " << formatType << std::endl;
-    std::cout << "-------------------------" << std::endl;
   }
 
   ~AudioContainerStreaming() {
@@ -92,24 +84,11 @@ struct AudioContainerStreaming : public AudioContainer {
   }
 
   void reset() {
+      AudioContainer::reset();
     bufferCounter = 0;
-    format = 0; 
-    size = 0;
     bufferSize = 0;
-    splblockalign = 0;
-    byteblockalign = 0;
     blockCount = 0;
-    formatType = Int16;
     isLooping = false;
-    sf_close(sndFile);
-
-    if (std::holds_alternative<std::vector<short>>(audioData)) {
-      std::get<std::vector<short>>(audioData).clear();
-    } else if (std::holds_alternative<std::vector<float>>(audioData)) {
-      std::get<std::vector<float>>(audioData).clear();
-    } else {
-      std::get<std::vector<int>>(audioData).clear();
-    }    
   }
 };
   FileReader(const FileReader& obj) = delete;
