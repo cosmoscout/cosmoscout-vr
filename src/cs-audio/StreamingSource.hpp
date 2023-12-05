@@ -55,7 +55,7 @@ class CS_AUDIO_EXPORT StreamingSource : public SourceBase {
   /// List of all OpenAL buffer IDs being used by the source
   std::vector<ALuint>     mBuffers;
   /// Contains all information regarding a file/buffer that is needed. 
-  AudioContainerStreaming mAudioContainer;
+  FileReader::AudioContainerStreaming mAudioContainer;
   /// Length of each buffer in milliseconds
   int                     mBufferLength;
   /// Specifies whether buffers should still be filled in a stream update.

@@ -25,7 +25,7 @@ StreamingSource::StreamingSource(std::string file, int bufferLength, int queueSi
   : SourceBase(file, UpdateInstructor)
   , mBufferLength(std::move(bufferLength))
   , mBuffers(std::vector<ALuint>(queueSize)) 
-  , mAudioContainer(AudioContainerStreaming()) 
+  , mAudioContainer(FileReader::AudioContainerStreaming()) 
   , mRefillBuffer(true) 
   , mNotPlaying(true) { 
 
@@ -205,13 +205,13 @@ bool StreamingSource::startStream() {
 
 void StreamingSource::fillBuffer(ALuint buffer) {
   switch (mAudioContainer.formatType) {
-    case Int16:
+    case FileReader::FormatType::Int16:
       alBufferData(buffer, mAudioContainer.format, 
         std::get<std::vector<short>>(mAudioContainer.audioData).data(),
         (ALsizei)mAudioContainer.bufferSize, mAudioContainer.sfInfo.samplerate);
       break;
 
-    case Float:
+    case FileReader::FormatType::Float:
       alBufferData(buffer, mAudioContainer.format, 
         std::get<std::vector<float>>(mAudioContainer.audioData).data(),
         (ALsizei)mAudioContainer.bufferSize, mAudioContainer.sfInfo.samplerate);

@@ -14,6 +14,9 @@
 
 namespace cs::audio {
 
+
+class CS_AUDIO_EXPORT FileReader {
+ public:
 enum FormatType {
     Int16,
     Float,
@@ -50,7 +53,7 @@ struct AudioContainer {
     size = 0;
     splblockalign = 0;
     byteblockalign = 0;
-    formatType = Int16;
+      formatType = FormatType::Int16;
     sf_close(sndFile);
 
     if (std::holds_alternative<std::vector<short>>(audioData)) {
@@ -109,9 +112,6 @@ struct AudioContainerStreaming : public AudioContainer {
     }    
   }
 };
-
-class CS_AUDIO_EXPORT FileReader {
- public:
   FileReader(const FileReader& obj) = delete;
   FileReader(FileReader&&) = delete;
 
@@ -132,7 +132,6 @@ class CS_AUDIO_EXPORT FileReader {
   static bool getNextStreamBlock(AudioContainerStreaming& audioContainer);
 
  private:
-
   static bool readMetaData(std::string fileName, AudioContainer& audioContainer);
 };
 
