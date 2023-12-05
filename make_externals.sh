@@ -91,20 +91,27 @@ case "$COSMOSCOUT_DEBUG_BUILD" in
   (true) cp $INSTALL_DIR/lib/libGLEWd.so $INSTALL_DIR/lib/libGLEW.so;;
 esac
 
-# freeglut -----------------------------------------------------------------------------------------
+# SDL2 ---------------------------------------------------------------------------------------------
 
 echo ""
-echo "Building and installing freeglut ..."
+echo "Building and installing SDL2 ..."
 echo ""
 
-cmake -E make_directory "$BUILD_DIR/freeglut" && cd "$BUILD_DIR/freeglut"
-cmake "${CMAKE_FLAGS[@]}" -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" \
-      -DCMAKE_INSTALL_LIBDIR=lib -DFREEGLUT_BUILD_DEMOS=Off -DFREEGLUT_BUILD_STATIC_LIBS=Off \
-      -DCMAKE_BUILD_TYPE=$BUILD_TYPE "$EXTERNALS_DIR/freeglut/freeglut/freeglut"
+cmake -E make_directory "$BUILD_DIR/SDL2" && cd "$BUILD_DIR/SDL2"
+cmake "${CMAKE_FLAGS[@]}" -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" \
+      "$EXTERNALS_DIR/SDL"
 cmake --build . --target install --parallel "$(nproc)"
 
-cmake -E copy_directory "$EXTERNALS_DIR/freeglut/freeglut/freeglut/include/GL" \
-                        "$INSTALL_DIR/include/GL"
+# SDL2_ttf -----------------------------------------------------------------------------------------
+
+echo ""
+echo "Building and installing SDL2_ttf ..."
+echo ""
+
+cmake -E make_directory "$BUILD_DIR/SDL2_ttf" && cd "$BUILD_DIR/SDL2_ttf"
+cmake "${CMAKE_FLAGS[@]}" -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" \
+      "$EXTERNALS_DIR/SDL_ttf"
+cmake --build . --target install --parallel "$(nproc)"
 
 # c-ares -------------------------------------------------------------------------------------------
 
@@ -246,8 +253,8 @@ echo ""
 cmake -E make_directory "$BUILD_DIR/opensg-1.8" && cd "$BUILD_DIR/opensg-1.8"
 cmake "${CMAKE_FLAGS[@]}" -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" -DCMAKE_UNITY_BUILD=$UNITY_BUILD \
       -DOPENSG_USE_PRECOMPILED_HEADERS=$PRECOMPILED_HEADERS -DOPENSG_INFINITE_REVERSE_PROJECTION=ON \
-      -DGLUT_INCLUDE_DIR="$INSTALL_DIR/include" -DGLUT_LIBRARY="$INSTALL_DIR/lib/libglut.so" \
-      -DOPENSG_BUILD_TESTS=Off -DCMAKE_BUILD_TYPE=$BUILD_TYPE "$EXTERNALS_DIR/opensg-1.8"
+      -DOPENSG_BUILD_TESTS=Off -DOPENSG_BUILD_WINDOW=Off -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
+      "$EXTERNALS_DIR/opensg-1.8"
 cmake --build . --target install --parallel "$(nproc)"
 
 # OpenVR ------------------------------------------------------------------------------------------
@@ -272,6 +279,8 @@ cmake "${CMAKE_FLAGS[@]}" -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" -DCMAKE_UNITY_BU
       -DVISTACORELIBS_USE_OPENVR=On -DVISTADRIVERS_BUILD_OPENVR=On -DOPENVR_ROOT_DIR="$INSTALL_DIR" \
       -DCMAKE_CXX_FLAGS="-std=c++11" -DVISTADRIVERS_BUILD_3DCSPACENAVIGATOR=On \
       -DVISTACORELIBS_USE_INFINITE_REVERSE_PROJECTION=On \
+      -DVISTACORELIBS_USE_GLUT_WINDOWIMP=Off -DVISTACORELIBS_USE_SDL2_WINDOWIMP=On \
+      -DSDL2_ROOT_DIR="$INSTALL_DIR" -DSDL2_TTF_ROOT_DIR="$INSTALL_DIR" \
       -DVISTADEMO_ENABLED=Off -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DOPENSG_ROOT_DIR="$INSTALL_DIR" \
       "$EXTERNALS_DIR/vista"
 cmake --build . --target install --parallel "$(nproc)"

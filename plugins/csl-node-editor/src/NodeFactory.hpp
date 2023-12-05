@@ -22,7 +22,7 @@ class CSL_NODE_EDITOR_EXPORT NodeFactory {
  public:
   // public API ------------------------------------------------------------------------------------
 
-  // As a user of this library, you will usually only have to call the two methods below.
+  // As a user of this library, you will usually only have to call the three methods below.
 
   /// Registers a new node socket which can be used by nodes of the node editor.
   /// @param name     The unique name of the socket type. This is used to retrieve references to
@@ -43,6 +43,11 @@ class CSL_NODE_EDITOR_EXPORT NodeFactory {
     mNodeCreateFuncs[T::sName] = [=]() { return T::sCreate(args...); };
   }
 
+  /// Register a new control type. The string should contain a JavaScript class that inherits from
+  /// Rete.Control.
+  /// @param controlSource The source code of a JavaScript class derived from Rete.Control.
+  void registerControlType(std::string controlSource);
+
   // Node Editor API -------------------------------------------------------------------------------
 
   // The methods below are primarily meant to be used by the NodeEditor class. You may want use them
@@ -57,6 +62,11 @@ class CSL_NODE_EDITOR_EXPORT NodeFactory {
   /// setup all registered node types.
   /// @return The JavaScript source code.
   std::string getNodeSource() const;
+
+  /// This creates the JavaScript source snippet which is injected into the node editor web page to
+  /// setup all registered control types.
+  /// @return The JavaScript source code.
+  std::string getControlSource() const;
 
   /// This creates the JavaScript source snippet which is injected into the node editor web page to
   /// register all node types.
@@ -76,6 +86,9 @@ class CSL_NODE_EDITOR_EXPORT NodeFactory {
 
   // Functions to retrieve the JavaScript source of each registered node.
   std::vector<std::function<std::string(void)>> mNodeSourceFuncs;
+
+  // Source code for controls.
+  std::vector<std::string> mControls;
 
   // Functions to create new nodes for each type name.
   std::unordered_map<std::string, std::function<std::unique_ptr<Node>(void)>> mNodeCreateFuncs;

@@ -104,21 +104,29 @@ cmake -E copy_directory "%BUILD_DIR%/glew/extracted/glew-2.1.0/include"         
 cmake -E copy_directory "%BUILD_DIR%/glew/extracted/glew-2.1.0/lib/Release/x64" "%INSTALL_DIR%/lib"     || goto :error
 cmake -E copy_directory "%BUILD_DIR%/glew/extracted/glew-2.1.0/bin/Release/x64" "%INSTALL_DIR%/bin"     || goto :error
 
-rem  freeglut ---------------------------------------------------------------------------------------
-:freeglut
+rem  SDL2 ------------------------------------------------------------------------------------------
+:sdl2
 
 echo.
-echo Building and installing freeglut ...
+echo Building and installing SDL2 ...
 echo.
 
-cmake -E make_directory "%BUILD_DIR%/freeglut" && cd "%BUILD_DIR%/freeglut"
+cmake -E make_directory "%BUILD_DIR%/SDL2" && cd "%BUILD_DIR%/SDL2"
 cmake %CMAKE_FLAGS% -DCMAKE_BUILD_TYPE=%BUILD_TYPE% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%"^
-      -DFREEGLUT_BUILD_DEMOS=Off -DCMAKE_INSTALL_LIBDIR=lib -DFREEGLUT_BUILD_STATIC_LIBS=Off^
-      "%EXTERNALS_DIR%/freeglut/freeglut/freeglut" || goto :error
-
+      "%EXTERNALS_DIR%/SDL" || goto :error
 cmake --build . --config %BUILD_TYPE% --target install --parallel %NUMBER_OF_PROCESSORS% || goto :error
 
-cmake -E copy_directory "%EXTERNALS_DIR%/freeglut/freeglut/freeglut/include/GL" "%INSTALL_DIR%/include/GL"
+rem  SDL2_ttf --------------------------------------------------------------------------------------
+:sdl2_ttf
+
+echo.
+echo Building and installing SDL2_ttf ...
+echo.
+
+cmake -E make_directory "%BUILD_DIR%/SDL2_ttf" && cd "%BUILD_DIR%/SDL2_ttf"
+cmake %CMAKE_FLAGS% -DCMAKE_BUILD_TYPE=%BUILD_TYPE% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%"^
+      "%EXTERNALS_DIR%/SDL_ttf" || goto :error
+cmake --build . --config %BUILD_TYPE% --target install --parallel %NUMBER_OF_PROCESSORS% || goto :error
 
 rem c-ares -----------------------------------------------------------------------------------------
 :c-ares
@@ -286,9 +294,8 @@ cmake -E make_directory "%BUILD_DIR%/opensg-1.8" && cd "%BUILD_DIR%/opensg-1.8"
 cmake %CMAKE_FLAGS% -DCMAKE_BUILD_TYPE=%BUILD_TYPE% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%"^
       -DCMAKE_UNITY_BUILD=%UNITY_BUILD% -DOPENSG_INFINITE_REVERSE_PROJECTION=ON^
       -DOPENSG_USE_PRECOMPILED_HEADERS=%PRECOMPILED_HEADERS%^
-      -DGLUT_INCLUDE_DIR="%INSTALL_DIR%/include" -DGLUT_LIBRARY="%INSTALL_DIR%/lib/freeglut.lib"^
-      -DCMAKE_SHARED_LINKER_FLAGS="/FORCE:MULTIPLE" -DOPENSG_BUILD_TESTS=Off^
-      "%EXTERNALS_DIR%/opensg-1.8" || goto :error
+      -DCMAKE_SHARED_LINKER_FLAGS="/FORCE:MULTIPLE" -DOPENSG_BUILD_WINDOW=Off^
+      -DOPENSG_BUILD_TESTS=Off "%EXTERNALS_DIR%/opensg-1.8" || goto :error
 
 cmake --build . --config %BUILD_TYPE% --target install --parallel %NUMBER_OF_PROCESSORS% || goto :error
 
@@ -317,10 +324,11 @@ rem -DVISTADRIVERS_BUILD_3DCSPACENAVIGATOR=On to the flags below.
 
 cmake %CMAKE_FLAGS% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%" -DVISTADEMO_ENABLED=Off^
       -DCMAKE_BUILD_TYPE=%BUILD_TYPE% -DVISTACORELIBS_USE_OPENVR=On -DVISTADRIVERS_BUILD_OPENVR=On^
-      -DVISTACORELIBS_USE_INFINITE_REVERSE_PROJECTION=On^
-      -DOPENVR_ROOT_DIR="%INSTALL_DIR%" -DGLUT_INCLUDE_DIR=%INSTALL_DIR%/include^
-      -DCMAKE_UNITY_BUILD=%UNITY_BUILD% -DVISTA_USE_PRECOMPILED_HEADERS=%PRECOMPILED_HEADERS%^
-      "%EXTERNALS_DIR%/vista" || goto :error
+      -DVISTACORELIBS_USE_INFINITE_REVERSE_PROJECTION=On -DOPENSG_ROOT_DIR=%INSTALL_DIR%^
+      -DOPENVR_ROOT_DIR="%INSTALL_DIR%" -DVISTACORELIBS_USE_GLUT_WINDOWIMP=Off^
+      -DVISTACORELIBS_USE_SDL2_WINDOWIMP=On -DSDL2_ROOT_DIR=%INSTALL_DIR%^
+      -DSDL2_TTF_ROOT_DIR=%INSTALL_DIR% -DCMAKE_UNITY_BUILD=%UNITY_BUILD%^
+      -DVISTA_USE_PRECOMPILED_HEADERS=%PRECOMPILED_HEADERS% "%EXTERNALS_DIR%/vista" || goto :error
 cmake --build . --config %BUILD_TYPE% --target install --parallel %NUMBER_OF_PROCESSORS% || goto :error
 
 rem cspice -----------------------------------------------------------------------------------------

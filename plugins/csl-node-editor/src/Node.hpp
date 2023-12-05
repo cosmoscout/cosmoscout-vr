@@ -36,6 +36,10 @@ class CSL_NODE_EDITOR_EXPORT Node {
   Node()          = default;
   virtual ~Node() = default;
 
+  /// This method gets called, once the node has been created and initialized. You can run some
+  /// initial logic here, that interacts with the JavaScript counterpart of this node.
+  virtual void init(){};
+
   /// Sends a custom message to the JavaScript counterpart of this node. The message can be received
   /// in the frontend with the onMessageFromCPP method of the node:
   ///   node.onMessageFromCPP = (message) => {
