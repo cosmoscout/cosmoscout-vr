@@ -20,6 +20,19 @@ class SourceBase;
 class SourceGroup;
 class AudioController;
 
+/** 
+ * @brief This class acts as the manager telling who needs to be updated. Each audio controller 
+ * has its own updateInstructor. When a SourceSettings instance gets updated, it will register
+ * itself to this class. When AudioController::update() gets called, the UpdateInstructor will
+ * creates the update instructions, containing all sourceSettings instances, which need to be updated,
+ * and their update scope. There are 3 update scopes:
+ *  1. updateAll: When updating the audioController settings. The audioController, all Groups and Source get processed
+ *  2. updateWithGroup: When updating a Group. All changed groups and all their members get processed
+ *  3. updateSourceOnly: When updating a Source. Only the changed source gets processed
+ * When updateAll is active updateWithGroup and updateSourceOnly get ignored because all sources and groups need
+ * to be processed anyways. Otherwise both will be used to determine the sources which need to be updated.
+ * There is a filtering step to ensure that no source is part of both update scopes.
+ **/ 
 class CS_AUDIO_EXPORT UpdateInstructor {
  public:
   UpdateInstructor();
@@ -57,7 +70,7 @@ class CS_AUDIO_EXPORT UpdateInstructor {
     std::shared_ptr<std::vector<std::shared_ptr<SourceBase>>> updateWithGroup;
     std::shared_ptr<std::vector<std::shared_ptr<SourceBase>>> updateSourceOnly;
 
-    // temporary:
+    // for testing:
     void print() {
       std::cout << "-----Update Instructions-----" << std::endl;
       std::cout << "updateAll: " << (updateAll ? "true" : "false") << std::endl;
@@ -68,12 +81,6 @@ class CS_AUDIO_EXPORT UpdateInstructor {
   };
 
   /// @brief Creates the update instructions when calling AudioController::update().
-  /// These UpdateInstructions will contain all sources which need to be updated with their update scope.
-  /// There are 3 update scopes: updateAll(When updating the audioController settings. The pipeline will process the audioController and all
-  /// Groups and Source on the controller), updateWithGroup(When updating a Group. The pipeline will process all changed groups and all their
-  /// members) and updateSourceOnly(When updating a Source. The pipeline will only process the changed source itself). If the updateAll scope is active 
-  /// the updateWithGroup and updateSourceOnly Lists get ignored. Otherwise both will be used to determine the sources which need to be updated.
-  /// There is a filtering step to ensure that no source is part of both update scopes.
   UpdateInstruction createUpdateInstruction();
 
  private:                 

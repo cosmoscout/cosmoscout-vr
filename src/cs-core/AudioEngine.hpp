@@ -28,8 +28,10 @@
 
 namespace cs::core {
 
+/// @brief The AudioEngine is responsible for initializing all necessary audio classes.
+/// It also provides access to create audio controllers. This class should only be instantiated once.
+/// This instance will be passed to all plugins.
 class CS_CORE_EXPORT AudioEngine : public std::enable_shared_from_this<AudioEngine> {
-
  public:
   AudioEngine(const AudioEngine& obj) = delete;
   AudioEngine(AudioEngine&&) = delete;

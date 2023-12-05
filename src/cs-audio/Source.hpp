@@ -21,8 +21,10 @@ namespace cs::audio {
 // forward declaration
 class SourceGroup;
 
+/// @brief This is the derived source class for non-streaming sources. This means that the whole file
+/// is being read and written into the buffer. This has the benefit that buffers can be shared among
+/// all non-streaming sources. This is done via the BufferManager. 
 class CS_AUDIO_EXPORT Source : public SourceBase {
-
  public:
   Source(std::shared_ptr<BufferManager> bufferManager, 
   std::string file, std::shared_ptr<UpdateInstructor> UpdateInstructor);
@@ -33,7 +35,7 @@ class CS_AUDIO_EXPORT Source : public SourceBase {
   bool setFile(std::string file) override;
     
  private:
-  std::shared_ptr<BufferManager>                   mBufferManager;
+  std::shared_ptr<BufferManager> mBufferManager;
 };
 
 } // namespace cs::audio

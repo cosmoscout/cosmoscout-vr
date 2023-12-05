@@ -19,9 +19,8 @@
 
 namespace cs::audio {
 
-class AudioController;
-class ProcessingStep;
-
+/// @brief This class manages the creation, deletion and calling of all processing steps.
+/// This class should only be instantiated once.
 class CS_AUDIO_EXPORT ProcessingStepsManager {
  public:
   ProcessingStepsManager(const ProcessingStepsManager& obj) = delete;
@@ -33,38 +32,41 @@ class CS_AUDIO_EXPORT ProcessingStepsManager {
   static std::shared_ptr<ProcessingStepsManager> createProcessingStepsManager(std::shared_ptr<core::Settings> settings);
   ~ProcessingStepsManager();
   
-  /// @brief creates a new Pipeline for an AudioController
-  /// @param processingSteps List of name of all processing steps, which should be part of the pipeline
+  /// @brief Creates a new Pipeline. A pipeline is a just a list of processing steps that should 
+  /// be active for all sources of an audio controller. 
+  /// @param processingSteps List of processing step names, which should be part of the pipeline
   /// @param audioControllerId ID of the audioController requesting the pipeline
   void createPipeline(std::vector<std::string> processingSteps, int audioControllerId);
 
+  /// @brief Deletes a pipeline completely. Gets called during the deconstruction
+  /// of an audio controller. 
   void removeAudioController(int audioControllerId);
 
-  /// @brief Calls all processing steps part of the audioControllers pipeline for a source and applies all provided settings.
+  /// @brief Calls all processing steps part of the audioControllers pipeline for a source and 
+  /// tries to apply all provided settings.
   /// @param source Source to process.
   /// @param audioControllerId AudioController on which the source lives. Specifies the pipeline.
   /// @param sourceSettings Settings to apply to the provided source
-  /// @return List of settings keys that failed when trying to apply the settings to the source.
+  /// @return List of settings that failed when trying to apply the settings to the source.
   std::shared_ptr<std::vector<std::string>> process(
     std::shared_ptr<SourceBase> source, 
     int audioControllerId,
     std::shared_ptr<std::map<std::string, std::any>> sourceSettings);
 
-  /// @brief This functions will call all update functions of processing steps that are active and require
-  /// an every frame update.
+  /// @brief This functions will call all update functions of processing steps that are 
+  /// active and require an update every frame.
   void callPsUpdateFunctions();
 
   ProcessingStepsManager(std::shared_ptr<core::Settings> settings);
  private:                                                                            
   /// Holds all pipelines and their corresponding audioController                                                                       
   std::map<int, std::set<std::shared_ptr<ProcessingStep>>> mPipelines;
-  /// List that contains all processing steps that require an update call every frame
+  /// List of processing steps that require an update call every frame
   std::set<std::shared_ptr<ProcessingStep>>                mUpdateProcessingSteps;
   std::shared_ptr<core::Settings>                          mSettings;
 
-
-  /// @brief Searches for and creates a processing step when defining a pipeline. If you want to add a new 
-  /// processing step then you need to define the name and the corresponding create call here.
+  /// @brief Searches for and creates a processing step when defining a pipeline. If you want to add 
+  /// a new processing step then you need to define the name and the corresponding create call here.
   /// @param processingStep Name of the processing step to create
   /// @return Pointer to the processing step instance. Nullptr if processing step was not found. 
   std::shared_ptr<ProcessingStep> getProcessingStep(std::string processingStep);

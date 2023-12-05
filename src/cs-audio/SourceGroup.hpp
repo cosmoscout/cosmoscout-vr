@@ -23,6 +23,9 @@ namespace cs::audio {
 // forward declarations
 class UpdateInstructor;
 
+/// @brief A SourceGroup is a way to apply source settings to multiple sources at once. Each
+/// source can only be part of one group at a time and both *MUST* be on the same audio controller.
+/// Doing otherwise can lead to undefined behavior and is not intended.  
 class CS_AUDIO_EXPORT SourceGroup 
   : public SourceSettings
   , public std::enable_shared_from_this<SourceGroup> {

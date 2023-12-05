@@ -97,7 +97,7 @@ std::shared_ptr<ProcessingStep> ProcessingStepsManager::getProcessingStep(std::s
     return DistanceModel_PS::create();
   }
 
-  // ...
+  // Add new processing steps here...
 
   logger().warn("Audio Processing Warning: Processing step '{}' is not defined!", processingStep);
   return nullptr;

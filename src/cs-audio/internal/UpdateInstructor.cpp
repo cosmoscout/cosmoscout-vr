@@ -18,6 +18,8 @@ UpdateInstructor::UpdateInstructor()
   , mAudioControllerUpdate(false) { 
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 UpdateInstructor::~UpdateInstructor() {
   std::cout << "close update instructor" << std::endl;
   mSourceUpdateList.clear();

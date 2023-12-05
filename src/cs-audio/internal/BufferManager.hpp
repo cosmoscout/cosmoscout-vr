@@ -30,6 +30,8 @@ struct Buffer {
   }
 };
 
+/// @brief This class handles the creation and deletion of buffers for non-streaming sources. 
+/// This class should only be instantiated once.
 class CS_AUDIO_EXPORT BufferManager {
  public:
   BufferManager(const BufferManager& obj) = delete;
@@ -41,21 +43,21 @@ class CS_AUDIO_EXPORT BufferManager {
   static std::shared_ptr<BufferManager> createBufferManager();
   ~BufferManager();
 
-  /// @brief Returns an OpenAL id to a buffer containing the data for the provided file path.
+  /// @brief Returns a buffer id containing the data for the provided file path.
   /// The BufferManager will check if a buffer for this file already exists and if so reuse the 
   /// the existing one. 
-  /// @return Pair of bool and potential OpenAL id. Bool is false if an error occurred, which means the 
-  /// OpenAL id is not a valid buffer.
+  /// @return Pair of bool and potential buffer id. Bool is false if an error occurred, which 
+  /// means the buffer id is not valid.
   std::pair<bool, ALuint> getBuffer(std::string file);
 
-  /// @brief Signals to the BufferManager that a Source is no longer using a buffer to the provided file.
-  /// If there are no more Sources using a buffer to a specific file the BufferManager will automatically delete
-  /// the buffer.
+  /// @brief Signals to the BufferManager that a Source is no longer using a buffer to the 
+  /// provided file. If there are no more Sources using a buffer to a specific file, the 
+  /// BufferManager will automatically delete the buffer.
   void removeBuffer(std::string file);
   
   BufferManager();
  private:
-  /// @brief List of all current buffers with 
+  /// @brief List of all current buffers
   std::vector<std::shared_ptr<Buffer>> mBufferList;
   
   /// @brief Creates a new Buffer if none already exists for the provided file path.

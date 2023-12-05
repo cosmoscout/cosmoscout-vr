@@ -11,7 +11,6 @@
 #include "ProcessingStepsManager.hpp"
 #include "../AudioController.hpp"
 #include "../SourceGroup.hpp"
-
 #include <vector>
 #include <string>
 

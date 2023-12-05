@@ -20,12 +20,12 @@ namespace cs::audio {
 This Processing Step introduces basic settings for a source and is automatically enabled
 in every pipeline.
 --------------------------------------------
-Name      Type    Range     Description
+Name      Type    Range      Description
 --------------------------------------------
-gain      float   0.0 -     Multiplier for the Volume of a source
-pitch     float   0.0 -     Multiplier for the sample rate of the source's buffer // TODO: test range -> different range in AL specification and al.h  
-looping   bool              Whether the source shall loop the playback or stop after
-                            playing the buffer once.  
+gain      float   0.0 -      Multiplier for the Volume of a source
+pitch     float   0.5 - 2.0  Multiplier for the sample rate of the source's buffer
+looping   bool               Whether the source shall loop the playback or stop after
+                             playing the buffer once.  
 --------------------------------------------
 */
 class CS_AUDIO_EXPORT Default_PS : public ProcessingStep {

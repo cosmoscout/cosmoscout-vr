@@ -79,7 +79,8 @@ bool OpenAlManager::initOpenAl(core::Settings::Audio settings) {
     return false;
   }
 
-  // enables the Option to set the distance model per source and not per context
+  // enables the Option to set the distance model per source and not per context. This is needed for
+  // the DistanceModel_PS
   alEnable(AL_SOURCE_DISTANCE_MODEL);
 
   return true;
@@ -127,6 +128,8 @@ std::vector<std::string> OpenAlManager::getDevices() {
   const ALCchar* next = alcGetString(nullptr, macro) + 1;
   size_t len = 0;
 
+  // Parsing device list. 
+  // Devices are separated by NULL character and the list ends with two NULL characters.
   while (device && *device != '\0' && next && *next != '\0') {
     result.push_back(device);
     len = strlen(device);

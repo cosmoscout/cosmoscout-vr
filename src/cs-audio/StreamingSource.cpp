@@ -57,7 +57,7 @@ bool StreamingSource::updateStream() {
 
   // possible improvement: instead of checking for playback and looping
   // in each frame, override the SourceSettings::set() function to also 
-  // set a state within the StreamingSource describing the playback and looping settings
+  // set a state within the StreamingSource describing the playback and looping state
 
   // update the stream only if the source is supposed to be playing
   auto search = mPlaybackSettings->find("playback");

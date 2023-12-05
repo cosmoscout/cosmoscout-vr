@@ -31,9 +31,7 @@ BufferManager::BufferManager()
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 BufferManager::~BufferManager() {
-  std::cout << "close buffer manager" << std::endl;
   alGetError(); // clear error code
-  // delete all buffers
   // gather all buffer Ids to delete them in a single OpenAL call
   std::vector<ALuint> bufferIds(mBufferList.size());
   for (std::shared_ptr<Buffer> buffer : mBufferList) {
@@ -78,10 +76,7 @@ std::pair<bool, ALuint> BufferManager::createBuffer(std::string file) {
     return std::make_pair(false, newBufferId);
   }
 
-  // testing
-  audioContainer.print();
-
-  // load wave into buffer
+  // load file into buffer
   if(audioContainer.splblockalign > 1)
       alBufferi(newBufferId, AL_UNPACK_BLOCK_ALIGNMENT_SOFT, audioContainer.splblockalign);
 
