@@ -5,7 +5,7 @@
 // SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
 // SPDX-License-Identifier: MIT
 
-import formatNumberWithColor from "../third-party/js/csp-demo-node-editor/FormatNumberWithColor.js"
+import formatNumberWithColor from "../third-party/js/FormatNumberWithColor.js"
 
 // This is the widget which is used for displaying text data.
 class TextDisplayControl extends Rete.Control {
