@@ -20,9 +20,12 @@
 [submodule "externals/curlpp"]
 	path = externals/curlpp
 	url = https://github.com/cosmoscout/curlpp.git
-[submodule "externals/freeglut"]
-	path = externals/freeglut
-	url = https://github.com/cosmoscout/freeglut.git
+[submodule "externals/SDL"]
+	path = externals/SDL
+	url = https://github.com/libsdl-org/SDL.git
+[submodule "externals/SDL_ttf"]
+	path = externals/SDL_ttf
+	url = https://github.com/libsdl-org/SDL_ttf.git
 [submodule "externals/gli"]
 	path = externals/gli
 	url = https://github.com/cosmoscout/gli.git

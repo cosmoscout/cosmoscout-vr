@@ -7,15 +7,15 @@
 
 #include "GuiManager.hpp"
 
-#include <GL/freeglut.h>
-
 #include "../cs-utils/filesystem.hpp"
 #include "../cs-utils/utils.hpp"
 #include "InputManager.hpp"
 #include "cs-version.hpp"
 #include "logger.hpp"
 
-#include <VistaKernel/DisplayManager/GlutWindowImp/VistaGlutWindowingToolkit.h>
+#include <SDL2/SDL.h>
+
+#include <VistaKernel/DisplayManager/SDL2WindowImp/VistaSDL2WindowingToolkit.h>
 #include <VistaKernel/DisplayManager/VistaDisplayManager.h>
 #include <VistaKernel/DisplayManager/VistaDisplaySystem.h>
 #include <VistaKernel/DisplayManager/VistaViewportResizeToProjectionAdapter.h>
@@ -234,29 +234,29 @@ GuiManager::~GuiManager() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void GuiManager::setCursor(gui::Cursor cursor) {
-  auto* windowingToolkit = dynamic_cast<VistaGlutWindowingToolkit*>(
+  auto* windowingToolkit = dynamic_cast<VistaSDL2WindowingToolkit*>(
       GetVistaSystem()->GetDisplayManager()->GetWindowingToolkit());
 
-  int glutCursor = GLUT_CURSOR_LEFT_ARROW;
+  SDL_SystemCursor sdlCursor = SDL_SYSTEM_CURSOR_ARROW;
 
   switch (cursor) {
   case gui::Cursor::ePointer:
-    glutCursor = GLUT_CURSOR_LEFT_ARROW;
+    sdlCursor = SDL_SYSTEM_CURSOR_ARROW;
     break;
   case gui::Cursor::eCross:
-    glutCursor = GLUT_CURSOR_CROSSHAIR;
+    sdlCursor = SDL_SYSTEM_CURSOR_CROSSHAIR;
     break;
   case gui::Cursor::eHelp:
-    glutCursor = GLUT_CURSOR_HELP;
+    sdlCursor = SDL_SYSTEM_CURSOR_ARROW;
     break;
   case gui::Cursor::eWait:
-    glutCursor = GLUT_CURSOR_WAIT;
+    sdlCursor = SDL_SYSTEM_CURSOR_WAIT;
     break;
   case gui::Cursor::eIbeam:
-    glutCursor = GLUT_CURSOR_TEXT;
+    sdlCursor = SDL_SYSTEM_CURSOR_IBEAM;
     break;
   case gui::Cursor::eHand:
-    glutCursor = GLUT_CURSOR_INFO;
+    sdlCursor = SDL_SYSTEM_CURSOR_HAND;
     break;
   default:
     break;
@@ -264,7 +264,7 @@ void GuiManager::setCursor(gui::Cursor cursor) {
 
   if (windowingToolkit) {
     for (auto const& window : GetVistaSystem()->GetDisplayManager()->GetWindows()) {
-      windowingToolkit->SetCursor(window.second, glutCursor);
+      windowingToolkit->SetCursor(window.second, sdlCursor);
     }
   }
 }

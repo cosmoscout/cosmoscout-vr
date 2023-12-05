@@ -17,7 +17,7 @@
 #include <VistaDataFlowNet/VdfnNode.h>
 #include <VistaDataFlowNet/VdfnObjectRegistry.h>
 #include <VistaDataFlowNet/VdfnPort.h>
-#include <VistaKernel/DisplayManager/GlutWindowImp/VistaGlutWindowingToolkit.h>
+#include <VistaKernel/DisplayManager/SDL2WindowImp/VistaSDL2WindowingToolkit.h>
 #include <VistaKernel/DisplayManager/VistaDisplayManager.h>
 #include <VistaKernel/DisplayManager/VistaDisplaySystem.h>
 #include <VistaKernel/DisplayManager/VistaProjection.h>
@@ -36,13 +36,6 @@
 #include <VistaKernelOpenSGExt/VistaOpenSGMaterialTools.h>
 
 namespace cs::core {
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-/// Helper function that converts the character on the keyboard to an int expected by ViSTA.
-constexpr int vistaKeyCode(char c) {
-  return c - 'a' + 1;
-}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -77,33 +70,39 @@ InputManager::InputManager(std::shared_ptr<Settings> settings)
 
   // Copy, paste, ctr-z,...
 
-  GetVistaSystem()->GetKeyboardSystemControl()->BindAction(vistaKeyCode('x'), [this]() {
+  GetVistaSystem()->GetKeyboardSystemControl()->BindAction('x', VISTA_KEYMOD_CTRL, [this]() {
     if (pSelectedGuiItem.get()) {
       pSelectedGuiItem.get()->cut();
     }
   });
 
-  GetVistaSystem()->GetKeyboardSystemControl()->BindAction(vistaKeyCode('c'), [this]() {
+  GetVistaSystem()->GetKeyboardSystemControl()->BindAction('c', VISTA_KEYMOD_CTRL, [this]() {
     if (pSelectedGuiItem.get()) {
       pSelectedGuiItem.get()->copy();
     }
   });
 
-  GetVistaSystem()->GetKeyboardSystemControl()->BindAction(vistaKeyCode('v'), [this]() {
+  GetVistaSystem()->GetKeyboardSystemControl()->BindAction('v', VISTA_KEYMOD_CTRL, [this]() {
     if (pSelectedGuiItem.get()) {
       pSelectedGuiItem.get()->paste();
     }
   });
 
-  GetVistaSystem()->GetKeyboardSystemControl()->BindAction(vistaKeyCode('z'), [this]() {
+  GetVistaSystem()->GetKeyboardSystemControl()->BindAction('z', VISTA_KEYMOD_CTRL, [this]() {
     if (pSelectedGuiItem.get()) {
       pSelectedGuiItem.get()->undo();
     }
   });
 
-  GetVistaSystem()->GetKeyboardSystemControl()->BindAction(vistaKeyCode('y'), [this]() {
+  GetVistaSystem()->GetKeyboardSystemControl()->BindAction('y', VISTA_KEYMOD_CTRL, [this]() {
     if (pSelectedGuiItem.get()) {
       pSelectedGuiItem.get()->redo();
+    }
+  });
+
+  GetVistaSystem()->GetKeyboardSystemControl()->BindAction('a', VISTA_KEYMOD_CTRL, [this]() {
+    if (pSelectedGuiItem.get()) {
+      pSelectedGuiItem.get()->selectAll();
     }
   });
 
@@ -463,9 +462,9 @@ bool InputManager::HandleKeyPress(int key, int mods, bool /*bIsKeyRepeat*/) {
     pSelectedGuiItem.get()->injectKeyEvent(gui::KeyEvent(key, mods));
 
     // Continue propagation for key-up events so that DFN realizes those even with the pointer being
-    // above the gui. Also, continue event propagation for ctrl-x, -c, -v, -z, -y.
-    return !(key < 0 || key == vistaKeyCode('x') || key == vistaKeyCode('c') ||
-             key == vistaKeyCode('v') || key == vistaKeyCode('z') || key == vistaKeyCode('y'));
+    // above the gui. Also, continue event propagation for ctrl-x, -c, -v, -z, -y, -a.
+    return !(key < 0 || (mods & VISTA_KEYMOD_CTRL && (key == 'x' || key == 'c' || key == 'v' ||
+                                                         key == 'z' || key == 'y' || key == 'a')));
   }
 
   // Continue event propagation to DFN for navigation input if no gui input element has focus.
