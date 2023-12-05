@@ -7,7 +7,6 @@
 
 #include "OpenAlManager.hpp"
 #include "../../cs-core/Settings.hpp"
-#include <memory>
 
 #include <AL/al.h>
 #include <AL/alc.h>
@@ -25,7 +24,6 @@ OpenAlManager::OpenAlManager()
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 OpenAlManager::~OpenAlManager() {
-  std::cout << "close openAL" << std::endl;
   alcMakeContextCurrent(nullptr);
 	alcDestroyContext(mContext);
 	alcCloseDevice(mDevice);
@@ -83,7 +81,7 @@ bool OpenAlManager::initOpenAl(core::Settings::Audio settings) {
 
 bool OpenAlManager::setDevice(std::string outputDevice) {
   if (alcIsExtensionPresent(NULL, "ALC_SOFT_reopen_device") == ALC_FALSE) {
-    logger().warn("OpenAL Extensions 'ALC_SOFT_reopen_device' not found. Unable to change the output device!");
+    logger().warn("OpenAL Extension 'ALC_SOFT_reopen_device' not found. Unable to change the output device!");
     return false;
   }
 

@@ -9,11 +9,7 @@
 #define CS_AUDIO_ERROR_HANDLING_HPP
 
 #include "cs_audio_export.hpp"
-
 #include <AL/al.h>
-
-// forward declaration
-// class AudioEngine;
 
 namespace cs::audio {
  

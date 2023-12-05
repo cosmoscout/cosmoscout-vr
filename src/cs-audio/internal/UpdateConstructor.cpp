@@ -21,7 +21,6 @@ UpdateConstructor::UpdateConstructor(std::shared_ptr<ProcessingStepsManager> pro
 }
 
 UpdateConstructor::~UpdateConstructor() {
-  std::cout << "close UpdateConstructor" << std::endl;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

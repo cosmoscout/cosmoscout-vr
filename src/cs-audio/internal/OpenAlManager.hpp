@@ -10,9 +10,7 @@
 
 #include "cs_audio_export.hpp"
 #include "../../cs-core/Settings.hpp"
-#include "../../cs-utils/Property.hpp"
 
-#include <AL/al.h>
 #include <AL/alc.h>
 #include <AL/alext.h>
 

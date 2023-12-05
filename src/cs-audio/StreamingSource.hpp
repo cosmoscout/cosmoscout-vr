@@ -29,7 +29,6 @@ class SourceGroup;
 /// One current disadvantage is that StreamingSources can only be played after the loading screen 
 /// because the CosmoScout update cycle is needed in order to update the changing buffers. 
 class CS_AUDIO_EXPORT StreamingSource : public SourceBase {
-    
  public:
   StreamingSource(std::string file, int bufferLength, int queueSize,
     std::shared_ptr<UpdateInstructor> UpdateInstructor);

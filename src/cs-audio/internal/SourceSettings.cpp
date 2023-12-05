@@ -25,7 +25,6 @@ SourceSettings::SourceSettings()
 }
 
 SourceSettings::~SourceSettings() {
-  std::cout << "close Source settings" << std::endl;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -55,7 +54,6 @@ const std::shared_ptr<const std::map<std::string, std::any>> SourceSettings::get
 
 void SourceSettings::remove(std::string key) {
   mUpdateSettings->erase(key);
-  // a settings instance is not allowed to remove settings that it did not define itself
   if (mCurrentSettings->find(key) == mCurrentSettings->end()) {
     return;
   }

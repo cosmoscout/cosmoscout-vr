@@ -8,7 +8,6 @@
 #include "ProcessingStepsManager.hpp"
 #include "../logger.hpp"
 #include "../AudioController.hpp"
-
 #include <set>
 
 // processingSteps:
@@ -23,7 +22,6 @@
 namespace cs::audio {
 
 ProcessingStepsManager::~ProcessingStepsManager() {
-  std::cout << "close ProcessingStepsManager" << std::endl;
   mPipelines.clear();
   mUpdateProcessingSteps.clear();
 }
@@ -61,7 +59,8 @@ void ProcessingStepsManager::createPipeline(std::vector<std::string> processingS
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::shared_ptr<ProcessingStep> ProcessingStepsManager::getProcessingStep(std::string processingStep) {
+std::shared_ptr<ProcessingStep> ProcessingStepsManager::getProcessingStep(
+  std::string processingStep) {
 
   if (processingStep == "PointSpatialization") {
     return PointSpatialization_PS::create();

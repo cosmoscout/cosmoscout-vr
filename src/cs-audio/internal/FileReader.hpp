@@ -10,7 +10,7 @@
 
 #include "cs_audio_export.hpp"
 #include <sndfile.h>
-
+#include <variant>
 
 namespace cs::audio {
 
@@ -35,7 +35,7 @@ struct AudioContainer {
    std::vector<float>> audioData;
 
   void print() {
-    std::cout << "----WavContainer Info----" << std::endl;
+    std::cout << "----AudioContainer Info----" << std::endl;
     std::cout << "format: " << format << std::endl;
     std::cout << "sampleRate: " << sfInfo.samplerate << "hz" << std::endl;
     std::cout << "size: " << size << std::endl;
@@ -71,7 +71,7 @@ struct AudioContainerStreaming : public AudioContainer {
   sf_count_t bufferSize;
 
   void print() {
-    std::cout << "----WavContainer Info----" << std::endl;
+    std::cout << "----AudioContainer Info----" << std::endl;
     std::cout << "format: " << format << std::endl;
     std::cout << "sampleRate: " << sfInfo.samplerate << "hz" << std::endl;
     std::cout << "size: " << size << std::endl;

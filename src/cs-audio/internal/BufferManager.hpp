@@ -9,12 +9,9 @@
 #define CS_AUDIO_BUFFER_MANAGER_HPP
 
 #include "cs_audio_export.hpp"
-
 #include <string>
 #include <vector>
-#include <variant>
 #include <AL/al.h>
-#include <iostream>
 
 namespace cs::audio {
 

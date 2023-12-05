@@ -9,12 +9,6 @@
 #define CS_AUDIO_LISTENER_HPP
 
 #include "cs_audio_export.hpp"
-#include "BufferManager.hpp"
-
-#include <AL/al.h>
-
-// forward declaration
-class AudioEngine;
 
 namespace cs::audio {
 
@@ -35,9 +29,6 @@ class CS_AUDIO_EXPORT Listener {
   /// @brief Sets the OpenAL Listener orientation. 
   /// @return True if no error occurred
   static bool setOrientation(float atX, float atY, float atZ, float upX, float upY, float upZ);
-
- private:
-
 };
 
 } // namespace cs::audio

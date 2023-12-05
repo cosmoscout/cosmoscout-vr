@@ -7,7 +7,6 @@
 
 #include "AudioEngine.hpp"
 #include "Settings.hpp"
-#include "SolarSystem.hpp"
 #include "GuiManager.hpp"
 
 #include "../cs-audio/internal/FileReader.hpp"
@@ -28,10 +27,10 @@ AudioEngine::AudioEngine(std::shared_ptr<Settings> settings, std::shared_ptr<Gui
   : std::enable_shared_from_this<AudioEngine>()
   , mSettings(std::move(settings)) 
   , mGuiManager(std::move(guiManager))
-  , mOpenAlManager(std::make_shared<audio::OpenAlManager>())// audio::OpenAlManager::createOpenAlManager())
-  , mBufferManager(std::make_shared<audio::BufferManager>())// audio::BufferManager::createBufferManager()) 
-  , mProcessingStepsManager(std::make_shared<audio::ProcessingStepsManager>(mSettings))// audio::ProcessingStepsManager::createProcessingStepsManager(mSettings))
-  , mUpdateConstructor(std::make_shared<audio::UpdateConstructor>(mProcessingStepsManager))// audio::UpdateConstructor::createUpdateConstructor(mProcessingStepsManager))
+  , mOpenAlManager(std::make_shared<audio::OpenAlManager>())
+  , mBufferManager(std::make_shared<audio::BufferManager>())
+  , mProcessingStepsManager(std::make_shared<audio::ProcessingStepsManager>(mSettings))
+  , mUpdateConstructor(std::make_shared<audio::UpdateConstructor>(mProcessingStepsManager))
   , mMasterVolume(utils::Property<float>(1.f)) 
   , mAudioControllers(std::vector<std::weak_ptr<audio::AudioController>>()) {
 

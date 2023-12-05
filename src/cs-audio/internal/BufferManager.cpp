@@ -9,11 +9,9 @@
 #include "FileReader.hpp"
 #include "alErrorHandling.hpp"
 #include "../logger.hpp"
-
+#include <variant>
 #include <AL/al.h>
 #include <AL/alext.h>
-#include <iostream>
-#include <variant>
 
 namespace cs::audio {
 
@@ -75,8 +73,8 @@ std::pair<bool, ALuint> BufferManager::createBuffer(std::string file) {
 
   if (audioContainer.formatType == Int16) {
     alBufferData(newBufferId, 
-    audioContainer.format, std::get<std::vector<short>>(audioContainer.audioData).data(), 
-    audioContainer.size, audioContainer.sfInfo.samplerate);
+      audioContainer.format, std::get<std::vector<short>>(audioContainer.audioData).data(), 
+      audioContainer.size, audioContainer.sfInfo.samplerate);
   
   } else if (audioContainer.formatType == Float) {
     alBufferData(newBufferId, 
@@ -86,8 +84,8 @@ std::pair<bool, ALuint> BufferManager::createBuffer(std::string file) {
     
   } else {
     alBufferData(newBufferId, 
-    audioContainer.format, std::get<std::vector<int>>(audioContainer.audioData).data(),
-    audioContainer.size, audioContainer.sfInfo.samplerate);
+      audioContainer.format, std::get<std::vector<int>>(audioContainer.audioData).data(),
+      audioContainer.size, audioContainer.sfInfo.samplerate);
   }
 
   if (alErrorHandling::errorOccurred()) {

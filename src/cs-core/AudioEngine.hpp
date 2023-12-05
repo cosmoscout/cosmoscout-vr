@@ -10,7 +10,6 @@
 
 #include "cs_audio_export.hpp"
 #include "Settings.hpp"
-#include "SolarSystem.hpp"
 #include "GuiManager.hpp"
 
 #include "../cs-audio/internal/OpenAlManager.hpp"

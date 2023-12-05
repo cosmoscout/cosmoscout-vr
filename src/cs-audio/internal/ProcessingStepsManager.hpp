@@ -12,8 +12,6 @@
 #include "../../cs-core/Settings.hpp"
 #include "../processingSteps/ProcessingStep.hpp"
 #include "../AudioController.hpp"
-
-#include <AL/al.h>
 #include <map>
 #include <set>
 
