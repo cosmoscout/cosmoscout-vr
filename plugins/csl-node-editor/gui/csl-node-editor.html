@@ -14,6 +14,8 @@ SPDX-License-Identifier: MIT
   <link type="text/css" rel="stylesheet" href="third-party/css/bootstrap-select.min.css" />
   <link type="text/css" rel="stylesheet" href="third-party/css/nouislider.css">
 
+  <!--ADDITIONAL_STYLESHEETS-->
+
   <link type="text/css" rel="stylesheet" href="css/calendar.css">
   <link type="text/css" rel="stylesheet" href="css/gui.css">
   <link type="text/css" rel="stylesheet" href="css/csl-node-editor.css">
@@ -58,7 +60,9 @@ SPDX-License-Identifier: MIT
   <script type="text/javascript" src="third-party/js/fuzzyset.js"></script>
   <script type="text/javascript" src="third-party/js/nouislider.min.js"></script>
 
-  <script type="text/javascript">
+  <!--ADDITIONAL_LIBRARIES-->
+
+  <script type="module">
 
     // This is used to convert socket names (which may contain spaces) to something which can be
     // used as CSS class name.
@@ -81,7 +85,7 @@ SPDX-License-Identifier: MIT
     }
 
     // This object encapsulates all 'global' objects which are supposed to be accessed by the nodes.
-    CosmoScout = {
+    const CosmoScout = {
       // This object contains all registered ReteJS socket types.
       socketTypes: {},
 

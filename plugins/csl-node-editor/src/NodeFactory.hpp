@@ -48,6 +48,14 @@ class CSL_NODE_EDITOR_EXPORT NodeFactory {
   /// @param controlSource The source code of a JavaScript class derived from Rete.Control.
   void registerControlType(std::string controlSource);
 
+  /// Register a new style sheet. The string should contain an HTML link tag.
+  /// @param styleSheet HTML-Tag to include a style sheet.
+  void registerStyleSheet(std::string styleSheet);
+
+  /// Register a new library. The string should contain am HTML tag to include a library.
+  /// @param library HTML-Tag to include a library.
+  void registerLibrary(std::string library);
+
   // Node Editor API -------------------------------------------------------------------------------
 
   // The methods below are primarily meant to be used by the NodeEditor class. You may want use them
@@ -73,6 +81,16 @@ class CSL_NODE_EDITOR_EXPORT NodeFactory {
   /// @return The JavaScript source code.
   std::string getRegisterSource() const;
 
+  /// This creates the HTML source snippet which is injected into the node editor web page to
+  /// register all style sheets.
+  /// @return The HTML source code.
+  std::string getStyleSheetSource() const;
+
+  /// This creates the HTML source snippet which is injected into the node editor web page to
+  /// register all libraries.
+  /// @return The HTML source code.
+  std::string getLibrarySource() const;
+
   /// Create a new Node given the name of the node type.
   /// @param type The name of the node type (the static NAME of the registered node type).
   /// @return     A newly created node of the given type name.
@@ -85,13 +103,19 @@ class CSL_NODE_EDITOR_EXPORT NodeFactory {
   std::unordered_map<std::string, std::string> mSockets;
 
   // Functions to retrieve the JavaScript source of each registered node.
-  std::vector<std::function<std::string(void)>> mNodeSourceFuncs;
+  std::vector<std::function<std::string()>> mNodeSourceFuncs;
 
   // Source code for controls.
   std::vector<std::string> mControls;
 
+  // Source code for style sheet inclusions.
+  std::vector<std::string> mStyleSheets;
+
+  // Source code for library inclusions.
+  std::vector<std::string> mLibraries;
+
   // Functions to create new nodes for each type name.
-  std::unordered_map<std::string, std::function<std::unique_ptr<Node>(void)>> mNodeCreateFuncs;
+  std::unordered_map<std::string, std::function<std::unique_ptr<Node>()>> mNodeCreateFuncs;
 };
 
 } // namespace csl::nodeeditor
