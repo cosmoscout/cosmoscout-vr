@@ -39,7 +39,7 @@ struct AudioContainer {
 
   void print() {
     std::cout << "----AudioContainer Info----" << std::endl;
-    std::cout << "format: " << format << std::endl;
+      std::cout << "format: " << FileReader::getFormatName(formatType) << std::endl;
     std::cout << "sampleRate: " << sfInfo.samplerate << "hz" << std::endl;
     std::cout << "size: " << size << std::endl;
     std::cout << "splblockalign: " << splblockalign << std::endl;

@@ -23,7 +23,7 @@
 
 namespace cs::audio {
 
-const char * FileReader::FormatName(ALenum format)
+const char * FileReader::getFormatName(ALenum format)
 {
   switch(format)
   {
