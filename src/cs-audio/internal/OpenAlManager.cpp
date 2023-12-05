@@ -157,7 +157,7 @@ bool OpenAlManager::contextErrorOccurd() {
       default:
         errorCode = "Unkown error code";
     }
-    logger().warn("OpenAL-Soft Context Error occured! Reason: {}...", errorCode);
+    logger().warn("OpenAL-Soft Context Error occurred! Reason: {}...", errorCode);
     return true;
   }
   return false;
