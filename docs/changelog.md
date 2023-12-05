@@ -20,6 +20,7 @@ SPDX-License-Identifier: CC-BY-4.0
 * A new "Ambient Occlusion" slider in the user interface can be used to control the amount of slope shading on the terrain.
 * The water surface shader of `csp-atmospheres` has been improved significantly. It now reflects the sky and features some beautiful waves. The waves can be disabled as they are quite demanding in terms of GPU power. Both, the reflections and the waves are not physically based in any way; they are mostly intended for presentation purposes.
 * Bodies in `csp-simple-bodies` can now be shaded by a ring. 
+* Add support for game controllers using the SDL2 library. A guide for configuring and supported features can be found in the [corresponding vista driver](https://github.com/cosmoscout/vista/blob/main/VistaCoreLibs/VistaDeviceDrivers/VistaSDL2ControllerDriver/README.md).
 
 #### Refactoring
 
@@ -39,6 +40,12 @@ SPDX-License-Identifier: CC-BY-4.0
   * The shaders are now loaded from files and not compiled into the binary.
   * No support for light shafts anymore. While not impossible, it would be pretty difficult to implement this properly with Eric Bruneton's model given that we use cascaded shadow maps. Furthermore, this feature used to have a terrible performance anyways.
   * No graphical tests of the atmosphere anymore. With the new architecture, it's not possible anymore to render an atmosphere without CosmoScout's core classes.
+* Replaced the freeglut library with SDL2:
+  * The window is now created and managed with the SDL2 library
+  * All OpenGL setup is now being done using SDL2 calls.
+  * Keyboard input is now managed with SDL2, which improves support for special characters.
+  * Mouse input is now managed via SDL2.
+  * Game controllers are now supported with SDL2.
 
 #### Other Changes
 
