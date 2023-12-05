@@ -85,7 +85,7 @@ git clone git@github.com:<your user name>/cosmoscout-vr.git
 cd cosmoscout-vr
 git remote add upstream git@github.com:cosmoscout/cosmoscout-vr.git
 git checkout main
-git submodule update --init
+git submodule update --init --recursive
 git checkout -b feature/your-new-feature
 
 # ... do and commit your changes!

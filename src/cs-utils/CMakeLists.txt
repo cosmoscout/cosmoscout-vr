@@ -26,7 +26,9 @@ target_link_libraries(cs-utils
     Boost::chrono
     Boost::date_time
     GLEW::GLEW
-    GLUT::GLUT
+    SDL2::base
+    SDL2::main
+    SDL2::ttf
     OpenGL::GL
     OpenGL::GLU
     OpenSG::base
