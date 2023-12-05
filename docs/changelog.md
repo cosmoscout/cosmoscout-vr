@@ -64,6 +64,7 @@ SPDX-License-Identifier: CC-BY-4.0
 
 * The user interface now avoids rerenders of components that did not change. This lead to the whole UI rerendering most of the time.
 * There were some scenarios where corrupt tiff files in the map-cache directory weren't removed. Appropriate error handling has been added.
+* Fixed loading of the LoD-factor of `csp-lod-bodies` from the settings files.
 * Fixed an issue which caused the sunlight direction not to be updated after reloading a scene.
 
 
