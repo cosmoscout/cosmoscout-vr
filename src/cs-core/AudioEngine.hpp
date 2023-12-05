@@ -68,6 +68,7 @@ class CS_CORE_EXPORT AudioEngine : public std::enable_shared_from_this<AudioEngi
   utils::Property<float>                               mMasterVolume;
   std::vector<std::weak_ptr<audio::AudioController>>   mAudioControllers;
   std::shared_ptr<audio::UpdateConstructor>            mUpdateConstructor;
+  bool                                                 isLeader;
   
   /// Creates the Audio GUI Settings
   void createGUI();
