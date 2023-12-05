@@ -46,8 +46,6 @@ LodBody::LodBody(std::shared_ptr<cs::core::Settings> settings,
   mHeightScaleConnection = mSettings->mGraphics.pHeightScale.connectAndTouch(
       [this](float val) { mPlanet.setHeightScale(val); });
 
-  mPluginSettings->mLODFactor.connectAndTouch([this](float val) { mPlanet.setLODFactor(val); });
-
   mPluginSettings->mEnableWireframe.connectAndTouch(
       [this](bool val) { mPlanet.getTileRenderer().setWireframe(val); });
 
@@ -155,6 +153,12 @@ void LodBody::setObjectName(std::string objectName) {
 
 std::string const& LodBody::getObjectName() const {
   return mObjectName;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void LodBody::setLODFactor(float lodFactor) {
+  mPlanet.setLODFactor(lodFactor);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -85,7 +85,7 @@ void Plugin::init() {
     if (boost::filesystem::exists(dir) && boost::filesystem::is_directory(dir)) {
       for (boost::filesystem::directory_iterator dir_iter(dir); dir_iter != end_iter; ++dir_iter) {
         if (boost::filesystem::is_regular_file(dir_iter->status())) {
-          boost::filesystem::path path(boost::filesystem::path(*dir_iter).normalize());
+          boost::filesystem::path path(boost::filesystem::path(*dir_iter).lexically_normal());
           std::string             file(path.stem().string());
           std::string             ext(path.extension().string());
 

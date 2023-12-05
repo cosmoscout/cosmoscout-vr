@@ -69,6 +69,10 @@ class LodBody : public cs::scene::CelestialSurface,
   /// Gets the current tile source for image data.
   std::shared_ptr<TileSource> const& getIMGtileSource() const;
 
+  /// This will affect the average size of the rendered tiles when projected onto the screen. A
+  /// higher lodFactor will reduce in smaller tiles and hence in a higher data density.
+  void setLODFactor(float lodFactor);
+
   bool getIntersection(
       glm::dvec3 const& rayPos, glm::dvec3 const& rayDir, glm::dvec3& pos) const override;
   double getHeight(glm::dvec2 lngLat) const override;

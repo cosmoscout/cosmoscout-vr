@@ -31,7 +31,7 @@
 #include <VistaBase/VistaTimeUtils.h>
 #include <VistaInterProcComm/Cluster/VistaClusterDataSync.h>
 #include <VistaKernel/Cluster/VistaClusterMode.h>
-#include <VistaKernel/DisplayManager/GlutWindowImp/VistaGlutWindowingToolkit.h>
+#include <VistaKernel/DisplayManager/SDL2WindowImp/VistaSDL2WindowingToolkit.h>
 #include <VistaKernel/DisplayManager/VistaDisplayManager.h>
 #include <VistaKernel/EventManager/VistaEventManager.h>
 #include <VistaKernel/EventManager/VistaSystemEvent.h>
@@ -86,11 +86,11 @@ bool Application::Init(VistaSystem* pVistaSystem) {
   // Setup window Icon and Title on X11. Freeglut does not support setting a window's icon on X11.
   // It also does not set the XClassHint which is required to properly show the application's name
   // in various places.
-  auto* glutWindowingToolkit = dynamic_cast<VistaGlutWindowingToolkit*>(
+  auto* sdl2WindowingToolkit = dynamic_cast<VistaSDL2WindowingToolkit*>(
       GetVistaSystem()->GetDisplayManager()->GetWindowingToolkit());
 
   // We start with a quick check whether we are actually using freeglut.
-  if (glutWindowingToolkit) {
+  if (sdl2WindowingToolkit) {
 
     // Set the icon.
     x11utils::setAppIcon("../share/resources/icons/icon.png");
@@ -131,7 +131,7 @@ bool Application::Init(VistaSystem* pVistaSystem) {
   mSettings->pEnableMouseRay.connectAndTouch([this](bool enable) {
     // If we are running on freeglut, we can hide the mouse pointer when the mouse ray should be
     // shown. This is determined by the settings key "enableMouseRay".
-    auto* windowingToolkit = dynamic_cast<VistaGlutWindowingToolkit*>(
+    auto* windowingToolkit = dynamic_cast<VistaSDL2WindowingToolkit*>(
         GetVistaSystem()->GetDisplayManager()->GetWindowingToolkit());
 
     if (windowingToolkit) {

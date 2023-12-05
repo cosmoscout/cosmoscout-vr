@@ -21,7 +21,8 @@ A text document containing [all individual license texts](../LICENSE-3RD-PARTY.t
 | [Chromium Embedded Framework](https://bitbucket.org/chromiumembedded/cef) | For the Webkit based user interface. | [BSD](https://bitbucket.org/chromiumembedded/cef/raw/a5a5e7ff08129f4122437dfdbba93d2a746c5c59/LICENSE.txt) |
 | [Curl](https://curl.haxx.se) | Library for downloading stuff from the Internet. | [MIT style](https://curl.haxx.se/legal/licmix.html) |
 | [CurlPP](https://github.com/jpbarrette/curlpp) | C++ wrapper for curl. | [MIT style](https://github.com/jpbarrette/curlpp/blob/master/doc/LICENSE) |
-| [FreeGlut](https://sourceforge.net/p/freeglut) | Windowing toolkit dependency of OpenSG. | [MIT](https://sourceforge.net/p/freeglut/code/HEAD/tree/trunk/freeglut/freeglut/COPYING) |
+| [SDL](https://github.com/libsdl-org/SDL) | Windowing toolkit, input and media library. | [Zlib](https://github.com/libsdl-org/SDL/blob/main/LICENSE.txt) |
+| [SDL_ttf](https://github.com/libsdl-org/SDL_ttf) | Support for TrueType (.ttf) font files with Simple Directmedia Layer. | [Zlib](https://github.com/libsdl-org/SDL_ttf/blob/main/LICENSE.txt) |
 | [glew](http://glew.sourceforge.net) | OpenGL extension wrangler. | [Modified BSD](http://glew.sourceforge.net/glew.txt) |
 | [glm](https://glm.g-truc.net) | Math library used throughout CosmoScout. | [Happy Bunny / MIT](https://glm.g-truc.net/copying.txt) |
 | [JsonHPP](https://github.com/nlohmann/json) | Parses json files in C++. | [MIT](https://github.com/nlohmann/json/blob/develop/LICENSE.MIT) |
