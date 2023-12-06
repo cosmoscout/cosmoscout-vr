@@ -8,20 +8,21 @@
 #ifndef CS_AUDIO_PS_SPATIALIZATION_UTILS_HPP
 #define CS_AUDIO_PS_SPATIALIZATION_UTILS_HPP
 
-#include "cs_audio_export.hpp"
-#include "AL/al.h"
-#include <glm/fwd.hpp>
-#include <glm/detail/type_vec3.hpp>
-#include <chrono>
 #include "../internal/SourceBase.hpp"
+#include "AL/al.h"
+#include "cs_audio_export.hpp"
+#include <chrono>
+#include <glm/detail/type_vec3.hpp>
+#include <glm/fwd.hpp>
 
 namespace cs::audio {
 
 class CS_AUDIO_EXPORT SpatializationUtils {
  public:
   SpatializationUtils();
-  
-  /// @brief Calculates and applies the velocity for each spatialized source via the change of position
+
+  /// @brief Calculates and applies the velocity for each spatialized source via the change of
+  /// position
   void calculateVelocity();
 
   /// @brief Rotates the the position of source around the vista viewer orientation. This is needed
@@ -30,18 +31,18 @@ class CS_AUDIO_EXPORT SpatializationUtils {
   /// @param position Relative position to observer
   void rotateSourcePosByViewer(glm::dvec3& position);
 
-  /// @brief Sets the position and Velocity of a source to zero and removes said source from the 
+  /// @brief Sets the position and Velocity of a source to zero and removes said source from the
   /// update list.
   /// @param openAlId id of source to reset
   /// @return True if successful. False otherwise.
   bool resetSpatialization(ALuint openAlId);
- 
+
  protected:
   /// Struct to hold all necessary information regarding a spatialized source
   struct SourceContainer {
     std::weak_ptr<SourceBase> sourcePtr;
-    glm::dvec3 currentPos;
-    glm::dvec3 lastPos;
+    glm::dvec3                currentPos;
+    glm::dvec3                lastPos;
   };
 
   /// List of all Source which have a position

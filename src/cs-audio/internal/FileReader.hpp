@@ -9,36 +9,27 @@
 #define CS_AUDIO_FILE_READER_HPP
 
 #include "cs_audio_export.hpp"
+#include <AL/al.h>
+#include <iostream>
 #include <sndfile.h>
 #include <variant>
-#include <iostream>
 #include <vector>
-#include <AL/al.h>
 
 namespace cs::audio {
 
-
 class CS_AUDIO_EXPORT FileReader {
  public:
-  enum FormatType {
-    Int16,
-    Float,
-    IMA4,
-    MSADPCM
-  };
+  enum FormatType { Int16, Float, IMA4, MSADPCM };
 
   struct AudioContainer {
-    unsigned int format; 
-    int size;
-    int splblockalign;
-    int byteblockalign;
-    FormatType formatType;
-    SF_INFO sfInfo;
-    SNDFILE* sndFile;
-    std::variant<
-    std::vector<short>, 
-    std::vector<int>, 
-    std::vector<float>> audioData;
+    unsigned int                                                           format;
+    int                                                                    size;
+    int                                                                    splblockalign;
+    int                                                                    byteblockalign;
+    FormatType                                                             formatType;
+    SF_INFO                                                                sfInfo;
+    SNDFILE*                                                               sndFile;
+    std::variant<std::vector<short>, std::vector<int>, std::vector<float>> audioData;
 
     void print() {
       std::cout << "----AudioContainer Info----" << std::endl;
@@ -51,11 +42,11 @@ class CS_AUDIO_EXPORT FileReader {
     }
 
     void reset() {
-      format = 0; 
-      size = 0;
-      splblockalign = 0;
+      format         = 0;
+      size           = 0;
+      splblockalign  = 0;
       byteblockalign = 0;
-      formatType = FormatType::Int16;
+      formatType     = FormatType::Int16;
       sf_close(sndFile);
 
       if (std::holds_alternative<std::vector<short>>(audioData)) {
@@ -64,15 +55,15 @@ class CS_AUDIO_EXPORT FileReader {
         std::get<std::vector<float>>(audioData).clear();
       } else {
         std::get<std::vector<int>>(audioData).clear();
-      }    
+      }
     }
   };
 
   struct AudioContainerStreaming : public AudioContainer {
-    int bufferCounter;
-    int bufferLength; // in milliseconds 
-    int blockCount;
-    bool isLooping;
+    int        bufferCounter;
+    int        bufferLength; // in milliseconds
+    int        blockCount;
+    bool       isLooping;
     sf_count_t bufferSize;
 
     void print() {
@@ -89,13 +80,13 @@ class CS_AUDIO_EXPORT FileReader {
     void reset() {
       AudioContainer::reset();
       bufferCounter = 0;
-      bufferSize = 0;
-      blockCount = 0;
-      isLooping = false;
+      bufferSize    = 0;
+      blockCount    = 0;
+      isLooping     = false;
     }
   };
   FileReader(const FileReader& obj) = delete;
-  FileReader(FileReader&&) = delete;
+  FileReader(FileReader&&)          = delete;
 
   FileReader& operator=(const FileReader&) = delete;
   FileReader& operator=(FileReader&&) = delete;
@@ -104,7 +95,7 @@ class CS_AUDIO_EXPORT FileReader {
   /// into the wavContainer.
   /// @param fileName path to file
   /// @param audioContainer audioContainer to write into
-  /// @return Whether the provided file path is a valid .wav file 
+  /// @return Whether the provided file path is a valid .wav file
   static bool loadFile(std::string fileName, AudioContainer& audioContainer);
 
   /// @return Name of audio format

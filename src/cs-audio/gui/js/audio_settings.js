@@ -6,23 +6,22 @@
 // SPDX-License-Identifier: MIT
 
 (() => {
+  /**
+   * Audio Api
+   */
+  class AudioApi extends IApi {
     /**
-     * Audio Api
+     * @inheritDoc
      */
-    class AudioApi extends IApi {
-      /**
-       * @inheritDoc
-       */
-      name = 'audio';
-  
-      /**
-       * @inheritDoc
-       */
-      init() {
-        CosmoScout.gui.initSlider("audio.masterVolume", 0.0, 5, 0.05, [1]);
-      }
+    name = 'audio';
+
+    /**
+     * @inheritDoc
+     */
+    init() {
+      CosmoScout.gui.initSlider("audio.masterVolume", 0.0, 5, 0.05, [1]);
     }
-  
-    CosmoScout.init(AudioApi);
-  })();
-  
+  }
+
+  CosmoScout.init(AudioApi);
+})();

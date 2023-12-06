@@ -225,7 +225,6 @@ void Application::Quit() {
   assertCleanUp("mInputManager", mInputManager.use_count());
   mInputManager.reset();
 
-
   VistaFrameLoop::Quit();
 }
 
@@ -766,7 +765,7 @@ void Application::initPlugin(std::string const& name) {
 
       // First provide the plugin with all required class instances.
       plugin->second.mPlugin->setAPI(mSettings, mSolarSystem, mGuiManager, mInputManager,
-          GetVistaSystem()->GetGraphicsManager()->GetSceneGraph(), mGraphicsEngine, mAudioEngine, 
+          GetVistaSystem()->GetGraphicsManager()->GetSceneGraph(), mGraphicsEngine, mAudioEngine,
           mTimeControl);
 
       // Then do the actual initialization. This may actually take a while and the application will

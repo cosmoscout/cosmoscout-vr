@@ -12,15 +12,16 @@
 #include <AL/al.h>
 
 namespace cs::audio {
- 
+
 class CS_AUDIO_EXPORT AlErrorHandling {
  public:
-  /// @brief Checks if an OpenAL Error occurred and if so prints a logger warning containing the error.
-  /// @return True if error occurred 
+  /// @brief Checks if an OpenAL Error occurred and if so prints a logger warning containing the
+  /// error.
+  /// @return True if error occurred
   static bool errorOccurred();
 
 }; // namespace cs::audio
 
-} // cs::audio
+} // namespace cs::audio
 
 #endif // CS_AUDIO_ERROR_HANDLING_HPP
