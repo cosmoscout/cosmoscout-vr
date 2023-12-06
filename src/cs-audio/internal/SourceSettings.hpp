@@ -54,12 +54,12 @@ class CS_AUDIO_EXPORT SourceSettings {
 
  protected:                 
   /// @brief This is a standard constructor used for non-cluster mode and cluster mode leader calls 
-  SourceSettings(std::shared_ptr<UpdateInstructor> UpdateInstructor);                       
+  explicit SourceSettings(std::shared_ptr<UpdateInstructor> UpdateInstructor);                       
   /// @brief This is a standard constructor used for non-cluster mode and cluster mode leader calls 
-  SourceSettings();
+  explicit SourceSettings();
   /// @brief This Constructor will create a dummy SourceSetting which is used when a member of a cluster
   /// tries to create a SourceSetting. Doing this will disable any functionality of this class.
-  SourceSettings(bool isLeader=false);
+  explicit SourceSettings(bool isLeader);
 
   /// Later assignment of UpdateInstructor needed because the audioController, which initializes the 
   /// UpdateInstructor, needs to initialize SourceSettings first.                                                                                                              

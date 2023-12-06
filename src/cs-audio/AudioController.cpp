@@ -24,7 +24,6 @@ AudioController::AudioController(
   int id) 
   : SourceSettings()
   , std::enable_shared_from_this<AudioController>()
-  , mIsLeader(true)
   , mControllerId(id)
   , mBufferManager(std::move(bufferManager))
   , mProcessingStepsManager(std::move(processingStepsManager))
@@ -38,7 +37,8 @@ AudioController::AudioController(
 
 AudioController::AudioController() 
   : SourceSettings(false)
-  , std::enable_shared_from_this<AudioController>() {  
+  , std::enable_shared_from_this<AudioController>()
+  , mControllerId(-1) {  
 }
 
 AudioController::~AudioController() {

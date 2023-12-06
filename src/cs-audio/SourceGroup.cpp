@@ -27,7 +27,7 @@ SourceGroup::SourceGroup(std::shared_ptr<UpdateInstructor> UpdateInstructor,
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 SourceGroup::SourceGroup() 
-  : SourceSettings()
+  : SourceSettings(false)
   , std::enable_shared_from_this<SourceGroup>() {
 }
 
