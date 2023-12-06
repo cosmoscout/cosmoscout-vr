@@ -20,12 +20,6 @@
 enum class DistributionType { eGamma, eModifiedGamma, eLogNormal, eModifiedLogNormal };
 typedef std::map<double, std::complex<double>> IoRSpectrum;
 
-struct SamplingSettings {
-  std::vector<double> lambdas;
-  int32_t             thetaSamples  = 91;
-  int32_t             radiusSamples = 1000;
-};
-
 struct Distribution {
   DistributionType sizeDistribution;
   double           paramA;
@@ -252,14 +246,15 @@ std::vector<double> sampleRadii(
 
 int mieMode(std::vector<std::string> const& arguments) {
 
-  SamplingSettings samplingSettings;
-  bool             cPrintHelp     = false;
-  std::string      cInput         = "";
-  std::string      cOutput        = "particles.csv";
-  std::string      cLambdas       = "";
-  double           cMinLambda     = 0.36;
-  double           cMaxLambda     = 0.83;
-  int32_t          cLambdaSamples = 15;
+  bool        cPrintHelp     = false;
+  std::string cInput         = "";
+  std::string cOutput        = "particles.csv";
+  std::string cLambdas       = "";
+  double      cMinLambda     = 0.36;
+  double      cMaxLambda     = 0.83;
+  int32_t     cLambdaSamples = 15;
+  int32_t     cThetaSamples  = 91;
+  int32_t     cRadiusSamples = 1000;
 
   // First configure all possible command line options.
   cs::utils::CommandLine args("Welcome to the Mie preprocessor! Here are the available options:");
@@ -276,12 +271,12 @@ int mieMode(std::vector<std::string> const& arguments) {
   args.addArgument({"--lambdas"}, &cLambdas,
       "A comma-separated list of wavelengths in µm. If provided, --min-lambda, --max-lambda, and "
       "--lambda-samples are ignored.");
-  args.addArgument({"--theta-samples"}, &samplingSettings.thetaSamples,
+  args.addArgument({"--theta-samples"}, &cThetaSamples,
       "The number of angles to compute between 0° and 90° (default: " +
-          std::to_string(samplingSettings.thetaSamples) + ").");
-  args.addArgument({"--radius-samples"}, &samplingSettings.radiusSamples,
+          std::to_string(cThetaSamples) + ").");
+  args.addArgument({"--radius-samples"}, &cRadiusSamples,
       "The number of particles to compute per size mode (default: " +
-          std::to_string(samplingSettings.radiusSamples) + ").");
+          std::to_string(cRadiusSamples) + ").");
   args.addArgument({"-h", "--help"}, &cPrintHelp, "Show this help message.");
 
   // Then do the actual parsing.
@@ -304,12 +299,14 @@ int mieMode(std::vector<std::string> const& arguments) {
     return 1;
   }
 
+  std::vector<double> lambdas;
+
   if (cLambdas.empty()) {
-    samplingSettings.lambdas = fillVector(cMinLambda, cMaxLambda, cLambdaSamples);
+    lambdas = fillVector(cMinLambda, cMaxLambda, cLambdaSamples);
   } else {
     auto tokens = cs::utils::splitString(cLambdas, ',');
     for (auto token : tokens) {
-      samplingSettings.lambdas.push_back(cs::utils::fromString<double>(token));
+      lambdas.push_back(cs::utils::fromString<double>(token));
     }
   }
 
@@ -324,10 +321,10 @@ int mieMode(std::vector<std::string> const& arguments) {
     return 1;
   }
 
-  std::vector<std::complex<double>> ior(samplingSettings.lambdas.size());
+  std::vector<std::complex<double>> ior(lambdas.size());
 
-  for (size_t i(0); i < samplingSettings.lambdas.size(); ++i) {
-    double lambda = samplingSettings.lambdas[i];
+  for (size_t i(0); i < lambdas.size(); ++i) {
+    double lambda = lambdas[i];
     if (particleSettings.inclusion) {
       auto   inclusionIoR = getRefractiveIndex(lambda, particleSettings.inclusion.value().ior);
       auto   substrateIoR = getRefractiveIndex(lambda, particleSettings.ior);
@@ -340,7 +337,7 @@ int mieMode(std::vector<std::string> const& arguments) {
 
   std::ofstream output(cOutput);
 
-  int32_t totalAngles = samplingSettings.thetaSamples * 2 - 1;
+  int32_t totalAngles = cThetaSamples * 2 - 1;
 
   output << "lambda,c_sca,c_abs";
 
@@ -350,9 +347,9 @@ int mieMode(std::vector<std::string> const& arguments) {
 
   output << std::endl;
 
-  for (size_t l(0); l < samplingSettings.lambdas.size(); ++l) {
+  for (size_t l(0); l < lambdas.size(); ++l) {
 
-    double lambda = samplingSettings.lambdas[l];
+    double lambda = lambdas[l];
 
     std::vector<double> phase(totalAngles);
     double              cSca = 0.0;
@@ -362,10 +359,10 @@ int mieMode(std::vector<std::string> const& arguments) {
     double totalPhaseWeight = 0.0;
 
     for (auto sizeMode : particleSettings.sizeModes) {
-      auto radii = sampleRadii(sizeMode.sizeDistribution, samplingSettings.radiusSamples,
-          sizeMode.paramA, sizeMode.paramB);
+      auto radii =
+          sampleRadii(sizeMode.sizeDistribution, cRadiusSamples, sizeMode.paramA, sizeMode.paramB);
 
-      auto mieResult = mieDisperse(samplingSettings.thetaSamples, lambda, ior[l], radii);
+      auto mieResult = mieDisperse(cThetaSamples, lambda, ior[l], radii);
 
       double coeffWeight = sizeMode.relativeAmount;
       double phaseWeight = coeffWeight * mieResult.cSca;
