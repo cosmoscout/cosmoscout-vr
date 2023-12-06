@@ -7,7 +7,7 @@
 
 #include "BufferManager.hpp"
 #include "FileReader.hpp"
-#include "alErrorHandling.hpp"
+#include "AlErrorHandling.hpp"
 #include "../logger.hpp"
 #include <variant>
 #include <AL/al.h>
@@ -29,7 +29,7 @@ BufferManager::~BufferManager() {
     bufferIds.push_back(buffer->mOpenAlId);
   }
   alDeleteBuffers((ALsizei) mBufferList.size(), bufferIds.data());
-  if (alErrorHandling::errorOccurred()) {
+  if (AlErrorHandling::errorOccurred()) {
     logger().warn("Failed to delete (all) buffers!");
   }
 }
@@ -54,7 +54,7 @@ std::pair<bool, ALuint> BufferManager::createBuffer(std::string file) {
   // create buffer
   ALuint newBufferId;
   alGenBuffers((ALsizei) 1, &newBufferId);
-  if (alErrorHandling::errorOccurred()) {
+  if (AlErrorHandling::errorOccurred()) {
     logger().warn("Failed to generate buffer!");
     return std::make_pair(false, newBufferId);
   }
@@ -88,7 +88,7 @@ std::pair<bool, ALuint> BufferManager::createBuffer(std::string file) {
       audioContainer.size, audioContainer.sfInfo.samplerate);
   }
 
-  if (alErrorHandling::errorOccurred()) {
+  if (AlErrorHandling::errorOccurred()) {
     logger().warn("Failed to fill buffer with data!");
     alDeleteBuffers((ALsizei) 1, &newBufferId);
     return std::make_pair(false, newBufferId);
@@ -119,7 +119,7 @@ void BufferManager::deleteBuffer(std::vector<std::shared_ptr<Buffer>>::iterator 
   alGetError(); // clear error code
 
   alDeleteBuffers((ALsizei) 1, &(*bufferIt)->mOpenAlId);
-  if (alErrorHandling::errorOccurred()) {
+  if (AlErrorHandling::errorOccurred()) {
     logger().warn("Failed to delete single buffer!");
   }
 

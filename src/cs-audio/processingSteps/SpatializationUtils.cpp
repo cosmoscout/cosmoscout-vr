@@ -6,7 +6,7 @@
 // SPDX-License-Identifier: MIT
 
 #include "SpatializationUtils.hpp"
-#include "../internal/alErrorHandling.hpp"
+#include "../internal/AlErrorHandling.hpp"
 #include "../logger.hpp"
 #include <VistaKernel/DisplayManager/VistaDisplayManager.h>
 #include <VistaKernel/DisplayManager/VistaDisplaySystem.h>
@@ -53,7 +53,7 @@ void SpatializationUtils::calculateVelocity() {
       (ALfloat)velocity.y, 
       (ALfloat)velocity.z);
 
-    if (alErrorHandling::errorOccurred()) {
+    if (AlErrorHandling::errorOccurred()) {
       logger().warn("Failed to set source velocity!");
     }
   }
@@ -77,7 +77,7 @@ bool SpatializationUtils::resetSpatialization(ALuint openAlId) {
   mSourcePositions.erase(openAlId);
   
   alSourcei(openAlId, AL_SOURCE_RELATIVE, AL_TRUE);
-  if (alErrorHandling::errorOccurred()) {
+  if (AlErrorHandling::errorOccurred()) {
     logger().warn("Failed to reset source position specification to relative!");
     return false;
   }
@@ -86,7 +86,7 @@ bool SpatializationUtils::resetSpatialization(ALuint openAlId) {
     (ALfloat)0.f, 
     (ALfloat)0.f, 
     (ALfloat)0.f);
-  if (alErrorHandling::errorOccurred()) {
+  if (AlErrorHandling::errorOccurred()) {
     logger().warn("Failed to reset source position!");
     return false;
   }
@@ -95,7 +95,7 @@ bool SpatializationUtils::resetSpatialization(ALuint openAlId) {
     (ALfloat)0.f, 
     (ALfloat)0.f, 
     (ALfloat)0.f);
-  if (alErrorHandling::errorOccurred()) {
+  if (AlErrorHandling::errorOccurred()) {
     logger().warn("Failed to reset source velocity!");
     return false;
   }

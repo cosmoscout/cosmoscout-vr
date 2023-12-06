@@ -8,7 +8,7 @@
 #include "StreamingSource.hpp"
 #include "logger.hpp"
 #include "internal/BufferManager.hpp"
-#include "internal/alErrorHandling.hpp"
+#include "internal/AlErrorHandling.hpp"
 #include "internal/SettingsMixer.hpp"
 #include "internal/FileReader.hpp"
 
@@ -35,7 +35,7 @@ StreamingSource::StreamingSource(std::string file, int bufferLength, int queueSi
 
   // create buffers
   alGenBuffers((ALsizei) mBuffers.size(), mBuffers.data());
-  if (alErrorHandling::errorOccurred()) {
+  if (AlErrorHandling::errorOccurred()) {
     logger().warn("Failed to generate buffers!");
     return;
   }
@@ -95,7 +95,7 @@ bool StreamingSource::updateStream() {
 
     ALuint bufferId;
     alSourceUnqueueBuffers(mOpenAlId, 1, &bufferId);
-    if (alErrorHandling::errorOccurred()) {
+    if (AlErrorHandling::errorOccurred()) {
       logger().warn("Failed to unqueue buffer!");
       return false;;
     }
@@ -111,7 +111,7 @@ bool StreamingSource::updateStream() {
       fillBuffer(bufferId);
 
       alSourceQueueBuffers(mOpenAlId, 1, &bufferId);
-      if (alErrorHandling::errorOccurred()) {
+      if (AlErrorHandling::errorOccurred()) {
         logger().warn("Failed to requeue buffer!");
         return false;
       }
@@ -123,7 +123,7 @@ bool StreamingSource::updateStream() {
   alGetSourcei(mOpenAlId, AL_SOURCE_STATE, &state);
   if (state != AL_PLAYING) {
     alSourcePlay(mOpenAlId);
-    if (alErrorHandling::errorOccurred()) {
+    if (AlErrorHandling::errorOccurred()) {
       logger().warn("Failed to restart playback of streaming source!");
       return false;
     }
@@ -147,7 +147,7 @@ bool StreamingSource::setFile(std::string file) {
     
     isPlaying = true;
     alSourceStop(mOpenAlId);
-    if (alErrorHandling::errorOccurred()) {
+    if (AlErrorHandling::errorOccurred()) {
       logger().warn("Failed to stop source!");
       return false;
     }
@@ -156,7 +156,7 @@ bool StreamingSource::setFile(std::string file) {
   // remove current buffers
   ALuint buffers;
   alSourceUnqueueBuffers(mOpenAlId, (ALsizei)mBuffers.size(), &buffers);
-  if (alErrorHandling::errorOccurred()) {
+  if (AlErrorHandling::errorOccurred()) {
     logger().warn("Failed to unqueue buffers!");
   }
 
@@ -168,7 +168,7 @@ bool StreamingSource::setFile(std::string file) {
 
   if (isPlaying) {
     alSourcePlay(mOpenAlId);
-    if (alErrorHandling::errorOccurred()) {
+    if (AlErrorHandling::errorOccurred()) {
       logger().warn("Failed to restart source!");
       return false;
     }
@@ -197,7 +197,7 @@ bool StreamingSource::startStream() {
     fillBuffer(buffer);
   }
 
-  if (alErrorHandling::errorOccurred()) {
+  if (AlErrorHandling::errorOccurred()) {
     logger().warn("Failed the inital stream buffering for: {}", mFile);
     return false;
   }
@@ -205,7 +205,7 @@ bool StreamingSource::startStream() {
   // queue buffer
   alSourceQueueBuffers(mOpenAlId, (ALsizei)mBuffers.size(), mBuffers.data());
 
-  if (alErrorHandling::errorOccurred()) {
+  if (AlErrorHandling::errorOccurred()) {
     logger().warn("Failed to queue the stream buffers for: {}", mFile);
     return false;
   }
@@ -232,7 +232,7 @@ void StreamingSource::fillBuffer(ALuint buffer) {
         std::get<std::vector<int>>(mAudioContainer.audioData).data(),
         (ALsizei)mAudioContainer.bufferSize, mAudioContainer.sfInfo.samplerate);
   }
-  if (alErrorHandling::errorOccurred()) {
+  if (AlErrorHandling::errorOccurred()) {
     logger().warn("Failed to fill buffer for: {}...", mFile);
     mAudioContainer.print();
     return;

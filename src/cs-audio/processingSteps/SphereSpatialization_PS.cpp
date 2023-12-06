@@ -6,7 +6,7 @@
 // SPDX-License-Identifier: MIT
 
 #include "SphereSpatialization_PS.hpp"
-#include "../internal/alErrorHandling.hpp"
+#include "../internal/AlErrorHandling.hpp"
 #include "../logger.hpp"
 #include <cmath>
 #include <glm/detail/type_vec3.hpp>
@@ -125,7 +125,7 @@ bool SphereSpatialization_PS::processSpatialization(std::shared_ptr<SourceBase> 
   // Set source position to Observer Pos if the Observer is inside the source radius.
   // Otherwise set to the real position.
   alSourcei(openAlId, AL_SOURCE_RELATIVE, AL_FALSE);
-  if (alErrorHandling::errorOccurred()) {
+  if (AlErrorHandling::errorOccurred()) {
     logger().warn("Failed to set source position specification to absolute!");
     return false;
   }
@@ -135,7 +135,7 @@ bool SphereSpatialization_PS::processSpatialization(std::shared_ptr<SourceBase> 
       (ALfloat)0.f, 
       (ALfloat)0.f, 
       (ALfloat)0.f);
-    if (alErrorHandling::errorOccurred()) {
+    if (AlErrorHandling::errorOccurred()) {
       logger().warn("Failed to set source position!");
       return false;
     }
@@ -145,7 +145,7 @@ bool SphereSpatialization_PS::processSpatialization(std::shared_ptr<SourceBase> 
       (ALfloat)sourcePosToObserver.x, 
       (ALfloat)sourcePosToObserver.y, 
       (ALfloat)sourcePosToObserver.z);
-    if (alErrorHandling::errorOccurred()) {
+    if (AlErrorHandling::errorOccurred()) {
       logger().warn("Failed to set source position!");
       return false;
     }

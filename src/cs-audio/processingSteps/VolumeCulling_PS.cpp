@@ -6,7 +6,7 @@
 // SPDX-License-Identifier: MIT
 
 #include "VolumeCulling_PS.hpp"
-#include "../internal/alErrorHandling.hpp"
+#include "../internal/AlErrorHandling.hpp"
 #include "../logger.hpp"
 
 #include <AL/al.h>
@@ -61,7 +61,7 @@ bool VolumeCulling_PS::processPosition(std::shared_ptr<SourceBase> source, std::
     if (position.type() == typeid(std::string) && std::any_cast<std::string>(position) == "remove") { 
 
       alSourceStop(openALId);
-      if (alErrorHandling::errorOccurred()) {
+      if (AlErrorHandling::errorOccurred()) {
         logger().warn("Failed to stop source playback!");
         return false;
       }
@@ -111,7 +111,7 @@ bool VolumeCulling_PS::processPosition(std::shared_ptr<SourceBase> source, std::
 
       case AL_PLAYING:
         alSourceStop(openALId);
-        if (alErrorHandling::errorOccurred()) {
+        if (AlErrorHandling::errorOccurred()) {
           logger().warn("Failed to stop playback of source!");
           return false;
         }
@@ -119,7 +119,7 @@ bool VolumeCulling_PS::processPosition(std::shared_ptr<SourceBase> source, std::
 
       case AL_PAUSED:
         alSourceStop(openALId);
-        if (alErrorHandling::errorOccurred()) {
+        if (AlErrorHandling::errorOccurred()) {
           logger().warn("Failed to stop playback of source!");
           return false;
         }
@@ -136,7 +136,7 @@ bool VolumeCulling_PS::processPosition(std::shared_ptr<SourceBase> source, std::
 
       case AL_PLAYING:
         alSourcePause(openALId);
-        if (alErrorHandling::errorOccurred()) {
+        if (AlErrorHandling::errorOccurred()) {
           logger().warn("Failed to pause playback of source!");
           return false;
         }
@@ -144,7 +144,7 @@ bool VolumeCulling_PS::processPosition(std::shared_ptr<SourceBase> source, std::
 
       case AL_STOPPED:
         alSourcePause(openALId);
-        if (alErrorHandling::errorOccurred()) {
+        if (AlErrorHandling::errorOccurred()) {
           logger().warn("Failed to pause playback of source!");
           return false;
         }
@@ -211,7 +211,7 @@ bool VolumeCulling_PS::processPosition(std::shared_ptr<SourceBase> source, std::
     if (supposedVolume < mGainThreshold) {
       if (isState != AL_PAUSED && isState != AL_INITIAL) {
         alSourcePause(openALId);
-        if (alErrorHandling::errorOccurred()) {
+        if (AlErrorHandling::errorOccurred()) {
           logger().warn("Failed to pause playback of source!");
           return false;
         }
@@ -219,7 +219,7 @@ bool VolumeCulling_PS::processPosition(std::shared_ptr<SourceBase> source, std::
     } else {
       if (isState != AL_PLAYING) {
         alSourcePlay(openALId);
-        if (alErrorHandling::errorOccurred()) {
+        if (AlErrorHandling::errorOccurred()) {
           logger().warn("Failed to start playback of source!");
           return false;
         }

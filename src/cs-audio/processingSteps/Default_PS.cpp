@@ -6,7 +6,7 @@
 // SPDX-License-Identifier: MIT
 
 #include "Default_PS.hpp"
-#include "../internal/alErrorHandling.hpp"
+#include "../internal/AlErrorHandling.hpp"
 #include "../logger.hpp"
 #include "../StreamingSource.hpp"
 
@@ -61,7 +61,7 @@ bool Default_PS::processGain(ALuint openAlId, std::any value) {
       if (value.type() == typeid(std::string) && std::any_cast<std::string>(value) == "remove") { 
         
         alSourcef(openAlId, AL_GAIN, 1.f);
-        if (alErrorHandling::errorOccurred()) {
+        if (AlErrorHandling::errorOccurred()) {
           logger().warn("Failed to reset source gain!");
           return false;
         }
@@ -82,7 +82,7 @@ bool Default_PS::processGain(ALuint openAlId, std::any value) {
 
     alSourcef(openAlId, AL_GAIN, floatValue);
 
-    if (alErrorHandling::errorOccurred()) {
+    if (AlErrorHandling::errorOccurred()) {
       logger().warn("Failed to set source gain!");
       return false;
     }
@@ -99,7 +99,7 @@ bool Default_PS::processLooping(std::shared_ptr<SourceBase> source, std::any val
     if (value.type() == typeid(std::string) && std::any_cast<std::string>(value) == "remove") { 
       
       alSourcei(openAlId, AL_LOOPING, AL_FALSE);
-      if (alErrorHandling::errorOccurred()) {
+      if (AlErrorHandling::errorOccurred()) {
         logger().warn("Failed to reset source looping!");
         return false;
       }
@@ -119,7 +119,7 @@ bool Default_PS::processLooping(std::shared_ptr<SourceBase> source, std::any val
   }
 
   alSourcei(openAlId, AL_LOOPING, std::any_cast<bool>(value));
-  if (alErrorHandling::errorOccurred()) {
+  if (AlErrorHandling::errorOccurred()) {
     logger().warn("Failed to set source looping!");
     return false;
   }
@@ -136,7 +136,7 @@ bool Default_PS::processPitch(ALuint openAlId, std::any value) {
     if (value.type() == typeid(std::string) && std::any_cast<std::string>(value) == "remove") { 
       
       alSourcef(openAlId, AL_PITCH, 1.f);
-      if (alErrorHandling::errorOccurred()) {
+      if (AlErrorHandling::errorOccurred()) {
         logger().warn("Failed to reset source pitch!");
         return false;
       }
@@ -157,7 +157,7 @@ bool Default_PS::processPitch(ALuint openAlId, std::any value) {
   
   alSourcef(openAlId, AL_PITCH, floatValue);
   
-  if (alErrorHandling::errorOccurred()) {
+  if (AlErrorHandling::errorOccurred()) {
     logger().warn("Failed to set source pitch!");
     return false;
   }

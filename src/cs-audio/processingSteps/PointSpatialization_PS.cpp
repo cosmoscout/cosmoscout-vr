@@ -6,7 +6,7 @@
 // SPDX-License-Identifier: MIT
 
 #include "PointSpatialization_PS.hpp"
-#include "../internal/alErrorHandling.hpp"
+#include "../internal/AlErrorHandling.hpp"
 #include "../logger.hpp"
 
 #include <AL/al.h>
@@ -61,7 +61,7 @@ bool PointSpatialization_PS::processPosition(std::shared_ptr<SourceBase> source,
   ALuint openAlId = source->getOpenAlId();
 
   alSourcei(openAlId, AL_SOURCE_RELATIVE, AL_FALSE);
-  if (alErrorHandling::errorOccurred()) {
+  if (AlErrorHandling::errorOccurred()) {
     logger().warn("Failed to set source position specification to absolute!");
     return false;
   }
@@ -74,7 +74,7 @@ bool PointSpatialization_PS::processPosition(std::shared_ptr<SourceBase> source,
     (ALfloat)positionValue.y, 
     (ALfloat)positionValue.z);
   
-  if (alErrorHandling::errorOccurred()) {
+  if (AlErrorHandling::errorOccurred()) {
     logger().warn("Failed to set source position!");
     return false;
   }

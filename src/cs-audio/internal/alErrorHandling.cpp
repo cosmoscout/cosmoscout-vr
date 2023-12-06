@@ -5,12 +5,12 @@
 // SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
 // SPDX-License-Identifier: MIT
 
-#include "alErrorHandling.hpp"
+#include "AlErrorHandling.hpp"
 #include "../logger.hpp"
 
 namespace cs::audio {
 
-bool alErrorHandling::errorOccurred() {
+bool AlErrorHandling::errorOccurred() {
   ALenum error;
   if ((error = alGetError()) != AL_NO_ERROR) {
 

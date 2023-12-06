@@ -8,7 +8,7 @@
 #include "Source.hpp"
 #include "logger.hpp"
 #include "internal/BufferManager.hpp"
-#include "internal/alErrorHandling.hpp"
+#include "internal/AlErrorHandling.hpp"
 #include "internal/SettingsMixer.hpp"
 
 #include <AL/al.h>
@@ -37,7 +37,7 @@ Source::Source(std::shared_ptr<BufferManager> bufferManager,
   }
   // bind buffer to source
   alSourcei(mOpenAlId, AL_BUFFER, buffer.second);
-  if (alErrorHandling::errorOccurred()) {
+  if (AlErrorHandling::errorOccurred()) {
     logger().warn("Failed to bind buffer to source!");
     return;
   }
@@ -73,7 +73,7 @@ bool Source::setFile(std::string file) {
 
   // remove current buffer
   alSourcei(mOpenAlId, AL_BUFFER, 0);
-  if (alErrorHandling::errorOccurred()) {
+  if (AlErrorHandling::errorOccurred()) {
     logger().warn("Failed to remove buffer from source!");
     return false;
   }
@@ -92,7 +92,7 @@ bool Source::setFile(std::string file) {
     return false;
   }
   alSourcei(mOpenAlId, AL_BUFFER, buffer.second);
-  if (alErrorHandling::errorOccurred()) {
+  if (AlErrorHandling::errorOccurred()) {
     logger().warn("Failed to bind buffer to source!");
     return false;
   }

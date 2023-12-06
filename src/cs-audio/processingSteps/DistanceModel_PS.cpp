@@ -6,7 +6,7 @@
 // SPDX-License-Identifier: MIT
 
 #include "DistanceModel_PS.hpp"
-#include "../internal/alErrorHandling.hpp"
+#include "../internal/AlErrorHandling.hpp"
 #include "../logger.hpp"
 #include "../../cs-scene/CelestialAnchor.hpp"
 #include "../../cs-scene/CelestialSurface.hpp"
@@ -77,7 +77,7 @@ bool DistanceModel_PS::processModel(ALuint openALId, std::any model) {
 
   if (modelValue == "inverse") {
     alSourcei(openALId, AL_DISTANCE_MODEL, AL_INVERSE_DISTANCE_CLAMPED);
-    if (alErrorHandling::errorOccurred()) {
+    if (AlErrorHandling::errorOccurred()) {
       logger().warn("Failed to set the distance model of a source!");
       return false;
     }
@@ -86,7 +86,7 @@ bool DistanceModel_PS::processModel(ALuint openALId, std::any model) {
 
   if (modelValue == "exponent") {
     alSourcei(openALId, AL_DISTANCE_MODEL, AL_EXPONENT_DISTANCE_CLAMPED);
-    if (alErrorHandling::errorOccurred()) {
+    if (AlErrorHandling::errorOccurred()) {
       logger().warn("Failed to set the distance model of a source!");
       return false;
     }
@@ -95,7 +95,7 @@ bool DistanceModel_PS::processModel(ALuint openALId, std::any model) {
 
   if (modelValue == "linear") {
     alSourcei(openALId, AL_DISTANCE_MODEL, AL_LINEAR_DISTANCE_CLAMPED);
-    if (alErrorHandling::errorOccurred()) {
+    if (AlErrorHandling::errorOccurred()) {
       logger().warn("Failed to set the distance model of a source!");
       return false;
     }
@@ -104,7 +104,7 @@ bool DistanceModel_PS::processModel(ALuint openALId, std::any model) {
 
   if (modelValue == "none") {
     alSourcei(openALId, AL_DISTANCE_MODEL, AL_NONE);
-    if (alErrorHandling::errorOccurred()) {
+    if (AlErrorHandling::errorOccurred()) {
       logger().warn("Failed to set the distance model of a source!");
       return false;
     }
@@ -122,7 +122,7 @@ bool DistanceModel_PS::processFallOffStart(ALuint openALId, std::any fallOffStar
 
     if (fallOffStart.type() == typeid(std::string) && std::any_cast<std::string>(fallOffStart) == "remove") {
       alSourcei(openALId, AL_REFERENCE_DISTANCE, 1);
-      if (alErrorHandling::errorOccurred()) {
+      if (AlErrorHandling::errorOccurred()) {
         logger().warn("Failed to reset the fallOffStart setting of a source!");
         return false;
       }
@@ -136,7 +136,7 @@ bool DistanceModel_PS::processFallOffStart(ALuint openALId, std::any fallOffStar
   auto fallOffStartValue = std::any_cast<float>(fallOffStart);
 
   alSourcef(openALId, AL_REFERENCE_DISTANCE, fallOffStartValue);
-  if (alErrorHandling::errorOccurred()) {
+  if (AlErrorHandling::errorOccurred()) {
     logger().warn("Failed to set the fallOffStart setting of a source!");
     return false;
   }
@@ -148,7 +148,7 @@ bool DistanceModel_PS::processFallOffEnd(ALuint openALId, std::any fallOffEnd) {
 
     if (fallOffEnd.type() == typeid(std::string) && std::any_cast<std::string>(fallOffEnd) == "remove") {
       alSourcef(openALId, AL_MAX_DISTANCE, static_cast<ALfloat>(std::numeric_limits<float>::max()));
-      if (alErrorHandling::errorOccurred()) {
+      if (AlErrorHandling::errorOccurred()) {
         logger().warn("Failed to reset the fallOffEnd setting of a source!");
         return false;
       }
@@ -162,7 +162,7 @@ bool DistanceModel_PS::processFallOffEnd(ALuint openALId, std::any fallOffEnd) {
   auto fallOffEndValue = std::any_cast<float>(fallOffEnd);
 
   alSourcef(openALId, AL_MAX_DISTANCE, fallOffEndValue);
-  if (alErrorHandling::errorOccurred()) {
+  if (AlErrorHandling::errorOccurred()) {
     logger().warn("Failed to set the fallOffEnd setting of a source!");
     return false;
   }
@@ -174,7 +174,7 @@ bool DistanceModel_PS::processFallOffFactor(ALuint openALId, std::any fallOffFac
 
     if (fallOffFactor.type() == typeid(std::string) && std::any_cast<std::string>(fallOffFactor) == "remove") {
       alSourcei(openALId, AL_ROLLOFF_FACTOR, 1);
-      if (alErrorHandling::errorOccurred()) {
+      if (AlErrorHandling::errorOccurred()) {
         logger().warn("Failed to reset the fallOffEnd setting of a source!");
         return false;
       }
@@ -188,7 +188,7 @@ bool DistanceModel_PS::processFallOffFactor(ALuint openALId, std::any fallOffFac
   auto fallOffFactorValue = std::any_cast<float>(fallOffFactor);
 
   alSourcef(openALId, AL_ROLLOFF_FACTOR, fallOffFactorValue);
-  if (alErrorHandling::errorOccurred()) {
+  if (AlErrorHandling::errorOccurred()) {
     logger().warn("Failed to set the fallOffEnd setting of a source!");
     return false;
   }

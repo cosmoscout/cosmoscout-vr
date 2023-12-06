@@ -13,7 +13,7 @@
 
 namespace cs::audio {
  
-class CS_AUDIO_EXPORT alErrorHandling {
+class CS_AUDIO_EXPORT AlErrorHandling {
  public:
   /// @brief Checks if an OpenAL Error occurred and if so prints a logger warning containing the error.
   /// @return True if error occurred 

@@ -6,7 +6,7 @@
 // SPDX-License-Identifier: MIT
 
 #include "DirectPlay_PS.hpp"
-#include "../internal/alErrorHandling.hpp"
+#include "../internal/AlErrorHandling.hpp"
 #include "../logger.hpp"
 
 #include <AL/al.h>
@@ -49,7 +49,7 @@ bool DirectPlay_PS::processPlayback(ALuint openAlId, std::any value) {
   
   if (stringValue == "play") {
     alSourcePlay(openAlId);
-    if (alErrorHandling::errorOccurred()) {
+    if (AlErrorHandling::errorOccurred()) {
       logger().warn("Failed to start playback of source!");
       return false;
     }
@@ -58,7 +58,7 @@ bool DirectPlay_PS::processPlayback(ALuint openAlId, std::any value) {
 
   else if (stringValue == "stop") {
     alSourceStop(openAlId);
-    if (alErrorHandling::errorOccurred()) {
+    if (AlErrorHandling::errorOccurred()) {
       logger().warn("Failed to stop playback of source!");
       return false;
     }
@@ -67,7 +67,7 @@ bool DirectPlay_PS::processPlayback(ALuint openAlId, std::any value) {
 
   else if (stringValue == "pause") {
     alSourcePause(openAlId);
-    if (alErrorHandling::errorOccurred()) {
+    if (AlErrorHandling::errorOccurred()) {
       logger().warn("Failed to pause playback of source!");
       return false;
     }

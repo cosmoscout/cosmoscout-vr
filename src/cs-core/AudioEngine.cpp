@@ -17,7 +17,7 @@
 #include "../cs-audio/SourceGroup.hpp"
 #include "../cs-audio/internal/BufferManager.hpp"
 #include "../cs-audio/internal/ProcessingStepsManager.hpp"
-#include "../cs-audio/internal/alErrorHandling.hpp"
+#include "../cs-audio/internal/AlErrorHandling.hpp"
 #include "../cs-audio/internal/UpdateConstructor.hpp"
 #include "../cs-utils/Property.hpp"
 #include "../cs-utils/FrameStats.hpp"
@@ -98,7 +98,7 @@ bool AudioEngine::setMasterVolume(float gain) {
     return false;
   }
   alListenerf(AL_GAIN, (ALfloat) gain);
-  if (audio::alErrorHandling::errorOccurred()) {
+  if (audio::AlErrorHandling::errorOccurred()) {
     logger().warn("Failed to set master volume!");
     return false;
   }
