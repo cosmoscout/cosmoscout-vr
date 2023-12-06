@@ -23,9 +23,9 @@ namespace cs::audio {
 StreamingSource::StreamingSource(std::string file, int bufferLength, int queueSize,
   std::shared_ptr<UpdateInstructor> UpdateInstructor)
   : SourceBase(file, UpdateInstructor)
-  , mBufferLength(std::move(bufferLength))
   , mBuffers(std::vector<ALuint>(queueSize)) 
   , mAudioContainer(FileReader::AudioContainerStreaming()) 
+  , mBufferLength(std::move(bufferLength))
   , mRefillBuffer(true) 
   , mNotPlaying(true) { 
 

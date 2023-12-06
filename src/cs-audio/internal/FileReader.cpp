@@ -358,10 +358,12 @@ bool FileReader::getNextStreamBlock(AudioContainerStreaming& audioContainer) {
     default:
       slen = sf_read_raw(audioContainer.sndFile, std::get<std::vector<int>>(audioContainer.audioData).data(),
         audioContainer.blockCount * audioContainer.splblockalign);
-      if (slen > 0)
+      if (slen > 0) {
         slen -= slen % audioContainer.byteblockalign;
-      if (slen < 1)
+      }
+      if (slen < 1) {
         sf_seek(audioContainer.sndFile, 0, SEEK_SET);
+      }
         
         if (audioContainer.isLooping) {
           return getNextStreamBlock(audioContainer);
