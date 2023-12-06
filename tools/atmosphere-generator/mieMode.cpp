@@ -6,6 +6,7 @@
 // SPDX-License-Identifier: MIT
 
 #include "../../src/cs-utils/CommandLine.hpp"
+#include "../../src/cs-utils/utils.hpp"
 #include "bhmie.hpp"
 
 #include <glm/gtc/constants.hpp>
@@ -20,11 +21,9 @@ enum class DistributionType { eGamma, eModifiedGamma, eLogNormal, eModifiedLogNo
 typedef std::map<double, std::complex<double>> IoRSpectrum;
 
 struct SamplingSettings {
-  double  minLambda     = 0.36;
-  double  maxLambda     = 0.83;
-  int32_t lambdaSteps   = 15;
-  int32_t thetaSteps    = 1024;
-  int32_t radiusSamples = 1000;
+  std::vector<double> lambdas;
+  int32_t             thetaSamples  = 91;
+  int32_t             radiusSamples = 1000;
 };
 
 struct Distribution {
@@ -160,16 +159,16 @@ std::vector<double> fillVector(double min, double max, size_t count) {
   return result;
 }
 
-MieResult mieDisperse(
-    int32_t thetaSteps, double lambda, std::complex<double> ior, std::vector<double> const& radii) {
+MieResult mieDisperse(int32_t thetaSamples, double lambda, std::complex<double> ior,
+    std::vector<double> const& radii) {
 
   MieResult result;
-  result.phase = std::vector<double>(2 * thetaSteps - 1);
+  result.phase = std::vector<double>(2 * thetaSamples - 1);
   result.cAbs  = 0.0;
   result.cSca  = 0.0;
 
-  std::vector<std::complex<double>> cxs1(2 * thetaSteps);
-  std::vector<std::complex<double>> cxs2(2 * thetaSteps);
+  std::vector<std::complex<double>> cxs1(2 * thetaSamples);
+  std::vector<std::complex<double>> cxs2(2 * thetaSamples);
 
   double totalWeight = 0.0;
 
@@ -177,7 +176,7 @@ MieResult mieDisperse(
     double x = 2.0 * r * glm::pi<double>() / lambda;
     double qext, qsca, qback, gsca;
 
-    bhmie(x, ior, thetaSteps, cxs1, cxs2, &qext, &qsca, &qback, &gsca);
+    bhmie(x, ior, thetaSamples, cxs1, cxs2, &qext, &qsca, &qback, &gsca);
 
     double normalization = glm::pi<double>() * x * x * qsca;
 
@@ -185,7 +184,7 @@ MieResult mieDisperse(
     double cext = qext * glm::pi<double>() * r * r;
     totalWeight += csca;
 
-    for (int32_t i(0); i < thetaSteps * 2 - 1; ++i) {
+    for (int32_t i(0); i < thetaSamples * 2 - 1; ++i) {
       double intensity =
           0.5 * (std::pow(std::abs(cxs1[i + 1]), 2.f) + std::pow(std::abs(cxs2[i + 1]), 2.f));
 
@@ -206,31 +205,80 @@ MieResult mieDisperse(
   return result;
 }
 
+std::vector<double> sampleRadii(
+    DistributionType type, int32_t count, double paramA, double paramB) {
+
+  std::random_device rd{};
+  std::mt19937       gen{rd()};
+
+  std::vector<double> radii(count);
+
+  if (type == DistributionType::eGamma || type == DistributionType::eModifiedGamma) {
+
+    double shape = paramA;
+    double scale = paramB;
+
+    if (type == DistributionType::eModifiedGamma) {
+      shape = (1.0 - 2.0 * paramB) / paramB;
+      scale = paramA * paramB;
+    }
+
+    std::gamma_distribution<> d(shape, scale);
+
+    for (int32_t i(0); i < count; ++i) {
+      radii[i] = d(gen);
+    }
+
+  } else if (type == DistributionType::eLogNormal || type == DistributionType::eModifiedLogNormal) {
+
+    double mean  = paramA;
+    double sigma = paramB;
+
+    if (type == DistributionType::eModifiedLogNormal) {
+      double s2 = std::log(paramB + 1);
+      mean      = std::log(paramA) - 2.5 * s2;
+      sigma     = std::sqrt(s2);
+    }
+
+    std::lognormal_distribution<> d(mean, sigma);
+
+    for (int32_t i(0); i < count; ++i) {
+      radii[i] = d(gen);
+    }
+  }
+
+  return radii;
+}
+
 int mieMode(std::vector<std::string> const& arguments) {
 
   SamplingSettings samplingSettings;
-  bool             cPrintHelp = false;
-  std::string      cInput     = "";
-  std::string      cOutput    = "particles.csv";
+  bool             cPrintHelp     = false;
+  std::string      cInput         = "";
+  std::string      cOutput        = "particles.csv";
+  std::string      cLambdas       = "";
+  double           cMinLambda     = 0.36;
+  double           cMaxLambda     = 0.83;
+  int32_t          cLambdaSamples = 15;
 
   // First configure all possible command line options.
   cs::utils::CommandLine args("Welcome to the Mie preprocessor! Here are the available options:");
   args.addArgument(
       {"-i", "--input"}, &cInput, "The JSON file with the particle information (required).");
   args.addArgument({"-o", "--output"}, &cOutput,
-      "The image will be written to this CSV file (default: \"" + cOutput + "\").");
-  args.addArgument({"--min-lambda"}, &samplingSettings.minLambda,
-      "The minimum wavelength in µm (default: " + std::to_string(samplingSettings.minLambda) +
-          ").");
-  args.addArgument({"--max-lambda"}, &samplingSettings.maxLambda,
-      "The maximum wavelength in µm (default: " + std::to_string(samplingSettings.maxLambda) +
-          ").");
-  args.addArgument({"--lambda-steps"}, &samplingSettings.lambdaSteps,
-      "The number of wavelengths to compute (default: " +
-          std::to_string(samplingSettings.lambdaSteps) + ").");
-  args.addArgument({"--theta-steps"}, &samplingSettings.thetaSteps,
-      "The number of angles to compute (default: " + std::to_string(samplingSettings.thetaSteps) +
-          ").");
+      "The scattering data will be written to this CSV file (default: \"" + cOutput + "\").");
+  args.addArgument({"--min-lambda"}, &cMinLambda,
+      "The minimum wavelength in µm (default: " + std::to_string(cMinLambda) + ").");
+  args.addArgument({"--max-lambda"}, &cMaxLambda,
+      "The maximum wavelength in µm (default: " + std::to_string(cMaxLambda) + ").");
+  args.addArgument({"--lambda-samples"}, &cLambdaSamples,
+      "The number of wavelengths to compute (default: " + std::to_string(cLambdaSamples) + ").");
+  args.addArgument({"--lambdas"}, &cLambdas,
+      "A comma-separated list of wavelengths in µm. If provided, --min-lambda, --max-lambda, and "
+      "--lambda-samples are ignored.");
+  args.addArgument({"--theta-samples"}, &samplingSettings.thetaSamples,
+      "The number of angles to compute between 0° and 90° (default: " +
+          std::to_string(samplingSettings.thetaSamples) + ").");
   args.addArgument({"--radius-samples"}, &samplingSettings.radiusSamples,
       "The number of particles to compute per size mode (default: " +
           std::to_string(samplingSettings.radiusSamples) + ").");
@@ -256,6 +304,15 @@ int mieMode(std::vector<std::string> const& arguments) {
     return 1;
   }
 
+  if (cLambdas.empty()) {
+    samplingSettings.lambdas = fillVector(cMinLambda, cMaxLambda, cLambdaSamples);
+  } else {
+    auto tokens = cs::utils::splitString(cLambdas, ',');
+    for (auto token : tokens) {
+      samplingSettings.lambdas.push_back(cs::utils::fromString<double>(token));
+    }
+  }
+
   std::ifstream  stream(cInput);
   nlohmann::json json;
   stream >> json;
@@ -267,13 +324,10 @@ int mieMode(std::vector<std::string> const& arguments) {
     return 1;
   }
 
-  std::vector<double> lambdas = fillVector(
-      samplingSettings.minLambda, samplingSettings.maxLambda, samplingSettings.lambdaSteps);
+  std::vector<std::complex<double>> ior(samplingSettings.lambdas.size());
 
-  std::vector<std::complex<double>> ior(samplingSettings.lambdaSteps);
-
-  for (int32_t i(0); i < samplingSettings.lambdaSteps; ++i) {
-    double lambda = lambdas[i];
+  for (size_t i(0); i < samplingSettings.lambdas.size(); ++i) {
+    double lambda = samplingSettings.lambdas[i];
     if (particleSettings.inclusion) {
       auto   inclusionIoR = getRefractiveIndex(lambda, particleSettings.inclusion.value().ior);
       auto   substrateIoR = getRefractiveIndex(lambda, particleSettings.ior);
@@ -284,68 +338,56 @@ int mieMode(std::vector<std::string> const& arguments) {
     }
   }
 
-  double totalModeWeight = 0.0;
+  std::ofstream output(cOutput);
 
-  for (int32_t i(0); i < samplingSettings.lambdaSteps; ++i) {
-    double              lambda = lambdas[i];
-    std::vector<double> phase(samplingSettings.thetaSteps * 2 - 1);
+  int32_t totalAngles = samplingSettings.thetaSamples * 2 - 1;
+
+  output << "lambda,c_sca,c_abs";
+
+  for (int32_t t(0); t < totalAngles; ++t) {
+    output << "," << 180.0 * t / (totalAngles - 1.0);
+  }
+
+  output << std::endl;
+
+  for (size_t l(0); l < samplingSettings.lambdas.size(); ++l) {
+
+    double lambda = samplingSettings.lambdas[l];
+
+    std::vector<double> phase(totalAngles);
+    double              cSca = 0.0;
+    double              cAbs = 0.0;
+
+    double totalCoeffWeight = 0.0;
+    double totalPhaseWeight = 0.0;
 
     for (auto sizeMode : particleSettings.sizeModes) {
-      std::random_device rd{};
-      std::mt19937       gen{rd()};
+      auto radii = sampleRadii(sizeMode.sizeDistribution, samplingSettings.radiusSamples,
+          sizeMode.paramA, sizeMode.paramB);
 
-      std::vector<double> radii(samplingSettings.radiusSamples);
+      auto mieResult = mieDisperse(samplingSettings.thetaSamples, lambda, ior[l], radii);
 
-      if (sizeMode.sizeDistribution == DistributionType::eGamma ||
-          sizeMode.sizeDistribution == DistributionType::eModifiedGamma) {
+      double coeffWeight = sizeMode.relativeAmount;
+      double phaseWeight = coeffWeight * mieResult.cSca;
 
-        double shape = sizeMode.paramA;
-        double scale = sizeMode.paramB;
+      totalCoeffWeight += coeffWeight;
+      totalPhaseWeight += phaseWeight;
 
-        if (sizeMode.sizeDistribution == DistributionType::eModifiedGamma) {
-          shape = (1.0 - 2.0 * sizeMode.paramB) / sizeMode.paramB;
-          scale = sizeMode.paramA * sizeMode.paramB;
-        }
-
-        std::gamma_distribution<> d(shape, scale);
-
-        for (int32_t i(0); i < samplingSettings.radiusSamples; ++i) {
-          radii[i] = d(gen);
-        }
-
-      } else if (sizeMode.sizeDistribution == DistributionType::eLogNormal ||
-                 sizeMode.sizeDistribution == DistributionType::eModifiedLogNormal) {
-
-        double mean  = sizeMode.paramA;
-        double sigma = sizeMode.paramB;
-
-        if (sizeMode.sizeDistribution == DistributionType::eModifiedLogNormal) {
-          double s2 = std::log(sizeMode.paramB + 1);
-          mean      = std::log(sizeMode.paramA) - 2.5 * s2;
-          sigma     = std::sqrt(s2);
-        }
-
-        std::lognormal_distribution<> d(mean, sigma);
-
-        for (int32_t i(0); i < samplingSettings.radiusSamples; ++i) {
-          radii[i] = d(gen);
-        }
-      }
-
-      auto   mieResult = mieDisperse(samplingSettings.thetaSteps, lambda, ior[i], radii);
-      double weight    = sizeMode.relativeAmount * mieResult.cSca;
-      totalModeWeight += weight;
+      cSca += mieResult.cSca * coeffWeight;
+      cAbs += mieResult.cAbs * coeffWeight;
 
       for (size_t i(0); i < mieResult.phase.size(); ++i) {
-        phase[i] += mieResult.phase[i] * weight;
+        phase[i] += mieResult.phase[i] * phaseWeight;
       }
     }
 
-    std::cout << std::endl;
-    std::cout << "Phase Function for lambda = " << lambda << " µm" << std::endl;
+    output << lambda << "," << cSca / totalCoeffWeight << "," << cAbs / totalCoeffWeight;
+
     for (double p : phase) {
-      std::cout << p / totalModeWeight << std::endl;
+      output << "," << p / totalPhaseWeight;
     }
+
+    output << std::endl;
   }
 
   return 0;
