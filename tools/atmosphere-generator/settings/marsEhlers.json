@@ -1,10 +1,10 @@
 {
     "sizeModes": [
         {
-            "sizeDistribution": "modifiedGamma",
+            "type": "modifiedGamma",
             "effectiveRadius": 1.6,
             "effectiveVariance": 0.2,
-            "relativeAmount": 1
+            "relativeNumberDensity": 1
         }
     ],
     "ior": [

@@ -1,16 +1,16 @@
 {
     "sizeModes": [
         {
-            "sizeDistribution": "logNormal",
+            "type": "logNormal",
             "mean": -2.5,
             "sigma": 0.6,
-            "relativeAmount": 10000
+            "relativeNumberDensity": 10000
         },
         {
-            "sizeDistribution": "logNormal",
+            "type": "logNormal",
             "mean": 0.2,
             "sigma": 0.6,
-            "relativeAmount": 1
+            "relativeNumberDensity": 1
         }
     ],
     "ior": [

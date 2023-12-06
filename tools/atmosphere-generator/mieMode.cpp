@@ -5,6 +5,8 @@
 // SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
 // SPDX-License-Identifier: MIT
 
+#include "mieMode.hpp"
+
 #include "../../src/cs-utils/CommandLine.hpp"
 #include "../../src/cs-utils/utils.hpp"
 #include "bhmie.hpp"
@@ -17,33 +19,7 @@
 #include <map>
 #include <random>
 
-enum class DistributionType { eGamma, eModifiedGamma, eLogNormal, eModifiedLogNormal };
-typedef std::map<double, std::complex<double>> IoRSpectrum;
-
-struct Distribution {
-  DistributionType sizeDistribution;
-  double           paramA;
-  double           paramB;
-  double           relativeAmount;
-};
-
-struct ParticleInclusion {
-  double      fraction;
-  IoRSpectrum ior;
-};
-
-struct ParticleSettings {
-  std::vector<Distribution>        sizeModes;
-  IoRSpectrum                      ior;
-  std::optional<ParticleInclusion> inclusion;
-};
-
-struct MieResult {
-  std::vector<double> phase;
-  double              cSca;
-  double              cAbs;
-};
-
+// Allow deserialization of std::complex types using nlohmann::json.
 namespace nlohmann {
 template <typename T>
 struct adl_serializer<std::complex<T>> {
@@ -57,6 +33,17 @@ struct adl_serializer<std::complex<T>> {
 };
 } // namespace nlohmann
 
+namespace {
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// The particle sizes can be distributed according to various random distributions. For now,      //
+// Gamma- and LogNormal distributions are supported. The modified variants take effective radii   //
+// and variances as input parameters.                                                             //
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+enum class DistributionType { eGamma, eModifiedGamma, eLogNormal, eModifiedLogNormal };
+
+// Make the DistributionTypes available for JSON deserialization.
 NLOHMANN_JSON_SERIALIZE_ENUM(
     DistributionType, {
                           {DistributionType::eGamma, "gamma"},
@@ -65,11 +52,32 @@ NLOHMANN_JSON_SERIALIZE_ENUM(
                           {DistributionType::eModifiedLogNormal, "modifiedLogNormal"},
                       })
 
-void from_json(nlohmann::json const& j, Distribution& s) {
-  j.at("sizeDistribution").get_to(s.sizeDistribution);
-  j.at("relativeAmount").get_to(s.relativeAmount);
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// This type describes a particle size distribution. Depending on the type, the parameters A and  //
+// B will store different things.                                                                 //
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
-  switch (s.sizeDistribution) {
+struct Distribution {
+  DistributionType type;
+
+  // Shape for gamma distribution, Mean for log-normal distribution, and Effective Radius for the
+  // modified variants.
+  double paramA;
+
+  // Scale for gamma distribution, Sigma for log-normal distribution, and Effective Variance for the
+  // modified variants.
+  double paramB;
+
+  // This is used in multi-modal distributions to compute the weight of this mode.
+  double relativeNumberDensity;
+};
+
+// Make this type available for JSON deserialization.
+void from_json(nlohmann::json const& j, Distribution& s) {
+  j.at("type").get_to(s.type);
+  j.at("relativeNumberDensity").get_to(s.relativeNumberDensity);
+
+  switch (s.type) {
   case DistributionType::eGamma:
     j.at("shape").get_to(s.paramA);
     j.at("scale").get_to(s.paramB);
@@ -89,22 +97,60 @@ void from_json(nlohmann::json const& j, Distribution& s) {
   }
 }
 
-void from_json(nlohmann::json const& j, ParticleInclusion& s) {
-  j.at("fraction").get_to(s.fraction);
-  j.at("ior").get_to(s.ior);
-}
+std::vector<double> sampleRadii(
+    DistributionType type, int32_t count, double paramA, double paramB) {
 
-void from_json(nlohmann::json const& j, ParticleSettings& s) {
-  j.at("sizeModes").get_to(s.sizeModes);
-  j.at("ior").get_to(s.ior);
+  std::random_device rd{};
+  std::mt19937       gen{rd()};
 
-  if (j.contains("inclusion")) {
-    ParticleInclusion inclusion;
-    j.at("inclusion").get_to(inclusion);
-    s.inclusion = inclusion;
+  std::vector<double> radii(count);
+
+  if (type == DistributionType::eGamma || type == DistributionType::eModifiedGamma) {
+
+    double shape = paramA;
+    double scale = paramB;
+
+    if (type == DistributionType::eModifiedGamma) {
+      shape = (1.0 - 2.0 * paramB) / paramB;
+      scale = paramA * paramB;
+    }
+
+    std::gamma_distribution<> d(shape, scale);
+
+    for (int32_t i(0); i < count; ++i) {
+      radii[i] = d(gen);
+    }
+
+  } else if (type == DistributionType::eLogNormal || type == DistributionType::eModifiedLogNormal) {
+
+    double mean  = paramA;
+    double sigma = paramB;
+
+    if (type == DistributionType::eModifiedLogNormal) {
+      double s2 = std::log(paramB + 1);
+      mean      = std::log(paramA) - 2.5 * s2;
+      sigma     = std::sqrt(s2);
+    }
+
+    std::lognormal_distribution<> d(mean, sigma);
+
+    for (int32_t i(0); i < count; ++i) {
+      radii[i] = d(gen);
+    }
   }
+
+  return radii;
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// This type is used to store a wavelength-dependent complex refractive index. The key in the map //
+// is a wavelength in µm.                                                                         //
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+typedef std::map<double, std::complex<double>> IoRSpectrum;
+
+// This retrieves an index of refraction for a given lambda in µm from an IoRSpectrum by linear
+// interpolation. The given lambda will be clamped to the covered spectrum.
 std::complex<double> getRefractiveIndex(double lambda, IoRSpectrum const& iorSpectrum) {
 
   if (lambda <= iorSpectrum.begin()->first) {
@@ -125,6 +171,49 @@ std::complex<double> getRefractiveIndex(double lambda, IoRSpectrum const& iorSpe
   return lower->second + alpha * (upper->second - lower->second);
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// This struct describes a type of particles. The particle type is defined by a multi-modal size  //
+// distribution and a potentially complex and wavelength-dependent index of refraction.           //
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+struct ParticleSettings {
+
+  // The particle sizes can follow a mixture of various random distributions.
+  std::vector<Distribution> sizeModes;
+
+  // The potentially complex and wavelength-dependent index of refraction of the particles. If an
+  // inclusion is given, the imaginary part of this index of refraction will be ignored.
+  IoRSpectrum ior;
+
+  // The particles can have a fraction of another material included. This will be incorporated into
+  // the final IoR using the Maxwell-Garnett Mixing-Rule.
+  struct Inclusion {
+    double      fraction;
+    IoRSpectrum ior;
+  };
+
+  std::optional<Inclusion> inclusion;
+};
+
+// Make this type available for JSON deserialization.
+void from_json(nlohmann::json const& j, ParticleSettings::Inclusion& s) {
+  j.at("fraction").get_to(s.fraction);
+  j.at("ior").get_to(s.ior);
+}
+
+void from_json(nlohmann::json const& j, ParticleSettings& s) {
+  j.at("sizeModes").get_to(s.sizeModes);
+  j.at("ior").get_to(s.ior);
+
+  if (j.contains("inclusion")) {
+    ParticleSettings::Inclusion inclusion;
+    j.at("inclusion").get_to(inclusion);
+    s.inclusion = inclusion;
+  }
+}
+
+// Computes the combined index of refraction of two materials. The inclusion material can have a
+// complex index of refraction.
 std::complex<double> maxwellGarnett(
     std::complex<double> inclusionIoR, double substrateIoR, double fraction) {
   auto inclusionIoR2 = inclusionIoR * inclusionIoR;
@@ -138,20 +227,14 @@ std::complex<double> maxwellGarnett(
   return std::sqrt(n2);
 }
 
-std::vector<double> fillVector(double min, double max, size_t count) {
-  std::vector<double> result(count);
+////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
-  if (count == 1) {
-    result[0] = min;
-    return result;
-  }
-
-  for (size_t i(0); i < count; ++i) {
-    result[i] = min + (max - min) * i / (count - 1.0);
-  }
-
-  return result;
-}
+struct MieResult {
+  std::vector<double> phase;
+  double              cSca;
+  double              cAbs;
+};
 
 MieResult mieDisperse(int32_t thetaSamples, double lambda, std::complex<double> ior,
     std::vector<double> const& radii) {
@@ -199,50 +282,10 @@ MieResult mieDisperse(int32_t thetaSamples, double lambda, std::complex<double> 
   return result;
 }
 
-std::vector<double> sampleRadii(
-    DistributionType type, int32_t count, double paramA, double paramB) {
+} // namespace
 
-  std::random_device rd{};
-  std::mt19937       gen{rd()};
-
-  std::vector<double> radii(count);
-
-  if (type == DistributionType::eGamma || type == DistributionType::eModifiedGamma) {
-
-    double shape = paramA;
-    double scale = paramB;
-
-    if (type == DistributionType::eModifiedGamma) {
-      shape = (1.0 - 2.0 * paramB) / paramB;
-      scale = paramA * paramB;
-    }
-
-    std::gamma_distribution<> d(shape, scale);
-
-    for (int32_t i(0); i < count; ++i) {
-      radii[i] = d(gen);
-    }
-
-  } else if (type == DistributionType::eLogNormal || type == DistributionType::eModifiedLogNormal) {
-
-    double mean  = paramA;
-    double sigma = paramB;
-
-    if (type == DistributionType::eModifiedLogNormal) {
-      double s2 = std::log(paramB + 1);
-      mean      = std::log(paramA) - 2.5 * s2;
-      sigma     = std::sqrt(s2);
-    }
-
-    std::lognormal_distribution<> d(mean, sigma);
-
-    for (int32_t i(0); i < count; ++i) {
-      radii[i] = d(gen);
-    }
-  }
-
-  return radii;
-}
+////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
 int mieMode(std::vector<std::string> const& arguments) {
 
@@ -302,7 +345,17 @@ int mieMode(std::vector<std::string> const& arguments) {
   std::vector<double> lambdas;
 
   if (cLambdas.empty()) {
-    lambdas = fillVector(cMinLambda, cMaxLambda, cLambdaSamples);
+    if (cLambdaSamples <= 0) {
+      std::cerr << "Lmabda samples must be > 0!" << std::endl;
+      return 1;
+    } else if (cLambdaSamples == 1) {
+      lambdas.push_back(cMinLambda);
+    } else {
+      for (int32_t i(0); i < cLambdaSamples; ++i) {
+        lambdas.push_back(cMinLambda + (cMaxLambda - cMinLambda) * i / (cLambdaSamples - 1.0));
+      }
+    }
+
   } else {
     auto tokens = cs::utils::splitString(cLambdas, ',');
     for (auto token : tokens) {
@@ -359,12 +412,11 @@ int mieMode(std::vector<std::string> const& arguments) {
     double totalPhaseWeight = 0.0;
 
     for (auto sizeMode : particleSettings.sizeModes) {
-      auto radii =
-          sampleRadii(sizeMode.sizeDistribution, cRadiusSamples, sizeMode.paramA, sizeMode.paramB);
+      auto radii = sampleRadii(sizeMode.type, cRadiusSamples, sizeMode.paramA, sizeMode.paramB);
 
       auto mieResult = mieDisperse(cThetaSamples, lambda, ior[l], radii);
 
-      double coeffWeight = sizeMode.relativeAmount;
+      double coeffWeight = sizeMode.relativeNumberDensity;
       double phaseWeight = coeffWeight * mieResult.cSca;
 
       totalCoeffWeight += coeffWeight;
