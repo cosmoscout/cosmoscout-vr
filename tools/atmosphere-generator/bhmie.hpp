@@ -27,14 +27,12 @@
   Original program taken from Bohren and Huffman (1983), Appendix A
   Modified by B.T.Draine, Princeton Univ. Obs., 90/10/26
   in order to compute <cos(theta)>
-  This code was translatted to C by P. J. Flatau Feb 1998. The C
-  version uses "Numerical Recipes" public domain code for complex
-  arithmetics "complex.c" and "nrutil.c" (http://www.nr.com).
-
+  This code was translatted to C by P. J. Flatau Feb 1998.
+  Translation to C++ (mainly to use std::vector and std::complex types) was
+  done by S. Schneegans in Dec 2023.
 */
-void bhmie(float x, std::complex<float> cxref, unsigned long nang,
-           std::vector<std::complex<float>> &cxs1,
-           std::vector<std::complex<float>> &cxs2, float *qext, float *qsca,
-           float *qback, float *gsca);
+void bhmie(double x, std::complex<double> cxref, unsigned long nang,
+    std::vector<std::complex<double>>& cxs1, std::vector<std::complex<double>>& cxs2, double* qext,
+    double* qsca, double* qback, double* gsca);
 
 #endif // _BH_MIE_H_
