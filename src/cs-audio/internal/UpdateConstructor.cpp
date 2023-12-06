@@ -11,28 +11,16 @@
 #include "ProcessingStepsManager.hpp"
 #include "../AudioController.hpp"
 #include "../SourceGroup.hpp"
-
 #include <vector>
 #include <string>
 
 namespace cs::audio {
-
-std::shared_ptr<UpdateConstructor> UpdateConstructor::createUpdateConstructor(
-  std::shared_ptr<ProcessingStepsManager> processingStepsManager) {
-    
-  static auto updateConstructor = std::shared_ptr<UpdateConstructor>(
-    new UpdateConstructor(processingStepsManager));
-  return updateConstructor;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
 
 UpdateConstructor::UpdateConstructor(std::shared_ptr<ProcessingStepsManager> processingStepsManager) 
   : mProcessingStepsManager(std::move(processingStepsManager)) {
 }
 
 UpdateConstructor::~UpdateConstructor() {
-  std::cout << "close UpdateConstructor" << std::endl;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

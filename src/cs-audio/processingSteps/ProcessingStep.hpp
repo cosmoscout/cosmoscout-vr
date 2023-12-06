@@ -10,16 +10,18 @@
 
 #include "cs_audio_export.hpp"
 #include "../internal/SourceBase.hpp"
-
 #include <AL/al.h>
 #include <map>
 #include <any>
 
 namespace cs::audio {
 
+/// A processing step is an optional building block to add more features to the audio engine.
+/// This feature enhancement is limited to the settings that define the properties of a source. 
+/// Features that change the audio engine itself are not possible or are at least very 
+/// limited via processing steps.
 class CS_AUDIO_EXPORT ProcessingStep {
  public:
-  
   /// Every derived class of ProcessingStep must implement a static create() function.
   /// Defining it here is not possible as virtual static function are not possible in C++.
   /// An alternative would be to use the Curiously Recurring Template Pattern (CRTP) but this approach would 

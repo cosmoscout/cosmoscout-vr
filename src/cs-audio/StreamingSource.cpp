@@ -25,7 +25,9 @@ StreamingSource::StreamingSource(std::string file, int bufferLength, int queueSi
   : SourceBase(file, UpdateInstructor)
   , mBufferLength(std::move(bufferLength))
   , mBuffers(std::vector<ALuint>(queueSize)) 
-  , mAudioContainer(AudioContainerStreaming()) { 
+  , mAudioContainer(FileReader::AudioContainerStreaming()) 
+  , mRefillBuffer(true) 
+  , mNotPlaying(true) { 
 
   mAudioContainer.bufferLength = mBufferLength;
 
@@ -51,34 +53,59 @@ StreamingSource::~StreamingSource() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void StreamingSource::updateStream() {
+bool StreamingSource::updateStream() {
+
+  // possible improvement: instead of checking for playback and looping
+  // in each frame, override the SourceSettings::set() function to also 
+  // set a state within the StreamingSource describing the playback and looping state
 
   // update the stream only if the source is supposed to be playing
   auto search = mPlaybackSettings->find("playback");
   if (search == mPlaybackSettings->end() || 
       search->second.type() != typeid(std::string) ||
       std::any_cast<std::string>(search->second) != "play") {
-    return;
+    mNotPlaying = true;
+    return false;
   }
+
+  // get looping setting
+  auto searchLooping = mPlaybackSettings->find("looping");
+  if (searchLooping != mPlaybackSettings->end() && 
+      searchLooping->second.type() == typeid(bool)) {
+    mAudioContainer.isLooping = std::any_cast<bool>(searchLooping->second);
+  }
+
+  if (mNotPlaying) { mRefillBuffer = true; } // source was just set to playing 
+  mNotPlaying = false;
+  bool updateRequired = false;
 
   ALint numBufferProcessed, state;
   alGetSourcei(mOpenAlId, AL_BUFFERS_PROCESSED, &numBufferProcessed);
-  
+
   while (numBufferProcessed > 0) {
+
     ALuint bufferId;
     alSourceUnqueueBuffers(mOpenAlId, 1, &bufferId);
     if (alErrorHandling::errorOccurred()) {
       logger().warn("Failed to unqueue buffer!");
-      return;
+      return false;;
     }
     
-    FileReader::getNextStreamBlock(mAudioContainer);
-    fillBuffer(bufferId);
+    if (mRefillBuffer) {
+      if (!FileReader::getNextStreamBlock(mAudioContainer)) {
+        mRefillBuffer = false;
+        updateRequired = true;
+        stop();
+        numBufferProcessed--;
+        continue;
+      }
+      fillBuffer(bufferId);
 
-    alSourceQueueBuffers(mOpenAlId, 1, &bufferId);
-    if (alErrorHandling::errorOccurred()) {
-      logger().warn("Failed to requeue buffer!");
-      return;
+      alSourceQueueBuffers(mOpenAlId, 1, &bufferId);
+      if (alErrorHandling::errorOccurred()) {
+        logger().warn("Failed to requeue buffer!");
+        return false;
+      }
     }
     numBufferProcessed--;
   } 
@@ -89,9 +116,11 @@ void StreamingSource::updateStream() {
     alSourcePlay(mOpenAlId);
     if (alErrorHandling::errorOccurred()) {
       logger().warn("Failed to restart playback of streaming source!");
-      return;
+      return false;
     }
   }
+
+  return updateRequired;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -176,13 +205,13 @@ bool StreamingSource::startStream() {
 
 void StreamingSource::fillBuffer(ALuint buffer) {
   switch (mAudioContainer.formatType) {
-    case Int16:
+    case FileReader::FormatType::Int16:
       alBufferData(buffer, mAudioContainer.format, 
         std::get<std::vector<short>>(mAudioContainer.audioData).data(),
         (ALsizei)mAudioContainer.bufferSize, mAudioContainer.sfInfo.samplerate);
       break;
 
-    case Float:
+    case FileReader::FormatType::Float:
       alBufferData(buffer, mAudioContainer.format, 
         std::get<std::vector<float>>(mAudioContainer.audioData).data(),
         (ALsizei)mAudioContainer.bufferSize, mAudioContainer.sfInfo.samplerate);

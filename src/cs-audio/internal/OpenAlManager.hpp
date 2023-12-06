@@ -10,14 +10,14 @@
 
 #include "cs_audio_export.hpp"
 #include "../../cs-core/Settings.hpp"
-#include "../../cs-utils/Property.hpp"
 
-#include <AL/al.h>
 #include <AL/alc.h>
 #include <AL/alext.h>
 
 namespace cs::audio {
 
+/// @brief This class handles the initialization (Device and Context) of OpenAL and the functionality 
+/// of getting and setting an audio output device. This class should only be instantiated once.
 class CS_AUDIO_EXPORT OpenAlManager {
  public:
   OpenAlManager(const OpenAlManager& obj) = delete;
@@ -26,35 +26,33 @@ class CS_AUDIO_EXPORT OpenAlManager {
   OpenAlManager& operator=(const OpenAlManager&) = delete;
   OpenAlManager& operator=(OpenAlManager&&) = delete;
 
-  static std::shared_ptr<OpenAlManager> createOpenAlManager();
+  OpenAlManager();
   ~OpenAlManager();
 
   /// @brief Initializes OpenAL by opening a device and creating a context.
-  /// @return Wether the initialization was successful.
+  /// @return True if successful
   bool initOpenAl(core::Settings::Audio settings);
 
   /// @brief Checks for all available output devices. Either by the ALC_ENUMERATE_ALL_EXT extension
-  /// or if not available, the ALC_ENUMERATE_EXT extension if possible.
+  /// or, if not available, the ALC_ENUMERATE_EXT extension.
   /// @return List of name of all available devices
   std::vector<std::string> getDevices();
   
   /// @brief Try's to set the provided device name as the OpenAL output device via the 
   /// alcReopenDeviceSOFT extension.
-  /// @return Wether the change of device was successful.
+  /// @return True if successful
   bool setDevice(std::string outputDevice);
 
-  OpenAlManager();
  private:
   /// Pointer to the current device
   ALCdevice*          mDevice;
-  /// Pointer to the current content
+  /// Pointer to the current context
   ALCcontext*         mContext;
   /// Specifies the current settings for OpenAL. The attributes are set via the config file.
   std::vector<ALCint> mAttributeList;
 
-
   /// @brief Checks if an OpenAL Context Error occurred and if so prints a logger warning containing the error. 
-  /// @return True if error occurred
+  /// @return True if an error occurred
   bool contextErrorOccurd();
 
   // OpenALSoft extensions function pointers:

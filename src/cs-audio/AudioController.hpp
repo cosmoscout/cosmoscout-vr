@@ -26,6 +26,12 @@ namespace cs::audio {
 // forward declarations
 class ProcessingStepsManager;
 
+/// @brief This class is the gateway to create audio objects and to optionally define a processing
+/// pipeline for these objects. It is recommended that each use case for audio should have
+/// it's own AudioController, for example each plugin should have it's own and/or a separation of
+/// different sources, like spatialized sources in space and ambient background music. This is recommended
+/// because each use case will most probably require a different pipeline, which if configured correctly, could
+/// benefit performance.  
 class CS_AUDIO_EXPORT AudioController 
   : public SourceSettings
   , public std::enable_shared_from_this<AudioController> {
@@ -64,11 +70,13 @@ class CS_AUDIO_EXPORT AudioController
 
   void updateStreamingSources();
 
-  /// @return Return a list of all sources which live on the audioController
+  /// @return A list of all sources which live on the audioController
   std::vector<std::shared_ptr<SourceBase>> getSources();
 
+  /// @return A list of all groups which live on the audioController
   std::vector<std::shared_ptr<SourceGroup>> getGroups();
 
+  /// @return ID of the controller. Only useful for internal AudioEngine stuff. 
   const int getControllerId() const;
 
  private:
@@ -93,6 +101,9 @@ class CS_AUDIO_EXPORT AudioController
   /// @brief deregister itself from the updateInstructor 
   void removeFromUpdateList() override;
 
+  /// @brief Removes expired weak_ptr from a vector.
+  /// @tparam T SourceBase, StreamingSource, SourceGroup
+  /// @param elements vector to remove from
   template<typename T> 
   void removeExpiredElements(std::vector<std::weak_ptr<T>> elements);
 };

@@ -51,7 +51,6 @@ SourceBase::SourceBase(std::string file,
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 SourceBase::~SourceBase() {
-  std::cout << "close SourceBase" << std::endl;
   alGetError(); // clear error code
   alDeleteSources(1, &mOpenAlId);
   if (alErrorHandling::errorOccurred()) {

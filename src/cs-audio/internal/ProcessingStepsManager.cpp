@@ -8,7 +8,6 @@
 #include "ProcessingStepsManager.hpp"
 #include "../logger.hpp"
 #include "../AudioController.hpp"
-
 #include <set>
 
 // processingSteps:
@@ -22,18 +21,7 @@
 
 namespace cs::audio {
 
-std::shared_ptr<ProcessingStepsManager> ProcessingStepsManager::createProcessingStepsManager(
-  std::shared_ptr<core::Settings> settings) {
-  
-  static auto psManager = std::shared_ptr<ProcessingStepsManager>(
-    new ProcessingStepsManager(std::move(settings)));
-  return psManager;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
 ProcessingStepsManager::~ProcessingStepsManager() {
-  std::cout << "close ProcessingStepsManager" << std::endl;
   mPipelines.clear();
   mUpdateProcessingSteps.clear();
 }
@@ -71,7 +59,8 @@ void ProcessingStepsManager::createPipeline(std::vector<std::string> processingS
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::shared_ptr<ProcessingStep> ProcessingStepsManager::getProcessingStep(std::string processingStep) {
+std::shared_ptr<ProcessingStep> ProcessingStepsManager::getProcessingStep(
+  std::string processingStep) {
 
   if (processingStep == "PointSpatialization") {
     return PointSpatialization_PS::create();
@@ -97,7 +86,7 @@ std::shared_ptr<ProcessingStep> ProcessingStepsManager::getProcessingStep(std::s
     return DistanceModel_PS::create();
   }
 
-  // ...
+  // Add new processing steps here...
 
   logger().warn("Audio Processing Warning: Processing step '{}' is not defined!", processingStep);
   return nullptr;

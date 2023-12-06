@@ -36,11 +36,7 @@ AudioController::AudioController(
 }
 
 AudioController::~AudioController() {
-  std::cout << "close controller" << std::endl;
   mProcessingStepsManager->removeAudioController(mControllerId);
-  // for (auto source : mSources) { // TODO: ???
-  //   source->leaveGroup();
-  // }
   mSources.clear();
   mStreams.clear();
   mGroups.clear();
@@ -95,10 +91,7 @@ void AudioController::setPipeline(std::vector<std::string> processingSteps) {
 void AudioController::update() {
   auto frameStats = cs::utils::FrameStats::ScopedTimer("AudioEngineController", cs::utils::FrameStats::TimerMode::eCPU);
 
-
   auto updateInstructions = mUpdateInstructor->createUpdateInstruction();
-
-  // updateInstructions.print();
 
   // update every source and group with plugin settings
   if (updateInstructions.updateAll) {
@@ -132,7 +125,9 @@ void AudioController::updateStreamingSources() {
       streamExpired = true;
       continue;
     }
-    stream.lock()->updateStream();
+    if (stream.lock()->updateStream()) {
+      update();
+    }
   }
   if (streamExpired) {
     removeExpiredElements<StreamingSource>(mStreams);

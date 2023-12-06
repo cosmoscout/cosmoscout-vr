@@ -8,7 +8,6 @@
 #include "alErrorHandling.hpp"
 #include "Listener.hpp"
 #include "../logger.hpp"
-
 #include <AL/al.h>
 
 namespace cs::audio {

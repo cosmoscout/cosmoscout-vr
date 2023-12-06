@@ -25,8 +25,9 @@ SourceSettings::SourceSettings()
 }
 
 SourceSettings::~SourceSettings() {
-  std::cout << "close Source settings" << std::endl;
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void SourceSettings::setUpdateInstructor(std::shared_ptr<UpdateInstructor> UpdateInstructor) {
   mUpdateInstructor = UpdateInstructor;
@@ -41,15 +42,18 @@ void SourceSettings::set(std::string key, std::any value) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-const std::shared_ptr<std::map<std::string, std::any>> SourceSettings::getCurrentSettings() const {
+const std::shared_ptr<const std::map<std::string, std::any>> SourceSettings::getCurrentSettings() const {
   return mCurrentSettings;
+}
+
+const std::shared_ptr<const std::map<std::string, std::any>> SourceSettings::getUpdateSettings() const {
+  return mUpdateSettings;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void SourceSettings::remove(std::string key) {
   mUpdateSettings->erase(key);
-  // a settings instance is not allowed to remove settings that it did not define itself
   if (mCurrentSettings->find(key) == mCurrentSettings->end()) {
     return;
   }

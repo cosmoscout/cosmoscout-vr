@@ -8,20 +8,12 @@
 #include "OpenAlManager.hpp"
 #include "../logger.hpp"
 #include "../../cs-core/Settings.hpp"
-#include <memory>
 
 #include <AL/al.h>
 #include <AL/alc.h>
 #include <AL/alext.h>
 
 namespace cs::audio {
-
-std::shared_ptr<OpenAlManager> OpenAlManager::createOpenAlManager() {
-  auto static openAlManager = std::shared_ptr<OpenAlManager>(new OpenAlManager());
-  return openAlManager;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
 
 OpenAlManager::OpenAlManager()
   : mDevice(nullptr)
@@ -33,7 +25,6 @@ OpenAlManager::OpenAlManager()
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 OpenAlManager::~OpenAlManager() {
-  std::cout << "close openAL" << std::endl;
   alcMakeContextCurrent(nullptr);
 	alcDestroyContext(mContext);
 	alcCloseDevice(mDevice);
@@ -80,7 +71,8 @@ bool OpenAlManager::initOpenAl(core::Settings::Audio settings) {
     return false;
   }
 
-  // enables the Option to set the distance model per source and not per context
+  // enables the Option to set the distance model per source and not per context. This is needed for
+  // the DistanceModel_PS
   alEnable(AL_SOURCE_DISTANCE_MODEL);
 
   return true;
@@ -90,7 +82,7 @@ bool OpenAlManager::initOpenAl(core::Settings::Audio settings) {
 
 bool OpenAlManager::setDevice(std::string outputDevice) {
   if (alcIsExtensionPresent(NULL, "ALC_SOFT_reopen_device") == ALC_FALSE) {
-    logger().warn("OpenAL Extensions 'ALC_SOFT_reopen_device' not found. Unable to change the output device!");
+    logger().warn("OpenAL Extension 'ALC_SOFT_reopen_device' not found. Unable to change the output device!");
     return false;
   }
 
@@ -128,6 +120,8 @@ std::vector<std::string> OpenAlManager::getDevices() {
   const ALCchar* next = alcGetString(nullptr, macro) + 1;
   size_t len = 0;
 
+  // Parsing device list. 
+  // Devices are separated by NULL character and the list ends with two NULL characters.
   while (device && *device != '\0' && next && *next != '\0') {
     result.push_back(device);
     len = strlen(device);
@@ -164,7 +158,7 @@ bool OpenAlManager::contextErrorOccurd() {
       default:
         errorCode = "Unkown error code";
     }
-    logger().warn("OpenAL-Soft Context Error occured! Reason: {}...", errorCode);
+    logger().warn("OpenAL-Soft Context Error occurred! Reason: {}...", errorCode);
     return true;
   }
   return false;

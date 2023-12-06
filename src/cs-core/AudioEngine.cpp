@@ -7,7 +7,6 @@
 
 #include "AudioEngine.hpp"
 #include "Settings.hpp"
-#include "SolarSystem.hpp"
 #include "GuiManager.hpp"
 #include "logger.hpp"
 
@@ -22,19 +21,24 @@
 #include "../cs-audio/internal/UpdateConstructor.hpp"
 #include "../cs-utils/Property.hpp"
 #include "../cs-utils/FrameStats.hpp"
+#include <VistaKernel/VistaSystem.h>
 
 namespace cs::core {
 
 AudioEngine::AudioEngine(std::shared_ptr<Settings> settings, std::shared_ptr<GuiManager> guiManager) 
   : std::enable_shared_from_this<AudioEngine>()
   , mSettings(std::move(settings)) 
-  , mOpenAlManager(std::make_shared<audio::OpenAlManager>())// audio::OpenAlManager::createOpenAlManager())
-  , mBufferManager(std::make_shared<audio::BufferManager>())// audio::BufferManager::createBufferManager()) 
-  , mProcessingStepsManager(std::make_shared<audio::ProcessingStepsManager>(mSettings))// audio::ProcessingStepsManager::createProcessingStepsManager(mSettings))
   , mGuiManager(std::move(guiManager))
-  , mAudioControllers(std::vector<std::weak_ptr<audio::AudioController>>()) 
-  , mUpdateConstructor(std::make_shared<audio::UpdateConstructor>(mProcessingStepsManager))// audio::UpdateConstructor::createUpdateConstructor(mProcessingStepsManager))
-  , mMasterVolume(utils::Property<float>(1.f)) {
+  , mOpenAlManager(std::make_shared<audio::OpenAlManager>())
+  , mBufferManager(std::make_shared<audio::BufferManager>())
+  , mProcessingStepsManager(std::make_shared<audio::ProcessingStepsManager>(mSettings))
+  , mUpdateConstructor(std::make_shared<audio::UpdateConstructor>(mProcessingStepsManager))
+  , mMasterVolume(utils::Property<float>(1.f)) 
+  , mAudioControllers(std::vector<std::weak_ptr<audio::AudioController>>())
+  , isLeader(GetVistaSystem()->GetIsClusterLeader()) {
+
+  logger().debug("isLeader: {}", isLeader);
+  if (!isLeader) { return; }
 
   // Tell the user what's going on.
   logger().debug("Creating AudioEngine.");
@@ -68,6 +72,8 @@ std::vector<std::string> AudioEngine::getDevices() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool AudioEngine::setDevice(std::string outputDevice) {
+  if (!isLeader) { return false; }
+
   if (mOpenAlManager->setDevice(outputDevice)) {
     // update gui:
     mGuiManager->getGui()->callJavascript("CosmoScout.gui.setDropdownValue", 
@@ -80,6 +86,8 @@ bool AudioEngine::setDevice(std::string outputDevice) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool AudioEngine::setMasterVolume(float gain) {
+  if (!isLeader) { return false; }
+
   if (gain < 0) {
     logger().warn("Unable to set a negative gain!");
     return false;
@@ -132,6 +140,8 @@ void AudioEngine::createGUI() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void AudioEngine::update() {
+  if (!isLeader) { return; }
+
   auto frameStats = cs::utils::FrameStats::ScopedTimer("AudioEngineMain", cs::utils::FrameStats::TimerMode::eCPU);
 
   // Call all update functions of active Processing steps
@@ -159,6 +169,8 @@ void AudioEngine::update() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 std::shared_ptr<audio::AudioController> AudioEngine::createAudioController() {
+  if (!isLeader) { return nullptr; }
+
   static int controllerId = 0;
   auto controller = std::make_shared<audio::AudioController>(mBufferManager, 
     mProcessingStepsManager, mUpdateConstructor, controllerId++);

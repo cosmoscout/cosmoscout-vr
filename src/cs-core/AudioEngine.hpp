@@ -10,7 +10,6 @@
 
 #include "cs_audio_export.hpp"
 #include "Settings.hpp"
-#include "SolarSystem.hpp"
 #include "GuiManager.hpp"
 
 #include "../cs-audio/internal/OpenAlManager.hpp"
@@ -28,8 +27,10 @@
 
 namespace cs::core {
 
+/// @brief The AudioEngine is responsible for initializing all necessary audio classes.
+/// It also provides access to create audio controllers. This class should only be instantiated once.
+/// This instance will be passed to all plugins.
 class CS_CORE_EXPORT AudioEngine : public std::enable_shared_from_this<AudioEngine> {
-
  public:
   AudioEngine(const AudioEngine& obj) = delete;
   AudioEngine(AudioEngine&&) = delete;
@@ -67,6 +68,7 @@ class CS_CORE_EXPORT AudioEngine : public std::enable_shared_from_this<AudioEngi
   std::vector<std::weak_ptr<audio::AudioController>>   mAudioControllers;
   std::shared_ptr<audio::UpdateConstructor>            mUpdateConstructor;
   utils::Property<float>                               mMasterVolume;
+  bool                                                 isLeader;
   
   /// Creates the Audio GUI Settings
   void createGUI();

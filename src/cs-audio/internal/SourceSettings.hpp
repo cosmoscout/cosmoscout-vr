@@ -10,7 +10,6 @@
 
 #include "cs_audio_export.hpp"
 #include "UpdateConstructor.hpp"
-
 #include <map>
 #include <any>
 #include <string>
@@ -20,6 +19,9 @@ namespace cs::audio {
 
 class UpdateInstructor;
 
+/// @brief This class implements everything that is needed to define some properties for a source.
+/// This property defining function is not limited to the source itself but also for a sourceGroup and
+/// an audioController, which can both define properties for their sources.
 class CS_AUDIO_EXPORT SourceSettings {
  public:
   ~SourceSettings();
@@ -32,7 +34,11 @@ class CS_AUDIO_EXPORT SourceSettings {
   /// @brief Returns the currently set settings for the sourceSettings instance.
   /// To get all settings currently playing on a source call Source::getPlaybackSettings().
   /// @return Pointer to the settings map
-  const std::shared_ptr<std::map<std::string, std::any>> getCurrentSettings() const;
+  const std::shared_ptr<const std::map<std::string, std::any>> getCurrentSettings() const;
+
+  /// @brief Returns the currently set update settings for the sourceSettings instance.
+  /// @return Pointer to the settings map
+  const std::shared_ptr<const std::map<std::string, std::any>> getUpdateSettings() const;
 
   /// @brief Remove a setting and reset it to the default value.
   /// @param key Setting to remove.
@@ -42,11 +48,14 @@ class CS_AUDIO_EXPORT SourceSettings {
   /// @param key key to remove
   void removeUpdate(std::string key);
 
+  // Is friend, because the UpdateConstructor needs write permissions to 
+  // mUpdateSettings and mCurrentSettings.
   friend class UpdateConstructor;
 
  protected:                 
   SourceSettings(std::shared_ptr<UpdateInstructor> UpdateInstructor);                       
   SourceSettings();
+
   /// Later assignment of UpdateInstructor needed because the audioController, which initializes the 
   /// UpdateInstructor, needs to initialize SourceSettings first.                                                                                                              
   void setUpdateInstructor(std::shared_ptr<UpdateInstructor> UpdateInstructor);   

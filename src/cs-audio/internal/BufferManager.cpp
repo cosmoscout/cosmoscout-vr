@@ -9,20 +9,11 @@
 #include "FileReader.hpp"
 #include "alErrorHandling.hpp"
 #include "../logger.hpp"
-
+#include <variant>
 #include <AL/al.h>
 #include <AL/alext.h>
-#include <iostream>
-#include <variant>
 
 namespace cs::audio {
-
-std::shared_ptr<BufferManager> BufferManager::createBufferManager() {
-  static auto bufferManager = std::shared_ptr<BufferManager>(new BufferManager());
-  return bufferManager;  
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
 
 BufferManager::BufferManager()
   : mBufferList(std::vector<std::shared_ptr<Buffer>>()) {
@@ -31,9 +22,7 @@ BufferManager::BufferManager()
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 BufferManager::~BufferManager() {
-  std::cout << "close buffer manager" << std::endl;
   alGetError(); // clear error code
-  // delete all buffers
   // gather all buffer Ids to delete them in a single OpenAL call
   std::vector<ALuint> bufferIds(mBufferList.size());
   for (std::shared_ptr<Buffer> buffer : mBufferList) {
@@ -71,26 +60,23 @@ std::pair<bool, ALuint> BufferManager::createBuffer(std::string file) {
   }
 
   // read wave file
-  AudioContainer audioContainer;
+  FileReader::AudioContainer audioContainer;
   if (!FileReader::loadFile(file, audioContainer)) {
     logger().warn("{} is not a valid file! Unable to create buffer!", file);
     alDeleteBuffers((ALsizei) 1, &newBufferId);
     return std::make_pair(false, newBufferId);
   }
 
-  // testing
-  audioContainer.print();
-
-  // load wave into buffer
+  // load file into buffer
   if(audioContainer.splblockalign > 1)
       alBufferi(newBufferId, AL_UNPACK_BLOCK_ALIGNMENT_SOFT, audioContainer.splblockalign);
 
-  if (audioContainer.formatType == Int16) {
+  if (audioContainer.formatType == FileReader::FormatType::Int16) {
     alBufferData(newBufferId, 
-    audioContainer.format, std::get<std::vector<short>>(audioContainer.audioData).data(), 
-    audioContainer.size, audioContainer.sfInfo.samplerate);
+      audioContainer.format, std::get<std::vector<short>>(audioContainer.audioData).data(), 
+      audioContainer.size, audioContainer.sfInfo.samplerate);
   
-  } else if (audioContainer.formatType == Float) {
+  } else if (audioContainer.formatType == FileReader::FormatType::Float) {
     alBufferData(newBufferId, 
       audioContainer.format,
       std::get<std::vector<float>>(audioContainer.audioData).data(), 
@@ -98,8 +84,8 @@ std::pair<bool, ALuint> BufferManager::createBuffer(std::string file) {
     
   } else {
     alBufferData(newBufferId, 
-    audioContainer.format, std::get<std::vector<int>>(audioContainer.audioData).data(),
-    audioContainer.size, audioContainer.sfInfo.samplerate);
+      audioContainer.format, std::get<std::vector<int>>(audioContainer.audioData).data(),
+      audioContainer.size, audioContainer.sfInfo.samplerate);
   }
 
   if (alErrorHandling::errorOccurred()) {

@@ -134,7 +134,7 @@ void AudioUtil::printAudioSettings(std::shared_ptr<std::map<std::string, std::an
       continue;
     }
 
-    std::cout << "type not yet supported for printing in cs::audio::AudioUtil::printAudioSettings()" << std::endl;
+    std::cout << "type not yet supported for printing in AudioUtil::printAudioSettings()" << std::endl;
   }
 }
 
