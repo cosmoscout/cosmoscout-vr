@@ -1,13 +1,13 @@
 {
     "sizeModes": [
         {
-            "sizeDistribution": "logNormal",
+            "sizeDistribution": "modifiedLogNormal",
             "effectiveRadius": 0.04,
             "effectiveVariance": 0.1,
             "relativeAmount": 1000
         },
         {
-            "sizeDistribution": "logNormal",
+            "sizeDistribution": "modifiedLogNormal",
             "effectiveRadius": 1.4,
             "effectiveVariance": 0.35,
             "relativeAmount": 1

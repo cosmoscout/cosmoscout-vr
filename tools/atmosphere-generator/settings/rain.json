@@ -1,7 +1,7 @@
 {
     "sizeModes": [
         {
-            "sizeDistribution": "gamma",
+            "sizeDistribution": "modifiedGamma",
             "effectiveRadius": 100,
             "effectiveVariance": 0.1,
             "relativeAmount": 1

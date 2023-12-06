@@ -16,47 +16,7 @@
 #include <map>
 #include <random>
 
-// Mie Mode:
-//   Input:
-//      samplingSettings:
-//        minLambda
-//        maxLambda
-//        lambdaSteps
-//        thetaSteps
-//      particleSettings:
-//        sizeDistribution
-//        refractiveIndex
-//   Output:
-//     phase function for each lambda
-//     betaSca for each lambda
-//     betaAbs for each lambda
-//
-// Rayleigh Mode:
-//   Input:
-//      samplingSettings:
-//        minLambda
-//        maxLambda
-//        lambdaSteps
-//        thetaSteps
-//      particleSettings:
-//        sizeDistribution
-//        refractiveIndex
-//   Output:
-//     phase function for each lambda
-//     betaSca for each lambda
-//     betaAbs for each lambda
-//
-// Ozone Mode:
-//   Input:
-//      samplingSettings:
-//        minLambda
-//        maxLambda
-//        lambdaSteps
-//   Output:
-//     betaAbs for each lambda
-//
-
-enum class DistributionType { eGamma, eLogNormal };
+enum class DistributionType { eGamma, eModifiedGamma, eLogNormal, eModifiedLogNormal };
 typedef std::map<double, std::complex<double>> IoRSpectrum;
 
 struct SamplingSettings {
@@ -69,8 +29,8 @@ struct SamplingSettings {
 
 struct Distribution {
   DistributionType sizeDistribution;
-  double           effectiveRadius;
-  double           effectiveVariance;
+  double           paramA;
+  double           paramB;
   double           relativeAmount;
 };
 
@@ -104,16 +64,36 @@ struct adl_serializer<std::complex<T>> {
 };
 } // namespace nlohmann
 
-NLOHMANN_JSON_SERIALIZE_ENUM(DistributionType, {
-                                                   {DistributionType::eGamma, "gamma"},
-                                                   {DistributionType::eLogNormal, "logNormal"},
-                                               })
+NLOHMANN_JSON_SERIALIZE_ENUM(
+    DistributionType, {
+                          {DistributionType::eGamma, "gamma"},
+                          {DistributionType::eModifiedGamma, "modifiedGamma"},
+                          {DistributionType::eLogNormal, "logNormal"},
+                          {DistributionType::eModifiedLogNormal, "modifiedLogNormal"},
+                      })
 
 void from_json(nlohmann::json const& j, Distribution& s) {
   j.at("sizeDistribution").get_to(s.sizeDistribution);
-  j.at("effectiveRadius").get_to(s.effectiveRadius);
-  j.at("effectiveVariance").get_to(s.effectiveVariance);
   j.at("relativeAmount").get_to(s.relativeAmount);
+
+  switch (s.sizeDistribution) {
+  case DistributionType::eGamma:
+    j.at("shape").get_to(s.paramA);
+    j.at("scale").get_to(s.paramB);
+    break;
+  case DistributionType::eModifiedGamma:
+    j.at("effectiveRadius").get_to(s.paramA);
+    j.at("effectiveVariance").get_to(s.paramB);
+    break;
+  case DistributionType::eLogNormal:
+    j.at("mean").get_to(s.paramA);
+    j.at("sigma").get_to(s.paramB);
+    break;
+  case DistributionType::eModifiedLogNormal:
+    j.at("effectiveRadius").get_to(s.paramA);
+    j.at("effectiveVariance").get_to(s.paramB);
+    break;
+  }
 }
 
 void from_json(nlohmann::json const& j, ParticleInclusion& s) {
@@ -316,20 +296,36 @@ int mieMode(std::vector<std::string> const& arguments) {
 
       std::vector<double> radii(samplingSettings.radiusSamples);
 
-      if (sizeMode.sizeDistribution == DistributionType::eGamma) {
-        double shape = (1.0 - 2.0 * sizeMode.effectiveVariance) / sizeMode.effectiveVariance;
-        double theta = sizeMode.effectiveRadius * sizeMode.effectiveVariance;
-        std::gamma_distribution<> d(shape, theta);
+      if (sizeMode.sizeDistribution == DistributionType::eGamma ||
+          sizeMode.sizeDistribution == DistributionType::eModifiedGamma) {
+
+        double shape = sizeMode.paramA;
+        double scale = sizeMode.paramB;
+
+        if (sizeMode.sizeDistribution == DistributionType::eModifiedGamma) {
+          shape = (1.0 - 2.0 * sizeMode.paramB) / sizeMode.paramB;
+          scale = sizeMode.paramA * sizeMode.paramB;
+        }
+
+        std::gamma_distribution<> d(shape, scale);
 
         for (int32_t i(0); i < samplingSettings.radiusSamples; ++i) {
           radii[i] = d(gen);
         }
 
-      } else if (sizeMode.sizeDistribution == DistributionType::eLogNormal) {
+      } else if (sizeMode.sizeDistribution == DistributionType::eLogNormal ||
+                 sizeMode.sizeDistribution == DistributionType::eModifiedLogNormal) {
 
-        double                        s2 = std::log(sizeMode.effectiveVariance + 1);
-        double                        u  = std::log(sizeMode.effectiveRadius) - 2.5 * s2;
-        std::lognormal_distribution<> d(u, std::sqrt(s2));
+        double mean  = sizeMode.paramA;
+        double sigma = sizeMode.paramB;
+
+        if (sizeMode.sizeDistribution == DistributionType::eModifiedLogNormal) {
+          double s2 = std::log(sizeMode.paramB + 1);
+          mean      = std::log(sizeMode.paramA) - 2.5 * s2;
+          sigma     = std::sqrt(s2);
+        }
+
+        std::lognormal_distribution<> d(mean, sigma);
 
         for (int32_t i(0); i < samplingSettings.radiusSamples; ++i) {
           radii[i] = d(gen);
