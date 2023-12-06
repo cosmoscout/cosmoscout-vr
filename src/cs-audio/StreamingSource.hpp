@@ -30,8 +30,12 @@ class SourceGroup;
 /// because the CosmoScout update cycle is needed in order to update the changing buffers. 
 class CS_AUDIO_EXPORT StreamingSource : public SourceBase {
  public:
+  /// @brief This is the standard constructor used for non-cluster mode and cluster mode leader calls 
   StreamingSource(std::string file, int bufferLength, int queueSize,
     std::shared_ptr<UpdateInstructor> UpdateInstructor);
+  /// @brief This Constructor will create a dummy StreamingSource which is used when a member of a cluster
+  /// tries to create a StreamingSource. Doing this will disable any functionality of this class.
+  StreamingSource();
   ~StreamingSource();
 
   /// @brief Sets a new file to be played by the source.

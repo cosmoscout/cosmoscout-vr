@@ -26,8 +26,12 @@ class SourceGroup;
 /// all non-streaming sources. This is done via the BufferManager. 
 class CS_AUDIO_EXPORT Source : public SourceBase {
  public:
+ /// @brief This is the standard constructor used for non-cluster mode and cluster mode leader calls 
   Source(std::shared_ptr<BufferManager> bufferManager, 
   std::string file, std::shared_ptr<UpdateInstructor> UpdateInstructor);
+  /// @brief This Constructor will create a dummy source which is used when a member of a cluster
+  /// tries to create a Source. Doing this will disable any functionality of this class.
+  Source();
   ~Source();
   
   /// @brief Sets a new file to be played by the source.

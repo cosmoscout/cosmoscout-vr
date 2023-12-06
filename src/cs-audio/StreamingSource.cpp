@@ -45,15 +45,24 @@ StreamingSource::StreamingSource(std::string file, int bufferLength, int queueSi
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+StreamingSource::StreamingSource()
+  : SourceBase() { 
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 StreamingSource::~StreamingSource() {
-  alSourceStop(mOpenAlId);
-  alSourceUnqueueBuffers(mOpenAlId, (ALsizei)mBuffers.size(), mBuffers.data());
-  alDeleteBuffers((ALsizei) mBuffers.size(), mBuffers.data());
+  if (mIsLeader) {
+    alSourceStop(mOpenAlId);
+    alSourceUnqueueBuffers(mOpenAlId, (ALsizei)mBuffers.size(), mBuffers.data());
+    alDeleteBuffers((ALsizei) mBuffers.size(), mBuffers.data());
+  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool StreamingSource::updateStream() {
+  if (!mIsLeader) { return true; }
 
   // possible improvement: instead of checking for playback and looping
   // in each frame, override the SourceSettings::set() function to also 
@@ -126,6 +135,7 @@ bool StreamingSource::updateStream() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool StreamingSource::setFile(std::string file) {
+  if (!mIsLeader) { return true; }
   alGetError(); // clear error code
 
   // stop source if source is currently playing

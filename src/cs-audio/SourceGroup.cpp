@@ -26,14 +26,23 @@ SourceGroup::SourceGroup(std::shared_ptr<UpdateInstructor> UpdateInstructor,
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+SourceGroup::SourceGroup() 
+  : SourceSettings()
+  , std::enable_shared_from_this<SourceGroup>() {
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 SourceGroup::~SourceGroup() {
-  std::cout << "close group" << std::endl;
-  reset();
+  if (mIsLeader) {
+    reset();
+  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void SourceGroup::join(std::shared_ptr<SourceBase> source) {
+  if (!mIsLeader) { return; }
   if (mAudioController.expired()) {
     logger().warn("Group warning: AudioController of group is expired! Unable to assign source to group!");
     return;
@@ -55,6 +64,7 @@ void SourceGroup::join(std::shared_ptr<SourceBase> source) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void SourceGroup::leave(std::shared_ptr<SourceBase> sourceToRemove) {
+  if (!mIsLeader) { return; }
   if (mMembers.erase(sourceToRemove) == 1) {
     sourceToRemove->leaveGroup();
     
@@ -69,6 +79,7 @@ void SourceGroup::leave(std::shared_ptr<SourceBase> sourceToRemove) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void SourceGroup::reset() {
+  if (!mIsLeader) { return; }
   for (auto sourcePtr : mMembers) {
     if (sourcePtr.expired()) {
       continue;
@@ -87,6 +98,7 @@ void SourceGroup::reset() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 const std::vector<std::shared_ptr<SourceBase>> SourceGroup::getMembers() {
+  if (!mIsLeader) { std::vector<std::shared_ptr<SourceBase>>(); } 
   std::vector<std::shared_ptr<SourceBase>> membersShared(mMembers.size());
   for (auto member : mMembers) {
 

@@ -45,16 +45,24 @@ Source::Source(std::shared_ptr<BufferManager> bufferManager,
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+Source::Source()
+  : SourceBase() {
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 Source::~Source() {
-  std::cout << "close source" << std::endl;
-  alSourceStop(mOpenAlId);
-  alSourcei(mOpenAlId, AL_BUFFER, 0);
-  mBufferManager->removeBuffer(mFile);
+  if (mIsLeader) {
+    alSourceStop(mOpenAlId);
+    alSourcei(mOpenAlId, AL_BUFFER, 0);
+    mBufferManager->removeBuffer(mFile);
+  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool Source::setFile(std::string file) {
+  if (!mIsLeader) { return true; }
   alGetError(); // clear error code
 
   ALint state;

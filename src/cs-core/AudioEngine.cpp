@@ -27,18 +27,19 @@ namespace cs::core {
 
 AudioEngine::AudioEngine(std::shared_ptr<Settings> settings, std::shared_ptr<GuiManager> guiManager) 
   : std::enable_shared_from_this<AudioEngine>()
-  , mSettings(std::move(settings)) 
-  , mGuiManager(std::move(guiManager))
-  , mOpenAlManager(std::make_shared<audio::OpenAlManager>())
-  , mBufferManager(std::make_shared<audio::BufferManager>())
-  , mProcessingStepsManager(std::make_shared<audio::ProcessingStepsManager>(mSettings))
-  , mUpdateConstructor(std::make_shared<audio::UpdateConstructor>(mProcessingStepsManager))
-  , mMasterVolume(utils::Property<float>(1.f)) 
-  , mAudioControllers(std::vector<std::weak_ptr<audio::AudioController>>())
-  , isLeader(GetVistaSystem()->GetIsClusterLeader()) {
-
-  logger().debug("isLeader: {}", isLeader);
-  if (!isLeader) { return; }
+  , mIsLeader(GetVistaSystem()->GetIsClusterLeader()) {
+  logger().debug("mIsLeader: {}", mIsLeader);
+  if (!mIsLeader) {
+    return;
+  }
+  mSettings = std::move(settings);
+  mGuiManager = std::move(guiManager);
+  mOpenAlManager = std::make_shared<audio::OpenAlManager>();
+  mBufferManager = std::make_shared<audio::BufferManager>();
+  mProcessingStepsManager = std::make_shared<audio::ProcessingStepsManager>(mSettings);
+  mUpdateConstructor = std::make_shared<audio::UpdateConstructor>(mProcessingStepsManager);
+  mMasterVolume = utils::Property<float>(1.f);
+  mAudioControllers = std::vector<std::weak_ptr<audio::AudioController>>();
 
   // Tell the user what's going on.
   logger().debug("Creating AudioEngine.");
@@ -52,27 +53,31 @@ AudioEngine::AudioEngine(std::shared_ptr<Settings> settings, std::shared_ptr<Gui
 
   createGUI();
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
  
 AudioEngine::~AudioEngine() {
-  std::cout << "close AudioEngine" << std::endl;
-  try {
-    // Tell the user what's going on.
-    logger().debug("Deleting AudioEngine.");
+  if (mIsLeader) {
+    try {
+      // Tell the user what's going on.
+      logger().debug("Deleting AudioEngine.");
 
-    mAudioControllers.clear();
-  } catch (...) {}
+      mAudioControllers.clear();
+    } catch (...) {}
+  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 std::vector<std::string> AudioEngine::getDevices() {
+  if (!mIsLeader) { return std::vector<std::string>(); }
   return mOpenAlManager->getDevices();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool AudioEngine::setDevice(std::string outputDevice) {
-  if (!isLeader) { return false; }
+  if (!mIsLeader) { return true; }
 
   if (mOpenAlManager->setDevice(outputDevice)) {
     // update gui:
@@ -86,7 +91,7 @@ bool AudioEngine::setDevice(std::string outputDevice) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool AudioEngine::setMasterVolume(float gain) {
-  if (!isLeader) { return false; }
+  if (!mIsLeader) { return true; }
 
   if (gain < 0) {
     logger().warn("Unable to set a negative gain!");
@@ -140,7 +145,7 @@ void AudioEngine::createGUI() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void AudioEngine::update() {
-  if (!isLeader) { return; }
+  if (!mIsLeader) { return; }
 
   auto frameStats = cs::utils::FrameStats::ScopedTimer("AudioEngineMain", cs::utils::FrameStats::TimerMode::eCPU);
 
@@ -169,7 +174,7 @@ void AudioEngine::update() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 std::shared_ptr<audio::AudioController> AudioEngine::createAudioController() {
-  if (!isLeader) { return nullptr; }
+  if (!mIsLeader) { return std::make_shared<audio::AudioController>(); }
 
   static int controllerId = 0;
   auto controller = std::make_shared<audio::AudioController>(mBufferManager, 

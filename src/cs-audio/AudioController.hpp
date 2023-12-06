@@ -37,11 +37,15 @@ class CS_AUDIO_EXPORT AudioController
   , public std::enable_shared_from_this<AudioController> {
     
  public:
+  /// @brief This is the standard constructor used for non-cluster mode and cluster mode leader calls 
   AudioController(
     std::shared_ptr<BufferManager> bufferManager, 
     std::shared_ptr<ProcessingStepsManager> processingStepsManager,
     std::shared_ptr<UpdateConstructor> updateConstructor,
     int id);
+  /// @brief This Constructor will create a dummy controller which is used when a member of a cluster
+  /// tries to create an AudioController. Doing this will disable any functionality of this class.
+  AudioController();
   ~AudioController();
 
   /// @brief Creates a new audio source

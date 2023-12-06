@@ -27,7 +27,11 @@ class CS_AUDIO_EXPORT SourceBase
   , public std::enable_shared_from_this<SourceBase> {
     
  public:
+  /// @brief This is the standard constructor used for non-cluster mode and cluster mode leader calls 
   SourceBase(std::string file, std::shared_ptr<UpdateInstructor> UpdateInstructor);
+  /// @brief This Constructor will create a dummy SourceBase which is used when a member of a cluster
+  /// tries to create a SourceBase. Doing this will disable any functionality of this class.
+  SourceBase();
   ~SourceBase();
   
   /// @brief Sets setting to start playback. This call does not change the playback immediately.

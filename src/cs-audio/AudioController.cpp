@@ -24,6 +24,7 @@ AudioController::AudioController(
   int id) 
   : SourceSettings()
   , std::enable_shared_from_this<AudioController>()
+  , mIsLeader(true)
   , mControllerId(id)
   , mBufferManager(std::move(bufferManager))
   , mProcessingStepsManager(std::move(processingStepsManager))
@@ -35,16 +36,24 @@ AudioController::AudioController(
   setUpdateInstructor(mUpdateInstructor);  
 }
 
+AudioController::AudioController() 
+  : SourceSettings(false)
+  , std::enable_shared_from_this<AudioController>() {  
+}
+
 AudioController::~AudioController() {
-  mProcessingStepsManager->removeAudioController(mControllerId);
-  mSources.clear();
-  mStreams.clear();
-  mGroups.clear();
+  if (mIsLeader) {
+    mProcessingStepsManager->removeAudioController(mControllerId);
+    mSources.clear();
+    mStreams.clear();
+    mGroups.clear();
+  }
 } 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 std::shared_ptr<SourceGroup> AudioController::createSourceGroup() {
+  if (!mIsLeader) { return std::make_shared<SourceGroup>(); }
   auto group = std::make_shared<SourceGroup>(mUpdateInstructor, mUpdateConstructor, shared_from_this());
   mGroups.push_back(group);
   return group;
@@ -53,6 +62,7 @@ std::shared_ptr<SourceGroup> AudioController::createSourceGroup() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 std::shared_ptr<Source> AudioController::createSource(std::string file) {
+  if (!mIsLeader) { return std::make_shared<Source>(); }
   auto source = std::make_shared<Source>(mBufferManager, file, mUpdateInstructor);
   mSources.push_back(source);
 
@@ -68,6 +78,7 @@ std::shared_ptr<Source> AudioController::createSource(std::string file) {
 std::shared_ptr<StreamingSource> AudioController::createStreamingSource(std::string file, 
   int bufferSize, int queueSize) {
 
+  if (!mIsLeader) { return std::make_shared<StreamingSource>(); }
   auto source = std::make_shared<StreamingSource>(file, bufferSize, queueSize, mUpdateInstructor);
   mSources.push_back(source);
   mStreams.push_back(source);
@@ -83,12 +94,14 @@ std::shared_ptr<StreamingSource> AudioController::createStreamingSource(std::str
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void AudioController::setPipeline(std::vector<std::string> processingSteps) {
+  if (!mIsLeader) { return; }
   mProcessingStepsManager->createPipeline(processingSteps, mControllerId);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void AudioController::update() {
+  if (!mIsLeader) { return; }
   auto frameStats = cs::utils::FrameStats::ScopedTimer("AudioEngineController", cs::utils::FrameStats::TimerMode::eCPU);
 
   auto updateInstructions = mUpdateInstructor->createUpdateInstruction();
@@ -119,6 +132,7 @@ void AudioController::update() {
 }
 
 void AudioController::updateStreamingSources() {
+  if (!mIsLeader) { return; }
   bool streamExpired = false;
   for (auto stream : mStreams) {
     if (stream.expired()) {
@@ -137,6 +151,7 @@ void AudioController::updateStreamingSources() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 std::vector<std::shared_ptr<SourceBase>> AudioController::getSources() {
+  if (!mIsLeader) { std::vector<std::shared_ptr<SourceBase>>(); }
   std::vector<std::shared_ptr<SourceBase>> sourcesShared;
   bool sourceExpired = false;
 
@@ -158,6 +173,7 @@ std::vector<std::shared_ptr<SourceBase>> AudioController::getSources() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 std::vector<std::shared_ptr<SourceGroup>> AudioController::getGroups() {
+  if (!mIsLeader) { std::vector<std::shared_ptr<SourceGroup>>(); }
   std::vector<std::shared_ptr<SourceGroup>> groupsShared;
   bool groupExpired = false;
 
@@ -189,6 +205,7 @@ void AudioController::removeExpiredElements(std::vector<std::weak_ptr<T>> elemen
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 const int AudioController::getControllerId() const {
+  if (!mIsLeader) { return 0; }
   return mControllerId;  
 }
 

@@ -31,9 +31,13 @@ class CS_AUDIO_EXPORT SourceGroup
   , public std::enable_shared_from_this<SourceGroup> {
     
  public:
+  /// @brief This is the standard constructor used for non-cluster mode and cluster mode leader calls 
   explicit SourceGroup(std::shared_ptr<UpdateInstructor> UpdateInstructor,
     std::shared_ptr<UpdateConstructor> updateConstructor,
     std::shared_ptr<AudioController> audioController);
+  /// @brief This Constructor will create a dummy Group which is used when a member of a cluster
+  /// tries to create a Group. Doing this will disable any functionality of this class.  
+  explicit SourceGroup();
   ~SourceGroup();
 
   /// @brief Adds a new source to the group
