@@ -41,7 +41,7 @@ void SettingsMixer::A_Without_B_Value(
   std::string B) {
   
   for (auto it = A->begin(); it != A->end(); ++it) {
-     if (it->second.type() == typeid(std::string) && std::any_cast<std::string>(it->second) == "remove") {
+     if (it->second.type() == typeid(std::string) && std::any_cast<std::string>(it->second) == B) {
       A->erase(it);
     }
   }
