@@ -24,7 +24,7 @@ class UpdateInstructor;
 /// and an audioController, which can both define properties for their sources.
 class CS_AUDIO_EXPORT SourceSettings {
  public:
-  ~SourceSettings();
+  virtual ~SourceSettings();
 
   /// @brief Sets a value in mUpdateSettings
   /// @param key setting type

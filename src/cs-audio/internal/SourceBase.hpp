@@ -32,7 +32,7 @@ class CS_AUDIO_EXPORT SourceBase : public SourceSettings,
   /// @brief This Constructor will create a dummy SourceBase which is used when a member of a
   /// cluster tries to create a SourceBase. Doing this will disable any functionality of this class.
   SourceBase();
-  ~SourceBase();
+  virtual ~SourceBase();
 
   /// @brief Sets setting to start playback. This call does not change the playback immediately.
   /// It still requires a call to AudioController::update().
