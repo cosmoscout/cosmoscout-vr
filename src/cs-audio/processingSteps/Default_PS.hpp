@@ -43,10 +43,10 @@ class CS_AUDIO_EXPORT Default_PS : public ProcessingStep {
       std::shared_ptr<std::vector<std::string>>        failedSettings) override;
 
   /// @return Wether the processing requires an update call each frame
-  bool requiresUpdate() const;
+  bool requiresUpdate() const override;
 
   /// @brief update function to call each frame
-  void update();
+  void update() override;
 
  private:
   Default_PS();

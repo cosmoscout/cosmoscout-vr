@@ -40,11 +40,11 @@ class CS_AUDIO_EXPORT DistanceModel_PS : public ProcessingStep {
 
   void process(std::shared_ptr<SourceBase>             source,
       std::shared_ptr<std::map<std::string, std::any>> settings,
-      std::shared_ptr<std::vector<std::string>>        failedSettings);
+      std::shared_ptr<std::vector<std::string>>        failedSettings) override;
 
-  bool requiresUpdate() const;
+  bool requiresUpdate() const override;
 
-  void update();
+  void update() override;
 
  private:
   DistanceModel_PS();
