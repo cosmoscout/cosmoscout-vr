@@ -29,7 +29,7 @@ class CS_AUDIO_EXPORT ProcessingStep {
   /// ProcessingStep class would become a template class which prevents the storage of all derived
   /// classes inside a single container.
   // virtual static std::shared_ptr<ProcessingStep> create() = 0;
-  virtual ~ProcessingStep() {};
+  virtual ~ProcessingStep(){};
 
   /// @brief processes a source with the given settings
   /// @param source Source to process
