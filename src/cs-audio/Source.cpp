@@ -6,23 +6,23 @@
 // SPDX-License-Identifier: MIT
 
 #include "Source.hpp"
-#include "logger.hpp"
-#include "internal/BufferManager.hpp"
 #include "internal/AlErrorHandling.hpp"
+#include "internal/BufferManager.hpp"
 #include "internal/SettingsMixer.hpp"
+#include "logger.hpp"
 
 #include <AL/al.h>
-#include <map>
-#include <filesystem>
 #include <any>
+#include <filesystem>
+#include <map>
 
 namespace cs::audio {
 
-Source::Source(std::shared_ptr<BufferManager> bufferManager, 
-  std::string file, std::shared_ptr<UpdateInstructor> UpdateInstructor)
-  : SourceBase(file, UpdateInstructor) 
-  , mBufferManager(std::move(bufferManager)) {
-  
+Source::Source(std::shared_ptr<BufferManager> bufferManager, std::string file,
+    std::shared_ptr<UpdateInstructor> UpdateInstructor)
+    : SourceBase(file, UpdateInstructor)
+    , mBufferManager(std::move(bufferManager)) {
+
   alGetError(); // clear error code
 
   // check if file exists
@@ -46,7 +46,7 @@ Source::Source(std::shared_ptr<BufferManager> bufferManager,
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 Source::Source()
-  : SourceBase() {
+    : SourceBase() {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -62,7 +62,9 @@ Source::~Source() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool Source::setFile(std::string file) {
-  if (!mIsLeader) { return true; }
+  if (!mIsLeader) {
+    return true;
+  }
   alGetError(); // clear error code
 
   ALint state;
@@ -78,14 +80,14 @@ bool Source::setFile(std::string file) {
     return false;
   }
   mBufferManager->removeBuffer(mFile);
-  
+
   // check if file exists
   if (!std::filesystem::exists(file)) {
     logger().warn("{} file does not exist! Unable to fill buffer!", file);
     return false;
   }
   mFile = file;
-  
+
   // get buffer and bind buffer to source
   std::pair<bool, ALuint> buffer = mBufferManager->getBuffer(mFile);
   if (!buffer.first) {

@@ -6,28 +6,27 @@
 // SPDX-License-Identifier: MIT
 
 #include "SourceBase.hpp"
-#include "BufferManager.hpp"
-#include "AlErrorHandling.hpp"
-#include "SettingsMixer.hpp"
-#include "../logger.hpp"
 #include "../SourceGroup.hpp"
+#include "../logger.hpp"
+#include "AlErrorHandling.hpp"
+#include "BufferManager.hpp"
+#include "SettingsMixer.hpp"
 
 #include <AL/al.h>
-#include <map>
 #include <any>
+#include <map>
 
 namespace cs::audio {
 
-SourceBase::SourceBase(std::string file,
-  std::shared_ptr<UpdateInstructor> UpdateInstructor)
-  : SourceSettings(UpdateInstructor) 
-  , std::enable_shared_from_this<SourceBase>()
-  , mFile(std::move(file)) 
-  , mPlaybackSettings(std::make_shared<std::map<std::string, std::any>>()) {
-  
+SourceBase::SourceBase(std::string file, std::shared_ptr<UpdateInstructor> UpdateInstructor)
+    : SourceSettings(UpdateInstructor)
+    , std::enable_shared_from_this<SourceBase>()
+    , mFile(std::move(file))
+    , mPlaybackSettings(std::make_shared<std::map<std::string, std::any>>()) {
+
   alGetError(); // clear error code
 
-  // generate new source  
+  // generate new source
   alGenSources((ALuint)1, &mOpenAlId);
   if (AlErrorHandling::errorOccurred()) {
     logger().warn("Failed to generate OpenAL-Soft Source!");
@@ -50,8 +49,8 @@ SourceBase::SourceBase(std::string file,
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 SourceBase::SourceBase()
-  : SourceSettings(false) 
-  , std::enable_shared_from_this<SourceBase>() {
+    : SourceSettings(false)
+    , std::enable_shared_from_this<SourceBase>() {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -69,61 +68,80 @@ SourceBase::~SourceBase() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void SourceBase::play() {
-  if (!mIsLeader) { return; }
+  if (!mIsLeader) {
+    return;
+  }
   set("playback", std::string("play"));
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void SourceBase::stop() {
-  if (!mIsLeader) { return; }
+  if (!mIsLeader) {
+    return;
+  }
   set("playback", std::string("stop"));
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void SourceBase::pause() {
-  if (!mIsLeader) { return; }
+  if (!mIsLeader) {
+    return;
+  }
   set("playback", std::string("pause"));
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 const std::string SourceBase::getFile() const {
-  if (!mIsLeader) { return std::string(); }
-  return mFile;   
+  if (!mIsLeader) {
+    return std::string();
+  }
+  return mFile;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 const ALuint SourceBase::getOpenAlId() const {
-  if (!mIsLeader) { return 0; }
+  if (!mIsLeader) {
+    return 0;
+  }
   return mOpenAlId;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-const std::shared_ptr<const std::map<std::string, std::any>> SourceBase::getPlaybackSettings() const {
-  if (!mIsLeader) { std::shared_ptr<const std::map<std::string, std::any>>(); }
+const std::shared_ptr<const std::map<std::string, std::any>>
+SourceBase::getPlaybackSettings() const {
+  if (!mIsLeader) {
+    std::shared_ptr<const std::map<std::string, std::any>>();
+  }
   return mPlaybackSettings;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void SourceBase::addToUpdateList() {
-  if (!mIsLeader) { return; }
+  if (!mIsLeader) {
+    return;
+  }
   mUpdateInstructor->update(shared_from_this());
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void SourceBase::removeFromUpdateList() {
-  if (!mIsLeader) { return; }
+  if (!mIsLeader) {
+    return;
+  }
   mUpdateInstructor->removeUpdate(shared_from_this());
 }
 
 const std::shared_ptr<SourceGroup> SourceBase::getGroup() {
-  if (!mIsLeader) { std::shared_ptr<SourceGroup>(); }
+  if (!mIsLeader) {
+    std::shared_ptr<SourceGroup>();
+  }
   if (mGroup.expired()) {
     return nullptr;
   }
@@ -131,14 +149,18 @@ const std::shared_ptr<SourceGroup> SourceBase::getGroup() {
 }
 
 void SourceBase::setGroup(std::shared_ptr<SourceGroup> newGroup) {
-  if (!mIsLeader) { return; }
+  if (!mIsLeader) {
+    return;
+  }
   leaveGroup();
   mGroup = newGroup;
   newGroup->join(shared_from_this());
 }
 
 void SourceBase::leaveGroup() {
-  if (!mIsLeader) { return; }
+  if (!mIsLeader) {
+    return;
+  }
   if (!mGroup.expired()) {
     auto sharedGroup = mGroup.lock();
     mGroup.reset();

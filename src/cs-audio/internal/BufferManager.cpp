@@ -6,17 +6,17 @@
 // SPDX-License-Identifier: MIT
 
 #include "BufferManager.hpp"
-#include "FileReader.hpp"
-#include "AlErrorHandling.hpp"
 #include "../logger.hpp"
-#include <variant>
+#include "AlErrorHandling.hpp"
+#include "FileReader.hpp"
 #include <AL/al.h>
 #include <AL/alext.h>
+#include <variant>
 
 namespace cs::audio {
 
 BufferManager::BufferManager()
-  : mBufferList(std::vector<std::shared_ptr<Buffer>>()) {
+    : mBufferList(std::vector<std::shared_ptr<Buffer>>()) {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -28,7 +28,7 @@ BufferManager::~BufferManager() {
   for (std::shared_ptr<Buffer> buffer : mBufferList) {
     bufferIds.push_back(buffer->mOpenAlId);
   }
-  alDeleteBuffers((ALsizei) mBufferList.size(), bufferIds.data());
+  alDeleteBuffers((ALsizei)mBufferList.size(), bufferIds.data());
   if (AlErrorHandling::errorOccurred()) {
     logger().warn("Failed to delete (all) buffers!");
   }
@@ -53,7 +53,7 @@ std::pair<bool, ALuint> BufferManager::createBuffer(std::string file) {
 
   // create buffer
   ALuint newBufferId;
-  alGenBuffers((ALsizei) 1, &newBufferId);
+  alGenBuffers((ALsizei)1, &newBufferId);
   if (AlErrorHandling::errorOccurred()) {
     logger().warn("Failed to generate buffer!");
     return std::make_pair(false, newBufferId);
@@ -63,38 +63,37 @@ std::pair<bool, ALuint> BufferManager::createBuffer(std::string file) {
   FileReader::AudioContainer audioContainer;
   if (!FileReader::loadFile(file, audioContainer)) {
     logger().warn("{} is not a valid file! Unable to create buffer!", file);
-    alDeleteBuffers((ALsizei) 1, &newBufferId);
+    alDeleteBuffers((ALsizei)1, &newBufferId);
     return std::make_pair(false, newBufferId);
   }
 
   // load file into buffer
-  if(audioContainer.splblockalign > 1)
-      alBufferi(newBufferId, AL_UNPACK_BLOCK_ALIGNMENT_SOFT, audioContainer.splblockalign);
+  if (audioContainer.splblockalign > 1)
+    alBufferi(newBufferId, AL_UNPACK_BLOCK_ALIGNMENT_SOFT, audioContainer.splblockalign);
 
   if (audioContainer.formatType == FileReader::FormatType::Int16) {
-    alBufferData(newBufferId, 
-      audioContainer.format, std::get<std::vector<short>>(audioContainer.audioData).data(), 
-      audioContainer.size, audioContainer.sfInfo.samplerate);
-  
+    alBufferData(newBufferId, audioContainer.format,
+        std::get<std::vector<short>>(audioContainer.audioData).data(), audioContainer.size,
+        audioContainer.sfInfo.samplerate);
+
   } else if (audioContainer.formatType == FileReader::FormatType::Float) {
-    alBufferData(newBufferId, 
-      audioContainer.format,
-      std::get<std::vector<float>>(audioContainer.audioData).data(), 
-      audioContainer.size, audioContainer.sfInfo.samplerate);
-    
+    alBufferData(newBufferId, audioContainer.format,
+        std::get<std::vector<float>>(audioContainer.audioData).data(), audioContainer.size,
+        audioContainer.sfInfo.samplerate);
+
   } else {
-    alBufferData(newBufferId, 
-      audioContainer.format, std::get<std::vector<int>>(audioContainer.audioData).data(),
-      audioContainer.size, audioContainer.sfInfo.samplerate);
+    alBufferData(newBufferId, audioContainer.format,
+        std::get<std::vector<int>>(audioContainer.audioData).data(), audioContainer.size,
+        audioContainer.sfInfo.samplerate);
   }
 
   if (AlErrorHandling::errorOccurred()) {
     logger().warn("Failed to fill buffer with data!");
-    alDeleteBuffers((ALsizei) 1, &newBufferId);
+    alDeleteBuffers((ALsizei)1, &newBufferId);
     return std::make_pair(false, newBufferId);
   }
 
-  // add Buffer 
+  // add Buffer
   mBufferList.push_back(std::make_shared<Buffer>(file, newBufferId));
 
   return std::make_pair(true, newBufferId);
@@ -118,7 +117,7 @@ void BufferManager::removeBuffer(std::string file) {
 void BufferManager::deleteBuffer(std::vector<std::shared_ptr<Buffer>>::iterator bufferIt) {
   alGetError(); // clear error code
 
-  alDeleteBuffers((ALsizei) 1, &(*bufferIt)->mOpenAlId);
+  alDeleteBuffers((ALsizei)1, &(*bufferIt)->mOpenAlId);
   if (AlErrorHandling::errorOccurred()) {
     logger().warn("Failed to delete single buffer!");
   }

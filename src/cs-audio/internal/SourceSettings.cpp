@@ -6,30 +6,30 @@
 // SPDX-License-Identifier: MIT
 
 #include "SourceSettings.hpp"
-#include <string>
 #include <iostream>
+#include <string>
 
 namespace cs::audio {
 
-SourceSettings::SourceSettings(std::shared_ptr<UpdateInstructor> UpdateInstructor) 
-  : mIsLeader(true)
-  , mUpdateSettings(std::make_shared<std::map<std::string, std::any>>()) 
-  , mCurrentSettings(std::make_shared<std::map<std::string, std::any>>())
-  , mUpdateInstructor(std::move(UpdateInstructor)) {
+SourceSettings::SourceSettings(std::shared_ptr<UpdateInstructor> UpdateInstructor)
+    : mIsLeader(true)
+    , mUpdateSettings(std::make_shared<std::map<std::string, std::any>>())
+    , mCurrentSettings(std::make_shared<std::map<std::string, std::any>>())
+    , mUpdateInstructor(std::move(UpdateInstructor)) {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 SourceSettings::SourceSettings()
-  : mIsLeader(true)
-  , mUpdateSettings(std::make_shared<std::map<std::string, std::any>>()) 
-  , mCurrentSettings(std::make_shared<std::map<std::string, std::any>>()) {
+    : mIsLeader(true)
+    , mUpdateSettings(std::make_shared<std::map<std::string, std::any>>())
+    , mCurrentSettings(std::make_shared<std::map<std::string, std::any>>()) {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-SourceSettings::SourceSettings(bool isLeader) 
-  : mIsLeader(false) {
+SourceSettings::SourceSettings(bool isLeader)
+    : mIsLeader(false) {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -40,34 +40,46 @@ SourceSettings::~SourceSettings() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void SourceSettings::setUpdateInstructor(std::shared_ptr<UpdateInstructor> UpdateInstructor) {
-  if (!mIsLeader) { return; }
+  if (!mIsLeader) {
+    return;
+  }
   mUpdateInstructor = UpdateInstructor;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void SourceSettings::set(std::string key, std::any value) {
-  if (!mIsLeader) { return; }
+  if (!mIsLeader) {
+    return;
+  }
   mUpdateSettings->operator[](key) = value;
   addToUpdateList();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-const std::shared_ptr<const std::map<std::string, std::any>> SourceSettings::getCurrentSettings() const {
-  if (!mIsLeader) { std::shared_ptr<const std::map<std::string, std::any>>(); }
+const std::shared_ptr<const std::map<std::string, std::any>>
+SourceSettings::getCurrentSettings() const {
+  if (!mIsLeader) {
+    std::shared_ptr<const std::map<std::string, std::any>>();
+  }
   return mCurrentSettings;
 }
 
-const std::shared_ptr<const std::map<std::string, std::any>> SourceSettings::getUpdateSettings() const {
-  if (!mIsLeader) { std::shared_ptr<const std::map<std::string, std::any>>(); }
+const std::shared_ptr<const std::map<std::string, std::any>>
+SourceSettings::getUpdateSettings() const {
+  if (!mIsLeader) {
+    std::shared_ptr<const std::map<std::string, std::any>>();
+  }
   return mUpdateSettings;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void SourceSettings::remove(std::string key) {
-  if (!mIsLeader) { return; }
+  if (!mIsLeader) {
+    return;
+  }
   mUpdateSettings->erase(key);
   if (mCurrentSettings->find(key) == mCurrentSettings->end()) {
     return;
@@ -79,7 +91,9 @@ void SourceSettings::remove(std::string key) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void SourceSettings::removeUpdate(std::string key) {
-  if (!mIsLeader) { return; }
+  if (!mIsLeader) {
+    return;
+  }
   mUpdateSettings->erase(key);
   if (mUpdateSettings->empty()) {
     removeFromUpdateList();

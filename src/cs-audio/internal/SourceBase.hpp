@@ -8,32 +8,32 @@
 #ifndef CS_AUDIO_BASE_SOURCE_HPP
 #define CS_AUDIO_BASE_SOURCE_HPP
 
-#include "cs_audio_export.hpp"
 #include "SourceSettings.hpp"
 #include "UpdateInstructor.hpp"
+#include "cs_audio_export.hpp"
 #include <AL/al.h>
-#include <map>
 #include <any>
+#include <map>
 
 namespace cs::audio {
 
 // forward declaration
 class SourceGroup;
 
-/// @brief This class implements the basic common functions of sources and is the parent for 
-/// both specific source types: streaming source and non-streaming sources.  
-class CS_AUDIO_EXPORT SourceBase 
-  : public SourceSettings
-  , public std::enable_shared_from_this<SourceBase> {
-    
+/// @brief This class implements the basic common functions of sources and is the parent for
+/// both specific source types: streaming source and non-streaming sources.
+class CS_AUDIO_EXPORT SourceBase : public SourceSettings,
+                                   public std::enable_shared_from_this<SourceBase> {
+
  public:
-  /// @brief This is the standard constructor used for non-cluster mode and cluster mode leader calls 
+  /// @brief This is the standard constructor used for non-cluster mode and cluster mode leader
+  /// calls
   SourceBase(std::string file, std::shared_ptr<UpdateInstructor> UpdateInstructor);
-  /// @brief This Constructor will create a dummy SourceBase which is used when a member of a cluster
-  /// tries to create a SourceBase. Doing this will disable any functionality of this class.
+  /// @brief This Constructor will create a dummy SourceBase which is used when a member of a
+  /// cluster tries to create a SourceBase. Doing this will disable any functionality of this class.
   SourceBase();
   ~SourceBase();
-  
+
   /// @brief Sets setting to start playback. This call does not change the playback immediately.
   /// It still requires a call to AudioController::update().
   void play();
@@ -73,20 +73,20 @@ class CS_AUDIO_EXPORT SourceBase
 
   // Is friend because the UpdateConstructor needs write permissions to the mPlaybackSettings.
   friend class UpdateConstructor;
-    
+
  protected:
   /// OpenAL ID of source
-  ALuint                                           mOpenAlId; 
+  ALuint mOpenAlId;
   /// Currently set file to play
-  std::string                                      mFile;
+  std::string mFile;
   /// Ptr to the group that the source is part of
-  std::weak_ptr<SourceGroup>                       mGroup;
-  /// Contains all settings (Source + Group + Controller) currently set and playing. 
+  std::weak_ptr<SourceGroup> mGroup;
+  /// Contains all settings (Source + Group + Controller) currently set and playing.
   std::shared_ptr<std::map<std::string, std::any>> mPlaybackSettings;
 
-  /// @brief Registers itself to the updateInstructor to be updated 
+  /// @brief Registers itself to the updateInstructor to be updated
   void addToUpdateList() override;
-  /// @brief Deregisters itself from the updateInstructor 
+  /// @brief Deregisters itself from the updateInstructor
   void removeFromUpdateList() override;
 };
 

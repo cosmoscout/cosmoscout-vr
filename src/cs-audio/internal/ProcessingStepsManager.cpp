@@ -6,18 +6,18 @@
 // SPDX-License-Identifier: MIT
 
 #include "ProcessingStepsManager.hpp"
-#include "../logger.hpp"
 #include "../AudioController.hpp"
+#include "../logger.hpp"
 #include <set>
 
 // processingSteps:
-# include "../processingSteps/Default_PS.hpp"
-# include "../processingSteps/PointSpatialization_PS.hpp"
-# include "../processingSteps/SphereSpatialization_PS.hpp"
-# include "../processingSteps/DirectPlay_PS.hpp"
-# include "../processingSteps/VolumeCulling_PS.hpp"
-# include "../processingSteps/DistanceCulling_PS.hpp"
-# include "../processingSteps/DistanceModel_PS.hpp"
+#include "../processingSteps/Default_PS.hpp"
+#include "../processingSteps/DirectPlay_PS.hpp"
+#include "../processingSteps/DistanceCulling_PS.hpp"
+#include "../processingSteps/DistanceModel_PS.hpp"
+#include "../processingSteps/PointSpatialization_PS.hpp"
+#include "../processingSteps/SphereSpatialization_PS.hpp"
+#include "../processingSteps/VolumeCulling_PS.hpp"
 
 namespace cs::audio {
 
@@ -28,22 +28,22 @@ ProcessingStepsManager::~ProcessingStepsManager() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-ProcessingStepsManager::ProcessingStepsManager(std::shared_ptr<core::Settings> settings) 
-  : mPipelines(std::map<int, std::set<std::shared_ptr<ProcessingStep>>>())
-  , mSettings(std::move(settings)) {  
+ProcessingStepsManager::ProcessingStepsManager(std::shared_ptr<core::Settings> settings)
+    : mPipelines(std::map<int, std::set<std::shared_ptr<ProcessingStep>>>())
+    , mSettings(std::move(settings)) {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void ProcessingStepsManager::createPipeline(std::vector<std::string> processingSteps, 
-  int audioControllerId) {
-  
+void ProcessingStepsManager::createPipeline(
+    std::vector<std::string> processingSteps, int audioControllerId) {
+
   std::set<std::shared_ptr<ProcessingStep>> pipeline;
   pipeline.insert(Default_PS::create());
 
   for (std::string processingStep : processingSteps) {
     auto ps = getProcessingStep(processingStep);
-    
+
     if (ps != nullptr) {
       pipeline.insert(ps);
 
@@ -60,7 +60,7 @@ void ProcessingStepsManager::createPipeline(std::vector<std::string> processingS
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 std::shared_ptr<ProcessingStep> ProcessingStepsManager::getProcessingStep(
-  std::string processingStep) {
+    std::string processingStep) {
 
   if (processingStep == "PointSpatialization") {
     return PointSpatialization_PS::create();
@@ -95,9 +95,8 @@ std::shared_ptr<ProcessingStep> ProcessingStepsManager::getProcessingStep(
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 std::shared_ptr<std::vector<std::string>> ProcessingStepsManager::process(
-  std::shared_ptr<SourceBase> source, 
-  int audioControllerId, 
-  std::shared_ptr<std::map<std::string, std::any>> settings) {
+    std::shared_ptr<SourceBase> source, int audioControllerId,
+    std::shared_ptr<std::map<std::string, std::any>> settings) {
 
   auto failedSettings = std::make_shared<std::vector<std::string>>();
   for (auto step : mPipelines[audioControllerId]) {
@@ -125,10 +124,8 @@ void ProcessingStepsManager::removeObsoletePsFromUpdateList() {
 
   // get all PS that are in mUpdateProcessingSteps but not in activePS
   std::set<std::shared_ptr<ProcessingStep>> obsoletePS;
-  std::set_difference(
-    mUpdateProcessingSteps.begin(), mUpdateProcessingSteps.end(),
-    activePS.begin(), activePS.end(),
-    std::inserter(obsoletePS, obsoletePS.end()));
+  std::set_difference(mUpdateProcessingSteps.begin(), mUpdateProcessingSteps.end(),
+      activePS.begin(), activePS.end(), std::inserter(obsoletePS, obsoletePS.end()));
 
   // erase obsoletePS from mUpdateProcessingSteps
   for (auto ps : obsoletePS) {

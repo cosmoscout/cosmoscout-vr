@@ -6,86 +6,131 @@
 // SPDX-License-Identifier: MIT
 
 #include "FileReader.hpp"
-#include "BufferManager.hpp"
 #include "../logger.hpp"
+#include "BufferManager.hpp"
 
-#include <iostream>
-#include <fstream>
-#include <cstring>
-#include <variant>
-#include <algorithm>
-#include <cstdlib>
 #include <AL/al.h>
 #include <AL/alext.h>
+#include <algorithm>
+#include <cstdint>
+#include <cstdlib>
+#include <cstring>
+#include <fstream>
+#include <iostream>
+#include <limits.h>
 #include <sndfile.h>
 #include <stdio.h>
-#include <cstdint>
-#include <limits.h>
+#include <variant>
 
 namespace cs::audio {
 
-const char * FileReader::getFormatName(ALenum format)
-{
-  switch(format)
-  {
-    case AL_FORMAT_MONO8: return "Mono, U8";
-    case AL_FORMAT_MONO16: return "Mono, S16";
-    case AL_FORMAT_MONO_FLOAT32: return "Mono, Float32";
-    case AL_FORMAT_MONO_MULAW: return "Mono, muLaw";
-    case AL_FORMAT_MONO_ALAW_EXT: return "Mono, aLaw";
-    case AL_FORMAT_MONO_IMA4: return "Mono, IMA4 ADPCM";
-    case AL_FORMAT_MONO_MSADPCM_SOFT: return "Mono, MS ADPCM";
-    case AL_FORMAT_STEREO8: return "Stereo, U8";
-    case AL_FORMAT_STEREO16: return "Stereo, S16";
-    case AL_FORMAT_STEREO_FLOAT32: return "Stereo, Float32";
-    case AL_FORMAT_STEREO_MULAW: return "Stereo, muLaw";
-    case AL_FORMAT_STEREO_ALAW_EXT: return "Stereo, aLaw";
-    case AL_FORMAT_STEREO_IMA4: return "Stereo, IMA4 ADPCM";
-    case AL_FORMAT_STEREO_MSADPCM_SOFT: return "Stereo, MS ADPCM";
-    case AL_FORMAT_QUAD8: return "Quadraphonic, U8";
-    case AL_FORMAT_QUAD16: return "Quadraphonic, S16";
-    case AL_FORMAT_QUAD32: return "Quadraphonic, Float32";
-    case AL_FORMAT_QUAD_MULAW: return "Quadraphonic, muLaw";
-    case AL_FORMAT_51CHN8: return "5.1 Surround, U8";
-    case AL_FORMAT_51CHN16: return "5.1 Surround, S16";
-    case AL_FORMAT_51CHN32: return "5.1 Surround, Float32";
-    case AL_FORMAT_51CHN_MULAW: return "5.1 Surround, muLaw";
-    case AL_FORMAT_61CHN8: return "6.1 Surround, U8";
-    case AL_FORMAT_61CHN16: return "6.1 Surround, S16";
-    case AL_FORMAT_61CHN32: return "6.1 Surround, Float32";
-    case AL_FORMAT_61CHN_MULAW: return "6.1 Surround, muLaw";
-    case AL_FORMAT_71CHN8: return "7.1 Surround, U8";
-    case AL_FORMAT_71CHN16: return "7.1 Surround, S16";
-    case AL_FORMAT_71CHN32: return "7.1 Surround, Float32";
-    case AL_FORMAT_71CHN_MULAW: return "7.1 Surround, muLaw";
-    case AL_FORMAT_BFORMAT2D_8: return "B-Format 2D, U8";
-    case AL_FORMAT_BFORMAT2D_16: return "B-Format 2D, S16";
-    case AL_FORMAT_BFORMAT2D_FLOAT32: return "B-Format 2D, Float32";
-    case AL_FORMAT_BFORMAT2D_MULAW: return "B-Format 2D, muLaw";
-    case AL_FORMAT_BFORMAT3D_8: return "B-Format 3D, U8";
-    case AL_FORMAT_BFORMAT3D_16: return "B-Format 3D, S16";
-    case AL_FORMAT_BFORMAT3D_FLOAT32: return "B-Format 3D, Float32";
-    case AL_FORMAT_BFORMAT3D_MULAW: return "B-Format 3D, muLaw";
-    case AL_FORMAT_UHJ2CHN8_SOFT: return "UHJ 2-channel, U8";
-    case AL_FORMAT_UHJ2CHN16_SOFT: return "UHJ 2-channel, S16";
-    case AL_FORMAT_UHJ2CHN_FLOAT32_SOFT: return "UHJ 2-channel, Float32";
-    case AL_FORMAT_UHJ3CHN8_SOFT: return "UHJ 3-channel, U8";
-    case AL_FORMAT_UHJ3CHN16_SOFT: return "UHJ 3-channel, S16";
-    case AL_FORMAT_UHJ3CHN_FLOAT32_SOFT: return "UHJ 3-channel, Float32";
-    case AL_FORMAT_UHJ4CHN8_SOFT: return "UHJ 4-channel, U8";
-    case AL_FORMAT_UHJ4CHN16_SOFT: return "UHJ 4-channel, S16";
-    case AL_FORMAT_UHJ4CHN_FLOAT32_SOFT: return "UHJ 4-channel, Float32";
+const char* FileReader::getFormatName(ALenum format) {
+  switch (format) {
+  case AL_FORMAT_MONO8:
+    return "Mono, U8";
+  case AL_FORMAT_MONO16:
+    return "Mono, S16";
+  case AL_FORMAT_MONO_FLOAT32:
+    return "Mono, Float32";
+  case AL_FORMAT_MONO_MULAW:
+    return "Mono, muLaw";
+  case AL_FORMAT_MONO_ALAW_EXT:
+    return "Mono, aLaw";
+  case AL_FORMAT_MONO_IMA4:
+    return "Mono, IMA4 ADPCM";
+  case AL_FORMAT_MONO_MSADPCM_SOFT:
+    return "Mono, MS ADPCM";
+  case AL_FORMAT_STEREO8:
+    return "Stereo, U8";
+  case AL_FORMAT_STEREO16:
+    return "Stereo, S16";
+  case AL_FORMAT_STEREO_FLOAT32:
+    return "Stereo, Float32";
+  case AL_FORMAT_STEREO_MULAW:
+    return "Stereo, muLaw";
+  case AL_FORMAT_STEREO_ALAW_EXT:
+    return "Stereo, aLaw";
+  case AL_FORMAT_STEREO_IMA4:
+    return "Stereo, IMA4 ADPCM";
+  case AL_FORMAT_STEREO_MSADPCM_SOFT:
+    return "Stereo, MS ADPCM";
+  case AL_FORMAT_QUAD8:
+    return "Quadraphonic, U8";
+  case AL_FORMAT_QUAD16:
+    return "Quadraphonic, S16";
+  case AL_FORMAT_QUAD32:
+    return "Quadraphonic, Float32";
+  case AL_FORMAT_QUAD_MULAW:
+    return "Quadraphonic, muLaw";
+  case AL_FORMAT_51CHN8:
+    return "5.1 Surround, U8";
+  case AL_FORMAT_51CHN16:
+    return "5.1 Surround, S16";
+  case AL_FORMAT_51CHN32:
+    return "5.1 Surround, Float32";
+  case AL_FORMAT_51CHN_MULAW:
+    return "5.1 Surround, muLaw";
+  case AL_FORMAT_61CHN8:
+    return "6.1 Surround, U8";
+  case AL_FORMAT_61CHN16:
+    return "6.1 Surround, S16";
+  case AL_FORMAT_61CHN32:
+    return "6.1 Surround, Float32";
+  case AL_FORMAT_61CHN_MULAW:
+    return "6.1 Surround, muLaw";
+  case AL_FORMAT_71CHN8:
+    return "7.1 Surround, U8";
+  case AL_FORMAT_71CHN16:
+    return "7.1 Surround, S16";
+  case AL_FORMAT_71CHN32:
+    return "7.1 Surround, Float32";
+  case AL_FORMAT_71CHN_MULAW:
+    return "7.1 Surround, muLaw";
+  case AL_FORMAT_BFORMAT2D_8:
+    return "B-Format 2D, U8";
+  case AL_FORMAT_BFORMAT2D_16:
+    return "B-Format 2D, S16";
+  case AL_FORMAT_BFORMAT2D_FLOAT32:
+    return "B-Format 2D, Float32";
+  case AL_FORMAT_BFORMAT2D_MULAW:
+    return "B-Format 2D, muLaw";
+  case AL_FORMAT_BFORMAT3D_8:
+    return "B-Format 3D, U8";
+  case AL_FORMAT_BFORMAT3D_16:
+    return "B-Format 3D, S16";
+  case AL_FORMAT_BFORMAT3D_FLOAT32:
+    return "B-Format 3D, Float32";
+  case AL_FORMAT_BFORMAT3D_MULAW:
+    return "B-Format 3D, muLaw";
+  case AL_FORMAT_UHJ2CHN8_SOFT:
+    return "UHJ 2-channel, U8";
+  case AL_FORMAT_UHJ2CHN16_SOFT:
+    return "UHJ 2-channel, S16";
+  case AL_FORMAT_UHJ2CHN_FLOAT32_SOFT:
+    return "UHJ 2-channel, Float32";
+  case AL_FORMAT_UHJ3CHN8_SOFT:
+    return "UHJ 3-channel, U8";
+  case AL_FORMAT_UHJ3CHN16_SOFT:
+    return "UHJ 3-channel, S16";
+  case AL_FORMAT_UHJ3CHN_FLOAT32_SOFT:
+    return "UHJ 3-channel, Float32";
+  case AL_FORMAT_UHJ4CHN8_SOFT:
+    return "UHJ 4-channel, U8";
+  case AL_FORMAT_UHJ4CHN16_SOFT:
+    return "UHJ 4-channel, S16";
+  case AL_FORMAT_UHJ4CHN_FLOAT32_SOFT:
+    return "UHJ 4-channel, Float32";
   }
   return "Unknown Format";
 }
 
 bool FileReader::readMetaData(std::string fileName, AudioContainer& audioContainer) {
-  FormatType      sample_format  = Int16;
-  ALint           byteblockalign = 0;
-  ALint           splblockalign  = 0;
-  ALenum          format;
-  SNDFILE*        sndfile;
-  SF_INFO         sfinfo;
+  FormatType sample_format  = Int16;
+  ALint      byteblockalign = 0;
+  ALint      splblockalign  = 0;
+  ALenum     format;
+  SNDFILE*   sndfile;
+  SF_INFO    sfinfo;
 
   /* Open the audio file and check that it's usable. */
   sndfile = sf_open(fileName.c_str(), SFM_READ, &sfinfo);
@@ -229,19 +274,19 @@ bool FileReader::readMetaData(std::string fileName, AudioContainer& audioContain
     return false;
   }
 
-  audioContainer.format = format;
-  audioContainer.formatType = sample_format;
-  audioContainer.sfInfo = sfinfo; 
-  audioContainer.splblockalign = splblockalign;
+  audioContainer.format         = format;
+  audioContainer.formatType     = sample_format;
+  audioContainer.sfInfo         = sfinfo;
+  audioContainer.splblockalign  = splblockalign;
   audioContainer.byteblockalign = byteblockalign;
-  audioContainer.sndFile = sndfile;
+  audioContainer.sndFile        = sndfile;
   return true;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool FileReader::loadFile(std::string fileName, AudioContainer& audioContainer) {
-  
+
   if (!readMetaData(fileName, audioContainer)) {
     return false;
   }
@@ -249,35 +294,35 @@ bool FileReader::loadFile(std::string fileName, AudioContainer& audioContainer) 
   /* Decode the whole audio file to a buffer. */
   sf_count_t num_frames;
   switch (audioContainer.formatType) {
-    case Int16:
-      audioContainer.audioData =
-        std::vector<short>((size_t)(audioContainer.sfInfo.frames / audioContainer.splblockalign * audioContainer.byteblockalign));
-      num_frames = sf_readf_short(
-        audioContainer.sndFile, 
-        std::get<std::vector<short>>(audioContainer.audioData).data(), 
+  case Int16:
+    audioContainer.audioData =
+        std::vector<short>((size_t)(audioContainer.sfInfo.frames / audioContainer.splblockalign *
+                                    audioContainer.byteblockalign));
+    num_frames = sf_readf_short(audioContainer.sndFile,
+        std::get<std::vector<short>>(audioContainer.audioData).data(),
         audioContainer.sfInfo.frames);
-      break;
+    break;
 
-    case Float:
-      audioContainer.audioData =
-        std::vector<float>((size_t)(audioContainer.sfInfo.frames / audioContainer.splblockalign * audioContainer.byteblockalign));
-      num_frames = sf_readf_float(
-        audioContainer.sndFile, 
+  case Float:
+    audioContainer.audioData =
+        std::vector<float>((size_t)(audioContainer.sfInfo.frames / audioContainer.splblockalign *
+                                    audioContainer.byteblockalign));
+    num_frames = sf_readf_float(audioContainer.sndFile,
         std::get<std::vector<float>>(audioContainer.audioData).data(),
         audioContainer.sfInfo.frames);
-      break;
+    break;
 
-    default:
-      audioContainer.audioData =
-        std::vector<int>((size_t)(audioContainer.sfInfo.frames / audioContainer.splblockalign * audioContainer.byteblockalign));
-      sf_count_t count = audioContainer.sfInfo.frames / audioContainer.splblockalign * audioContainer.byteblockalign;
-      num_frames =
-        sf_read_raw(audioContainer.sndFile, 
-        std::get<std::vector<int>>(audioContainer.audioData).data(), 
-        count);
-      if (num_frames > 0) {
-        num_frames = num_frames / audioContainer.byteblockalign * audioContainer.splblockalign;    
-      }
+  default:
+    audioContainer.audioData =
+        std::vector<int>((size_t)(audioContainer.sfInfo.frames / audioContainer.splblockalign *
+                                  audioContainer.byteblockalign));
+    sf_count_t count =
+        audioContainer.sfInfo.frames / audioContainer.splblockalign * audioContainer.byteblockalign;
+    num_frames = sf_read_raw(
+        audioContainer.sndFile, std::get<std::vector<int>>(audioContainer.audioData).data(), count);
+    if (num_frames > 0) {
+      num_frames = num_frames / audioContainer.byteblockalign * audioContainer.splblockalign;
+    }
   }
 
   if (num_frames < 1) {
@@ -286,7 +331,8 @@ bool FileReader::loadFile(std::string fileName, AudioContainer& audioContainer) 
     return false;
   }
 
-  audioContainer.size = (ALsizei)(num_frames / audioContainer.splblockalign * audioContainer.byteblockalign);
+  audioContainer.size =
+      (ALsizei)(num_frames / audioContainer.splblockalign * audioContainer.byteblockalign);
   sf_close(audioContainer.sndFile);
   return true;
 }
@@ -305,14 +351,17 @@ bool FileReader::openStream(std::string fileName, AudioContainerStreaming& audio
   audioContainer.blockCount = audioContainer.blockCount * audioContainer.bufferLength / 1000;
 
   switch (audioContainer.formatType) {
-    case Int16:
-      audioContainer.audioData = std::vector<short>((size_t)(audioContainer.blockCount * audioContainer.byteblockalign));
-      break;
-    case Float:
-      audioContainer.audioData = std::vector<float>((size_t)(audioContainer.blockCount * audioContainer.byteblockalign));
-      break;
-    default:
-      audioContainer.audioData = std::vector<int>((size_t)(audioContainer.blockCount * audioContainer.byteblockalign));
+  case Int16:
+    audioContainer.audioData =
+        std::vector<short>((size_t)(audioContainer.blockCount * audioContainer.byteblockalign));
+    break;
+  case Float:
+    audioContainer.audioData =
+        std::vector<float>((size_t)(audioContainer.blockCount * audioContainer.byteblockalign));
+    break;
+  default:
+    audioContainer.audioData =
+        std::vector<int>((size_t)(audioContainer.blockCount * audioContainer.byteblockalign));
   }
 
   return true;
@@ -324,52 +373,55 @@ bool FileReader::getNextStreamBlock(AudioContainerStreaming& audioContainer) {
 
   sf_count_t slen;
   switch (audioContainer.formatType) {
-    case Int16:
-      slen = sf_readf_short(audioContainer.sndFile, std::get<std::vector<short>>(audioContainer.audioData).data(),
+  case Int16:
+    slen = sf_readf_short(audioContainer.sndFile,
+        std::get<std::vector<short>>(audioContainer.audioData).data(),
         audioContainer.blockCount * audioContainer.splblockalign);
 
-      if (slen < 1) {
-        sf_seek(audioContainer.sndFile, 0, SEEK_SET);
+    if (slen < 1) {
+      sf_seek(audioContainer.sndFile, 0, SEEK_SET);
 
-        if (audioContainer.isLooping) {
-          return getNextStreamBlock(audioContainer);
-        } else {
-          return false;
-        }
+      if (audioContainer.isLooping) {
+        return getNextStreamBlock(audioContainer);
+      } else {
+        return false;
       }
-      slen *= audioContainer.byteblockalign;
-      break;
+    }
+    slen *= audioContainer.byteblockalign;
+    break;
 
-    case Float:
-      slen = sf_readf_float(audioContainer.sndFile, std::get<std::vector<float>>(audioContainer.audioData).data(),
+  case Float:
+    slen = sf_readf_float(audioContainer.sndFile,
+        std::get<std::vector<float>>(audioContainer.audioData).data(),
         audioContainer.blockCount * audioContainer.splblockalign);
-      if (slen < 1) {
-        sf_seek(audioContainer.sndFile, 0, SEEK_SET);
+    if (slen < 1) {
+      sf_seek(audioContainer.sndFile, 0, SEEK_SET);
 
-        if (audioContainer.isLooping) {
-          return getNextStreamBlock(audioContainer);
-        } else {
-          return false;
-        }
+      if (audioContainer.isLooping) {
+        return getNextStreamBlock(audioContainer);
+      } else {
+        return false;
       }
-      slen *= audioContainer.byteblockalign;
-      break;
+    }
+    slen *= audioContainer.byteblockalign;
+    break;
 
-    default:
-      slen = sf_read_raw(audioContainer.sndFile, std::get<std::vector<int>>(audioContainer.audioData).data(),
+  default:
+    slen = sf_read_raw(audioContainer.sndFile,
+        std::get<std::vector<int>>(audioContainer.audioData).data(),
         audioContainer.blockCount * audioContainer.splblockalign);
-      if (slen > 0) {
-        slen -= slen % audioContainer.byteblockalign;
-      }
-      if (slen < 1) {
-        sf_seek(audioContainer.sndFile, 0, SEEK_SET);
-      }
-        
-        if (audioContainer.isLooping) {
-          return getNextStreamBlock(audioContainer);
-        } else {
-          return false;
-        }
+    if (slen > 0) {
+      slen -= slen % audioContainer.byteblockalign;
+    }
+    if (slen < 1) {
+      sf_seek(audioContainer.sndFile, 0, SEEK_SET);
+    }
+
+    if (audioContainer.isLooping) {
+      return getNextStreamBlock(audioContainer);
+    } else {
+      return false;
+    }
   }
   audioContainer.bufferSize = slen;
   return true;
