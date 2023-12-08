@@ -12,6 +12,7 @@
 #include <iostream>
 #include <memory>
 #include <set>
+#include <vector>
 
 namespace cs::audio {
 
