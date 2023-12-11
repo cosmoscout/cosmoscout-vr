@@ -58,6 +58,8 @@ NLOHMANN_JSON_SERIALIZE_ENUM(
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 struct Distribution {
+
+  // Type of the distribution, e.g. gamma or log-normal.
   DistributionType type;
 
   // Shape for gamma distribution, Mean for log-normal distribution, and Effective Radius for the
@@ -97,22 +99,23 @@ void from_json(nlohmann::json const& j, Distribution& s) {
   }
 }
 
-std::vector<double> sampleRadii(
-    DistributionType type, int32_t count, double paramA, double paramB) {
+// Draws a random set of radii from the given distribution.
+std::vector<double> sampleRadii(Distribution const& distribution, int32_t count) {
 
   std::random_device rd{};
   std::mt19937       gen{rd()};
 
   std::vector<double> radii(count);
 
-  if (type == DistributionType::eGamma || type == DistributionType::eModifiedGamma) {
+  if (distribution.type == DistributionType::eGamma ||
+      distribution.type == DistributionType::eModifiedGamma) {
 
-    double shape = paramA;
-    double scale = paramB;
+    double shape = distribution.paramA;
+    double scale = distribution.paramB;
 
-    if (type == DistributionType::eModifiedGamma) {
-      shape = (1.0 - 2.0 * paramB) / paramB;
-      scale = paramA * paramB;
+    if (distribution.type == DistributionType::eModifiedGamma) {
+      shape = (1.0 - 2.0 * distribution.paramB) / distribution.paramB;
+      scale = distribution.paramA * distribution.paramB;
     }
 
     std::gamma_distribution<> d(shape, scale);
@@ -121,14 +124,15 @@ std::vector<double> sampleRadii(
       radii[i] = d(gen);
     }
 
-  } else if (type == DistributionType::eLogNormal || type == DistributionType::eModifiedLogNormal) {
+  } else if (distribution.type == DistributionType::eLogNormal ||
+             distribution.type == DistributionType::eModifiedLogNormal) {
 
-    double mean  = paramA;
-    double sigma = paramB;
+    double mean  = distribution.paramA;
+    double sigma = distribution.paramB;
 
-    if (type == DistributionType::eModifiedLogNormal) {
-      double s2 = std::log(paramB + 1);
-      mean      = std::log(paramA) - 2.5 * s2;
+    if (distribution.type == DistributionType::eModifiedLogNormal) {
+      double s2 = std::log(distribution.paramB + 1);
+      mean      = std::log(distribution.paramA) - 2.5 * s2;
       sigma     = std::sqrt(s2);
     }
 
@@ -228,14 +232,28 @@ std::complex<double> maxwellGarnett(
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
+// We compute the phase function and average scattering cross sections of a disperse mixture of   //
+// particles using Mie Theory. The result of the computation is passed around with the struct     //
+// below.                                                                                         //
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 struct MieResult {
+  // The evenly sampled phase function between 0° (forward-scattering) and 180° (back-scattering)
+  // normalized to 4π.
   std::vector<double> phase;
-  double              cSca;
-  double              cAbs;
+
+  // The average scattering cross section of the disperse particle mixture in µm².
+  double cSca;
+
+  // The average absorption cross section of the disperse particle mixture in µm².
+  double cAbs;
 };
 
+// This computes the phase function and average scattering and absorption cross sections of a
+// disperse particle mixture for a given wavelength. The phase function will be sampled at 2 *
+// thetaSamples - 1 positions between 0° (forward-scattering) and 180° (back-scattering). The
+// wavelength in µm is given via the lambda parameter, the particle's radii are given via a sampled
+// radii distribution (also in µm).
 MieResult mieDisperse(int32_t thetaSamples, double lambda, std::complex<double> ior,
     std::vector<double> const& radii) {
 
@@ -244,27 +262,31 @@ MieResult mieDisperse(int32_t thetaSamples, double lambda, std::complex<double> 
   result.cAbs  = 0.0;
   result.cSca  = 0.0;
 
-  std::vector<std::complex<double>> cxs1(2 * thetaSamples);
-  std::vector<std::complex<double>> cxs2(2 * thetaSamples);
-
-  double totalWeight = 0.0;
-
   for (double r : radii) {
     double x = 2.0 * r * glm::pi<double>() / lambda;
-    double qext, qsca, qback, gsca;
+
+    double                            qext, qsca, qback, gsca;
+    std::vector<std::complex<double>> cxs1(2 * thetaSamples);
+    std::vector<std::complex<double>> cxs2(2 * thetaSamples);
 
     bhmie(x, ior, thetaSamples, cxs1, cxs2, &qext, &qsca, &qback, &gsca);
 
-    double normalization = glm::pi<double>() * x * x * qsca;
-
     double csca = qsca * glm::pi<double>() * r * r;
     double cext = qext * glm::pi<double>() * r * r;
-    totalWeight += csca;
+
+    // This is used to normalize the phase function to 4π.
+    double normalization = glm::pi<double>() * x * x * qsca;
 
     for (int32_t i(0); i < thetaSamples * 2 - 1; ++i) {
+
+      // Compute the scattering intensity for each direction by averaging the parallel and
+      // orthogonal polarizations. For some reason bhmie returns the intensity values shifted by one
+      // index.
       double intensity =
           0.5 * (std::pow(std::abs(cxs1[i + 1]), 2.f) + std::pow(std::abs(cxs2[i + 1]), 2.f));
 
+      // The phase functions are normalized to 4π and weight by the scattering cross section of the
+      // current particle radius.
       result.phase[i] += intensity / normalization * csca;
     }
 
@@ -273,7 +295,7 @@ MieResult mieDisperse(int32_t thetaSamples, double lambda, std::complex<double> 
   }
 
   for (auto& p : result.phase) {
-    p /= totalWeight;
+    p /= result.cSca;
   }
 
   result.cSca /= radii.size();
