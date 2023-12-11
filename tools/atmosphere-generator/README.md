@@ -49,13 +49,13 @@ Here are some other examples to get you started:
 # functions and scattering coefficients for the three given wavelengths. The output will be
 # written to the default 'particles.csv' files. The phase function will be sampled in one-
 # degree steps.
-./atmosphere-generator mie -i ../../../tools/atmosphere-generator/settings/marsBimodal.json \
+./atmosphere-generator mie -i ../../../tools/atmosphere-generator/particle-settings/marsBimodal.json \
                            --lambdas 0.44,0.55,0.68 --theta-samples 91 --radius-samples 10000
 ```
 
 ```bash
 # This computes phase functions (in half-degree steps) and scattering coefficients for
 # 15 default wavelengths for rain-drop like particles and writes the output to 'rain.csv'.
-./atmosphere-generator mie -i ../../../tools/atmosphere-generator/settings/rain.json \
+./atmosphere-generator mie -i ../../../tools/atmosphere-generator/particle-settings/rain.json \
                            -o rain.csv --theta-samples 181 --radius-samples 100
 ```
