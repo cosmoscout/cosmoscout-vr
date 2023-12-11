@@ -11,6 +11,10 @@ if (NOT CS_ATMOSPHERE_GENERATOR)
   return()
 endif()
 
+# search dependencies ------------------------------------------------------------------------------
+
+find_package(OpenMP REQUIRED)
+
 # build executable ---------------------------------------------------------------------------------
 
 file(GLOB SOURCE_FILES *.cpp)
@@ -32,6 +36,7 @@ endif()
 
 target_link_libraries(atmosphere-generator
   cs-utils
+  OpenMP::OpenMP_CXX
 )
 
 # Make directory structure available in your IDE.

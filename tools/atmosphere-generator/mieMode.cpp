@@ -266,6 +266,7 @@ MieResult mieDisperse(int32_t thetaSamples, double lambda, std::complex<double> 
   result.cAbs  = 0.0;
   result.cSca  = 0.0;
 
+#pragma omp parallel for
   for (double r : radii) {
     double x = 2.0 * r * glm::pi<double>() / lambda;
 
@@ -279,7 +280,8 @@ MieResult mieDisperse(int32_t thetaSamples, double lambda, std::complex<double> 
     double cext = qext * glm::pi<double>() * r * r;
 
     // This is used to normalize the phase function to 4π.
-    double normalization = glm::pi<double>() * x * x * qsca;
+    double              normalization = glm::pi<double>() * x * x * qsca;
+    std::vector<double> phase(2 * thetaSamples - 1);
 
     for (int32_t i(0); i < thetaSamples * 2 - 1; ++i) {
 
@@ -291,11 +293,18 @@ MieResult mieDisperse(int32_t thetaSamples, double lambda, std::complex<double> 
 
       // The phase functions are normalized to 4π and weight by the scattering cross section of the
       // current particle radius.
-      result.phase[i] += intensity / normalization * csca;
+      phase[i] = intensity / normalization * csca;
     }
 
-    result.cSca += csca;
-    result.cAbs += cext - csca;
+#pragma omp critical
+    {
+      for (int32_t i(0); i < thetaSamples * 2 - 1; ++i) {
+        result.phase[i] += phase[i];
+      }
+
+      result.cSca += csca;
+      result.cAbs += cext - csca;
+    }
   }
 
   for (auto& p : result.phase) {
@@ -432,6 +441,9 @@ int mieMode(std::vector<std::string> const& arguments) {
   }
   output << std::endl;
 
+  int32_t totalSteps  = lambdas.size() * particleSettings.sizeModes.size();
+  int32_t currentStep = 0;
+
   // Now write a line to the CSV file for each wavelength.
   for (size_t l(0); l < lambdas.size(); ++l) {
 
@@ -445,6 +457,9 @@ int mieMode(std::vector<std::string> const& arguments) {
     double totalPhaseWeight = 0.0;
 
     for (auto sizeMode : particleSettings.sizeModes) {
+
+      std::cout << "Computing step " << ++currentStep << " / " << totalSteps << std::endl;
+
       auto radii = sampleRadii(sizeMode, cRadiusSamples);
 
       auto mieResult = mieDisperse(cThetaSamples, lambda, ior[l], radii);
