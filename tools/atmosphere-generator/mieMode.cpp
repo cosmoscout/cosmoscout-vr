@@ -20,7 +20,10 @@
 #include <map>
 #include <random>
 
-// Allow deserialization of std::complex types using nlohmann::json.
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// Allow deserialization of std::complex types using nlohmann::json.                              //
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 namespace nlohmann {
 template <typename T>
 struct adl_serializer<std::complex<T>> {
@@ -308,7 +311,6 @@ MieResult mieDisperse(int32_t thetaSamples, double lambda, std::complex<double> 
 } // namespace
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////////////////////
 
 int mieMode(std::vector<std::string> const& arguments) {
 
@@ -359,33 +361,14 @@ int mieMode(std::vector<std::string> const& arguments) {
     return 0;
   }
 
+  // The particle configuration is mandatory.
   if (cInput.empty()) {
     std::cerr << "Please specify a particle configuration file with the --input option!"
               << std::endl;
     return 1;
   }
 
-  std::vector<double> lambdas;
-
-  if (cLambdas.empty()) {
-    if (cLambdaSamples <= 0) {
-      std::cerr << "Lmabda samples must be > 0!" << std::endl;
-      return 1;
-    } else if (cLambdaSamples == 1) {
-      lambdas.push_back(cMinLambda);
-    } else {
-      for (int32_t i(0); i < cLambdaSamples; ++i) {
-        lambdas.push_back(cMinLambda + (cMaxLambda - cMinLambda) * i / (cLambdaSamples - 1.0));
-      }
-    }
-
-  } else {
-    auto tokens = cs::utils::splitString(cLambdas, ',');
-    for (auto token : tokens) {
-      lambdas.push_back(cs::utils::fromString<double>(token));
-    }
-  }
-
+  // Try parsing the particle settings.
   std::ifstream  stream(cInput);
   nlohmann::json json;
   stream >> json;
@@ -397,10 +380,36 @@ int mieMode(std::vector<std::string> const& arguments) {
     return 1;
   }
 
+  // Now assemble a list of wavelengths in µm. This is either provided with the --lambda-samples
+  // command-line parameter or via the combination of --min-lambda, --max-lambda, and
+  // --lambda-samples.
+  std::vector<double> lambdas;
+
+  if (cLambdas.empty()) {
+    if (cLambdaSamples <= 0) {
+      std::cerr << "Lambda-sample count must be > 0!" << std::endl;
+      return 1;
+    } else if (cLambdaSamples == 1) {
+      lambdas.push_back(cMinLambda);
+    } else {
+      for (int32_t i(0); i < cLambdaSamples; ++i) {
+        lambdas.push_back(cMinLambda + (cMaxLambda - cMinLambda) * i / (cLambdaSamples - 1.0));
+      }
+    }
+  } else {
+    auto tokens = cs::utils::splitString(cLambdas, ',');
+    for (auto token : tokens) {
+      lambdas.push_back(cs::utils::fromString<double>(token));
+    }
+  }
+
+  // Now that we have a list of wavelengths, compute the index of refraction of the particles at
+  // each wavelength.
   std::vector<std::complex<double>> ior(lambdas.size());
 
   for (size_t i(0); i < lambdas.size(); ++i) {
     double lambda = lambdas[i];
+
     if (particleSettings.inclusion) {
       auto   inclusionIoR = getRefractiveIndex(lambda, particleSettings.inclusion.value().ior);
       auto   substrateIoR = getRefractiveIndex(lambda, particleSettings.ior);
@@ -411,18 +420,19 @@ int mieMode(std::vector<std::string> const& arguments) {
     }
   }
 
-  std::ofstream output(cOutput);
-
+  // We will write this many phase function samples. cThetaSamples determines the number of samples
+  // between 0° and 90° (including both).
   int32_t totalAngles = cThetaSamples * 2 - 1;
 
+  // Open the output file for writing and write the CSV header.
+  std::ofstream output(cOutput);
   output << "lambda,c_sca,c_abs";
-
   for (int32_t t(0); t < totalAngles; ++t) {
     output << fmt::format(",{}", 180.0 * t / (totalAngles - 1.0));
   }
-
   output << std::endl;
 
+  // Now write a line to the CSV file for each wavelength.
   for (size_t l(0); l < lambdas.size(); ++l) {
 
     double lambda = lambdas[l];
@@ -439,6 +449,8 @@ int mieMode(std::vector<std::string> const& arguments) {
 
       auto mieResult = mieDisperse(cThetaSamples, lambda, ior[l], radii);
 
+      // Scattering cross sections are weighted by the number density of the size modes, phase
+      // functions are also weighted by the respective scattering cross-sections.
       double coeffWeight = sizeMode.relativeNumberDensity;
       double phaseWeight = coeffWeight * mieResult.cSca;
 
@@ -453,6 +465,7 @@ int mieMode(std::vector<std::string> const& arguments) {
       }
     }
 
+    // Print wavelength, scattering cross-section, and absorption cross-section.
     output << fmt::format("{},{},{}", lambda, cSca / totalCoeffWeight, cAbs / totalCoeffWeight);
 
     for (double p : phase) {
@@ -464,3 +477,5 @@ int mieMode(std::vector<std::string> const& arguments) {
 
   return 0;
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////

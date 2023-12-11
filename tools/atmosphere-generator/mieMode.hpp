@@ -11,6 +11,11 @@
 #include <string>
 #include <vector>
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// This method is used to pre-compute the scattering behavior of a particle mixture using Mie     //
+// Theory. See README.md for usage details.                                                       //
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 int mieMode(std::vector<std::string> const& arguments);
 
 #endif // MIE_MODE_HPP
