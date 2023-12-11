@@ -1,8 +1,5 @@
 #include "bhmie.hpp"
 
-#include <cmath>
-#include <cstdio>
-
 #define CXONE std::complex<double>(1.0, 0.0)
 
 void bhmie(double x, std::complex<double> cxref, unsigned long nang,
@@ -17,12 +14,12 @@ void bhmie(double x, std::complex<double> cxref, unsigned long nang,
   double       dn, dx, psi, psi0, psi1;
   unsigned int j, jj, n, nmx, nn, nstop;
 
-  pii = 4.E0 * atan(1.E0);
+  pii = 4.0 * std::atan(1.0);
   dx  = x;
   cxy = std::complex<double>(x, 0.0) * cxref;
 
   /* Series expansion terminated after NSTOP terms */
-  xstop = x + 4.E0 * pow(x, 0.3333) + 2.0;
+  xstop = x + 4.0 * std::pow(x, 0.3333) + 2.0;
   nstop = xstop;
   ymod  = std::abs(cxy);
   nmx   = std::max(xstop, ymod) + 15;
@@ -33,7 +30,6 @@ void bhmie(double x, std::complex<double> cxref, unsigned long nang,
 
   dang = .5E0 * pii / (double)(nang - 1);
   for (j = 1; j <= nang; j++) {
-
     theta  = (double)(j - 1) * dang;
     amu[j] = cos(theta);
   }
@@ -41,50 +37,51 @@ void bhmie(double x, std::complex<double> cxref, unsigned long nang,
   /* Logarithmic derivative D(J) calculated by downward recurrence
       beginning with initial value (0.,0.) at J=NMX */
 
-  cxd[nmx] = std::complex<double>(0.E0, 0.E0);
+  cxd[nmx] = std::complex<double>(0.0, 0.0);
   nn       = nmx - 1;
 
   for (n = 1; n <= nn; n++) {
     rn = nmx - n + 1;
-    /*        cxd(nmx-n) = (rn/cxy) - (1.E0/(cxd(nmx-n+1)+rn/cxy)) */
+    /*        cxd(nmx-n) = (rn/cxy) - (1.0/(cxd(nmx-n+1)+rn/cxy)) */
     cxtemp       = cxd[nmx - n + 1] + std::complex<double>(rn, 0.0) / cxy;
     cxtemp       = CXONE / cxtemp;
     cxd[nmx - n] = std::complex<double>(rn, 0.0) / cxy - cxtemp;
   }
 
   for (j = 1; j <= nang; j++) {
-    pi0[j] = 0.E0;
-    pi1[j] = 1.E0;
+    pi0[j] = 0.0;
+    pi1[j] = 1.0;
   }
   nn = 2 * nang - 1;
   for (j = 1; j <= nn; j++) {
-    cxs1[j] = std::complex<double>(0.E0, 0.E0);
-    cxs2[j] = std::complex<double>(0.E0, 0.E0);
+    cxs1[j] = std::complex<double>(0.0, 0.0);
+    cxs2[j] = std::complex<double>(0.0, 0.0);
   }
 
   /* Riccati-Bessel functions with real argument X
       calculated by upward recurrence */
 
-  psi0  = cos(dx);
-  psi1  = sin(dx);
-  chi0  = -sin(x);
-  chi1  = cos(x);
+  psi0  = std::cos(dx);
+  psi1  = std::sin(dx);
+  chi0  = -std::sin(x);
+  chi1  = std::cos(x);
   apsi0 = psi0;
   apsi1 = psi1;
   cxxi0 = std::complex<double>(apsi0, -chi0);
   cxxi1 = std::complex<double>(apsi1, -chi1);
-  *qsca = 0.E0;
-  *gsca = 0.E0;
+  *qsca = 0.0;
+  *gsca = 0.0;
 
   for (n = 1; n <= nstop; n++) {
 
     dn   = n;
     rn   = n;
-    fn   = (2.E0 * rn + 1.E0) / (rn * (rn + 1.E0));
-    psi  = (2.E0 * dn - 1.E0) * psi1 / dx - psi0;
+    fn   = (2.0 * rn + 1.0) / (rn * (rn + 1.0));
+    psi  = (2.0 * dn - 1.0) * psi1 / dx - psi0;
     apsi = psi;
-    chi  = (2.E0 * rn - 1.E0) * chi1 / x - chi0;
+    chi  = (2.0 * rn - 1.0) * chi1 / x - chi0;
     cxxi = std::complex<double>(apsi, -chi);
+
     /* Store previous values of AN and BN for use
         in computation of g=<cos(theta)> */
     if (n > 1) {
@@ -135,14 +132,14 @@ void bhmie(double x, std::complex<double> cxref, unsigned long nang,
     for (j = 1; j <= nang; j++) {
       jj     = 2 * nang - j;
       pi[j]  = pi1[j];
-      tau[j] = rn * amu[j] * pi[j] - (rn + 1.E0) * pi0[j];
-      p      = pow(-1.0, n - 1);
+      tau[j] = rn * amu[j] * pi[j] - (rn + 1.0) * pi0[j];
+      p      = std::pow(-1.0, n - 1);
       /*          cxs1[j] = cxs1[j] + fn*(cxan*pi[j]+cxbn*tau[j]); */
       cxtemp  = cxan * std::complex<double>(pi[j], 0.0);
       cxtemp  = cxtemp + cxbn * std::complex<double>(tau[j], 0.0);
       cxtemp  = std::complex<double>(fn, 0.0) * cxtemp;
       cxs1[j] = cxs1[j] + cxtemp;
-      t       = pow(-1.0, n);
+      t       = std::pow(-1.0, n);
       /*          cxs2[j] = cxs2[j] + fn*(cxan*tau[j]+cxbn*pi[j]); */
       cxtemp  = cxan * std::complex<double>(tau[j], 0.0);
       cxtemp  = cxtemp + cxbn * std::complex<double>(pi[j], 0.0);
@@ -183,8 +180,8 @@ void bhmie(double x, std::complex<double> cxref, unsigned long nang,
   /*  Have summed sufficient terms.
        Now compute *qsca,*qext,*qback,and *gsca */
   *gsca = 2. * *gsca / *qsca;
-  *qsca = (2.E0 / (x * x)) * *qsca;
-  *qext = (4.E0 / (x * x)) * cxs1[1].real();
+  *qsca = (2.0 / (x * x)) * *qsca;
+  *qext = (4.0 / (x * x)) * cxs1[1].real();
 
-  *qback = (4.E0 / (x * x)) * std::abs(cxs1[2 * nang - 1]) * std::abs(cxs1[2 * nang - 1]);
+  *qback = (4.0 / (x * x)) * std::abs(cxs1[2 * nang - 1]) * std::abs(cxs1[2 * nang - 1]);
 }
