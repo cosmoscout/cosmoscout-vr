@@ -13,6 +13,7 @@
 
 #include <glm/gtc/constants.hpp>
 #include <nlohmann/json.hpp>
+#include <spdlog/spdlog.h>
 
 #include <complex>
 #include <fstream>
@@ -417,7 +418,7 @@ int mieMode(std::vector<std::string> const& arguments) {
   output << "lambda,c_sca,c_abs";
 
   for (int32_t t(0); t < totalAngles; ++t) {
-    output << "," << 180.0 * t / (totalAngles - 1.0);
+    output << fmt::format(",{}", 180.0 * t / (totalAngles - 1.0));
   }
 
   output << std::endl;
@@ -434,7 +435,7 @@ int mieMode(std::vector<std::string> const& arguments) {
     double totalPhaseWeight = 0.0;
 
     for (auto sizeMode : particleSettings.sizeModes) {
-      auto radii = sampleRadii(sizeMode.type, cRadiusSamples, sizeMode.paramA, sizeMode.paramB);
+      auto radii = sampleRadii(sizeMode, cRadiusSamples);
 
       auto mieResult = mieDisperse(cThetaSamples, lambda, ior[l], radii);
 
@@ -452,10 +453,10 @@ int mieMode(std::vector<std::string> const& arguments) {
       }
     }
 
-    output << lambda << "," << cSca / totalCoeffWeight << "," << cAbs / totalCoeffWeight;
+    output << fmt::format("{},{},{}", lambda, cSca / totalCoeffWeight, cAbs / totalCoeffWeight);
 
     for (double p : phase) {
-      output << "," << p / totalPhaseWeight;
+      output << fmt::format(",{}", p / totalPhaseWeight);
     }
 
     output << std::endl;
