@@ -236,6 +236,9 @@ void split(const std::string& s, char delim, Out result) {
 
 std::vector<std::string> split(const std::string& s, char delim);
 
+/// Converts a double to string without trailing zeros or decimal point if not needed
+std::string toStringWithoutTrailing(double value);
+
 } // namespace utils
 
 } // namespace csl::ogc
