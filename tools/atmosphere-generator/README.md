@@ -36,17 +36,19 @@ To learn about the different operation modes, you can now issue this command:
 
 ### `mie` Mode
 
+This mode allows computation of phase functions as well as scattering- and absorption cross-sections for a given particle mixture.
+The particles follow a specified multi-modal size distribution and can have a complex, wavelength-dependent refractive index.
+The results are stored in a CSV file.
 Use `./atmosphere-generator mie --help` to learn about all the options.
 
 > [!IMPORTANT]
-> Length units must always be given in µm. This is true for instance for wavelengths and for particle radii.
-
+> In this mode, length units must always be given in µm. For instance, this is true for wavelengths and for particle radii.
 
 Here are some other examples to get you started:
 
 ```bash
 # This uses the particle settings from settings/marsBimodal.json and precomputes the phase
-# functions and scattering coefficients for the three given wavelengths. The output will be
+# functions and scattering cross-sections for the three given wavelengths. The output will be
 # written to the default 'particles.csv' files. The phase function will be sampled in one-
 # degree steps.
 ./atmosphere-generator mie -i ../../../tools/atmosphere-generator/particle-settings/marsBimodal.json \
@@ -54,8 +56,24 @@ Here are some other examples to get you started:
 ```
 
 ```bash
-# This computes phase functions (in half-degree steps) and scattering coefficients for
+# This computes phase functions (in half-degree steps) and scattering cross-sections for
 # 15 default wavelengths for rain-drop like particles and writes the output to 'rain.csv'.
 ./atmosphere-generator mie -i ../../../tools/atmosphere-generator/particle-settings/rain.json \
-                           -o rain.csv --theta-samples 181 --radius-samples 100
+                           -o rain.csv --theta-samples 181 --radius-samples 1000
+```
+
+### `density` Mode
+
+This mode samples a given multi-modal density function at evenly spaced altitudes and writes the resulting data to a CSV file.
+Use `./atmosphere-generator density --help` to learn about all the options.
+
+> [!IMPORTANT]
+> In this mode, length units must always be given in m. For instance, this is true for altitudes and scale heights.
+
+Here are some other examples to get you started:
+
+```bash
+./atmosphere-generator density -i ../../../tools/atmosphere-generator/density-settings/rain.json
+./atmosphere-generator density -i ../../../tools/atmosphere-generator/density-settings/mars.json --max-altitude 60000 -o marsDensity.csv
+./atmosphere-generator density -i ../../../tools/atmosphere-generator/density-settings/ozone.json -o ozoneDensity.csv
 ```
