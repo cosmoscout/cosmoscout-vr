@@ -92,8 +92,14 @@ void WCSCoverageImage::process() {
     Image2D image;
     image.mNumScalars = 1;
     image.mDimension  = {texture.x, texture.y};
-    image.mBounds     = {texture.lnglatBounds[0], texture.lnglatBounds[1], texture.lnglatBounds[2],
-        texture.lnglatBounds[3]};
+
+    // convert radians to degree
+    image.mBounds = {
+      texture.lnglatBounds[0] * (180 / M_PI),
+      texture.lnglatBounds[2] * (180 / M_PI),
+      texture.lnglatBounds[3] * (180 / M_PI),
+      texture.lnglatBounds[1] * (180 / M_PI)
+    };
 
     switch (texture.type) {
     case 1: // UInt8
