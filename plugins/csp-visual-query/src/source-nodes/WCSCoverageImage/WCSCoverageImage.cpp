@@ -203,7 +203,10 @@ void WCSCoverageImage::process() {
 csl::ogc::WebCoverageTextureLoader::Request WCSCoverageImage::getRequest() {
   csl::ogc::WebCoverageTextureLoader::Request request;
 
-  // request.mTime = std::to_string(readInput<double>("wcsTimeIn", 0.0));
+  request.mTime = readInput<std::string>("wcsTimeIn", "");
+  if (request.mTime.value() == "") {
+    request.mTime.reset();
+  }
 
   csl::ogc::Bounds2D bound;
   bound.mMinLon   = readInput<double>("lngBoundMinIn", -180.);

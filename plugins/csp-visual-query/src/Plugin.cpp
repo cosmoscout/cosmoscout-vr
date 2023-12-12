@@ -12,6 +12,7 @@
 
 #include "../../../src/cs-utils/filesystem.hpp"
 #include "common-nodes/Real/Real.hpp"
+#include "common-nodes/TimeInterval/TimeInterval.hpp"
 #include "operation-nodes/DifferenceImage2D/DifferenceImage2D.hpp"
 #include "output-nodes/OverlayRenderer/OverlayRender.hpp"
 #include "output-nodes/VolumeRenderer/VolumeRenderer.hpp"
@@ -139,7 +140,8 @@ void Plugin::setupNodeEditor(uint16_t port) {
   factory.registerSocketType("Coverage", "#8e38ff");
   factory.registerSocketType("Image2D", "#3333ff");
   factory.registerSocketType("Volume3D", "#ff3333");
-  factory.registerSocketType("WCSTime", "#b08ab3");
+  factory.registerSocketType("WCSTimeIntervals", "#FFB319");
+  factory.registerSocketType("WCSTime", "#FF6619");
   factory.registerSocketType("WCSBounds", "#b08ab3");
 
   factory.registerSocketType("Real", "#b2e2e2");
@@ -161,6 +163,7 @@ void Plugin::setupNodeEditor(uint16_t port) {
   // NodeFactory::registerNodeType().
   // Commons
   factory.registerNodeType<Real>();
+  factory.registerNodeType<TimeInterval>();
   // Operations
   factory.registerNodeType<DifferenceImage2D>();
   // Outputs
