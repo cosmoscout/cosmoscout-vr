@@ -63,15 +63,29 @@ Here are some other examples to get you started:
                            -o rain --theta-samples 181 --radius-samples 1000
 ```
 
+### `rayleigh` Mode
+
+This mode writes the phase function and scattering cross-sections of Rayleigh molecules in µm² for the specified wavelengths to a CSV file.
+Use `./atmosphere-generator rayleigh --help` to learn about all the options.
+Here is an example:
+
+```bash
+# This will write scattering data for 15 default wavelengths for small
+# molecules to 'rayleigh_phase.csv', 'rayleigh_scattering.csv', and 
+# 'rayleigh_absorption.csv'.
+./atmosphere-generator rayleigh
+```
+
 ### `ozone` Mode
 
 This mode writes the absorption cross-sections of ozone molecules in µm² for the specified wavelengths to a CSV file.
+Use `./atmosphere-generator ozone --help` to learn about all the options.
 Here is an example:
 
 ```bash
 # This will write ozone absorption cross-sections for
 # 15 default wavelengths to ozone_absorption.csv.
-./atmosphere-generator ozone -o ozone
+./atmosphere-generator ozone
 ```
 
 ### `density` Mode
