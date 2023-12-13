@@ -5,8 +5,8 @@
 // SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
 // SPDX-License-Identifier: MIT
 
-#ifndef CSP_VISUAL_QUERY_NUMBER_NODE_HPP
-#define CSP_VISUAL_QUERY_NUMBER_NODE_HPP
+#ifndef CSP_VISUAL_QUERY_REAL_NUMBER_NODE_HPP
+#define CSP_VISUAL_QUERY_REAL_NUMBER_NODE_HPP
 
 #include "../../../../csl-node-editor/src/Node.hpp"
 
@@ -57,4 +57,4 @@ class Real : public csl::nodeeditor::Node {
 
 } // namespace csp::visualquery
 
-#endif // CSP_VISUAL_QUERY_NUMBER_NODE_HPP
+#endif // CSP_VISUAL_QUERY_REAL_NUMBER_NODE_HPP
