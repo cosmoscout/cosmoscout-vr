@@ -102,22 +102,23 @@ int ozoneMode(std::vector<std::string> const& arguments) {
   // Now that we have a list of wavelengths, compute the absorption cross-sections at each
   // wavelength using linear interpolation.
   for (double lambda : lambdas) {
-    size_t lowerIndex = static_cast<size_t>(
-        (absorptions.size() - 1) * (lambda - minLambda) / (maxLambda - minLambda));
-    lowerIndex = std::max(0uL, std::min(absorptions.size() - 1, lowerIndex));
+    int32_t maxIndex = static_cast<int32_t>(absorptions.size());
+    int32_t lowerIndex =
+        static_cast<int32_t>((maxIndex - 1) * (lambda - minLambda) / (maxLambda - minLambda));
+    lowerIndex = std::max(0, std::min(maxIndex - 1, lowerIndex));
 
-    size_t upperIndex = std::min(absorptions.size() - 1, lowerIndex + 1);
+    int32_t upperIndex = std::min(maxIndex - 1, lowerIndex + 1);
 
-    double lowerLambda =
-        minLambda + lowerIndex * (maxLambda - minLambda) / (absorptions.size() - 1);
-    double upperLambda =
-        minLambda + upperIndex * (maxLambda - minLambda) / (absorptions.size() - 1);
+    double lowerLambda = minLambda + lowerIndex * (maxLambda - minLambda) / (maxIndex - 1);
+    double upperLambda = minLambda + upperIndex * (maxLambda - minLambda) / (maxIndex - 1);
 
     double lowerAbsorption = absorptions[lowerIndex];
     double upperAbsorption = absorptions[upperIndex];
 
     double alpha =
         lowerIndex == upperIndex ? 0.0 : (lambda - lowerLambda) / (upperLambda - lowerLambda);
+    alpha = std::max(0.0, std::min(1.0, alpha));
+
     double absorption = (1.0 - alpha) * lowerAbsorption + alpha * upperAbsorption;
 
     // We write data in µm².
