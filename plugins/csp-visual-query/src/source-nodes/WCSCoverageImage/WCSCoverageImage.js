@@ -44,7 +44,7 @@ class WCSCoverageImageComponent extends Rete.Component {
     let timeInput = new Rete.Input('wcsTimeIn', "Time", CosmoScout.socketTypes['WCSTime']);
     node.addInput(timeInput);
     
-    let resolutionInput = new Rete.Input('resolutionIn', "Resolution", CosmoScout.socketTypes['Real']);
+    let resolutionInput = new Rete.Input('resolutionIn', "Resolution", CosmoScout.socketTypes['Int']);
     node.addInput(resolutionInput);
 
     let imageOutput = new Rete.Output('imageOut', 'Image 2D', CosmoScout.socketTypes['Image2D']);

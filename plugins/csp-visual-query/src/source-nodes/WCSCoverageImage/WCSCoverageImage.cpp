@@ -185,7 +185,7 @@ void WCSCoverageImage::process() {
       F32ValueVector pointData{};
 
       for (float scalar : textureData) {
-        pointData.emplace_back(std::vector{scalar});
+          pointData.emplace_back(std::vector{scalar});
       }
 
       image.mPoints = pointData;
