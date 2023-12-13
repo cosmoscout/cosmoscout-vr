@@ -36,9 +36,9 @@ To learn about the different operation modes, you can now issue this command:
 
 ### `mie` Mode
 
-This mode allows computation of phase functions as well as scattering- and absorption cross-sections for a given particle mixture.
-The particles follow a specified multi-modal size distribution and can have a complex, wavelength-dependent refractive index.
-The results are stored in a CSV file.
+This mode computes phase functions as well as scattering- and absorption cross-sections for a given particle mixture.
+The particle mixture follows a specified multi-modal size distribution and can have a complex, wavelength-dependent refractive index.
+The results are stored in a CSV files.
 Use `./atmosphere-generator mie --help` to learn about all the options.
 
 > [!IMPORTANT]
@@ -61,6 +61,17 @@ Here are some other examples to get you started:
 # 'rain_phase.csv', 'rain_scattering.csv', and 'rain_absorption.csv'.
 ./atmosphere-generator mie -i ../../../tools/atmosphere-generator/mie-settings/rain.json \
                            -o rain --theta-samples 181 --radius-samples 1000
+```
+
+### `ozone` Mode
+
+This mode writes the absorption cross-sections of ozone molecules in µm² for the specified wavelengths to a CSV file.
+Here is an example:
+
+```bash
+# This will write ozone absorption cross-sections for
+# 15 default wavelengths to ozone_absorption.csv.
+./atmosphere-generator ozone -o ozone
 ```
 
 ### `density` Mode
