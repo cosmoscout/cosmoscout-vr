@@ -76,6 +76,11 @@ Here is an example:
 ./atmosphere-generator rayleigh
 ```
 
+### `cornette`, `henyey`, and `dhenyey` Modes
+
+These modes write either the Cornette-Shanks, the Henyey-Greenstein, or the Double-Henyey-Greenstein parametric phase function for the specified wavelengths to a CSV file.
+Use `./atmosphere-generator <mode> --help` to learn about all the options.
+
 ### `ozone` Mode
 
 This mode writes the absorption cross-sections of ozone molecules in µm² for the specified wavelengths to a CSV file.
