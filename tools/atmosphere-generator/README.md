@@ -49,8 +49,8 @@ Here are some other examples to get you started:
 ```bash
 # This uses the particle settings from settings/marsBimodal.json and precomputes the phase
 # functions and scattering cross-sections for the three given wavelengths. The output will be
-# written to the default 'particles_phase.csv', 'particles_scattering.csv', and
-# 'particles_absorption.csv' files. The phase function will be sampled in one-degree steps.
+# written to the default 'mie_phase.csv', 'mie_scattering.csv', and 'mie_absorption.csv' files.
+# The phase function will be sampled in one-degree steps.
 ./atmosphere-generator mie -i ../../../tools/atmosphere-generator/mie-settings/marsBimodal.json \
                            --lambdas 0.44,0.55,0.68 --theta-samples 91 --radius-samples 10000
 ```

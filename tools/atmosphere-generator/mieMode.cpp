@@ -324,7 +324,7 @@ int mieMode(std::vector<std::string> const& arguments) {
 
   bool        cPrintHelp     = false;
   std::string cInput         = "";
-  std::string cOutput        = "particles";
+  std::string cOutput        = "mie";
   std::string cLambdas       = "";
   double      cMinLambda     = 0.36;
   double      cMaxLambda     = 0.83;
