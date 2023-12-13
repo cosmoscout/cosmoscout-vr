@@ -49,17 +49,18 @@ Here are some other examples to get you started:
 ```bash
 # This uses the particle settings from settings/marsBimodal.json and precomputes the phase
 # functions and scattering cross-sections for the three given wavelengths. The output will be
-# written to the default 'particles.csv' files. The phase function will be sampled in one-
-# degree steps.
+# written to the default 'particles_phase.csv', 'particles_scattering.csv', and
+# 'particles_absorption.csv' files. The phase function will be sampled in one-degree steps.
 ./atmosphere-generator mie -i ../../../tools/atmosphere-generator/mie-settings/marsBimodal.json \
                            --lambdas 0.44,0.55,0.68 --theta-samples 91 --radius-samples 10000
 ```
 
 ```bash
 # This computes phase functions (in half-degree steps) and scattering cross-sections for
-# 15 default wavelengths for rain-drop like particles and writes the output to 'rain.csv'.
+# 15 default wavelengths for rain-drop like particles and writes the output to
+# 'rain_phase.csv', 'rain_scattering.csv', and 'rain_absorption.csv'.
 ./atmosphere-generator mie -i ../../../tools/atmosphere-generator/mie-settings/rain.json \
-                           -o rain.csv --theta-samples 181 --radius-samples 1000
+                           -o rain --theta-samples 181 --radius-samples 1000
 ```
 
 ### `density` Mode
@@ -74,6 +75,6 @@ Here are some other examples to get you started:
 
 ```bash
 ./atmosphere-generator density -i ../../../tools/atmosphere-generator/density-settings/rain.json
-./atmosphere-generator density -i ../../../tools/atmosphere-generator/density-settings/mars.json --max-altitude 60000 -o marsDensity.csv
-./atmosphere-generator density -i ../../../tools/atmosphere-generator/density-settings/ozone.json -o ozoneDensity.csv
+./atmosphere-generator density -i ../../../tools/atmosphere-generator/density-settings/mars.json --max-altitude 60000 -o mars
+./atmosphere-generator density -i ../../../tools/atmosphere-generator/density-settings/ozone.json -o ozone
 ```
