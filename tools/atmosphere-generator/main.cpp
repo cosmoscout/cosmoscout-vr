@@ -10,6 +10,7 @@
 #include "densityMode.hpp"
 #include "mieMode.hpp"
 #include "ozoneMode.hpp"
+#include "rayleighMode.hpp"
 
 // -------------------------------------------------------------------------------------------------
 
@@ -24,6 +25,7 @@ void printHelp() {
   std::cout << std::endl;
   std::cout << "These modes are available:" << std::endl;
   std::cout << "mie       Precompute phase functions and scattering cross-sections using Mie theory." << std::endl;
+  std::cout << "rayleigh  Write Rayleigh phase function and scattering cross-sections for the given wavelengths." << std::endl;
   std::cout << "ozone     Write ozone absorption cross-sections for the given wavelengths." << std::endl;
   std::cout << "density   Precompute particle density distributions as a function of altitude." << std::endl;
 }
@@ -47,6 +49,10 @@ int main(int argc, char** argv) {
 
   if (cMode == "mie") {
     return mieMode(arguments);
+  }
+
+  if (cMode == "rayleigh") {
+    return rayleighMode(arguments);
   }
 
   if (cMode == "ozone") {
