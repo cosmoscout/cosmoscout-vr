@@ -28,7 +28,7 @@ int ozoneMode(std::vector<std::string> const& arguments) {
   int32_t     cLambdaSamples = 15;
 
   // First configure all possible command line options.
-  cs::utils::CommandLine args("Welcome to the ozone writer! Lambdas are only valid between 0.36 "
+  cs::utils::CommandLine args("Lambdas are only valid between 0.36 "
                               "and 0.83. The Here are the available options:");
   args.addArgument({"-o", "--output"}, &cOutput,
       "The absorption data will be written to <name>_absorption.csv (default: \"" + cOutput +

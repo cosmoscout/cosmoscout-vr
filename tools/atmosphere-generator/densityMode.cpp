@@ -147,8 +147,7 @@ int densityMode(std::vector<std::string> const& arguments) {
   int32_t     cAltitudeSamples = 1024;
 
   // First configure all possible command line options.
-  cs::utils::CommandLine args(
-      "Welcome to the density preprocessor! Here are the available options:");
+  cs::utils::CommandLine args("Here are the available options:");
   args.addArgument(
       {"-i", "--input"}, &cInput, "The JSON file with the distribution information (required).");
   args.addArgument({"-o", "--output"}, &cOutput,

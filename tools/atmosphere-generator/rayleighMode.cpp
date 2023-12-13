@@ -32,8 +32,7 @@ int rayleighMode(std::vector<std::string> const& arguments) {
   int32_t     cThetaSamples   = 91;
 
   // First configure all possible command line options.
-  cs::utils::CommandLine args(
-      "Welcome to the Rayleigh preprocessor! Here are the available options:");
+  cs::utils::CommandLine args("Here are the available options:");
   args.addArgument({"-o", "--output"}, &cOutput,
       "The scattering data will be written to <name>_phase.csv, <name>_scattering.csv, and "
       "<name>_absorption.csv, respectively (default: \"" +
