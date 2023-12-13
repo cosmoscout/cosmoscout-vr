@@ -7,8 +7,8 @@
 
 #include "ozoneMode.hpp"
 
-#include "../../src/cs-utils/CommandLine.hpp"
 #include "../../src/cs-utils/utils.hpp"
+#include "common.hpp"
 
 #include <glm/gtc/constants.hpp>
 #include <nlohmann/json.hpp>
@@ -33,15 +33,7 @@ int ozoneMode(std::vector<std::string> const& arguments) {
   args.addArgument({"-o", "--output"}, &cOutput,
       "The absorption data will be written to <name>_absorption.csv (default: \"" + cOutput +
           "\").");
-  args.addArgument({"--min-lambda"}, &cMinLambda,
-      "The minimum wavelength in µm (default: " + std::to_string(cMinLambda) + ").");
-  args.addArgument({"--max-lambda"}, &cMaxLambda,
-      "The maximum wavelength in µm (default: " + std::to_string(cMaxLambda) + ").");
-  args.addArgument({"--lambda-samples"}, &cLambdaSamples,
-      "The number of wavelengths to compute (default: " + std::to_string(cLambdaSamples) + ").");
-  args.addArgument({"--lambdas"}, &cLambdas,
-      "A comma-separated list of wavelengths in µm. If provided, --min-lambda, --max-lambda, and "
-      "--lambda-samples are ignored.");
+  common::addLambdaFlags(args, &cLambdas, &cMinLambda, &cMaxLambda, &cLambdaSamples);
   args.addArgument({"-h", "--help"}, &cPrintHelp, "Show this help message.");
 
   // Then do the actual parsing.
@@ -61,24 +53,11 @@ int ozoneMode(std::vector<std::string> const& arguments) {
   // Now assemble a list of wavelengths in µm. This is either provided with the --lambda-samples
   // command-line parameter or via the combination of --min-lambda, --max-lambda, and
   // --lambda-samples.
-  std::vector<double> lambdas;
+  std::vector<double> lambdas =
+      common::computeLambdas(cLambdas, cMinLambda, cMaxLambda, cLambdaSamples);
 
-  if (cLambdas.empty()) {
-    if (cLambdaSamples <= 0) {
-      std::cerr << "Lambda-sample count must be > 0!" << std::endl;
-      return 1;
-    } else if (cLambdaSamples == 1) {
-      lambdas.push_back(cMinLambda);
-    } else {
-      for (int32_t i(0); i < cLambdaSamples; ++i) {
-        lambdas.push_back(cMinLambda + (cMaxLambda - cMinLambda) * i / (cLambdaSamples - 1.0));
-      }
-    }
-  } else {
-    auto tokens = cs::utils::splitString(cLambdas, ',');
-    for (auto token : tokens) {
-      lambdas.push_back(cs::utils::fromString<double>(token));
-    }
+  if (lambdas.empty()) {
+    return 1;
   }
 
   // Values from
