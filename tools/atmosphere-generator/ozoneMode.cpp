@@ -31,7 +31,7 @@ int ozoneMode(std::vector<std::string> const& arguments) {
   cs::utils::CommandLine args("Welcome to the ozone writer! Lambdas are only valid between 0.36 "
                               "and 0.83. The Here are the available options:");
   args.addArgument({"-o", "--output"}, &cOutput,
-      "The absorption data will be written to <name>Absorption.csv (default: \"" + cOutput +
+      "The absorption data will be written to <name>_absorption.csv (default: \"" + cOutput +
           "\").");
   args.addArgument({"--min-lambda"}, &cMinLambda,
       "The minimum wavelength in µm (default: " + std::to_string(cMinLambda) + ").");
@@ -96,7 +96,7 @@ int ozoneMode(std::vector<std::string> const& arguments) {
       2.078e-26, 1.383e-26, 7.105e-27};
 
   // Open the output file and write the CSV header.
-  std::ofstream output(cOutput + "Absorption.csv");
+  std::ofstream output(cOutput + "_absorption.csv");
   output << "lambda,c_abs" << std::endl;
 
   // Now that we have a list of wavelengths, compute the absorption cross-sections at each

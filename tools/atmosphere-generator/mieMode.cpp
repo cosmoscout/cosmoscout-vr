@@ -325,7 +325,7 @@ int mieMode(std::vector<std::string> const& arguments) {
 
   bool        cPrintHelp     = false;
   std::string cInput         = "";
-  std::string cOutput        = "particles.csv";
+  std::string cOutput        = "particles";
   std::string cLambdas       = "";
   double      cMinLambda     = 0.36;
   double      cMaxLambda     = 0.83;
@@ -338,7 +338,9 @@ int mieMode(std::vector<std::string> const& arguments) {
   args.addArgument(
       {"-i", "--input"}, &cInput, "The JSON file with the particle information (required).");
   args.addArgument({"-o", "--output"}, &cOutput,
-      "The scattering data will be written to this CSV file (default: \"" + cOutput + "\").");
+      "The scattering data will be written to <name>_phase.csv, <name>_scattering.csv, and "
+      "<name>_absorption.csv, respectively (default: \"" +
+          cOutput + "\").");
   args.addArgument({"--min-lambda"}, &cMinLambda,
       "The minimum wavelength in µm (default: " + std::to_string(cMinLambda) + ").");
   args.addArgument({"--max-lambda"}, &cMaxLambda,
@@ -433,13 +435,18 @@ int mieMode(std::vector<std::string> const& arguments) {
   // between 0° and 90° (including both).
   int32_t totalAngles = cThetaSamples * 2 - 1;
 
-  // Open the output file for writing and write the CSV header.
-  std::ofstream output(cOutput);
-  output << "lambda,c_sca,c_abs";
+  // Open the output files and write the CSV headers.
+  std::ofstream phaseOutput(cOutput + "_phase.csv");
+  std::ofstream scatteringOutput(cOutput + "_scattering.csv");
+  std::ofstream absorptionOutput(cOutput + "_absorption.csv");
+
+  scatteringOutput << "lambda,c_sca" << std::endl;
+  absorptionOutput << "lambda,c_abs" << std::endl;
+  phaseOutput << "lambda";
   for (int32_t t(0); t < totalAngles; ++t) {
-    output << fmt::format(",{}", 180.0 * t / (totalAngles - 1.0));
+    phaseOutput << fmt::format(",{}", 180.0 * t / (totalAngles - 1.0));
   }
-  output << std::endl;
+  phaseOutput << std::endl;
 
   int32_t totalSteps  = lambdas.size() * particleSettings.sizeModes.size();
   int32_t currentStep = 0;
@@ -481,13 +488,13 @@ int mieMode(std::vector<std::string> const& arguments) {
     }
 
     // Print wavelength, scattering cross-section, and absorption cross-section.
-    output << fmt::format("{},{},{}", lambda, cSca / totalCoeffWeight, cAbs / totalCoeffWeight);
-
+    scatteringOutput << fmt::format("{},{}", lambda, cSca / totalCoeffWeight) << std::endl;
+    absorptionOutput << fmt::format("{},{}", lambda, cAbs / totalCoeffWeight) << std::endl;
+    phaseOutput << fmt::format("{}", lambda);
     for (double p : phase) {
-      output << fmt::format(",{}", p / totalPhaseWeight);
+      phaseOutput << fmt::format(",{}", p / totalPhaseWeight);
     }
-
-    output << std::endl;
+    phaseOutput << std::endl;
   }
 
   return 0;

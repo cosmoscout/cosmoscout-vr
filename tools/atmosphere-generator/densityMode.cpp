@@ -140,7 +140,7 @@ int densityMode(std::vector<std::string> const& arguments) {
 
   bool        cPrintHelp       = false;
   std::string cInput           = "";
-  std::string cOutput          = "densities.csv";
+  std::string cOutput          = "particles";
   std::string cLambdas         = "";
   double      cMinAltitude     = 0.0;
   double      cMaxAltitude     = 80000;
@@ -152,7 +152,7 @@ int densityMode(std::vector<std::string> const& arguments) {
   args.addArgument(
       {"-i", "--input"}, &cInput, "The JSON file with the distribution information (required).");
   args.addArgument({"-o", "--output"}, &cOutput,
-      "The density data will be written to this CSV file (default: \"" + cOutput + "\").");
+      "The density data will be written to <name>_density.csv (default: \"" + cOutput + "\").");
   args.addArgument({"--min-altitude"}, &cMinAltitude,
       "The minimum wavelength in µm (default: " + std::to_string(cMinAltitude) + ").");
   args.addArgument({"--max-altitude"}, &cMaxAltitude,
@@ -195,7 +195,7 @@ int densityMode(std::vector<std::string> const& arguments) {
   }
 
   // Open the output file for writing and write the CSV header.
-  std::ofstream output(cOutput);
+  std::ofstream output(cOutput + "_density.csv");
   output << "altitude,numberDensity" << std::endl;
 
   // Now write a density value for each altitude.
