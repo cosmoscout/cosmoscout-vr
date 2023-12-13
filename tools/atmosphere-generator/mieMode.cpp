@@ -340,13 +340,11 @@ int mieMode(std::vector<std::string> const& arguments) {
       "The scattering data will be written to <name>_phase.csv, <name>_scattering.csv, and "
       "<name>_absorption.csv, respectively (default: \"" +
           cOutput + "\").");
-  common::addLambdaFlags(args, &cLambdas, &cMinLambda, &cMaxLambda, &cLambdaSamples);
-  args.addArgument({"--theta-samples"}, &cThetaSamples,
-      "The number of angles to compute between 0° and 90° (default: " +
-          std::to_string(cThetaSamples) + ").");
   args.addArgument({"--radius-samples"}, &cRadiusSamples,
       "The number of particles to compute per size mode (default: " +
           std::to_string(cRadiusSamples) + ").");
+  common::addLambdaFlags(args, &cLambdas, &cMinLambda, &cMaxLambda, &cLambdaSamples);
+  common::addThetaFlags(args, &cThetaSamples);
   args.addArgument({"-h", "--help"}, &cPrintHelp, "Show this help message.");
 
   // Then do the actual parsing.

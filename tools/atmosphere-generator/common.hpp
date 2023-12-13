@@ -21,6 +21,9 @@ namespace common {
 void addLambdaFlags(cs::utils::CommandLine& commandLine, std::string* lambdas, double* minLambda,
     double* maxLambda, int32_t* lambdaSamples);
 
+// This adds the --theta-samples commandline parameter to the given CommandLine object.
+void addThetaFlags(cs::utils::CommandLine& commandLine, int32_t* thetaSamples);
+
 // This assembles a list of wavelengths from the given parameters. This is either provided with the
 // comma-separated 'lambdas' string, or via the combination of minLambda, maxLambda, and
 // lambdaSamples.
