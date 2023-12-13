@@ -11,15 +11,22 @@
 #include "../../src/cs-utils/CommandLine.hpp"
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-// This method writes ozone absorption cross-sections in the same format as the mie mode.         //
+// Common functionality which is used by multiple modes.                                          //
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 namespace common {
-void addLambdaFlags(cs::utils::CommandLine& commandLine, std::string* cLambdas, double* cMinLambda,
-    double* cMaxLambda, int32_t* cLambdaSamples);
 
+// This adds the --lambda-samples,--min-lambda, --max-lambda, and --lambda-samples commandline
+// parameters to the given CommandLine object.
+void addLambdaFlags(cs::utils::CommandLine& commandLine, std::string* lambdas, double* minLambda,
+    double* maxLambda, int32_t* lambdaSamples);
+
+// This assembles a list of wavelengths from the given parameters. This is either provided with the
+// comma-separated 'lambdas' string, or via the combination of minLambda, maxLambda, and
+// lambdaSamples.
 std::vector<double> computeLambdas(
-    std::string const& cLambdas, double cMinLambda, double cMaxLambda, int32_t cLambdaSamples);
+    std::string const& lambdas, double minLambda, double maxLambda, int32_t lambdaSamples);
+
 } // namespace common
 
 #endif // COMMON_HPP

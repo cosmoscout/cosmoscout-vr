@@ -13,16 +13,16 @@ namespace common {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void addLambdaFlags(cs::utils::CommandLine& commandLine, std::string* cLambdas, double* cMinLambda,
-    double* cMaxLambda, int32_t* cLambdaSamples) {
+void addLambdaFlags(cs::utils::CommandLine& commandLine, std::string* lambdas, double* minLambda,
+    double* maxLambda, int32_t* lambdaSamples) {
 
-  commandLine.addArgument({"--min-lambda"}, cMinLambda,
-      "The minimum wavelength in µm (default: " + std::to_string(*cMinLambda) + ").");
-  commandLine.addArgument({"--max-lambda"}, cMaxLambda,
-      "The maximum wavelength in µm (default: " + std::to_string(*cMaxLambda) + ").");
-  commandLine.addArgument({"--lambda-samples"}, cLambdaSamples,
-      "The number of wavelengths to compute (default: " + std::to_string(*cLambdaSamples) + ").");
-  commandLine.addArgument({"--lambdas"}, cLambdas,
+  commandLine.addArgument({"--min-lambda"}, minLambda,
+      "The minimum wavelength in µm (default: " + std::to_string(*minLambda) + ").");
+  commandLine.addArgument({"--max-lambda"}, maxLambda,
+      "The maximum wavelength in µm (default: " + std::to_string(*maxLambda) + ").");
+  commandLine.addArgument({"--lambda-samples"}, lambdaSamples,
+      "The number of wavelengths to compute (default: " + std::to_string(*lambdaSamples) + ").");
+  commandLine.addArgument({"--lambdas"}, lambdas,
       "A comma-separated list of wavelengths in µm. If provided, --min-lambda, --max-lambda, and "
       "--lambda-samples are ignored.");
 }
@@ -30,28 +30,28 @@ void addLambdaFlags(cs::utils::CommandLine& commandLine, std::string* cLambdas, 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 std::vector<double> computeLambdas(
-    std::string const& cLambdas, double cMinLambda, double cMaxLambda, int32_t cLambdaSamples) {
-  std::vector<double> lambdas;
+    std::string const& lambdas, double minLambda, double maxLambda, int32_t lambdaSamples) {
+  std::vector<double> result;
 
-  if (cLambdas.empty()) {
-    if (cLambdaSamples <= 0) {
+  if (lambdas.empty()) {
+    if (lambdaSamples <= 0) {
       std::cerr << "Lambda-sample count must be > 0!" << std::endl;
-      return lambdas;
-    } else if (cLambdaSamples == 1) {
-      lambdas.push_back(cMinLambda);
+      return result;
+    } else if (lambdaSamples == 1) {
+      result.push_back(minLambda);
     } else {
-      for (int32_t i(0); i < cLambdaSamples; ++i) {
-        lambdas.push_back(cMinLambda + (cMaxLambda - cMinLambda) * i / (cLambdaSamples - 1.0));
+      for (int32_t i(0); i < lambdaSamples; ++i) {
+        result.push_back(minLambda + (maxLambda - minLambda) * i / (lambdaSamples - 1.0));
       }
     }
   } else {
-    auto tokens = cs::utils::splitString(cLambdas, ',');
+    auto tokens = cs::utils::splitString(lambdas, ',');
     for (auto token : tokens) {
-      lambdas.push_back(cs::utils::fromString<double>(token));
+      result.push_back(cs::utils::fromString<double>(token));
     }
   }
 
-  return lambdas;
+  return result;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
