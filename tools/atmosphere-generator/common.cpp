@@ -64,4 +64,17 @@ std::vector<double> computeLambdas(
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+std::vector<double> parseNumberList(std::string const& list) {
+  std::vector<double> result;
+
+  auto tokens = cs::utils::splitString(list, ',');
+  for (auto token : tokens) {
+    result.push_back(cs::utils::fromString<double>(token));
+  }
+
+  return result;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 } // namespace common

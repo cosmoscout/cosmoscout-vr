@@ -23,19 +23,6 @@ namespace {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::vector<double> parseNumberList(std::string const& list) {
-  std::vector<double> result;
-
-  auto tokens = cs::utils::splitString(list, ',');
-  for (auto token : tokens) {
-    result.push_back(cs::utils::fromString<double>(token));
-  }
-
-  return result;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
 enum class Type {
   eCornetteShanks,
   eHenyeyGreenstein,
@@ -114,9 +101,9 @@ int impl(std::vector<std::string> const& arguments, Type type) {
     return 1;
   }
 
-  std::vector<double> g1s    = parseNumberList(cG1);
-  std::vector<double> g2s    = parseNumberList(cG2);
-  std::vector<double> alphas = parseNumberList(cAlpha);
+  std::vector<double> g1s    = common::parseNumberList(cG1);
+  std::vector<double> g2s    = common::parseNumberList(cG2);
+  std::vector<double> alphas = common::parseNumberList(cAlpha);
 
   if (type == Type::eDoubleHenyeyGreenstein) {
     if (g1s.size() != 1 && g1s.size() != lambdas.size()) {

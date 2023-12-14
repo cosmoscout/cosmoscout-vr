@@ -30,6 +30,9 @@ void addThetaFlags(cs::utils::CommandLine& commandLine, int32_t* thetaSamples);
 std::vector<double> computeLambdas(
     std::string const& lambdas, double minLambda, double maxLambda, int32_t lambdaSamples);
 
+// Converts a comma-separated string of numbers to a vector of doubles.
+std::vector<double> parseNumberList(std::string const& list);
+
 } // namespace common
 
 #endif // COMMON_HPP
