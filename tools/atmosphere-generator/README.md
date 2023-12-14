@@ -128,14 +128,14 @@ Here are some other examples to get you started:
 ```bash
 # Molecules are modelled using a manual parametrization of Rayleigh scattering.
 ./atmosphere-generator density -i ../../../tools/atmosphere-generator/density-settings/mars_collienne_molecules.json -o mars_collienne_molecules
-./atmosphere-generator rayleigh --lambdas 0.44,0.51,0.68 -o mars_collienne_molecules
-./atmosphere-generator manual --lambdas 0.44,0.51,0.68 --quantity beta_sca --values 5.75e-12,13.57e-12,19.918e-12 -o mars_collienne_molecules_scattering
+./atmosphere-generator rayleigh --lambdas 440e-9,510e-9,680e-6 -o mars_collienne_molecules
+./atmosphere-generator manual --lambdas 440e-9,510e-9,680e-6 --quantity beta_sca --values 5.75e-6,13.57e-6,19.918e-6 -o mars_collienne_molecules_scattering
 
 # Aerosols use a wavelength-independent Cornette-Shanks phase function and some arbitrary density values.
 ./atmosphere-generator density -i ../../../tools/atmosphere-generator/density-settings/mars_collienne_aerosols.json -o mars_collienne_aerosols
-./atmosphere-generator cornette --lambdas 0.44,0.51,0.68 --g 0.76 -o mars_collienne_aerosols
-./atmosphere-generator manual --lambdas 0.44,0.51,0.68 --quantity beta_sca --values 3e-12 -o mars_collienne_aerosols_scattering
-./atmosphere-generator manual --lambdas 0.44,0.51,0.68 --quantity beta_abs --values 0 -o mars_collienne_aerosols_absorption
+./atmosphere-generator cornette --lambdas 440e-9,510e-9,680e-6 --g 0.76 -o mars_collienne_aerosols
+./atmosphere-generator manual --lambdas 440e-9,510e-9,680e-6 --quantity beta_sca --values 3e-6 -o mars_collienne_aerosols_scattering
+./atmosphere-generator manual --lambdas 440e-9,510e-9,680e-6 --quantity beta_abs --values 0 -o mars_collienne_aerosols_absorption
 ```
 
 ### Bruneton 2008 (Earth)
@@ -144,14 +144,14 @@ Here are some other examples to get you started:
 # Molecules are modelled using standard Rayleigh scattering. However, neither the molecular number
 # density nor the index of refraction is given. Hence, we use the explicitly given numbers.
 ./atmosphere-generator density -i ../../../tools/atmosphere-generator/density-settings/earth_bruneton_molecules.json -o earth_bruneton2008_molecules
-./atmosphere-generator rayleigh --lambdas 0.44e-6,0.55e-6,0.68e-6 -o earth_bruneton2008_molecules
-./atmosphere-generator manual --lambdas 0.44e-6,0.55e-6,0.68e-6 --quantity beta_sca --values 33.1e-12,15.5e-12,5.8e-12 -o earth_bruneton2008_molecules_scattering
+./atmosphere-generator rayleigh --lambdas 440e-9,550e-9,680e-9 -o earth_bruneton2008_molecules
+./atmosphere-generator manual --lambdas 440e-9,550e-9,680e-9 --quantity beta_sca --values 33.1e-6,15.5e-6,5.8e-6 -o earth_bruneton2008_molecules_scattering
 
 # Aerosols use a wavelength-independent Cornette-Shanks phase function and some arbitrary density values.
 ./atmosphere-generator density -i ../../../tools/atmosphere-generator/density-settings/earth_bruneton_aerosols.json -o earth_bruneton2008_aerosols
-./atmosphere-generator cornette --lambdas 0.44e-6,0.55e-6,0.68e-6 --g 0.76 -o earth_bruneton2008_aerosols
-./atmosphere-generator manual --lambdas 0.44e-6,0.55e-6,0.68e-6 --quantity beta_sca --values 1.89e-9 -o earth_bruneton2008_aerosols_scattering
-./atmosphere-generator manual --lambdas 0.44e-6,0.55e-6,0.68e-6 --quantity beta_abs --values 2.1e-10 -o earth_bruneton2008_aerosols_absorption
+./atmosphere-generator cornette --lambdas 440e-9,550e-9,680e-9 --g 0.76 -o earth_bruneton2008_aerosols
+./atmosphere-generator manual --lambdas 440e-9,550e-9,680e-9 --quantity beta_sca --values 2.1e-6 -o earth_bruneton2008_aerosols_scattering
+./atmosphere-generator manual --lambdas 440e-9,550e-9,680e-9 --quantity beta_abs --values 2.1e-7 -o earth_bruneton2008_aerosols_absorption
 ```
 
 ### Bruneton 2016 (Earth)
