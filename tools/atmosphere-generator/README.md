@@ -36,13 +36,13 @@ To learn about the different operation modes, you can now issue this command:
 
 ### `mie` Mode
 
+> [!IMPORTANT]
+> Unless stated otherwise, length units must always be given in µm. For instance, this is true for wavelengths and for particle radii.
+
 This mode computes phase functions as well as scattering- and absorption cross-sections for a given particle mixture.
 The particle mixture follows a specified multi-modal size distribution and can have a complex, wavelength-dependent refractive index.
 The results are stored in a CSV files.
 Use `./atmosphere-generator mie --help` to learn about all the options.
-
-> [!IMPORTANT]
-> In this mode, length units must always be given in µm. For instance, this is true for wavelengths and for particle radii.
 
 Here are some other examples to get you started:
 
@@ -74,6 +74,20 @@ Here is an example:
 # molecules to 'rayleigh_phase.csv', 'rayleigh_scattering.csv', and 
 # 'rayleigh_absorption.csv'.
 ./atmosphere-generator rayleigh
+```
+
+### `manual` Mode
+
+This mode writes some user-specified values for the scattering cross-sections or absorption cross-sections for the specified wavelengths to a CSV file.
+Use `./atmosphere-generator manual --help` to learn about all the options.
+Here are some examples:
+
+```bash
+# Write three different scattering cross-sections for the given wavelengths.
+/atmosphere-generator manual --lambdas 0.44,0.51,0.68 --quantity c_sca --values 0.1,0.2,0.3 -o scattering
+
+# Write 0 absorption for all default wavelengths.
+./atmosphere-generator manual --quantity c_abs --values 0 -o absorption
 ```
 
 ### `cornette`, `henyey`, and `dhenyey` Modes
