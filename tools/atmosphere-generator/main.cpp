@@ -8,6 +8,7 @@
 #include "../../src/cs-utils/CommandLine.hpp"
 
 #include "densityMode.hpp"
+#include "manualMode.hpp"
 #include "mieMode.hpp"
 #include "ozoneMode.hpp"
 #include "parametricModes.hpp"
@@ -27,6 +28,7 @@ void printHelp() {
   std::cout << "These modes are available:" << std::endl;
   std::cout << "mie       Precompute phase functions and scattering cross-sections using Mie theory." << std::endl;
   std::cout << "rayleigh  Write the Rayleigh phase function and scattering cross-sections for the given wavelengths." << std::endl;
+  std::cout << "manual    Write the any scattering and absorption cross-sections for the given wavelengths." << std::endl;
   std::cout << "cornette  Write the Cornette-Shanks phase function for the given wavelengths." << std::endl;
   std::cout << "henyey    Write the Henyey-Greenstein phase function for the given wavelengths." << std::endl;
   std::cout << "dhenyey   Write the Double-Henyey-Greenstein phase function for the given wavelengths." << std::endl;
@@ -57,6 +59,10 @@ int main(int argc, char** argv) {
 
   if (cMode == "rayleigh") {
     return rayleighMode(arguments);
+  }
+
+  if (cMode == "manual") {
+    return manualMode(arguments);
   }
 
   if (cMode == "cornette") {
