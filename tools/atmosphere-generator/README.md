@@ -51,8 +51,8 @@ Here are some other examples to get you started:
 # functions and scattering coefficients for the three given wavelengths. The output will be
 # written to the default 'mie_phase.csv', 'mie_scattering.csv', and 'mie_absorption.csv' files.
 # The phase function will be sampled in one-degree steps.
-./atmosphere-generator mie -i ../../../tools/atmosphere-generator/mie-settings/marsBimodal.json \
-                           --lambdas 0.44e-6,0.55e-6,0.68e-6 --theta-samples 91 \
+./atmosphere-generator mie -i ../../../tools/atmosphere-generator/mie-settings/mars_bimodal.json \
+                           --lambdas 440e-9,550e-9,680e-9 --theta-samples 91 \
                            --number-density 7e6 --radius-samples 10000
 ```
 
@@ -60,7 +60,7 @@ Here are some other examples to get you started:
 # This computes phase functions (in half-degree steps) and scattering coefficients for
 # 15 default wavelengths for rain-drop like particles and writes the output to
 # 'rain_phase.csv', 'rain_scattering.csv', and 'rain_absorption.csv'.
-./atmosphere-generator mie -i ../../../tools/atmosphere-generator/mie-settings/rain.json \
+./atmosphere-generator mie -i ../../../tools/atmosphere-generator/mie-settings/earth_rain.json \
                            -o rain --theta-samples 181 --radius-samples 1000
 ```
 
@@ -85,7 +85,7 @@ Here are some examples:
 
 ```bash
 # Write three different scattering coefficients for the given wavelengths.
-/atmosphere-generator manual --lambdas 0.44,0.51,0.68 --quantity beta_sca --values 0.1,0.2,0.3 -o scattering
+/atmosphere-generator manual --lambdas 440e-9,510e-9,680e-6 --quantity beta_sca --values 0.1,0.2,0.3 -o scattering
 
 # Write 0 absorption for all default wavelengths.
 ./atmosphere-generator manual --quantity beta_abs --values 0 -o absorption
@@ -116,9 +116,9 @@ Use `./atmosphere-generator density --help` to learn about all the options.
 Here are some other examples to get you started:
 
 ```bash
-./atmosphere-generator density -i ../../../tools/atmosphere-generator/density-settings/rain.json -o rain
-./atmosphere-generator density -i ../../../tools/atmosphere-generator/density-settings/mars.json --max-altitude 60000 -o mars
-./atmosphere-generator density -i ../../../tools/atmosphere-generator/density-settings/ozone.json -o ozone
+./atmosphere-generator density -i ../../../tools/atmosphere-generator/density-settings/earth_rain.json -o rain
+./atmosphere-generator density -i ../../../tools/atmosphere-generator/density-settings/mars_bimodal.json --max-altitude 60000 -o mars
+./atmosphere-generator density -i ../../../tools/atmosphere-generator/density-settings/earth_bruneton_ozone.json -o ozone
 ```
 
 ## Creating Atmospheres According to Different Papers
