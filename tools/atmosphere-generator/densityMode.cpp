@@ -196,7 +196,7 @@ int densityMode(std::vector<std::string> const& arguments) {
 
   // Open the output file for writing and write the CSV header.
   std::ofstream output(cOutput + "_density.csv");
-  output << "altitude,numberDensity" << std::endl;
+  output << "altitude,density" << std::endl;
 
   // Now write a density value for each altitude.
   auto densities = sampleDensities(densitySettings, cAltitudeSamples, cMinAltitude, cMaxAltitude);
