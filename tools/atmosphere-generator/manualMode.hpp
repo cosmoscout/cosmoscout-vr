@@ -13,8 +13,7 @@
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // This method allows writing CSV tables similar to the results from 'mie' or 'rayleigh' mode     //
-// (e.g. scattering cross-sections, or absorption cross-sections) but with manually specified     //
-// values.                                                                                        //
+// (e.g. scattering coefficients, or absorption coefficients) but with manually specified values. //
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 int manualMode(std::vector<std::string> const& arguments);

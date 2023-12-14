@@ -26,13 +26,13 @@ void printHelp() {
   std::cout << "Type './atmosphere-generator <mode> --help' to learn more about a specific mode." << std::endl;
   std::cout << std::endl;
   std::cout << "These modes are available:" << std::endl;
-  std::cout << "mie       Precompute phase functions and scattering cross-sections using Mie theory." << std::endl;
-  std::cout << "rayleigh  Write the Rayleigh phase function and scattering cross-sections for the given wavelengths." << std::endl;
-  std::cout << "manual    Write the any scattering and absorption cross-sections for the given wavelengths." << std::endl;
+  std::cout << "mie       Precompute phase functions and scattering coefficients using Mie theory." << std::endl;
+  std::cout << "rayleigh  Write the Rayleigh phase function and scattering coefficients for the given wavelengths." << std::endl;
+  std::cout << "manual    Write the any scattering and absorption coefficients for the given wavelengths." << std::endl;
   std::cout << "cornette  Write the Cornette-Shanks phase function for the given wavelengths." << std::endl;
   std::cout << "henyey    Write the Henyey-Greenstein phase function for the given wavelengths." << std::endl;
   std::cout << "dhenyey   Write the Double-Henyey-Greenstein phase function for the given wavelengths." << std::endl;
-  std::cout << "ozone     Write ozone absorption cross-sections for the given wavelengths." << std::endl;
+  std::cout << "ozone     Write ozone absorption coefficients for the given wavelengths." << std::endl;
   std::cout << "density   Precompute particle density distributions as a function of altitude." << std::endl;
 }
 // clang-format on

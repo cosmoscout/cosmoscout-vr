@@ -12,8 +12,8 @@
 #include <vector>
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-// This method is used to pre-compute the number density of atmospheric particles as a function   //
-// of altitude. See README.md for usage details.                                                  //
+// This method is used to pre-compute the relative number density of atmospheric particles as a   //
+// function of altitude. See README.md for usage details.                                         //
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 int densityMode(std::vector<std::string> const& arguments);

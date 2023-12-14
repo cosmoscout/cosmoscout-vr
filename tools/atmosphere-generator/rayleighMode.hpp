@@ -12,8 +12,8 @@
 #include <vector>
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-// This method writes the Rayleigh phase function as well as scattering cross-sections and        //
-// (empty) absorption cross-sections in the same format as the mie mode.                          //
+// This method writes the Rayleigh phase function as well as scattering coefficients and          //
+// (empty) absorption coefficients in the same format as the mie mode.                            //
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 int rayleighMode(std::vector<std::string> const& arguments);

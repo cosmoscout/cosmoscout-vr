@@ -24,8 +24,8 @@ int manualMode(std::vector<std::string> const& arguments) {
   std::string cQuantity      = "";
   std::string cValues        = "";
   std::string cLambdas       = "";
-  double      cMinLambda     = 0.36;
-  double      cMaxLambda     = 0.83;
+  double      cMinLambda     = 0.36e-6;
+  double      cMaxLambda     = 0.83e-6;
   int32_t     cLambdaSamples = 15;
 
   // First configure all possible command line options.
@@ -33,7 +33,8 @@ int manualMode(std::vector<std::string> const& arguments) {
   args.addArgument({"-o", "--output"}, &cOutput,
       "The data will be written to <name>.csv (default: \"" + cOutput + "\").");
   args.addArgument({"--quantity"}, &cQuantity,
-      "The header string in the output CSV file. Uusually this should be either c_sca or c_abs.");
+      "The header string in the output CSV file. Usually this should be either beta_sca or "
+      "beta_abs.");
   args.addArgument({"--values"}, &cValues,
       "The numbers to write into the CSV file. Should be a comma-separated list of one value per "
       "wavelength.");
@@ -62,7 +63,7 @@ int manualMode(std::vector<std::string> const& arguments) {
     return 1;
   }
 
-  // Now assemble a list of wavelengths in µm. This is either provided with the --lambda-samples
+  // Now assemble a list of wavelengths in m. This is either provided with the --lambda-samples
   // command-line parameter or via the combination of --min-lambda, --max-lambda, and
   // --lambda-samples.
   std::vector<double> lambdas =

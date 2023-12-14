@@ -151,12 +151,12 @@ std::vector<double> sampleRadii(Distribution const& distribution, int32_t count)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // This type is used to store a wavelength-dependent complex refractive index. The key in the map //
-// is a wavelength in µm.                                                                         //
+// is a wavelength in m.                                                                         //
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 typedef std::map<double, std::complex<double>> IoRSpectrum;
 
-// This retrieves an index of refraction for a given lambda in µm from an IoRSpectrum by linear
+// This retrieves an index of refraction for a given lambda in m from an IoRSpectrum by linear
 // interpolation. The given lambda will be clamped to the covered spectrum.
 std::complex<double> getRefractiveIndex(double lambda, IoRSpectrum const& iorSpectrum) {
 
@@ -245,18 +245,18 @@ struct MieResult {
   // normalized to 4π.
   std::vector<double> phase;
 
-  // The average scattering cross section of the disperse particle mixture in µm².
+  // The average scattering cross section of the disperse particle mixture in m².
   double cSca;
 
-  // The average absorption cross section of the disperse particle mixture in µm².
+  // The average absorption cross section of the disperse particle mixture in m².
   double cAbs;
 };
 
 // This computes the phase function and average scattering and absorption cross sections of a
 // disperse particle mixture for a given wavelength. The phase function will be sampled at 2 *
 // thetaSamples - 1 positions between 0° (forward-scattering) and 180° (back-scattering). The
-// wavelength in µm is given via the lambda parameter, the particle's radii are given via a sampled
-// radii distribution (also in µm).
+// wavelength in m is given via the lambda parameter, the particle's radii are given via a sampled
+// radii distribution (also in m).
 MieResult mieDisperse(int32_t thetaSamples, double lambda, std::complex<double> ior,
     std::vector<double> const& radii) {
 
@@ -325,9 +325,10 @@ int mieMode(std::vector<std::string> const& arguments) {
   bool        cPrintHelp     = false;
   std::string cInput         = "";
   std::string cOutput        = "mie";
+  double      cNumberDensity = 1000;
   std::string cLambdas       = "";
-  double      cMinLambda     = 0.36;
-  double      cMaxLambda     = 0.83;
+  double      cMinLambda     = 0.36e-6;
+  double      cMaxLambda     = 0.83e-6;
   int32_t     cLambdaSamples = 15;
   int32_t     cThetaSamples  = 91;
   int32_t     cRadiusSamples = 1000;
@@ -343,6 +344,8 @@ int mieMode(std::vector<std::string> const& arguments) {
   args.addArgument({"--radius-samples"}, &cRadiusSamples,
       "The number of particles to compute per size mode (default: " +
           std::to_string(cRadiusSamples) + ").");
+  args.addArgument({"--number-density"}, &cNumberDensity,
+      "The peak number of particles per m³ (default: " + std::to_string(cNumberDensity) + ").");
   common::addLambdaFlags(args, &cLambdas, &cMinLambda, &cMaxLambda, &cLambdaSamples);
   common::addThetaFlags(args, &cThetaSamples);
   args.addArgument({"-h", "--help"}, &cPrintHelp, "Show this help message.");
@@ -380,7 +383,7 @@ int mieMode(std::vector<std::string> const& arguments) {
     return 1;
   }
 
-  // Now assemble a list of wavelengths in µm. This is either provided with the --lambda-samples
+  // Now assemble a list of wavelengths in m. This is either provided with the --lambda-samples
   // command-line parameter or via the combination of --min-lambda, --max-lambda, and
   // --lambda-samples.
   std::vector<double> lambdas =
@@ -416,8 +419,8 @@ int mieMode(std::vector<std::string> const& arguments) {
   std::ofstream scatteringOutput(cOutput + "_scattering.csv");
   std::ofstream absorptionOutput(cOutput + "_absorption.csv");
 
-  scatteringOutput << "lambda,c_sca" << std::endl;
-  absorptionOutput << "lambda,c_abs" << std::endl;
+  scatteringOutput << "lambda,beta_sca" << std::endl;
+  absorptionOutput << "lambda,beta_abs" << std::endl;
   phaseOutput << "lambda";
   for (int32_t t(0); t < totalAngles; ++t) {
     phaseOutput << fmt::format(",{}", 180.0 * t / (totalAngles - 1.0));
@@ -463,9 +466,11 @@ int mieMode(std::vector<std::string> const& arguments) {
       }
     }
 
-    // Print wavelength, scattering cross-section, and absorption cross-section.
-    scatteringOutput << fmt::format("{},{}", lambda, cSca / totalCoeffWeight) << std::endl;
-    absorptionOutput << fmt::format("{},{}", lambda, cAbs / totalCoeffWeight) << std::endl;
+    // Print wavelength, scattering coefficient, and absorption coefficient.
+    scatteringOutput << fmt::format("{},{}", lambda, cNumberDensity * cSca / totalCoeffWeight)
+                     << std::endl;
+    absorptionOutput << fmt::format("{},{}", lambda, cNumberDensity * cAbs / totalCoeffWeight)
+                     << std::endl;
     phaseOutput << fmt::format("{}", lambda);
     for (double p : phase) {
       phaseOutput << fmt::format(",{}", p / totalPhaseWeight);

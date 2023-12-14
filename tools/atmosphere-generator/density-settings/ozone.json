@@ -4,7 +4,7 @@
             "type": "tent",
             "peakAltitude": 25000,
             "width": 15000,
-            "numberDensity": 5.374e18
+            "relativeNumberDensity": 1
         }
     ]
 }

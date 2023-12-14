@@ -42,22 +42,21 @@ struct Distribution {
   // Type of the distribution, e.g. exponential or double-exponential.
   DistributionType type;
 
-  // For the exponential fall-offs, this is the molecular number density at sea level. For the tent
-  // type, this is the molecular number density at the peak of the tent.
-  double numberDensity;
-
   // For the exponential fall-offs, this is the scale height. For the tent type, this is the
   // altitude of maximum density.
   double paramA;
 
   // This is only used for the tent type. It specifies the total width of the tent distribution.
   double paramB;
+
+  // This is used in multi-modal distributions to compute the weight of this mode.
+  double relativeNumberDensity;
 };
 
 // Make this type available for JSON deserialization.
 void from_json(nlohmann::json const& j, Distribution& s) {
   j.at("type").get_to(s.type);
-  j.at("numberDensity").get_to(s.numberDensity);
+  j.at("relativeNumberDensity").get_to(s.relativeNumberDensity);
 
   switch (s.type) {
   case DistributionType::eExponential:
@@ -79,19 +78,19 @@ double sampleDensity(Distribution const& distribution, double altitude) {
   if (distribution.type == DistributionType::eExponential) {
 
     double scaleHeight = distribution.paramA;
-    return distribution.numberDensity * std::exp(-altitude / scaleHeight);
+    return std::exp(-altitude / scaleHeight);
 
   } else if (distribution.type == DistributionType::eDoubleExponential) {
 
     double scaleHeight = distribution.paramA;
-    return distribution.numberDensity * std::exp(1.0 - 1.0 / std::exp(-altitude / scaleHeight));
+    return std::exp(1.0 - 1.0 / std::exp(-altitude / scaleHeight));
 
   } else if (distribution.type == DistributionType::eTent) {
 
     double tentHeight      = distribution.paramA;
     double tentWidth       = distribution.paramB;
     double relativeDensity = 1.0 - std::abs((altitude - tentHeight) / tentWidth);
-    return distribution.numberDensity * std::max(0.0, relativeDensity);
+    return std::max(0.0, relativeDensity);
   }
 
   return 0.0;
@@ -119,14 +118,16 @@ std::map<double, double> sampleDensities(
   std::map<double, double> densities;
 
   for (int32_t i(0); i < count; ++i) {
-    double altitude = minAltitude + i * (maxAltitude - minAltitude) / (count - 1.0);
-    double density  = 0.0;
+    double altitude    = minAltitude + i * (maxAltitude - minAltitude) / (count - 1.0);
+    double density     = 0.0;
+    double totalWeight = 0.0;
 
     for (auto const& mode : settings.densityModes) {
-      density += sampleDensity(mode, altitude);
+      totalWeight += mode.relativeNumberDensity;
+      density += sampleDensity(mode, altitude) * mode.relativeNumberDensity;
     }
 
-    densities[altitude] = density;
+    densities[altitude] = density / totalWeight;
   }
 
   return densities;
@@ -153,11 +154,11 @@ int densityMode(std::vector<std::string> const& arguments) {
   args.addArgument({"-o", "--output"}, &cOutput,
       "The density data will be written to <name>_density.csv (default: \"" + cOutput + "\").");
   args.addArgument({"--min-altitude"}, &cMinAltitude,
-      "The minimum wavelength in µm (default: " + std::to_string(cMinAltitude) + ").");
+      "The minimum altitude in m (default: " + std::to_string(cMinAltitude) + ").");
   args.addArgument({"--max-altitude"}, &cMaxAltitude,
-      "The maximum wavelength in µm (default: " + std::to_string(cMaxAltitude) + ").");
+      "The maximum altitude in m (default: " + std::to_string(cMaxAltitude) + ").");
   args.addArgument({"--altitude-samples"}, &cAltitudeSamples,
-      "The number of wavelengths to compute (default: " + std::to_string(cAltitudeSamples) + ").");
+      "The number of altitudes to compute (default: " + std::to_string(cAltitudeSamples) + ").");
   args.addArgument({"-h", "--help"}, &cPrintHelp, "Show this help message.");
 
   // Then do the actual parsing.

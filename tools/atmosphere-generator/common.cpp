@@ -9,6 +9,8 @@
 
 #include "../../src/cs-utils/utils.hpp"
 
+#include <spdlog/spdlog.h>
+
 namespace common {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -17,13 +19,13 @@ void addLambdaFlags(cs::utils::CommandLine& commandLine, std::string* lambdas, d
     double* maxLambda, int32_t* lambdaSamples) {
 
   commandLine.addArgument({"--min-lambda"}, minLambda,
-      "The minimum wavelength in µm (default: " + std::to_string(*minLambda) + ").");
+      fmt::format("The minimum wavelength in m (default: {})", *minLambda));
   commandLine.addArgument({"--max-lambda"}, maxLambda,
-      "The maximum wavelength in µm (default: " + std::to_string(*maxLambda) + ").");
+      fmt::format("The maximum wavelength in m (default: {})", *maxLambda));
   commandLine.addArgument({"--lambda-samples"}, lambdaSamples,
-      "The number of wavelengths to compute (default: " + std::to_string(*lambdaSamples) + ").");
+      fmt::format("The number of wavelengths to compute (default: {})", *lambdaSamples));
   commandLine.addArgument({"--lambdas"}, lambdas,
-      "A comma-separated list of wavelengths in µm. If provided, --min-lambda, --max-lambda, and "
+      "A comma-separated list of wavelengths in m. If provided, --min-lambda, --max-lambda, and "
       "--lambda-samples are ignored.");
 }
 

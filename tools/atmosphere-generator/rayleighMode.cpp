@@ -23,11 +23,11 @@ int rayleighMode(std::vector<std::string> const& arguments) {
   std::string cOutput         = "rayleigh";
   bool        cPenndorf       = false;
   double      cIoR            = 1.00028276;
-  double      cNumberDensity  = 2.68731e25 / 1e18; // 1 / µm³
-  double      cDepolarization = 0.03;
+  double      cNumberDensity  = 2.68731e25;
+  double      cDepolarization = 0.0;
   std::string cLambdas        = "";
-  double      cMinLambda      = 0.36;
-  double      cMaxLambda      = 0.83;
+  double      cMinLambda      = 0.36e-6;
+  double      cMaxLambda      = 0.83e-6;
   int32_t     cLambdaSamples  = 15;
   int32_t     cThetaSamples   = 91;
 
@@ -38,13 +38,13 @@ int rayleighMode(std::vector<std::string> const& arguments) {
       "<name>_absorption.csv, respectively (default: \"" +
           cOutput + "\").");
   args.addArgument({"--penndorf"}, &cPenndorf, "Use the Penndorf phase function (default: false)");
-  args.addArgument({"--ior"}, &cIoR,
-      "The index of refraction of the gas (default: " + std::to_string(cIoR) + ").");
+  args.addArgument(
+      {"--ior"}, &cIoR, fmt::format("The index of refraction of the gas (default: {}).", cIoR));
   args.addArgument({"-n", "--number-density"}, &cNumberDensity,
-      "The number density per µm³ at sea level (default: " + std::to_string(cNumberDensity) + ").");
+      fmt::format("The number density per m³ (default: {}).", cNumberDensity));
   args.addArgument({"--depolarization"}, &cDepolarization,
-      "The depolarization factor for the king-correction (default: " +
-          std::to_string(cDepolarization) + ").");
+      fmt::format(
+          "The depolarization factor for the king-correction (default: {}).", cDepolarization));
   common::addLambdaFlags(args, &cLambdas, &cMinLambda, &cMaxLambda, &cLambdaSamples);
   common::addThetaFlags(args, &cThetaSamples);
   args.addArgument({"-h", "--help"}, &cPrintHelp, "Show this help message.");
@@ -63,7 +63,7 @@ int rayleighMode(std::vector<std::string> const& arguments) {
     return 0;
   }
 
-  // Now assemble a list of wavelengths in µm. This is either provided with the --lambda-samples
+  // Now assemble a list of wavelengths in m. This is either provided with the --lambda-samples
   // command-line parameter or via the combination of --min-lambda, --max-lambda, and
   // --lambda-samples.
   std::vector<double> lambdas =
@@ -82,8 +82,8 @@ int rayleighMode(std::vector<std::string> const& arguments) {
   std::ofstream scatteringOutput(cOutput + "_scattering.csv");
   std::ofstream absorptionOutput(cOutput + "_absorption.csv");
 
-  scatteringOutput << "lambda,c_sca" << std::endl;
-  absorptionOutput << "lambda,c_abs" << std::endl;
+  scatteringOutput << "lambda,beta_sca" << std::endl;
+  absorptionOutput << "lambda,beta_abs" << std::endl;
   phaseOutput << "lambda";
   for (int32_t t(0); t < totalAngles; ++t) {
     phaseOutput << fmt::format(",{}", 180.0 * t / (totalAngles - 1.0));
@@ -93,13 +93,13 @@ int rayleighMode(std::vector<std::string> const& arguments) {
   // Now write a line to the CSV file for each wavelength.
   for (double lambda : lambdas) {
 
-    // Print scattering cross-section.
+    // Print scattering coefficient.
     double f = std::pow((cIoR * cIoR - 1.0), 2.0) * (6.0 + 3.0 * cDepolarization) /
                (6.0 - 7.0 * cDepolarization);
     double beta_sca =
         8.0 / 3.0 * std::pow(glm::pi<double>(), 3.0) * f / (cNumberDensity * std::pow(lambda, 4));
 
-    scatteringOutput << fmt::format("{},{}", lambda, beta_sca / cNumberDensity) << std::endl;
+    scatteringOutput << fmt::format("{},{}", lambda, beta_sca) << std::endl;
 
     // Absorption is always zero.
     absorptionOutput << fmt::format("{},{}", lambda, 0.0) << std::endl;

@@ -41,8 +41,8 @@ int impl(std::vector<std::string> const& arguments, Type type) {
   std::string cG2            = "0.1";
   std::string cAlpha         = "0.3";
   std::string cLambdas       = "";
-  double      cMinLambda     = 0.36;
-  double      cMaxLambda     = 0.83;
+  double      cMinLambda     = 0.36e-6;
+  double      cMaxLambda     = 0.83e-6;
   int32_t     cLambdaSamples = 15;
   int32_t     cThetaSamples  = 91;
 
@@ -91,7 +91,7 @@ int impl(std::vector<std::string> const& arguments, Type type) {
     return 0;
   }
 
-  // Now assemble a list of wavelengths in µm. This is either provided with the --lambda-samples
+  // Now assemble a list of wavelengths in m. This is either provided with the --lambda-samples
   // command-line parameter or via the combination of --min-lambda, --max-lambda, and
   // --lambda-samples.
   std::vector<double> lambdas =
