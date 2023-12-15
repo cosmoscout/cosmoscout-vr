@@ -150,22 +150,22 @@ Here are some other examples to get you started:
 # Aerosols use a wavelength-independent Cornette-Shanks phase function and some arbitrary density values.
 ./atmosphere-generator density -i ../../../tools/atmosphere-generator/density-settings/earth_bruneton_aerosols.json -o earth_bruneton2008_aerosols
 ./atmosphere-generator cornette --lambdas 440e-9,550e-9,680e-9 --g 0.76 -o earth_bruneton2008_aerosols
-./atmosphere-generator manual --lambdas 440e-9,550e-9,680e-9 --quantity beta_sca --values 2.1e-6 -o earth_bruneton2008_aerosols_scattering
-./atmosphere-generator manual --lambdas 440e-9,550e-9,680e-9 --quantity beta_abs --values 2.1e-7 -o earth_bruneton2008_aerosols_absorption
+./atmosphere-generator manual --lambdas 440e-9,550e-9,680e-9 --quantity beta_sca --values 2.1e-3 -o earth_bruneton2008_aerosols_scattering
+./atmosphere-generator manual --lambdas 440e-9,550e-9,680e-9 --quantity beta_abs --values 2.1e-4 -o earth_bruneton2008_aerosols_absorption
 ```
 
 ### Bruneton 2016 (Earth)
 
 ```bash
-# Molecules are modelled using standard Rayleigh scattering. However, neither the molecular number
-# density nor the index of refraction is given. The source code uses
-# beta_ext = 1.24062e-6 / lambda^4. If we fix n=1.00028276, this results in N=
+# Molecules are modelled using standard Rayleigh phase function and extinction values from Penndorf.
 ./atmosphere-generator density -i ../../../tools/atmosphere-generator/density-settings/earth_bruneton_molecules.json -o earth_bruneton2016_molecules
-./atmosphere-generator rayleigh -o earth_bruneton2016_molecules
+./atmosphere-generator rayleigh --lambda-samples 40 --penndorf-extinction -o earth_bruneton2016_molecules
 
 # Aerosols use a wavelength-independent Cornette-Shanks phase function and some arbitrary density values.
 ./atmosphere-generator density -i ../../../tools/atmosphere-generator/density-settings/earth_bruneton_aerosols.json -o earth_bruneton2016_aerosols
-./atmosphere-generator cornette --g 0.7 -o earth_bruneton2016_aerosols
-./atmosphere-generator manual --quantity beta_sca --values 4.44e-12 -o earth_bruneton2008_aerosols_scattering
+./atmosphere-generator cornette --lambda-samples 40 --g 0.7 -o earth_bruneton2016_aerosols
+./atmosphere-generator angstrom --lambda-samples 40 --alpha 0.8 --beta 0.04 --single-scattering-albedo 0.8 --scale-height 1200 -o earth_bruneton2016_aerosols
 
+# In his 2016 paper, Bruneton included Ozone.
+./atmosphere-generator ozone --lambda-samples 40 -o earth_bruneton2016_ozone
 ```
