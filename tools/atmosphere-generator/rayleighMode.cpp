@@ -35,7 +35,7 @@ int rayleighMode(std::vector<std::string> const& arguments) {
   std::string cOutput             = "rayleigh";
   bool        cPenndorfPhase      = false;
   bool        cPenndorfExtinction = false;
-  double      cIoR                = 1.00028276;
+  std::string cIoR                = "1.00028276";
   double      cNumberDensity      = 2.68731e25;
   double      cDepolarization     = 0.0;
   std::string cLambdas            = "";
@@ -54,8 +54,10 @@ int rayleighMode(std::vector<std::string> const& arguments) {
       {"--penndorf-phase"}, &cPenndorfPhase, "Use the Penndorf phase function (default: false)");
   args.addArgument({"--penndorf-extinction"}, &cPenndorfExtinction,
       "Use the Penndorf extinction tables (default: false)");
-  args.addArgument(
-      {"--ior"}, &cIoR, fmt::format("The index of refraction of the gas (default: {}).", cIoR));
+  args.addArgument({"--ior"}, &cIoR,
+      fmt::format("The index of refraction of the gas. Can be one number or a comma-separated list "
+                  "of values for each wavelength (default: {}).",
+          cIoR));
   args.addArgument({"-n", "--number-density"}, &cNumberDensity,
       fmt::format("The number density per m³ (default: {}).", cNumberDensity));
   args.addArgument({"--depolarization"}, &cDepolarization,
@@ -89,6 +91,13 @@ int rayleighMode(std::vector<std::string> const& arguments) {
     return 1;
   }
 
+  std::vector<double> iors = common::parseNumberList(cIoR);
+
+  if (iors.size() != 1 && iors.size() != lambdas.size()) {
+    std::cerr << "There must be either one index of refraction or one per wavelength!" << std::endl;
+    return 1;
+  }
+
   // We will write this many phase function samples. cThetaSamples determines the number of samples
   // between 0° and 90° (including both).
   int32_t totalAngles = cThetaSamples * 2 - 1;
@@ -107,18 +116,19 @@ int rayleighMode(std::vector<std::string> const& arguments) {
   phaseOutput << std::endl;
 
   // Now write a line to the CSV file for each wavelength.
-  for (double lambda : lambdas) {
+  for (size_t i(0); i < lambdas.size(); ++i) {
+    double lambda = lambdas[i];
 
     // Print scattering coefficient.
     if (cPenndorfExtinction) {
 
       std::vector<double> penndorf;
-      for (int i = 0; i < 48; ++i) {
+      for (int j = 0; j < 48; ++j) {
         // The above values are for T_0=0°C. For T=15°C, a correction factor
         // T_0 / T must be applied (Eq. (12) in Penndorf paper).
         constexpr double T_0 = 273.16;
         constexpr double T   = T_0 + 15.0;
-        penndorf.push_back(PENNDORF[i] * (T_0 / T));
+        penndorf.push_back(PENNDORF[j] * (T_0 / T));
       }
 
       const double minLambda = 0.36e-6;
@@ -130,7 +140,9 @@ int rayleighMode(std::vector<std::string> const& arguments) {
 
     } else {
 
-      double f = std::pow((cIoR * cIoR - 1.0), 2.0) * (6.0 + 3.0 * cDepolarization) /
+      double ior = iors.size() == 1 ? iors[0] : iors[i];
+
+      double f = std::pow((ior * ior - 1.0), 2.0) * (6.0 + 3.0 * cDepolarization) /
                  (6.0 - 7.0 * cDepolarization);
       double beta_sca =
           8.0 / 3.0 * std::pow(glm::pi<double>(), 3.0) * f / (cNumberDensity * std::pow(lambda, 4));
