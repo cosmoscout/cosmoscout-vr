@@ -77,6 +77,17 @@ Here is an example:
 ./atmosphere-generator rayleigh
 ```
 
+### `angstrom` Mode
+
+This mode writes scattering and absorption coefficients based on Ångström's turbidity formula and a single-scattering albedo value.
+Use `./atmosphere-generator angstrom --help` to learn about all the options.
+Here is an example:
+
+```bash
+# This will write scattering data for 15 default wavelengths to 'angstrom_scattering.csv'
+# and 'angstrom_absorption.csv'.
+./atmosphere-generator angstrom --alpha 0.8 --beta 0.04 --single-scattering-albedo 0.8 --scale-height 1200
+```
 ### `manual` Mode
 
 This mode writes some user-specified values for the scattering coefficients or absorption coefficients for the specified wavelengths to a CSV file.
