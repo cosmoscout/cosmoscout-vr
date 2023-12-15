@@ -33,6 +33,8 @@ std::vector<double> computeLambdas(
 // Converts a comma-separated string of numbers to a vector of doubles.
 std::vector<double> parseNumberList(std::string const& list);
 
+double interpolate(std::vector<double> yValues, double xMin, double xMax, double xValue);
+
 } // namespace common
 
 #endif // COMMON_HPP

@@ -79,4 +79,25 @@ std::vector<double> parseNumberList(std::string const& list) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+double interpolate(std::vector<double> yValues, double xMin, double xMax, double xValue) {
+  int32_t maxIndex   = static_cast<int32_t>(yValues.size());
+  int32_t lowerIndex = static_cast<int32_t>((maxIndex - 1) * (xValue - xMin) / (xMax - xMin));
+  lowerIndex         = std::max(0, std::min(maxIndex - 1, lowerIndex));
+
+  int32_t upperIndex = std::min(maxIndex - 1, lowerIndex + 1);
+
+  double lower = xMin + lowerIndex * (xMax - xMin) / (maxIndex - 1);
+  double upper = xMin + upperIndex * (xMax - xMin) / (maxIndex - 1);
+
+  double lowerAbsorption = yValues[lowerIndex];
+  double upperAbsorption = yValues[upperIndex];
+
+  double alpha = lowerIndex == upperIndex ? 0.0 : (xValue - lower) / (upper - lower);
+  alpha        = std::max(0.0, std::min(1.0, alpha));
+
+  return (1.0 - alpha) * lowerAbsorption + alpha * upperAbsorption;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 } // namespace common
