@@ -158,7 +158,7 @@ Here are some other examples to get you started:
 ./atmosphere-generator rayleigh --lambdas 440e-9,550e-9,680e-9 -o earth_bruneton2008_molecules
 ./atmosphere-generator manual --lambdas 440e-9,550e-9,680e-9 --quantity beta_sca --values 33.1e-6,15.5e-6,5.8e-6 -o earth_bruneton2008_molecules_scattering
 
-# Aerosols use a wavelength-independent Cornette-Shanks phase function and some arbitrary density values.
+# Aerosols use a wavelength-independent Cornette-Shanks phase function and some more or less arbitrary scattering coefficients.
 ./atmosphere-generator density -i ../../../tools/atmosphere-generator/density-settings/earth_bruneton_aerosols.json -o earth_bruneton2008_aerosols
 ./atmosphere-generator cornette --lambdas 440e-9,550e-9,680e-9 --g 0.76 -o earth_bruneton2008_aerosols
 ./atmosphere-generator manual --lambdas 440e-9,550e-9,680e-9 --quantity beta_sca --values 2.1e-3 -o earth_bruneton2008_aerosols_scattering
@@ -178,5 +178,28 @@ Here are some other examples to get you started:
 ./atmosphere-generator angstrom --lambda-samples 40 --alpha 0.8 --beta 0.04 --single-scattering-albedo 0.8 --scale-height 1200 -o earth_bruneton2016_aerosols
 
 # In his 2016 paper, Bruneton included Ozone.
+./atmosphere-generator density -i ../../../tools/atmosphere-generator/density-settings/earth_bruneton_ozone.json -o earth_bruneton2016_ozone
 ./atmosphere-generator ozone --lambda-samples 40 -o earth_bruneton2016_ozone
+```
+
+### Costa (Earth)
+
+```bash
+# Molecules are modelled using Penndorf's Rayleigh phase function and a wavelength-dependent
+# index of refraction.
+./atmosphere-generator density -i ../../../tools/atmosphere-generator/density-settings/earth_bruneton_molecules.json -o earth_costa_molecules
+./atmosphere-generator rayleigh --lambdas 440e-9,550e-9,680e-9 --ior 1.00028276,1.00027783,1.00027598 --penndorf-phase --depolarization 0.0279 --number-density 2.68731e25 -o earth_costa_molecules
+
+# Aerosols use a wavelength-independent Henyey-Greenstein phase function and some arbitrary
+# scattering coefficients. The paper states that they actually use the Anomalous Diffraction
+# Approximation, but they do not provide the required particle radius. The given scattering and
+# absorption coefficients are maybe wrong, as beta_sca > beta_ext. We assume that this is a typo.
+./atmosphere-generator density -i ../../../tools/atmosphere-generator/density-settings/earth_bruneton_aerosols.json -o earth_costa_aerosols
+./atmosphere-generator henyey --lambdas 440e-9,550e-9,680e-9 --g 0.85 -o earth_costa_aerosols
+./atmosphere-generator manual --lambdas 440e-9,550e-9,680e-9 --quantity beta_sca --values 4e-5 -o earth_costa_aerosols_scattering
+./atmosphere-generator manual --lambdas 440e-9,550e-9,680e-9 --quantity beta_abs --values 4e-6 -o earth_costa_aerosols_absorption
+
+# Costa actually use a different ozone density profile, but the results should be similar.
+./atmosphere-generator density -i ../../../tools/atmosphere-generator/density-settings/earth_bruneton_ozone.json -o earth_costa_ozone
+./atmosphere-generator ozone --lambdas 440e-9,550e-9,680e-9 -o earth_costa_ozone
 ```
