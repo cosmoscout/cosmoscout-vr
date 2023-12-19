@@ -107,7 +107,13 @@ void VolumeRenderer::onMessageFromJS(const nlohmann::json& message) {
 
 void VolumeRenderer::process() {
   auto input = readInput<std::shared_ptr<Volume3D>>("Volume3D", nullptr);
-  mRenderer->setData(input);
+  if (input.get() != mVolume.get()) {
+    mRenderer->setData(input);
+    mVolume = input;
+  }
+
+  auto lut = readInput<std::vector<glm::vec4>>("lut", {});
+  mRenderer->setLUT(lut);
 }
 
 } // namespace csp::visualquery

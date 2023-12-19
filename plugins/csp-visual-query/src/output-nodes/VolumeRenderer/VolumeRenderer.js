@@ -19,6 +19,9 @@ class VolumeRendererComponent extends Rete.Component {
     let input = new Rete.Input('Volume3D', "Volume 3D", CosmoScout.socketTypes['Volume3D']);
     node.addInput(input);
 
+    let lutInput = new Rete.Input('lut', "LookUp Table", CosmoScout.socketTypes['LUT']);
+    node.addInput(lutInput);
+
     const dropDownCallback = (selection) => CosmoScout.sendMessageToCPP(selection, node.id);
 
     let centerControl = new DropDownControl('center', dropDownCallback, "Body", [{value: 0, text: 'None'}]);

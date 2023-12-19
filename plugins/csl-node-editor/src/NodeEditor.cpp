@@ -59,6 +59,7 @@ NodeEditor::NodeEditor(uint16_t port, NodeFactory factory)
   std::vector<std::array<std::string, 2>> resourceHandlers{
       {"**.css$", "text/css"},
       {"**.js$", "text/javascript"},
+      {"**.js.map$", "application/json"},
       {"**.ttf$", "font/ttf"},
       {"**.woff2$", "font/woff2"},
   };

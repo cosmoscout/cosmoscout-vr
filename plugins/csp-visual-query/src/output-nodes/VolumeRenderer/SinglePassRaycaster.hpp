@@ -21,7 +21,7 @@
 namespace cs::core {
 class SolarSystem;
 class Settings;
-}
+} // namespace cs::core
 
 namespace csp::visualquery {
 
@@ -36,6 +36,7 @@ class SinglePassRaycaster final : public IVistaOpenGLDraw {
   bool GetBoundingBox(VistaBoundingBox& bb) override;
 
   void        setData(std::shared_ptr<Volume3D> const& image);
+  void        setLUT(std::vector<glm::vec4> const& lut);
   void        setCenter(std::string center);
   std::string getCenter() const;
 
@@ -56,9 +57,13 @@ class SinglePassRaycaster final : public IVistaOpenGLDraw {
   VistaTexture mPreLookupTexture;
   bool         mHasTexture;
 
+  VistaTexture mLUT;
+  bool         mHasLUT;
+
   struct {
     uint32_t texture{};
     uint32_t preLookupTexture{};
+    uint32_t lut{};
 
     uint32_t matInvMV{};
     uint32_t matInvP{};
