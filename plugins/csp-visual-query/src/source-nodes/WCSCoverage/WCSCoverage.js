@@ -29,11 +29,8 @@ class WCSCoverageComponent extends Rete.Component {
     let imageOutput = new Rete.Output('coverageOut', 'Coverage', CosmoScout.socketTypes['Coverage']);
     node.addOutput(imageOutput);
 
-    let minTimeOutput = new Rete.Output('minTimeValueOut', 'Min Time', CosmoScout.socketTypes['Real']);
-    node.addOutput(minTimeOutput);
-
-    let maxTimeOutput = new Rete.Output('maxTimeValueOut', 'Max Time', CosmoScout.socketTypes['Real']);
-    node.addOutput(maxTimeOutput);
+    let timeIntervals = new Rete.Output('timeIntervalsOut', 'Time Intervals', CosmoScout.socketTypes['WCSTimeIntervals']);
+    node.addOutput(timeIntervals);
 
     let lngBoundMinOutput = new Rete.Output('lngBoundMinOut', "Longitude Min", CosmoScout.socketTypes['Real']);
     node.addOutput(lngBoundMinOutput);

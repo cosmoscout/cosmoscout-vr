@@ -214,15 +214,23 @@ boost::filesystem::path WebCoverageTextureLoader::getCachePath(WebCoverageServic
   std::stringstream layer;
   layer << "_Layer_" << std::to_string(request.layer.value_or(1));
 
+  // Add Bound string to cache file name
+  std::stringstream bound;
+  bound << "_Bounds_" 
+    << utils::toStringWithoutTrailing(request.mBounds.mMinLon) << "_" 
+    << utils::toStringWithoutTrailing(request.mBounds.mMaxLon) << "_" 
+    << utils::toStringWithoutTrailing(request.mBounds.mMinLat) << "_" 
+    << utils::toStringWithoutTrailing(request.mBounds.mMaxLat);
+
   // Add time string to cache file name if time is specified
   if (request.mTime.has_value()) {
     std::string timeForFile = request.mTime.value();
     std::replace(timeForFile.begin(), timeForFile.end(), '/', '-');
     std::replace(timeForFile.begin(), timeForFile.end(), ':', '-');
 
-    cacheFile << cacheDir.str() << timeForFile << layer.str() << "." << fileFormat;
+    cacheFile << cacheDir.str() << timeForFile << bound.str() << layer.str() << "." << fileFormat;
   } else {
-    cacheFile << cacheDir.str() << layerFixed << layer.str() << "." << fileFormat;
+    cacheFile << cacheDir.str() << layerFixed << bound.str() << layer.str() << "." << fileFormat;
   }
 
   return boost::filesystem::path(cacheFile.str());

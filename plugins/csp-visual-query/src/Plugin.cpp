@@ -12,10 +12,13 @@
 
 #include "../../../src/cs-utils/filesystem.hpp"
 #include "common-nodes/Real/Real.hpp"
+#include "common-nodes/Int/Int.hpp"
+#include "common-nodes/TimeInterval/TimeInterval.hpp"
 #include "operation-nodes/DifferenceImage2D/DifferenceImage2D.hpp"
 #include "operation-nodes/TransferFunction/TransferFunction.hpp"
 #include "output-nodes/OverlayRenderer/OverlayRender.hpp"
 #include "output-nodes/VolumeRenderer/VolumeRenderer.hpp"
+#include "output-nodes/CoverageViewer/CoverageViewer.hpp"
 #include "source-nodes/JsonVolumeFileLoader/JsonVolumeFileLoader.hpp"
 #include "source-nodes/RandomDataSource2D/RandomDataSource2D.hpp"
 #include "source-nodes/RandomDataSource3D/RandomDataSource3D.hpp"
@@ -137,6 +140,12 @@ void Plugin::setupNodeEditor(uint16_t port) {
   // The name of the socket will be used by the custom nodes when defining their inputs and outputs.
   // factory.registerSocketType("Number Value", "#b08ab3");
 
+  factory.registerSocketType("Coverage", "#8e38ff");
+  factory.registerSocketType("Image2D", "#3333ff");
+  factory.registerSocketType("Volume3D", "#ff3333");
+  factory.registerSocketType("WCSTime", "#b08ab3");
+  factory.registerSocketType("WCSBounds", "#b08ab3");
+
   factory.registerSocketType("Real", "#b2e2e2");
   factory.registerSocketType("RVec2", "#66c2a4");
   factory.registerSocketType("RVec3", "#2ca25f");
@@ -150,6 +159,7 @@ void Plugin::setupNodeEditor(uint16_t port) {
   factory.registerSocketType("Coverage", "#8e38ff");
   factory.registerSocketType("Image2D", "#3333ff");
   factory.registerSocketType("Volume3D", "#ff3333");
+  factory.registerSocketType("WCSTimeIntervals", "#FFB319");
   factory.registerSocketType("WCSTime", "#b08ab3");
   factory.registerSocketType("WCSBounds", "#b08ab3");
   factory.registerSocketType("LUT", "linear-gradient(90deg, rgba(255,0,0,1) 0%, rgba(255,154,0,1) 10%, rgba(208,222,33,1) 20%, rgba(79,220,74,1) 30%, rgba(63,218,216,1) 40%, rgba(47,201,226,1) 50%, rgba(28,127,238,1) 60%, rgba(95,21,242,1) 70%, rgba(186,12,248,1) 80%, rgba(251,7,217,1) 90%, rgba(255,0,0,1) 100%);");
@@ -166,12 +176,15 @@ void Plugin::setupNodeEditor(uint16_t port) {
   // NodeFactory::registerNodeType().
   // Commons
   factory.registerNodeType<Real>();
+  factory.registerNodeType<Int>();
+  factory.registerNodeType<TimeInterval>();
   // Operations
   factory.registerNodeType<DifferenceImage2D>();
   factory.registerNodeType<TransferFunction>();
   // Outputs
   factory.registerNodeType<WCSCoverage>(
       std::shared_ptr<std::vector<csl::ogc::WebCoverageService>>(&mPluginSettings.mWebCoverages));
+  factory.registerNodeType<CoverageViewer>();
   // Sources
   factory.registerNodeType<RandomDataSource2D>();
   factory.registerNodeType<RandomDataSource3D>();

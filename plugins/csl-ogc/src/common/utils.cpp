@@ -400,6 +400,13 @@ std::vector<std::string> split(const std::string& s, char delim) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+std::string toStringWithoutTrailing(double value) {
+  std::string result = std::to_string(value);
+  result.erase(result.find_last_not_of('0') + 1, std::string::npos);
+  result.erase(result.find_last_not_of('.') + 1, std::string::npos);
+  return result;
+};
+
 } // namespace utils
 
 } // namespace csl::ogc

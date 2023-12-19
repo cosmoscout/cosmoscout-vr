@@ -29,25 +29,25 @@ class WCSCoverageImageComponent extends Rete.Component {
     let coverageInput = new Rete.Input('coverageIn', "Coverage", CosmoScout.socketTypes['Coverage']);
     node.addInput(coverageInput);
 
-    let lngBoundMinInput = new Rete.Input('lngBoundMinIn', "Longitude Min", CosmoScout.socketTypes['number Value']);
+    let lngBoundMinInput = new Rete.Input('lngBoundMinIn', "Longitude Min", CosmoScout.socketTypes['Real']);
     node.addInput(lngBoundMinInput);
 
-    let lngBoundMaxInput = new Rete.Input('lngBoundMaxIn', "Longitude Max", CosmoScout.socketTypes['number Value']);
+    let lngBoundMaxInput = new Rete.Input('lngBoundMaxIn', "Longitude Max", CosmoScout.socketTypes['Real']);
     node.addInput(lngBoundMaxInput);
 
-    let latBoundMinInput = new Rete.Input('latBoundMinIn', "Latitude Min", CosmoScout.socketTypes['number Value']);
+    let latBoundMinInput = new Rete.Input('latBoundMinIn', "Latitude Min", CosmoScout.socketTypes['Real']);
     node.addInput(latBoundMinInput);
 
-    let latBoundMaxInput = new Rete.Input('latBoundMaxIn', "Latitude Max", CosmoScout.socketTypes['number Value']);
+    let latBoundMaxInput = new Rete.Input('latBoundMaxIn', "Latitude Max", CosmoScout.socketTypes['Real']);
     node.addInput(latBoundMaxInput);
     
     let timeInput = new Rete.Input('wcsTimeIn', "Time", CosmoScout.socketTypes['WCSTime']);
     node.addInput(timeInput);
     
-    let resolutionInput = new Rete.Input('resolutionIn', "Resolution", CosmoScout.socketTypes['number Value']);
+    let resolutionInput = new Rete.Input('resolutionIn', "Resolution", CosmoScout.socketTypes['Int']);
     node.addInput(resolutionInput);
 
-    let imageOutput = new Rete.Output('imageOut', 'Image 2D', CosmoScout.socketTypes['WCSImage']);
+    let imageOutput = new Rete.Output('imageOut', 'Image 2D', CosmoScout.socketTypes['Image2D']);
     node.addOutput(imageOutput);
     
     node.onInit = (nodeDiv) => { 
