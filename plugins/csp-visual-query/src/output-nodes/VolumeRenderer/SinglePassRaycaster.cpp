@@ -12,6 +12,7 @@
 #include "../../../../../src/cs-utils/FrameStats.hpp"
 #include "../../../../../src/cs-utils/filesystem.hpp"
 #include "../../../../../src/cs-utils/utils.hpp"
+#include "../../../../../src/cs-utils/ThreadPool.hpp"
 #include "../../logger.hpp"
 
 #include <VistaKernel/GraphicsManager/VistaGroupNode.h>
