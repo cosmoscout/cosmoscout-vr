@@ -88,6 +88,19 @@ Here is an example:
 # and 'angstrom_absorption.csv'.
 ./atmosphere-generator angstrom --alpha 0.8 --beta 0.04 --single-scattering-albedo 0.8 --scale-height 1200
 ```
+
+### `hulst` Mode
+
+This mode writes scattering and absorption coefficients based on van de Hulst's anomalous diffraction approximation and the turbidity approximation used in the Costa paper.
+Use `./atmosphere-generator hulst --help` to learn about all the options.
+Here is an example:
+
+```bash
+# This will write scattering data for 15 default wavelengths to 'hulst_scattering.csv'
+# and 'hulst_absorption.csv'.
+./atmosphere-generator hulst --kappa 0.2 --tubidity 1.6 --radius 1.6e-6
+```
+
 ### `manual` Mode
 
 This mode writes some user-specified values for the scattering coefficients or absorption coefficients for the specified wavelengths to a CSV file.
@@ -202,4 +215,41 @@ Here are some other examples to get you started:
 # Costa actually use a different ozone density profile, but the results should be similar.
 ./atmosphere-generator density -i ../../../tools/atmosphere-generator/density-settings/earth_bruneton_ozone.json -o earth_costa_ozone
 ./atmosphere-generator ozone --lambdas 440e-9,550e-9,680e-9 -o earth_costa_ozone
+```
+
+### Costa (Mars)
+
+**Molecules** are modelled using Penndorf's Rayleigh phase function.
+
+However, the parameters for computing the scattering coefficients are a bit unclear.
+For Table 1 of their paper, it seems that they used the given mass density rho_co2 = 2.8e23 as number density.
+With the given index of refraction for C02, this results in the provided beta_sca values, however these are implausibly large.
+Not only do we have to compute the molecular number density according to the formulas provided in section 4.1 of their paper, but also adapt the index of refraction to Martian conditions (less pressure, less temperature).
+If we do all this, we come up with such values:
+
+```bash
+./atmosphere-generator density -i ../../../tools/atmosphere-generator/density-settings/mars_costa_molecules.json -o mars_costa_molecules
+./atmosphere-generator rayleigh --lambdas 440e-9,550e-9,680e-9 --ior 1.00000337 --penndorf-phase --depolarization 0.09 --number-density 2.05e23 -o mars_costa_molecules
+```
+
+**Aerosols** follow a wavelength-dependent Double-Henyey Greenstein phase function.
+The values for g1, g2, and alpha provided in the paper result in a very green atmosphere.
+The values below are from their [source code](https://github.com/OpenSpace/OpenSpace/blob/integration/paper-atmosphere/data/assets/scene/solarsystem/planets/mars/atmosphere.asset#L80).
+
+They use the Anomalous Diffraction Approximation by Van de Hulst to compute the extinction of light passing through the aerosols.
+The amount of scattered light is computed using another approximation based on the atmosphere's turbidity.
+Computing two related quantities with two unrelated approximations seems fragile to us.
+Also, the used parameters are very unclear.
+There is no source given for the Kappa fudge factor.
+The number density of 2.8e29 1/cm^3 is extremely huge.
+In the [source code](https://github.com/OpenSpace/OpenSpace/blob/integration/paper-atmosphere/data/assets/scene/solarsystem/planets/mars/atmosphere.asset#L72) they use 0.02e6.
+However, even here the exponent may be wrong as this number [is later multiplied with 1e8](https://github.com/OpenSpace/OpenSpace/blob/integration/paper-atmosphere/modules/atmosphere/rendering/renderableatmosphere.cpp#L864).
+With these parameters and a turbidity between 2 and 10, the resulting beta_sca is larger than beta_ext.
+This is clearly impossible.
+We only achieved plausible values with very low turbidity values, such as 1.01.
+
+```bash
+./atmosphere-generator density -i ../../../tools/atmosphere-generator/density-settings/mars_costa_aerosols.json -o mars_costa_aerosols
+./atmosphere-generator dhenyey --lambdas 440e-9,550e-9,680e-9 --g1 0.67,0.4,0.03 --g2 0.094,0.094,0.094 --alpha 0.743,0.743,0.743 -o mars_costa_aerosols
+./atmosphere-generator hulst --lambdas 440e-9,550e-9,680e-9 --junge 4 --number-density 0.02e8 --kappa 0.07,0.16,0.31 --turbidity 1.01 --radius 1.6e-6 -n 1.52 -k 0.013,0.006,0.001 -o mars_costa_aerosols
 ```
