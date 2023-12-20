@@ -2,13 +2,13 @@
     "sizeModes": [
         {
             "type": "logNormal",
-            "mean": -2.5,
+            "mean": -16.316,
             "sigma": 0.6,
             "relativeNumberDensity": 10000
         },
         {
             "type": "logNormal",
-            "mean": 0.2,
+            "mean": -13.616,
             "sigma": 0.6,
             "relativeNumberDensity": 1
         }

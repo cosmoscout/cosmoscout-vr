@@ -145,6 +145,35 @@ Here are some other examples to get you started:
 ./atmosphere-generator density -i ../../../tools/atmosphere-generator/density-settings/earth_bruneton_ozone.json -o ozone
 ```
 
+## Creating Atmospheres for CosmoScout VR
+
+### Mars
+
+```bash
+./atmosphere-generator density -i ../../../tools/atmosphere-generator/density-settings/mars_cosmoscout_molecules.json -o mars_cosmoscout_molecules
+./atmosphere-generator rayleigh --ior 1.00000337 --number-density 2.05e23 -o mars_cosmoscout_molecules
+
+./atmosphere-generator density -i ../../../tools/atmosphere-generator/density-settings/mars_cosmoscout_aerosols.json -o mars_cosmoscout_aerosols
+./atmosphere-generator mie -i ../../../tools/atmosphere-generator/mie-settings/mars_bimodal.json \
+                           --theta-samples 181 --number-density 7e6 --radius-samples 10000 \
+                           -o mars_cosmoscout_aerosols
+```
+
+### Earth
+
+```bash
+./atmosphere-generator density -i ../../../tools/atmosphere-generator/density-settings/earth_bruneton_molecules.json -o earth_cosmoscout_molecules
+./atmosphere-generator rayleigh -o earth_cosmoscout_molecules
+
+./atmosphere-generator density -i ../../../tools/atmosphere-generator/density-settings/earth_bruneton_aerosols.json -o earth_cosmoscout_aerosols
+./atmosphere-generator mie -i ../../../tools/atmosphere-generator/mie-settings/earth_haze.json \
+                           --theta-samples 181 --number-density 1e5 --radius-samples 10000 \
+                           -o earth_cosmoscout_aerosols
+
+./atmosphere-generator density -i ../../../tools/atmosphere-generator/density-settings/earth_bruneton_ozone.json -o earth_cosmoscout_ozone
+./atmosphere-generator ozone -o earth_cosmoscout_ozone
+```
+
 ## Creating Atmospheres According to Different Papers
 
 ### Collienne (Mars)
