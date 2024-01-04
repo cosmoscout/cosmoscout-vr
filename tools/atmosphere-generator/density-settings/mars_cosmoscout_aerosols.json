@@ -3,12 +3,12 @@
         {
             "type": "doubleExponential",
             "scaleHeight": 4000,
-            "relativeNumberDensity": 1
+            "relativeNumberDensity": 3
         },
         {
             "type": "doubleExponential",
             "scaleHeight": 20000,
-            "relativeNumberDensity": 0.25
+            "relativeNumberDensity": 1
         }
     ]
 }
