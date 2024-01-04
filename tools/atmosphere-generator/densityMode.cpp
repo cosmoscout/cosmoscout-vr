@@ -112,10 +112,10 @@ void from_json(nlohmann::json const& j, DensitySettings& s) {
 }
 
 // Samples the density distribution at evenly spaced altitudes.
-std::map<double, double> sampleDensities(
+std::vector<double> sampleDensities(
     DensitySettings const& settings, int32_t count, double minAltitude, double maxAltitude) {
 
-  std::map<double, double> densities;
+  std::vector<double> densities(count);
 
   for (int32_t i(0); i < count; ++i) {
     double altitude    = minAltitude + i * (maxAltitude - minAltitude) / (count - 1.0);
@@ -127,7 +127,7 @@ std::map<double, double> sampleDensities(
       density += sampleDensity(mode, altitude) * mode.relativeNumberDensity;
     }
 
-    densities[altitude] = density / totalWeight;
+    densities[i] = density / totalWeight;
   }
 
   return densities;
@@ -196,12 +196,12 @@ int densityMode(std::vector<std::string> const& arguments) {
 
   // Open the output file for writing and write the CSV header.
   std::ofstream output(cOutput + "_density.csv");
-  output << "altitude,density" << std::endl;
+  output << "density" << std::endl;
 
   // Now write a density value for each altitude.
   auto densities = sampleDensities(densitySettings, cAltitudeSamples, cMinAltitude, cMaxAltitude);
-  for (auto [altitude, density] : densities) {
-    output << fmt::format("{},{}", altitude, density) << std::endl;
+  for (auto density : densities) {
+    output << fmt::format("{}", density) << std::endl;
   }
 
   return 0;
