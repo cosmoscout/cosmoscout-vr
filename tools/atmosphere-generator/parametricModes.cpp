@@ -142,7 +142,7 @@ int impl(std::vector<std::string> const& arguments, Type type) {
   for (size_t i(0); i < lambdas.size(); ++i) {
     double lambda = lambdas[i];
     double g1     = g1s.size() == 1 ? g1s[0] : g1s[i];
-    double g2     = g2s.size() == 1 ? g2s[0] : g1s[i];
+    double g2     = g2s.size() == 1 ? g2s[0] : g2s[i];
     double alpha  = alphas.size() == 1 ? alphas[0] : alphas[i];
 
     output << fmt::format("{}", lambda);
