@@ -31,18 +31,19 @@ static const float PENNDORF[48] = {70.45E-6, 62.82E-6, 56.20E-6, 50.43E-6, 45.40
 
 int rayleighMode(std::vector<std::string> const& arguments) {
 
-  bool        cPrintHelp          = false;
-  std::string cOutput             = "rayleigh";
-  bool        cPenndorfPhase      = false;
-  bool        cPenndorfExtinction = false;
-  std::string cIoR                = "1.00028276";
-  double      cNumberDensity      = 2.68731e25;
-  double      cDepolarization     = 0.0;
-  std::string cLambdas            = "";
-  double      cMinLambda          = 0.36e-6;
-  double      cMaxLambda          = 0.83e-6;
-  int32_t     cLambdaSamples      = 15;
-  int32_t     cThetaSamples       = 91;
+  bool        cPrintHelp                = false;
+  std::string cOutput                   = "rayleigh";
+  bool        cPenndorfPhase            = false;
+  bool        cPenndorfExtinction       = false;
+  std::string cIoR                      = "1.00028276";
+  double      cNumberDensity            = 2.68731e25;
+  double      cPhaseDepolarization      = 0.0;
+  double      cScatteringDepolarization = 0.0;
+  std::string cLambdas                  = "";
+  double      cMinLambda                = 0.36e-6;
+  double      cMaxLambda                = 0.83e-6;
+  int32_t     cLambdaSamples            = 15;
+  int32_t     cThetaSamples             = 91;
 
   // First configure all possible command line options.
   cs::utils::CommandLine args("Here are the available options:");
@@ -60,9 +61,13 @@ int rayleighMode(std::vector<std::string> const& arguments) {
           cIoR));
   args.addArgument({"-n", "--number-density"}, &cNumberDensity,
       fmt::format("The number density per m³ (default: {}).", cNumberDensity));
-  args.addArgument({"--depolarization"}, &cDepolarization,
+  args.addArgument({"--phase-depolarization"}, &cPhaseDepolarization,
       fmt::format(
-          "The depolarization factor for the king-correction (default: {}).", cDepolarization));
+          "The depolarization factor for the phase function (default: {}).", cPhaseDepolarization));
+  args.addArgument({"--scattering-depolarization"}, &cScatteringDepolarization,
+      fmt::format("The depolarization factor for the king-correction used for the scattering "
+                  "coefficient (default: {}).",
+          cScatteringDepolarization));
   common::addLambdaFlags(args, &cLambdas, &cMinLambda, &cMaxLambda, &cLambdaSamples);
   common::addThetaFlags(args, &cThetaSamples);
   args.addArgument({"-h", "--help"}, &cPrintHelp, "Show this help message.");
@@ -142,8 +147,8 @@ int rayleighMode(std::vector<std::string> const& arguments) {
 
       double ior = iors.size() == 1 ? iors[0] : iors[i];
 
-      double f = std::pow((ior * ior - 1.0), 2.0) * (6.0 + 3.0 * cDepolarization) /
-                 (6.0 - 7.0 * cDepolarization);
+      double f = std::pow((ior * ior - 1.0), 2.0) * (6.0 + 3.0 * cScatteringDepolarization) /
+                 (6.0 - 7.0 * cScatteringDepolarization);
       double beta_sca =
           8.0 / 3.0 * std::pow(glm::pi<double>(), 3.0) * f / (cNumberDensity * std::pow(lambda, 4));
 
@@ -156,10 +161,13 @@ int rayleighMode(std::vector<std::string> const& arguments) {
     phaseOutput << fmt::format("{}", lambda);
     for (int32_t i(0); i < totalAngles; ++i) {
       double theta = i * glm::pi<double>() / (totalAngles - 1);
+      double gamma = cPhaseDepolarization / (2.0 - cPhaseDepolarization);
       double phase =
           cPenndorfPhase
               ? 0.7629 / (4.0 * glm::pi<double>()) * (1.0 + 0.932 * std::pow(std::cos(theta), 2.0))
-              : 3.0 / (16.0 * glm::pi<double>()) * (1.0 + std::pow(std::cos(theta), 2.0));
+              : 3.0 / (16.0 * glm::pi<double>()) *
+                    (1.0 + 3.0 * gamma + (1.0 - gamma) * std::pow(std::cos(theta), 2.0)) /
+                    (1.0 + 2.0 * gamma);
       phaseOutput << fmt::format(",{}", phase);
     }
     phaseOutput << std::endl;
