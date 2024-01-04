@@ -54,24 +54,20 @@ To learn about the different operation modes, you can now issue this command:
 
 ```bash
 ./atmosphere-generator density -i ../../../tools/atmosphere-generator/density-settings/mars_cosmoscout_molecules.json -o mars_cosmoscout_molecules
-./atmosphere-generator rayleigh --ior 1.00000337 --number-density 2.05e23 -o mars_cosmoscout_molecules
+./atmosphere-generator rayleigh --ior 1.00000337 --scattering-depolarization 0.09 --phase-depolarization 0.09 --number-density 2.05e23 --theta-samples 91 -o mars_cosmoscout_molecules
 
 ./atmosphere-generator density -i ../../../tools/atmosphere-generator/density-settings/mars_cosmoscout_aerosols.json -o mars_cosmoscout_aerosols
-./atmosphere-generator mie -i ../../../tools/atmosphere-generator/mie-settings/mars_bimodal.json \
-                           --theta-samples 181 --number-density 7e6 --radius-samples 10000 \
-                           -o mars_cosmoscout_aerosols
+./atmosphere-generator mie -i ../../../tools/atmosphere-generator/mie-settings/mars_bimodal.json --theta-samples 91 --number-density 5e9 --radius-samples 10000 -o mars_cosmoscout_aerosols
 ```
 
 ### Earth
 
 ```bash
 ./atmosphere-generator density -i ../../../tools/atmosphere-generator/density-settings/earth_bruneton_molecules.json -o earth_cosmoscout_molecules
-./atmosphere-generator rayleigh -o earth_cosmoscout_molecules
+./atmosphere-generator rayleigh --scattering-depolarization 0.0279 --phase-depolarization 0.0279 --theta-samples 91 -o earth_cosmoscout_molecules
 
 ./atmosphere-generator density -i ../../../tools/atmosphere-generator/density-settings/earth_bruneton_aerosols.json -o earth_cosmoscout_aerosols
-./atmosphere-generator mie -i ../../../tools/atmosphere-generator/mie-settings/earth_haze.json \
-                           --theta-samples 181 --number-density 1e5 --radius-samples 10000 \
-                           -o earth_cosmoscout_aerosols
+./atmosphere-generator mie -i ../../../tools/atmosphere-generator/mie-settings/earth_haze.json --theta-samples 91 --number-density 5e8 --radius-samples 10000 -o earth_cosmoscout_aerosols
 
 ./atmosphere-generator density -i ../../../tools/atmosphere-generator/density-settings/earth_bruneton_ozone.json -o earth_cosmoscout_ozone
 ./atmosphere-generator ozone -o earth_cosmoscout_ozone
@@ -108,13 +104,13 @@ To learn about the different operation modes, you can now issue this command:
 ./atmosphere-generator manual --lambdas 440e-9,550e-9,680e-9 --quantity beta_sca --values 33.1e-6,15.5e-6,5.8e-6 -o earth_bruneton2008_molecules_scattering
 ```
 
-**Aerosols** use a wavelength-independent Cornette-Shanks phase function and some more or less arbitrary scattering coefficients.
+**Aerosols** use a wavelength-independent Cornette-Shanks phase function. The scattering coefficient of 2.1e-3 given in the paper seems very large. If we divide it by 100, we get plausible results.
 
 ```bash
 ./atmosphere-generator density -i ../../../tools/atmosphere-generator/density-settings/earth_bruneton_aerosols.json -o earth_bruneton2008_aerosols
 ./atmosphere-generator cornette --lambdas 440e-9,550e-9,680e-9 --g 0.76 -o earth_bruneton2008_aerosols
-./atmosphere-generator manual --lambdas 440e-9,550e-9,680e-9 --quantity beta_sca --values 2.1e-3 -o earth_bruneton2008_aerosols_scattering
-./atmosphere-generator manual --lambdas 440e-9,550e-9,680e-9 --quantity beta_abs --values 2.1e-4 -o earth_bruneton2008_aerosols_absorption
+./atmosphere-generator manual --lambdas 440e-9,550e-9,680e-9 --quantity beta_sca --values 2.1e-5 -o earth_bruneton2008_aerosols_scattering
+./atmosphere-generator manual --lambdas 440e-9,550e-9,680e-9 --quantity beta_abs --values 2.1e-6 -o earth_bruneton2008_aerosols_absorption
 ```
 
 ### Bruneton 2016 (Earth)
@@ -147,7 +143,7 @@ In his 2016 paper, Eric Bruneton also included **Ozone**.
 
 ```bash
 ./atmosphere-generator density -i ../../../tools/atmosphere-generator/density-settings/earth_bruneton_molecules.json -o earth_costa_molecules
-./atmosphere-generator rayleigh --lambdas 440e-9,550e-9,680e-9 --ior 1.00028276,1.00027783,1.00027598 --penndorf-phase --depolarization 0.0279 --number-density 2.68731e25 -o earth_costa_molecules
+./atmosphere-generator rayleigh --lambdas 440e-9,550e-9,680e-9 --ior 1.00028276,1.00027783,1.00027598 --penndorf-phase --scattering-depolarization 0.0279 --number-density 2.68731e25 -o earth_costa_molecules
 ```
 
 **Aerosols** use a wavelength-independent Henyey-Greenstein phase function and some arbitrary scattering coefficients.
@@ -181,11 +177,11 @@ If we do all this, we come up with such values:
 
 ```bash
 ./atmosphere-generator density -i ../../../tools/atmosphere-generator/density-settings/mars_costa_molecules.json -o mars_costa_molecules
-./atmosphere-generator rayleigh --lambdas 440e-9,550e-9,680e-9 --ior 1.00000337 --penndorf-phase --depolarization 0.09 --number-density 2.05e23 -o mars_costa_molecules
+./atmosphere-generator rayleigh --lambdas 440e-9,550e-9,680e-9 --ior 1.00000337 --penndorf-phase --scattering-depolarization 0.09 --number-density 2.05e23 -o mars_costa_molecules
 ```
 
 **Aerosols** follow a wavelength-dependent Double-Henyey Greenstein phase function.
-The values for g1, g2, and alpha provided in the paper result in a very green atmosphere.
+The values for g1, g2, and alpha provided in the paper result in a very purple atmosphere with a green sunrise.
 The values below are from their [source code](https://github.com/OpenSpace/OpenSpace/blob/integration/paper-atmosphere/data/assets/scene/solarsystem/planets/mars/atmosphere.asset#L80).
 
 They use the Anomalous Diffraction Approximation by Van de Hulst to compute the extinction of light passing through the aerosols.
@@ -198,10 +194,13 @@ In the [source code](https://github.com/OpenSpace/OpenSpace/blob/integration/pap
 However, even here the exponent may be wrong as this number [is later multiplied with 1e8](https://github.com/OpenSpace/OpenSpace/blob/integration/paper-atmosphere/modules/atmosphere/rendering/renderableatmosphere.cpp#L864).
 With these parameters and a turbidity between 2 and 10, the resulting beta_sca is larger than beta_ext.
 This is clearly impossible.
-We only achieved plausible values with very low turbidity values, such as 1.01.
+We only achieved plausible values with very low turbidity values, such as 1.003.
+The values below generate a plausible atmosphere, however most of the values are not from the original paper.
 
 ```bash
 ./atmosphere-generator density -i ../../../tools/atmosphere-generator/density-settings/mars_costa_aerosols.json -o mars_costa_aerosols
+# Paper values:
+#./atmosphere-generator dhenyey --lambdas 440e-9,550e-9,680e-9 --g1 0.67,0.4,0.03 --g2 0.099,0.89,0.094 --alpha 0.01,0.04,0.743 -o mars_costa_aerosols
 ./atmosphere-generator dhenyey --lambdas 440e-9,550e-9,680e-9 --g1 0.67,0.4,0.03 --g2 0.094,0.094,0.094 --alpha 0.743,0.743,0.743 -o mars_costa_aerosols
-./atmosphere-generator hulst --lambdas 440e-9,550e-9,680e-9 --junge 4 --number-density 0.02e8 --kappa 0.07,0.16,0.31 --turbidity 1.01 --radius 1.6e-6 -n 1.52 -k 0.013,0.006,0.001 -o mars_costa_aerosols
+./atmosphere-generator hulst --lambdas 440e-9,550e-9,680e-9 --junge 4 --number-density 0.5e6 --kappa 0.07,0.16,0.31 --turbidity 1.003 --radius 1.6e-6 -n 1.52 -k 0.013,0.006,0.001 -o mars_costa_aerosols
 ```
