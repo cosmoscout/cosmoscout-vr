@@ -698,7 +698,7 @@ Model::Model(const std::vector<double>& wavelengths, const double sun_angular_ra
   transmittance_texture_ = NewTexture2d(
       TRANSMITTANCE_TEXTURE_WIDTH, TRANSMITTANCE_TEXTURE_HEIGHT, GL_RGBA32F, GL_RGBA, GL_FLOAT);
   multiple_scattering_texture_   = NewTexture3d(SCATTERING_TEXTURE_WIDTH, SCATTERING_TEXTURE_HEIGHT,
-        SCATTERING_TEXTURE_DEPTH, GL_RGBA32F, GL_RGBA, GL_FLOAT);
+      SCATTERING_TEXTURE_DEPTH, GL_RGBA32F, GL_RGBA, GL_FLOAT);
   single_mie_scattering_texture_ = NewTexture3d(SCATTERING_TEXTURE_WIDTH, SCATTERING_TEXTURE_HEIGHT,
       SCATTERING_TEXTURE_DEPTH, GL_RGBA32F, GL_RGBA, GL_FLOAT);
 
@@ -833,9 +833,9 @@ void Model::Init(unsigned int num_scattering_orders) {
   GLuint delta_rayleigh_scattering_texture = NewTexture3d(SCATTERING_TEXTURE_WIDTH,
       SCATTERING_TEXTURE_HEIGHT, SCATTERING_TEXTURE_DEPTH, GL_RGBA32F, GL_RGBA, GL_FLOAT);
   GLuint delta_mie_scattering_texture      = NewTexture3d(SCATTERING_TEXTURE_WIDTH,
-           SCATTERING_TEXTURE_HEIGHT, SCATTERING_TEXTURE_DEPTH, GL_RGBA32F, GL_RGBA, GL_FLOAT);
+      SCATTERING_TEXTURE_HEIGHT, SCATTERING_TEXTURE_DEPTH, GL_RGBA32F, GL_RGBA, GL_FLOAT);
   GLuint delta_scattering_density_texture  = NewTexture3d(SCATTERING_TEXTURE_WIDTH,
-       SCATTERING_TEXTURE_HEIGHT, SCATTERING_TEXTURE_DEPTH, GL_RGBA32F, GL_RGBA, GL_FLOAT);
+      SCATTERING_TEXTURE_HEIGHT, SCATTERING_TEXTURE_DEPTH, GL_RGBA32F, GL_RGBA, GL_FLOAT);
   // delta_multiple_scattering_texture is only needed to compute scattering
   // order 3 or more, while delta_rayleigh_scattering_texture and
   // delta_mie_scattering_texture are only needed to compute double scattering.
