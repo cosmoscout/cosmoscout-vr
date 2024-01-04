@@ -78,51 +78,63 @@ std::vector<double> CSVLoader::readDensity(std::string const& filename, uint32_t
 
 std::vector<std::vector<double>> CSVLoader::readPhase(
     std::string const& filename, std::vector<double>& wavelengths) {
-  std::vector<std::vector<double>> result;
+
+  std::vector<std::vector<double>> phaseFunctions;
 
   bool checkWavelengths = !wavelengths.empty();
 
   readLines(filename, [&](long lineNumber, std::string line) {
     std::stringstream ss(trim(removeMultiWhitespaces(replaceTabsWithWhitespaces(line))));
 
-    // Skip empty lines.
-    if (ss.rdbuf()->in_avail() == 0) {
+    // Skip empty lines and first line.
+    if (ss.rdbuf()->in_avail() == 0 || lineNumber == 0) {
       return;
     }
 
     auto elements = lineToArray(ss, ',');
 
-    std::vector<double> intensities;
+    // Convert to nanometers.
+    float lambda = stringToFloat(elements[0]) * 1e9;
 
-    // Remove first column.
+    if (checkWavelengths) {
+      if (lambda != wavelengths[lineNumber - 1]) {
+        throw std::runtime_error(
+            "Failed to read phase from '" + filename +
+            "': Wavelengths are not the same as in a previously loaded data set!");
+      }
+    } else {
+      wavelengths.push_back(lambda);
+    }
+
+    std::vector<double> phase;
+
+    // Remove first lambda column.
     elements.erase(elements.begin());
 
-    if (lineNumber == 0) {
-      for (size_t i(0); i < elements.size(); ++i) {
-        float lambda = stringToFloat(elements[i]);
-
-        if (checkWavelengths) {
-          if (lambda != wavelengths[i]) {
-            throw std::runtime_error(
-                "Failed to read phase from '" + filename +
-                "': Wavelengths are not the same as in a previously loaded data set!");
-          }
-        } else {
-          wavelengths.push_back(lambda);
-        }
-      }
-
-    } else {
-
-      for (auto& e : elements) {
-        intensities.push_back(stringToFloat(e));
-      }
-
-      result.push_back(intensities);
+    for (auto& e : elements) {
+      phase.push_back(stringToFloat(e));
     }
+
+    phaseFunctions.push_back(phase);
   });
 
-  return result;
+  // Now we need to transpose this matrix as we do not want to return a phase function for each
+  // lambda but a spectrum for each phase function angle.
+  size_t angleCount  = phaseFunctions.front().size();
+  size_t lambdaCount = wavelengths.size();
+
+  std::vector<std::vector<double>> spectra(angleCount);
+  for (size_t i(0); i < angleCount; ++i) {
+    spectra[i].resize(lambdaCount);
+  }
+
+  for (size_t i(0); i < lambdaCount; ++i) {
+    for (size_t j(0); j < angleCount; ++j) {
+      spectra[j][i] = phaseFunctions[i][j];
+    }
+  }
+
+  return spectra;
 }
 
 std::vector<double> CSVLoader::readExtinction(
@@ -141,7 +153,9 @@ std::vector<double> CSVLoader::readExtinction(
 
     auto elements = lineToArray(ss, ',');
 
-    float lambda = stringToFloat(elements[0]);
+    // Convert to nanometers.
+    float lambda = stringToFloat(elements[0]) * 1e9;
+
     if (checkWavelengths) {
       if (lambda != wavelengths[lineNumber - 1]) {
         throw std::runtime_error(
