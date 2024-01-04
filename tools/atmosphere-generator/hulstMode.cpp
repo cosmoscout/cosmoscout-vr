@@ -36,6 +36,7 @@ double anomalousDiffraction(double wavelength, double radius, std::complex<doubl
 }
 
 // https://link.springer.com/content/pdf/10.1186/s41074-016-0012-1.pdf
+// https://github.com/OpenSpace/OpenSpace/blob/integration/paper-atmosphere/modules/atmosphere/shaders/atmosphere_common.glsl#L328
 double hulstScattering(double wavelength, double turbidity, double kappa, double jungeExponent) {
   double c        = (0.65 * turbidity - 0.65) * 1e-16;
   double beta_sca = 0.434 * c * glm::pi<double>() *
