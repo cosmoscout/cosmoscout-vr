@@ -85,17 +85,17 @@ To learn about the different operation modes, you can now issue this command:
 
 ```bash
 ./atmosphere-generator density -i ../../../tools/atmosphere-generator/density-settings/mars_collienne_molecules.json -o mars_collienne_molecules
-./atmosphere-generator rayleigh --lambdas 440e-9,510e-9,680e-6 -o mars_collienne_molecules
-./atmosphere-generator manual --lambdas 440e-9,510e-9,680e-6 --quantity beta_sca --values 5.75e-6,13.57e-6,19.918e-6 -o mars_collienne_molecules_scattering
+./atmosphere-generator rayleigh --lambdas 440e-9,550e-9,680e-9 -o mars_collienne_molecules
+./atmosphere-generator manual --lambdas 440e-9,550e-9,680e-9 --quantity beta_sca --values 5.75e-6,13.57e-6,19.918e-6 -o mars_collienne_molecules_scattering
 ```
 
 **Aerosols** use a wavelength-independent Cornette-Shanks phase function and some arbitrary density values.
 
 ```bash
 ./atmosphere-generator density -i ../../../tools/atmosphere-generator/density-settings/mars_collienne_aerosols.json -o mars_collienne_aerosols
-./atmosphere-generator cornette --lambdas 440e-9,510e-9,680e-6 --g 0.76 -o mars_collienne_aerosols
-./atmosphere-generator manual --lambdas 440e-9,510e-9,680e-6 --quantity beta_sca --values 3e-6 -o mars_collienne_aerosols_scattering
-./atmosphere-generator manual --lambdas 440e-9,510e-9,680e-6 --quantity beta_abs --values 0 -o mars_collienne_aerosols_absorption
+./atmosphere-generator cornette --lambdas 440e-9,550e-9,680e-9 --g 0.76 -o mars_collienne_aerosols
+./atmosphere-generator manual --lambdas 440e-9,550e-9,680e-9 --quantity beta_sca --values 3e-6 -o mars_collienne_aerosols_scattering
+./atmosphere-generator manual --lambdas 440e-9,550e-9,680e-9 --quantity beta_abs --values 0 -o mars_collienne_aerosols_absorption
 ```
 
 ### Bruneton 2008 (Earth)
