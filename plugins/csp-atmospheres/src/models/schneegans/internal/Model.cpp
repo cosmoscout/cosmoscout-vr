@@ -54,10 +54,10 @@ of the following C++ code.
 // summed and averaged in each bin (e.g. the value for 360nm is the average
 // of the ASTM G-173 values for all wavelengths between 360 and 370nm).
 // Values in W.m^-2.
-std::vector<double> WAVELENGTHS = {360, 370, 380, 390, 400, 410, 420, 430, 440, 450, 460, 470, 480,
-    490, 500, 510, 520, 530, 540, 550, 560, 570, 580, 590, 600, 610, 620, 630, 640, 650, 660, 670,
-    680, 690, 700, 710, 720, 730, 740, 750, 760, 770, 780, 790, 800, 810, 820, 830};
-std::vector<double> SOLAR_IRRADIANCE = {1.11776, 1.14259, 1.01249, 1.14716, 1.72765, 1.73054,
+const std::vector<double> WAVELENGTHS = {360, 370, 380, 390, 400, 410, 420, 430, 440, 450, 460, 470,
+    480, 490, 500, 510, 520, 530, 540, 550, 560, 570, 580, 590, 600, 610, 620, 630, 640, 650, 660,
+    670, 680, 690, 700, 710, 720, 730, 740, 750, 760, 770, 780, 790, 800, 810, 820, 830};
+const std::vector<double> SOLAR_IRRADIANCE = {1.11776, 1.14259, 1.01249, 1.14716, 1.72765, 1.73054,
     1.6887, 1.61253, 1.91198, 2.03474, 2.02042, 2.02212, 1.93377, 1.95809, 1.91686, 1.8298, 1.8685,
     1.8931, 1.85149, 1.8504, 1.8341, 1.8345, 1.8147, 1.78158, 1.7533, 1.6965, 1.68194, 1.64654,
     1.6048, 1.52143, 1.55622, 1.5113, 1.474, 1.4482, 1.41018, 1.36775, 1.34188, 1.31429, 1.28303,
@@ -484,13 +484,10 @@ of the following two functions:
 */
 
 double CieColorMatchingFunctionTableValue(double wavelength, int column) {
-  constexpr int kLambdaMin = 360;
-  constexpr int kLambdaMax = 830;
-
-  if (wavelength <= kLambdaMin || wavelength >= kLambdaMax) {
+  if (wavelength <= WAVELENGTHS.front() || wavelength >= WAVELENGTHS.back()) {
     return 0.0;
   }
-  double u   = (wavelength - kLambdaMin) / 5.0;
+  double u   = (wavelength - WAVELENGTHS.front()) / 5.0;
   int    row = static_cast<int>(std::floor(u));
   assert(row >= 0 && row + 1 < 95);
   assert(CIE_2_DEG_COLOR_MATCHING_FUNCTIONS[4 * row] <= wavelength &&
@@ -525,7 +522,7 @@ Evaluation of 8 Clear Sky Models</a> for their definitions):
 */
 
 // The returned constants are in lumen.nm / watt.
-void ComputeSpectralRadianceToLuminanceFactors(double lambdaMin, double lambdaMax,
+void ComputeSpectralRadianceToLuminanceFactors(
     double lambda_power, double* k_r, double* k_g, double* k_b) {
   *k_r           = 0.0;
   *k_g           = 0.0;
@@ -534,7 +531,7 @@ void ComputeSpectralRadianceToLuminanceFactors(double lambdaMin, double lambdaMa
   double solar_g = Interpolate(WAVELENGTHS, SOLAR_IRRADIANCE, Model::kLambdaG);
   double solar_b = Interpolate(WAVELENGTHS, SOLAR_IRRADIANCE, Model::kLambdaB);
   int    dlambda = 1;
-  for (int lambda = lambdaMin; lambda <= lambdaMax; lambda += dlambda) {
+  for (int lambda = WAVELENGTHS.front(); lambda <= WAVELENGTHS.back(); lambda += dlambda) {
     double        x_bar      = CieColorMatchingFunctionTableValue(lambda, 1);
     double        y_bar      = CieColorMatchingFunctionTableValue(lambda, 2);
     double        z_bar      = CieColorMatchingFunctionTableValue(lambda, 3);
@@ -634,19 +631,15 @@ Model::Model(const std::vector<double>& wavelengths, const double sun_angular_ra
   // by MAX_LUMINOUS_EFFICACY instead. This is why, in precomputed illuminance
   // mode, we set SKY_RADIANCE_TO_LUMINANCE to MAX_LUMINOUS_EFFICACY.
   bool   precompute_illuminance = wavelengths_.size() > 3;
-  double lambdaMin              = wavelengths_.front();
-  double lambdaMax              = wavelengths_.back();
   double sky_k_r, sky_k_g, sky_k_b;
   if (precompute_illuminance) {
     sky_k_r = sky_k_g = sky_k_b = MAX_LUMINOUS_EFFICACY;
   } else {
-    ComputeSpectralRadianceToLuminanceFactors(
-        lambdaMin, lambdaMax, -3 /* lambda_power */, &sky_k_r, &sky_k_g, &sky_k_b);
+    ComputeSpectralRadianceToLuminanceFactors(-3 /* lambda_power */, &sky_k_r, &sky_k_g, &sky_k_b);
   }
   // Compute the values for the SUN_RADIANCE_TO_LUMINANCE constant.
   double sun_k_r, sun_k_g, sun_k_b;
-  ComputeSpectralRadianceToLuminanceFactors(
-      lambdaMin, lambdaMax, 0 /* lambda_power */, &sun_k_r, &sun_k_g, &sun_k_b);
+  ComputeSpectralRadianceToLuminanceFactors(0 /* lambda_power */, &sun_k_r, &sun_k_g, &sun_k_b);
 
   // A lambda that creates a GLSL header containing our atmosphere computation
   // functions, specialized for the given atmosphere parameters and for the 3
