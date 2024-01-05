@@ -10,6 +10,7 @@
 
 #include "../../../../csl-node-editor/src/Node.hpp"
 #include "../../../../csl-ogc/src/common/utils.hpp"
+#include "../../../../../src/cs-core/TimeControl.hpp"
 
 namespace csp::visualquery {
 
@@ -24,9 +25,12 @@ class TimeInterval : public csl::nodeeditor::Node {
 
   static const std::string           sName;
   static std::string                 sSource();
-  static std::unique_ptr<TimeInterval> sCreate();
+  static std::unique_ptr<TimeInterval> sCreate(std::shared_ptr<cs::core::TimeControl> timeControl);
 
   // instance interface ----------------------------------------------------------------------------
+
+  explicit TimeInterval(std::shared_ptr<cs::core::TimeControl> timeControl);
+  ~TimeInterval();
 
   /// Each node must override this. It simply returns the static sName.
   std::string const& getName() const override;
@@ -53,8 +57,17 @@ class TimeInterval : public csl::nodeeditor::Node {
   void setData(nlohmann::json const& json) override;
 
  private:
+
+  nlohmann::json createIntervalsMessage() const;
+
+  std::shared_ptr<cs::core::TimeControl> mTimeControl;
   std::string mValue;
   std::vector<csl::ogc::TimeInterval> mIntervals;
+  int mSelectedIntervalIndex;
+  int mTimeOperationCounter;
+  int mMaxTimeOperationCounter;
+  bool mSyncSimTime;
+  int mTimeConnection;
 };
 
 } // namespace csp::visualquery

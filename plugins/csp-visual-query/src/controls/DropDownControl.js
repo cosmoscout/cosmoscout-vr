@@ -107,4 +107,9 @@ class DropDownControl extends Rete.Control {
           text: e.target.options[e.target.selectedIndex].text
         }));
   }
+
+  /** Returns the index of the currently selected element. */
+  getSelectedIndex() {
+    return document.getElementById("select-" + this.id).selectedIndex;
+  }
 }

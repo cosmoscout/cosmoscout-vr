@@ -5,6 +5,19 @@
 // SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
 // SPDX-License-Identifier: MIT
 
+/**
+ * Converts a dateTime string in the ISO 8601 Format to a string that matches the style of 
+ * the CosmoScout time format.
+ * @param {string} dateText dateTime in ISO 8601 to convert
+ * @returns dateTime in CosmoScout format "YYYY-MM-DD HH-MM-SS"
+ */
+function convertToReadableDate(dateText) {
+  let dateTime = dateText.split(".")[0];
+  dateTime = dateTime.split("T");
+  result = dateTime[0] + " " + dateTime[1];
+  return result;
+}
+
 // The TimeInterval has a single output socket and a custom widget for entering a date and time. The
 // custom widget is defined further below.
 // The TimeIntervalComponent serves as a kind of factory. Whenever a new node is created, the
@@ -16,16 +29,6 @@ class TimeIntervalComponent extends Rete.Component {
 
     // This specifies the submenu from which this node can be created in the node editor.
     this.category = "Constants";
-  }
-
-  getDisplayDate(dateText) {
-    const date = new Date(dateText);
-    let result;
-
-    result = date.getUTCDate() + "." + (date.getUTCMonth() + 1) + "." + date.getUTCFullYear() + 
-      " " + date.getUTCHours() + ":" + (date.getUTCMinutes().length == 1 ? "0" + date.getUTCMinutes() : date.getUTCMinutes())
-      + " (UTC)";
-    return result;
   }
 
   // Called whenever a new node of this type needs to be constructed.
@@ -43,14 +46,23 @@ class TimeIntervalComponent extends Rete.Component {
     node.addOutput(output);
     
     // Add the TimeInterval input widget. The name parameter must be unique
-    // amongst all controls of this node. The NumberControl class is defined further below.
+    // amongst all controls of this node. The TimeIntervalControl class is defined further below.
     let timeIntervalControl = new TimeIntervalControl('TimeInterval');
 
     let intervalDropDown = new DropDownControl('selectInterval', (newInterval) => {
-      timeIntervalControl.setRangeStart(new Date(node.data.intervals[newInterval.value].split("/")[0]).toISOString());
-      timeIntervalControl.setRangeEnd(new Date(node.data.intervals[newInterval.value].split("/")[1]).toISOString());
-      // send new range to cpp TODO
-      CosmoScout.sendMessageToCPP({interval: timeIntervalControl.getRange()}, node.id);
+      // new interval select:
+      const selectedIndex = intervalDropDown.getSelectedIndex() - 1; // subtracting one because the displayed dropdown list includes an additional "none" element
+      if (selectedIndex != -1) {
+        timeIntervalControl.setStepSize(node.data.intervals[selectedIndex]["step"]["size"],
+          node.data.intervals[selectedIndex]["step"]["unit"]);        
+          
+      } else { // "None" selected
+        timeIntervalControl.setStepSize("", "");
+        timeIntervalControl.setCurrentTime("");
+      }
+      // send new time interval to cpp
+      CosmoScout.sendMessageToCPP({intervalIndex: selectedIndex}, node.id);
+
     }, "Interval", [{value: 0, text: "None"}]);
     
     node.addControl(intervalDropDown);
@@ -68,22 +80,37 @@ class TimeIntervalComponent extends Rete.Component {
           value: index,
           text: interval
         })),
-        selectedValue: node.data.selectedInterval
+        selectedValue: node.data.selectedIntervalIndex
       });
     };
 
     node.onMessageFromCPP = (message) => {
+      // intervals input changed
       if (message["intervals"]) {
-        let intervals = [];
+        let intervals = [{value: 0, text: "None"}];
+        
+        timeIntervalControl.setStepSize("", "");
+        timeIntervalControl.setCurrentTime("");
+        
+        if (message["intervals"] != "reset") {
+          for (let i = 0; i < message["intervals"].length ; i++) {
+            const dateText = convertToReadableDate(message["intervals"][i]["start"]) + 
+            " - " + convertToReadableDate(message["intervals"][i]["end"]);
+            intervals.push({value: i + 1, text: dateText});
+          }
+        }
 
-        for (let i = 0; i < message["intervals"].length ; i++) {
-          const dates = message["intervals"][i].split("/");
-          const dateText = this.getDisplayDate(dates[0]) + " - " + this.getDisplayDate(dates[1]);
-          intervals.push({value: i, text: dateText});
-        } 
-
-        node.data.intervals = message["intervals"];
         intervalDropDown.setOptions(intervals);
+        node.data.intervals = message["intervals"];
+      }
+
+      // interval or time step changed
+      if (message["currentTime"]) {
+        if (message["currentTime"] == "reset") {  
+          timeIntervalControl.setCurrentTime("");
+        } else {
+          timeIntervalControl.setCurrentTime(convertToReadableDate(message["currentTime"]));
+        }
       }
     }
 
@@ -91,7 +118,6 @@ class TimeIntervalComponent extends Rete.Component {
   }
 }
 
-// This is the widget which is used for inserting the number.
 class TimeIntervalControl extends Rete.Control {
   constructor(key) {
     super(key);
@@ -100,24 +126,44 @@ class TimeIntervalControl extends Rete.Control {
 
     // This HTML code will be used whenever a node is created with this widget.
     this.template = `
-    <div class="container-fluid" style="width: 250px">
-          <div class="row">
-            <div class="col-2">Start:</div>
-            <input class="offset-1 col-3 TimeInterval-input" name="dateTimeStart-${this.id}" id="dateTimeStart-${this.id}" type="dateTime-local" />
+      <div class="container-fluid">
+        <div class="row mb-1">
+          <div class="col">step size:</div>
+          <div class="col" id="${this.id}-stepSize"></div>
+        </div>
+        <hr>
+        <div class="row mb-1">
+          <input class="col" style="display: flex" type="checkbox" id="${this.id}-syncSimulationTime" name="${this.id}-syncSimulationTime" />
+          <label for="${this.id}-syncSimulationTime">sync with simulation time</label>
+        </div>
+
+        <div class="row mb-1">
+          <div class="col-3">
+            <button class="btn glass block" data-toggle="tooltip" title="First" id="${this.id}-firstStep">
+              <i class="material-icons">skip_previous</i>
+            </button>
           </div>
-          <br>
-          <div class="row">
-            <div class="col-2">End:</div>
-            <input class="offset-1 col-3 TimeInterval-input" name="dateTimeEnd-${this.id}" id="dateTimeEnd-${this.id}" type="dateTime-local" />
+          <div class="col-3">
+            <button class="btn glass block" data-toggle="tooltip" title="Previous" id="${this.id}-prevStep">
+              <i class="material-icons">navigate_before</i>
+            </button>
+          </div>
+          <div class="col-3">
+            <button class="btn glass block" data-toggle="tooltip" title="Next" id="${this.id}-nextStep">
+              <i class="material-icons">navigate_next</i>
+            </button>
+          </div>
+          <div class="col-3">
+            <button class="btn glass block" data-toggle="tooltip" title="Last" id="${this.id}-lastStep">
+              <i class="material-icons">skip_next</i>
+            </button>
           </div>
         </div>
 
-          <style>
-            .TimeInterval-input {
-              max-width: 100%; !important
-              width: 170px !important;
-            }
-          </style>
+        <div class="row mb-1">
+          <div class="col-md-12 mx-auto" id="${this.id}-currentTime"></div>
+        </div>
+        </div>
         `;
   }
 
@@ -125,46 +171,99 @@ class TimeIntervalControl extends Rete.Control {
   // created. If present, the data object may contain a number as returned by
   // TimeInterval::getData() which - if present - should be preselected.
   init(nodeDiv, data) {
-    // Get our input element.
-    let inputs = nodeDiv.querySelectorAll("input");
-    this.elStart = inputs[0];
-    this.elEnd = inputs[1];
+    // Get our input elements.
+    this.stepSize    = nodeDiv.querySelector('[id="' + this.id + '-stepSize"]');
+    this.firstStep   = nodeDiv.querySelector('[id="' + this.id + '-firstStep"]'); 
+    this.prevStep    = nodeDiv.querySelector('[id="' + this.id + '-prevStep"]'); 
+    this.nextStep    = nodeDiv.querySelector('[id="' + this.id + '-nextStep"]'); 
+    this.lastStep    = nodeDiv.querySelector('[id="' + this.id + '-lastStep"]'); 
+    this.currentTime = nodeDiv.querySelector('[id="' + this.id + '-currentTime"]');
+    this.syncSimTime = nodeDiv.querySelector('[id="' + this.id + '-syncSimulationTime"]');
 
-    // Preselect a number if one was given.
     if (data.value) {
-      // this.el.value = data.value;
+      this.syncSimTime.checked = data.syncSimTime;
+      this.currentTime(data.currentTime);
+      let step = data.intervals["intervals"][data.intervals["selectedIntervalIndex"]];
+      this.setStepSize(step["size"], step["unit"]);
     }
 
-    // Send an update to the node editor server whenever the user enters a new value.
-    this.elStart.addEventListener(
-      'input', e => { 
-        CosmoScout.sendMessageToCPP(this.getRange(), this.parent.id);
-    }); 
-    this.elEnd.addEventListener(
-      'input', e => { 
-        CosmoScout.sendMessageToCPP(this.getRange(), this.parent.id)
-    }); 
+    this.firstStep.addEventListener(
+      "click", e => {
+        CosmoScout.sendMessageToCPP({timeOperation: "first"}, this.parent.id);
+      });
 
-    // Stop propagation of pointer move events. Else we would drag the node if we tried to
-    // select some text in the input field.
-    this.elStart.addEventListener('pointermove', e => e.stopPropagation());
-    this.elEnd.addEventListener('pointermove', e => e.stopPropagation());
+    this.prevStep.addEventListener(
+      "click", e => {
+        CosmoScout.sendMessageToCPP({timeOperation: "prev"}, this.parent.id);
+      });
+
+    this.nextStep.addEventListener(
+      "click", e => {
+        CosmoScout.sendMessageToCPP({timeOperation: "next"}, this.parent.id);
+      });
+
+    this.lastStep.addEventListener(
+      "click", e => {
+        CosmoScout.sendMessageToCPP({timeOperation: "last"}, this.parent.id);
+      });
+
+    this.syncSimTime.addEventListener(
+      "change", e => {
+        CosmoScout.sendMessageToCPP({syncSimTime: this.syncSimTime.checked}, this.parent.id);
+    });
   }
-
-  setRangeStart(start) {
-    this.elStart.min = start;
-    this.elEnd.min = start;
-  }
-
-  setRangeEnd(end) {
-    this.elStart.max = end;
-    this.elEnd.max = end;
-  }
-
-  getRange() {
-    if (this.elEnd.value) {
-      return this.elStart.value + "/" + this.elEnd.value;
+  	
+  /**
+   * Displays the step size and converts the time unit to an easier 
+   * to understand one if it is in seconds. 
+   * @param {int} stepSize step size to display
+   * @param {string} unit time unit of step size
+   */
+  setStepSize(stepSize, unit) {
+    if (unit == "sec") {
+      this.stepSize.innerHTML = this.secondsToTime(stepSize);
+    } else {
+      this.stepSize.innerHTML = stepSize + " " + unit;
     }
-    return this.elStart.value;
   }
+
+  /**
+   * Displays the time as the currently selected time of the node.
+   * @param {string} time time to display
+   */
+  setCurrentTime(time) {
+    this.currentTime.innerHTML = time;
+  }
+
+  /**
+   * Converts seconds into an easier to understand time unit
+   * @param {int} seconds The seconds to be converted
+   * @returns string with time unit
+   */
+  secondsToTime(seconds) {
+    const days = Math.floor(seconds / (24 * 60 * 60));
+    const hours = Math.floor((seconds % (24 * 60 * 60)) / (60 * 60));
+    const minutes = Math.floor((seconds % (60 * 60)) / 60);
+    const remainingSeconds = seconds % 60;
+
+    let result = '';
+
+    if (days > 0) {
+      result += days + ' day' + (days > 1 ? 's' : '') + ' ';
+    }
+
+    if (hours > 0) {
+      result += hours + ' hour' + (hours > 1 ? 's' : '') + ' ';
+    }
+
+    if (minutes > 0) {
+      result += minutes + ' minute' + (minutes > 1 ? 's' : '') + ' ';
+    }
+
+    if (remainingSeconds > 0) {
+      result += remainingSeconds + ' second' + (remainingSeconds > 1 ? 's' : '');
+    }
+
+    return result.trim();
+}
 }
