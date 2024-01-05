@@ -8,7 +8,7 @@
         },
         {
             "type": "modifiedLogNormal",
-            "effectiveRadius": 1.5e-6,
+            "effectiveRadius": 1.4e-6,
             "effectiveVariance": 0.35,
             "relativeNumberDensity": 1
         }
