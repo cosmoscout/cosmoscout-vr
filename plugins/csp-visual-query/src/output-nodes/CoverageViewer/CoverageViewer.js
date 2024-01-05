@@ -28,18 +28,27 @@ class CoverageViewerComponent extends Rete.Component {
     node.addControl(control);
 
     // Once the HTML element for this node has been created, the node.onInit() method will be
-    // called. This is used here to initialize the input widget. The node.data object may
-    // contain a number as returned by Int::getData() which - if present - should be
-    // preselected.
+    // called. This is used here to initialize the widget.
     node.onInit = (nodeDiv) => { 
       
       control.init(nodeDiv, node.data); 
       
       node.onMessageFromCPP = (message) => {
-        if (message["bounds"]) {
-          control.updateValues(message["bounds"]["minLong"], message["bounds"]["maxLong"], 
-            message["bounds"]["minLat"], message["bounds"]["maxLat"]);
+
+        if (!message) {
+          control.displayBounds({});
+          control.displayAbstract("");
+          control.displayAttribution("");
+          control.displayKeywords("");
+          control.displayTimeInterval([]);
+          return;
         }
+        
+        control.displayBounds((message["bounds"] ? message["bounds"] : {}));
+        control.displayKeywords((message["keywords"] ? message["keywords"] : ""));
+        control.displayAbstract((message["abstract"] ? message["abstract"] : ""));
+        control.displayAttribution((message["attribution"] ? message["attribution"] : ""));
+        control.displayTimeInterval((message["intervals"] ? message["intervals"] : []));
       };
     };
 
@@ -56,48 +65,132 @@ class CoverageViewerControl extends Rete.Control {
 
     // This HTML code will be used whenever a node is created with this widget.
     this.template = `
-      <div class="container-fluid" style="width: 250px">
+      <div class="container-fluid" style="width: 350px">
         <div class="row">
-          <div class="col">Bounds:</div>
+          <div class="col"><b>Bounds:</b></div>
         </div>
-        <hr>
-        <div class="row">
-          <div class="col-md-7">Longitude Min:</div>
-          <div class="col-md-auto" id="${this.id}-minLong"></div> 
+        <div style="width: fit-content;">
+          <div class="row">
+            <div class="col-auto">Longitude Min:</div>
+            <div class="col-auto" id="${this.id}-minLong"></div> 
+          </div>
+
+          <div class="row">
+            <div class="col-auto">Longitude Max:</div>
+            <div class="col-auto" id="${this.id}-maxLong"></div> 
+          </div>
+
+          <div class="row">
+            <div class="col-auto">Latitude Min:&nbsp;&nbsp;</div>
+            <div class="col-auto" id="${this.id}-minLat"></div> 
+          </div>
+
+          <div class="row">
+            <div class="col-auto">Latitude Max:&nbsp;&nbsp;</div>
+            <div class="col-auto" id="${this.id}-maxLat"></div> 
+          </div>
         </div>
 
+        <br>
         <div class="row">
-          <div class="col-md-7">Longitude Max:</div>
-          <div class="col-md-auto" id="${this.id}-maxLong"></div> 
+          <div class="col"><b>Keywords:</b></div>
+        </div>
+        <div class="row">
+          <div class="col-auto" id="${this.id}-keywords"></div> 
         </div>
 
+        <br>
         <div class="row">
-          <div class="col-md-7">Latitude Min:</div>
-          <div class="col-md-auto" id="${this.id}-minLat"></div> 
+          <div class="col"><b>Abstract:</b></div>
+        </div>
+        <div class="row">
+          <div class="col-auto" id="${this.id}-abstract"></div> 
         </div>
 
+        <br>
         <div class="row">
-          <div class="col-md-7">Latitude Max:</div>
-          <div class="col-md-auto" id="${this.id}-maxLat"></div> 
+          <div class="col"><b>Attribution:</b></div>
+        </div>
+        <div class="row">
+          <div class="col-auto" id="${this.id}-attribution"></div> 
+        </div>
+
+        <br>
+        <div class="row">
+          <div class="col"><b>Time Intervals:</b></div>
+        </div>
+        <div class="row">
+          <div class="col-auto" id="${this.id}-timeInterval"></div> 
         </div>
       </div>
         `;
   }
 
   // This is called by the node.onInit() above once the HTML element for the node has been
-  // created. If present, the data object may contain a number as returned by
-  // Int::getData() which - if present - should be preselected.
+  // created.
   init(nodeDiv, data) {
 
-    // Get our input element.
-    const el = nodeDiv;
-
+    // Get our display elements
+    this.minLong      = nodeDiv.querySelector('[id="' + this.id + '-minLong"]'); 
+    this.maxLong      = nodeDiv.querySelector('[id="' + this.id + '-maxLong"]'); 
+    this.minLat       = nodeDiv.querySelector('[id="' + this.id + '-minLat"]'); 
+    this.maxLat       = nodeDiv.querySelector('[id="' + this.id + '-maxLat"]'); 
+    this.keywords     = nodeDiv.querySelector('[id="' + this.id + '-keywords"]');
+    this.abstract     = nodeDiv.querySelector('[id="' + this.id + '-abstract"]');
+    this.attribution  = nodeDiv.querySelector('[id="' + this.id + '-attribution"]');
+    this.timeInterval = nodeDiv.querySelector('[id="' + this.id + '-timeInterval"]');
   }
 
-  updateValues(minLong, maxLong, minLat, maxLat) {
-    document.getElementById(this.id + "-minLong").innerHTML = minLong;
-    document.getElementById(this.id + "-maxLong").innerHTML = maxLong;
-    document.getElementById(this.id + "-minLat").innerHTML = minLat;
-    document.getElementById(this.id + "-maxLat").innerHTML = maxLat;
+  /**
+   * Displays the geographic coordinates.
+   * @param {Object} bounds bounds object containing minLong, maxLong, minLat and maxLat 
+   */
+  displayBounds(bounds) {
+    if (!bounds["minLong"]) {
+      this.minLong.innerHTML = "";
+      this.maxLong.innerHTML = "";
+      this.minLat.innerHTML  = "";
+      this.maxLat.innerHTML  = "";  
+    } else {
+      this.minLong.innerHTML = bounds["minLong"];
+      this.maxLong.innerHTML = bounds["maxLong"];
+      this.minLat.innerHTML  = bounds["minLat"];
+      this.maxLat.innerHTML  = bounds["maxLat"];
+    }
+  }
+
+  /**
+   * Display the keywords of a coverage.
+   * @param {String} keywords keywords in a comma separated list 
+   */
+  displayKeywords(keywords) {
+    this.keywords.innerHTML = keywords;
+  }
+
+  /**
+   * Displays the abstract of a coverage
+   * @param {String} abstract abstract to display 
+   */
+  displayAbstract(abstract) {
+    this.abstract.innerHTML = abstract;
+  }
+
+  /**
+   * Displays the attribution of a coverage
+   * @param {String} attribution attribution to display
+   */
+  displayAttribution(attribution) {
+    this.attribution.innerHTML = attribution;
+  }
+
+  /**
+   * Displays all available time intervals of a coverage
+   * @param {Array<String>} timeIntervals time intervals to display
+   */
+  displayTimeInterval(timeIntervals) {
+    this.timeInterval.innerHTML = "";
+    for (const interval of timeIntervals) {
+      this.timeInterval.innerHTML += interval + "\n";
+    }
   }
 }

@@ -39,31 +39,48 @@ std::string const& CoverageViewer::getName() const {
 
 void CoverageViewer::process() {
   auto coverage = readInput<std::shared_ptr<CoverageContainer>>("coverageIn", nullptr);
+  nlohmann::json json;
 
-  if (coverage == nullptr) {
-    nlohmann::json jsonBounds;
-    jsonBounds["bounds"]["minLong"] = "";
-    jsonBounds["bounds"]["maxLong"] = "";
-    jsonBounds["bounds"]["minLat"]  = "";
-    jsonBounds["bounds"]["maxLat"]  = "";
-    sendMessageToJS(jsonBounds);
-    return;
+  if (coverage != nullptr) {
+    auto coverageSettings = coverage->mImageChannel->getSettings();
+
+    json["bounds"]["minLong"] = coverageSettings.mBounds.mMinLon;
+    json["bounds"]["maxLong"] = coverageSettings.mBounds.mMaxLon;
+    json["bounds"]["minLat"]  = coverageSettings.mBounds.mMinLat;
+    json["bounds"]["maxLat"]  = coverageSettings.mBounds.mMaxLat;
+
+    if (coverageSettings.mAttribution.has_value()) {
+      json["attribution"] = coverageSettings.mAttribution.value();
+    }
+
+    std::vector<std::string> intervals;
+    for (auto interval : coverageSettings.mTimeIntervals) {
+      std::string intervalString = boost::posix_time::to_iso_extended_string(interval.mStartTime);
+      intervalString.append(" - ");
+      intervalString.append(boost::posix_time::to_iso_extended_string(interval.mEndTime));
+      intervals.push_back(intervalString);
+    }
+
+    if (intervals.size() > 0) {
+      json["intervals"] = intervals;
+    }
+    
+    auto keywords = coverage->mImageChannel->getKeywords();
+    if (keywords.has_value()) {
+      json["keywords"] = keywords.value();
+    }
+
+    auto abstract = coverage->mImageChannel->getAbstract();
+    if (abstract.has_value()) {
+      json["abstract"] = abstract.value();
+    }
   }
-
-  auto bounds = coverage->mImageChannel->getSettings().mBounds;
-
-  nlohmann::json jsonBounds;
-  jsonBounds["bounds"]["minLong"] = bounds.mMinLon;
-  jsonBounds["bounds"]["maxLong"] = bounds.mMaxLon;
-  jsonBounds["bounds"]["minLat"]  = bounds.mMinLat;
-  jsonBounds["bounds"]["maxLat"]  = bounds.mMaxLat;
-  sendMessageToJS(jsonBounds);
+  sendMessageToJS(json);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void CoverageViewer::onMessageFromJS(nlohmann::json const& message) {
-  process();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
