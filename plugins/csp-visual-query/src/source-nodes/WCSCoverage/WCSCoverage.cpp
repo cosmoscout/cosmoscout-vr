@@ -175,8 +175,8 @@ void WCSCoverage::process() {
     return;
   }
 
+  mSelectedImageChannel->update();
   auto coverageSettings = mSelectedImageChannel->getSettings();
-  
   writeOutput("timeIntervalsOut", coverageSettings.mTimeIntervals);
   writeOutput("lngBoundMinOut", coverageSettings.mBounds.mMinLon);
   writeOutput("lngBoundMaxOut", coverageSettings.mBounds.mMaxLon);
