@@ -12,27 +12,21 @@
 
 namespace csp::visualquery {
 
-/// The CoverageViewer provides a user defined whole number.
-/// The node will write a new value to its output whenever the user edits the
-/// number and thus trigger a reprocessing of the connected nodes. The current value is stored as a
-/// private member and will be serialized and deserialized whenever the node graph is saved or
-/// loaded.
-class CoverageViewer : public csl::nodeeditor::Node {
+/// The CoverageInfo displays information about a selected coverage.
+class CoverageInfo : public csl::nodeeditor::Node {
  public:
   // static interface ------------------------------------------------------------------------------
 
   static const std::string           sName;
   static std::string                 sSource();
-  static std::unique_ptr<CoverageViewer> sCreate();
+  static std::unique_ptr<CoverageInfo> sCreate();
 
   // instance interface ----------------------------------------------------------------------------
 
   /// Each node must override this. It simply returns the static sName.
   std::string const& getName() const override;
 
-  /// Whenever the user changes the number value of the node, the CoverageViewer will send a message to
-  /// the C++ instance of the node via onMessageFromJS, which in turn will call the process()
-  /// method. This simply updates the value of the 'value' output. This method may also get called
+  /// This simply updates the displayed information of the connected coverage. This method may also get called
   /// occasionally by the node editor, for example if a new web client was connected hence needs
   /// updated values for all nodes.
   void process() override;

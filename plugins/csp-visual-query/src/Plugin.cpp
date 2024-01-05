@@ -1,4 +1,4 @@
-﻿////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////
 //                               This file is part of CosmoScout VR                               //
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -17,7 +17,7 @@
 #include "operation-nodes/DifferenceImage2D/DifferenceImage2D.hpp"
 #include "output-nodes/OverlayRenderer/OverlayRender.hpp"
 #include "output-nodes/VolumeRenderer/VolumeRenderer.hpp"
-#include "output-nodes/CoverageViewer/CoverageViewer.hpp"
+#include "output-nodes/CoverageInfo/CoverageInfo.hpp"
 #include "source-nodes/JsonVolumeFileLoader/JsonVolumeFileLoader.hpp"
 #include "source-nodes/RandomDataSource2D/RandomDataSource2D.hpp"
 #include "source-nodes/RandomDataSource3D/RandomDataSource3D.hpp"
@@ -172,7 +172,7 @@ void Plugin::setupNodeEditor(uint16_t port) {
   // Outputs
   factory.registerNodeType<WCSCoverage>(
       std::shared_ptr<std::vector<csl::ogc::WebCoverageService>>(&mPluginSettings.mWebCoverages));
-  factory.registerNodeType<CoverageViewer>();
+  factory.registerNodeType<CoverageInfo>();
   // Sources
   factory.registerNodeType<RandomDataSource2D>();
   factory.registerNodeType<RandomDataSource3D>();

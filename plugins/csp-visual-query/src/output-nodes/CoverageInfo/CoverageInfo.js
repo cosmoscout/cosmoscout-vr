@@ -9,10 +9,10 @@
 // custom widget is defined further below.
 // The IntComponent serves as a kind of factory. Whenever a new node is created, the
 // builder() method is called. It is required that the class is called <NAME>Component.
-class CoverageViewerComponent extends Rete.Component {
+class CoverageInfoComponent extends Rete.Component {
   constructor() {
     // This name must match the Int::sName defined in Int.cpp.
-    super("CoverageViewer");
+    super("CoverageInfo");
 
     // This specifies the submenu from which this node can be created in the node editor.
     this.category = "Output";
@@ -24,7 +24,7 @@ class CoverageViewerComponent extends Rete.Component {
     let coverageInput = new Rete.Input('coverageIn', "Coverage", CosmoScout.socketTypes['Coverage']);
     node.addInput(coverageInput);
 
-    let control = new CoverageViewerControl("CoverageViewer");
+    let control = new CoverageInfoControl("CoverageInfo");
     node.addControl(control);
 
     // Once the HTML element for this node has been created, the node.onInit() method will be
@@ -57,7 +57,7 @@ class CoverageViewerComponent extends Rete.Component {
 }
 
 // This is the widget which is used for inserting the number.
-class CoverageViewerControl extends Rete.Control {
+class CoverageInfoControl extends Rete.Control {
   constructor(key) {
     super(key);
 
@@ -65,29 +65,26 @@ class CoverageViewerControl extends Rete.Control {
 
     // This HTML code will be used whenever a node is created with this widget.
     this.template = `
-      <div class="container-fluid" style="width: 350px">
+      <div class="container-fluid" style="width: 330px">
         <div class="row">
           <div class="col"><b>Bounds:</b></div>
         </div>
         <div style="width: fit-content;">
           <div class="row">
             <div class="col-auto">Longitude Min:</div>
-            <div class="col-auto" id="${this.id}-minLong"></div> 
+            <div class="col" id="${this.id}-minLong"></div> 
           </div>
-
           <div class="row">
             <div class="col-auto">Longitude Max:</div>
-            <div class="col-auto" id="${this.id}-maxLong"></div> 
+            <div class="col" id="${this.id}-maxLong"></div> 
           </div>
-
           <div class="row">
             <div class="col-auto">Latitude Min:&nbsp;&nbsp;</div>
-            <div class="col-auto" id="${this.id}-minLat"></div> 
+            <div class="col" id="${this.id}-minLat"></div> 
           </div>
-
           <div class="row">
             <div class="col-auto">Latitude Max:&nbsp;&nbsp;</div>
-            <div class="col-auto" id="${this.id}-maxLat"></div> 
+            <div class="col" id="${this.id}-maxLat"></div> 
           </div>
         </div>
 

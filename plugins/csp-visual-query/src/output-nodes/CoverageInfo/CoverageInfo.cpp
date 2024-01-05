@@ -5,7 +5,7 @@
 // SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
 // SPDX-License-Identifier: MIT
 
-#include "CoverageViewer.hpp"
+#include "CoverageInfo.hpp"
 
 #include "../../../../../src/cs-utils/filesystem.hpp"
 #include "../../types/CoverageContainer.hpp"
@@ -14,30 +14,30 @@ namespace csp::visualquery {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-const std::string CoverageViewer::sName = "CoverageViewer";
+const std::string CoverageInfo::sName = "CoverageInfo";
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::string CoverageViewer::sSource() {
+std::string CoverageInfo::sSource() {
   return cs::utils::filesystem::loadToString(
-      "../share/resources/nodes/csp-visual-query/CoverageViewer.js");
+      "../share/resources/nodes/csp-visual-query/CoverageInfo.js");
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::unique_ptr<CoverageViewer> CoverageViewer::sCreate() {
-  return std::make_unique<CoverageViewer>();
+std::unique_ptr<CoverageInfo> CoverageInfo::sCreate() {
+  return std::make_unique<CoverageInfo>();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::string const& CoverageViewer::getName() const {
+std::string const& CoverageInfo::getName() const {
   return sName;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void CoverageViewer::process() {
+void CoverageInfo::process() {
   auto coverage = readInput<std::shared_ptr<CoverageContainer>>("coverageIn", nullptr);
   nlohmann::json json;
 
@@ -80,18 +80,18 @@ void CoverageViewer::process() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void CoverageViewer::onMessageFromJS(nlohmann::json const& message) {
+void CoverageInfo::onMessageFromJS(nlohmann::json const& message) {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-nlohmann::json CoverageViewer::getData() const {
+nlohmann::json CoverageInfo::getData() const {
   return nlohmann::json();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void CoverageViewer::setData(nlohmann::json const& json) {
+void CoverageInfo::setData(nlohmann::json const& json) {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
