@@ -202,5 +202,5 @@ The values below generate a plausible atmosphere, however most of the values are
 # Paper values:
 #./atmosphere-generator dhenyey --lambdas 440e-9,550e-9,680e-9 --g1 0.67,0.4,0.03 --g2 0.099,0.89,0.094 --alpha 0.01,0.04,0.743 -o mars_costa_aerosols
 ./atmosphere-generator dhenyey --lambdas 440e-9,550e-9,680e-9 --g1 0.67,0.4,0.03 --g2 0.094,0.094,0.094 --alpha 0.743,0.743,0.743 -o mars_costa_aerosols
-./atmosphere-generator hulst --lambdas 440e-9,550e-9,680e-9 --junge 4 --number-density 0.5e6 --kappa 0.07,0.16,0.31 --turbidity 1.003 --radius 1.6e-6 -n 1.52 -k 0.013,0.006,0.001 -o mars_costa_aerosols
+./atmosphere-generator hulst --lambdas 440e-9,550e-9,680e-9 --junge 4 --number-density 0.02e8 --kappa 0.07,0.16,0.31 --turbidity 1.01 --radius 1.6e-6 -n 1.52 -k 0.013,0.006,0.001 -o mars_costa_aerosols
 ```
