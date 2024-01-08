@@ -10,8 +10,9 @@
 #include "../../../../../src/cs-core/Settings.hpp"
 #include "../../../../../src/cs-core/SolarSystem.hpp"
 #include "../../../../../src/cs-utils/FrameStats.hpp"
-#include "../../../../../src/cs-utils/utils.hpp"
 #include "../../../../../src/cs-utils/filesystem.hpp"
+#include "../../../../../src/cs-utils/utils.hpp"
+#include "../../../../../src/cs-utils/ThreadPool.hpp"
 #include "../../logger.hpp"
 
 #include <VistaKernel/GraphicsManager/VistaGroupNode.h>
@@ -33,6 +34,7 @@ SinglePassRaycaster::SinglePassRaycaster(std::shared_ptr<cs::core::SolarSystem> 
     , mSettings(std::move(settings))
     , mTexture(GL_TEXTURE_3D)
     , mPreLookupTexture(GL_TEXTURE_2D)
+    , mLUT(GL_TEXTURE_1D)
     , mHasTexture(false)
     , mMinBounds(0)
     , mMaxBounds(0) {
@@ -46,6 +48,11 @@ SinglePassRaycaster::SinglePassRaycaster(std::shared_ptr<cs::core::SolarSystem> 
   mPreLookupTexture.SetWrapS(GL_CLAMP_TO_EDGE);
   mPreLookupTexture.SetWrapT(GL_CLAMP_TO_EDGE);
   mPreLookupTexture.Unbind();
+
+  mLUT.Bind();
+  mLUT.SetWrapS(GL_CLAMP_TO_EDGE);
+  mLUT.SetWrapT(GL_CLAMP_TO_EDGE);
+  mLUT.Unbind();
 
   // Add to scenegraph.
   VistaSceneGraph* pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
@@ -91,6 +98,7 @@ bool SinglePassRaycaster::Do() {
 
     mUniforms.texture          = mShader.GetUniformLocation("uTexture");
     mUniforms.preLookupTexture = mShader.GetUniformLocation("uPreLookupTexture");
+    mUniforms.lut              = mShader.GetUniformLocation("uLUT");
     mUniforms.matInvMV         = mShader.GetUniformLocation("uMatInvMV");
     mUniforms.matInvP          = mShader.GetUniformLocation("uMatInvP");
     mUniforms.lonRange         = mShader.GetUniformLocation("uLonRange");
@@ -110,6 +118,7 @@ bool SinglePassRaycaster::Do() {
   glDepthMask(GL_FALSE);
   glEnable(GL_TEXTURE_3D);
   glEnable(GL_TEXTURE_2D);
+  glEnable(GL_TEXTURE_1D);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
   float scale     = mSettings->mGraphics.pHeightScale.get();
@@ -136,9 +145,11 @@ bool SinglePassRaycaster::Do() {
   mShader.Bind();
   mTexture.Bind(GL_TEXTURE0);
   mPreLookupTexture.Bind(GL_TEXTURE1);
+  mLUT.Bind(GL_TEXTURE2);
 
   mShader.SetUniform(mUniforms.texture, 0);
   mShader.SetUniform(mUniforms.preLookupTexture, 1);
+  mShader.SetUniform(mUniforms.lut, 2);
 
   glUniformMatrix4fv(mUniforms.matInvMV, 1, false, glm::value_ptr(matInvMV));
   glUniformMatrix4fv(mUniforms.matInvP, 1, false, glm::value_ptr(matInvP));
@@ -165,6 +176,8 @@ bool SinglePassRaycaster::Do() {
 
   glDrawArrays(GL_POINTS, 0, 1);
 
+  mLUT.Unbind();
+  mPreLookupTexture.Unbind();
   mTexture.Unbind();
   mShader.Release();
 
@@ -344,6 +357,15 @@ void SinglePassRaycaster::setData(std::shared_ptr<Volume3D> const& image) {
   default:
     logger().error("Unknown type!");
   }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void SinglePassRaycaster::setLUT(std::vector<glm::vec4> const& lut) {
+  mLUT.Bind();
+  glTexImage1D(GL_TEXTURE_1D, 0, GL_RGBA32F, static_cast<int32_t>(lut.size()), 0, GL_RGBA, GL_FLOAT, lut.data());
+  glTexParameteri(mLUT.GetTarget(), GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+  mLUT.Unbind();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

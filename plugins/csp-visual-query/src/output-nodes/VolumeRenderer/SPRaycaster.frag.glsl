@@ -2,6 +2,7 @@
 
 uniform sampler3D  uTexture;
 uniform usampler2D uPreLookupTexture;
+uniform sampler1D  uLUT;
 
 uniform mat4 uMatInvMV;
 uniform mat4 uMatInvP;
@@ -143,7 +144,7 @@ void main() {
       discard;
     }
 
-    const float stepLength = 100.0;
+    const float stepLength = 10.0;
     entry = max(stepLength, entry);
 
     vec4 finalColor = vec4(0.0, 0.0, 0.0, 0.0);
@@ -163,7 +164,7 @@ void main() {
         uint heightByte = uint(pow(2, uint(texCoords.z * 8.0)));
 
         if ((heightMap & heightByte) != 0) {
-          vec4 currentColor = texture(uTexture, texCoords);
+          vec4 currentColor = texture(uLUT, texture(uTexture, texCoords).r);
           float currentAlpha = currentColor.a;
 
           currentColor.rgb *= currentAlpha;

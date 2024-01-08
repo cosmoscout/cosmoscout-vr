@@ -40,6 +40,19 @@ SolarSystem::SolarSystem(std::shared_ptr<Settings> settings,
     , mTimeControl(std::move(timeControl))
     , mSun(getObject("Sun")) {
 
+  // Make sure to update our pointer to the Sun if the settings are reloaded.
+  mSettings->mObjects.onAdd().connect([this](auto const& name, auto const& object) {
+    if (name == "Sun") {
+      mSun = object;
+    }
+  });
+
+  mSettings->mObjects.onRemove().connect([this](auto const& name, auto const& /*object*/) {
+    if (name == "Sun") {
+      mSun.reset();
+    }
+  });
+
   // Tell the user what's going on.
   logger().debug("Creating SolarSystem.");
 }

@@ -24,16 +24,21 @@
       CosmoScout.gui.initSlider('lodBodies.setTerrainLod', 1.0, 75.0, 0.1, [15]);
       CosmoScout.gui.initSlider('lodBodies.setAutoLoDRange', 1.0, 75.0, 0.1, [10, 40]);
       CosmoScout.gui.initSlider('lodBodies.setTextureGamma', 0.1, 3.0, 0.01, [1.0]);
+    }
 
+    /**
+     * This is called from the plugin whenever the auto-lod feature is enabled or disabled.
+     *
+     * @param enable {bool}
+     */
+    enableTerrainLodSlider(enable) {
       const terrainLod = document.querySelector('[data-callback="lodBodies.setTerrainLod"]');
-      document.querySelector('[data-callback="lodBodies.setEnableAutoTerrainLod"]')
-          .addEventListener('change', (event) => {
-            if (event.target.checked) {
-              terrainLod.classList.add('unresponsive');
-            } else {
-              terrainLod.classList.remove('unresponsive');
-            }
-          });
+
+      if (enable) {
+        terrainLod.classList.remove('unresponsive');
+      } else {
+        terrainLod.classList.add('unresponsive');
+      }
     }
 
     /**
