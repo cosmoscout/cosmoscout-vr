@@ -49,6 +49,8 @@ class VolumeRenderer final : public csl::nodeeditor::Node {
   std::unique_ptr<SinglePassRaycaster> mRenderer;
   std::unique_ptr<VistaOpenGLNode>     mGLNode;
 
+  std::shared_ptr<Volume3D> mVolume;
+
   std::shared_ptr<cs::core::SolarSystem> mSolarSystem;
   std::shared_ptr<cs::core::Settings>    mSettings;
 };

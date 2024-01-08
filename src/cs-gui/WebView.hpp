@@ -160,6 +160,7 @@ class CS_GUI_EXPORT WebView {
   virtual void remove() const;
   virtual void undo() const;
   virtual void redo() const;
+  virtual void selectAll() const;
 
   /// Toggle the focused state for this page.
   virtual void injectFocusEvent(bool focus);

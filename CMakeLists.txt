@@ -6,7 +6,7 @@
 # SPDX-License-Identifier: MIT
 
 cmake_minimum_required(VERSION 3.13)
-project(cosmoscout-vr VERSION 1.7.0)
+project(cosmoscout-vr VERSION 1.8.0)
 
 # Use cmake 3.12's <PACKAGE>_ROOT variabled for searching.
 cmake_policy(SET CMP0074 NEW)
@@ -119,10 +119,16 @@ else()
   SET(GLEW_ROOT_DIR ${COSMOSCOUT_EXTERNALS_DIR})
 endif()
 
-if (DEFINED ENV{GLUT_ROOT_DIR})
-  SET(GLUT_ROOT_DIR "$ENV{GLUT_ROOT_DIR}")
+if (DEFINED ENV{SDL2_ROOT_DIR})
+  SET(SDL2_ROOT_DIR "$ENV{SDL2_ROOT_DIR}")
 else()
-  SET(GLUT_ROOT_DIR ${COSMOSCOUT_EXTERNALS_DIR})
+  SET(SDL2_ROOT_DIR ${COSMOSCOUT_EXTERNALS_DIR})
+endif()
+
+if (DEFINED ENV{SDL2_TTF_ROOT_DIR})
+  SET(SDL2_TTF_ROOT_DIR "$ENV{SDL2_TTF_ROOT_DIR}")
+else()
+  SET(SDL2_TTF_ROOT_DIR ${COSMOSCOUT_EXTERNALS_DIR})
 endif()
 
 if (DEFINED ENV{OPENSG_ROOT_DIR})
@@ -155,7 +161,8 @@ find_package(SPDLOG REQUIRED)
 find_package(CEF REQUIRED)
 find_package(TIFF REQUIRED)
 find_package(GLEW REQUIRED)
-find_package(GLUT REQUIRED)
+find_package(SDL2 REQUIRED)
+find_package(SDL2_ttf REQUIRED)
 find_package(OPENSG REQUIRED)
 find_package(CIVETWEB REQUIRED)
 find_package(VistaCoreLibs REQUIRED 

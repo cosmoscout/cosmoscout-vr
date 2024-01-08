@@ -25,6 +25,18 @@ void NodeFactory::registerControlType(std::string controlSource) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void NodeFactory::registerStyleSheet(std::string styleSheet) {
+  mStyleSheets.emplace_back(std::move(styleSheet));
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void NodeFactory::registerLibrary(std::string library) {
+  mLibraries.emplace_back(std::move(library));
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 std::string NodeFactory::getSocketSource() const {
   std::string source;
 
@@ -76,6 +88,32 @@ std::string NodeFactory::getRegisterSource() const {
     source += fmt::format("const component = new {}Component();\n", f.first);
     source += "CosmoScout.nodeEditor.register(component);\n";
     source += "}\n";
+  }
+
+  return source;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+std::string NodeFactory::getStyleSheetSource() const {
+  std::string source;
+
+  // This sets up the required code for registering the stylesheets.
+  for (auto const& styleSheet : mStyleSheets) {
+    source += fmt::format("  {}\n", styleSheet);
+  }
+
+  return source;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+std::string NodeFactory::getLibrarySource() const {
+  std::string source;
+
+  // This sets up the required code for registering the libraries.
+  for (auto const& library : mLibraries) {
+    source += fmt::format("  {}\n", library);
   }
 
   return source;

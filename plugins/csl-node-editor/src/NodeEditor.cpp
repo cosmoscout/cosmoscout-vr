@@ -59,6 +59,7 @@ NodeEditor::NodeEditor(uint16_t port, NodeFactory factory)
   std::vector<std::array<std::string, 2>> resourceHandlers{
       {"**.css$", "text/css"},
       {"**.js$", "text/javascript"},
+      {"**.js.map$", "application/json"},
       {"**.ttf$", "font/ttf"},
       {"**.woff2$", "font/woff2"},
   };
@@ -85,6 +86,9 @@ NodeEditor::NodeEditor(uint16_t port, NodeFactory factory)
     auto html = cs::utils::filesystem::loadToString("../share/resources/gui/csl-node-editor.html");
 
     // Replace the placeholders with the respective source code snippets.
+    cs::utils::replaceString(html, "<!--ADDITIONAL_STYLESHEETS-->", mFactory.getStyleSheetSource());
+    cs::utils::replaceString(html, "<!--ADDITIONAL_LIBRARIES-->", mFactory.getLibrarySource());
+
     cs::utils::replaceString(html, "//!SOCKET_SOURCE_CODE", mFactory.getSocketSource());
     cs::utils::replaceString(html, "//!NODE_SOURCE_CODE", mFactory.getNodeSource());
     cs::utils::replaceString(html, "//!CONTROL_SOURCE_CODE", mFactory.getControlSource());

@@ -47,7 +47,7 @@ You should set these as required before executing the scripts below.
 This step only has to be done once.
 
 ```shell
-git submodule update --init
+git submodule update --init --recursive
 ./make_externals.sh -G "Unix Makefiles"
 ```
 
@@ -142,7 +142,7 @@ This step only has to be done once.
 If you are using Visual Studio 2017, you have to replace `-G "Visual Studio 16 2019" -A x64` with `-G "Visual Studio 15 Win64"`.
 
 ```batch
-git submodule update --init
+git submodule update --init --recursive
 make_externals.bat -G "Visual Studio 16 2019" -A x64
 ```
 
