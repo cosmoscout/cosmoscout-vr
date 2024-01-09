@@ -118,7 +118,20 @@ void OverlayRender::onMessageFromJS(const nlohmann::json& message) {
 
 void OverlayRender::process() {
   auto input = readInput<std::shared_ptr<Image2D>>("Image2D", nullptr);
+  if (input == nullptr) {
+    return;
+  }
   mRenderer->setData(input);
+
+  auto lut = readInput<std::vector<glm::vec4>>("lut", {});
+  // use a transparent transfer function if none is connected
+  if (lut.empty()) {
+    for (int i = 0; i < 256; i++) {
+      lut.push_back(glm::vec4(0));
+    }
+  }
+  mRenderer->setLUT(lut);
+
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

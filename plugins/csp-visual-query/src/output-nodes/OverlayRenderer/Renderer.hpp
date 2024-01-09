@@ -39,6 +39,7 @@ class Renderer final : public IVistaOpenGLDraw {
   bool GetBoundingBox(VistaBoundingBox& bb) override;
 
   void        setData(std::shared_ptr<Image2D> const& image);
+  void        setLUT(std::vector<glm::vec4> const& lut);
   void        setCenter(std::string center);
   std::string getCenter() const;
 
@@ -54,6 +55,9 @@ class Renderer final : public IVistaOpenGLDraw {
 
   VistaTexture mTexture;
   bool         mHasTexture;
+
+  VistaTexture mLUT;
+  bool         mHasLUT;
 
   /// Store one buffer per viewport
   std::map<VistaViewport*, VistaTexture> mDepthBufferData;
