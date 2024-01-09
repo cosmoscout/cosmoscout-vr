@@ -64,7 +64,7 @@ To learn about the different operation modes, you can now issue this command:
 
 ```bash
 ./atmosphere-generator density -i ../../../tools/atmosphere-generator/density-settings/earth_bruneton_molecules.json -o earth_cosmoscout_molecules
-./atmosphere-generator rayleigh --scattering-depolarization 0.0279 --phase-depolarization 0.0279 --theta-samples 91 -o earth_cosmoscout_molecules
+./atmosphere-generator rayleigh --scattering-depolarization 0.0279 --phase-depolarization 0.0279 --penndorf-ior --theta-samples 91 -o earth_cosmoscout_molecules
 
 ./atmosphere-generator density -i ../../../tools/atmosphere-generator/density-settings/earth_bruneton_aerosols.json -o earth_cosmoscout_aerosols
 ./atmosphere-generator mie -i ../../../tools/atmosphere-generator/mie-settings/earth_haze.json --theta-samples 91 --number-density 5e8 --radius-samples 10000 -o earth_cosmoscout_aerosols
@@ -143,7 +143,7 @@ In his 2016 paper, Eric Bruneton also included **Ozone**.
 
 ```bash
 ./atmosphere-generator density -i ../../../tools/atmosphere-generator/density-settings/earth_bruneton_molecules.json -o earth_costa_molecules
-./atmosphere-generator rayleigh --lambdas 440e-9,550e-9,680e-9 --ior 1.00028276,1.00027783,1.00027598 --penndorf-phase --scattering-depolarization 0.0279 --number-density 2.68731e25 -o earth_costa_molecules
+./atmosphere-generator rayleigh --lambdas 440e-9,550e-9,680e-9 --penndorf-ior --penndorf-phase --scattering-depolarization 0.0279 --number-density 2.68731e25 -o earth_costa_molecules
 ```
 
 **Aerosols** use a wavelength-independent Henyey-Greenstein phase function and some arbitrary scattering coefficients.

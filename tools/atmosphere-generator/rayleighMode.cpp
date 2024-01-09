@@ -20,12 +20,25 @@
 // Values from Table III in Penndorf 1957 "Tables of the Refractive Index for
 // Standard Air and the Rayleigh Scattering Coefficient for the Spectral
 // Region between 0.2 and 20.0 μ and Their Application to Atmospheric Optics".
-static const float PENNDORF[48] = {70.45E-6, 62.82E-6, 56.20E-6, 50.43E-6, 45.40E-6, 40.98E-6,
-    37.08E-6, 33.65E-6, 30.60E-6, 27.89E-6, 25.48E-6, 23.33E-6, 21.40E-6, 19.66E-6, 18.10E-6,
-    16.69E-6, 15.42E-6, 14.26E-6, 13.21E-6, 12.26E-6, 11.39E-6, 10.60E-6, 9.876E-6, 9.212E-6,
-    8.604E-6, 8.045E-6, 7.531E-6, 7.057E-6, 6.620E-6, 6.217E-6, 5.844E-6, 5.498E-6, 5.178E-6,
-    4.881E-6, 4.605E-6, 4.348E-6, 4.109E-6, 3.886E-6, 3.678E-6, 3.484E-6, 3.302E-6, 3.132E-6,
-    2.973E-6, 2.824E-6, 2.684E-6, 2.583E-6, 2.481E-6, 2.380E-6};
+const std::vector<double> PENNDORF_BETA_SCA = {70.45E-6, 62.82E-6, 56.20E-6, 50.43E-6, 45.40E-6,
+    40.98E-6, 37.08E-6, 33.65E-6, 30.60E-6, 27.89E-6, 25.48E-6, 23.33E-6, 21.40E-6, 19.66E-6,
+    18.10E-6, 16.69E-6, 15.42E-6, 14.26E-6, 13.21E-6, 12.26E-6, 11.39E-6, 10.60E-6, 9.876E-6,
+    9.212E-6, 8.604E-6, 8.045E-6, 7.531E-6, 7.057E-6, 6.620E-6, 6.217E-6, 5.844E-6, 5.498E-6,
+    5.178E-6, 4.881E-6, 4.605E-6, 4.348E-6, 4.109E-6, 3.886E-6, 3.678E-6, 3.484E-6, 3.302E-6,
+    3.132E-6, 2.973E-6, 2.824E-6, 2.684E-6, 2.583E-6, 2.481E-6, 2.380E-6};
+
+// Values from Table I in Penndorf 1957 "Tables of the Refractive Index for
+// Standard Air and the Rayleigh Scattering Coefficient for the Spectral
+// Region between 0.2 and 20.0 μ and Their Application to Atmospheric Optics".
+const std::vector<double> PENNDORF_N = {1.0 + 28532e-8, 1.0 + 28459e-8, 1.0 + 28393e-8,
+    1.0 + 28332e-8, 1.0 + 28276e-8, 1.0 + 28224e-8, 1.0 + 28176e-8, 1.0 + 28132e-8, 1.0 + 28091e-8,
+    1.0 + 28052e-8, 1.0 + 28017e-8, 1.0 + 27984e-8, 1.0 + 27953e-8, 1.0 + 27924e-8, 1.0 + 27896e-8,
+    1.0 + 27871e-8, 1.0 + 27847e-8, 1.0 + 27824e-8, 1.0 + 27803e-8, 1.0 + 27783e-8, 1.0 + 27764e-8,
+    1.0 + 27746e-8, 1.0 + 27729e-8, 1.0 + 27712e-8, 1.0 + 27697e-8, 1.0 + 27682e-8, 1.0 + 27669e-8,
+    1.0 + 27656e-8, 1.0 + 27643e-8, 1.0 + 27631e-8, 1.0 + 27620e-8, 1.0 + 27609e-8, 1.0 + 27598e-8,
+    1.0 + 27589e-8, 1.0 + 27579e-8, 1.0 + 27570e-8, 1.0 + 27561e-8, 1.0 + 27553e-8, 1.0 + 27545e-8,
+    1.0 + 27537e-8, 1.0 + 27530e-8, 1.0 + 27523e-8, 1.0 + 27516e-8, 1.0 + 27509e-8, 1.0 + 27503e-8,
+    1.0 + 27498e-8, 1.0 + 27493e-8, 1.0 + 27487e-8};
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -34,6 +47,7 @@ int rayleighMode(std::vector<std::string> const& arguments) {
   bool        cPrintHelp                = false;
   std::string cOutput                   = "rayleigh";
   bool        cPenndorfPhase            = false;
+  bool        cPenndorfIoR              = false;
   bool        cPenndorfExtinction       = false;
   std::string cIoR                      = "1.00028276";
   double      cNumberDensity            = 2.68731e25;
@@ -53,6 +67,8 @@ int rayleighMode(std::vector<std::string> const& arguments) {
           cOutput + "\").");
   args.addArgument(
       {"--penndorf-phase"}, &cPenndorfPhase, "Use the Penndorf phase function (default: false)");
+  args.addArgument({"--penndorf-ior"}, &cPenndorfIoR,
+      "Use the Penndorf index of refractio tables (default: false)");
   args.addArgument({"--penndorf-extinction"}, &cPenndorfExtinction,
       "Use the Penndorf extinction tables (default: false)");
   args.addArgument({"--ior"}, &cIoR,
@@ -122,7 +138,9 @@ int rayleighMode(std::vector<std::string> const& arguments) {
 
   // Now write a line to the CSV file for each wavelength.
   for (size_t i(0); i < lambdas.size(); ++i) {
-    double lambda = lambdas[i];
+    double       lambda    = lambdas[i];
+    const double minLambda = 0.36e-6;
+    const double maxLambda = 0.83e-6;
 
     // Print scattering coefficient.
     if (cPenndorfExtinction) {
@@ -133,11 +151,8 @@ int rayleighMode(std::vector<std::string> const& arguments) {
         // T_0 / T must be applied (Eq. (12) in Penndorf paper).
         constexpr double T_0 = 273.16;
         constexpr double T   = T_0 + 15.0;
-        penndorf.push_back(PENNDORF[j] * (T_0 / T));
+        penndorf.push_back(PENNDORF_BETA_SCA[j] * (T_0 / T));
       }
-
-      const double minLambda = 0.36e-6;
-      const double maxLambda = 0.83e-6;
 
       double beta_sca = common::interpolate(penndorf, minLambda, maxLambda, lambda);
 
@@ -146,6 +161,10 @@ int rayleighMode(std::vector<std::string> const& arguments) {
     } else {
 
       double ior = iors.size() == 1 ? iors[0] : iors[i];
+
+      if (cPenndorfIoR) {
+        ior = common::interpolate(PENNDORF_N, minLambda, maxLambda, lambda);
+      }
 
       double f = std::pow((ior * ior - 1.0), 2.0) * (6.0 + 3.0 * cScatteringDepolarization) /
                  (6.0 - 7.0 * cScatteringDepolarization);
