@@ -135,9 +135,75 @@ void AudioUtil::printAudioSettings(std::shared_ptr<std::map<std::string, std::an
   }
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void AudioUtil::printAudioSettings(
     const std::shared_ptr<const std::map<std::string, std::any>> map) {
   printAudioSettings(std::const_pointer_cast<std::map<std::string, std::any>>(map));
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+double inverseClamped(
+    double distance, ALfloat rollOffFactor, ALfloat referenceDistance, ALfloat maxDistance) {
+  return referenceDistance / (referenceDistance + rollOffFactor * (distance - referenceDistance));
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+double linearClamped(
+    double distance, ALfloat rollOffFactor, ALfloat referenceDistance, ALfloat maxDistance) {
+  return (1 - rollOffFactor * (distance - referenceDistance) / (maxDistance - referenceDistance));
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+double exponentClamped(
+    double distance, ALfloat rollOffFactor, ALfloat referenceDistance, ALfloat maxDistance) {
+  return std::pow((distance / referenceDistance), -1 * rollOffFactor);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+ALfloat AudioUtil::computeFallOffFactor(double distance, std::string model, ALfloat fallOffStart, ALfloat fallOffEnd) {
+
+  if (distance < fallOffStart) {
+    logger().warn("AudioUtil::setFallOffFactor: distance cannot be smaller then the sources fallOffStart distance!");
+    return -1.f;
+  }
+
+  if (distance > fallOffEnd) {
+    logger().warn("AudioUtil::setFallOffFactor: distance cannot be larger then the sources fallOffEnd distance!");
+    return -1.f;
+  }
+  
+  // Get function for distance calculation
+  double (*distanceFunction)(double, ALfloat, ALfloat, ALfloat);
+
+  if (model == "inverse") {
+    distanceFunction = inverseClamped;
+
+  } else if (model == "linear") {
+    distanceFunction = linearClamped;
+
+  } else if (model == "exponent") {
+    distanceFunction = exponentClamped;
+
+  } else {
+    logger().warn("AudioUtil::setFallOffFactor: Invalid distance model!");
+    return -1.f;
+  }
+  
+  // Compute FallOffFactor
+  ALfloat fallOffFactor = 0.01f;
+  float stepSize = 0.1f;
+  float resultWindow = 0.001f;
+
+  while (distanceFunction(distance, fallOffFactor, fallOffStart, fallOffEnd) > resultWindow) {
+    fallOffFactor += stepSize;
+  }
+
+  return fallOffFactor;
 }
 
 } // namespace cs::audio

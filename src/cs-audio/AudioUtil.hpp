@@ -40,6 +40,15 @@ class CS_AUDIO_EXPORT AudioUtil {
   static void printAudioSettings(std::shared_ptr<std::map<std::string, std::any>> map);
   static void printAudioSettings(const std::shared_ptr<const std::map<std::string, std::any>> map);
 
+  /// @brief Computes a FallOffFactor at which the gain is zero for the given distance
+  /// @param distance distance at which the gain of source should be zero
+  /// @param model attenuation shape of the distance model
+  /// @param fallOffStart fallOffStart of the distance model
+  /// @param fallOffEnd fallOffEnd of the distance model
+  /// @return fallOffFactor 
+  static ALfloat computeFallOffFactor(double distance, std::string model="inverse",
+   ALfloat fallOffStart=1.f, ALfloat fallOffEnd=static_cast<ALfloat>(std::numeric_limits<float>::max()));
+
  private:
 };
 
