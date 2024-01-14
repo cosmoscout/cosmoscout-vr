@@ -182,14 +182,14 @@ bool DistanceModel_PS::processFallOffFactor(ALuint openALId, std::any fallOffFac
         std::any_cast<std::string>(fallOffFactor) == "remove") {
       alSourcei(openALId, AL_ROLLOFF_FACTOR, 1);
       if (AlErrorHandling::errorOccurred()) {
-        logger().warn("Failed to reset the fallOffEnd setting of a source!");
+        logger().warn("Failed to reset the fallOffFactor setting of a source!");
         return false;
       }
       return true;
     }
 
     logger().warn(
-        "Audio source settings error! Wrong type used for fallOffEnd setting! Allowed Type: float");
+        "Audio source settings error! Wrong type used for fallOffFactor setting! Allowed Type: float");
     return false;
   }
 
@@ -197,7 +197,7 @@ bool DistanceModel_PS::processFallOffFactor(ALuint openALId, std::any fallOffFac
 
   alSourcef(openALId, AL_ROLLOFF_FACTOR, fallOffFactorValue);
   if (AlErrorHandling::errorOccurred()) {
-    logger().warn("Failed to set the fallOffEnd setting of a source!");
+    logger().warn("Failed to set the fallOffFactor setting of a source!");
     return false;
   }
   return true;
