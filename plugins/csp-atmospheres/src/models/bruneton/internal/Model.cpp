@@ -234,51 +234,51 @@ const char kAtmosphereShader[] = R"(
           (PI * SUN_ANGULAR_RADIUS * SUN_ANGULAR_RADIUS);
     }
     RadianceSpectrum GetSkyRadiance(
-        Position camera, Direction view_ray,
-        Direction sun_direction, out DimensionlessSpectrum transmittance) {
+        vec3 camera, vec3 view_ray,
+        vec3 sun_direction, out vec3 transmittance) {
       return GetSkyRadiance(ATMOSPHERE, transmittance_texture,
           multiple_scattering_texture, single_aerosols_scattering_texture,
           camera, view_ray, 0.0, sun_direction, transmittance);
     }
     RadianceSpectrum GetSkyRadianceToPoint(
-        Position camera, Position point,
-        Direction sun_direction, out DimensionlessSpectrum transmittance) {
+        vec3 camera, vec3 point,
+        vec3 sun_direction, out vec3 transmittance) {
       return GetSkyRadianceToPoint(ATMOSPHERE, transmittance_texture,
           multiple_scattering_texture, single_aerosols_scattering_texture,
           camera, point, 0.0, sun_direction, transmittance);
     }
-    IrradianceSpectrum GetSunAndSkyIrradiance(
-       Position p, Direction sun_direction,
-       out IrradianceSpectrum sky_irradiance) {
+    vec3 GetSunAndSkyIrradiance(
+       vec3 p, vec3 sun_direction,
+       out vec3 sky_irradiance) {
       return GetSunAndSkyIrradiance(transmittance_texture,
           irradiance_texture, p, sun_direction, sky_irradiance);
     }
     #endif
-    Luminance3 GetSolarLuminance() {
+    vec3 GetSolarLuminance() {
       return SOLAR_IRRADIANCE /
           (PI * SUN_ANGULAR_RADIUS * SUN_ANGULAR_RADIUS) *
           SUN_SPECTRAL_RADIANCE_TO_LUMINANCE;
     }
-    Luminance3 GetSkyLuminance(
-        Position camera, Direction view_ray,
-        Direction sun_direction, out DimensionlessSpectrum transmittance) {
+    vec3 GetSkyLuminance(
+        vec3 camera, vec3 view_ray,
+        vec3 sun_direction, out vec3 transmittance) {
       return GetSkyRadiance(ATMOSPHERE, transmittance_texture,
           multiple_scattering_texture, single_aerosols_scattering_texture,
           camera, view_ray, 0.0, sun_direction, transmittance) *
           SKY_SPECTRAL_RADIANCE_TO_LUMINANCE;
     }
-    Luminance3 GetSkyLuminanceToPoint(
-        Position camera, Position point,
-        Direction sun_direction, out DimensionlessSpectrum transmittance) {
+    vec3 GetSkyLuminanceToPoint(
+        vec3 camera, vec3 point,
+        vec3 sun_direction, out vec3 transmittance) {
       return GetSkyRadianceToPoint(ATMOSPHERE, transmittance_texture,
           multiple_scattering_texture, single_aerosols_scattering_texture,
           camera, point, 0.0, sun_direction, transmittance) *
           SKY_SPECTRAL_RADIANCE_TO_LUMINANCE;
     }
-    Illuminance3 GetSunAndSkyIlluminance(
-       Position p, Direction sun_direction,
-       out IrradianceSpectrum sky_irradiance) {
-      IrradianceSpectrum sun_irradiance = GetSunAndSkyIrradiance(
+    vec3 GetSunAndSkyIlluminance(
+       vec3 p, vec3 sun_direction,
+       out vec3 sky_irradiance) {
+      vec3 sun_irradiance = GetSunAndSkyIrradiance(
           transmittance_texture, irradiance_texture, p,
           sun_direction, sky_irradiance);
       sky_irradiance *= SKY_SPECTRAL_RADIANCE_TO_LUMINANCE;
