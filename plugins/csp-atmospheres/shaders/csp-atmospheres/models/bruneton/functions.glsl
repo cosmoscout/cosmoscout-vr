@@ -211,12 +211,12 @@ numerically with the help of the following auxilliary function (using the <a
 href="https://en.wikipedia.org/wiki/Trapezoidal_rule">trapezoidal rule</a>):
 */
 
-float GetDensity(IN(float) densityTextureV, float altitude) {
+float GetDensity(float densityTextureV, float altitude) {
   float u = clamp(altitude / (TOP_RADIUS - BOTTOM_RADIUS), 0.0, 1.0);
   return texture(density_texture, vec2(u, densityTextureV)).r;
 }
 
-float ComputeOpticalLengthToTopAtmosphereBoundary(IN(float) densityTextureV, float r, float mu) {
+float ComputeOpticalLengthToTopAtmosphereBoundary(float densityTextureV, float r, float mu) {
 
   // The integration step, i.e. the length of each integration interval.
   float dx = DistanceToTopAtmosphereBoundary(r, mu) / float(SAMPLE_COUNT_OPTICAL_DEPTH);
@@ -242,7 +242,7 @@ compute (we continue to assume that the segment does not intersect the ground):
 */
 
 vec3 ComputeTransmittanceToTopAtmosphereBoundary(
-    IN(AtmosphereComponents) atmosphere, float r, float mu) {
+    AtmosphereComponents atmosphere, float r, float mu) {
   return exp(-(atmosphere.molecules.extinction * ComputeOpticalLengthToTopAtmosphereBoundary(
                                                      atmosphere.molecules.densityTextureV, r, mu) +
                atmosphere.aerosols.extinction * ComputeOpticalLengthToTopAtmosphereBoundary(
@@ -351,7 +351,7 @@ vec2 GetTransmittanceTextureUvFromRMu(float r, float mu) {
 <p>and the inverse mapping follows immediately:
 */
 
-void GetRMuFromTransmittanceTextureUv(IN(vec2) uv, OUT(float) r, OUT(float) mu) {
+void GetRMuFromTransmittanceTextureUv(vec2 uv, out float r, out float mu) {
   float x_mu = GetUnitRangeFromTextureCoord(uv.x, TRANSMITTANCE_TEXTURE_WIDTH);
   float x_r  = GetUnitRangeFromTextureCoord(uv.y, TRANSMITTANCE_TEXTURE_HEIGHT);
   // Distance to top atmosphere boundary for a horizontal ray at ground level.
@@ -375,7 +375,7 @@ the transmittance texture:
 */
 
 vec3 ComputeTransmittanceToTopAtmosphereBoundaryTexture(
-    IN(AtmosphereComponents) atmosphere, IN(vec2) frag_coord) {
+    AtmosphereComponents atmosphere, vec2 frag_coord) {
   const vec2 TRANSMITTANCE_TEXTURE_SIZE =
       vec2(TRANSMITTANCE_TEXTURE_WIDTH, TRANSMITTANCE_TEXTURE_HEIGHT);
   float r;
@@ -392,8 +392,7 @@ transmittance between a point and the top atmosphere boundary with a single
 texture lookup (assuming there is no intersection with the ground):
 */
 
-vec3 GetTransmittanceToTopAtmosphereBoundary(
-    IN(sampler2D) transmittance_texture, float r, float mu) {
+vec3 GetTransmittanceToTopAtmosphereBoundary(sampler2D transmittance_texture, float r, float mu) {
   vec2 uv = GetTransmittanceTextureUvFromRMu(r, mu);
   return vec3(texture(transmittance_texture, uv));
 }
@@ -409,8 +408,8 @@ between $\bq$ and the top atmosphere boundary, or the reverse - we continue to
 assume that the segment between the two points does not intersect the ground):
 */
 
-vec3 GetTransmittance(IN(sampler2D) transmittance_texture, float r, float mu, float d,
-    bool ray_r_mu_intersects_ground) {
+vec3 GetTransmittance(
+    sampler2D transmittance_texture, float r, float mu, float d, bool ray_r_mu_intersects_ground) {
 
   float r_d  = ClampRadius(sqrt(d * d + 2.0 * r * mu * d + r * r));
   float mu_d = ClampCosine((r * mu + d) / r_d);
@@ -457,7 +456,7 @@ function of its <a href="https://en.wikipedia.org/wiki/Sagitta_(geometry)"
 approximate the transmittance to the Sun with the following function:
 */
 
-vec3 GetTransmittanceToSun(IN(sampler2D) transmittance_texture, float r, float mu_s) {
+vec3 GetTransmittanceToSun(sampler2D transmittance_texture, float r, float mu_s) {
   float sin_theta_h = BOTTOM_RADIUS / r;
   float cos_theta_h = -sqrt(max(1.0 - sin_theta_h * sin_theta_h, 0.0));
   return GetTransmittanceToTopAtmosphereBoundary(transmittance_texture, r, mu_s) *
@@ -550,9 +549,9 @@ the scattering coefficients at the bottom of the atmosphere - we add them later
 on for efficiency reasons):
 */
 
-void ComputeSingleScatteringIntegrand(IN(AtmosphereComponents) atmosphere,
-    IN(sampler2D) transmittance_texture, float r, float mu, float mu_s, float nu, float d,
-    bool ray_r_mu_intersects_ground, OUT(vec3) molecules, OUT(vec3) aerosols) {
+void ComputeSingleScatteringIntegrand(AtmosphereComponents atmosphere,
+    sampler2D transmittance_texture, float r, float mu, float mu_s, float nu, float d,
+    bool ray_r_mu_intersects_ground, out vec3 molecules, out vec3 aerosols) {
   float r_d    = ClampRadius(sqrt(d * d + 2.0 * r * mu * d + r * r));
   float mu_s_d = ClampCosine((r * mu_s + d * nu) / r_d);
   vec3  transmittance =
@@ -586,9 +585,9 @@ the <a href="https://en.wikipedia.org/wiki/Trapezoidal_rule">trapezoidal
 rule</a>):
 */
 
-void ComputeSingleScattering(IN(AtmosphereComponents) atmosphere,
-    IN(sampler2D) transmittance_texture, float r, float mu, float mu_s, float nu,
-    bool ray_r_mu_intersects_ground, OUT(vec3) molecules, OUT(vec3) aerosols) {
+void ComputeSingleScattering(AtmosphereComponents atmosphere, sampler2D transmittance_texture,
+    float r, float mu, float mu_s, float nu, bool ray_r_mu_intersects_ground, out vec3 molecules,
+    out vec3 aerosols) {
 
   // The integration step, i.e. the length of each integration interval.
   float dx = DistanceToNearestAtmosphereBoundary(r, mu, ray_r_mu_intersects_ground) /
@@ -696,8 +695,8 @@ vec4 GetScatteringTextureUvwzFromRMuMuSNu(
 <p>The inverse mapping follows immediately:
 */
 
-void GetRMuMuSNuFromScatteringTextureUvwz(IN(vec4) uvwz, OUT(float) r, OUT(float) mu,
-    OUT(float) mu_s, OUT(float) nu, OUT(bool) ray_r_mu_intersects_ground) {
+void GetRMuMuSNuFromScatteringTextureUvwz(vec4 uvwz, out float r, out float mu, out float mu_s,
+    out float nu, out bool ray_r_mu_intersects_ground) {
 
   // Distance to top atmosphere boundary for a horizontal ray at ground level.
   float H = sqrt(TOP_RADIUS * TOP_RADIUS - BOTTOM_RADIUS * BOTTOM_RADIUS);
@@ -752,8 +751,8 @@ sun unit direction vectors), and the previous functions implicitely assume this
 (their assertions can break if this constraint is not respected).
 */
 
-void GetRMuMuSNuFromScatteringTextureFragCoord(IN(vec3) frag_coord, OUT(float) r, OUT(float) mu,
-    OUT(float) mu_s, OUT(float) nu, OUT(bool) ray_r_mu_intersects_ground) {
+void GetRMuMuSNuFromScatteringTextureFragCoord(vec3 frag_coord, out float r, out float mu,
+    out float mu_s, out float nu, out bool ray_r_mu_intersects_ground) {
   const vec4 SCATTERING_TEXTURE_SIZE = vec4(SCATTERING_TEXTURE_NU_SIZE - 1,
       SCATTERING_TEXTURE_MU_S_SIZE, SCATTERING_TEXTURE_MU_SIZE, SCATTERING_TEXTURE_R_SIZE);
   float      frag_coord_nu           = floor(frag_coord.x / float(SCATTERING_TEXTURE_MU_S_SIZE));
@@ -771,9 +770,8 @@ void GetRMuMuSNuFromScatteringTextureFragCoord(IN(vec3) frag_coord, OUT(float) r
 the single scattering in a 3D texture:
 */
 
-void ComputeSingleScatteringTexture(IN(AtmosphereComponents) atmosphere,
-    IN(sampler2D) transmittance_texture, IN(vec3) frag_coord, OUT(vec3) molecules,
-    OUT(vec3) aerosols) {
+void ComputeSingleScatteringTexture(AtmosphereComponents atmosphere,
+    sampler2D transmittance_texture, vec3 frag_coord, out vec3 molecules, out vec3 aerosols) {
   float r;
   float mu;
   float mu_s;
@@ -795,7 +793,7 @@ quadrilinear interpolation; the 3D texture coordinates are computed using the
 inverse of the 3D-4D mapping defined in
 <code>GetRMuMuSNuFromScatteringTextureFragCoord</code>):
 */
-vec3 GetScattering(IN(sampler3D) scattering_texture, float r, float mu, float mu_s, float nu,
+vec3 GetScattering(sampler3D scattering_texture, float r, float mu, float mu_s, float nu,
     bool ray_r_mu_intersects_ground) {
   vec4  uvwz = GetScatteringTextureUvwzFromRMuMuSNu(r, mu, mu_s, nu, ray_r_mu_intersects_ground);
   float tex_coord_x = uvwz.x * float(SCATTERING_TEXTURE_NU_SIZE - 1);
@@ -816,11 +814,9 @@ assumes that, if <code>scattering_order</code> is strictly greater than 1, then
 with both Rayleigh and Mie included, as well as all the phase function terms.
 */
 
-vec3 GetScattering(IN(AtmosphereComponents) atmosphere,
-    IN(sampler3D) single_molecules_scattering_texture,
-    IN(sampler3D) single_aerosols_scattering_texture, IN(sampler3D) multiple_scattering_texture,
-    float r, float mu, float mu_s, float nu, bool ray_r_mu_intersects_ground,
-    int scattering_order) {
+vec3 GetScattering(AtmosphereComponents atmosphere, sampler3D single_molecules_scattering_texture,
+    sampler3D single_aerosols_scattering_texture, sampler3D multiple_scattering_texture, float r,
+    float mu, float mu_s, float nu, bool ray_r_mu_intersects_ground, int scattering_order) {
   if (scattering_order == 1) {
     vec3 molecules = GetScattering(
         single_molecules_scattering_texture, r, mu, mu_s, nu, ray_r_mu_intersects_ground);
@@ -968,7 +964,7 @@ irradiance from a precomputed texture:
 </ul>
 */
 
-vec3 GetIrradiance(IN(sampler2D) irradiance_texture, float r, float mu_s);
+vec3 GetIrradiance(sampler2D irradiance_texture, float r, float mu_s);
 
 /*
 <ul>
@@ -982,11 +978,10 @@ received on the ground after $n-2$ bounces, and <code>scattering_order</code> is
 equal to $n$):</li>
 */
 
-vec3 ComputeScatteringDensity(IN(AtmosphereComponents) atmosphere,
-    IN(sampler2D) transmittance_texture, IN(sampler3D) single_molecules_scattering_texture,
-    IN(sampler3D) single_aerosols_scattering_texture, IN(sampler3D) multiple_scattering_texture,
-    IN(sampler2D) irradiance_texture, float r, float mu, float mu_s, float nu,
-    int scattering_order) {
+vec3 ComputeScatteringDensity(AtmosphereComponents atmosphere, sampler2D transmittance_texture,
+    sampler3D single_molecules_scattering_texture, sampler3D single_aerosols_scattering_texture,
+    sampler3D multiple_scattering_texture, sampler2D irradiance_texture, float r, float mu,
+    float mu_s, float nu, int scattering_order) {
 
   // Compute unit direction vectors for the zenith, the view direction omega and
   // and the sun direction omega_s, such that the cosine of the view-zenith
@@ -1084,8 +1079,8 @@ instead, using the actual ground albedo.
 <p>The implementation for this second step is straightforward:
 */
 
-vec3 ComputeMultipleScattering(IN(sampler2D) transmittance_texture,
-    IN(sampler3D) scattering_density_texture, float r, float mu, float mu_s, float nu,
+vec3 ComputeMultipleScattering(sampler2D transmittance_texture,
+    sampler3D scattering_density_texture, float r, float mu, float mu_s, float nu,
     bool ray_r_mu_intersects_ground) {
 
   // The integration step, i.e. the length of each integration interval.
@@ -1130,10 +1125,10 @@ following simple functions to precompute a texel of the textures for the
 over the float of bounces:
 */
 
-vec3 ComputeScatteringDensityTexture(IN(AtmosphereComponents) atmosphere,
-    IN(sampler2D) transmittance_texture, IN(sampler3D) single_molecules_scattering_texture,
-    IN(sampler3D) single_aerosols_scattering_texture, IN(sampler3D) multiple_scattering_texture,
-    IN(sampler2D) irradiance_texture, IN(vec3) frag_coord, int scattering_order) {
+vec3 ComputeScatteringDensityTexture(AtmosphereComponents atmosphere,
+    sampler2D transmittance_texture, sampler3D single_molecules_scattering_texture,
+    sampler3D single_aerosols_scattering_texture, sampler3D multiple_scattering_texture,
+    sampler2D irradiance_texture, vec3 frag_coord, int scattering_order) {
   float r;
   float mu;
   float mu_s;
@@ -1146,8 +1141,8 @@ vec3 ComputeScatteringDensityTexture(IN(AtmosphereComponents) atmosphere,
       multiple_scattering_texture, irradiance_texture, r, mu, mu_s, nu, scattering_order);
 }
 
-vec3 ComputeMultipleScatteringTexture(IN(sampler2D) transmittance_texture,
-    IN(sampler3D) scattering_density_texture, IN(vec3) frag_coord, OUT(float) nu) {
+vec3 ComputeMultipleScatteringTexture(sampler2D transmittance_texture,
+    sampler3D scattering_density_texture, vec3 frag_coord, out float nu) {
   float r;
   float mu;
   float mu_s;
@@ -1216,7 +1211,7 @@ ambient occlusion due to a sphere, also called a view factor, which is given in
 equations can be simplified as follows:
 */
 
-vec3 ComputeDirectIrradiance(IN(sampler2D) transmittance_texture, float r, float mu_s) {
+vec3 ComputeDirectIrradiance(sampler2D transmittance_texture, float r, float mu_s) {
 
   float alpha_s = SUN_ANGULAR_RADIUS;
   // Approximate average of the cosine factor mu_s over the visible fraction of
@@ -1245,10 +1240,9 @@ order of scattering, if $n>1$, and <code>scattering_order</code> is equal to
 $n$):</li>
 */
 
-vec3 ComputeIndirectIrradiance(IN(AtmosphereComponents) atmosphere,
-    IN(sampler3D) single_molecules_scattering_texture,
-    IN(sampler3D) single_aerosols_scattering_texture, IN(sampler3D) multiple_scattering_texture,
-    float r, float mu_s, int scattering_order) {
+vec3 ComputeIndirectIrradiance(AtmosphereComponents atmosphere,
+    sampler3D single_molecules_scattering_texture, sampler3D single_aerosols_scattering_texture,
+    sampler3D multiple_scattering_texture, float r, float mu_s, int scattering_order) {
 
   const float dphi   = PI / float(SAMPLE_COUNT_INDIRECT_IRRADIANCE);
   const float dtheta = PI / float(SAMPLE_COUNT_INDIRECT_IRRADIANCE);
@@ -1294,7 +1288,7 @@ vec2 GetIrradianceTextureUvFromRMuS(float r, float mu_s) {
 <p>The inverse mapping follows immediately:
 */
 
-void GetRMuSFromIrradianceTextureUv(IN(vec2) uv, OUT(float) r, OUT(float) mu_s) {
+void GetRMuSFromIrradianceTextureUv(vec2 uv, out float r, out float mu_s) {
   float x_mu_s = GetUnitRangeFromTextureCoord(uv.x, IRRADIANCE_TEXTURE_WIDTH);
   float x_r    = GetUnitRangeFromTextureCoord(uv.y, IRRADIANCE_TEXTURE_HEIGHT);
   r            = BOTTOM_RADIUS + x_r * (TOP_RADIUS - BOTTOM_RADIUS);
@@ -1308,7 +1302,7 @@ the ground irradiance texture, for the direct irradiance:
 
 const vec2 IRRADIANCE_TEXTURE_SIZE = vec2(IRRADIANCE_TEXTURE_WIDTH, IRRADIANCE_TEXTURE_HEIGHT);
 
-vec3 ComputeDirectIrradianceTexture(IN(sampler2D) transmittance_texture, IN(vec2) frag_coord) {
+vec3 ComputeDirectIrradianceTexture(sampler2D transmittance_texture, vec2 frag_coord) {
   float r;
   float mu_s;
   GetRMuSFromIrradianceTextureUv(frag_coord / IRRADIANCE_TEXTURE_SIZE, r, mu_s);
@@ -1319,10 +1313,9 @@ vec3 ComputeDirectIrradianceTexture(IN(sampler2D) transmittance_texture, IN(vec2
 <p>and the indirect one:
 */
 
-vec3 ComputeIndirectIrradianceTexture(IN(AtmosphereComponents) atmosphere,
-    IN(sampler3D) single_molecules_scattering_texture,
-    IN(sampler3D) single_aerosols_scattering_texture, IN(sampler3D) multiple_scattering_texture,
-    IN(vec2) frag_coord, int scattering_order) {
+vec3 ComputeIndirectIrradianceTexture(AtmosphereComponents atmosphere,
+    sampler3D single_molecules_scattering_texture, sampler3D single_aerosols_scattering_texture,
+    sampler3D multiple_scattering_texture, vec2 frag_coord, int scattering_order) {
   float r;
   float mu_s;
   GetRMuSFromIrradianceTextureUv(frag_coord / IRRADIANCE_TEXTURE_SIZE, r, mu_s);
@@ -1337,7 +1330,7 @@ vec3 ComputeIndirectIrradianceTexture(IN(AtmosphereComponents) atmosphere,
 with a single texture lookup:
 */
 
-vec3 GetIrradiance(IN(sampler2D) irradiance_texture, float r, float mu_s) {
+vec3 GetIrradiance(sampler2D irradiance_texture, float r, float mu_s) {
   vec2 uv = GetIrradianceTextureUvFromRMuS(r, mu_s);
   return vec3(texture(irradiance_texture, uv));
 }
@@ -1367,10 +1360,10 @@ in <code>multiple_scattering_texture</code> and
 <code>single_aerosols_scattering_texture</code>):
 */
 
-void GetCombinedScattering(IN(sampler3D) multiple_scattering_texture,
-    IN(sampler3D) single_aerosols_scattering_texture, float r, float mu, float mu_s, float nu,
-    bool ray_r_mu_intersects_ground, OUT(vec3) multiple_scattering,
-    OUT(vec3) single_aerosols_scattering) {
+void GetCombinedScattering(sampler3D multiple_scattering_texture,
+    sampler3D single_aerosols_scattering_texture, float r, float mu, float mu_s, float nu,
+    bool ray_r_mu_intersects_ground, out vec3 multiple_scattering,
+    out vec3 single_aerosols_scattering) {
   vec4  uvwz = GetScatteringTextureUvwzFromRMuMuSNu(r, mu, mu_s, nu, ray_r_mu_intersects_ground);
   float tex_coord_x = uvwz.x * float(SCATTERING_TEXTURE_NU_SIZE - 1);
   float tex_x       = floor(tex_coord_x);
@@ -1398,10 +1391,9 @@ function, where most of the computations are used to correctly handle the case
 of viewers outside the atmosphere, and the case of light shafts:
 */
 
-vec3 GetSkyRadiance(IN(AtmosphereComponents) atmosphere, IN(sampler2D) transmittance_texture,
-    IN(sampler3D) multiple_scattering_texture, IN(sampler3D) single_aerosols_scattering_texture,
-    vec3 camera, IN(vec3) view_ray, float shadow_length, IN(vec3) sun_direction,
-    OUT(vec3) transmittance) {
+vec3 GetSkyRadiance(AtmosphereComponents atmosphere, sampler2D transmittance_texture,
+    sampler3D multiple_scattering_texture, sampler3D single_aerosols_scattering_texture,
+    vec3 camera, vec3 view_ray, float shadow_length, vec3 sun_direction, out vec3 transmittance) {
   // Compute the distance to the top atmosphere boundary along the view ray,
   // assuming the viewer is in space (or NaN if the view ray does not intersect
   // the atmosphere).
@@ -1472,10 +1464,9 @@ implement in the following function (the initial computations are used to
 correctly handle the case of viewers outside the atmosphere):
 */
 
-vec3 GetSkyRadianceToPoint(IN(AtmosphereComponents) atmosphere, IN(sampler2D) transmittance_texture,
-    IN(sampler3D) multiple_scattering_texture, IN(sampler3D) single_aerosols_scattering_texture,
-    vec3 camera, IN(vec3) point, float shadow_length, IN(vec3) sun_direction,
-    OUT(vec3) transmittance) {
+vec3 GetSkyRadianceToPoint(AtmosphereComponents atmosphere, sampler2D transmittance_texture,
+    sampler3D multiple_scattering_texture, sampler3D single_aerosols_scattering_texture,
+    vec3 camera, vec3 point, float shadow_length, vec3 sun_direction, out vec3 transmittance) {
   // Compute the distance to the top atmosphere boundary along the view ray,
   // assuming the viewer is in space (or NaN if the view ray does not intersect
   // the atmosphere).
@@ -1554,8 +1545,8 @@ the irradiance for horizontal surfaces; we use the approximation defined in our
 The function below returns the direct and indirect irradiances separately:
 */
 
-vec3 GetSunAndSkyIrradiance(IN(sampler2D) transmittance_texture, IN(sampler2D) irradiance_texture,
-    IN(vec3) point, IN(vec3) sun_direction, OUT(vec3) sky_irradiance) {
+vec3 GetSunAndSkyIrradiance(sampler2D transmittance_texture, sampler2D irradiance_texture,
+    vec3 point, vec3 sun_direction, out vec3 sky_irradiance) {
   float r    = length(point);
   float mu_s = dot(point, sun_direction) / r;
 

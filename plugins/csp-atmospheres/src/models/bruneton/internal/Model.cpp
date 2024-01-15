@@ -652,8 +652,6 @@ Model::Model(const std::vector<double>& wavelengths, const double sun_angular_ra
   // clang-format off
   glsl_header_factory_ = [=](const vec3& lambdas) {
     return "#version 330\n"
-            "#define IN(x) const in x\n"
-            "#define OUT(x) out x\n"
             "const int TRANSMITTANCE_TEXTURE_WIDTH = "  + cs::utils::toString(TRANSMITTANCE_TEXTURE_WIDTH) + ";\n" +
             "const int TRANSMITTANCE_TEXTURE_HEIGHT = " + cs::utils::toString(TRANSMITTANCE_TEXTURE_HEIGHT) + ";\n" +
             "const int SCATTERING_TEXTURE_R_SIZE = "    + cs::utils::toString(SCATTERING_TEXTURE_R_SIZE) + ";\n" +
