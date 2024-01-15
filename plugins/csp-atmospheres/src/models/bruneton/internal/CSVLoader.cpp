@@ -4,7 +4,7 @@
 
 #include "CSVLoader.hpp"
 
-namespace csp::atmospheres::models::schneegans::internal {
+namespace csp::atmospheres::models::bruneton::internal {
 
 namespace {
 
@@ -199,4 +199,4 @@ void CSVLoader::readLines(std::string const&               filename,
   file.close();
 }
 
-} // namespace csp::atmospheres::models::schneegans::internal
+} // namespace csp::atmospheres::models::bruneton::internal

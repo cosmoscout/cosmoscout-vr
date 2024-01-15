@@ -25,14 +25,16 @@ class Plugin : public cs::core::PluginBase {
     struct Atmosphere {
 
       /// For now, two different atmospheric models are supported:
-      /// - CosmoScoutVR: A simple fragment-shader raytracer which supports single-scattering and
+      /// - eCosmoScoutVR: A simple fragment-shader raytracer which supports single-scattering and
       ///   can be configured to match various atmospheres, such as Earth's or the one of Mars.
-      /// - Bruneton: This is based on the paper "Precomputed Atmospheric Scattering" by Eric
-      ///   Bruneton. It is primarily designed for Earth, simulates multi-scattering and provides in
-      ///   general a better performance than the CosmoScoutVR model. However, under specific
-      ///   circumstances it may exhibit more artifacts due to limited floating point precision in
-      ///   the precomputed textures.
-      enum class Model { eCosmoScoutVR, eSchneegans, eBruneton };
+      /// - eBruneton: This is based on the paper "Precomputed Atmospheric Scattering" by Eric
+      ///   Bruneton. We generalized the model to accept arbitrary wavelength-dependent phase
+      ///   functions and extinction coefficients stored in CSV files. This makes the model more
+      ///   versatile and also allows simulation of the Martian atmosphere. The model simulates
+      ///   multi-scattering and provides in general a better performance than the CosmoScoutVR
+      ///   model. However, under specific circumstances it may exhibit more artifacts due to
+      ///   limited floating point precision in the precomputed textures.
+      enum class Model { eCosmoScoutVR, eBruneton };
 
       /// This defines which model should be used by the atmosphere.
       cs::utils::DefaultProperty<Model> mModel{Model::eCosmoScoutVR};
@@ -41,7 +43,7 @@ class Plugin : public cs::core::PluginBase {
       nlohmann::json mModelSettings;
 
       /// These parameters are model-agnostic.
-      double                             mTopAltitude; ///< In meters.
+      double                             mTopAltitude;         ///< In meters.
       cs::utils::DefaultProperty<double> mBottomAltitude{0.0}; ///< In meters.
       cs::utils::DefaultProperty<bool>   mEnableWater{false};
       cs::utils::DefaultProperty<bool>   mEnableWaves{true};

@@ -30,29 +30,43 @@ sRGB luminance values).
 
 namespace csp::atmospheres::models::bruneton::internal {
 
-// Low impact on preprocssing time, resolution seems suitable for CosmoScout VR.
-constexpr int TRANSMITTANCE_TEXTURE_WIDTH  = 256;
-constexpr int TRANSMITTANCE_TEXTURE_HEIGHT = 64;
+constexpr int SAMPLE_COUNT_OPTICAL_DEPTH = 1500; // 500
 
-// Affects banding towards horizon during dusk / dawn. Original value was 32.
-constexpr int SCATTERING_TEXTURE_R_SIZE = 16;
+// Improves sampling of thin layers.
+constexpr int SAMPLE_COUNT_SINGLE_SCATTERING = 250; // 50
 
-// Affects banding towards horizon during dusk / dawn. Original value was 128.
-constexpr int SCATTERING_TEXTURE_MU_SIZE = 64;
+// Darkens horizon for thick atmospheres.
+constexpr int SAMPLE_COUNT_MULTI_SCATTERING = 150; // 50
 
-// Affects banding in the day-night transition when seen from space. Original value was 32.
-constexpr int SCATTERING_TEXTURE_MU_S_SIZE = 64;
+// Spreads out colors in the sky.
+constexpr int SAMPLE_COUNT_SCATTERING_DENSITY = 16; // 16
 
-// Affects blockiness in the sky during dusk and dawn. Original value was 8.
-constexpr int SCATTERING_TEXTURE_NU_SIZE = 16;
+// Little quality impact.
+constexpr int SAMPLE_COUNT_INDIRECT_IRRADIANCE = 32; // 32
+
+// Low impact on preprocssing time. Resolution seems suitable for CosmoScout VR.
+constexpr int TRANSMITTANCE_TEXTURE_WIDTH  = 1024; // 256
+constexpr int TRANSMITTANCE_TEXTURE_HEIGHT = 512;  // 64
+
+// Improves sampling of thick low-altitude layers.
+constexpr int SCATTERING_TEXTURE_R_SIZE = 16; // 32
+
+// Circular banding artifacts around zenith for thick atmospheres.
+constexpr int SCATTERING_TEXTURE_MU_SIZE = 128; // 128
+
+// Affects banding in the day-night transition when seen from space.
+constexpr int SCATTERING_TEXTURE_MU_S_SIZE = 32; // 32
+
+// Circular banding artifacts around sun for thick atmospheres.
+constexpr int SCATTERING_TEXTURE_NU_SIZE = 64; // 8
 
 constexpr int SCATTERING_TEXTURE_WIDTH  = SCATTERING_TEXTURE_NU_SIZE * SCATTERING_TEXTURE_MU_S_SIZE;
 constexpr int SCATTERING_TEXTURE_HEIGHT = SCATTERING_TEXTURE_MU_SIZE;
 constexpr int SCATTERING_TEXTURE_DEPTH  = SCATTERING_TEXTURE_R_SIZE;
 
 // Low impact on preprocssing time, resolution seems suitable for CosmoScout VR.
-constexpr int IRRADIANCE_TEXTURE_WIDTH  = 64;
-constexpr int IRRADIANCE_TEXTURE_HEIGHT = 16;
+constexpr int IRRADIANCE_TEXTURE_WIDTH  = 64; // 64
+constexpr int IRRADIANCE_TEXTURE_HEIGHT = 16; // 16
 
 // The conversion factor between watts and lumens.
 constexpr double MAX_LUMINOUS_EFFICACY = 683.0;

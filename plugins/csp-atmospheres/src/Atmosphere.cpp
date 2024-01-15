@@ -11,7 +11,6 @@
 #include "logger.hpp"
 #include "models/bruneton/Model.hpp"
 #include "models/cosmoscout/Model.hpp"
-#include "models/schneegans/Model.hpp"
 
 #include "../../../src/cs-core/GraphicsEngine.hpp"
 #include "../../../src/cs-core/SolarSystem.hpp"
@@ -111,9 +110,6 @@ void Atmosphere::configure(Plugin::Settings::Atmosphere const& settings) {
       switch (settings.mModel.get()) {
       case Plugin::Settings::Atmosphere::Model::eCosmoScoutVR:
         mModel = std::make_unique<models::cosmoscout::Model>();
-        break;
-      case Plugin::Settings::Atmosphere::Model::eSchneegans:
-        mModel = std::make_unique<models::schneegans::Model>();
         break;
       case Plugin::Settings::Atmosphere::Model::eBruneton:
         mModel = std::make_unique<models::bruneton::Model>();

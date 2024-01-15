@@ -2,8 +2,8 @@
 // Created by Tim on 11.05.2022.
 //
 
-#ifndef CSP_ATMOSPHERES_MODELS_SCHNEEGANS_INTERNAL_CSVLOADER_HPP
-#define CSP_ATMOSPHERES_MODELS_SCHNEEGANS_INTERNAL_CSVLOADER_HPP
+#ifndef CSP_ATMOSPHERES_MODELS_BRUNETON_INTERNAL_CSVLOADER_HPP
+#define CSP_ATMOSPHERES_MODELS_BRUNETON_INTERNAL_CSVLOADER_HPP
 
 #include "Model.hpp"
 
@@ -20,7 +20,7 @@
 #include <sstream>
 #include <string>
 
-namespace csp::atmospheres::models::schneegans::internal {
+namespace csp::atmospheres::models::bruneton::internal {
 
 class CSVLoader {
  public:
@@ -36,6 +36,6 @@ class CSVLoader {
                           std::function<void(long lineNumber, std::string line)> lineConsumer);
 };
 
-} // namespace csp::atmospheres::models::schneegans::internal
+} // namespace csp::atmospheres::models::bruneton::internal
 
-#endif // CSP_ATMOSPHERES_MODELS_SCHNEEGANS_INTERNAL_CSVLOADER_HPP
+#endif // CSP_ATMOSPHERES_MODELS_BRUNETON_INTERNAL_CSVLOADER_HPP

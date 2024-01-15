@@ -20,22 +20,24 @@ namespace csp::atmospheres::models::bruneton {
 /// "Precomputed Atmospheric Scattering" (https://hal.inria.fr/inria-00288758/en).
 class Model : public ModelBase {
  public:
-  /// Some of the model parameters can be configured via the settings. An example parametrization is
-  /// given in README.md, more details can be found in the paper "Precomputed Atmospheric
-  /// Scattering" by Eric Bruneton. The default values below are used if parsing the settings
-  /// failed.
   struct Settings {
-    double mSunAngularRadius          = 0.004675;
-    double mRayleigh                  = 1.24062e-6;
-    double mRayleighScaleHeight       = 8000.0; ///< In meters.
-    double mMieScaleHeight            = 1200.0; ///< In meters.
-    double mMieAngstromAlpha          = 0.0;
-    double mMieAngstromBeta           = 5.328e-3;
-    double mMieSingleScatteringAlbedo = 0.9;
-    double mMiePhaseFunctionG         = 0.8;
+    struct ScatteringComponent {
+      std::string mBetaSca;
+      std::string mBetaAbs;
+      std::string mPhase;
+      std::string mDensity;
+    };
 
+    struct AbsorbingComponent {
+      std::string mBetaAbs;
+      std::string mDensity;
+    };
+
+    double                             mSunAngularRadius = 0.004675;
+    ScatteringComponent                mParticlesA;
+    ScatteringComponent                mParticlesB;
+    std::optional<AbsorbingComponent>  mAbsorbingParticles;
     cs::utils::DefaultProperty<double> mGroundAlbedo{0.1};
-    cs::utils::DefaultProperty<bool>   mUseOzone{false};
   };
 
   /// Whenever the model parameters are changed, this method needs to be called. It will return true

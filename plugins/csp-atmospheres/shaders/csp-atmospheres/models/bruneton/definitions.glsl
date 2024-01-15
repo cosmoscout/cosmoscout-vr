@@ -157,81 +157,36 @@ const Luminance               kcd_per_square_meter                = kcd / m2;
 <h3>Atmosphere parameters</h3>
 
 <p>Using the above types, we can now define the parameters of our atmosphere
-model. We start with the definition of density profiles, which are needed for
-parameters that depend on the altitude:
+model.
 */
 
-// An atmosphere layer of width 'width', and whose density is defined as
-//   'exp_term' * exp('exp_scale' * h) + 'linear_term' * h + 'constant_term',
-// clamped to [0,1], and where h is the altitude.
-struct DensityProfileLayer {
-  Length        width;
-  Number        exp_term;
-  InverseLength exp_scale;
-  InverseLength linear_term;
-  Number        constant_term;
+// This texture contains all the phase functions for the scattering components of the atmosphere.
+// The u coordinate maps to the scattering angle. Forward scattering is on the left (u == 0, theta
+// == 0) and back scattering on the right (u == 1, theta == 180).
+// The v coordinate maps to the various components. The phase function of the first scattering
+// component is stored in the top row of pixels, the second in the next and so on.
+uniform sampler2D phase_texture;
+
+// This texture contains all the density functions for the components of the atmosphere.
+// The u coordinate maps to the altitude. Atmosphere's bottom is on the left (u == 0) and the top
+// is the right (u == 1). The v coordinate maps to the various components. The density function of
+// the first component is stored in the top row of pixels, the second in the next and so on.
+uniform sampler2D density_texture;
+
+struct ScatteringComponent {
+  Number             phaseTextureV;
+  Number             densityTextureV;
+  ScatteringSpectrum extinction;
+  ScatteringSpectrum scattering;
 };
 
-// An atmosphere density profile made of several layers on top of each other
-// (from bottom to top). The width of the last layer is ignored, i.e. it always
-// extend to the top atmosphere boundary. The profile values vary between 0
-// (null density) to 1 (maximum density).
-struct DensityProfile {
-  DensityProfileLayer layers[2];
+struct AbsorbingComponent {
+  Number             densityTextureV;
+  ScatteringSpectrum extinction;
 };
 
-/*
-The atmosphere parameters are then defined by the following struct:
-*/
-
-struct AtmosphereParameters {
-  // The solar irradiance at the top of the atmosphere.
-  IrradianceSpectrum solar_irradiance;
-  // The sun's angular radius. Warning: the implementation uses approximations
-  // that are valid only if this angle is smaller than 0.1 radians.
-  Angle sun_angular_radius;
-  // The distance between the planet center and the bottom of the atmosphere.
-  Length bottom_radius;
-  // The distance between the planet center and the top of the atmosphere.
-  Length top_radius;
-  // The density profile of air molecules, i.e. a function from altitude to
-  // dimensionless values between 0 (null density) and 1 (maximum density).
-  DensityProfile rayleigh_density;
-  // The scattering coefficient of air molecules at the altitude where their
-  // density is maximum (usually the bottom of the atmosphere), as a function of
-  // wavelength. The scattering coefficient at altitude h is equal to
-  // 'rayleigh_scattering' times 'rayleigh_density' at this altitude.
-  ScatteringSpectrum rayleigh_scattering;
-  // The density profile of aerosols, i.e. a function from altitude to
-  // dimensionless values between 0 (null density) and 1 (maximum density).
-  DensityProfile mie_density;
-  // The scattering coefficient of aerosols at the altitude where their density
-  // is maximum (usually the bottom of the atmosphere), as a function of
-  // wavelength. The scattering coefficient at altitude h is equal to
-  // 'mie_scattering' times 'mie_density' at this altitude.
-  ScatteringSpectrum mie_scattering;
-  // The extinction coefficient of aerosols at the altitude where their density
-  // is maximum (usually the bottom of the atmosphere), as a function of
-  // wavelength. The extinction coefficient at altitude h is equal to
-  // 'mie_extinction' times 'mie_density' at this altitude.
-  ScatteringSpectrum mie_extinction;
-  // The asymetry parameter for the Cornette-Shanks phase function for the
-  // aerosols.
-  Number mie_phase_function_g;
-  // The density profile of air molecules that absorb light (e.g. ozone), i.e.
-  // a function from altitude to dimensionless values between 0 (null density)
-  // and 1 (maximum density).
-  DensityProfile absorption_density;
-  // The extinction coefficient of molecules that absorb light (e.g. ozone) at
-  // the altitude where their density is maximum, as a function of wavelength.
-  // The extinction coefficient at altitude h is equal to
-  // 'absorption_extinction' times 'absorption_density' at this altitude.
-  ScatteringSpectrum absorption_extinction;
-  // The average albedo of the ground.
-  DimensionlessSpectrum ground_albedo;
-  // The cosine of the maximum Sun zenith angle for which atmospheric scattering
-  // must be precomputed (for maximum precision, use the smallest Sun zenith
-  // angle yielding negligible sky light radiance values. For instance, for the
-  // Earth case, 102 degrees is a good choice - yielding mu_s_min = -0.2).
-  Number mu_s_min;
+struct AtmosphereComponents {
+  ScatteringComponent rayleigh;
+  ScatteringComponent mie;
+  AbsorbingComponent  ozone;
 };
