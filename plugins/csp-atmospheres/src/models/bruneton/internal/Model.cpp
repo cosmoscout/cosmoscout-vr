@@ -654,9 +654,6 @@ Model::Model(const std::vector<double>& wavelengths, const double sun_angular_ra
     return "#version 330\n"
             "#define IN(x) const in x\n"
             "#define OUT(x) out x\n"
-            "#define TEMPLATE(x)\n"
-            "#define TEMPLATE_ARGUMENT(x)\n"
-            "#define assert(x)\n"
             "const int TRANSMITTANCE_TEXTURE_WIDTH = "  + cs::utils::toString(TRANSMITTANCE_TEXTURE_WIDTH) + ";\n" +
             "const int TRANSMITTANCE_TEXTURE_HEIGHT = " + cs::utils::toString(TRANSMITTANCE_TEXTURE_HEIGHT) + ";\n" +
             "const int SCATTERING_TEXTURE_R_SIZE = "    + cs::utils::toString(SCATTERING_TEXTURE_R_SIZE) + ";\n" +

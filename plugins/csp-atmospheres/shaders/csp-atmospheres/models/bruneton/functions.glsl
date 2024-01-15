@@ -168,8 +168,6 @@ from which we deduce the length $\Vert\bp\bi\Vert$:
 */
 
 float DistanceToTopAtmosphereBoundary(float r, float mu) {
-  assert(r <= TOP_RADIUS);
-  assert(mu >= -1.0 && mu <= 1.0);
   float discriminant = r * r * (mu * mu - 1.0) + TOP_RADIUS * TOP_RADIUS;
   return ClampDistance(-r * mu + SafeSqrt(discriminant));
 }
@@ -181,8 +179,6 @@ that $[\bp,\bi)$ intersects the ground):
 */
 
 float DistanceToBottomAtmosphereBoundary(float r, float mu) {
-  assert(r >= BOTTOM_RADIUS);
-  assert(mu >= -1.0 && mu <= 1.0);
   float discriminant = r * r * (mu * mu - 1.0) + BOTTOM_RADIUS * BOTTOM_RADIUS;
   return ClampDistance(-r * mu - SafeSqrt(discriminant));
 }
@@ -197,8 +193,6 @@ from which we deduce the following function:
 */
 
 bool RayIntersectsGround(float r, float mu) {
-  assert(r >= BOTTOM_RADIUS);
-  assert(mu >= -1.0 && mu <= 1.0);
   return mu < 0.0 && r * r * (mu * mu - 1.0) + BOTTOM_RADIUS * BOTTOM_RADIUS >= 0.0;
 }
 
@@ -223,8 +217,6 @@ float GetDensity(IN(float) densityTextureV, float altitude) {
 }
 
 float ComputeOpticalLengthToTopAtmosphereBoundary(IN(float) densityTextureV, float r, float mu) {
-  assert(r >= BOTTOM_RADIUS && r <= TOP_RADIUS);
-  assert(mu >= -1.0 && mu <= 1.0);
 
   // The integration step, i.e. the length of each integration interval.
   float dx = DistanceToTopAtmosphereBoundary(r, mu) / float(SAMPLE_COUNT_OPTICAL_DEPTH);
@@ -251,8 +243,6 @@ compute (we continue to assume that the segment does not intersect the ground):
 
 vec3 ComputeTransmittanceToTopAtmosphereBoundary(
     IN(AtmosphereComponents) atmosphere, float r, float mu) {
-  assert(r >= BOTTOM_RADIUS && r <= TOP_RADIUS);
-  assert(mu >= -1.0 && mu <= 1.0);
   return exp(-(atmosphere.molecules.extinction * ComputeOpticalLengthToTopAtmosphereBoundary(
                                                      atmosphere.molecules.densityTextureV, r, mu) +
                atmosphere.aerosols.extinction * ComputeOpticalLengthToTopAtmosphereBoundary(
@@ -342,8 +332,6 @@ $(u,v)$ can be implemented as follows:
 */
 
 vec2 GetTransmittanceTextureUvFromRMu(float r, float mu) {
-  assert(r >= BOTTOM_RADIUS && r <= TOP_RADIUS);
-  assert(mu >= -1.0 && mu <= 1.0);
   // Distance to top atmosphere boundary for a horizontal ray at ground level.
   float H = sqrt(TOP_RADIUS * TOP_RADIUS - BOTTOM_RADIUS * BOTTOM_RADIUS);
   // Distance to the horizon.
@@ -364,8 +352,6 @@ vec2 GetTransmittanceTextureUvFromRMu(float r, float mu) {
 */
 
 void GetRMuFromTransmittanceTextureUv(IN(vec2) uv, OUT(float) r, OUT(float) mu) {
-  assert(uv.x >= 0.0 && uv.x <= 1.0);
-  assert(uv.y >= 0.0 && uv.y <= 1.0);
   float x_mu = GetUnitRangeFromTextureCoord(uv.x, TRANSMITTANCE_TEXTURE_WIDTH);
   float x_r  = GetUnitRangeFromTextureCoord(uv.y, TRANSMITTANCE_TEXTURE_HEIGHT);
   // Distance to top atmosphere boundary for a horizontal ray at ground level.
@@ -408,7 +394,6 @@ texture lookup (assuming there is no intersection with the ground):
 
 vec3 GetTransmittanceToTopAtmosphereBoundary(
     IN(sampler2D) transmittance_texture, float r, float mu) {
-  assert(r >= BOTTOM_RADIUS && r <= TOP_RADIUS);
   vec2 uv = GetTransmittanceTextureUvFromRMu(r, mu);
   return vec3(texture(transmittance_texture, uv));
 }
@@ -426,9 +411,6 @@ assume that the segment between the two points does not intersect the ground):
 
 vec3 GetTransmittance(IN(sampler2D) transmittance_texture, float r, float mu, float d,
     bool ray_r_mu_intersects_ground) {
-  assert(r >= BOTTOM_RADIUS && r <= TOP_RADIUS);
-  assert(mu >= -1.0 && mu <= 1.0);
-  assert(d >= 0.0);
 
   float r_d  = ClampRadius(sqrt(d * d + 2.0 * r * mu * d + r * r));
   float mu_d = ClampCosine((r * mu + d) / r_d);
@@ -607,10 +589,6 @@ rule</a>):
 void ComputeSingleScattering(IN(AtmosphereComponents) atmosphere,
     IN(sampler2D) transmittance_texture, float r, float mu, float mu_s, float nu,
     bool ray_r_mu_intersects_ground, OUT(vec3) molecules, OUT(vec3) aerosols) {
-  assert(r >= BOTTOM_RADIUS && r <= TOP_RADIUS);
-  assert(mu >= -1.0 && mu <= 1.0);
-  assert(mu_s >= -1.0 && mu_s <= 1.0);
-  assert(nu >= -1.0 && nu <= 1.0);
 
   // The integration step, i.e. the length of each integration interval.
   float dx = DistanceToNearestAtmosphereBoundary(r, mu, ray_r_mu_intersects_ground) /
@@ -665,10 +643,6 @@ horizon.</li>
 
 vec4 GetScatteringTextureUvwzFromRMuMuSNu(
     float r, float mu, float mu_s, float nu, bool ray_r_mu_intersects_ground) {
-  assert(r >= BOTTOM_RADIUS && r <= TOP_RADIUS);
-  assert(mu >= -1.0 && mu <= 1.0);
-  assert(mu_s >= -1.0 && mu_s <= 1.0);
-  assert(nu >= -1.0 && nu <= 1.0);
 
   // Distance to top atmosphere boundary for a horizontal ray at ground level.
   float H = sqrt(TOP_RADIUS * TOP_RADIUS - BOTTOM_RADIUS * BOTTOM_RADIUS);
@@ -724,10 +698,6 @@ vec4 GetScatteringTextureUvwzFromRMuMuSNu(
 
 void GetRMuMuSNuFromScatteringTextureUvwz(IN(vec4) uvwz, OUT(float) r, OUT(float) mu,
     OUT(float) mu_s, OUT(float) nu, OUT(bool) ray_r_mu_intersects_ground) {
-  assert(uvwz.x >= 0.0 && uvwz.x <= 1.0);
-  assert(uvwz.y >= 0.0 && uvwz.y <= 1.0);
-  assert(uvwz.z >= 0.0 && uvwz.z <= 1.0);
-  assert(uvwz.w >= 0.0 && uvwz.w <= 1.0);
 
   // Distance to top atmosphere boundary for a horizontal ray at ground level.
   float H = sqrt(TOP_RADIUS * TOP_RADIUS - BOTTOM_RADIUS * BOTTOM_RADIUS);
@@ -825,10 +795,8 @@ quadrilinear interpolation; the 3D texture coordinates are computed using the
 inverse of the 3D-4D mapping defined in
 <code>GetRMuMuSNuFromScatteringTextureFragCoord</code>):
 */
-
-TEMPLATE(vec3)
-vec3 GetScattering(IN(sampler3D TEMPLATE_ARGUMENT(vec3)) scattering_texture, float r, float mu,
-    float mu_s, float nu, bool ray_r_mu_intersects_ground) {
+vec3 GetScattering(IN(sampler3D) scattering_texture, float r, float mu, float mu_s, float nu,
+    bool ray_r_mu_intersects_ground) {
   vec4  uvwz = GetScatteringTextureUvwzFromRMuMuSNu(r, mu, mu_s, nu, ray_r_mu_intersects_ground);
   float tex_coord_x = uvwz.x * float(SCATTERING_TEXTURE_NU_SIZE - 1);
   float tex_x       = floor(tex_coord_x);
@@ -1019,11 +987,6 @@ vec3 ComputeScatteringDensity(IN(AtmosphereComponents) atmosphere,
     IN(sampler3D) single_aerosols_scattering_texture, IN(sampler3D) multiple_scattering_texture,
     IN(sampler2D) irradiance_texture, float r, float mu, float mu_s, float nu,
     int scattering_order) {
-  assert(r >= BOTTOM_RADIUS && r <= TOP_RADIUS);
-  assert(mu >= -1.0 && mu <= 1.0);
-  assert(mu_s >= -1.0 && mu_s <= 1.0);
-  assert(nu >= -1.0 && nu <= 1.0);
-  assert(scattering_order >= 2);
 
   // Compute unit direction vectors for the zenith, the view direction omega and
   // and the sun direction omega_s, such that the cosine of the view-zenith
@@ -1124,10 +1087,6 @@ instead, using the actual ground albedo.
 vec3 ComputeMultipleScattering(IN(sampler2D) transmittance_texture,
     IN(sampler3D) scattering_density_texture, float r, float mu, float mu_s, float nu,
     bool ray_r_mu_intersects_ground) {
-  assert(r >= BOTTOM_RADIUS && r <= TOP_RADIUS);
-  assert(mu >= -1.0 && mu <= 1.0);
-  assert(mu_s >= -1.0 && mu_s <= 1.0);
-  assert(nu >= -1.0 && nu <= 1.0);
 
   // The integration step, i.e. the length of each integration interval.
   float dx = DistanceToNearestAtmosphereBoundary(r, mu, ray_r_mu_intersects_ground) /
@@ -1258,8 +1217,6 @@ equations can be simplified as follows:
 */
 
 vec3 ComputeDirectIrradiance(IN(sampler2D) transmittance_texture, float r, float mu_s) {
-  assert(r >= BOTTOM_RADIUS && r <= TOP_RADIUS);
-  assert(mu_s >= -1.0 && mu_s <= 1.0);
 
   float alpha_s = SUN_ANGULAR_RADIUS;
   // Approximate average of the cosine factor mu_s over the visible fraction of
@@ -1292,9 +1249,6 @@ vec3 ComputeIndirectIrradiance(IN(AtmosphereComponents) atmosphere,
     IN(sampler3D) single_molecules_scattering_texture,
     IN(sampler3D) single_aerosols_scattering_texture, IN(sampler3D) multiple_scattering_texture,
     float r, float mu_s, int scattering_order) {
-  assert(r >= BOTTOM_RADIUS && r <= TOP_RADIUS);
-  assert(mu_s >= -1.0 && mu_s <= 1.0);
-  assert(scattering_order >= 1);
 
   const float dphi   = PI / float(SAMPLE_COUNT_INDIRECT_IRRADIANCE);
   const float dtheta = PI / float(SAMPLE_COUNT_INDIRECT_IRRADIANCE);
@@ -1330,8 +1284,6 @@ because the ground irradiance function is very smooth:
 */
 
 vec2 GetIrradianceTextureUvFromRMuS(float r, float mu_s) {
-  assert(r >= BOTTOM_RADIUS && r <= TOP_RADIUS);
-  assert(mu_s >= -1.0 && mu_s <= 1.0);
   float x_r    = (r - BOTTOM_RADIUS) / (TOP_RADIUS - BOTTOM_RADIUS);
   float x_mu_s = mu_s * 0.5 + 0.5;
   return vec2(GetTextureCoordFromUnitRange(x_mu_s, IRRADIANCE_TEXTURE_WIDTH),
@@ -1343,8 +1295,6 @@ vec2 GetIrradianceTextureUvFromRMuS(float r, float mu_s) {
 */
 
 void GetRMuSFromIrradianceTextureUv(IN(vec2) uv, OUT(float) r, OUT(float) mu_s) {
-  assert(uv.x >= 0.0 && uv.x <= 1.0);
-  assert(uv.y >= 0.0 && uv.y <= 1.0);
   float x_mu_s = GetUnitRangeFromTextureCoord(uv.x, IRRADIANCE_TEXTURE_WIDTH);
   float x_r    = GetUnitRangeFromTextureCoord(uv.y, IRRADIANCE_TEXTURE_HEIGHT);
   r            = BOTTOM_RADIUS + x_r * (TOP_RADIUS - BOTTOM_RADIUS);
