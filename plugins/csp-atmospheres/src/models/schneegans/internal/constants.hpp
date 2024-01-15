@@ -46,19 +46,19 @@ constexpr int SAMPLE_COUNT_INDIRECT_IRRADIANCE = 32; // 32
 
 // Low impact on preprocssing time. Resolution seems suitable for CosmoScout VR.
 constexpr int TRANSMITTANCE_TEXTURE_WIDTH  = 1024; // 256
-constexpr int TRANSMITTANCE_TEXTURE_HEIGHT = 1024; // 64
+constexpr int TRANSMITTANCE_TEXTURE_HEIGHT = 512;  // 64
 
 // Improves sampling of thick low-altitude layers.
-constexpr int SCATTERING_TEXTURE_R_SIZE = 16; // 16
+constexpr int SCATTERING_TEXTURE_R_SIZE = 16; // 32
 
 // Circular banding artifacts around zenith for thick atmospheres.
-constexpr int SCATTERING_TEXTURE_MU_SIZE = 128; // 64
+constexpr int SCATTERING_TEXTURE_MU_SIZE = 128; // 128
 
 // Affects banding in the day-night transition when seen from space.
-constexpr int SCATTERING_TEXTURE_MU_S_SIZE = 32; // 64
+constexpr int SCATTERING_TEXTURE_MU_S_SIZE = 32; // 32
 
 // Circular banding artifacts around sun for thick atmospheres.
-constexpr int SCATTERING_TEXTURE_NU_SIZE = 64; // 16
+constexpr int SCATTERING_TEXTURE_NU_SIZE = 64; // 8
 
 constexpr int SCATTERING_TEXTURE_WIDTH  = SCATTERING_TEXTURE_NU_SIZE * SCATTERING_TEXTURE_MU_S_SIZE;
 constexpr int SCATTERING_TEXTURE_HEIGHT = SCATTERING_TEXTURE_MU_SIZE;
