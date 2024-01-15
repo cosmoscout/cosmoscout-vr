@@ -148,9 +148,9 @@ const char kComputeDirectIrradianceShader[] = R"(
     })";
 
 const char kComputeSingleScatteringShader[] = R"(
-    layout(location = 0) out vec3 delta_rayleigh;
+    layout(location = 0) out vec3 delta_molecules;
     layout(location = 1) out vec3 delta_mie;
-    layout(location = 2) out vec3 accumulated_rayleigh_single_scattering_luminance;
+    layout(location = 2) out vec3 accumulated_molecules_single_scattering_luminance;
     layout(location = 3) out vec3 accumulated_mie_single_scattering_luminance;
     uniform mat3 luminance_from_radiance;
     uniform sampler2D transmittance_texture;
@@ -158,15 +158,15 @@ const char kComputeSingleScatteringShader[] = R"(
     void main() {
       ComputeSingleScatteringTexture(
           ATMOSPHERE, transmittance_texture, vec3(gl_FragCoord.xy, layer + 0.5),
-          delta_rayleigh, delta_mie);
-      accumulated_rayleigh_single_scattering_luminance = luminance_from_radiance * delta_rayleigh;
+          delta_molecules, delta_mie);
+      accumulated_molecules_single_scattering_luminance = luminance_from_radiance * delta_molecules;
       accumulated_mie_single_scattering_luminance = luminance_from_radiance * delta_mie;
     })";
 
 const char kComputeScatteringDensityShader[] = R"(
     layout(location = 0) out vec3 scattering_density;
     uniform sampler2D transmittance_texture;
-    uniform sampler3D single_rayleigh_scattering_texture;
+    uniform sampler3D single_molecules_scattering_texture;
     uniform sampler3D single_mie_scattering_texture;
     uniform sampler3D multiple_scattering_texture;
     uniform sampler2D irradiance_texture;
@@ -174,7 +174,7 @@ const char kComputeScatteringDensityShader[] = R"(
     uniform int layer;
     void main() {
       scattering_density = ComputeScatteringDensityTexture(
-          ATMOSPHERE, transmittance_texture, single_rayleigh_scattering_texture,
+          ATMOSPHERE, transmittance_texture, single_molecules_scattering_texture,
           single_mie_scattering_texture, multiple_scattering_texture,
           irradiance_texture, vec3(gl_FragCoord.xy, layer + 0.5),
           scattering_order);
@@ -184,13 +184,13 @@ const char kComputeIndirectIrradianceShader[] = R"(
     layout(location = 0) out vec3 delta_irradiance;
     layout(location = 1) out vec3 irradiance;
     uniform mat3 luminance_from_radiance;
-    uniform sampler3D single_rayleigh_scattering_texture;
+    uniform sampler3D single_molecules_scattering_texture;
     uniform sampler3D single_mie_scattering_texture;
     uniform sampler3D multiple_scattering_texture;
     uniform int scattering_order;
     void main() {
       delta_irradiance = ComputeIndirectIrradianceTexture(
-          ATMOSPHERE, single_rayleigh_scattering_texture,
+          ATMOSPHERE, single_molecules_scattering_texture,
           single_mie_scattering_texture, multiple_scattering_texture,
           gl_FragCoord.xy, scattering_order);
       irradiance = luminance_from_radiance * delta_irradiance;
@@ -209,7 +209,7 @@ const char kComputeMultipleScatteringShader[] = R"(
           transmittance_texture, scattering_density_texture,
           vec3(gl_FragCoord.xy, layer + 0.5), nu);
       multiple_scattering = luminance_from_radiance *
-                            delta_multiple_scattering / PhaseFunction(ATMOSPHERE.rayleigh, nu);
+                            delta_multiple_scattering / PhaseFunction(ATMOSPHERE.molecules, nu);
     })";
 
 /*
@@ -566,11 +566,11 @@ initialize them), as well as a vertex buffer object to render a full screen quad
 */
 
 Model::Model(const std::vector<double>& wavelengths, const double sun_angular_radius,
-    double bottom_radius, double top_radius, const ScatteringAtmosphereComponent& rayleigh,
+    double bottom_radius, double top_radius, const ScatteringAtmosphereComponent& molecules,
     const ScatteringAtmosphereComponent& mie, const AbsorbingAtmosphereComponent& ozone,
     double ground_albedo, double max_sun_zenith_angle, double length_unit_in_meters)
     : wavelengths_(wavelengths)
-    , rayleigh_(rayleigh)
+    , molecules_(molecules)
     , mie_(mie)
     , ozone_(ozone) {
 
@@ -680,7 +680,7 @@ Model::Model(const std::vector<double>& wavelengths, const double sun_angular_ra
             "const float TOP_RADIUS = "                 + cs::utils::toString(top_radius / length_unit_in_meters) + ";\n" +
             "const float MU_S_MIN = "                   + cs::utils::toString(cos(max_sun_zenith_angle))+ ";\n" +
             "const AtmosphereComponents ATMOSPHERE = AtmosphereComponents(\n" +
-              scatteringComponent(rayleigh_, 0.0, 0.0, lambdas) + ",\n" +
+              scatteringComponent(molecules_, 0.0, 0.0, lambdas) + ",\n" +
               scatteringComponent(mie_, 1.0, 0.5, lambdas) + ",\n" +
               absorbingComponent(ozone_, 1.0, lambdas) + ");\n" +
             functions_glsl;
@@ -701,13 +701,13 @@ Model::Model(const std::vector<double>& wavelengths, const double sun_angular_ra
   // Create the density profile texture.
   {
 
-    size_t numDensities = rayleigh_.density.size();
+    size_t numDensities = molecules_.density.size();
 
     std::vector<float> densityData;
     size_t             numComponents = 3; // Rayleigh, Mie, Ozone
     densityData.reserve(numComponents * numDensities);
 
-    densityData.insert(densityData.end(), rayleigh_.density.begin(), rayleigh_.density.end());
+    densityData.insert(densityData.end(), molecules_.density.begin(), molecules_.density.end());
     densityData.insert(densityData.end(), mie_.density.begin(), mie_.density.end());
     densityData.insert(densityData.end(), ozone_.density.begin(), ozone_.density.end());
 
@@ -823,18 +823,18 @@ void Model::Init(unsigned int num_scattering_orders) {
   // of this method.
   GLuint delta_irradiance_texture = NewTexture2d(
       IRRADIANCE_TEXTURE_WIDTH, IRRADIANCE_TEXTURE_HEIGHT, GL_RGBA32F, GL_RGBA, GL_FLOAT);
-  GLuint delta_rayleigh_scattering_texture = NewTexture3d(SCATTERING_TEXTURE_WIDTH,
+  GLuint delta_molecules_scattering_texture = NewTexture3d(SCATTERING_TEXTURE_WIDTH,
       SCATTERING_TEXTURE_HEIGHT, SCATTERING_TEXTURE_DEPTH, GL_RGBA32F, GL_RGBA, GL_FLOAT);
-  GLuint delta_mie_scattering_texture      = NewTexture3d(SCATTERING_TEXTURE_WIDTH,
+  GLuint delta_mie_scattering_texture       = NewTexture3d(SCATTERING_TEXTURE_WIDTH,
       SCATTERING_TEXTURE_HEIGHT, SCATTERING_TEXTURE_DEPTH, GL_RGBA32F, GL_RGBA, GL_FLOAT);
-  GLuint delta_scattering_density_texture  = NewTexture3d(SCATTERING_TEXTURE_WIDTH,
+  GLuint delta_scattering_density_texture   = NewTexture3d(SCATTERING_TEXTURE_WIDTH,
       SCATTERING_TEXTURE_HEIGHT, SCATTERING_TEXTURE_DEPTH, GL_RGBA32F, GL_RGBA, GL_FLOAT);
   // delta_multiple_scattering_texture is only needed to compute scattering
-  // order 3 or more, while delta_rayleigh_scattering_texture and
+  // order 3 or more, while delta_molecules_scattering_texture and
   // delta_mie_scattering_texture are only needed to compute double scattering.
-  // Therefore, to save memory, we can store delta_rayleigh_scattering_texture
+  // Therefore, to save memory, we can store delta_molecules_scattering_texture
   // and delta_multiple_scattering_texture in the same GPU texture.
-  GLuint delta_multiple_scattering_texture = delta_rayleigh_scattering_texture;
+  GLuint delta_multiple_scattering_texture = delta_molecules_scattering_texture;
 
   // The precomputations also require a temporary framebuffer object, created
   // here (and destroyed at the end of this method).
@@ -848,7 +848,7 @@ void Model::Init(unsigned int num_scattering_orders) {
     logger().info("Precomputing atmospheric scattering...");
     vec3 lambdas{kLambdaR, kLambdaG, kLambdaB};
     mat3 luminance_from_radiance{1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0};
-    Precompute(fbo, delta_irradiance_texture, delta_rayleigh_scattering_texture,
+    Precompute(fbo, delta_irradiance_texture, delta_molecules_scattering_texture,
         delta_mie_scattering_texture, delta_scattering_density_texture,
         delta_multiple_scattering_texture, lambdas, luminance_from_radiance, false /* blend */,
         num_scattering_orders);
@@ -877,7 +877,7 @@ void Model::Init(unsigned int num_scattering_orders) {
           coeff(lambdas[0], 1), coeff(lambdas[1], 1), coeff(lambdas[2], 1), coeff(lambdas[0], 2),
           coeff(lambdas[1], 2), coeff(lambdas[2], 2)};
 
-      Precompute(fbo, delta_irradiance_texture, delta_rayleigh_scattering_texture,
+      Precompute(fbo, delta_irradiance_texture, delta_molecules_scattering_texture,
           delta_mie_scattering_texture, delta_scattering_density_texture,
           delta_multiple_scattering_texture, lambdas, luminance_from_radiance, i > 0 /* blend */,
           num_scattering_orders);
@@ -901,7 +901,7 @@ void Model::Init(unsigned int num_scattering_orders) {
 
     // Also, the phase_texture_ contains the phase functions for the last used wavelengths. We need
     // to update it with kLambdaR, kLambdaG, kLambdaB as well.
-    UpdatePhaseFunctionTexture({rayleigh_, mie_}, {kLambdaR, kLambdaG, kLambdaB});
+    UpdatePhaseFunctionTexture({molecules_, mie_}, {kLambdaR, kLambdaG, kLambdaB});
   }
 
   // Delete the temporary resources allocated at the begining of this method.
@@ -911,7 +911,7 @@ void Model::Init(unsigned int num_scattering_orders) {
   glDeleteTextures(1, &density_texture_);
   glDeleteTextures(1, &delta_scattering_density_texture);
   glDeleteTextures(1, &delta_mie_scattering_texture);
-  glDeleteTextures(1, &delta_rayleigh_scattering_texture);
+  glDeleteTextures(1, &delta_molecules_scattering_texture);
   glDeleteTextures(1, &delta_irradiance_texture);
   assert(glGetError() == 0);
 }
@@ -954,18 +954,18 @@ void Model::SetProgramUniforms(GLuint program, GLuint phase_texture_unit,
 Here is an outline of the data flow of the precomputation.
 
 1. Compute the transmittance (vec3) of the atmosphere for every point in every direction and store
-   it in transmittance_texture_. This incorporates extinction based on rayleigh, mie, and ozone
+   it in transmittance_texture_. This incorporates extinction based on molecules, mie, and ozone
    particles.
 
 2. Using transmittance_texture_, compute the direct irradiance from the Sun to every point in the
    atmosphere for the current set of wavelengths and store it in delta_irradiance_texture. In this
    step, irradiance_texture_ os also initialized to zero if it's the first call to Precompute().
 
-3. Using the transmittance_texture_, compute the single mie and single rayleigh scattering
-   irradiance along the rays in the atmosphere. This is the rayleigh and mie density * solar
+3. Using the transmittance_texture_, compute the single mie and single molecules scattering
+   irradiance along the rays in the atmosphere. This is the molecules and mie density * solar
    irradiance * scattering coefficient. The term stored in the output textures is without the phase
    function. The irradiance for the current set of wavelengths is stored in
-   delta_rayleigh_scattering_texture and delta_mie_scattering_texture. It is also converted to
+   delta_molecules_scattering_texture and delta_mie_scattering_texture. It is also converted to
    illuminance and accumulated for all wavelengths in multiple_scattering_texture_ and
    single_mie_scattering_texture_.
 
@@ -983,15 +983,15 @@ scattering illuminance without the phase function.
         accumulate it in multiple_scattering_texture_.
 
 At the end, single_mie_scattering_texture_ contains the single mie scattering illuminance
-without the phase function and multiple_scattering_texture_ contains single rayleigh scattering
+without the phase function and multiple_scattering_texture_ contains single molecules scattering
 without the phase function + multiple scattering with only the mie phase function applied. So at
 render time, the data from single_mie_scattering_texture_ needs to be multiplied with the mie phase
-function and the data from multiple_scattering_texture_ needs to be multiplied with the rayleigh
+function and the data from multiple_scattering_texture_ needs to be multiplied with the molecules
 phase function.
 
 */
 void Model::Precompute(GLuint fbo, GLuint delta_irradiance_texture,
-    GLuint delta_rayleigh_scattering_texture, GLuint delta_mie_scattering_texture,
+    GLuint delta_molecules_scattering_texture, GLuint delta_mie_scattering_texture,
     GLuint delta_scattering_density_texture, GLuint delta_multiple_scattering_texture,
     const vec3& lambdas, const mat3& luminance_from_radiance, bool blend,
     unsigned int num_scattering_orders) {
@@ -1000,7 +1000,7 @@ void Model::Precompute(GLuint fbo, GLuint delta_irradiance_texture,
   // when this method returns, via the Program destructor).
   std::string header = glsl_header_factory_(lambdas);
 
-  UpdatePhaseFunctionTexture({rayleigh_, mie_}, lambdas);
+  UpdatePhaseFunctionTexture({molecules_, mie_}, lambdas);
 
   Program compute_transmittance(kVertexShader, header + kComputeTransmittanceShader);
   Program compute_direct_irradiance(kVertexShader, header + kComputeDirectIrradianceShader);
@@ -1045,12 +1045,12 @@ void Model::Precompute(GLuint fbo, GLuint delta_irradiance_texture,
 
   // -----------------------------------------------------------------------------------------------
 
-  // 3. Compute the rayleigh and mie single scattering for the current wavelengths, store them in
-  // delta_rayleigh_scattering_texture and delta_mie_scattering_texture, and accumulate the
+  // 3. Compute the molecules and mie single scattering for the current wavelengths, store them in
+  // delta_molecules_scattering_texture and delta_mie_scattering_texture, and accumulate the
   // resulting luminance via additive blending in multiple_scattering_texture_ and
-  // single_mie_scattering_texture_. The rayleigh scattering is stored together with the multiple
+  // single_mie_scattering_texture_. The molecules scattering is stored together with the multiple
   // scattering contributions in multiple_scattering_texture_.
-  glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, delta_rayleigh_scattering_texture, 0);
+  glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, delta_molecules_scattering_texture, 0);
   glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, delta_mie_scattering_texture, 0);
   glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, multiple_scattering_texture_, 0);
   glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, single_mie_scattering_texture_, 0);
@@ -1085,7 +1085,7 @@ void Model::Precompute(GLuint fbo, GLuint delta_irradiance_texture,
     compute_scattering_density.BindTexture2d("transmittance_texture", transmittance_texture_, 1);
     compute_scattering_density.BindTexture2d("density_texture", density_texture_, 2);
     compute_scattering_density.BindTexture3d(
-        "single_rayleigh_scattering_texture", delta_rayleigh_scattering_texture, 3);
+        "single_molecules_scattering_texture", delta_molecules_scattering_texture, 3);
     compute_scattering_density.BindTexture3d(
         "single_mie_scattering_texture", delta_mie_scattering_texture, 4);
     compute_scattering_density.BindTexture3d(
@@ -1108,7 +1108,7 @@ void Model::Precompute(GLuint fbo, GLuint delta_irradiance_texture,
     compute_indirect_irradiance.BindMat3("luminance_from_radiance", luminance_from_radiance);
     compute_indirect_irradiance.BindTexture2d("phase_texture", phase_texture_, 0);
     compute_indirect_irradiance.BindTexture3d(
-        "single_rayleigh_scattering_texture", delta_rayleigh_scattering_texture, 1);
+        "single_molecules_scattering_texture", delta_molecules_scattering_texture, 1);
     compute_indirect_irradiance.BindTexture3d(
         "single_mie_scattering_texture", delta_mie_scattering_texture, 2);
     compute_indirect_irradiance.BindTexture3d(

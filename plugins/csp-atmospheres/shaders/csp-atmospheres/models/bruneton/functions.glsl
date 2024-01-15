@@ -254,8 +254,8 @@ DimensionlessSpectrum ComputeTransmittanceToTopAtmosphereBoundary(
     IN(AtmosphereComponents) atmosphere, Length r, Number mu) {
   assert(r >= BOTTOM_RADIUS && r <= TOP_RADIUS);
   assert(mu >= -1.0 && mu <= 1.0);
-  return exp(-(atmosphere.rayleigh.extinction * ComputeOpticalLengthToTopAtmosphereBoundary(
-                                                    atmosphere.rayleigh.densityTextureV, r, mu) +
+  return exp(-(atmosphere.molecules.extinction * ComputeOpticalLengthToTopAtmosphereBoundary(
+                                                     atmosphere.molecules.densityTextureV, r, mu) +
                atmosphere.mie.extinction * ComputeOpticalLengthToTopAtmosphereBoundary(
                                                atmosphere.mie.densityTextureV, r, mu) +
                atmosphere.ozone.extinction * ComputeOpticalLengthToTopAtmosphereBoundary(
@@ -572,15 +572,15 @@ on for efficiency reasons):
 
 void ComputeSingleScatteringIntegrand(IN(AtmosphereComponents) atmosphere,
     IN(TransmittanceTexture) transmittance_texture, Length r, Number mu, Number mu_s, Number nu,
-    Length d, bool ray_r_mu_intersects_ground, OUT(DimensionlessSpectrum) rayleigh,
+    Length d, bool ray_r_mu_intersects_ground, OUT(DimensionlessSpectrum) molecules,
     OUT(DimensionlessSpectrum) mie) {
   Length                r_d    = ClampRadius(sqrt(d * d + 2.0 * r * mu * d + r * r));
   Number                mu_s_d = ClampCosine((r * mu_s + d * nu) / r_d);
   DimensionlessSpectrum transmittance =
       GetTransmittance(transmittance_texture, r, mu, d, ray_r_mu_intersects_ground) *
       GetTransmittanceToSun(transmittance_texture, r_d, mu_s_d);
-  rayleigh = transmittance * GetDensity(atmosphere.rayleigh.densityTextureV, r_d - BOTTOM_RADIUS);
-  mie      = transmittance * GetDensity(atmosphere.mie.densityTextureV, r_d - BOTTOM_RADIUS);
+  molecules = transmittance * GetDensity(atmosphere.molecules.densityTextureV, r_d - BOTTOM_RADIUS);
+  mie       = transmittance * GetDensity(atmosphere.mie.densityTextureV, r_d - BOTTOM_RADIUS);
 }
 
 /*
@@ -609,7 +609,7 @@ rule</a>):
 
 void ComputeSingleScattering(IN(AtmosphereComponents) atmosphere,
     IN(TransmittanceTexture) transmittance_texture, Length r, Number mu, Number mu_s, Number nu,
-    bool ray_r_mu_intersects_ground, OUT(IrradianceSpectrum) rayleigh,
+    bool ray_r_mu_intersects_ground, OUT(IrradianceSpectrum) molecules,
     OUT(IrradianceSpectrum) mie) {
   assert(r >= BOTTOM_RADIUS && r <= TOP_RADIUS);
   assert(mu >= -1.0 && mu <= 1.0);
@@ -620,22 +620,22 @@ void ComputeSingleScattering(IN(AtmosphereComponents) atmosphere,
   Length dx = DistanceToNearestAtmosphereBoundary(r, mu, ray_r_mu_intersects_ground) /
               Number(SAMPLE_COUNT_SINGLE_SCATTERING);
   // Integration loop.
-  DimensionlessSpectrum rayleigh_sum = DimensionlessSpectrum(0.0);
-  DimensionlessSpectrum mie_sum      = DimensionlessSpectrum(0.0);
+  DimensionlessSpectrum molecules_sum = DimensionlessSpectrum(0.0);
+  DimensionlessSpectrum mie_sum       = DimensionlessSpectrum(0.0);
   for (int i = 0; i <= SAMPLE_COUNT_SINGLE_SCATTERING; ++i) {
     Length d_i = Number(i) * dx;
     // The Rayleigh and Mie single scattering at the current sample point.
-    DimensionlessSpectrum rayleigh_i;
+    DimensionlessSpectrum molecules_i;
     DimensionlessSpectrum mie_i;
     ComputeSingleScatteringIntegrand(atmosphere, transmittance_texture, r, mu, mu_s, nu, d_i,
-        ray_r_mu_intersects_ground, rayleigh_i, mie_i);
+        ray_r_mu_intersects_ground, molecules_i, mie_i);
     // Sample weight (from the trapezoidal rule).
     Number weight_i = (i == 0 || i == SAMPLE_COUNT_SINGLE_SCATTERING) ? 0.5 : 1.0;
-    rayleigh_sum += rayleigh_i * weight_i;
+    molecules_sum += molecules_i * weight_i;
     mie_sum += mie_i * weight_i;
   }
-  rayleigh = rayleigh_sum * dx * SOLAR_IRRADIANCE * atmosphere.rayleigh.scattering;
-  mie      = mie_sum * dx * SOLAR_IRRADIANCE * atmosphere.mie.scattering;
+  molecules = molecules_sum * dx * SOLAR_IRRADIANCE * atmosphere.molecules.scattering;
+  mie       = mie_sum * dx * SOLAR_IRRADIANCE * atmosphere.mie.scattering;
 }
 
 vec3 PhaseFunction(ScatteringComponent component, float nu) {
@@ -807,7 +807,7 @@ the single scattering in a 3D texture:
 
 void ComputeSingleScatteringTexture(IN(AtmosphereComponents) atmosphere,
     IN(TransmittanceTexture) transmittance_texture, IN(vec3) frag_coord,
-    OUT(IrradianceSpectrum) rayleigh, OUT(IrradianceSpectrum) mie) {
+    OUT(IrradianceSpectrum) molecules, OUT(IrradianceSpectrum) mie) {
   Length r;
   Number mu;
   Number mu_s;
@@ -816,7 +816,7 @@ void ComputeSingleScatteringTexture(IN(AtmosphereComponents) atmosphere,
   GetRMuMuSNuFromScatteringTextureFragCoord(
       frag_coord, r, mu, mu_s, nu, ray_r_mu_intersects_ground);
   ComputeSingleScattering(atmosphere, transmittance_texture, r, mu, mu_s, nu,
-      ray_r_mu_intersects_ground, rayleigh, mie);
+      ray_r_mu_intersects_ground, molecules, mie);
 }
 
 /*
@@ -854,16 +854,16 @@ with both Rayleigh and Mie included, as well as all the phase function terms.
 */
 
 RadianceSpectrum GetScattering(IN(AtmosphereComponents) atmosphere,
-    IN(ReducedScatteringTexture) single_rayleigh_scattering_texture,
+    IN(ReducedScatteringTexture) single_molecules_scattering_texture,
     IN(ReducedScatteringTexture) single_mie_scattering_texture,
     IN(ScatteringTexture) multiple_scattering_texture, Length r, Number mu, Number mu_s, Number nu,
     bool ray_r_mu_intersects_ground, int scattering_order) {
   if (scattering_order == 1) {
-    IrradianceSpectrum rayleigh = GetScattering(
-        single_rayleigh_scattering_texture, r, mu, mu_s, nu, ray_r_mu_intersects_ground);
+    IrradianceSpectrum molecules = GetScattering(
+        single_molecules_scattering_texture, r, mu, mu_s, nu, ray_r_mu_intersects_ground);
     IrradianceSpectrum mie =
         GetScattering(single_mie_scattering_texture, r, mu, mu_s, nu, ray_r_mu_intersects_ground);
-    return rayleigh * PhaseFunction(atmosphere.rayleigh, nu) +
+    return molecules * PhaseFunction(atmosphere.molecules, nu) +
            mie * PhaseFunction(atmosphere.mie, nu);
   } else {
     return GetScattering(multiple_scattering_texture, r, mu, mu_s, nu, ray_r_mu_intersects_ground);
@@ -1021,7 +1021,7 @@ equal to $n$):</li>
 
 RadianceDensitySpectrum ComputeScatteringDensity(IN(AtmosphereComponents) atmosphere,
     IN(TransmittanceTexture) transmittance_texture,
-    IN(ReducedScatteringTexture) single_rayleigh_scattering_texture,
+    IN(ReducedScatteringTexture) single_molecules_scattering_texture,
     IN(ReducedScatteringTexture) single_mie_scattering_texture,
     IN(ScatteringTexture) multiple_scattering_texture, IN(IrradianceTexture) irradiance_texture,
     Length r, Number mu, Number mu_s, Number nu, int scattering_order) {
@@ -1043,7 +1043,7 @@ RadianceDensitySpectrum ComputeScatteringDensity(IN(AtmosphereComponents) atmosp
 
   const Angle             dphi   = pi / Number(SAMPLE_COUNT_SCATTERING_DENSITY);
   const Angle             dtheta = pi / Number(SAMPLE_COUNT_SCATTERING_DENSITY);
-  RadianceDensitySpectrum rayleigh_mie =
+  RadianceDensitySpectrum molecules_mie =
       RadianceDensitySpectrum(0.0 * watt_per_cubic_meter_per_sr_per_nm);
 
   // Nested loops for the integral over all the incident directions omega_i.
@@ -1075,7 +1075,7 @@ RadianceDensitySpectrum ComputeScatteringDensity(IN(AtmosphereComponents) atmosp
       // (n-1)-th order:
       Number           nu1 = dot(omega_s, omega_i);
       RadianceSpectrum incident_radiance =
-          GetScattering(atmosphere, single_rayleigh_scattering_texture,
+          GetScattering(atmosphere, single_molecules_scattering_texture,
               single_mie_scattering_texture, multiple_scattering_texture, r, omega_i.z, mu_s, nu1,
               ray_r_theta_intersects_ground, scattering_order - 1);
 
@@ -1093,18 +1093,19 @@ RadianceDensitySpectrum ComputeScatteringDensity(IN(AtmosphereComponents) atmosp
       // -omega is the product of the incident radiance, the scattering
       // coefficient, and the phase function for directions omega and omega_i
       // (all this summed over all particle types, i.e. Rayleigh and Mie).
-      Number nu2              = dot(omega, omega_i);
-      Number rayleigh_density = GetDensity(atmosphere.rayleigh.densityTextureV, r - BOTTOM_RADIUS);
-      Number mie_density      = GetDensity(atmosphere.mie.densityTextureV, r - BOTTOM_RADIUS);
-      rayleigh_mie +=
+      Number nu2 = dot(omega, omega_i);
+      Number molecules_density =
+          GetDensity(atmosphere.molecules.densityTextureV, r - BOTTOM_RADIUS);
+      Number mie_density = GetDensity(atmosphere.mie.densityTextureV, r - BOTTOM_RADIUS);
+      molecules_mie +=
           incident_radiance *
-          (atmosphere.rayleigh.scattering * rayleigh_density *
-                  PhaseFunction(atmosphere.rayleigh, nu2) +
+          (atmosphere.molecules.scattering * molecules_density *
+                  PhaseFunction(atmosphere.molecules, nu2) +
               atmosphere.mie.scattering * mie_density * PhaseFunction(atmosphere.mie, nu2)) *
           domega_i;
     }
   }
-  return rayleigh_mie;
+  return molecules_mie;
 }
 
 /*
@@ -1142,7 +1143,7 @@ RadianceSpectrum ComputeMultipleScattering(IN(TransmittanceTexture) transmittanc
   Length dx = DistanceToNearestAtmosphereBoundary(r, mu, ray_r_mu_intersects_ground) /
               Number(SAMPLE_COUNT_MULTI_SCATTERING);
   // Integration loop.
-  RadianceSpectrum rayleigh_mie_sum = RadianceSpectrum(0.0 * watt_per_square_meter_per_sr_per_nm);
+  RadianceSpectrum molecules_mie_sum = RadianceSpectrum(0.0 * watt_per_square_meter_per_sr_per_nm);
   for (int i = 0; i <= SAMPLE_COUNT_MULTI_SCATTERING; ++i) {
     Length d_i = Number(i) * dx;
 
@@ -1153,15 +1154,15 @@ RadianceSpectrum ComputeMultipleScattering(IN(TransmittanceTexture) transmittanc
     Number mu_s_i = ClampCosine((r * mu_s + d_i * nu) / r_i);
 
     // The Rayleigh and Mie multiple scattering at the current sample point.
-    RadianceSpectrum rayleigh_mie_i =
+    RadianceSpectrum molecules_mie_i =
         GetScattering(
             scattering_density_texture, r_i, mu_i, mu_s_i, nu, ray_r_mu_intersects_ground) *
         GetTransmittance(transmittance_texture, r, mu, d_i, ray_r_mu_intersects_ground) * dx;
     // Sample weight (from the trapezoidal rule).
     Number weight_i = (i == 0 || i == SAMPLE_COUNT_MULTI_SCATTERING) ? 0.5 : 1.0;
-    rayleigh_mie_sum += rayleigh_mie_i * weight_i;
+    molecules_mie_sum += molecules_mie_i * weight_i;
   }
-  return rayleigh_mie_sum;
+  return molecules_mie_sum;
 }
 
 /*
@@ -1182,7 +1183,7 @@ over the number of bounces:
 
 RadianceDensitySpectrum ComputeScatteringDensityTexture(IN(AtmosphereComponents) atmosphere,
     IN(TransmittanceTexture) transmittance_texture,
-    IN(ReducedScatteringTexture) single_rayleigh_scattering_texture,
+    IN(ReducedScatteringTexture) single_molecules_scattering_texture,
     IN(ReducedScatteringTexture) single_mie_scattering_texture,
     IN(ScatteringTexture) multiple_scattering_texture, IN(IrradianceTexture) irradiance_texture,
     IN(vec3) frag_coord, int scattering_order) {
@@ -1194,7 +1195,7 @@ RadianceDensitySpectrum ComputeScatteringDensityTexture(IN(AtmosphereComponents)
   GetRMuMuSNuFromScatteringTextureFragCoord(
       frag_coord, r, mu, mu_s, nu, ray_r_mu_intersects_ground);
   return ComputeScatteringDensity(atmosphere, transmittance_texture,
-      single_rayleigh_scattering_texture, single_mie_scattering_texture,
+      single_molecules_scattering_texture, single_mie_scattering_texture,
       multiple_scattering_texture, irradiance_texture, r, mu, mu_s, nu, scattering_order);
 }
 
@@ -1301,7 +1302,7 @@ $n$):</li>
 */
 
 IrradianceSpectrum ComputeIndirectIrradiance(IN(AtmosphereComponents) atmosphere,
-    IN(ReducedScatteringTexture) single_rayleigh_scattering_texture,
+    IN(ReducedScatteringTexture) single_molecules_scattering_texture,
     IN(ReducedScatteringTexture) single_mie_scattering_texture,
     IN(ScatteringTexture) multiple_scattering_texture, Length r, Number mu_s,
     int scattering_order) {
@@ -1322,7 +1323,7 @@ IrradianceSpectrum ComputeIndirectIrradiance(IN(AtmosphereComponents) atmosphere
       SolidAngle domega = (dtheta / rad) * (dphi / rad) * sin(theta) * sr;
 
       Number nu = dot(omega, omega_s);
-      result += GetScattering(atmosphere, single_rayleigh_scattering_texture,
+      result += GetScattering(atmosphere, single_molecules_scattering_texture,
                     single_mie_scattering_texture, multiple_scattering_texture, r, omega.z, mu_s,
                     nu, false /* ray_r_theta_intersects_ground */, scattering_order) *
                 omega.z * domega;
@@ -1384,13 +1385,13 @@ IrradianceSpectrum ComputeDirectIrradianceTexture(
 */
 
 IrradianceSpectrum ComputeIndirectIrradianceTexture(IN(AtmosphereComponents) atmosphere,
-    IN(ReducedScatteringTexture) single_rayleigh_scattering_texture,
+    IN(ReducedScatteringTexture) single_molecules_scattering_texture,
     IN(ReducedScatteringTexture) single_mie_scattering_texture,
     IN(ScatteringTexture) multiple_scattering_texture, IN(vec2) frag_coord, int scattering_order) {
   Length r;
   Number mu_s;
   GetRMuSFromIrradianceTextureUv(frag_coord / IRRADIANCE_TEXTURE_SIZE, r, mu_s);
-  return ComputeIndirectIrradiance(atmosphere, single_rayleigh_scattering_texture,
+  return ComputeIndirectIrradiance(atmosphere, single_molecules_scattering_texture,
       single_mie_scattering_texture, multiple_scattering_texture, r, mu_s, scattering_order);
 }
 
@@ -1518,7 +1519,7 @@ RadianceSpectrum GetSkyRadiance(IN(AtmosphereComponents) atmosphere,
     multiple_scattering   = multiple_scattering * shadow_transmittance;
     single_mie_scattering = single_mie_scattering * shadow_transmittance;
   }
-  return multiple_scattering * PhaseFunction(atmosphere.rayleigh, nu) +
+  return multiple_scattering * PhaseFunction(atmosphere.molecules, nu) +
          single_mie_scattering * PhaseFunction(atmosphere.mie, nu);
 }
 
@@ -1603,7 +1604,7 @@ RadianceSpectrum GetSkyRadianceToPoint(IN(AtmosphereComponents) atmosphere,
   // Hack to avoid rendering artifacts when the sun is below the horizon.
   // single_mie_scattering = single_mie_scattering * smoothstep(Number(0.0), Number(0.01), mu_s);
 
-  return multiple_scattering * PhaseFunction(atmosphere.rayleigh, nu) +
+  return multiple_scattering * PhaseFunction(atmosphere.molecules, nu) +
          single_mie_scattering * PhaseFunction(atmosphere.mie, nu);
 }
 

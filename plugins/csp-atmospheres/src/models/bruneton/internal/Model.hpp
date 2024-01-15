@@ -175,7 +175,7 @@ class Model {
  public:
   Model(
       // The wavelength values, in nanometers, and sorted in increasing order, for
-      // which the solar_irradiance, rayleigh_scattering, mie_scattering,
+      // which the solar_irradiance, molecules_scattering, mie_scattering,
       // mie_extinction and ground_albedo samples are provided. If your shaders
       // use luminance values (as opposed to radiance values, see above), use a
       // large number of wavelengths (e.g. between 15 and 50) to get accurate
@@ -192,7 +192,7 @@ class Model {
       // in m.
       double top_radius,
 
-      const ScatteringAtmosphereComponent& rayleigh,
+      const ScatteringAtmosphereComponent& molecules,
 
       const ScatteringAtmosphereComponent& mie,
 
@@ -231,7 +231,7 @@ class Model {
   typedef std::array<float, 9>  mat3;
 
   void Precompute(GLuint fbo, GLuint delta_irradiance_texture,
-      GLuint delta_rayleigh_scattering_texture, GLuint delta_mie_scattering_texture,
+      GLuint delta_molecules_scattering_texture, GLuint delta_mie_scattering_texture,
       GLuint delta_scattering_density_texture, GLuint delta_multiple_scattering_texture,
       const vec3& lambdas, const mat3& luminance_from_radiance, bool blend,
       unsigned int num_scattering_orders);
@@ -242,7 +242,7 @@ class Model {
 
   std::vector<double> wavelengths_;
 
-  ScatteringAtmosphereComponent rayleigh_;
+  ScatteringAtmosphereComponent molecules_;
   ScatteringAtmosphereComponent mie_;
   AbsorbingAtmosphereComponent  ozone_;
 
@@ -251,7 +251,7 @@ class Model {
   GLuint                                  density_texture_       = 0;
   GLuint                                  transmittance_texture_ = 0;
 
-  // This texture stores single rayleigh scattering plus all multiple scattering contributions. The
+  // This texture stores single molecules scattering plus all multiple scattering contributions. The
   // single mie scattering is stored in an extra texture to have a higher angular resolution (the
   // phase function is applied at render time).
   GLuint multiple_scattering_texture_   = 0;

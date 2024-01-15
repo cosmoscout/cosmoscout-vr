@@ -47,16 +47,16 @@ void to_json(nlohmann::json& j, Model::Settings::AbsorbingComponent const& o) {
 
 void from_json(nlohmann::json const& j, Model::Settings& o) {
   cs::core::Settings::deserialize(j, "sunAngularRadius", o.mSunAngularRadius);
-  cs::core::Settings::deserialize(j, "particles_a", o.mParticlesA);
-  cs::core::Settings::deserialize(j, "particles_b", o.mParticlesB);
+  cs::core::Settings::deserialize(j, "molecules", o.mMolecules);
+  cs::core::Settings::deserialize(j, "aerosols", o.mAerosols);
   cs::core::Settings::deserialize(j, "absorbing_particles", o.mAbsorbingParticles);
   cs::core::Settings::deserialize(j, "groundAlbedo", o.mGroundAlbedo);
 }
 
 void to_json(nlohmann::json& j, Model::Settings const& o) {
   cs::core::Settings::serialize(j, "sunAngularRadius", o.mSunAngularRadius);
-  cs::core::Settings::serialize(j, "particles_a", o.mParticlesA);
-  cs::core::Settings::serialize(j, "particles_b", o.mParticlesB);
+  cs::core::Settings::serialize(j, "molecules", o.mMolecules);
+  cs::core::Settings::serialize(j, "aerosols", o.mAerosols);
   cs::core::Settings::serialize(j, "absorbing_particles", o.mAbsorbingParticles);
   cs::core::Settings::serialize(j, "groundAlbedo", o.mGroundAlbedo);
 }
@@ -74,24 +74,24 @@ bool Model::init(
     logger().error("Failed to parse atmosphere parameters: {}", e.what());
   }
 
-  internal::ScatteringAtmosphereComponent rayleigh;
+  internal::ScatteringAtmosphereComponent molecules;
   internal::ScatteringAtmosphereComponent mie;
   internal::AbsorbingAtmosphereComponent  ozone;
 
   std::vector<double> wavelengths;
   uint32_t            densityCount = 0;
 
-  rayleigh.density = internal::CSVLoader::readDensity(settings.mParticlesA.mDensity, densityCount);
-  rayleigh.phase   = internal::CSVLoader::readPhase(settings.mParticlesA.mPhase, wavelengths);
-  rayleigh.scattering =
-      internal::CSVLoader::readExtinction(settings.mParticlesA.mBetaSca, wavelengths);
-  rayleigh.absorption =
-      internal::CSVLoader::readExtinction(settings.mParticlesA.mBetaAbs, wavelengths);
+  molecules.density = internal::CSVLoader::readDensity(settings.mMolecules.mDensity, densityCount);
+  molecules.phase   = internal::CSVLoader::readPhase(settings.mMolecules.mPhase, wavelengths);
+  molecules.scattering =
+      internal::CSVLoader::readExtinction(settings.mMolecules.mBetaSca, wavelengths);
+  molecules.absorption =
+      internal::CSVLoader::readExtinction(settings.mMolecules.mBetaAbs, wavelengths);
 
-  mie.density    = internal::CSVLoader::readDensity(settings.mParticlesB.mDensity, densityCount);
-  mie.phase      = internal::CSVLoader::readPhase(settings.mParticlesB.mPhase, wavelengths);
-  mie.scattering = internal::CSVLoader::readExtinction(settings.mParticlesB.mBetaSca, wavelengths);
-  mie.absorption = internal::CSVLoader::readExtinction(settings.mParticlesB.mBetaAbs, wavelengths);
+  mie.density    = internal::CSVLoader::readDensity(settings.mAerosols.mDensity, densityCount);
+  mie.phase      = internal::CSVLoader::readPhase(settings.mAerosols.mPhase, wavelengths);
+  mie.scattering = internal::CSVLoader::readExtinction(settings.mAerosols.mBetaSca, wavelengths);
+  mie.absorption = internal::CSVLoader::readExtinction(settings.mAerosols.mBetaAbs, wavelengths);
 
   if (settings.mAbsorbingParticles) {
 
@@ -119,7 +119,7 @@ bool Model::init(
 
   mModel.reset(
       new internal::Model(wavelengths, settings.mSunAngularRadius, planetRadius, atmosphereRadius,
-          rayleigh, mie, ozone, settings.mGroundAlbedo.get(), maxSunZenithAngle, 1.0));
+          molecules, mie, ozone, settings.mGroundAlbedo.get(), maxSunZenithAngle, 1.0));
 
   glDisable(GL_CULL_FACE);
   mModel->Init();
