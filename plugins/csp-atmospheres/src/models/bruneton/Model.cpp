@@ -75,7 +75,7 @@ bool Model::init(
   }
 
   internal::ScatteringAtmosphereComponent molecules;
-  internal::ScatteringAtmosphereComponent mie;
+  internal::ScatteringAtmosphereComponent aerosols;
   internal::AbsorbingAtmosphereComponent  ozone;
 
   std::vector<double> wavelengths;
@@ -88,10 +88,12 @@ bool Model::init(
   molecules.absorption =
       internal::CSVLoader::readExtinction(settings.mMolecules.mBetaAbs, wavelengths);
 
-  mie.density    = internal::CSVLoader::readDensity(settings.mAerosols.mDensity, densityCount);
-  mie.phase      = internal::CSVLoader::readPhase(settings.mAerosols.mPhase, wavelengths);
-  mie.scattering = internal::CSVLoader::readExtinction(settings.mAerosols.mBetaSca, wavelengths);
-  mie.absorption = internal::CSVLoader::readExtinction(settings.mAerosols.mBetaAbs, wavelengths);
+  aerosols.density = internal::CSVLoader::readDensity(settings.mAerosols.mDensity, densityCount);
+  aerosols.phase   = internal::CSVLoader::readPhase(settings.mAerosols.mPhase, wavelengths);
+  aerosols.scattering =
+      internal::CSVLoader::readExtinction(settings.mAerosols.mBetaSca, wavelengths);
+  aerosols.absorption =
+      internal::CSVLoader::readExtinction(settings.mAerosols.mBetaAbs, wavelengths);
 
   if (settings.mAbsorbingParticles) {
 
@@ -119,7 +121,7 @@ bool Model::init(
 
   mModel.reset(
       new internal::Model(wavelengths, settings.mSunAngularRadius, planetRadius, atmosphereRadius,
-          molecules, mie, ozone, settings.mGroundAlbedo.get(), maxSunZenithAngle, 1.0));
+          molecules, aerosols, ozone, settings.mGroundAlbedo.get(), maxSunZenithAngle, 1.0));
 
   glDisable(GL_CULL_FACE);
   mModel->Init();

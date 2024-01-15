@@ -187,6 +187,6 @@ struct AbsorbingComponent {
 
 struct AtmosphereComponents {
   ScatteringComponent molecules;
-  ScatteringComponent mie;
+  ScatteringComponent aerosols;
   AbsorbingComponent  ozone;
 };
