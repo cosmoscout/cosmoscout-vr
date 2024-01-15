@@ -36,7 +36,7 @@ class Model : public ModelBase {
     double                             mSunAngularRadius = 0.004675;
     ScatteringComponent                mMolecules;
     ScatteringComponent                mAerosols;
-    std::optional<AbsorbingComponent>  mAbsorbingParticles;
+    std::optional<AbsorbingComponent>  mOzone;
     cs::utils::DefaultProperty<double> mGroundAlbedo{0.1};
   };
 

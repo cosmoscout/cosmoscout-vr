@@ -49,7 +49,7 @@ void from_json(nlohmann::json const& j, Model::Settings& o) {
   cs::core::Settings::deserialize(j, "sunAngularRadius", o.mSunAngularRadius);
   cs::core::Settings::deserialize(j, "molecules", o.mMolecules);
   cs::core::Settings::deserialize(j, "aerosols", o.mAerosols);
-  cs::core::Settings::deserialize(j, "absorbing_particles", o.mAbsorbingParticles);
+  cs::core::Settings::deserialize(j, "ozone", o.mOzone);
   cs::core::Settings::deserialize(j, "groundAlbedo", o.mGroundAlbedo);
 }
 
@@ -57,7 +57,7 @@ void to_json(nlohmann::json& j, Model::Settings const& o) {
   cs::core::Settings::serialize(j, "sunAngularRadius", o.mSunAngularRadius);
   cs::core::Settings::serialize(j, "molecules", o.mMolecules);
   cs::core::Settings::serialize(j, "aerosols", o.mAerosols);
-  cs::core::Settings::serialize(j, "absorbing_particles", o.mAbsorbingParticles);
+  cs::core::Settings::serialize(j, "ozone", o.mOzone);
   cs::core::Settings::serialize(j, "groundAlbedo", o.mGroundAlbedo);
 }
 
@@ -95,12 +95,10 @@ bool Model::init(
   aerosols.absorption =
       internal::CSVLoader::readExtinction(settings.mAerosols.mBetaAbs, wavelengths);
 
-  if (settings.mAbsorbingParticles) {
+  if (settings.mOzone) {
 
-    ozone.density =
-        internal::CSVLoader::readDensity(settings.mAbsorbingParticles->mDensity, densityCount);
-    ozone.absorption =
-        internal::CSVLoader::readExtinction(settings.mAbsorbingParticles->mBetaAbs, wavelengths);
+    ozone.density    = internal::CSVLoader::readDensity(settings.mOzone->mDensity, densityCount);
+    ozone.absorption = internal::CSVLoader::readExtinction(settings.mOzone->mBetaAbs, wavelengths);
 
   } else {
     ozone.density    = std::vector<double>(densityCount, 0.0);
