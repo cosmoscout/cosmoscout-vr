@@ -350,7 +350,8 @@ bool Atmosphere::Do() {
 
   if (mSettings.mEnableWater.get()) {
     mAtmoShader.SetUniform(mUniforms.waterLevel,
-        mSettings.mWaterLevel.get() * mAllSettings->mGraphics.pHeightScale.get());
+        mSettings.mWaterLevel.get() * mAllSettings->mGraphics.pHeightScale.get() -
+            static_cast<float>(mSettings.mBottomAltitude.get()));
   }
 
   if (mSettings.mEnableClouds.get() && mCloudTexture) {
