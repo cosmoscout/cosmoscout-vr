@@ -17,6 +17,9 @@ uniform float uSunIlluminance;
 // preprocessing. For each pixel, a primary ray is cast through the atmosphere and at specific
 // sample positions, secondary rays are cast towards the Sun. The sun light is attenuated along the
 // secondary rays and accumulated along the primary ray.
+// Scroll to the bottom of this file to see the public API of this shader.
+
+// -------------------------------------------------------------------------------- internal methods
 
 // The Henyey-Greenstein phase function returns the probability of scattering based on the cosine
 // between in and out direction (c) and the anisotropy (g).
