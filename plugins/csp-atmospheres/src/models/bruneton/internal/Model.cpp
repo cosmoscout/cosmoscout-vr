@@ -209,11 +209,14 @@ namespace csp::atmospheres::models::bruneton::internal {
 namespace {
 
 const char kVertexShader[] = R"(
-    #version 330
-    layout(location = 0) in vec2 vertex;
-    void main() {
-      gl_Position = vec4(vertex, 0.0, 1.0);
-    })";
+  #version 330
+
+  layout(location = 0) in vec2 vertex;
+
+  void main() {
+    gl_Position = vec4(vertex, 0.0, 1.0);
+  }
+)";
 
 /*
 <p>a basic geometry shader (only for 3D textures, to specify in which layer we
@@ -221,22 +224,29 @@ want to write):
 */
 
 const char kGeometryShader[] = R"(
-    #version 330
-    layout(triangles) in;
-    layout(triangle_strip, max_vertices = 3) out;
-    uniform int layer;
-    void main() {
-      gl_Position = gl_in[0].gl_Position;
-      gl_Layer = layer;
-      EmitVertex();
-      gl_Position = gl_in[1].gl_Position;
-      gl_Layer = layer;
-      EmitVertex();
-      gl_Position = gl_in[2].gl_Position;
-      gl_Layer = layer;
-      EmitVertex();
-      EndPrimitive();
-    })";
+  #version 330
+
+  layout(triangles) in;
+  layout(triangle_strip, max_vertices = 3) out;
+
+  uniform int layer;
+
+  void main() {
+    gl_Position = gl_in[0].gl_Position;
+    gl_Layer = layer;
+    EmitVertex();
+
+    gl_Position = gl_in[1].gl_Position;
+    gl_Layer = layer;
+    EmitVertex();
+
+    gl_Position = gl_in[2].gl_Position;
+    gl_Layer = layer;
+    EmitVertex();
+
+    EndPrimitive();
+  }
+)";
 
 /*
 <p>and a fragment shader, which depends on the texture we want to compute. This
@@ -255,86 +265,102 @@ illuminance mode to convert the radiance values computed by the
 */
 
 const char kComputeTransmittanceShader[] = R"(
-    layout(location = 0) out vec3 transmittance;
-    void main() {
-      transmittance = ComputeTransmittanceToTopAtmosphereBoundaryTexture(
-          ATMOSPHERE, gl_FragCoord.xy);
-    })";
+  layout(location = 0) out vec3 transmittance;
+
+  void main() {
+    transmittance = ComputeTransmittanceToTopAtmosphereBoundaryTexture(ATMOSPHERE, gl_FragCoord.xy);
+  }
+)";
 
 const char kComputeDirectIrradianceShader[] = R"(
-    layout(location = 0) out vec3 delta_irradiance;
-    layout(location = 1) out vec3 irradiance;
-    uniform sampler2D transmittance_texture;
-    void main() {
-      delta_irradiance = ComputeDirectIrradianceTexture(
-          transmittance_texture, gl_FragCoord.xy);
-      irradiance = vec3(0.0);
-    })";
+  layout(location = 0) out vec3 delta_irradiance;
+  layout(location = 1) out vec3 irradiance;
+  uniform sampler2D transmittance_texture;
+  void main() {
+    delta_irradiance = ComputeDirectIrradianceTexture(transmittance_texture, gl_FragCoord.xy);
+    irradiance = vec3(0.0);
+  }
+)";
 
 const char kComputeSingleScatteringShader[] = R"(
-    layout(location = 0) out vec3 delta_molecules;
-    layout(location = 1) out vec3 delta_aerosols;
-    layout(location = 2) out vec3 accumulated_molecules_single_scattering_luminance;
-    layout(location = 3) out vec3 accumulated_aerosols_single_scattering_luminance;
-    uniform mat3 luminance_from_radiance;
-    uniform sampler2D transmittance_texture;
-    uniform int layer;
-    void main() {
-      ComputeSingleScatteringTexture(
-          ATMOSPHERE, transmittance_texture, vec3(gl_FragCoord.xy, layer + 0.5),
-          delta_molecules, delta_aerosols);
-      accumulated_molecules_single_scattering_luminance = luminance_from_radiance * delta_molecules;
-      accumulated_aerosols_single_scattering_luminance = luminance_from_radiance * delta_aerosols;
-    })";
+  layout(location = 0) out vec3 delta_molecules;
+  layout(location = 1) out vec3 delta_aerosols;
+  layout(location = 2) out vec3 accumulated_molecules_single_scattering_luminance;
+  layout(location = 3) out vec3 accumulated_aerosols_single_scattering_luminance;
+
+  uniform mat3 luminance_from_radiance;
+  uniform sampler2D transmittance_texture;
+  uniform int layer;
+
+  void main() {
+    ComputeSingleScatteringTexture(ATMOSPHERE, transmittance_texture,
+                                   vec3(gl_FragCoord.xy, layer + 0.5),
+                                   delta_molecules, delta_aerosols);
+    accumulated_molecules_single_scattering_luminance = luminance_from_radiance * delta_molecules;
+    accumulated_aerosols_single_scattering_luminance = luminance_from_radiance * delta_aerosols;
+  }
+)";
 
 const char kComputeScatteringDensityShader[] = R"(
-    layout(location = 0) out vec3 scattering_density;
-    uniform sampler2D transmittance_texture;
-    uniform sampler3D single_molecules_scattering_texture;
-    uniform sampler3D single_aerosols_scattering_texture;
-    uniform sampler3D multiple_scattering_texture;
-    uniform sampler2D irradiance_texture;
-    uniform int scattering_order;
-    uniform int layer;
-    void main() {
-      scattering_density = ComputeScatteringDensityTexture(
-          ATMOSPHERE, transmittance_texture, single_molecules_scattering_texture,
-          single_aerosols_scattering_texture, multiple_scattering_texture,
-          irradiance_texture, vec3(gl_FragCoord.xy, layer + 0.5),
-          scattering_order);
-    })";
+  layout(location = 0) out vec3 scattering_density;
+
+  uniform sampler2D transmittance_texture;
+  uniform sampler3D single_molecules_scattering_texture;
+  uniform sampler3D single_aerosols_scattering_texture;
+  uniform sampler3D multiple_scattering_texture;
+  uniform sampler2D irradiance_texture;
+  uniform int scattering_order;
+  uniform int layer;
+
+  void main() {
+    scattering_density = ComputeScatteringDensityTexture(ATMOSPHERE, transmittance_texture,
+                                                         single_molecules_scattering_texture,
+                                                         single_aerosols_scattering_texture,
+                                                         multiple_scattering_texture,
+                                                         irradiance_texture,
+                                                         vec3(gl_FragCoord.xy, layer + 0.5),
+                                                         scattering_order);
+  }
+)";
 
 const char kComputeIndirectIrradianceShader[] = R"(
-    layout(location = 0) out vec3 delta_irradiance;
-    layout(location = 1) out vec3 irradiance;
-    uniform mat3 luminance_from_radiance;
-    uniform sampler3D single_molecules_scattering_texture;
-    uniform sampler3D single_aerosols_scattering_texture;
-    uniform sampler3D multiple_scattering_texture;
-    uniform int scattering_order;
-    void main() {
-      delta_irradiance = ComputeIndirectIrradianceTexture(
-          ATMOSPHERE, single_molecules_scattering_texture,
-          single_aerosols_scattering_texture, multiple_scattering_texture,
-          gl_FragCoord.xy, scattering_order);
-      irradiance = luminance_from_radiance * delta_irradiance;
-    })";
+  layout(location = 0) out vec3 delta_irradiance;
+  layout(location = 1) out vec3 irradiance;
+
+  uniform mat3 luminance_from_radiance;
+  uniform sampler3D single_molecules_scattering_texture;
+  uniform sampler3D single_aerosols_scattering_texture;
+  uniform sampler3D multiple_scattering_texture;
+  uniform int scattering_order;
+
+  void main() {
+    delta_irradiance = ComputeIndirectIrradianceTexture(ATMOSPHERE, single_molecules_scattering_texture,
+                                                        single_aerosols_scattering_texture,
+                                                        multiple_scattering_texture,
+                                                        gl_FragCoord.xy, scattering_order);
+    irradiance = luminance_from_radiance * delta_irradiance;
+  }
+)";
 
 const char kComputeMultipleScatteringShader[] = R"(
-    layout(location = 0) out vec3 delta_multiple_scattering;
-    layout(location = 1) out vec3 multiple_scattering;
-    uniform mat3 luminance_from_radiance;
-    uniform sampler2D transmittance_texture;
-    uniform sampler3D scattering_density_texture;
-    uniform int layer;
-    void main() {
-      float nu;
-      delta_multiple_scattering = ComputeMultipleScatteringTexture(
-          transmittance_texture, scattering_density_texture,
-          vec3(gl_FragCoord.xy, layer + 0.5), nu);
-      multiple_scattering = luminance_from_radiance *
-                            delta_multiple_scattering / PhaseFunction(ATMOSPHERE.molecules, nu);
-    })";
+  layout(location = 0) out vec3 delta_multiple_scattering;
+  layout(location = 1) out vec3 multiple_scattering;
+
+  uniform mat3 luminance_from_radiance;
+  uniform sampler2D transmittance_texture;
+  uniform sampler3D scattering_density_texture;
+  uniform int layer;
+  
+  void main() {
+    float nu;
+    delta_multiple_scattering = ComputeMultipleScatteringTexture(transmittance_texture,
+                                                                 scattering_density_texture,
+                                                                 vec3(gl_FragCoord.xy, layer + 0.5),
+                                                                 nu);
+    multiple_scattering = luminance_from_radiance * delta_multiple_scattering /
+                          PhaseFunction(ATMOSPHERE.molecules, nu);
+  }
+)";
 
 /*
 <p>We finally need a shader implementing the GLSL functions exposed in our API,
@@ -348,29 +374,29 @@ shader).
 */
 
 const char kAtmosphereShader[] = R"(
-    uniform sampler2D transmittance_texture;
-    uniform sampler3D multiple_scattering_texture;
-    uniform sampler3D single_aerosols_scattering_texture;
-    uniform sampler2D irradiance_texture;
+  uniform sampler2D transmittance_texture;
+  uniform sampler3D multiple_scattering_texture;
+  uniform sampler3D single_aerosols_scattering_texture;
+  uniform sampler2D irradiance_texture;
 
-    vec3 GetSkyLuminance(vec3 camera, vec3 view_ray, vec3 sun_direction, out vec3 transmittance) {
-      return GetSkyRadiance(ATMOSPHERE, transmittance_texture, multiple_scattering_texture,
-                            single_aerosols_scattering_texture, camera, view_ray, 0.0,
-                            sun_direction, transmittance) * SKY_SPECTRAL_RADIANCE_TO_LUMINANCE;
-    }
+  vec3 GetSkyLuminance(vec3 camera, vec3 view_ray, vec3 sun_direction, out vec3 transmittance) {
+    return GetSkyRadiance(ATMOSPHERE, transmittance_texture, multiple_scattering_texture,
+                          single_aerosols_scattering_texture, camera, view_ray, 0.0,
+                          sun_direction, transmittance) * SKY_SPECTRAL_RADIANCE_TO_LUMINANCE;
+  }
 
-    vec3 GetSkyLuminanceToPoint(vec3 camera, vec3 point, vec3 sun_direction, out vec3 transmittance) {
-      return GetSkyRadianceToPoint(ATMOSPHERE, transmittance_texture, multiple_scattering_texture,
-                                   single_aerosols_scattering_texture, camera, point, 0.0,
-                                   sun_direction, transmittance) * SKY_SPECTRAL_RADIANCE_TO_LUMINANCE;
-    }
+  vec3 GetSkyLuminanceToPoint(vec3 camera, vec3 point, vec3 sun_direction, out vec3 transmittance) {
+    return GetSkyRadianceToPoint(ATMOSPHERE, transmittance_texture, multiple_scattering_texture,
+                                  single_aerosols_scattering_texture, camera, point, 0.0,
+                                  sun_direction, transmittance) * SKY_SPECTRAL_RADIANCE_TO_LUMINANCE;
+  }
 
-    vec3 GetSunAndSkyIlluminance(vec3 p, vec3 sun_direction, out vec3 sky_irradiance) {
-      vec3 sun_irradiance = GetSunAndSkyIrradiance(transmittance_texture, irradiance_texture, p,
-                                                   sun_direction, sky_irradiance);
-      sky_irradiance *= SKY_SPECTRAL_RADIANCE_TO_LUMINANCE;
-      return sun_irradiance * SUN_SPECTRAL_RADIANCE_TO_LUMINANCE;
-    }
+  vec3 GetSunAndSkyIlluminance(vec3 p, vec3 sun_direction, out vec3 sky_irradiance) {
+    vec3 sun_irradiance = GetSunAndSkyIrradiance(transmittance_texture, irradiance_texture, p,
+                                                  sun_direction, sky_irradiance);
+    sky_irradiance *= SKY_SPECTRAL_RADIANCE_TO_LUMINANCE;
+    return sun_irradiance * SUN_SPECTRAL_RADIANCE_TO_LUMINANCE;
+  }
 )";
 
 /*<h3 id="utilities">Utility classes and functions</h3>
@@ -732,29 +758,29 @@ Model::Model(ModelParams params)
   // clang-format off
   glsl_header_factory_ = [=](const vec3& lambdas) {
     return
-      "#version 330\n"
-      "const int TRANSMITTANCE_TEXTURE_WIDTH = "  + cs::utils::toString(params_.mTransmittanceTextureWidth) + ";\n" +
-      "const int TRANSMITTANCE_TEXTURE_HEIGHT = " + cs::utils::toString(params_.mTransmittanceTextureHeight) + ";\n" +
-      "const int SCATTERING_TEXTURE_R_SIZE = "    + cs::utils::toString(params_.mScatteringTextureRSize) + ";\n" +
-      "const int SCATTERING_TEXTURE_MU_SIZE = "   + cs::utils::toString(params_.mScatteringTextureMuSize) + ";\n" +
-      "const int SCATTERING_TEXTURE_MU_S_SIZE = " + cs::utils::toString(params_.mScatteringTextureMuSSize) + ";\n" +
-      "const int SCATTERING_TEXTURE_NU_SIZE = "   + cs::utils::toString(params_.mScatteringTextureNuSize) + ";\n" +
-      "const int IRRADIANCE_TEXTURE_WIDTH = "     + cs::utils::toString(params_.mIrradianceTextureWidth) + ";\n" +
-      "const int IRRADIANCE_TEXTURE_HEIGHT = "    + cs::utils::toString(params_.mIrradianceTextureHeight) + ";\n" +
-      "const int SAMPLE_COUNT_OPTICAL_DEPTH = "   + cs::utils::toString(params_.mSampleCountOpticalDepth) + ";\n" +
+      "#version 330\n" +
+      definitions_glsl +
+      "const int TRANSMITTANCE_TEXTURE_WIDTH = "      + cs::utils::toString(params_.mTransmittanceTextureWidth) + ";\n" +
+      "const int TRANSMITTANCE_TEXTURE_HEIGHT = "     + cs::utils::toString(params_.mTransmittanceTextureHeight) + ";\n" +
+      "const int SCATTERING_TEXTURE_R_SIZE = "        + cs::utils::toString(params_.mScatteringTextureRSize) + ";\n" +
+      "const int SCATTERING_TEXTURE_MU_SIZE = "       + cs::utils::toString(params_.mScatteringTextureMuSize) + ";\n" +
+      "const int SCATTERING_TEXTURE_MU_S_SIZE = "     + cs::utils::toString(params_.mScatteringTextureMuSSize) + ";\n" +
+      "const int SCATTERING_TEXTURE_NU_SIZE = "       + cs::utils::toString(params_.mScatteringTextureNuSize) + ";\n" +
+      "const int IRRADIANCE_TEXTURE_WIDTH = "         + cs::utils::toString(params_.mIrradianceTextureWidth) + ";\n" +
+      "const int IRRADIANCE_TEXTURE_HEIGHT = "        + cs::utils::toString(params_.mIrradianceTextureHeight) + ";\n" +
+      "const int SAMPLE_COUNT_OPTICAL_DEPTH = "       + cs::utils::toString(params_.mSampleCountOpticalDepth) + ";\n" +
       "const int SAMPLE_COUNT_SINGLE_SCATTERING = "   + cs::utils::toString(params_.mSampleCountSingleScattering) + ";\n" +
       "const int SAMPLE_COUNT_SCATTERING_DENSITY = "  + cs::utils::toString(params_.mSampleCountScatteringDensity) + ";\n" +
       "const int SAMPLE_COUNT_MULTI_SCATTERING = "    + cs::utils::toString(params_.mSampleCountMultiScattering) + ";\n" +
       "const int SAMPLE_COUNT_INDIRECT_IRRADIANCE = " + cs::utils::toString(params_.mSampleCountIndirectIrradiance) + ";\n" +
-      definitions_glsl +
       "const vec3 SKY_SPECTRAL_RADIANCE_TO_LUMINANCE = vec3(" + cs::utils::toString(sky_k_r) + "," + cs::utils::toString(sky_k_g) + "," + cs::utils::toString(sky_k_b) + ");\n" +
       "const vec3 SUN_SPECTRAL_RADIANCE_TO_LUMINANCE = vec3(" + cs::utils::toString(sun_k_r) + "," + cs::utils::toString(sun_k_g) + "," + cs::utils::toString(sun_k_b) + ");\n" +
-      "const vec3 SOLAR_IRRADIANCE = "            + extractVec3(WAVELENGTHS, SOLAR_IRRADIANCE, lambdas) + ";\n" +
-      "const vec3 GROUND_ALBEDO = vec3("          + cs::utils::toString(params_.mGroundAlbedo) + ");\n" +
-      "const float SUN_ANGULAR_RADIUS = "         + cs::utils::toString(params_.mSunAngularRadius) + ";\n" +
-      "const float BOTTOM_RADIUS = "              + cs::utils::toString(params_.mBottomRadius) + ";\n" +
-      "const float TOP_RADIUS = "                 + cs::utils::toString(params_.mTopRadius) + ";\n" +
-      "const float MU_S_MIN = "                   + cs::utils::toString(std::cos(params_.mMaxSunZenithAngle))+ ";\n" +
+      "const vec3 SOLAR_IRRADIANCE = "                + extractVec3(WAVELENGTHS, SOLAR_IRRADIANCE, lambdas) + ";\n" +
+      "const vec3 GROUND_ALBEDO = vec3("              + cs::utils::toString(params_.mGroundAlbedo) + ");\n" +
+      "const float SUN_ANGULAR_RADIUS = "             + cs::utils::toString(params_.mSunAngularRadius) + ";\n" +
+      "const float BOTTOM_RADIUS = "                  + cs::utils::toString(params_.mBottomRadius) + ";\n" +
+      "const float TOP_RADIUS = "                     + cs::utils::toString(params_.mTopRadius) + ";\n" +
+      "const float MU_S_MIN = "                       + cs::utils::toString(std::cos(params_.mMaxSunZenithAngle))+ ";\n" +
       "const AtmosphereComponents ATMOSPHERE = AtmosphereComponents(\n" +
         scatteringComponent(params_.mMolecules, 0.0, 0.0, lambdas) + ",\n" +
         scatteringComponent(params_.mAerosols, 1.0, 0.5, lambdas) + ",\n" +
