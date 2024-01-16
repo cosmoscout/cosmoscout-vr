@@ -352,62 +352,26 @@ const char kAtmosphereShader[] = R"(
     uniform sampler3D multiple_scattering_texture;
     uniform sampler3D single_aerosols_scattering_texture;
     uniform sampler2D irradiance_texture;
-    #ifdef RADIANCE_API_ENABLED
-    RadianceSpectrum GetSolarRadiance() {
-      return SOLAR_IRRADIANCE /
-          (PI * SUN_ANGULAR_RADIUS * SUN_ANGULAR_RADIUS);
+
+    vec3 GetSkyLuminance(vec3 camera, vec3 view_ray, vec3 sun_direction, out vec3 transmittance) {
+      return GetSkyRadiance(ATMOSPHERE, transmittance_texture, multiple_scattering_texture,
+                            single_aerosols_scattering_texture, camera, view_ray, 0.0,
+                            sun_direction, transmittance) * SKY_SPECTRAL_RADIANCE_TO_LUMINANCE;
     }
-    RadianceSpectrum GetSkyRadiance(
-        vec3 camera, vec3 view_ray,
-        vec3 sun_direction, out vec3 transmittance) {
-      return GetSkyRadiance(ATMOSPHERE, transmittance_texture,
-          multiple_scattering_texture, single_aerosols_scattering_texture,
-          camera, view_ray, 0.0, sun_direction, transmittance);
+
+    vec3 GetSkyLuminanceToPoint(vec3 camera, vec3 point, vec3 sun_direction, out vec3 transmittance) {
+      return GetSkyRadianceToPoint(ATMOSPHERE, transmittance_texture, multiple_scattering_texture,
+                                   single_aerosols_scattering_texture, camera, point, 0.0,
+                                   sun_direction, transmittance) * SKY_SPECTRAL_RADIANCE_TO_LUMINANCE;
     }
-    RadianceSpectrum GetSkyRadianceToPoint(
-        vec3 camera, vec3 point,
-        vec3 sun_direction, out vec3 transmittance) {
-      return GetSkyRadianceToPoint(ATMOSPHERE, transmittance_texture,
-          multiple_scattering_texture, single_aerosols_scattering_texture,
-          camera, point, 0.0, sun_direction, transmittance);
-    }
-    vec3 GetSunAndSkyIrradiance(
-       vec3 p, vec3 sun_direction,
-       out vec3 sky_irradiance) {
-      return GetSunAndSkyIrradiance(transmittance_texture,
-          irradiance_texture, p, sun_direction, sky_irradiance);
-    }
-    #endif
-    vec3 GetSolarLuminance() {
-      return SOLAR_IRRADIANCE /
-          (PI * SUN_ANGULAR_RADIUS * SUN_ANGULAR_RADIUS) *
-          SUN_SPECTRAL_RADIANCE_TO_LUMINANCE;
-    }
-    vec3 GetSkyLuminance(
-        vec3 camera, vec3 view_ray,
-        vec3 sun_direction, out vec3 transmittance) {
-      return GetSkyRadiance(ATMOSPHERE, transmittance_texture,
-          multiple_scattering_texture, single_aerosols_scattering_texture,
-          camera, view_ray, 0.0, sun_direction, transmittance) *
-          SKY_SPECTRAL_RADIANCE_TO_LUMINANCE;
-    }
-    vec3 GetSkyLuminanceToPoint(
-        vec3 camera, vec3 point,
-        vec3 sun_direction, out vec3 transmittance) {
-      return GetSkyRadianceToPoint(ATMOSPHERE, transmittance_texture,
-          multiple_scattering_texture, single_aerosols_scattering_texture,
-          camera, point, 0.0, sun_direction, transmittance) *
-          SKY_SPECTRAL_RADIANCE_TO_LUMINANCE;
-    }
-    vec3 GetSunAndSkyIlluminance(
-       vec3 p, vec3 sun_direction,
-       out vec3 sky_irradiance) {
-      vec3 sun_irradiance = GetSunAndSkyIrradiance(
-          transmittance_texture, irradiance_texture, p,
-          sun_direction, sky_irradiance);
+
+    vec3 GetSunAndSkyIlluminance(vec3 p, vec3 sun_direction, out vec3 sky_irradiance) {
+      vec3 sun_irradiance = GetSunAndSkyIrradiance(transmittance_texture, irradiance_texture, p,
+                                                   sun_direction, sky_irradiance);
       sky_irradiance *= SKY_SPECTRAL_RADIANCE_TO_LUMINANCE;
       return sun_irradiance * SUN_SPECTRAL_RADIANCE_TO_LUMINANCE;
-    })";
+    }
+)";
 
 /*<h3 id="utilities">Utility classes and functions</h3>
 
@@ -831,9 +795,7 @@ Model::Model(ModelParams params)
   }
 
   // Create and compile the shader providing our API.
-  std::string shader = glsl_header_factory_({kLambdaR, kLambdaG, kLambdaB}) +
-                       (precompute_illuminance ? "" : "#define RADIANCE_API_ENABLED\n") +
-                       kAtmosphereShader;
+  std::string shader = glsl_header_factory_({kLambdaR, kLambdaG, kLambdaB}) + kAtmosphereShader;
   const char* source = shader.c_str();
   atmosphere_shader_ = glCreateShader(GL_FRAGMENT_SHADER);
   glShaderSource(atmosphere_shader_, 1, &source, NULL);
