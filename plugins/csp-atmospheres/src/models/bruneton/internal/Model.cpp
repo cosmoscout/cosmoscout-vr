@@ -43,6 +43,7 @@ of the following C++ code.
 
 #include <cassert>
 #include <cmath>
+#include <glm/gtc/type_ptr.hpp>
 #include <iostream>
 #include <memory>
 
@@ -461,9 +462,9 @@ class Program {
     glUseProgram(program_);
   }
 
-  void BindMat3(const std::string& uniform_name, const std::array<float, 9>& value) const {
+  void BindMat3(const std::string& uniform_name, const glm::mat3& value) const {
     glUniformMatrix3fv(glGetUniformLocation(program_, uniform_name.c_str()), 1,
-        true /* transpose */, value.data());
+        true /* transpose */, glm::value_ptr(value));
   }
 
   void BindInt(const std::string& uniform_name, int value) const {
@@ -628,6 +629,51 @@ double Interpolate(const std::vector<double>& xVals, const std::vector<double>& 
   return yVals[yVals.size() - 1];
 }
 
+std::string extractVec3(
+    const std::vector<double>& xVals, const std::vector<double>& yVals, const glm::dvec3& lambdas) {
+  double r = Interpolate(xVals, yVals, lambdas[0]);
+  double g = Interpolate(xVals, yVals, lambdas[1]);
+  double b = Interpolate(xVals, yVals, lambdas[2]);
+  return "vec3(" + cs::utils::toString(r) + "," + cs::utils::toString(g) + "," +
+         cs::utils::toString(b) + ")";
+}
+
+std::string printScatteringComponent(ScatteringAtmosphereComponent const& component,
+    std::vector<double> const& wavelengths, float phaseTextureV, float densityTextureV,
+    glm::dvec3 lambdas) {
+  std::stringstream ss;
+  ss << "ScatteringComponent(";
+
+  ss << phaseTextureV << ",\n";
+  ss << densityTextureV << ",\n";
+
+  auto absorption = extractVec3(wavelengths, component.mAbsorption, lambdas);
+  auto scattering = extractVec3(wavelengths, component.mScattering, lambdas);
+
+  ss << scattering << " + " << absorption << ",\n";
+  ss << scattering << "\n";
+
+  ss << ")";
+
+  return ss.str();
+}
+
+std::string printAbsorbingComponent(AbsorbingAtmosphereComponent const& component,
+    std::vector<double> const& wavelengths, float densityTextureV, glm::dvec3 lambdas) {
+  std::stringstream ss;
+  ss << "AbsorbingComponent(";
+
+  ss << densityTextureV << ",\n";
+
+  auto absorption = extractVec3(wavelengths, component.mAbsorption, lambdas);
+
+  ss << absorption << "\n";
+
+  ss << ")";
+
+  return ss.str();
+}
+
 /*
 <p>We can then implement a utility function to compute the "spectral radiance to
 luminance" conversion constants (see Section 14.3 in <a
@@ -685,50 +731,6 @@ Model::Model(ModelParams params)
     , mScatteringTextureHeight(params_.mScatteringTextureMuSize)
     , mScatteringTextureDepth(params_.mScatteringTextureRSize) {
 
-  auto extractVec3 = [](const std::vector<double>& xVals, const std::vector<double>& yVals,
-                         const vec3& lambdas, double scale = 1.0) {
-    double r = Interpolate(xVals, yVals, lambdas[0]) * scale;
-    double g = Interpolate(xVals, yVals, lambdas[1]) * scale;
-    double b = Interpolate(xVals, yVals, lambdas[2]) * scale;
-    return "vec3(" + cs::utils::toString(r) + "," + cs::utils::toString(g) + "," +
-           cs::utils::toString(b) + ")";
-  };
-
-  auto scatteringComponent = [this, extractVec3](ScatteringAtmosphereComponent const& component,
-                                 float phaseTextureV, float densityTextureV, vec3 lambdas) {
-    std::stringstream ss;
-    ss << "ScatteringComponent(";
-
-    ss << phaseTextureV << ",\n";
-    ss << densityTextureV << ",\n";
-
-    auto absorption = extractVec3(params_.mWavelengths, component.mAbsorption, lambdas, 1.0);
-    auto scattering = extractVec3(params_.mWavelengths, component.mScattering, lambdas, 1.0);
-
-    ss << scattering << " + " << absorption << ",\n";
-    ss << scattering << "\n";
-
-    ss << ")";
-
-    return ss.str();
-  };
-
-  auto absorbingComponent = [this, extractVec3](AbsorbingAtmosphereComponent const& component,
-                                float densityTextureV, vec3 lambdas) {
-    std::stringstream ss;
-    ss << "AbsorbingComponent(";
-
-    ss << densityTextureV << ",\n";
-
-    auto absorption = extractVec3(params_.mWavelengths, component.mAbsorption, lambdas, 1.0);
-
-    ss << absorption << "\n";
-
-    ss << ")";
-
-    return ss.str();
-  };
-
   // Compute the values for the SKY_RADIANCE_TO_LUMINANCE constant. In theory
   // this should be 1 in precomputed illuminance mode (because the precomputed
   // textures already contain illuminance values). In practice, however, storing
@@ -756,7 +758,7 @@ Model::Model(ModelParams params)
       "../share/resources/shaders/csp-atmospheres/models/bruneton/functions.glsl");
 
   // clang-format off
-  glsl_header_factory_ = [=](const vec3& lambdas) {
+  glsl_header_factory_ = [=](const glm::dvec3& lambdas) {
     return
       "#version 330\n" +
       definitions_glsl +
@@ -782,9 +784,9 @@ Model::Model(ModelParams params)
       "const float TOP_RADIUS = "                     + cs::utils::toString(params_.mTopRadius) + ";\n" +
       "const float MU_S_MIN = "                       + cs::utils::toString(std::cos(params_.mMaxSunZenithAngle))+ ";\n" +
       "const AtmosphereComponents ATMOSPHERE = AtmosphereComponents(\n" +
-        scatteringComponent(params_.mMolecules, 0.0, 0.0, lambdas) + ",\n" +
-        scatteringComponent(params_.mAerosols, 1.0, 0.5, lambdas) + ",\n" +
-        absorbingComponent(params_.mOzone, 1.0, lambdas) + ");\n" +
+        printScatteringComponent(params_.mMolecules, params_.mWavelengths, 0.0, 0.0, lambdas) + ",\n" +
+        printScatteringComponent(params_.mAerosols, params_.mWavelengths, 1.0, 0.5, lambdas) + ",\n" +
+        printAbsorbingComponent(params_.mOzone, params_.mWavelengths, 1.0, lambdas) + ");\n" +
       functions_glsl;
     };
   // clang-format on
@@ -949,8 +951,8 @@ void Model::Init(unsigned int num_scattering_orders) {
   // irradiance or illuminance values.
   if (params_.mWavelengths.size() <= 3) {
     logger().info("Precomputing atmospheric scattering...");
-    vec3 lambdas{kLambdaR, kLambdaG, kLambdaB};
-    mat3 luminance_from_radiance{1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0};
+    glm::dvec3 lambdas{kLambdaR, kLambdaG, kLambdaB};
+    glm::mat3  luminance_from_radiance{1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0};
     Precompute(fbo, delta_irradiance_texture, delta_molecules_scattering_texture,
         delta_aerosols_scattering_texture, delta_scattering_density_texture,
         delta_multiple_scattering_texture, lambdas, luminance_from_radiance, false /* blend */,
@@ -960,9 +962,9 @@ void Model::Init(unsigned int num_scattering_orders) {
     for (int i = 0; i < num_iterations; ++i) {
       logger().info("Precomputing atmospheric scattering ({}/{})...", i + 1, num_iterations);
 
-      vec3 lambdas{params_.mWavelengths[i * 3 + 0], params_.mWavelengths[i * 3 + 1],
+      glm::dvec3 lambdas{params_.mWavelengths[i * 3 + 0], params_.mWavelengths[i * 3 + 1],
           params_.mWavelengths[i * 3 + 2]};
-      auto coeff = [this](double lambda, int component) {
+      auto       coeff = [this](double lambda, int component) {
         // Note that we don't include MAX_LUMINOUS_EFFICACY here, to avoid
         // artefacts due to too large values when using half precision on GPU.
         // We add this term back in kAtmosphereShader, via
@@ -977,9 +979,9 @@ void Model::Init(unsigned int num_scattering_orders) {
             (params_.mWavelengths[1] - params_.mWavelengths[0]));
       };
 
-      mat3 luminance_from_radiance{coeff(lambdas[0], 0), coeff(lambdas[1], 0), coeff(lambdas[2], 0),
-          coeff(lambdas[0], 1), coeff(lambdas[1], 1), coeff(lambdas[2], 1), coeff(lambdas[0], 2),
-          coeff(lambdas[1], 2), coeff(lambdas[2], 2)};
+      glm::mat3 luminance_from_radiance{coeff(lambdas[0], 0), coeff(lambdas[1], 0),
+          coeff(lambdas[2], 0), coeff(lambdas[0], 1), coeff(lambdas[1], 1), coeff(lambdas[2], 1),
+          coeff(lambdas[0], 2), coeff(lambdas[1], 2), coeff(lambdas[2], 2)};
 
       Precompute(fbo, delta_irradiance_texture, delta_molecules_scattering_texture,
           delta_aerosols_scattering_texture, delta_scattering_density_texture,
@@ -1098,7 +1100,7 @@ the molecules phase function.
 void Model::Precompute(GLuint fbo, GLuint delta_irradiance_texture,
     GLuint delta_molecules_scattering_texture, GLuint delta_aerosols_scattering_texture,
     GLuint delta_scattering_density_texture, GLuint delta_multiple_scattering_texture,
-    const vec3& lambdas, const mat3& luminance_from_radiance, bool blend,
+    const glm::dvec3& lambdas, const glm::mat3& luminance_from_radiance, bool blend,
     unsigned int num_scattering_orders) {
   // The precomputations require specific GLSL programs, for each precomputation
   // step. We create and compile them here (they are automatically destroyed
@@ -1251,7 +1253,7 @@ void Model::Precompute(GLuint fbo, GLuint delta_irradiance_texture,
 
 void Model::UpdatePhaseFunctionTexture(
     std::vector<ScatteringAtmosphereComponent> const& scatteringComponents,
-    const Model::vec3&                                lambdas) {
+    const glm::dvec3&                                 lambdas) {
 
   if (phase_texture_ != 0) {
     glDeleteTextures(1, &phase_texture_);

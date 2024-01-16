@@ -25,6 +25,7 @@
 #include <GL/glew.h>
 #include <array>
 #include <functional>
+#include <glm/glm.hpp>
 #include <string>
 #include <vector>
 
@@ -126,28 +127,25 @@ class Model {
   static constexpr double kLambdaB = 440.0;
 
  private:
-  typedef std::array<double, 3> vec3;
-  typedef std::array<float, 9>  mat3;
-
   void Precompute(GLuint fbo, GLuint delta_irradiance_texture,
       GLuint delta_molecules_scattering_texture, GLuint delta_aerosols_scattering_texture,
       GLuint delta_scattering_density_texture, GLuint delta_multiple_scattering_texture,
-      const vec3& lambdas, const mat3& luminance_from_radiance, bool blend,
+      const glm::dvec3& lambdas, const glm::mat3& luminance_from_radiance, bool blend,
       unsigned int num_scattering_orders);
 
   void UpdatePhaseFunctionTexture(
       std::vector<ScatteringAtmosphereComponent> const& scatteringComponents,
-      const Model::vec3&                                lambdas);
+      const glm::dvec3&                                 lambdas);
 
   const ModelParams params_;
   const int32_t     mScatteringTextureWidth;
   const int32_t     mScatteringTextureHeight;
   const int32_t     mScatteringTextureDepth;
 
-  std::function<std::string(const vec3&)> glsl_header_factory_;
-  GLuint                                  phase_texture_         = 0;
-  GLuint                                  density_texture_       = 0;
-  GLuint                                  transmittance_texture_ = 0;
+  std::function<std::string(const glm::dvec3&)> glsl_header_factory_;
+  GLuint                                        phase_texture_         = 0;
+  GLuint                                        density_texture_       = 0;
+  GLuint                                        transmittance_texture_ = 0;
 
   // This texture stores single molecules scattering plus all multiple scattering contributions. The
   // single aerosols scattering is stored in an extra texture to have a higher angular resolution
