@@ -22,6 +22,9 @@ namespace csp::atmospheres::models::bruneton {
 /// More information on the original implementation can be found in the repo by Eric Bruneton:
 /// https://github.com/ebruneton/precomputed_atmospheric_scattering as well as in his paper
 /// "Precomputed Atmospheric Scattering" (https://hal.inria.fr/inria-00288758/en).
+/// The default values for the model parameters further down this file are based on the parameters
+/// from Eric Bruneton:
+/// https://github.com/ebruneton/precomputed_atmospheric_scattering/blob/master/atmosphere/constants.h
 class Model : public ModelBase {
  public:
   struct Settings {

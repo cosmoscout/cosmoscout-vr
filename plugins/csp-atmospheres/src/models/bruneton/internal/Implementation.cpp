@@ -6,20 +6,6 @@
 // SPDX-FileCopyrightText: 2017 Eric Bruneton
 // SPDX-License-Identifier: BSD-3-Clause
 
-// This file has been directly copied from here:
-// https://github.com/ebruneton/precomputed_atmospheric_scattering/blob/master/atmosphere/model.cc
-// https://github.com/ebruneton/precomputed_atmospheric_scattering/blob/master/atmosphere/demo/demo.cc
-// The documentation below can also be read online at:
-// https://ebruneton.github.io/precomputed_atmospheric_scattering/atmosphere/model.cc.html
-// Changes to this file are mostly related to formatting. The only other change with respect to the
-// original code is the removal of the "normal" parameter from the GetSunAndSkyIrradiance() and
-// GetSunAndSkyIlluminance() methods. In the original implementation, these methods used to
-// premultiply the irradiance with the dot product between light direction and surface normal. As
-// this factor is already included in the BRDFs used in CosmoCout VR, we have removed this. Also,
-// the GLSL files are now loaded via cs::utils::filesystem::loadToString().
-// Also, the shadow_length parameter has been removed from the public API as this is currently
-// not supported by CosmoScout VR.
-
 #include "Implementation.hpp"
 
 #include "../../../logger.hpp"
@@ -34,6 +20,18 @@
 #include <iostream>
 #include <memory>
 
+// This file is based in large parts on the original implementation by Eric Bruneton:
+// https://github.com/ebruneton/precomputed_atmospheric_scattering/blob/master/atmosphere/model.cc
+
+// While implementing the atmospheric model into CosmoScout VR, we have refactored some parts of the
+// code, however this is mostly related to how variables are named and how input parameters are
+// passed to the model. The only fundamental change is that the phase functions for aerosols and
+// molecules as well as their density distributions are now loaded from CSV files and then later
+// sampled from textures.
+
+// Below, we will indicate for each group of function whether something has been changed and a link
+// to the original explanations of the methods by Eric Bruneton.
+
 namespace csp::atmospheres::models::bruneton::internal {
 
 namespace {
@@ -41,17 +39,9 @@ namespace {
 // Values from "Reference Solar Spectral Irradiance: ASTM G-173", ETR column  (see
 // http://rredc.nrel.gov/solar/spectra/am1.5/ASTMG173/ASTMG173.html), summed and averaged in each
 // bin (e.g. the value for 360nm is the average of the ASTM G-173 values for all wavelengths between
-// 360 and 370nm). Values in W.m^-2.
+// 360 and 370nm). Values in W.m^-2. Copied from:
+// https://github.com/ebruneton/precomputed_atmospheric_scattering/blob/master/atmosphere/demo/demo.cc
 // clang-format off
-const std::vector<double> WAVELENGTHS = {
-                                  360, 370, 380, 390,
-    400, 410, 420, 430, 440, 450, 460, 470, 480, 490,
-    500, 510, 520, 530, 540, 550, 560, 570, 580, 590,
-    600, 610, 620, 630, 640, 650, 660, 670, 680, 690,
-    700, 710, 720, 730, 740, 750, 760, 770, 780, 790,
-    800, 810, 820, 830
-};
-
 const std::vector<double> SOLAR_IRRADIANCE = {
                                                           1.11776, 1.14259, 1.01249, 1.14716,
     1.72765, 1.73054, 1.6887,  1.61253, 1.91198, 2.03474, 2.02042, 2.02212, 1.93377, 1.95809,
@@ -60,6 +50,15 @@ const std::vector<double> SOLAR_IRRADIANCE = {
     1.41018, 1.36775, 1.34188, 1.31429, 1.28303, 1.26758, 1.2367,  1.2082,  1.18737, 1.14683,
     1.12362, 1.1058, 1.07124, 1.04992
 };
+
+const std::vector<double> WAVELENGTHS = {
+                                  360, 370, 380, 390,
+    400, 410, 420, 430, 440, 450, 460, 470, 480, 490,
+    500, 510, 520, 530, 540, 550, 560, 570, 580, 590,
+    600, 610, 620, 630, 640, 650, 660, 670, 680, 690,
+    700, 710, 720, 730, 740, 750, 760, 770, 780, 790,
+    800, 810, 820, 830
+};
 // clang-format on
 
 // The conversion factor between watts and lumens.
@@ -67,6 +66,8 @@ constexpr double MAX_LUMINOUS_EFFICACY = 683.0;
 
 // Values from "CIE (1931) 2-deg color matching functions", see
 // "http://web.archive.org/web/20081228084047/http://www.cvrl.org/database/data/cmfs/ciexyz31.txt".
+// Copied from:
+// https://github.com/ebruneton/precomputed_atmospheric_scattering/blob/master/atmosphere/constants.h
 // clang-format off
 constexpr double CIE_2_DEG_COLOR_MATCHING_FUNCTIONS[380] = {
     360, 0.000129900000, 0.000003917000, 0.000606100000,
@@ -167,8 +168,8 @@ constexpr double CIE_2_DEG_COLOR_MATCHING_FUNCTIONS[380] = {
 };
 // clang-format on
 
-// The conversion matrix from XYZ to linear sRGB color spaces. Values from
-// https://en.wikipedia.org/wiki/SRGB.
+// The conversion matrix from XYZ to linear sRGB color spaces.
+// Values from https://en.wikipedia.org/wiki/SRGB.
 // clang-format off
 constexpr double XYZ_TO_SRGB[9] = {
     +3.2406, -1.5372, -0.4986,
@@ -176,6 +177,18 @@ constexpr double XYZ_TO_SRGB[9] = {
     +0.0557, -0.2040, +1.0570
 };
 // clang-format on
+
+// Shader Definitions ------------------------------------------------------------------------------
+
+// Below, the source code for several shaders is defined. Most of them are used during the
+// pre-processing. Only the last one is is linked into the final fragment shader used at run-time.
+
+// An explanation of the following shaders is available online:
+// https://ebruneton.github.io/precomputed_atmospheric_scattering/atmosphere/model.cc.html#shaders
+
+// The only functional difference is that the kAtmosphereShader does not provide the radiance API
+// anymore as it is not required by CosmoScout VR. Also, the shadow_length parameters have been
+// removed and the GetSunAndSkyIlluminance() does not require the surface normal anymore.
 
 const char kVertexShader[] = R"(
   #version 330
@@ -336,6 +349,16 @@ const char kAtmosphereShader[] = R"(
   }
 )";
 
+// Utility classes and Functions -------------------------------------------------------------------
+
+// The functions and classes below are local to this file and used further down in the actual model
+// implementation.
+
+// An explanation of the classes and methods is available online:
+// https://ebruneton.github.io/precomputed_atmospheric_scattering/atmosphere/model.cc.html#utilities
+
+// This shader program class has not been changed functionality-wise.
+
 class Program {
  public:
   Program(std::string const& vertexShaderSource, std::string const& fragmentShaderSource)
@@ -458,6 +481,13 @@ class Program {
   GLuint mProgram;
 };
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// These GL-texture generators have been made a bit more flexible to allow for different pixel
+// formats. At the same time, we have removed support for the half-resolution pixel formats (they
+// quickly lead to artefacts with the high-dynamic range of CosmoScout VR). Also, we do not check
+// for the availability of RGB textures anymore but use RGBA textures everywhere.
+
 GLuint NewTexture2d(int width, int height, GLenum internalFormat, GLenum format, GLenum type,
     void* data = nullptr) {
   GLuint texture;
@@ -489,6 +519,10 @@ GLuint NewTexture3d(int width, int height, int depth, GLenum internalFormat, GLe
   return texture;
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// This is functionality-wise identical to the original implementation.
+
 void DrawQuad(std::vector<bool> const& enableBlend, GLuint quadVAO) {
   for (unsigned int i = 0; i < enableBlend.size(); ++i) {
     if (enableBlend[i]) {
@@ -505,6 +539,10 @@ void DrawQuad(std::vector<bool> const& enableBlend, GLuint quadVAO) {
   }
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// This is functionality-wise identical to the original implementation.
+
 double CieColorMatchingFunctionTableValue(double wavelength, int column) {
   if (wavelength <= WAVELENGTHS.front() || wavelength >= WAVELENGTHS.back()) {
     return 0.0;
@@ -518,6 +556,10 @@ double CieColorMatchingFunctionTableValue(double wavelength, int column) {
   return CIE_2_DEG_COLOR_MATCHING_FUNCTIONS[4 * row + column] * (1.0 - u) +
          CIE_2_DEG_COLOR_MATCHING_FUNCTIONS[4 * (row + 1) + column] * u;
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// This is functionality-wise identical to the original implementation.
 
 double Interpolate(std::vector<double> const& xVals, std::vector<double> const& yVals, double x) {
   assert(yVals.size() == xVals.size());
@@ -536,61 +578,13 @@ double Interpolate(std::vector<double> const& xVals, std::vector<double> const& 
   return yVals[yVals.size() - 1];
 }
 
-std::string extractVec3(
-    std::vector<double> const& xVals, std::vector<double> const& yVals, glm::dvec3 const& lambdas) {
-  double r = Interpolate(xVals, yVals, lambdas[0]);
-  double g = Interpolate(xVals, yVals, lambdas[1]);
-  double b = Interpolate(xVals, yVals, lambdas[2]);
-  return "vec3(" + cs::utils::toString(r) + "," + cs::utils::toString(g) + "," +
-         cs::utils::toString(b) + ")";
-}
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::string printScatteringComponent(ScatteringAtmosphereComponent const& component,
-    std::vector<double> const& wavelengths, float phaseTextureV, float densityTextureV,
-    glm::dvec3 lambdas) {
-  std::stringstream ss;
-  ss << "ScatteringComponent(";
+// This is functionality-wise identical to the original implementation.
 
-  ss << phaseTextureV << ",\n";
-  ss << densityTextureV << ",\n";
-
-  auto absorption = extractVec3(wavelengths, component.mAbsorption, lambdas);
-  auto scattering = extractVec3(wavelengths, component.mScattering, lambdas);
-
-  ss << scattering << " + " << absorption << ",\n";
-  ss << scattering << "\n";
-
-  ss << ")";
-
-  return ss.str();
-}
-
-std::string printAbsorbingComponent(AbsorbingAtmosphereComponent const& component,
-    std::vector<double> const& wavelengths, float densityTextureV, glm::dvec3 lambdas) {
-  std::stringstream ss;
-  ss << "AbsorbingComponent(";
-
-  ss << densityTextureV << ",\n";
-
-  auto absorption = extractVec3(wavelengths, component.mAbsorption, lambdas);
-
-  ss << absorption << "\n";
-
-  ss << ")";
-
-  return ss.str();
-}
-
-/*
-<p>We can then implement a utility function to compute the "spectral radiance to
-luminance" conversion constants (see Section 14.3 in <a
-href="https://arxiv.org/pdf/1612.04336.pdf">A Qualitative and Quantitative
-Evaluation of 8 Clear Sky Models</a> for their definitions):
-*/
-
-// The returned constants are in lumen.nm / watt.
 void ComputeSpectralRadianceToLuminanceFactors(
     double lambdaPower, double* kR, double* kG, double* kB) {
+
   *kR            = 0.0;
   *kG            = 0.0;
   *kB            = 0.0;
@@ -616,8 +610,74 @@ void ComputeSpectralRadianceToLuminanceFactors(
   *kB *= MAX_LUMINOUS_EFFICACY * dLambda;
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// The functions below are used to inject the atmosphere components into the shader source code.
+// These were not present in the original implementation and have been added because we refactored
+// how data is passed to the shader.
+
+// This first method is used to create a GLSL "vec3(...)" string based on a linearly interpolated 1D
+// function. The function is defined by the first two parameters and the three values are extracted
+// by linear interpolation using the three values passed in as last parameter.
+std::string extractVec3(
+    std::vector<double> const& xVals, std::vector<double> const& yVals, glm::dvec3 const& lambdas) {
+  double r = Interpolate(xVals, yVals, lambdas[0]);
+  double g = Interpolate(xVals, yVals, lambdas[1]);
+  double b = Interpolate(xVals, yVals, lambdas[2]);
+  return "vec3(" + cs::utils::toString(r) + "," + cs::utils::toString(g) + "," +
+         cs::utils::toString(b) + ")";
+}
+
+// This creates an GLSL snippet corresponding to the given scattering component.
+std::string printScatteringComponent(Params::ScatteringComponent const& component,
+    std::vector<double> const& wavelengths, float phaseTextureV, float densityTextureV,
+    glm::dvec3 const& lambdas) {
+
+  auto absorption = extractVec3(wavelengths, component.mAbsorption, lambdas);
+  auto scattering = extractVec3(wavelengths, component.mScattering, lambdas);
+
+  std::stringstream ss;
+  ss << "ScatteringComponent(";
+  ss << phaseTextureV << ",\n";
+  ss << densityTextureV << ",\n";
+  ss << scattering << " + " << absorption << ",\n";
+  ss << scattering << "\n";
+  ss << ")";
+
+  return ss.str();
+}
+
+// This creates an GLSL snippet corresponding to the given absorbing component.
+std::string printAbsorbingComponent(Params::AbsorbingComponent const& component,
+    std::vector<double> const& wavelengths, float densityTextureV, glm::dvec3 const& lambdas) {
+
+  auto absorption = extractVec3(wavelengths, component.mAbsorption, lambdas);
+
+  std::stringstream ss;
+  ss << "AbsorbingComponent(";
+  ss << densityTextureV << ",\n";
+  ss << absorption << "\n";
+  ss << ")";
+
+  return ss.str();
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 } // anonymous namespace
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// Model Implementation ---------------------------------------------------------------------------
+
+// The code below roughly follows the original implementation by Eric Bruneton.
+
+// The original explanation of the methods still applies in most parts and is available online:
+// https://ebruneton.github.io/precomputed_atmospheric_scattering/atmosphere/model.cc.html#implementation
+
+// The main differences in the constructor are that we pass significantly more constants to the
+// shader code as all the sampling counts are configurable now. Also, we create the new density
+// texture which contains the density profiles for all atmosphere constituents.
 Implementation::Implementation(Params params)
     : mParams(std::move(params))
     , mScatteringTextureWidth(mParams.mScatteringTextureNuSize * mParams.mScatteringTextureMuSSize)
@@ -693,9 +753,10 @@ Implementation::Implementation(Params params)
   mIrradianceTexture = NewTexture2d(mParams.mIrradianceTextureWidth,
       mParams.mIrradianceTextureHeight, GL_RGBA32F, GL_RGBA, GL_FLOAT);
 
-  // Create the density profile texture.
+  // Create the density profile texture. It contains three rows of pixels, one for each constituent
+  // of the atmosphere. The bottom-most density values are on the left, the top-most density values
+  // are on the right.
   {
-
     size_t numDensities = mParams.mMolecules.mDensity.size();
 
     std::vector<float> densityData;
@@ -743,6 +804,8 @@ Implementation::Implementation(Params params)
   glBindVertexArray(0);
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 Implementation::~Implementation() {
   glDeleteBuffers(1, &mFullScreenQuadVBO);
   glDeleteVertexArrays(1, &mFullScreenQuadVAO);
@@ -753,6 +816,13 @@ Implementation::~Implementation() {
   glDeleteTextures(1, &mIrradianceTexture);
   glDeleteShader(mAtmosphereShader);
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// Functionality-wise, this is almost identical to the original implementation. There are some minor
+// changes, for instance do we need to bind the density distribution texture for computing the
+// transmittance. Also, we need to update the phase function texture after the last iteration of the
+// pre-computation.
 
 void Implementation::init(unsigned int numScatteringOrders) {
   // The precomputations require temporary textures, in particular to store the contribution of one
@@ -856,6 +926,17 @@ void Implementation::init(unsigned int numScatteringOrders) {
   assert(glGetError() == 0);
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+GLuint Implementation::shader() const {
+  return mAtmosphereShader;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// This now binds one additional texture: The phase-function texture. The density-distribution
+// texture is not required at run-time.
+
 void Implementation::setProgramUniforms(GLuint program, GLuint phaseTextureUnit,
     GLuint transmittanceTextureUnit, GLuint multipleScatteringTextureUnit,
     GLuint irradianceTextureUnit, GLuint singleAerosolsScatteringTextureUnit) const {
@@ -883,19 +964,30 @@ void Implementation::setProgramUniforms(GLuint program, GLuint phaseTextureUnit,
       singleAerosolsScatteringTextureUnit);
 }
 
-/*
-Here is an outline of the data flow of the precomputation.
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
-1. Compute the transmittance (vec3) of the atmosphere for every point in every direction and store
+/*
+The actual pre-computation is also almost identical to the original implementation. The main
+differences are that we now updated the phase-function texture before each iteration and have to
+bind it together with the density-distribution texture in some of the steps.
+
+You can have a look at the original implementation along with some explanations online at the bottom
+of this page:
+https://ebruneton.github.io/precomputed_atmospheric_scattering/atmosphere/model.cc.html#implementation
+
+To help understanding the process, here is an outline of the data flow of the pre-computation. The
+pre-computation is executed for batches of three wavelengths at a time.
+
+1. Compute the transmittance (a vec3) of the atmosphere for every point in every direction and store
    it in mTransmittanceTexture. This incorporates extinction based on molecules, aerosols, and
-ozone particles.
+   ozone particles.
 
 2. Using mTransmittanceTexture, compute the direct irradiance from the Sun to every point in the
    atmosphere for the current set of wavelengths and store it in deltaIrradianceTexture. In this
-   step, mIrradianceTexture os also initialized to zero if it's the first call to Precompute().
+   step, mIrradianceTexture is also initialized to zero if it's the first call to Precompute().
 
-3. Using the mTransmittanceTexture, compute the single aerosols and single molecules scattering
-   irradiance along the rays in the atmosphere. This is the molecules and aerosols density * solar
+3. Using the mTransmittanceTexture, compute the single-aerosol and single-molecule scattering
+   irradiance along the rays in the atmosphere. This is the molecules' and aerosols' density * solar
    irradiance * scattering coefficient. The term stored in the output textures is without the phase
    function. The irradiance for the current set of wavelengths is stored in
    deltaMoleculesScatteringTexture and deltaAerosolsScatteringTexture. It is also converted to
@@ -915,14 +1007,14 @@ scattering illuminance without the phase function.
    4.3. Compute the multiple scattering, store it in deltaMultipleScatteringTexture, and
         accumulate it in mMultipleScatteringTexture.
 
-At the end, mSingleAerosolsScatteringTexture contains the single aerosols scattering illuminance
-without the phase function and mMultipleScatteringTexture contains single molecules scattering
+At the end, mSingleAerosolsScatteringTexture contains the single-aerosol scattering illuminance
+without the phase function and mMultipleScatteringTexture contains single-molecule scattering
 without the phase function + multiple scattering with only the aerosols phase function applied. So
 at render time, the data from mSingleAerosolsScatteringTexture needs to be multiplied with the
 aerosols phase function and the data from mMultipleScatteringTexture needs to be multiplied with
 the molecules phase function.
-
 */
+
 void Implementation::precompute(GLuint fbo, GLuint deltaIrradianceTexture,
     GLuint deltaMoleculesScatteringTexture, GLuint deltaAerosolsScatteringTexture,
     GLuint deltaScatteringDensityTexture, GLuint deltaMultipleScatteringTexture,
@@ -933,8 +1025,6 @@ void Implementation::precompute(GLuint fbo, GLuint deltaIrradianceTexture,
   // compile them here (they are automatically destroyed when this method returns, via the Program
   // destructor).
   std::string header = mGlslHeaderFactory(lambdas);
-
-  updatePhaseFunctionTexture({mParams.mMolecules, mParams.mAerosols}, lambdas);
 
   Program computeTransmittance(kVertexShader, header + kComputeTransmittanceShader);
   Program computeDirectIrradiance(kVertexShader, header + kComputeDirectIrradianceShader);
@@ -950,6 +1040,10 @@ void Implementation::precompute(GLuint fbo, GLuint deltaIrradianceTexture,
       GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3};
   glBlendEquationSeparate(GL_FUNC_ADD, GL_FUNC_ADD);
   glBlendFuncSeparate(GL_ONE, GL_ONE, GL_ONE, GL_ONE);
+
+  // -----------------------------------------------------------------------------------------------
+
+  updatePhaseFunctionTexture({mParams.mMolecules, mParams.mAerosols}, lambdas);
 
   // -----------------------------------------------------------------------------------------------
 
@@ -1075,9 +1169,16 @@ void Implementation::precompute(GLuint fbo, GLuint deltaIrradianceTexture,
   glFlush();
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// This final method is used to update the phase function texture according to the currently
+// pre-computed wavelengths. It extracts the corresponding intensity values and stores them in a 2D
+// texture. Each row of pixels corresponds to one scattering component. Forward-scattering is on the
+// left, back-scattering is on the right.
+
 void Implementation::updatePhaseFunctionTexture(
-    std::vector<ScatteringAtmosphereComponent> const& scatteringComponents,
-    glm::dvec3 const&                                 lambdas) {
+    std::vector<Params::ScatteringComponent> const& scatteringComponents,
+    glm::dvec3 const&                               lambdas) {
 
   if (mPhaseTexture != 0) {
     glDeleteTextures(1, &mPhaseTexture);
@@ -1100,5 +1201,7 @@ void Implementation::updatePhaseFunctionTexture(
   mPhaseTexture = NewTexture2d(
       numAngles, scatteringComponents.size(), GL_RGBA32F, GL_RGBA, GL_FLOAT, data.data());
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
 } // namespace csp::atmospheres::models::bruneton::internal

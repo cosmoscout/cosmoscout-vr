@@ -173,7 +173,7 @@ bool Model::init(
   mImpl.reset(new internal::Implementation(params));
 
   glDisable(GL_CULL_FACE);
-  mImpl->init(settings.mMultiScatteringOrder.get());
+  mImpl->init(settings.mMultiScatteringOrder.get() + 1);
   glEnable(GL_CULL_FACE);
 
   return true;
