@@ -139,6 +139,7 @@ bool Model::init(
     params.mOzone.mAbsorption = std::vector<double>(params.mWavelengths.size(), 0.0);
   }
 
+  // Check for valid wavelengths.
   if (params.mWavelengths.size() < 3) {
     throw std::runtime_error(
         "At least three different wavelengths should be given in the scattering data!");
@@ -189,7 +190,7 @@ GLuint Model::getShader() const {
 GLuint Model::setUniforms(GLuint program, GLuint startTextureUnit) const {
   mImpl->SetProgramUniforms(program, startTextureUnit, startTextureUnit + 1, startTextureUnit + 2,
       startTextureUnit + 3, startTextureUnit + 4);
-  return startTextureUnit + 6;
+  return startTextureUnit + 5;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
