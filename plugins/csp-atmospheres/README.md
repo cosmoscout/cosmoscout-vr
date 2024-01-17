@@ -98,6 +98,8 @@ They are not physically based but provide some plausible results.
 ```
 </details>
 
+### Available Parameters
+
 ## The `Bruneton` model
 
 The Bruneton model is significantly more advanced.
@@ -168,6 +170,8 @@ To perform this pre-processing, the `csp-atmospheres` plugin comes with a small 
 }
 ```
 </details>
+
+### Available Parameters
 
 ## Creating new Atmospheric Models
 
