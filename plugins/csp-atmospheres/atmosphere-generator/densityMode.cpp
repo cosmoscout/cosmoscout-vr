@@ -7,8 +7,8 @@
 
 #include "densityMode.hpp"
 
-#include "../../src/cs-utils/CommandLine.hpp"
-#include "../../src/cs-utils/utils.hpp"
+#include "../../../src/cs-utils/CommandLine.hpp"
+#include "../../../src/cs-utils/utils.hpp"
 
 #include <glm/gtc/constants.hpp>
 #include <nlohmann/json.hpp>

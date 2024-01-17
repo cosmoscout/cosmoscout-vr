@@ -11,6 +11,10 @@ if (NOT CSP_ATMOSPHERES)
   return()
 endif()
 
+# build the pre-processor --------------------------------------------------------------------------
+
+add_subdirectory(atmosphere-generator)
+
 # build plugin -------------------------------------------------------------------------------------
 
 file(GLOB SOURCE_FILES src/*.cpp src/*/*.cpp src/*/*/*.cpp src/*/*/*/*.cpp)

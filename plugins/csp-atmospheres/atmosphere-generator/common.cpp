@@ -7,7 +7,7 @@
 
 #include "common.hpp"
 
-#include "../../src/cs-utils/utils.hpp"
+#include "../../../src/cs-utils/utils.hpp"
 
 #include <spdlog/spdlog.h>
 

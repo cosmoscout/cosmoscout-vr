@@ -8,7 +8,7 @@
 #ifndef COMMON_HPP
 #define COMMON_HPP
 
-#include "../../src/cs-utils/CommandLine.hpp"
+#include "../../../src/cs-utils/CommandLine.hpp"
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Common functionality which is used by multiple modes.                                          //

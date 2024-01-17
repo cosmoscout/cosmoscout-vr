@@ -5,7 +5,7 @@
 // SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
 // SPDX-License-Identifier: MIT
 
-#include "../../src/cs-utils/CommandLine.hpp"
+#include "../../../src/cs-utils/CommandLine.hpp"
 
 #include "angstromMode.hpp"
 #include "densityMode.hpp"
