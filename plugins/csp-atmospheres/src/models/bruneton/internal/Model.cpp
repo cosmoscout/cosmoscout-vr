@@ -8,6 +8,7 @@
 
 // This file has been directly copied from here:
 // https://github.com/ebruneton/precomputed_atmospheric_scattering/blob/master/atmosphere/model.cc
+// https://github.com/ebruneton/precomputed_atmospheric_scattering/blob/master/atmosphere/demo/demo.cc
 // The documentation below can also be read online at:
 // https://ebruneton.github.io/precomputed_atmospheric_scattering/atmosphere/model.cc.html
 // Changes to this file are mostly related to formatting. The only other change with respect to the
@@ -18,20 +19,6 @@
 // the GLSL files are now loaded via cs::utils::filesystem::loadToString().
 // Also, the shadow_length parameter has been removed from the public API as this is currently
 // not supported by CosmoScout VR.
-
-/*<h2>atmosphere/model.cc</h2>
-
-<p>This file implements the <a href="model.h.html">API of our atmosphere
-model</a>. Its main role is to precompute the transmittance, scattering and
-irradiance textures. The GLSL functions to precompute them are provided in
-<a href="functions.glsl.html">functions.glsl</a>, but they are not sufficient.
-They must be used in fully functional shaders and programs, and these programs
-must be called in the correct order, with the correct input and output textures
-(via framebuffer objects), to precompute each scattering order in sequence, as
-described in Algorithm 4.1 of
-<a href="https://hal.inria.fr/inria-00288758/en">our paper</a>. This is the role
-of the following C++ code.
-*/
 
 #include "Model.hpp"
 
@@ -47,13 +34,14 @@ of the following C++ code.
 #include <iostream>
 #include <memory>
 
-// From the demo application by Eric Bruneton. The original source code can be found here:
-// https://github.com/ebruneton/precomputed_atmospheric_scattering/blob/master/atmosphere/demo/demo.cc
-// Values from "Reference Solar Spectral Irradiance: ASTM G-173", ETR column
-// (see http://rredc.nrel.gov/solar/spectra/am1.5/ASTMG173/ASTMG173.html),
-// summed and averaged in each bin (e.g. the value for 360nm is the average
-// of the ASTM G-173 values for all wavelengths between 360 and 370nm).
-// Values in W.m^-2.
+namespace csp::atmospheres::models::bruneton::internal {
+
+namespace {
+
+// Values from "Reference Solar Spectral Irradiance: ASTM G-173", ETR column  (see
+// http://rredc.nrel.gov/solar/spectra/am1.5/ASTMG173/ASTMG173.html), summed and averaged in each
+// bin (e.g. the value for 360nm is the average of the ASTM G-173 values for all wavelengths between
+// 360 and 370nm). Values in W.m^-2.
 // clang-format off
 const std::vector<double> WAVELENGTHS = {
                                   360, 370, 380, 390,
@@ -63,6 +51,7 @@ const std::vector<double> WAVELENGTHS = {
     700, 710, 720, 730, 740, 750, 760, 770, 780, 790,
     800, 810, 820, 830
 };
+
 const std::vector<double> SOLAR_IRRADIANCE = {
                                                           1.11776, 1.14259, 1.01249, 1.14716,
     1.72765, 1.73054, 1.6887,  1.61253, 1.91198, 2.03474, 2.02042, 2.02212, 1.93377, 1.95809,
@@ -178,8 +167,8 @@ constexpr double CIE_2_DEG_COLOR_MATCHING_FUNCTIONS[380] = {
 };
 // clang-format on
 
-// The conversion matrix from XYZ to linear sRGB color spaces.
-// Values from https://en.wikipedia.org/wiki/SRGB.
+// The conversion matrix from XYZ to linear sRGB color spaces. Values from
+// https://en.wikipedia.org/wiki/SRGB.
 // clang-format off
 constexpr double XYZ_TO_SRGB[9] = {
     +3.2406, -1.5372, -0.4986,
@@ -187,27 +176,6 @@ constexpr double XYZ_TO_SRGB[9] = {
     +0.0557, -0.2040, +1.0570
 };
 // clang-format on
-
-/*
-<p>The rest of this file is organized in 3 parts:
-<ul>
-<li>the <a href="#shaders">first part</a> defines the shaders used to precompute
-the atmospheric textures,</li>
-<li>the <a href="#utilities">second part</a> provides utility classes and
-functions used to compile shaders, create textures, draw quads, etc,</li>
-<li>the <a href="#implementation">third part</a> provides the actual
-implementation of the <code>Model</code> class, using the above tools.</li>
-</ul>
-
-<h3 id="shaders">Shader definitions</h3>
-
-<p>In order to precompute a texture we attach it to a framebuffer object (FBO)
-and we render a full quad in this FBO. For this we need a basic vertex shader:
-*/
-
-namespace csp::atmospheres::models::bruneton::internal {
-
-namespace {
 
 const char kVertexShader[] = R"(
   #version 330
@@ -218,11 +186,6 @@ const char kVertexShader[] = R"(
     gl_Position = vec4(vertex, 0.0, 1.0);
   }
 )";
-
-/*
-<p>a basic geometry shader (only for 3D textures, to specify in which layer we
-want to write):
-*/
 
 const char kGeometryShader[] = R"(
   #version 330
@@ -248,22 +211,6 @@ const char kGeometryShader[] = R"(
     EndPrimitive();
   }
 )";
-
-/*
-<p>and a fragment shader, which depends on the texture we want to compute. This
-is the role of the following shaders, which simply wrap the precomputation
-functions from <a href="functions.glsl.html">functions.glsl</a> in complete
-shaders (with a <code>main</code> function and a proper declaration of the
-shader inputs and outputs). Note that these strings must be concatenated with
-<code>definitions.glsl</code> and <code>functions.glsl</code> (provided as C++
-string literals by the generated <code>.glsl.inc</code> files), as well as with
-a definition of the <code>ATMOSPHERE</code> constant - containing the atmosphere
-parameters, to really get a complete shader. Note also the
-<code>luminance_from_radiance</code> uniforms: these are used in precomputed
-illuminance mode to convert the radiance values computed by the
-<code>functions.glsl</code> functions to luminance values (see the
-<code>Init</code> method for more details).
-*/
 
 const char kComputeTransmittanceShader[] = R"(
   layout(location = 0) out vec3 transmittance;
@@ -363,17 +310,6 @@ const char kComputeMultipleScatteringShader[] = R"(
   }
 )";
 
-/*
-<p>We finally need a shader implementing the GLSL functions exposed in our API,
-which can be done by calling the corresponding functions in
-<a href="functions.glsl.html#rendering">functions.glsl</a>, with the precomputed
-texture arguments taken from uniform variables (note also the
-*<code>_RADIANCE_TO_LUMINANCE</code> conversion constants in the last functions:
-they are computed in the <a href="#utilities">second part</a> below, and their
-definitions are concatenated to this GLSL code to get a fully functional
-shader).
-*/
-
 const char kAtmosphereShader[] = R"(
   uniform sampler2D transmittance_texture;
   uniform sampler3D multiple_scattering_texture;
@@ -382,13 +318,13 @@ const char kAtmosphereShader[] = R"(
 
   vec3 GetSkyLuminance(vec3 camera, vec3 view_ray, vec3 sun_direction, out vec3 transmittance) {
     return GetSkyRadiance(ATMOSPHERE, transmittance_texture, multiple_scattering_texture,
-                          single_aerosols_scattering_texture, camera, view_ray, 0.0,
+                          single_aerosols_scattering_texture, camera, view_ray,
                           sun_direction, transmittance) * SKY_SPECTRAL_RADIANCE_TO_LUMINANCE;
   }
 
   vec3 GetSkyLuminanceToPoint(vec3 camera, vec3 point, vec3 sun_direction, out vec3 transmittance) {
     return GetSkyRadianceToPoint(ATMOSPHERE, transmittance_texture, multiple_scattering_texture,
-                                  single_aerosols_scattering_texture, camera, point, 0.0,
+                                  single_aerosols_scattering_texture, camera, point,
                                   sun_direction, transmittance) * SKY_SPECTRAL_RADIANCE_TO_LUMINANCE;
   }
 
@@ -399,12 +335,6 @@ const char kAtmosphereShader[] = R"(
     return sun_irradiance * SUN_SPECTRAL_RADIANCE_TO_LUMINANCE;
   }
 )";
-
-/*<h3 id="utilities">Utility classes and functions</h3>
-
-<p>To compile and link these shaders into programs, and to set their uniforms,
-we use the following utility class:
-*/
 
 class Program {
  public:
@@ -528,10 +458,6 @@ class Program {
   GLuint program_;
 };
 
-/*
-<p>We also need functions to allocate the precomputed textures on GPU:
-*/
-
 GLuint NewTexture2d(int width, int height, GLenum internalFormat, GLenum format, GLenum type,
     void* data = nullptr) {
   GLuint texture;
@@ -563,11 +489,6 @@ GLuint NewTexture3d(int width, int height, int depth, GLenum internalFormat, GLe
   return texture;
 }
 
-/*
-<p>and a function to draw a full screen quad in an offscreen framebuffer (with
-blending separately enabled or disabled for each color attachment):
-*/
-
 void DrawQuad(const std::vector<bool>& enable_blend, GLuint quad_vao) {
   for (unsigned int i = 0; i < enable_blend.size(); ++i) {
     if (enable_blend[i]) {
@@ -583,20 +504,6 @@ void DrawQuad(const std::vector<bool>& enable_blend, GLuint quad_vao) {
     glDisablei(GL_BLEND, i);
   }
 }
-
-/*
-<p>Finally, we need a utility function to compute the value of the conversion
-constants *<code>_RADIANCE_TO_LUMINANCE</code>, used above to convert the
-spectral results into luminance values. These are the constants k_r, k_g, k_b
-described in Section 14.3 of <a href="https://arxiv.org/pdf/1612.04336.pdf">A
-Qualitative and Quantitative Evaluation of 8 Clear Sky Models</a>.
-
-<p>Computing their value requires an integral of a function times a CIE color
-matching function. Thus, we first need functions to interpolate an arbitrary
-function (specified by some samples), and a CIE color matching function
-(specified by tabulated values), at an arbitrary wavelength. This is the purpose
-of the following two functions:
-*/
 
 double CieColorMatchingFunctionTableValue(double wavelength, int column) {
   if (wavelength <= WAVELENGTHS.front() || wavelength >= WAVELENGTHS.back()) {
@@ -711,33 +618,18 @@ void ComputeSpectralRadianceToLuminanceFactors(
 
 } // anonymous namespace
 
-/*<h3 id="implementation">Model implementation</h3>
-
-<p>Using the above utility functions and classes, we can now implement the
-constructor of the <code>Model</code> class. This constructor generates a piece
-of GLSL code that defines an <code>ATMOSPHERE</code> constant containing the
-atmosphere parameters (we use constants instead of uniforms to enable constant
-folding and propagation optimizations in the GLSL compiler), concatenated with
-<a href="functions.glsl.html">functions.glsl</a>, and with
-<code>kAtmosphereShader</code>, to get the shader exposed by our API in
-<code>GetShader</code>. It also allocates the precomputed textures (but does not
-initialize them), as well as a vertex buffer object to render a full screen quad
-(used to render into the precomputed textures).
-*/
-
 Model::Model(ModelParams params)
     : params_(std::move(params))
     , mScatteringTextureWidth(params_.mScatteringTextureNuSize * params_.mScatteringTextureMuSSize)
     , mScatteringTextureHeight(params_.mScatteringTextureMuSize)
     , mScatteringTextureDepth(params_.mScatteringTextureRSize) {
 
-  // Compute the values for the SKY_RADIANCE_TO_LUMINANCE constant. In theory
-  // this should be 1 in precomputed illuminance mode (because the precomputed
-  // textures already contain illuminance values). In practice, however, storing
-  // true illuminance values in half precision textures yields artefacts
-  // (because the values are too large), so we store illuminance values divided
-  // by MAX_LUMINOUS_EFFICACY instead. This is why, in precomputed illuminance
-  // mode, we set SKY_RADIANCE_TO_LUMINANCE to MAX_LUMINOUS_EFFICACY.
+  // Compute the values for the SKY_RADIANCE_TO_LUMINANCE constant. In theory this should be 1 in
+  // precomputed illuminance mode (because the precomputed textures already contain illuminance
+  // values). In practice, however, storing true illuminance values in half precision textures
+  // yields artefacts (because the values are too large), so we store illuminance values divided by
+  // MAX_LUMINOUS_EFFICACY instead. This is why, in precomputed illuminance mode, we set
+  // SKY_RADIANCE_TO_LUMINANCE to MAX_LUMINOUS_EFFICACY.
   bool   precompute_illuminance = params_.mWavelengths.size() > 3;
   double sky_k_r, sky_k_g, sky_k_b;
   if (precompute_illuminance) {
@@ -749,9 +641,8 @@ Model::Model(ModelParams params)
   double sun_k_r, sun_k_g, sun_k_b;
   ComputeSpectralRadianceToLuminanceFactors(0 /* lambda_power */, &sun_k_r, &sun_k_g, &sun_k_b);
 
-  // A lambda that creates a GLSL header containing our atmosphere computation
-  // functions, specialized for the given atmosphere parameters and for the 3
-  // wavelengths in 'lambdas'.
+  // A lambda that creates a GLSL header containing our atmosphere computation functions,
+  // specialized for the given atmosphere parameters and for the 3 wavelengths in 'lambdas'.
   auto definitions_glsl = cs::utils::filesystem::loadToString(
       "../share/resources/shaders/csp-atmospheres/models/bruneton/definitions.glsl");
   auto functions_glsl = cs::utils::filesystem::loadToString(
@@ -852,10 +743,6 @@ Model::Model(ModelParams params)
   glBindVertexArray(0);
 }
 
-/*
-<p>The destructor is trivial:
-*/
-
 Model::~Model() {
   glDeleteBuffers(1, &full_screen_quad_vbo_);
   glDeleteVertexArrays(1, &full_screen_quad_vao_);
@@ -867,65 +754,11 @@ Model::~Model() {
   glDeleteShader(atmosphere_shader_);
 }
 
-/*
-<p>The Init method precomputes the atmosphere textures. It first allocates the
-temporary resources it needs, then calls <code>Precompute</code> to do the
-actual precomputations, and finally destroys the temporary resources.
-
-<p>Note that there are two precomputation modes here, depending on whether we
-want to store precomputed irradiance or illuminance values:
-<ul>
-  <li>In precomputed irradiance mode, we simply need to call
-  <code>Precompute</code> with the 3 wavelengths for which we want to precompute
-  irradiance, namely <code>kLambdaR</code>, <code>kLambdaG</code>,
-  <code>kLambdaB</code> (with the identity matrix for
-  <code>luminance_from_radiance</code>, since we don't want any conversion from
-  radiance to luminance)</li>
-  <li>In precomputed illuminance mode, we need to precompute irradiance for
-  <code>num_precomputed_params_.mWavelengths</code>, and then integrate the results,
-  multiplied with the 3 CIE xyz color matching functions and the XYZ to sRGB
-  matrix to get sRGB illuminance values.
-  <p>A naive solution would be to allocate temporary textures for the
-  intermediate irradiance results, then perform the integration from irradiance
-  to illuminance and store the result in the final precomputed texture. In
-  pseudo-code (and assuming one wavelength per texture instead of 3):
-  <pre>
-    create n temporary irradiance textures
-    for each wavelength lambda in the n wavelengths:
-       precompute irradiance at lambda into one of the temporary textures
-    initializes the final illuminance texture with zeros
-    for each wavelength lambda in the n wavelengths:
-      accumulate in the final illuminance texture the product of the
-      precomputed irradiance at lambda (read from the temporary textures)
-      with the value of the 3 sRGB color matching functions at lambda (i.e.
-      the product of the XYZ to sRGB matrix with the CIE xyz color matching
-      functions).
-  </pre>
-  <p>However, this be would waste GPU memory. Instead, we can avoid allocating
-  temporary irradiance textures, by merging the two above loops:
-  <pre>
-    for each wavelength lambda in the n wavelengths:
-      accumulate in the final illuminance texture (or, for the first
-      iteration, set this texture to) the product of the precomputed
-      irradiance at lambda (computed on the fly) with the value of the 3
-      sRGB color matching functions at lambda.
-  </pre>
-  <p>This is the method we use below, with 3 wavelengths per iteration instead
-  of 1, using <code>Precompute</code> to compute 3 irradiances values per
-  iteration, and <code>luminance_from_radiance</code> to multiply 3 irradiances
-  with the values of the 3 sRGB color matching functions at 3 different
-  wavelengths (yielding a 3x3 matrix).</li>
-</ul>
-
-<p>This yields the following implementation:
-*/
-
 void Model::Init(unsigned int num_scattering_orders) {
-  // The precomputations require temporary textures, in particular to store the
-  // contribution of one scattering order, which is needed to compute the next
-  // order of scattering (the final precomputed textures store the sum of all
-  // the scattering orders). We allocate them here, and destroy them at the end
-  // of this method.
+  // The precomputations require temporary textures, in particular to store the contribution of one
+  // scattering order, which is needed to compute the next order of scattering (the final
+  // precomputed textures store the sum of all the scattering orders). We allocate them here, and
+  // destroy them at the end of this method.
   GLuint delta_irradiance_texture           = NewTexture2d(params_.mIrradianceTextureWidth,
       params_.mIrradianceTextureHeight, GL_RGBA32F, GL_RGBA, GL_FLOAT);
   GLuint delta_molecules_scattering_texture = NewTexture3d(mScatteringTextureWidth,
@@ -934,21 +767,22 @@ void Model::Init(unsigned int num_scattering_orders) {
       mScatteringTextureHeight, mScatteringTextureDepth, GL_RGBA32F, GL_RGBA, GL_FLOAT);
   GLuint delta_scattering_density_texture   = NewTexture3d(mScatteringTextureWidth,
       mScatteringTextureHeight, mScatteringTextureDepth, GL_RGBA32F, GL_RGBA, GL_FLOAT);
-  // delta_multiple_scattering_texture is only needed to compute scattering
-  // order 3 or more, while delta_molecules_scattering_texture and
-  // delta_aerosols_scattering_texture are only needed to compute double scattering.
-  // Therefore, to save memory, we can store delta_molecules_scattering_texture
-  // and delta_multiple_scattering_texture in the same GPU texture.
+
+  // delta_multiple_scattering_texture is only needed to compute scattering order 3 or more, while
+  // delta_molecules_scattering_texture and delta_aerosols_scattering_texture are only needed to
+  // compute double scattering. Therefore, to save memory, we can store
+  // delta_molecules_scattering_texture and delta_multiple_scattering_texture in the same GPU
+  // texture.
   GLuint delta_multiple_scattering_texture = delta_molecules_scattering_texture;
 
-  // The precomputations also require a temporary framebuffer object, created
-  // here (and destroyed at the end of this method).
+  // The precomputations also require a temporary framebuffer object, created here (and destroyed at
+  // the end of this method).
   GLuint fbo;
   glGenFramebuffers(1, &fbo);
   glBindFramebuffer(GL_FRAMEBUFFER, fbo);
 
-  // The actual precomputations depend on whether we want to store precomputed
-  // irradiance or illuminance values.
+  // The actual precomputations depend on whether we want to store precomputed irradiance or
+  // illuminance values.
   if (params_.mWavelengths.size() <= 3) {
     logger().info("Precomputing atmospheric scattering...");
     glm::dvec3 lambdas{kLambdaR, kLambdaG, kLambdaB};
@@ -964,11 +798,11 @@ void Model::Init(unsigned int num_scattering_orders) {
 
       glm::dvec3 lambdas{params_.mWavelengths[i * 3 + 0], params_.mWavelengths[i * 3 + 1],
           params_.mWavelengths[i * 3 + 2]};
-      auto       coeff = [this](double lambda, int component) {
-        // Note that we don't include MAX_LUMINOUS_EFFICACY here, to avoid
-        // artefacts due to too large values when using half precision on GPU.
-        // We add this term back in kAtmosphereShader, via
-        // SKY_SPECTRAL_RADIANCE_TO_LUMINANCE (see also the comments in the
+
+      auto coeff = [this](double lambda, int component) {
+        // Note that we don't include MAX_LUMINOUS_EFFICACY here, to avoid artefacts due to too
+        // large values when using half precision on GPU. We add this term back in
+        // kAtmosphereShader, via SKY_SPECTRAL_RADIANCE_TO_LUMINANCE (see also the comments in the
         // Model constructor).
         double x = CieColorMatchingFunctionTableValue(lambda, 1);
         double y = CieColorMatchingFunctionTableValue(lambda, 2);
@@ -989,10 +823,9 @@ void Model::Init(unsigned int num_scattering_orders) {
           num_scattering_orders);
     }
 
-    // After the above iterations, the transmittance texture contains the
-    // transmittance for the 3 wavelengths used at the last iteration. But we
-    // want the transmittance at kLambdaR, kLambdaG, kLambdaB instead, so we
-    // must recompute it here for these 3 wavelengths:
+    // After the above iterations, the transmittance texture contains the transmittance for the 3
+    // wavelengths used at the last iteration. But we want the transmittance at kLambdaR, kLambdaG,
+    // kLambdaB instead, so we must recompute it here for these 3 wavelengths:
     std::string header = glsl_header_factory_({kLambdaR, kLambdaG, kLambdaB});
     Program     compute_transmittance(kVertexShader, header + kComputeTransmittanceShader);
     glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, transmittance_texture_, 0);
@@ -1022,13 +855,6 @@ void Model::Init(unsigned int num_scattering_orders) {
   glDeleteTextures(1, &delta_irradiance_texture);
   assert(glGetError() == 0);
 }
-
-/*
-<p>The <code>SetProgramUniforms</code> method is straightforward: it simply
-binds the precomputed textures to the specified texture units, and then sets
-the corresponding uniforms in the user provided program to the index of these
-texture units.
-*/
 
 void Model::SetProgramUniforms(GLuint program, GLuint phase_texture_unit,
     GLuint transmittance_texture_unit, GLuint multiple_scattering_texture_unit,
@@ -1102,9 +928,10 @@ void Model::Precompute(GLuint fbo, GLuint delta_irradiance_texture,
     GLuint delta_scattering_density_texture, GLuint delta_multiple_scattering_texture,
     const glm::dvec3& lambdas, const glm::mat3& luminance_from_radiance, bool blend,
     unsigned int num_scattering_orders) {
-  // The precomputations require specific GLSL programs, for each precomputation
-  // step. We create and compile them here (they are automatically destroyed
-  // when this method returns, via the Program destructor).
+
+  // The precomputations require specific GLSL programs, for each precomputation step. We create and
+  // compile them here (they are automatically destroyed when this method returns, via the Program
+  // destructor).
   std::string header = glsl_header_factory_(lambdas);
 
   UpdatePhaseFunctionTexture({params_.mMolecules, params_.mAerosols}, lambdas);
@@ -1137,10 +964,9 @@ void Model::Precompute(GLuint fbo, GLuint delta_irradiance_texture,
 
   // -----------------------------------------------------------------------------------------------
 
-  // 2. Compute the direct irradiance, store it in delta_irradiance_texture and,
-  // depending on 'blend', either initialize irradiance_texture_ with zeros or
-  // leave it unchanged (we don't want the direct irradiance in
-  // irradiance_texture_, but only the irradiance from the sky).
+  // 2. Compute the direct irradiance, store it in delta_irradiance_texture and, depending on
+  // 'blend', either initialize irradiance_texture_ with zeros or leave it unchanged (we don't want
+  // the direct irradiance in irradiance_texture_, but only the irradiance from the sky).
   glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, delta_irradiance_texture, 0);
   glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, irradiance_texture_, 0);
   glDrawBuffers(2, kDrawBuffers);
@@ -1205,8 +1031,8 @@ void Model::Precompute(GLuint fbo, GLuint delta_irradiance_texture,
       DrawQuad({false}, full_screen_quad_vao_);
     }
 
-    // 4.2. Compute the indirect irradiance, store it in delta_irradiance_texture and
-    // accumulate it in irradiance_texture_.
+    // 4.2. Compute the indirect irradiance, store it in delta_irradiance_texture and accumulate it
+    // in irradiance_texture_.
     glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, delta_irradiance_texture, 0);
     glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, irradiance_texture_, 0);
     glDrawBuffers(2, kDrawBuffers);
