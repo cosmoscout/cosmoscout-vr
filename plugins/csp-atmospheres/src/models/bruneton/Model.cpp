@@ -4,7 +4,7 @@
 
 // SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
 // SPDX-FileCopyrightText: 2017 Eric Bruneton
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: BSD-3-Clause
 
 #include "Model.hpp"
 

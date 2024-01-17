@@ -3,7 +3,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
-// SPDX-License-Identifier: MIT
+// SPDX-FileCopyrightText: 2017 Eric Bruneton
+// SPDX-License-Identifier: BSD-3-Clause
 
 #ifndef CSP_ATMOSPHERES_MODELS_BRUNETON_MODEL_HPP
 #define CSP_ATMOSPHERES_MODELS_BRUNETON_MODEL_HPP
