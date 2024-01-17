@@ -20,7 +20,7 @@
 // Also, the shadow_length parameter has been removed from the public API as this is currently
 // not supported by CosmoScout VR.
 
-#include "Model.hpp"
+#include "Implementation.hpp"
 
 #include "../../../logger.hpp"
 #include "CSVLoader.hpp"
@@ -594,9 +594,9 @@ void ComputeSpectralRadianceToLuminanceFactors(
   *k_r           = 0.0;
   *k_g           = 0.0;
   *k_b           = 0.0;
-  double solar_r = Interpolate(WAVELENGTHS, SOLAR_IRRADIANCE, Model::kLambdaR);
-  double solar_g = Interpolate(WAVELENGTHS, SOLAR_IRRADIANCE, Model::kLambdaG);
-  double solar_b = Interpolate(WAVELENGTHS, SOLAR_IRRADIANCE, Model::kLambdaB);
+  double solar_r = Interpolate(WAVELENGTHS, SOLAR_IRRADIANCE, Implementation::kLambdaR);
+  double solar_g = Interpolate(WAVELENGTHS, SOLAR_IRRADIANCE, Implementation::kLambdaG);
+  double solar_b = Interpolate(WAVELENGTHS, SOLAR_IRRADIANCE, Implementation::kLambdaB);
   int    dlambda = 1;
   for (int lambda = WAVELENGTHS.front(); lambda <= WAVELENGTHS.back(); lambda += dlambda) {
     double        x_bar      = CieColorMatchingFunctionTableValue(lambda, 1);
@@ -607,9 +607,9 @@ void ComputeSpectralRadianceToLuminanceFactors(
     double        g_bar      = xyz2srgb[3] * x_bar + xyz2srgb[4] * y_bar + xyz2srgb[5] * z_bar;
     double        b_bar      = xyz2srgb[6] * x_bar + xyz2srgb[7] * y_bar + xyz2srgb[8] * z_bar;
     double        irradiance = Interpolate(WAVELENGTHS, SOLAR_IRRADIANCE, lambda);
-    *k_r += r_bar * irradiance / solar_r * pow(lambda / Model::kLambdaR, lambda_power);
-    *k_g += g_bar * irradiance / solar_g * pow(lambda / Model::kLambdaG, lambda_power);
-    *k_b += b_bar * irradiance / solar_b * pow(lambda / Model::kLambdaB, lambda_power);
+    *k_r += r_bar * irradiance / solar_r * pow(lambda / Implementation::kLambdaR, lambda_power);
+    *k_g += g_bar * irradiance / solar_g * pow(lambda / Implementation::kLambdaG, lambda_power);
+    *k_b += b_bar * irradiance / solar_b * pow(lambda / Implementation::kLambdaB, lambda_power);
   }
   *k_r *= MAX_LUMINOUS_EFFICACY * dlambda;
   *k_g *= MAX_LUMINOUS_EFFICACY * dlambda;
@@ -618,7 +618,7 @@ void ComputeSpectralRadianceToLuminanceFactors(
 
 } // anonymous namespace
 
-Model::Model(ModelParams params)
+Implementation::Implementation(Params params)
     : params_(std::move(params))
     , mScatteringTextureWidth(params_.mScatteringTextureNuSize * params_.mScatteringTextureMuSSize)
     , mScatteringTextureHeight(params_.mScatteringTextureMuSize)
@@ -743,7 +743,7 @@ Model::Model(ModelParams params)
   glBindVertexArray(0);
 }
 
-Model::~Model() {
+Implementation::~Implementation() {
   glDeleteBuffers(1, &full_screen_quad_vbo_);
   glDeleteVertexArrays(1, &full_screen_quad_vao_);
   glDeleteTextures(1, &phase_texture_);
@@ -754,7 +754,7 @@ Model::~Model() {
   glDeleteShader(atmosphere_shader_);
 }
 
-void Model::Init(unsigned int num_scattering_orders) {
+void Implementation::Init(unsigned int num_scattering_orders) {
   // The precomputations require temporary textures, in particular to store the contribution of one
   // scattering order, which is needed to compute the next order of scattering (the final
   // precomputed textures store the sum of all the scattering orders). We allocate them here, and
@@ -856,7 +856,7 @@ void Model::Init(unsigned int num_scattering_orders) {
   assert(glGetError() == 0);
 }
 
-void Model::SetProgramUniforms(GLuint program, GLuint phase_texture_unit,
+void Implementation::SetProgramUniforms(GLuint program, GLuint phase_texture_unit,
     GLuint transmittance_texture_unit, GLuint multiple_scattering_texture_unit,
     GLuint irradiance_texture_unit, GLuint single_aerosols_scattering_texture_unit) const {
 
@@ -923,7 +923,7 @@ aerosols phase function and the data from multiple_scattering_texture_ needs to 
 the molecules phase function.
 
 */
-void Model::Precompute(GLuint fbo, GLuint delta_irradiance_texture,
+void Implementation::Precompute(GLuint fbo, GLuint delta_irradiance_texture,
     GLuint delta_molecules_scattering_texture, GLuint delta_aerosols_scattering_texture,
     GLuint delta_scattering_density_texture, GLuint delta_multiple_scattering_texture,
     const glm::dvec3& lambdas, const glm::mat3& luminance_from_radiance, bool blend,
@@ -1077,7 +1077,7 @@ void Model::Precompute(GLuint fbo, GLuint delta_irradiance_texture,
   glFlush();
 }
 
-void Model::UpdatePhaseFunctionTexture(
+void Implementation::UpdatePhaseFunctionTexture(
     std::vector<ScatteringAtmosphereComponent> const& scatteringComponents,
     const glm::dvec3&                                 lambdas) {
 

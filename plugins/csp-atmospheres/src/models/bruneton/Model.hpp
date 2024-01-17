@@ -10,7 +10,7 @@
 
 #include "../../../../src/cs-core/Settings.hpp"
 #include "../../ModelBase.hpp"
-#include "internal/Model.hpp"
+#include "internal/Implementation.hpp"
 
 namespace csp::atmospheres::models::bruneton {
 
@@ -101,7 +101,7 @@ class Model : public ModelBase {
   GLuint setUniforms(GLuint program, GLuint startTextureUnit) const override;
 
  private:
-  std::unique_ptr<internal::Model> mModel;
+  std::unique_ptr<internal::Implementation> mImpl;
 };
 
 } // namespace csp::atmospheres::models::bruneton

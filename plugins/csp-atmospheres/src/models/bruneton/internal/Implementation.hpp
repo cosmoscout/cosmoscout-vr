@@ -57,7 +57,7 @@ struct AbsorbingAtmosphereComponent {
   std::vector<double> mDensity;
 };
 
-struct ModelParams {
+struct Params {
   // The wavelength values, in nanometers, and sorted in increasing order, for/ which the
   // solar_irradiance, molecules_scattering, aerosols_scattering, aerosols_extinction and
   // ground_albedo samples are provided. If your shaders use luminance values (as opposed to
@@ -106,11 +106,10 @@ struct ModelParams {
   int32_t mIrradianceTextureHeight;
 };
 
-class Model {
+class Implementation {
  public:
-  Model(ModelParams params);
-
-  ~Model();
+  Implementation(Params params);
+  ~Implementation();
 
   void Init(unsigned int num_scattering_orders = 4);
 
@@ -137,10 +136,10 @@ class Model {
       std::vector<ScatteringAtmosphereComponent> const& scatteringComponents,
       const glm::dvec3&                                 lambdas);
 
-  const ModelParams params_;
-  const int32_t     mScatteringTextureWidth;
-  const int32_t     mScatteringTextureHeight;
-  const int32_t     mScatteringTextureDepth;
+  const Params  params_;
+  const int32_t mScatteringTextureWidth;
+  const int32_t mScatteringTextureHeight;
+  const int32_t mScatteringTextureDepth;
 
   std::function<std::string(const glm::dvec3&)> glsl_header_factory_;
   GLuint                                        phase_texture_         = 0;

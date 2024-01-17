@@ -1,8 +1,15 @@
-//
-// Created by Tim on 11.05.2022.
-//
+////////////////////////////////////////////////////////////////////////////////////////////////////
+//                               This file is part of CosmoScout VR                               //
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
+// SPDX-License-Identifier: MIT
 
 #include "CSVLoader.hpp"
+
+#include <regex>
+#include <iostream>
+#include <fstream>
 
 namespace csp::atmospheres::models::bruneton::internal {
 

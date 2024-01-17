@@ -105,7 +105,7 @@ bool Model::init(
     logger().error("Failed to parse atmosphere parameters: {}", e.what());
   }
 
-  internal::ModelParams params;
+  internal::Params params;
 
   std::vector<double> wavelengths;
   uint32_t            densityCount = 0;
@@ -143,9 +143,9 @@ bool Model::init(
     throw std::runtime_error(
         "At least three different wavelengths should be given in the scattering data!");
   } else if (params.mWavelengths.size() == 3 &&
-             (params.mWavelengths[0] != internal::Model::kLambdaB ||
-                 params.mWavelengths[1] != internal::Model::kLambdaG ||
-                 params.mWavelengths[2] != internal::Model::kLambdaR)) {
+             (params.mWavelengths[0] != internal::Implementation::kLambdaB ||
+                 params.mWavelengths[1] != internal::Implementation::kLambdaG ||
+                 params.mWavelengths[2] != internal::Implementation::kLambdaR)) {
     throw std::runtime_error("If three different wavelengths are given in the scattering data, "
                              "they should be exactly for 440 nm, 550 nm, and 680 nm!");
   }
@@ -169,10 +169,10 @@ bool Model::init(
   params.mIrradianceTextureWidth        = settings.mIrradianceTextureWidth.get();
   params.mIrradianceTextureHeight       = settings.mIrradianceTextureHeight.get();
 
-  mModel.reset(new internal::Model(params));
+  mImpl.reset(new internal::Implementation(params));
 
   glDisable(GL_CULL_FACE);
-  mModel->Init(settings.mMultiScatteringOrder.get());
+  mImpl->Init(settings.mMultiScatteringOrder.get());
   glEnable(GL_CULL_FACE);
 
   return true;
@@ -181,13 +181,13 @@ bool Model::init(
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 GLuint Model::getShader() const {
-  return mModel->shader();
+  return mImpl->shader();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 GLuint Model::setUniforms(GLuint program, GLuint startTextureUnit) const {
-  mModel->SetProgramUniforms(program, startTextureUnit, startTextureUnit + 1, startTextureUnit + 2,
+  mImpl->SetProgramUniforms(program, startTextureUnit, startTextureUnit + 1, startTextureUnit + 2,
       startTextureUnit + 3, startTextureUnit + 4);
   return startTextureUnit + 6;
 }

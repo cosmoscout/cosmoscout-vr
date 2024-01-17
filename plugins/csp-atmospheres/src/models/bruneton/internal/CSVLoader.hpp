@@ -1,24 +1,16 @@
-//
-// Created by Tim on 11.05.2022.
-//
+////////////////////////////////////////////////////////////////////////////////////////////////////
+//                               This file is part of CosmoScout VR                               //
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
+// SPDX-License-Identifier: MIT
 
 #ifndef CSP_ATMOSPHERES_MODELS_BRUNETON_INTERNAL_CSVLOADER_HPP
 #define CSP_ATMOSPHERES_MODELS_BRUNETON_INTERNAL_CSVLOADER_HPP
 
-#include "Model.hpp"
-
-#include <cassert>
-#include <iostream>
-#include <regex>
-#include <string>
-#include <utility>
-#include <vector>
-
-#include <cstdio>
-#include <fstream>
 #include <functional>
-#include <sstream>
 #include <string>
+#include <vector>
 
 namespace csp::atmospheres::models::bruneton::internal {
 
