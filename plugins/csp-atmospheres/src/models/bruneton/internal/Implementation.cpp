@@ -180,10 +180,10 @@ constexpr double XYZ_TO_SRGB[9] = {
 const char kVertexShader[] = R"(
   #version 330
 
-  layout(location = 0) in vec2 vertex;
+  layout(location = 0) in vec2 iVertex;
 
   void main() {
-    gl_Position = vec4(vertex, 0.0, 1.0);
+    gl_Position = vec4(iVertex, 0.0, 1.0);
   }
 )";
 
@@ -193,19 +193,19 @@ const char kGeometryShader[] = R"(
   layout(triangles) in;
   layout(triangle_strip, max_vertices = 3) out;
 
-  uniform int layer;
+  uniform int uLayer;
 
   void main() {
     gl_Position = gl_in[0].gl_Position;
-    gl_Layer = layer;
+    gl_Layer = uLayer;
     EmitVertex();
 
     gl_Position = gl_in[1].gl_Position;
-    gl_Layer = layer;
+    gl_Layer = uLayer;
     EmitVertex();
 
     gl_Position = gl_in[2].gl_Position;
-    gl_Layer = layer;
+    gl_Layer = uLayer;
     EmitVertex();
 
     EndPrimitive();
@@ -213,249 +213,249 @@ const char kGeometryShader[] = R"(
 )";
 
 const char kComputeTransmittanceShader[] = R"(
-  layout(location = 0) out vec3 transmittance;
+  layout(location = 0) out vec3 oTransmittance;
 
   void main() {
-    transmittance = ComputeTransmittanceToTopAtmosphereBoundaryTexture(ATMOSPHERE, gl_FragCoord.xy);
+    oTransmittance = computeTransmittanceToTopAtmosphereBoundaryTexture(ATMOSPHERE, gl_FragCoord.xy);
   }
 )";
 
 const char kComputeDirectIrradianceShader[] = R"(
-  layout(location = 0) out vec3 delta_irradiance;
-  layout(location = 1) out vec3 irradiance;
-  uniform sampler2D transmittance_texture;
+  layout(location = 0) out vec3 oDeltaIrradiance;
+  layout(location = 1) out vec3 oIrradiance;
+  uniform sampler2D uTransmittanceTexture;
   void main() {
-    delta_irradiance = ComputeDirectIrradianceTexture(transmittance_texture, gl_FragCoord.xy);
-    irradiance = vec3(0.0);
+    oDeltaIrradiance = computeDirectIrradianceTexture(uTransmittanceTexture, gl_FragCoord.xy);
+    oIrradiance = vec3(0.0);
   }
 )";
 
 const char kComputeSingleScatteringShader[] = R"(
-  layout(location = 0) out vec3 delta_molecules;
-  layout(location = 1) out vec3 delta_aerosols;
-  layout(location = 2) out vec3 accumulated_molecules_single_scattering_luminance;
-  layout(location = 3) out vec3 accumulated_aerosols_single_scattering_luminance;
+  layout(location = 0) out vec3 oDeltaMolecules;
+  layout(location = 1) out vec3 oDeltaAerosols;
+  layout(location = 2) out vec3 oAccumulatedMoleculesSingleScatteringLuminance;
+  layout(location = 3) out vec3 oAccumulatedAerosolsSingleScatteringLuminance;
 
-  uniform mat3 luminance_from_radiance;
-  uniform sampler2D transmittance_texture;
-  uniform int layer;
+  uniform mat3 uLuminanceFromRadiance;
+  uniform sampler2D uTransmittanceTexture;
+  uniform int uLayer;
 
   void main() {
-    ComputeSingleScatteringTexture(ATMOSPHERE, transmittance_texture,
-                                   vec3(gl_FragCoord.xy, layer + 0.5),
-                                   delta_molecules, delta_aerosols);
-    accumulated_molecules_single_scattering_luminance = luminance_from_radiance * delta_molecules;
-    accumulated_aerosols_single_scattering_luminance = luminance_from_radiance * delta_aerosols;
+    computeSingleScatteringTexture(ATMOSPHERE, uTransmittanceTexture,
+                                   vec3(gl_FragCoord.xy, uLayer + 0.5),
+                                   oDeltaMolecules, oDeltaAerosols);
+    oAccumulatedMoleculesSingleScatteringLuminance = uLuminanceFromRadiance * oDeltaMolecules;
+    oAccumulatedAerosolsSingleScatteringLuminance = uLuminanceFromRadiance * oDeltaAerosols;
   }
 )";
 
 const char kComputeScatteringDensityShader[] = R"(
-  layout(location = 0) out vec3 scattering_density;
+  layout(location = 0) out vec3 oScatteringDensity;
 
-  uniform sampler2D transmittance_texture;
-  uniform sampler3D single_molecules_scattering_texture;
-  uniform sampler3D single_aerosols_scattering_texture;
-  uniform sampler3D multiple_scattering_texture;
-  uniform sampler2D irradiance_texture;
-  uniform int scattering_order;
-  uniform int layer;
+  uniform sampler2D uTransmittanceTexture;
+  uniform sampler3D uSingleMoleculesScatteringTexture;
+  uniform sampler3D uSingleAerosolsScatteringTexture;
+  uniform sampler3D uMultipleScatteringTexture;
+  uniform sampler2D uIrradianceTexture;
+  uniform int uScatteringOrder;
+  uniform int uLayer;
 
   void main() {
-    scattering_density = ComputeScatteringDensityTexture(ATMOSPHERE, transmittance_texture,
-                                                         single_molecules_scattering_texture,
-                                                         single_aerosols_scattering_texture,
-                                                         multiple_scattering_texture,
-                                                         irradiance_texture,
-                                                         vec3(gl_FragCoord.xy, layer + 0.5),
-                                                         scattering_order);
+    oScatteringDensity = computeScatteringDensityTexture(ATMOSPHERE, uTransmittanceTexture,
+                                                         uSingleMoleculesScatteringTexture,
+                                                         uSingleAerosolsScatteringTexture,
+                                                         uMultipleScatteringTexture,
+                                                         uIrradianceTexture,
+                                                         vec3(gl_FragCoord.xy, uLayer + 0.5),
+                                                         uScatteringOrder);
   }
 )";
 
 const char kComputeIndirectIrradianceShader[] = R"(
-  layout(location = 0) out vec3 delta_irradiance;
-  layout(location = 1) out vec3 irradiance;
+  layout(location = 0) out vec3 oDeltaIrradiance;
+  layout(location = 1) out vec3 oIrradiance;
 
-  uniform mat3 luminance_from_radiance;
-  uniform sampler3D single_molecules_scattering_texture;
-  uniform sampler3D single_aerosols_scattering_texture;
-  uniform sampler3D multiple_scattering_texture;
-  uniform int scattering_order;
+  uniform mat3 uLuminanceFromRadiance;
+  uniform sampler3D uSingleMoleculesScatteringTexture;
+  uniform sampler3D uSingleAerosolsScatteringTexture;
+  uniform sampler3D uMultipleScatteringTexture;
+  uniform int uScatteringOrder;
 
   void main() {
-    delta_irradiance = ComputeIndirectIrradianceTexture(ATMOSPHERE, single_molecules_scattering_texture,
-                                                        single_aerosols_scattering_texture,
-                                                        multiple_scattering_texture,
-                                                        gl_FragCoord.xy, scattering_order);
-    irradiance = luminance_from_radiance * delta_irradiance;
+    oDeltaIrradiance = computeIndirectIrradianceTexture(ATMOSPHERE, uSingleMoleculesScatteringTexture,
+                                                        uSingleAerosolsScatteringTexture,
+                                                        uMultipleScatteringTexture,
+                                                        gl_FragCoord.xy, uScatteringOrder);
+    oIrradiance = uLuminanceFromRadiance * oDeltaIrradiance;
   }
 )";
 
 const char kComputeMultipleScatteringShader[] = R"(
-  layout(location = 0) out vec3 delta_multiple_scattering;
-  layout(location = 1) out vec3 multiple_scattering;
+  layout(location = 0) out vec3 oDeltaMultipleScattering;
+  layout(location = 1) out vec3 oMultipleScattering;
 
-  uniform mat3 luminance_from_radiance;
-  uniform sampler2D transmittance_texture;
-  uniform sampler3D scattering_density_texture;
-  uniform int layer;
+  uniform mat3 uLuminanceFromRadiance;
+  uniform sampler2D uTransmittanceTexture;
+  uniform sampler3D uScatteringDensityTexture;
+  uniform int uLayer;
   
   void main() {
     float nu;
-    delta_multiple_scattering = ComputeMultipleScatteringTexture(transmittance_texture,
-                                                                 scattering_density_texture,
-                                                                 vec3(gl_FragCoord.xy, layer + 0.5),
-                                                                 nu);
-    multiple_scattering = luminance_from_radiance * delta_multiple_scattering /
-                          PhaseFunction(ATMOSPHERE.molecules, nu);
+    oDeltaMultipleScattering = computeMultipleScatteringTexture(uTransmittanceTexture,
+                                                                uScatteringDensityTexture,
+                                                                vec3(gl_FragCoord.xy, uLayer + 0.5),
+                                                                nu);
+    oMultipleScattering = uLuminanceFromRadiance * oDeltaMultipleScattering /
+                         phaseFunction(ATMOSPHERE.molecules, nu);
   }
 )";
 
 const char kAtmosphereShader[] = R"(
-  uniform sampler2D transmittance_texture;
-  uniform sampler3D multiple_scattering_texture;
-  uniform sampler3D single_aerosols_scattering_texture;
-  uniform sampler2D irradiance_texture;
+  uniform sampler2D uTransmittanceTexture;
+  uniform sampler3D uMultipleScatteringTexture;
+  uniform sampler3D uSingleAerosolsScatteringTexture;
+  uniform sampler2D uIrradianceTexture;
 
-  vec3 GetSkyLuminance(vec3 camera, vec3 view_ray, vec3 sun_direction, out vec3 transmittance) {
-    return GetSkyRadiance(ATMOSPHERE, transmittance_texture, multiple_scattering_texture,
-                          single_aerosols_scattering_texture, camera, view_ray,
-                          sun_direction, transmittance) * SKY_SPECTRAL_RADIANCE_TO_LUMINANCE;
+  vec3 GetSkyLuminance(vec3 camera, vec3 viewRay, vec3 sunDirection, out vec3 transmittance) {
+    return getSkyRadiance(ATMOSPHERE, uTransmittanceTexture, uMultipleScatteringTexture,
+                          uSingleAerosolsScatteringTexture, camera, viewRay,
+                          sunDirection, transmittance) * SKY_SPECTRAL_RADIANCE_TO_LUMINANCE;
   }
 
-  vec3 GetSkyLuminanceToPoint(vec3 camera, vec3 point, vec3 sun_direction, out vec3 transmittance) {
-    return GetSkyRadianceToPoint(ATMOSPHERE, transmittance_texture, multiple_scattering_texture,
-                                  single_aerosols_scattering_texture, camera, point,
-                                  sun_direction, transmittance) * SKY_SPECTRAL_RADIANCE_TO_LUMINANCE;
+  vec3 GetSkyLuminanceToPoint(vec3 camera, vec3 point, vec3 sunDirection, out vec3 transmittance) {
+    return getSkyRadianceToPoint(ATMOSPHERE, uTransmittanceTexture, uMultipleScatteringTexture,
+                                 uSingleAerosolsScatteringTexture, camera, point,
+                                 sunDirection, transmittance) * SKY_SPECTRAL_RADIANCE_TO_LUMINANCE;
   }
 
-  vec3 GetSunAndSkyIlluminance(vec3 p, vec3 sun_direction, out vec3 sky_irradiance) {
-    vec3 sun_irradiance = GetSunAndSkyIrradiance(transmittance_texture, irradiance_texture, p,
-                                                  sun_direction, sky_irradiance);
-    sky_irradiance *= SKY_SPECTRAL_RADIANCE_TO_LUMINANCE;
+  vec3 GetSunAndSkyIlluminance(vec3 p, vec3 sunDirection, out vec3 skyIrradiance) {
+    vec3 sun_irradiance = getSunAndSkyIrradiance(uTransmittanceTexture, uIrradianceTexture, p,
+                                                 sunDirection, skyIrradiance);
+    skyIrradiance *= SKY_SPECTRAL_RADIANCE_TO_LUMINANCE;
     return sun_irradiance * SUN_SPECTRAL_RADIANCE_TO_LUMINANCE;
   }
 )";
 
 class Program {
  public:
-  Program(const std::string& vertex_shader_source, const std::string& fragment_shader_source)
-      : Program(vertex_shader_source, "", fragment_shader_source) {
+  Program(std::string const& vertexShaderSource, std::string const& fragmentShaderSource)
+      : Program(vertexShaderSource, "", fragmentShaderSource) {
   }
 
-  Program(const std::string& vertex_shader_source, const std::string& geometry_shader_source,
-      const std::string& fragment_shader_source) {
-    program_ = glCreateProgram();
+  Program(std::string const& vertexShaderSource, std::string const& geometryShaderSource,
+      std::string const& fragmentShaderSource) {
+    mProgram = glCreateProgram();
 
     const char* source;
-    source               = vertex_shader_source.c_str();
-    GLuint vertex_shader = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(vertex_shader, 1, &source, NULL);
-    glCompileShader(vertex_shader);
-    CheckShader(vertex_shader);
-    glAttachShader(program_, vertex_shader);
+    source              = vertexShaderSource.c_str();
+    GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
+    glShaderSource(vertexShader, 1, &source, NULL);
+    glCompileShader(vertexShader);
+    CheckShader(vertexShader);
+    glAttachShader(mProgram, vertexShader);
 
-    GLuint geometry_shader = 0;
-    if (!geometry_shader_source.empty()) {
-      source          = geometry_shader_source.c_str();
-      geometry_shader = glCreateShader(GL_GEOMETRY_SHADER);
-      glShaderSource(geometry_shader, 1, &source, NULL);
-      glCompileShader(geometry_shader);
-      CheckShader(geometry_shader);
-      glAttachShader(program_, geometry_shader);
+    GLuint geometryShader = 0;
+    if (!geometryShaderSource.empty()) {
+      source         = geometryShaderSource.c_str();
+      geometryShader = glCreateShader(GL_GEOMETRY_SHADER);
+      glShaderSource(geometryShader, 1, &source, NULL);
+      glCompileShader(geometryShader);
+      CheckShader(geometryShader);
+      glAttachShader(mProgram, geometryShader);
     }
 
-    source                 = fragment_shader_source.c_str();
-    GLuint fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fragment_shader, 1, &source, NULL);
-    glCompileShader(fragment_shader);
-    CheckShader(fragment_shader);
-    glAttachShader(program_, fragment_shader);
+    source                = fragmentShaderSource.c_str();
+    GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+    glShaderSource(fragmentShader, 1, &source, NULL);
+    glCompileShader(fragmentShader);
+    CheckShader(fragmentShader);
+    glAttachShader(mProgram, fragmentShader);
 
-    glLinkProgram(program_);
-    CheckProgram(program_);
+    glLinkProgram(mProgram);
+    CheckProgram(mProgram);
 
-    glDetachShader(program_, vertex_shader);
-    glDeleteShader(vertex_shader);
-    if (!geometry_shader_source.empty()) {
-      glDetachShader(program_, geometry_shader);
-      glDeleteShader(geometry_shader);
+    glDetachShader(mProgram, vertexShader);
+    glDeleteShader(vertexShader);
+    if (!geometryShaderSource.empty()) {
+      glDetachShader(mProgram, geometryShader);
+      glDeleteShader(geometryShader);
     }
-    glDetachShader(program_, fragment_shader);
-    glDeleteShader(fragment_shader);
+    glDetachShader(mProgram, fragmentShader);
+    glDeleteShader(fragmentShader);
   }
 
   ~Program() {
-    glDeleteProgram(program_);
+    glDeleteProgram(mProgram);
   }
 
   void Use() const {
-    glUseProgram(program_);
+    glUseProgram(mProgram);
   }
 
-  void BindMat3(const std::string& uniform_name, const glm::mat3& value) const {
-    glUniformMatrix3fv(glGetUniformLocation(program_, uniform_name.c_str()), 1,
-        true /* transpose */, glm::value_ptr(value));
+  void BindMat3(std::string const& uniformName, glm::mat3 const& value) const {
+    glUniformMatrix3fv(glGetUniformLocation(mProgram, uniformName.c_str()), 1, true /* transpose */,
+        glm::value_ptr(value));
   }
 
-  void BindInt(const std::string& uniform_name, int value) const {
-    glUniform1i(glGetUniformLocation(program_, uniform_name.c_str()), value);
+  void BindInt(std::string const& uniformName, int value) const {
+    glUniform1i(glGetUniformLocation(mProgram, uniformName.c_str()), value);
   }
 
   void BindTexture2d(
-      const std::string& sampler_uniform_name, GLuint texture, GLuint texture_unit) const {
-    glActiveTexture(GL_TEXTURE0 + texture_unit);
+      std::string const& samplerUniformName, GLuint texture, GLuint textureUnit) const {
+    glActiveTexture(GL_TEXTURE0 + textureUnit);
     glBindTexture(GL_TEXTURE_2D, texture);
-    BindInt(sampler_uniform_name, texture_unit);
+    BindInt(samplerUniformName, textureUnit);
   }
 
   void BindTexture3d(
-      const std::string& sampler_uniform_name, GLuint texture, GLuint texture_unit) const {
-    glActiveTexture(GL_TEXTURE0 + texture_unit);
+      std::string const& samplerUniformName, GLuint texture, GLuint textureUnit) const {
+    glActiveTexture(GL_TEXTURE0 + textureUnit);
     glBindTexture(GL_TEXTURE_3D, texture);
-    BindInt(sampler_uniform_name, texture_unit);
+    BindInt(samplerUniformName, textureUnit);
   }
 
  private:
   static void CheckShader(GLuint shader) {
-    GLint compile_status;
-    glGetShaderiv(shader, GL_COMPILE_STATUS, &compile_status);
-    if (compile_status == GL_FALSE) {
+    GLint compileStatus;
+    glGetShaderiv(shader, GL_COMPILE_STATUS, &compileStatus);
+    if (compileStatus == GL_FALSE) {
       PrintShaderLog(shader);
     }
-    assert(compile_status == GL_TRUE);
+    assert(compileStatus == GL_TRUE);
   }
 
   static void PrintShaderLog(GLuint shader) {
-    GLint log_length;
-    glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &log_length);
-    if (log_length > 0) {
-      std::unique_ptr<char[]> log_data(new char[log_length]);
-      glGetShaderInfoLog(shader, log_length, &log_length, log_data.get());
-      std::cerr << "compile log = " << std::string(log_data.get(), log_length) << std::endl;
+    GLint logLength;
+    glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &logLength);
+    if (logLength > 0) {
+      std::unique_ptr<char[]> log_data(new char[logLength]);
+      glGetShaderInfoLog(shader, logLength, &logLength, log_data.get());
+      std::cerr << "compile log = " << std::string(log_data.get(), logLength) << std::endl;
     }
   }
 
   static void CheckProgram(GLuint program) {
-    GLint link_status;
-    glGetProgramiv(program, GL_LINK_STATUS, &link_status);
-    if (link_status == GL_FALSE) {
+    GLint linkStatus;
+    glGetProgramiv(program, GL_LINK_STATUS, &linkStatus);
+    if (linkStatus == GL_FALSE) {
       PrintProgramLog(program);
     }
-    assert(link_status == GL_TRUE);
+    assert(linkStatus == GL_TRUE);
     assert(glGetError() == 0);
   }
 
   static void PrintProgramLog(GLuint program) {
-    GLint log_length;
-    glGetProgramiv(program, GL_INFO_LOG_LENGTH, &log_length);
-    if (log_length > 0) {
-      std::unique_ptr<char[]> log_data(new char[log_length]);
-      glGetProgramInfoLog(program, log_length, &log_length, log_data.get());
-      std::cerr << "link log = " << std::string(log_data.get(), log_length) << std::endl;
+    GLint logLength;
+    glGetProgramiv(program, GL_INFO_LOG_LENGTH, &logLength);
+    if (logLength > 0) {
+      std::unique_ptr<char[]> log_data(new char[logLength]);
+      glGetProgramInfoLog(program, logLength, &logLength, log_data.get());
+      std::cerr << "link log = " << std::string(log_data.get(), logLength) << std::endl;
     }
   }
 
-  GLuint program_;
+  GLuint mProgram;
 };
 
 GLuint NewTexture2d(int width, int height, GLenum internalFormat, GLenum format, GLenum type,
@@ -489,18 +489,18 @@ GLuint NewTexture3d(int width, int height, int depth, GLenum internalFormat, GLe
   return texture;
 }
 
-void DrawQuad(const std::vector<bool>& enable_blend, GLuint quad_vao) {
-  for (unsigned int i = 0; i < enable_blend.size(); ++i) {
-    if (enable_blend[i]) {
+void DrawQuad(std::vector<bool> const& enableBlend, GLuint quadVAO) {
+  for (unsigned int i = 0; i < enableBlend.size(); ++i) {
+    if (enableBlend[i]) {
       glEnablei(GL_BLEND, i);
     }
   }
 
-  glBindVertexArray(quad_vao);
+  glBindVertexArray(quadVAO);
   glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
   glBindVertexArray(0);
 
-  for (unsigned int i = 0; i < enable_blend.size(); ++i) {
+  for (unsigned int i = 0; i < enableBlend.size(); ++i) {
     glDisablei(GL_BLEND, i);
   }
 }
@@ -519,7 +519,7 @@ double CieColorMatchingFunctionTableValue(double wavelength, int column) {
          CIE_2_DEG_COLOR_MATCHING_FUNCTIONS[4 * (row + 1) + column] * u;
 }
 
-double Interpolate(const std::vector<double>& xVals, const std::vector<double>& yVals, double x) {
+double Interpolate(std::vector<double> const& xVals, std::vector<double> const& yVals, double x) {
   assert(yVals.size() == xVals.size());
 
   if (x < xVals[0]) {
@@ -537,7 +537,7 @@ double Interpolate(const std::vector<double>& xVals, const std::vector<double>& 
 }
 
 std::string extractVec3(
-    const std::vector<double>& xVals, const std::vector<double>& yVals, const glm::dvec3& lambdas) {
+    std::vector<double> const& xVals, std::vector<double> const& yVals, glm::dvec3 const& lambdas) {
   double r = Interpolate(xVals, yVals, lambdas[0]);
   double g = Interpolate(xVals, yVals, lambdas[1]);
   double b = Interpolate(xVals, yVals, lambdas[2]);
@@ -590,15 +590,15 @@ Evaluation of 8 Clear Sky Models</a> for their definitions):
 
 // The returned constants are in lumen.nm / watt.
 void ComputeSpectralRadianceToLuminanceFactors(
-    double lambda_power, double* k_r, double* k_g, double* k_b) {
-  *k_r           = 0.0;
-  *k_g           = 0.0;
-  *k_b           = 0.0;
-  double solar_r = Interpolate(WAVELENGTHS, SOLAR_IRRADIANCE, Implementation::kLambdaR);
-  double solar_g = Interpolate(WAVELENGTHS, SOLAR_IRRADIANCE, Implementation::kLambdaG);
-  double solar_b = Interpolate(WAVELENGTHS, SOLAR_IRRADIANCE, Implementation::kLambdaB);
-  int    dlambda = 1;
-  for (int lambda = WAVELENGTHS.front(); lambda <= WAVELENGTHS.back(); lambda += dlambda) {
+    double lambdaPower, double* kR, double* kG, double* kB) {
+  *kR            = 0.0;
+  *kG            = 0.0;
+  *kB            = 0.0;
+  double solarR  = Interpolate(WAVELENGTHS, SOLAR_IRRADIANCE, Implementation::kLambdaR);
+  double solarG  = Interpolate(WAVELENGTHS, SOLAR_IRRADIANCE, Implementation::kLambdaG);
+  double solarB  = Interpolate(WAVELENGTHS, SOLAR_IRRADIANCE, Implementation::kLambdaB);
+  int    dLambda = 1;
+  for (int lambda = WAVELENGTHS.front(); lambda <= WAVELENGTHS.back(); lambda += dLambda) {
     double        x_bar      = CieColorMatchingFunctionTableValue(lambda, 1);
     double        y_bar      = CieColorMatchingFunctionTableValue(lambda, 2);
     double        z_bar      = CieColorMatchingFunctionTableValue(lambda, 3);
@@ -607,22 +607,22 @@ void ComputeSpectralRadianceToLuminanceFactors(
     double        g_bar      = xyz2srgb[3] * x_bar + xyz2srgb[4] * y_bar + xyz2srgb[5] * z_bar;
     double        b_bar      = xyz2srgb[6] * x_bar + xyz2srgb[7] * y_bar + xyz2srgb[8] * z_bar;
     double        irradiance = Interpolate(WAVELENGTHS, SOLAR_IRRADIANCE, lambda);
-    *k_r += r_bar * irradiance / solar_r * pow(lambda / Implementation::kLambdaR, lambda_power);
-    *k_g += g_bar * irradiance / solar_g * pow(lambda / Implementation::kLambdaG, lambda_power);
-    *k_b += b_bar * irradiance / solar_b * pow(lambda / Implementation::kLambdaB, lambda_power);
+    *kR += r_bar * irradiance / solarR * pow(lambda / Implementation::kLambdaR, lambdaPower);
+    *kG += g_bar * irradiance / solarG * pow(lambda / Implementation::kLambdaG, lambdaPower);
+    *kB += b_bar * irradiance / solarB * pow(lambda / Implementation::kLambdaB, lambdaPower);
   }
-  *k_r *= MAX_LUMINOUS_EFFICACY * dlambda;
-  *k_g *= MAX_LUMINOUS_EFFICACY * dlambda;
-  *k_b *= MAX_LUMINOUS_EFFICACY * dlambda;
+  *kR *= MAX_LUMINOUS_EFFICACY * dLambda;
+  *kG *= MAX_LUMINOUS_EFFICACY * dLambda;
+  *kB *= MAX_LUMINOUS_EFFICACY * dLambda;
 }
 
 } // anonymous namespace
 
 Implementation::Implementation(Params params)
-    : params_(std::move(params))
-    , mScatteringTextureWidth(params_.mScatteringTextureNuSize * params_.mScatteringTextureMuSSize)
-    , mScatteringTextureHeight(params_.mScatteringTextureMuSize)
-    , mScatteringTextureDepth(params_.mScatteringTextureRSize) {
+    : mParams(std::move(params))
+    , mScatteringTextureWidth(mParams.mScatteringTextureNuSize * mParams.mScatteringTextureMuSSize)
+    , mScatteringTextureHeight(mParams.mScatteringTextureMuSize)
+    , mScatteringTextureDepth(mParams.mScatteringTextureRSize) {
 
   // Compute the values for the SKY_RADIANCE_TO_LUMINANCE constant. In theory this should be 1 in
   // precomputed illuminance mode (because the precomputed textures already contain illuminance
@@ -630,101 +630,101 @@ Implementation::Implementation(Params params)
   // yields artefacts (because the values are too large), so we store illuminance values divided by
   // MAX_LUMINOUS_EFFICACY instead. This is why, in precomputed illuminance mode, we set
   // SKY_RADIANCE_TO_LUMINANCE to MAX_LUMINOUS_EFFICACY.
-  bool   precompute_illuminance = params_.mWavelengths.size() > 3;
-  double sky_k_r, sky_k_g, sky_k_b;
-  if (precompute_illuminance) {
-    sky_k_r = sky_k_g = sky_k_b = MAX_LUMINOUS_EFFICACY;
+  bool   precomputeIlluminance = mParams.mWavelengths.size() > 3;
+  double skyKR, skyKG, skyKB;
+  if (precomputeIlluminance) {
+    skyKR = skyKG = skyKB = MAX_LUMINOUS_EFFICACY;
   } else {
-    ComputeSpectralRadianceToLuminanceFactors(-3 /* lambda_power */, &sky_k_r, &sky_k_g, &sky_k_b);
+    ComputeSpectralRadianceToLuminanceFactors(-3 /* lambdaPower */, &skyKR, &skyKG, &skyKB);
   }
   // Compute the values for the SUN_RADIANCE_TO_LUMINANCE constant.
-  double sun_k_r, sun_k_g, sun_k_b;
-  ComputeSpectralRadianceToLuminanceFactors(0 /* lambda_power */, &sun_k_r, &sun_k_g, &sun_k_b);
+  double sunKR, sunKG, sunKB;
+  ComputeSpectralRadianceToLuminanceFactors(0 /* lambdaPower */, &sunKR, &sunKG, &sunKB);
 
   // A lambda that creates a GLSL header containing our atmosphere computation functions,
   // specialized for the given atmosphere parameters and for the 3 wavelengths in 'lambdas'.
-  auto definitions_glsl = cs::utils::filesystem::loadToString(
+  auto definitions = cs::utils::filesystem::loadToString(
       "../share/resources/shaders/csp-atmospheres/models/bruneton/definitions.glsl");
-  auto functions_glsl = cs::utils::filesystem::loadToString(
+  auto functions = cs::utils::filesystem::loadToString(
       "../share/resources/shaders/csp-atmospheres/models/bruneton/functions.glsl");
 
   // clang-format off
-  glsl_header_factory_ = [=](const glm::dvec3& lambdas) {
+  mGlslHeaderFactory = [=](glm::dvec3 const& lambdas) {
     return
       "#version 330\n" +
-      definitions_glsl +
-      "const int TRANSMITTANCE_TEXTURE_WIDTH = "      + cs::utils::toString(params_.mTransmittanceTextureWidth) + ";\n" +
-      "const int TRANSMITTANCE_TEXTURE_HEIGHT = "     + cs::utils::toString(params_.mTransmittanceTextureHeight) + ";\n" +
-      "const int SCATTERING_TEXTURE_R_SIZE = "        + cs::utils::toString(params_.mScatteringTextureRSize) + ";\n" +
-      "const int SCATTERING_TEXTURE_MU_SIZE = "       + cs::utils::toString(params_.mScatteringTextureMuSize) + ";\n" +
-      "const int SCATTERING_TEXTURE_MU_S_SIZE = "     + cs::utils::toString(params_.mScatteringTextureMuSSize) + ";\n" +
-      "const int SCATTERING_TEXTURE_NU_SIZE = "       + cs::utils::toString(params_.mScatteringTextureNuSize) + ";\n" +
-      "const int IRRADIANCE_TEXTURE_WIDTH = "         + cs::utils::toString(params_.mIrradianceTextureWidth) + ";\n" +
-      "const int IRRADIANCE_TEXTURE_HEIGHT = "        + cs::utils::toString(params_.mIrradianceTextureHeight) + ";\n" +
-      "const int SAMPLE_COUNT_OPTICAL_DEPTH = "       + cs::utils::toString(params_.mSampleCountOpticalDepth) + ";\n" +
-      "const int SAMPLE_COUNT_SINGLE_SCATTERING = "   + cs::utils::toString(params_.mSampleCountSingleScattering) + ";\n" +
-      "const int SAMPLE_COUNT_SCATTERING_DENSITY = "  + cs::utils::toString(params_.mSampleCountScatteringDensity) + ";\n" +
-      "const int SAMPLE_COUNT_MULTI_SCATTERING = "    + cs::utils::toString(params_.mSampleCountMultiScattering) + ";\n" +
-      "const int SAMPLE_COUNT_INDIRECT_IRRADIANCE = " + cs::utils::toString(params_.mSampleCountIndirectIrradiance) + ";\n" +
-      "const vec3 SKY_SPECTRAL_RADIANCE_TO_LUMINANCE = vec3(" + cs::utils::toString(sky_k_r) + "," + cs::utils::toString(sky_k_g) + "," + cs::utils::toString(sky_k_b) + ");\n" +
-      "const vec3 SUN_SPECTRAL_RADIANCE_TO_LUMINANCE = vec3(" + cs::utils::toString(sun_k_r) + "," + cs::utils::toString(sun_k_g) + "," + cs::utils::toString(sun_k_b) + ");\n" +
+      definitions +
+      "const int TRANSMITTANCE_TEXTURE_WIDTH = "      + cs::utils::toString(mParams.mTransmittanceTextureWidth) + ";\n" +
+      "const int TRANSMITTANCE_TEXTURE_HEIGHT = "     + cs::utils::toString(mParams.mTransmittanceTextureHeight) + ";\n" +
+      "const int SCATTERING_TEXTURE_R_SIZE = "        + cs::utils::toString(mParams.mScatteringTextureRSize) + ";\n" +
+      "const int SCATTERING_TEXTURE_MU_SIZE = "       + cs::utils::toString(mParams.mScatteringTextureMuSize) + ";\n" +
+      "const int SCATTERING_TEXTURE_MU_S_SIZE = "     + cs::utils::toString(mParams.mScatteringTextureMuSSize) + ";\n" +
+      "const int SCATTERING_TEXTURE_NU_SIZE = "       + cs::utils::toString(mParams.mScatteringTextureNuSize) + ";\n" +
+      "const int IRRADIANCE_TEXTURE_WIDTH = "         + cs::utils::toString(mParams.mIrradianceTextureWidth) + ";\n" +
+      "const int IRRADIANCE_TEXTURE_HEIGHT = "        + cs::utils::toString(mParams.mIrradianceTextureHeight) + ";\n" +
+      "const int SAMPLE_COUNT_OPTICAL_DEPTH = "       + cs::utils::toString(mParams.mSampleCountOpticalDepth) + ";\n" +
+      "const int SAMPLE_COUNT_SINGLE_SCATTERING = "   + cs::utils::toString(mParams.mSampleCountSingleScattering) + ";\n" +
+      "const int SAMPLE_COUNT_SCATTERING_DENSITY = "  + cs::utils::toString(mParams.mSampleCountScatteringDensity) + ";\n" +
+      "const int SAMPLE_COUNT_MULTI_SCATTERING = "    + cs::utils::toString(mParams.mSampleCountMultiScattering) + ";\n" +
+      "const int SAMPLE_COUNT_INDIRECT_IRRADIANCE = " + cs::utils::toString(mParams.mSampleCountIndirectIrradiance) + ";\n" +
+      "const vec3 SKY_SPECTRAL_RADIANCE_TO_LUMINANCE = vec3(" + cs::utils::toString(skyKR) + "," + cs::utils::toString(skyKG) + "," + cs::utils::toString(skyKB) + ");\n" +
+      "const vec3 SUN_SPECTRAL_RADIANCE_TO_LUMINANCE = vec3(" + cs::utils::toString(sunKR) + "," + cs::utils::toString(sunKG) + "," + cs::utils::toString(sunKB) + ");\n" +
       "const vec3 SOLAR_IRRADIANCE = "                + extractVec3(WAVELENGTHS, SOLAR_IRRADIANCE, lambdas) + ";\n" +
-      "const vec3 GROUND_ALBEDO = vec3("              + cs::utils::toString(params_.mGroundAlbedo) + ");\n" +
-      "const float SUN_ANGULAR_RADIUS = "             + cs::utils::toString(params_.mSunAngularRadius) + ";\n" +
-      "const float BOTTOM_RADIUS = "                  + cs::utils::toString(params_.mBottomRadius) + ";\n" +
-      "const float TOP_RADIUS = "                     + cs::utils::toString(params_.mTopRadius) + ";\n" +
-      "const float MU_S_MIN = "                       + cs::utils::toString(std::cos(params_.mMaxSunZenithAngle))+ ";\n" +
+      "const vec3 GROUND_ALBEDO = vec3("              + cs::utils::toString(mParams.mGroundAlbedo) + ");\n" +
+      "const float SUN_ANGULAR_RADIUS = "             + cs::utils::toString(mParams.mSunAngularRadius) + ";\n" +
+      "const float BOTTOM_RADIUS = "                  + cs::utils::toString(mParams.mBottomRadius) + ";\n" +
+      "const float TOP_RADIUS = "                     + cs::utils::toString(mParams.mTopRadius) + ";\n" +
+      "const float MU_S_MIN = "                       + cs::utils::toString(std::cos(mParams.mMaxSunZenithAngle))+ ";\n" +
       "const AtmosphereComponents ATMOSPHERE = AtmosphereComponents(\n" +
-        printScatteringComponent(params_.mMolecules, params_.mWavelengths, 0.0, 0.0, lambdas) + ",\n" +
-        printScatteringComponent(params_.mAerosols, params_.mWavelengths, 1.0, 0.5, lambdas) + ",\n" +
-        printAbsorbingComponent(params_.mOzone, params_.mWavelengths, 1.0, lambdas) + ");\n" +
-      functions_glsl;
+        printScatteringComponent(mParams.mMolecules, mParams.mWavelengths, 0.0, 0.0, lambdas) + ",\n" +
+        printScatteringComponent(mParams.mAerosols, mParams.mWavelengths, 1.0, 0.5, lambdas) + ",\n" +
+        printAbsorbingComponent(mParams.mOzone, mParams.mWavelengths, 1.0, lambdas) + ");\n" +
+      functions;
     };
   // clang-format on
 
   // Allocate the precomputed textures, but don't precompute them yet.
-  transmittance_texture_       = NewTexture2d(params_.mTransmittanceTextureWidth,
-      params_.mTransmittanceTextureHeight, GL_RGBA32F, GL_RGBA, GL_FLOAT);
-  multiple_scattering_texture_ = NewTexture3d(mScatteringTextureWidth, mScatteringTextureHeight,
+  mTransmittanceTexture            = NewTexture2d(mParams.mTransmittanceTextureWidth,
+      mParams.mTransmittanceTextureHeight, GL_RGBA32F, GL_RGBA, GL_FLOAT);
+  mMultipleScatteringTexture       = NewTexture3d(mScatteringTextureWidth, mScatteringTextureHeight,
       mScatteringTextureDepth, GL_RGBA32F, GL_RGBA, GL_FLOAT);
-  single_aerosols_scattering_texture_ = NewTexture3d(mScatteringTextureWidth,
-      mScatteringTextureHeight, mScatteringTextureDepth, GL_RGBA32F, GL_RGBA, GL_FLOAT);
+  mSingleAerosolsScatteringTexture = NewTexture3d(mScatteringTextureWidth, mScatteringTextureHeight,
+      mScatteringTextureDepth, GL_RGBA32F, GL_RGBA, GL_FLOAT);
 
-  irradiance_texture_ = NewTexture2d(params_.mIrradianceTextureWidth,
-      params_.mIrradianceTextureHeight, GL_RGBA32F, GL_RGBA, GL_FLOAT);
+  mIrradianceTexture = NewTexture2d(mParams.mIrradianceTextureWidth,
+      mParams.mIrradianceTextureHeight, GL_RGBA32F, GL_RGBA, GL_FLOAT);
 
   // Create the density profile texture.
   {
 
-    size_t numDensities = params_.mMolecules.mDensity.size();
+    size_t numDensities = mParams.mMolecules.mDensity.size();
 
     std::vector<float> densityData;
     size_t             numComponents = 3; // Rayleigh, Mie, Ozone
     densityData.reserve(numComponents * numDensities);
 
     densityData.insert(
-        densityData.end(), params_.mMolecules.mDensity.begin(), params_.mMolecules.mDensity.end());
+        densityData.end(), mParams.mMolecules.mDensity.begin(), mParams.mMolecules.mDensity.end());
     densityData.insert(
-        densityData.end(), params_.mAerosols.mDensity.begin(), params_.mAerosols.mDensity.end());
+        densityData.end(), mParams.mAerosols.mDensity.begin(), mParams.mAerosols.mDensity.end());
     densityData.insert(
-        densityData.end(), params_.mOzone.mDensity.begin(), params_.mOzone.mDensity.end());
+        densityData.end(), mParams.mOzone.mDensity.begin(), mParams.mOzone.mDensity.end());
 
-    density_texture_ =
+    mDensityTexture =
         NewTexture2d(numDensities, numComponents, GL_R32F, GL_RED, GL_FLOAT, densityData.data());
   }
 
   // Create and compile the shader providing our API.
-  std::string shader = glsl_header_factory_({kLambdaR, kLambdaG, kLambdaB}) + kAtmosphereShader;
+  std::string shader = mGlslHeaderFactory({kLambdaR, kLambdaG, kLambdaB}) + kAtmosphereShader;
   const char* source = shader.c_str();
-  atmosphere_shader_ = glCreateShader(GL_FRAGMENT_SHADER);
-  glShaderSource(atmosphere_shader_, 1, &source, NULL);
-  glCompileShader(atmosphere_shader_);
+  mAtmosphereShader  = glCreateShader(GL_FRAGMENT_SHADER);
+  glShaderSource(mAtmosphereShader, 1, &source, NULL);
+  glCompileShader(mAtmosphereShader);
 
   // Create a full screen quad vertex array and vertex buffer objects.
-  glGenVertexArrays(1, &full_screen_quad_vao_);
-  glBindVertexArray(full_screen_quad_vao_);
-  glGenBuffers(1, &full_screen_quad_vbo_);
-  glBindBuffer(GL_ARRAY_BUFFER, full_screen_quad_vbo_);
+  glGenVertexArrays(1, &mFullScreenQuadVAO);
+  glBindVertexArray(mFullScreenQuadVAO);
+  glGenBuffers(1, &mFullScreenQuadVBO);
+  glBindBuffer(GL_ARRAY_BUFFER, mFullScreenQuadVBO);
   const GLfloat vertices[] = {
       -1.0,
       -1.0,
@@ -744,36 +744,36 @@ Implementation::Implementation(Params params)
 }
 
 Implementation::~Implementation() {
-  glDeleteBuffers(1, &full_screen_quad_vbo_);
-  glDeleteVertexArrays(1, &full_screen_quad_vao_);
-  glDeleteTextures(1, &phase_texture_);
-  glDeleteTextures(1, &transmittance_texture_);
-  glDeleteTextures(1, &multiple_scattering_texture_);
-  glDeleteTextures(1, &single_aerosols_scattering_texture_);
-  glDeleteTextures(1, &irradiance_texture_);
-  glDeleteShader(atmosphere_shader_);
+  glDeleteBuffers(1, &mFullScreenQuadVBO);
+  glDeleteVertexArrays(1, &mFullScreenQuadVAO);
+  glDeleteTextures(1, &mPhaseTexture);
+  glDeleteTextures(1, &mTransmittanceTexture);
+  glDeleteTextures(1, &mMultipleScatteringTexture);
+  glDeleteTextures(1, &mSingleAerosolsScatteringTexture);
+  glDeleteTextures(1, &mIrradianceTexture);
+  glDeleteShader(mAtmosphereShader);
 }
 
-void Implementation::Init(unsigned int num_scattering_orders) {
+void Implementation::init(unsigned int numScatteringOrders) {
   // The precomputations require temporary textures, in particular to store the contribution of one
   // scattering order, which is needed to compute the next order of scattering (the final
   // precomputed textures store the sum of all the scattering orders). We allocate them here, and
   // destroy them at the end of this method.
-  GLuint delta_irradiance_texture           = NewTexture2d(params_.mIrradianceTextureWidth,
-      params_.mIrradianceTextureHeight, GL_RGBA32F, GL_RGBA, GL_FLOAT);
-  GLuint delta_molecules_scattering_texture = NewTexture3d(mScatteringTextureWidth,
+  GLuint deltaIrradianceTexture          = NewTexture2d(mParams.mIrradianceTextureWidth,
+      mParams.mIrradianceTextureHeight, GL_RGBA32F, GL_RGBA, GL_FLOAT);
+  GLuint deltaMoleculesScatteringTexture = NewTexture3d(mScatteringTextureWidth,
       mScatteringTextureHeight, mScatteringTextureDepth, GL_RGBA32F, GL_RGBA, GL_FLOAT);
-  GLuint delta_aerosols_scattering_texture  = NewTexture3d(mScatteringTextureWidth,
+  GLuint deltaAerosolsScatteringTexture  = NewTexture3d(mScatteringTextureWidth,
       mScatteringTextureHeight, mScatteringTextureDepth, GL_RGBA32F, GL_RGBA, GL_FLOAT);
-  GLuint delta_scattering_density_texture   = NewTexture3d(mScatteringTextureWidth,
+  GLuint deltaScatteringDensityTexture   = NewTexture3d(mScatteringTextureWidth,
       mScatteringTextureHeight, mScatteringTextureDepth, GL_RGBA32F, GL_RGBA, GL_FLOAT);
 
-  // delta_multiple_scattering_texture is only needed to compute scattering order 3 or more, while
-  // delta_molecules_scattering_texture and delta_aerosols_scattering_texture are only needed to
+  // deltaMultipleScatteringTexture is only needed to compute scattering order 3 or more, while
+  // deltaMoleculesScatteringTexture and deltaAerosolsScatteringTexture are only needed to
   // compute double scattering. Therefore, to save memory, we can store
-  // delta_molecules_scattering_texture and delta_multiple_scattering_texture in the same GPU
+  // deltaMoleculesScatteringTexture and deltaMultipleScatteringTexture in the same GPU
   // texture.
-  GLuint delta_multiple_scattering_texture = delta_molecules_scattering_texture;
+  GLuint deltaMultipleScatteringTexture = deltaMoleculesScatteringTexture;
 
   // The precomputations also require a temporary framebuffer object, created here (and destroyed at
   // the end of this method).
@@ -783,21 +783,21 @@ void Implementation::Init(unsigned int num_scattering_orders) {
 
   // The actual precomputations depend on whether we want to store precomputed irradiance or
   // illuminance values.
-  if (params_.mWavelengths.size() <= 3) {
-    logger().info("Precomputing atmospheric scattering...");
+  if (mParams.mWavelengths.size() <= 3) {
+    logger().info("Precomputing atmospheric scattering (1/1)...");
     glm::dvec3 lambdas{kLambdaR, kLambdaG, kLambdaB};
-    glm::mat3  luminance_from_radiance{1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0};
-    Precompute(fbo, delta_irradiance_texture, delta_molecules_scattering_texture,
-        delta_aerosols_scattering_texture, delta_scattering_density_texture,
-        delta_multiple_scattering_texture, lambdas, luminance_from_radiance, false /* blend */,
-        num_scattering_orders);
+    glm::mat3  luminanceFromRadiance{1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0};
+    precompute(fbo, deltaIrradianceTexture, deltaMoleculesScatteringTexture,
+        deltaAerosolsScatteringTexture, deltaScatteringDensityTexture,
+        deltaMultipleScatteringTexture, lambdas, luminanceFromRadiance, false /* blend */,
+        numScatteringOrders);
   } else {
-    int num_iterations = params_.mWavelengths.size() / 3;
-    for (int i = 0; i < num_iterations; ++i) {
-      logger().info("Precomputing atmospheric scattering ({}/{})...", i + 1, num_iterations);
+    int numIterations = mParams.mWavelengths.size() / 3;
+    for (int i = 0; i < numIterations; ++i) {
+      logger().info("Precomputing atmospheric scattering ({}/{})...", i + 1, numIterations);
 
-      glm::dvec3 lambdas{params_.mWavelengths[i * 3 + 0], params_.mWavelengths[i * 3 + 1],
-          params_.mWavelengths[i * 3 + 2]};
+      glm::dvec3 lambdas{mParams.mWavelengths[i * 3 + 0], mParams.mWavelengths[i * 3 + 1],
+          mParams.mWavelengths[i * 3 + 2]};
 
       auto coeff = [this](double lambda, int component) {
         // Note that we don't include MAX_LUMINOUS_EFFICACY here, to avoid artefacts due to too
@@ -810,140 +810,140 @@ void Implementation::Init(unsigned int num_scattering_orders) {
         return static_cast<float>(
             (XYZ_TO_SRGB[component * 3] * x + XYZ_TO_SRGB[component * 3 + 1] * y +
                 XYZ_TO_SRGB[component * 3 + 2] * z) *
-            (params_.mWavelengths[1] - params_.mWavelengths[0]));
+            (mParams.mWavelengths[1] - mParams.mWavelengths[0]));
       };
 
-      glm::mat3 luminance_from_radiance{coeff(lambdas[0], 0), coeff(lambdas[1], 0),
+      glm::mat3 luminanceFromRadiance{coeff(lambdas[0], 0), coeff(lambdas[1], 0),
           coeff(lambdas[2], 0), coeff(lambdas[0], 1), coeff(lambdas[1], 1), coeff(lambdas[2], 1),
           coeff(lambdas[0], 2), coeff(lambdas[1], 2), coeff(lambdas[2], 2)};
 
-      Precompute(fbo, delta_irradiance_texture, delta_molecules_scattering_texture,
-          delta_aerosols_scattering_texture, delta_scattering_density_texture,
-          delta_multiple_scattering_texture, lambdas, luminance_from_radiance, i > 0 /* blend */,
-          num_scattering_orders);
+      precompute(fbo, deltaIrradianceTexture, deltaMoleculesScatteringTexture,
+          deltaAerosolsScatteringTexture, deltaScatteringDensityTexture,
+          deltaMultipleScatteringTexture, lambdas, luminanceFromRadiance, i > 0 /* blend */,
+          numScatteringOrders);
     }
 
     // After the above iterations, the transmittance texture contains the transmittance for the 3
     // wavelengths used at the last iteration. But we want the transmittance at kLambdaR, kLambdaG,
     // kLambdaB instead, so we must recompute it here for these 3 wavelengths:
-    std::string header = glsl_header_factory_({kLambdaR, kLambdaG, kLambdaB});
-    Program     compute_transmittance(kVertexShader, header + kComputeTransmittanceShader);
-    glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, transmittance_texture_, 0);
+    std::string header = mGlslHeaderFactory({kLambdaR, kLambdaG, kLambdaB});
+    Program     computeTransmittance(kVertexShader, header + kComputeTransmittanceShader);
+    glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, mTransmittanceTexture, 0);
     glDrawBuffer(GL_COLOR_ATTACHMENT0);
-    glViewport(0, 0, params_.mTransmittanceTextureWidth, params_.mTransmittanceTextureHeight);
-    glScissor(0, 0, params_.mTransmittanceTextureWidth, params_.mTransmittanceTextureHeight);
-    compute_transmittance.Use();
-    compute_transmittance.BindTexture2d("density_texture", density_texture_, 0);
-    DrawQuad({false}, full_screen_quad_vao_);
+    glViewport(0, 0, mParams.mTransmittanceTextureWidth, mParams.mTransmittanceTextureHeight);
+    glScissor(0, 0, mParams.mTransmittanceTextureWidth, mParams.mTransmittanceTextureHeight);
+    computeTransmittance.Use();
+    computeTransmittance.BindTexture2d("uDensityTexture", mDensityTexture, 0);
+    DrawQuad({false}, mFullScreenQuadVAO);
 
     glFlush();
 
-    // Also, the phase_texture_ contains the phase functions for the last used wavelengths. We need
+    // Also, the mPhaseTexture contains the phase functions for the last used wavelengths. We need
     // to update it with kLambdaR, kLambdaG, kLambdaB as well.
-    UpdatePhaseFunctionTexture(
-        {params_.mMolecules, params_.mAerosols}, {kLambdaR, kLambdaG, kLambdaB});
+    updatePhaseFunctionTexture(
+        {mParams.mMolecules, mParams.mAerosols}, {kLambdaR, kLambdaG, kLambdaB});
   }
 
   // Delete the temporary resources allocated at the begining of this method.
   glUseProgram(0);
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
   glDeleteFramebuffers(1, &fbo);
-  glDeleteTextures(1, &density_texture_);
-  glDeleteTextures(1, &delta_scattering_density_texture);
-  glDeleteTextures(1, &delta_aerosols_scattering_texture);
-  glDeleteTextures(1, &delta_molecules_scattering_texture);
-  glDeleteTextures(1, &delta_irradiance_texture);
+  glDeleteTextures(1, &mDensityTexture);
+  glDeleteTextures(1, &deltaScatteringDensityTexture);
+  glDeleteTextures(1, &deltaAerosolsScatteringTexture);
+  glDeleteTextures(1, &deltaMoleculesScatteringTexture);
+  glDeleteTextures(1, &deltaIrradianceTexture);
   assert(glGetError() == 0);
 }
 
-void Implementation::SetProgramUniforms(GLuint program, GLuint phase_texture_unit,
-    GLuint transmittance_texture_unit, GLuint multiple_scattering_texture_unit,
-    GLuint irradiance_texture_unit, GLuint single_aerosols_scattering_texture_unit) const {
+void Implementation::setProgramUniforms(GLuint program, GLuint phaseTextureUnit,
+    GLuint transmittanceTextureUnit, GLuint multipleScatteringTextureUnit,
+    GLuint irradianceTextureUnit, GLuint singleAerosolsScatteringTextureUnit) const {
 
-  glActiveTexture(GL_TEXTURE0 + phase_texture_unit);
-  glBindTexture(GL_TEXTURE_2D, phase_texture_);
-  glUniform1i(glGetUniformLocation(program, "phase_texture"), phase_texture_unit);
+  glActiveTexture(GL_TEXTURE0 + phaseTextureUnit);
+  glBindTexture(GL_TEXTURE_2D, mPhaseTexture);
+  glUniform1i(glGetUniformLocation(program, "uPhaseTexture"), phaseTextureUnit);
 
-  glActiveTexture(GL_TEXTURE0 + transmittance_texture_unit);
-  glBindTexture(GL_TEXTURE_2D, transmittance_texture_);
-  glUniform1i(glGetUniformLocation(program, "transmittance_texture"), transmittance_texture_unit);
+  glActiveTexture(GL_TEXTURE0 + transmittanceTextureUnit);
+  glBindTexture(GL_TEXTURE_2D, mTransmittanceTexture);
+  glUniform1i(glGetUniformLocation(program, "uTransmittanceTexture"), transmittanceTextureUnit);
 
-  glActiveTexture(GL_TEXTURE0 + multiple_scattering_texture_unit);
-  glBindTexture(GL_TEXTURE_3D, multiple_scattering_texture_);
-  glUniform1i(glGetUniformLocation(program, "multiple_scattering_texture"),
-      multiple_scattering_texture_unit);
+  glActiveTexture(GL_TEXTURE0 + multipleScatteringTextureUnit);
+  glBindTexture(GL_TEXTURE_3D, mMultipleScatteringTexture);
+  glUniform1i(
+      glGetUniformLocation(program, "uMultipleScatteringTexture"), multipleScatteringTextureUnit);
 
-  glActiveTexture(GL_TEXTURE0 + irradiance_texture_unit);
-  glBindTexture(GL_TEXTURE_2D, irradiance_texture_);
-  glUniform1i(glGetUniformLocation(program, "irradiance_texture"), irradiance_texture_unit);
+  glActiveTexture(GL_TEXTURE0 + irradianceTextureUnit);
+  glBindTexture(GL_TEXTURE_2D, mIrradianceTexture);
+  glUniform1i(glGetUniformLocation(program, "uIrradianceTexture"), irradianceTextureUnit);
 
-  glActiveTexture(GL_TEXTURE0 + single_aerosols_scattering_texture_unit);
-  glBindTexture(GL_TEXTURE_3D, single_aerosols_scattering_texture_);
-  glUniform1i(glGetUniformLocation(program, "single_aerosols_scattering_texture"),
-      single_aerosols_scattering_texture_unit);
+  glActiveTexture(GL_TEXTURE0 + singleAerosolsScatteringTextureUnit);
+  glBindTexture(GL_TEXTURE_3D, mSingleAerosolsScatteringTexture);
+  glUniform1i(glGetUniformLocation(program, "uSingleAerosolsScatteringTexture"),
+      singleAerosolsScatteringTextureUnit);
 }
 
 /*
 Here is an outline of the data flow of the precomputation.
 
 1. Compute the transmittance (vec3) of the atmosphere for every point in every direction and store
-   it in transmittance_texture_. This incorporates extinction based on molecules, aerosols, and
+   it in mTransmittanceTexture. This incorporates extinction based on molecules, aerosols, and
 ozone particles.
 
-2. Using transmittance_texture_, compute the direct irradiance from the Sun to every point in the
-   atmosphere for the current set of wavelengths and store it in delta_irradiance_texture. In this
-   step, irradiance_texture_ os also initialized to zero if it's the first call to Precompute().
+2. Using mTransmittanceTexture, compute the direct irradiance from the Sun to every point in the
+   atmosphere for the current set of wavelengths and store it in deltaIrradianceTexture. In this
+   step, mIrradianceTexture os also initialized to zero if it's the first call to Precompute().
 
-3. Using the transmittance_texture_, compute the single aerosols and single molecules scattering
+3. Using the mTransmittanceTexture, compute the single aerosols and single molecules scattering
    irradiance along the rays in the atmosphere. This is the molecules and aerosols density * solar
    irradiance * scattering coefficient. The term stored in the output textures is without the phase
    function. The irradiance for the current set of wavelengths is stored in
-   delta_molecules_scattering_texture and delta_aerosols_scattering_texture. It is also converted to
-   illuminance and accumulated for all wavelengths in multiple_scattering_texture_ and
-   single_aerosols_scattering_texture_.
+   deltaMoleculesScatteringTexture and deltaAerosolsScatteringTexture. It is also converted to
+   illuminance and accumulated for all wavelengths in mMultipleScatteringTexture and
+   mSingleAerosolsScatteringTexture.
 
-At this point, multiple_scattering_texture_ and single_aerosols_scattering_texture_ contain single
+At this point, mMultipleScatteringTexture and mSingleAerosolsScatteringTexture contain single
 scattering illuminance without the phase function.
 
 4. Iteratively compute higher orders of scattering. The following happens in a loop:
 
-   4.1. Compute the scattering density, and store it in delta_scattering_density_texture.
+   4.1. Compute the scattering density, and store it in deltaScatteringDensityTexture.
 
-   4.2. Compute the indirect irradiance, store it in delta_irradiance_texture and accumulate it in
-        irradiance_texture_.
+   4.2. Compute the indirect irradiance, store it in deltaIrradianceTexture and accumulate it in
+        mIrradianceTexture.
 
-   4.3. Compute the multiple scattering, store it in delta_multiple_scattering_texture, and
-        accumulate it in multiple_scattering_texture_.
+   4.3. Compute the multiple scattering, store it in deltaMultipleScatteringTexture, and
+        accumulate it in mMultipleScatteringTexture.
 
-At the end, single_aerosols_scattering_texture_ contains the single aerosols scattering illuminance
-without the phase function and multiple_scattering_texture_ contains single molecules scattering
+At the end, mSingleAerosolsScatteringTexture contains the single aerosols scattering illuminance
+without the phase function and mMultipleScatteringTexture contains single molecules scattering
 without the phase function + multiple scattering with only the aerosols phase function applied. So
-at render time, the data from single_aerosols_scattering_texture_ needs to be multiplied with the
-aerosols phase function and the data from multiple_scattering_texture_ needs to be multiplied with
+at render time, the data from mSingleAerosolsScatteringTexture needs to be multiplied with the
+aerosols phase function and the data from mMultipleScatteringTexture needs to be multiplied with
 the molecules phase function.
 
 */
-void Implementation::Precompute(GLuint fbo, GLuint delta_irradiance_texture,
-    GLuint delta_molecules_scattering_texture, GLuint delta_aerosols_scattering_texture,
-    GLuint delta_scattering_density_texture, GLuint delta_multiple_scattering_texture,
-    const glm::dvec3& lambdas, const glm::mat3& luminance_from_radiance, bool blend,
-    unsigned int num_scattering_orders) {
+void Implementation::precompute(GLuint fbo, GLuint deltaIrradianceTexture,
+    GLuint deltaMoleculesScatteringTexture, GLuint deltaAerosolsScatteringTexture,
+    GLuint deltaScatteringDensityTexture, GLuint deltaMultipleScatteringTexture,
+    glm::dvec3 const& lambdas, glm::mat3 const& luminanceFromRadiance, bool blend,
+    unsigned int numScatteringOrders) {
 
   // The precomputations require specific GLSL programs, for each precomputation step. We create and
   // compile them here (they are automatically destroyed when this method returns, via the Program
   // destructor).
-  std::string header = glsl_header_factory_(lambdas);
+  std::string header = mGlslHeaderFactory(lambdas);
 
-  UpdatePhaseFunctionTexture({params_.mMolecules, params_.mAerosols}, lambdas);
+  updatePhaseFunctionTexture({mParams.mMolecules, mParams.mAerosols}, lambdas);
 
-  Program compute_transmittance(kVertexShader, header + kComputeTransmittanceShader);
-  Program compute_direct_irradiance(kVertexShader, header + kComputeDirectIrradianceShader);
-  Program compute_single_scattering(
+  Program computeTransmittance(kVertexShader, header + kComputeTransmittanceShader);
+  Program computeDirectIrradiance(kVertexShader, header + kComputeDirectIrradianceShader);
+  Program computeSingleScattering(
       kVertexShader, kGeometryShader, header + kComputeSingleScatteringShader);
-  Program compute_scattering_density(
+  Program computeScatteringDensity(
       kVertexShader, kGeometryShader, header + kComputeScatteringDensityShader);
-  Program compute_indirect_irradiance(kVertexShader, header + kComputeIndirectIrradianceShader);
-  Program compute_multiple_scattering(
+  Program computeIndirectIrradiance(kVertexShader, header + kComputeIndirectIrradianceShader);
+  Program computeMultipleScattering(
       kVertexShader, kGeometryShader, header + kComputeMultipleScatteringShader);
 
   const GLuint kDrawBuffers[4] = {
@@ -953,120 +953,118 @@ void Implementation::Precompute(GLuint fbo, GLuint delta_irradiance_texture,
 
   // -----------------------------------------------------------------------------------------------
 
-  // 1. Compute the transmittance, and store it in transmittance_texture_.
-  glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, transmittance_texture_, 0);
+  // 1. Compute the transmittance, and store it in mTransmittanceTexture.
+  glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, mTransmittanceTexture, 0);
   glDrawBuffer(GL_COLOR_ATTACHMENT0);
-  glViewport(0, 0, params_.mTransmittanceTextureWidth, params_.mTransmittanceTextureHeight);
-  glScissor(0, 0, params_.mTransmittanceTextureWidth, params_.mTransmittanceTextureHeight);
-  compute_transmittance.Use();
-  compute_transmittance.BindTexture2d("density_texture", density_texture_, 0);
-  DrawQuad({false}, full_screen_quad_vao_);
+  glViewport(0, 0, mParams.mTransmittanceTextureWidth, mParams.mTransmittanceTextureHeight);
+  glScissor(0, 0, mParams.mTransmittanceTextureWidth, mParams.mTransmittanceTextureHeight);
+  computeTransmittance.Use();
+  computeTransmittance.BindTexture2d("uDensityTexture", mDensityTexture, 0);
+  DrawQuad({false}, mFullScreenQuadVAO);
 
   // -----------------------------------------------------------------------------------------------
 
-  // 2. Compute the direct irradiance, store it in delta_irradiance_texture and, depending on
-  // 'blend', either initialize irradiance_texture_ with zeros or leave it unchanged (we don't want
-  // the direct irradiance in irradiance_texture_, but only the irradiance from the sky).
-  glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, delta_irradiance_texture, 0);
-  glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, irradiance_texture_, 0);
+  // 2. Compute the direct irradiance, store it in deltaIrradianceTexture and, depending on
+  // 'blend', either initialize mIrradianceTexture with zeros or leave it unchanged (we don't want
+  // the direct irradiance in mIrradianceTexture, but only the irradiance from the sky).
+  glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, deltaIrradianceTexture, 0);
+  glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, mIrradianceTexture, 0);
   glDrawBuffers(2, kDrawBuffers);
-  glViewport(0, 0, params_.mIrradianceTextureWidth, params_.mIrradianceTextureHeight);
-  glScissor(0, 0, params_.mIrradianceTextureWidth, params_.mIrradianceTextureHeight);
-  compute_direct_irradiance.Use();
-  compute_direct_irradiance.BindTexture2d("transmittance_texture", transmittance_texture_, 0);
-  DrawQuad({false, blend}, full_screen_quad_vao_);
+  glViewport(0, 0, mParams.mIrradianceTextureWidth, mParams.mIrradianceTextureHeight);
+  glScissor(0, 0, mParams.mIrradianceTextureWidth, mParams.mIrradianceTextureHeight);
+  computeDirectIrradiance.Use();
+  computeDirectIrradiance.BindTexture2d("uTransmittanceTexture", mTransmittanceTexture, 0);
+  DrawQuad({false, blend}, mFullScreenQuadVAO);
 
   // -----------------------------------------------------------------------------------------------
 
   // 3. Compute the molecules and aerosols single scattering for the current wavelengths, store them
-  // in delta_molecules_scattering_texture and delta_aerosols_scattering_texture, and accumulate the
-  // resulting luminance via additive blending in multiple_scattering_texture_ and
-  // single_aerosols_scattering_texture_. The molecules scattering is stored together with the
-  // multiple scattering contributions in multiple_scattering_texture_.
-  glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, delta_molecules_scattering_texture, 0);
-  glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, delta_aerosols_scattering_texture, 0);
-  glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, multiple_scattering_texture_, 0);
-  glFramebufferTexture(
-      GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, single_aerosols_scattering_texture_, 0);
+  // in deltaMoleculesScatteringTexture and deltaAerosolsScatteringTexture, and accumulate the
+  // resulting luminance via additive blending in mMultipleScatteringTexture and
+  // mSingleAerosolsScatteringTexture. The molecules scattering is stored together with the
+  // multiple scattering contributions in mMultipleScatteringTexture.
+  glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, deltaMoleculesScatteringTexture, 0);
+  glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, deltaAerosolsScatteringTexture, 0);
+  glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, mMultipleScatteringTexture, 0);
+  glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, mSingleAerosolsScatteringTexture, 0);
   glDrawBuffers(4, kDrawBuffers);
 
   glViewport(0, 0, mScatteringTextureWidth, mScatteringTextureHeight);
   glScissor(0, 0, mScatteringTextureWidth, mScatteringTextureHeight);
-  compute_single_scattering.Use();
-  compute_single_scattering.BindMat3("luminance_from_radiance", luminance_from_radiance);
-  compute_single_scattering.BindTexture2d("transmittance_texture", transmittance_texture_, 0);
-  compute_single_scattering.BindTexture2d("density_texture", density_texture_, 1);
+  computeSingleScattering.Use();
+  computeSingleScattering.BindMat3("uLuminanceFromRadiance", luminanceFromRadiance);
+  computeSingleScattering.BindTexture2d("uTransmittanceTexture", mTransmittanceTexture, 0);
+  computeSingleScattering.BindTexture2d("uDensityTexture", mDensityTexture, 1);
   for (int32_t layer = 0; layer < mScatteringTextureDepth; ++layer) {
-    compute_single_scattering.BindInt("layer", layer);
-    DrawQuad({false, false, blend, blend}, full_screen_quad_vao_);
+    computeSingleScattering.BindInt("uLayer", layer);
+    DrawQuad({false, false, blend, blend}, mFullScreenQuadVAO);
   }
 
   // -----------------------------------------------------------------------------------------------
 
   // 4. Compute the 2nd, 3rd and 4th order of scattering, in sequence.
-  for (unsigned int scattering_order = 2; scattering_order <= num_scattering_orders;
-       ++scattering_order) {
-    // 4.1. Compute the scattering density, and store it in delta_scattering_density_texture.
-    glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, delta_scattering_density_texture, 0);
+  for (unsigned int scatteringOrder = 2; scatteringOrder <= numScatteringOrders;
+       ++scatteringOrder) {
+    // 4.1. Compute the scattering density, and store it in deltaScatteringDensityTexture.
+    glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, deltaScatteringDensityTexture, 0);
     glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, 0, 0);
     glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, 0, 0);
     glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, 0, 0);
     glDrawBuffer(GL_COLOR_ATTACHMENT0);
     glViewport(0, 0, mScatteringTextureWidth, mScatteringTextureHeight);
     glScissor(0, 0, mScatteringTextureWidth, mScatteringTextureHeight);
-    compute_scattering_density.Use();
-    compute_scattering_density.BindTexture2d("phase_texture", phase_texture_, 0);
-    compute_scattering_density.BindTexture2d("transmittance_texture", transmittance_texture_, 1);
-    compute_scattering_density.BindTexture2d("density_texture", density_texture_, 2);
-    compute_scattering_density.BindTexture3d(
-        "single_molecules_scattering_texture", delta_molecules_scattering_texture, 3);
-    compute_scattering_density.BindTexture3d(
-        "single_aerosols_scattering_texture", delta_aerosols_scattering_texture, 4);
-    compute_scattering_density.BindTexture3d(
-        "multiple_scattering_texture", delta_multiple_scattering_texture, 5);
-    compute_scattering_density.BindTexture2d("irradiance_texture", delta_irradiance_texture, 6);
-    compute_scattering_density.BindInt("scattering_order", scattering_order);
+    computeScatteringDensity.Use();
+    computeScatteringDensity.BindTexture2d("uPhaseTexture", mPhaseTexture, 0);
+    computeScatteringDensity.BindTexture2d("uTransmittanceTexture", mTransmittanceTexture, 1);
+    computeScatteringDensity.BindTexture2d("uDensityTexture", mDensityTexture, 2);
+    computeScatteringDensity.BindTexture3d(
+        "uSingleMoleculesScatteringTexture", deltaMoleculesScatteringTexture, 3);
+    computeScatteringDensity.BindTexture3d(
+        "uSingleAerosolsScatteringTexture", deltaAerosolsScatteringTexture, 4);
+    computeScatteringDensity.BindTexture3d(
+        "uMultipleScatteringTexture", deltaMultipleScatteringTexture, 5);
+    computeScatteringDensity.BindTexture2d("uIrradianceTexture", deltaIrradianceTexture, 6);
+    computeScatteringDensity.BindInt("uScatteringOrder", scatteringOrder);
     for (int32_t layer = 0; layer < mScatteringTextureDepth; ++layer) {
-      compute_scattering_density.BindInt("layer", layer);
-      DrawQuad({false}, full_screen_quad_vao_);
+      computeScatteringDensity.BindInt("uLayer", layer);
+      DrawQuad({false}, mFullScreenQuadVAO);
     }
 
-    // 4.2. Compute the indirect irradiance, store it in delta_irradiance_texture and accumulate it
-    // in irradiance_texture_.
-    glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, delta_irradiance_texture, 0);
-    glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, irradiance_texture_, 0);
+    // 4.2. Compute the indirect irradiance, store it in deltaIrradianceTexture and accumulate it
+    // in mIrradianceTexture.
+    glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, deltaIrradianceTexture, 0);
+    glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, mIrradianceTexture, 0);
     glDrawBuffers(2, kDrawBuffers);
-    glViewport(0, 0, params_.mIrradianceTextureWidth, params_.mIrradianceTextureHeight);
-    glScissor(0, 0, params_.mIrradianceTextureWidth, params_.mIrradianceTextureHeight);
-    compute_indirect_irradiance.Use();
-    compute_indirect_irradiance.BindMat3("luminance_from_radiance", luminance_from_radiance);
-    compute_indirect_irradiance.BindTexture2d("phase_texture", phase_texture_, 0);
-    compute_indirect_irradiance.BindTexture3d(
-        "single_molecules_scattering_texture", delta_molecules_scattering_texture, 1);
-    compute_indirect_irradiance.BindTexture3d(
-        "single_aerosols_scattering_texture", delta_aerosols_scattering_texture, 2);
-    compute_indirect_irradiance.BindTexture3d(
-        "multiple_scattering_texture", delta_multiple_scattering_texture, 3);
-    compute_indirect_irradiance.BindInt("scattering_order", scattering_order - 1);
-    DrawQuad({false, true}, full_screen_quad_vao_);
+    glViewport(0, 0, mParams.mIrradianceTextureWidth, mParams.mIrradianceTextureHeight);
+    glScissor(0, 0, mParams.mIrradianceTextureWidth, mParams.mIrradianceTextureHeight);
+    computeIndirectIrradiance.Use();
+    computeIndirectIrradiance.BindMat3("uLuminanceFromRadiance", luminanceFromRadiance);
+    computeIndirectIrradiance.BindTexture2d("uPhaseTexture", mPhaseTexture, 0);
+    computeIndirectIrradiance.BindTexture3d(
+        "uSingleMoleculesScatteringTexture", deltaMoleculesScatteringTexture, 1);
+    computeIndirectIrradiance.BindTexture3d(
+        "uSingleAerosolsScatteringTexture", deltaAerosolsScatteringTexture, 2);
+    computeIndirectIrradiance.BindTexture3d(
+        "uMultipleScatteringTexture", deltaMultipleScatteringTexture, 3);
+    computeIndirectIrradiance.BindInt("uScatteringOrder", scatteringOrder - 1);
+    DrawQuad({false, true}, mFullScreenQuadVAO);
 
-    // 4.3. Compute the multiple scattering, store it in delta_multiple_scattering_texture, and
-    // accumulate it in multiple_scattering_texture_.
-    glFramebufferTexture(
-        GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, delta_multiple_scattering_texture, 0);
-    glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, multiple_scattering_texture_, 0);
+    // 4.3. Compute the multiple scattering, store it in deltaMultipleScatteringTexture, and
+    // accumulate it in mMultipleScatteringTexture.
+    glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, deltaMultipleScatteringTexture, 0);
+    glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, mMultipleScatteringTexture, 0);
     glDrawBuffers(2, kDrawBuffers);
     glViewport(0, 0, mScatteringTextureWidth, mScatteringTextureHeight);
     glScissor(0, 0, mScatteringTextureWidth, mScatteringTextureHeight);
-    compute_multiple_scattering.Use();
-    compute_multiple_scattering.BindMat3("luminance_from_radiance", luminance_from_radiance);
-    compute_multiple_scattering.BindTexture2d("phase_texture", phase_texture_, 0);
-    compute_multiple_scattering.BindTexture2d("transmittance_texture", transmittance_texture_, 1);
-    compute_multiple_scattering.BindTexture3d(
-        "scattering_density_texture", delta_scattering_density_texture, 2);
+    computeMultipleScattering.Use();
+    computeMultipleScattering.BindMat3("uLuminanceFromRadiance", luminanceFromRadiance);
+    computeMultipleScattering.BindTexture2d("uPhaseTexture", mPhaseTexture, 0);
+    computeMultipleScattering.BindTexture2d("uTransmittanceTexture", mTransmittanceTexture, 1);
+    computeMultipleScattering.BindTexture3d(
+        "uScatteringDensityTexture", deltaScatteringDensityTexture, 2);
     for (int32_t layer = 0; layer < mScatteringTextureDepth; ++layer) {
-      compute_multiple_scattering.BindInt("layer", layer);
-      DrawQuad({false, true}, full_screen_quad_vao_);
+      computeMultipleScattering.BindInt("uLayer", layer);
+      DrawQuad({false, true}, mFullScreenQuadVAO);
     }
   }
 
@@ -1077,12 +1075,12 @@ void Implementation::Precompute(GLuint fbo, GLuint delta_irradiance_texture,
   glFlush();
 }
 
-void Implementation::UpdatePhaseFunctionTexture(
+void Implementation::updatePhaseFunctionTexture(
     std::vector<ScatteringAtmosphereComponent> const& scatteringComponents,
-    const glm::dvec3&                                 lambdas) {
+    glm::dvec3 const&                                 lambdas) {
 
-  if (phase_texture_ != 0) {
-    glDeleteTextures(1, &phase_texture_);
+  if (mPhaseTexture != 0) {
+    glDeleteTextures(1, &mPhaseTexture);
   }
 
   size_t numAngles = scatteringComponents.front().mPhase.size();
@@ -1092,14 +1090,14 @@ void Implementation::UpdatePhaseFunctionTexture(
 
   for (size_t i(0); i < scatteringComponents.size(); ++i) {
     for (auto const& spectrum : scatteringComponents[i].mPhase) {
-      data.push_back(Interpolate(params_.mWavelengths, spectrum, lambdas[0]));
-      data.push_back(Interpolate(params_.mWavelengths, spectrum, lambdas[1]));
-      data.push_back(Interpolate(params_.mWavelengths, spectrum, lambdas[2]));
+      data.push_back(Interpolate(mParams.mWavelengths, spectrum, lambdas[0]));
+      data.push_back(Interpolate(mParams.mWavelengths, spectrum, lambdas[1]));
+      data.push_back(Interpolate(mParams.mWavelengths, spectrum, lambdas[2]));
       data.push_back(0.f);
     }
   }
 
-  phase_texture_ = NewTexture2d(
+  mPhaseTexture = NewTexture2d(
       numAngles, scatteringComponents.size(), GL_RGBA32F, GL_RGBA, GL_FLOAT, data.data());
 }
 

@@ -111,51 +111,50 @@ class Implementation {
   Implementation(Params params);
   ~Implementation();
 
-  void Init(unsigned int num_scattering_orders = 4);
+  void init(unsigned int numScatteringOrders = 4);
 
   GLuint shader() const {
-    return atmosphere_shader_;
+    return mAtmosphereShader;
   }
 
-  void SetProgramUniforms(GLuint program, GLuint phase_texture_unit,
-      GLuint transmittance_texture_unit, GLuint multiple_scattering_texture_unit,
-      GLuint irradiance_texture_unit, GLuint single_aerosols_scattering_texture_unit) const;
+  void setProgramUniforms(GLuint program, GLuint phaseTextureUnit, GLuint transmittanceTextureUnit,
+      GLuint multipleScatteringTextureUnit, GLuint irradianceTextureUnit,
+      GLuint singleAerosolsScatteringTextureUnit) const;
 
   static constexpr double kLambdaR = 680.0;
   static constexpr double kLambdaG = 550.0;
   static constexpr double kLambdaB = 440.0;
 
  private:
-  void Precompute(GLuint fbo, GLuint delta_irradiance_texture,
-      GLuint delta_molecules_scattering_texture, GLuint delta_aerosols_scattering_texture,
-      GLuint delta_scattering_density_texture, GLuint delta_multiple_scattering_texture,
-      const glm::dvec3& lambdas, const glm::mat3& luminance_from_radiance, bool blend,
-      unsigned int num_scattering_orders);
+  void precompute(GLuint fbo, GLuint deltaIrradianceTexture, GLuint deltaMoleculesScatteringTexture,
+      GLuint deltaAerosolsScatteringTexture, GLuint deltaScatteringDensityTexture,
+      GLuint deltaMultipleScatteringTexture, glm::dvec3 const& lambdas,
+      glm::mat3 const& luminanceFromRadiance, bool blend, unsigned int numScatteringOrders);
 
-  void UpdatePhaseFunctionTexture(
+  void updatePhaseFunctionTexture(
       std::vector<ScatteringAtmosphereComponent> const& scatteringComponents,
-      const glm::dvec3&                                 lambdas);
+      glm::dvec3 const&                                 lambdas);
 
-  const Params  params_;
+  const Params  mParams;
   const int32_t mScatteringTextureWidth;
   const int32_t mScatteringTextureHeight;
   const int32_t mScatteringTextureDepth;
 
-  std::function<std::string(const glm::dvec3&)> glsl_header_factory_;
-  GLuint                                        phase_texture_         = 0;
-  GLuint                                        density_texture_       = 0;
-  GLuint                                        transmittance_texture_ = 0;
+  std::function<std::string(glm::dvec3 const&)> mGlslHeaderFactory;
+  GLuint                                        mPhaseTexture         = 0;
+  GLuint                                        mDensityTexture       = 0;
+  GLuint                                        mTransmittanceTexture = 0;
 
   // This texture stores single molecules scattering plus all multiple scattering contributions. The
   // single aerosols scattering is stored in an extra texture to have a higher angular resolution
   // (the phase function is applied at render time).
-  GLuint multiple_scattering_texture_        = 0;
-  GLuint single_aerosols_scattering_texture_ = 0;
+  GLuint mMultipleScatteringTexture       = 0;
+  GLuint mSingleAerosolsScatteringTexture = 0;
 
-  GLuint irradiance_texture_   = 0;
-  GLuint atmosphere_shader_    = 0;
-  GLuint full_screen_quad_vao_ = 0;
-  GLuint full_screen_quad_vbo_ = 0;
+  GLuint mIrradianceTexture = 0;
+  GLuint mAtmosphereShader  = 0;
+  GLuint mFullScreenQuadVAO = 0;
+  GLuint mFullScreenQuadVBO = 0;
 };
 
 } // namespace csp::atmospheres::models::bruneton::internal

@@ -173,7 +173,7 @@ bool Model::init(
   mImpl.reset(new internal::Implementation(params));
 
   glDisable(GL_CULL_FACE);
-  mImpl->Init(settings.mMultiScatteringOrder.get());
+  mImpl->init(settings.mMultiScatteringOrder.get());
   glEnable(GL_CULL_FACE);
 
   return true;
@@ -188,7 +188,7 @@ GLuint Model::getShader() const {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 GLuint Model::setUniforms(GLuint program, GLuint startTextureUnit) const {
-  mImpl->SetProgramUniforms(program, startTextureUnit, startTextureUnit + 1, startTextureUnit + 2,
+  mImpl->setProgramUniforms(program, startTextureUnit, startTextureUnit + 1, startTextureUnit + 2,
       startTextureUnit + 3, startTextureUnit + 4);
   return startTextureUnit + 5;
 }

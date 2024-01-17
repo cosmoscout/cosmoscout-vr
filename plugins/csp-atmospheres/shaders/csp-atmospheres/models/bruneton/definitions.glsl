@@ -14,7 +14,7 @@ const float PI = 3.14159265358979323846;
 // component is stored in the top row of pixels, the second in the next and so on. So usually the
 // phase function for molecules is in the top row and the phase function for aerosols is in the
 // bottom row.
-uniform sampler2D phase_texture;
+uniform sampler2D uPhaseTexture;
 
 // This texture contains all the density functions for the components of the atmosphere. The density
 // function maps a relative density value in [0..1] to each altitude. The u coordinate corresponds
@@ -24,7 +24,7 @@ uniform sampler2D phase_texture;
 // in the first row, aerosols in the second row, and ozone is in the last row.
 // The density_texture is only sampled during pre-processing. It is not used at runtime in the final
 // fragment shader.
-uniform sampler2D density_texture;
+uniform sampler2D uDensityTexture;
 
 // Scattering components can absorb and scatter light. Air molecules and aerosols in Earth's
 // atmosphere are both modelled using scattering components.
