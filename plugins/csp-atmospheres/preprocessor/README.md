@@ -113,19 +113,9 @@ density
 Per default, all modes will sample 15 wavelengths from 360nm to 830nm.
 Phase functions will use 181 samples per default and the `density` mode will sample at 1024 different altitudes between 0m and 80km.
 
-### Mars
-
-```bash
-# Molecules
-./atmosphere-preprocessor density -i ../../../plugins/csp-atmospheres/preprocessor/density-settings/mars_cosmoscout_molecules.json -o mars_cosmoscout_molecules
-./atmosphere-preprocessor rayleigh --ior 1.00000337 --scattering-depolarization 0.09 --phase-depolarization 0.09 --number-density 2.05e23 --theta-samples 91 -o mars_cosmoscout_molecules
-
-# Aerosols
-./atmosphere-preprocessor density -i ../../../plugins/csp-atmospheres/preprocessor/density-settings/mars_cosmoscout_aerosols.json -o mars_cosmoscout_aerosols
-./atmosphere-preprocessor mie -i ../../../plugins/csp-atmospheres/preprocessor/mie-settings/mars_bimodal.json --theta-samples 91 --number-density 5e9 --radius-samples 10000 -o mars_cosmoscout_aerosols
-```
-
 ### Earth
+
+Below are the input values which we currently use for Earth's atmosphere in CosmoScout VR.
 
 ```bash
 # Molecules
@@ -141,30 +131,32 @@ Phase functions will use 181 samples per default and the `density` mode will sam
 ./atmosphere-preprocessor ozone -o earth_cosmoscout_ozone
 ```
 
-## Creating Atmospheres According to Different Papers
+### Mars
 
-### Collienne (Mars)
-
-**Molecules** are modelled using a manual parametrization of Rayleigh scattering.
-**Aerosols** use a wavelength-independent Cornette-Shanks phase function and some arbitrary density values.
+Below are the input values which we currently use for the Martian atmosphere in CosmoScout VR.
 
 ```bash
 # Molecules
-./atmosphere-preprocessor density -i ../../../plugins/csp-atmospheres/preprocessor/density-settings/mars_collienne_molecules.json -o mars_collienne_molecules
-./atmosphere-preprocessor rayleigh --lambdas 440e-9,550e-9,680e-9 -o mars_collienne_molecules
-./atmosphere-preprocessor manual --lambdas 440e-9,550e-9,680e-9 --quantity beta_sca --values 5.75e-6,13.57e-6,19.918e-6 -o mars_collienne_molecules_scattering
+./atmosphere-preprocessor density -i ../../../plugins/csp-atmospheres/preprocessor/density-settings/mars_cosmoscout_molecules.json -o mars_cosmoscout_molecules
+./atmosphere-preprocessor rayleigh --ior 1.00000337 --scattering-depolarization 0.09 --phase-depolarization 0.09 --number-density 2.05e23 --theta-samples 91 -o mars_cosmoscout_molecules
 
 # Aerosols
-./atmosphere-preprocessor density -i ../../../plugins/csp-atmospheres/preprocessor/density-settings/mars_collienne_aerosols.json -o mars_collienne_aerosols
-./atmosphere-preprocessor cornette --lambdas 440e-9,550e-9,680e-9 --g 0.76 -o mars_collienne_aerosols
-./atmosphere-preprocessor manual --lambdas 440e-9,550e-9,680e-9 --quantity beta_sca --values 3e-6 -o mars_collienne_aerosols_scattering
-./atmosphere-preprocessor manual --lambdas 440e-9,550e-9,680e-9 --quantity beta_abs --values 0 -o mars_collienne_aerosols_absorption
+./atmosphere-preprocessor density -i ../../../plugins/csp-atmospheres/preprocessor/density-settings/mars_cosmoscout_aerosols.json -o mars_cosmoscout_aerosols
+./atmosphere-preprocessor mie -i ../../../plugins/csp-atmospheres/preprocessor/mie-settings/mars_bimodal.json --theta-samples 91 --number-density 5e9 --radius-samples 10000 -o mars_cosmoscout_aerosols
 ```
 
-### Bruneton 2008 (Earth)
+## Creating Atmospheres According to Different Papers
 
-**Molecules** are modelled using standard Rayleigh scattering. However, neither the molecular number density nor the index of refraction is given. Hence, we use the explicitly given numbers.
-**Aerosols** use a wavelength-independent Cornette-Shanks phase function. The scattering coefficient of 2.1e-3 given in the paper seems very large. If we divide it by 100, we get plausible results.
+We can use the generic format of tabulated phase functions, scattering coefficients, absorption coefficients, and density distributions to recreate previous works.
+Here we provide the parametrization for various other models for Earth and Mars recreated with our approach.
+
+### [Earth] Bruneton et al.: [Precomputed Atmospheric Scattering](https://inria.hal.science/inria-00288758/en)
+
+In this work, **molecules** are modelled using standard Rayleigh scattering. However, neither the molecular number density nor the index of refraction is given.
+Hence, we use the explicitly given numbers.
+**Aerosols** use a wavelength-independent Cornette-Shanks phase function.
+The scattering coefficient of 2.1e-3 given in the paper seems very large.
+If we divide it by 100, we get plausible results.
 
 ```bash
 # Molecules
@@ -179,11 +171,12 @@ Phase functions will use 181 samples per default and the `density` mode will sam
 ./atmosphere-preprocessor manual --lambdas 440e-9,550e-9,680e-9 --quantity beta_abs --values 2.1e-6 -o earth_bruneton2008_aerosols_absorption
 ```
 
-### Bruneton 2016 (Earth)
+### [Earth] E. Bruneton: [A Qualitative and Quantitative Evaluation of 8 Clear Sky Models](https://arxiv.org/abs/1612.04336)
 
-**Molecules** are modelled using standard Rayleigh phase function and extinction values from Penndorf.
-**Aerosols** use a wavelength-independent Cornette-Shanks phase function and some arbitrary density values.
-In his 2016 paper, Eric Bruneton also included **Ozone**.
+In his 2016 paper, Eric Bruneton uses spectral pre-processing.
+For **molecules**, he uses the standard Rayleigh phase function and extinction values from Penndorf.
+**Aerosols** are modelled with a wavelength-independent Cornette-Shanks phase function and extinction coefficients based on Ångström's turbidity formula.
+In this paper, Eric Bruneton also included **Ozone**.
 
 ```bash
 # Molecules
@@ -200,16 +193,16 @@ In his 2016 paper, Eric Bruneton also included **Ozone**.
 ./atmosphere-preprocessor ozone --lambda-samples 40 -o earth_bruneton2016_ozone
 ```
 
-### Costa (Earth)
+### [Earth] Costa et al.: [Interactive Visualization of Atmospheric Effects for Celestial Bodies](https://arxiv.org/abs/2010.03534)
 
-**Molecules** are modelled using Penndorf's Rayleigh phase function and a wavelength-dependent index of refraction.
+In this paper, **molecules** are modelled using Penndorf's Rayleigh phase function and a wavelength-dependent index of refraction.
 
 **Aerosols** use a wavelength-independent Henyey-Greenstein phase function and some arbitrary scattering coefficients.
 The paper states that they actually use the Anomalous Diffraction Approximation, but they do not provide the required particle radius.
 The given scattering and absorption coefficients are maybe wrong, as beta_sca > beta_ext.
 We assume that this is a typo.
 
-Costa actually use a different **ozone** density profile than Bruneton, but the results should be similar.
+They actually use a different **ozone** density profile than Bruneton, but the results should be similar.
 
 ```bash
 # Molecules
@@ -227,20 +220,36 @@ Costa actually use a different **ozone** density profile than Bruneton, but the 
 ./atmosphere-preprocessor ozone --lambdas 440e-9,550e-9,680e-9 -o earth_costa_ozone
 ```
 
-### Costa (Mars)
+### [Mars] P. Collienne: [Physically Based Rendering of the Martian Atmosphere](https://www.semanticscholar.org/paper/Physically-Based-Rendering-of-the-Martian-Collienne-Wolff/e71c3683a70f75aedfce3f6bad401e6819d0d713)
 
-**Molecules** are modelled using Penndorf's Rayleigh phase function.
+In this paper, **molecules** are modelled using a manual parametrization of Rayleigh scattering.
+**Aerosols** use a wavelength-independent Cornette-Shanks phase function and some arbitrary density values.
 
+```bash
+# Molecules
+./atmosphere-preprocessor density -i ../../../plugins/csp-atmospheres/preprocessor/density-settings/mars_collienne_molecules.json -o mars_collienne_molecules
+./atmosphere-preprocessor rayleigh --lambdas 440e-9,550e-9,680e-9 -o mars_collienne_molecules
+./atmosphere-preprocessor manual --lambdas 440e-9,550e-9,680e-9 --quantity beta_sca --values 5.75e-6,13.57e-6,19.918e-6 -o mars_collienne_molecules_scattering
+
+# Aerosols
+./atmosphere-preprocessor density -i ../../../plugins/csp-atmospheres/preprocessor/density-settings/mars_collienne_aerosols.json -o mars_collienne_aerosols
+./atmosphere-preprocessor cornette --lambdas 440e-9,550e-9,680e-9 --g 0.76 -o mars_collienne_aerosols
+./atmosphere-preprocessor manual --lambdas 440e-9,550e-9,680e-9 --quantity beta_sca --values 3e-6 -o mars_collienne_aerosols_scattering
+./atmosphere-preprocessor manual --lambdas 440e-9,550e-9,680e-9 --quantity beta_abs --values 0 -o mars_collienne_aerosols_absorption
+```
+
+### [Mars] Costa et al.: [Interactive Visualization of Atmospheric Effects for Celestial Bodies](https://arxiv.org/abs/2010.03534)
+
+In this paper, **molecules** are modelled using Penndorf's Rayleigh phase function.
 However, the parameters for computing the scattering coefficients are a bit unclear.
 For Table 1 of their paper, it seems that they used the given mass density rho_co2 = 2.8e23 as number density.
 With the given index of refraction for C02, this results in the provided beta_sca values, however these are implausibly large.
 Not only do we have to compute the molecular number density according to the formulas provided in section 4.1 of their paper, but also adapt the index of refraction to Martian conditions (less pressure, less temperature).
-If we do all this, we come up with such values:
+If we do all this, we come up with the number below.
 
 **Aerosols** follow a wavelength-dependent Double-Henyey Greenstein phase function.
 The values for g1, g2, and alpha provided in the paper result in a very purple atmosphere with a green sunrise.
 The values below are from their [source code](https://github.com/OpenSpace/OpenSpace/blob/integration/paper-atmosphere/data/assets/scene/solarsystem/planets/mars/atmosphere.asset#L80).
-
 They use the Anomalous Diffraction Approximation by Van de Hulst to compute the extinction of light passing through the aerosols.
 The amount of scattered light is computed using another approximation based on the atmosphere's turbidity.
 Computing two related quantities with two unrelated approximations seems fragile to us.
@@ -251,7 +260,7 @@ In the [source code](https://github.com/OpenSpace/OpenSpace/blob/integration/pap
 However, even here the exponent may be wrong as this number [is later multiplied with 1e8](https://github.com/OpenSpace/OpenSpace/blob/integration/paper-atmosphere/modules/atmosphere/rendering/renderableatmosphere.cpp#L864).
 With these parameters and a turbidity between 2 and 10, the resulting beta_sca is larger than beta_ext.
 This is clearly impossible.
-We only achieved plausible values with very low turbidity values, such as 1.003.
+We only achieved plausible values with very low turbidity values, such as 1.01.
 The values below generate a plausible atmosphere, however most of the values are not from the original paper.
 
 ```bash
