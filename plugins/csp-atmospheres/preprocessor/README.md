@@ -55,8 +55,63 @@ Mode | Description
 `ozone` | This mode writes the absorption coefficients of ozone molecules for the specified wavelengths. Use `./atmosphere-preprocessor ozone --help` to learn about all the options.
 `density` | This mode samples a given multi-modal density function at evenly spaced altitudes and writes the resulting data. Use `./atmosphere-preprocessor density --help` to learn about all the options.
 
+## The CSV Files
 
-## Examples
+The different modes produce CSV files which are all in the same format and can be directly used in CosmoScout VR.
+Here, we describe shortly what data is stored in the CSV files.
+With this information, it is possible to produce similar files with different tools or even by hand.
+
+### Phase Functions
+
+Phase function intensity values are stored per wavelength and per scattering angle.
+Each row corresponds to a phase function sampled at evenly spaced angles for a specific wavelength.
+Here is how this could look like:
+
+```csv
+lambda,  0.0,   1.0,   2.0,   ..., 180.0
+3.6e-07, 0.933, 0.931, 0.923, ..., 0.022
+3.9e-07, 0.857, 0.857, 0.856, ..., 0.023
+...,     ...,   ...,   ...,   ..., ...
+8.3e-07, 0.091, 0.091, 0.091, ..., 0.045
+```
+
+### Extinction Coefficients
+
+Scattering (`beta_sca`) and absorption (`beta_abs`) coefficients are stored per wavelength as well.
+Their unit is [m^-1].
+Here is how this could look like:
+
+```csv
+lambda,  beta_sca
+3.6e-07, 5.70e-07
+3.9e-07, 5.33e-07
+...,     ...
+8.3e-07, 1.00e-07
+```
+
+### Density Distributions
+
+The particle density is stored at evenly space altitudes between the specified `--min-altitude` and `--max-altitude`.
+The maximum density is 1.0.
+The first density value in the CSV file corresponds to the `--min-altitude` and the last value to `--max-altitude`.
+Here is how this could look like:
+
+```csv
+density
+1.0
+0.9369102299935942
+0.8778007790666494
+...
+0.0
+```
+
+## Pre-processing Examples
+
+> [!IMPORTANT]
+> It is required, that for one atmosphere, all components provide tabulated values for the same number of wavelengths, phase-function angles, and altitudes. Else CosmoScout VR will report an error.
+
+Per default, all modes will sample 15 wavelengths from 360nm to 830nm.
+Phase functions will use 181 samples per default and the `density` mode will sample at 1024 different altitudes between 0m and 80km.
 
 ### Mars
 
