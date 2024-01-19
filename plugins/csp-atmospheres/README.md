@@ -159,6 +159,7 @@ Also, the [README.md](preprocessor/README.md) of the command-line utility provid
   "bottomAltitude": -100,
   "model": "Bruneton",
   "modelSettings": {
+    "multiScatteringOrder": 10,
     "sunAngularRadius": 0.004675,
     "molecules": {
       "phase": "../share/resources/data/csp-atmospheres/earth_cosmoscout_molecules_phase.csv",

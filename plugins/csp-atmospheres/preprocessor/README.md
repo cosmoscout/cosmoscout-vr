@@ -117,6 +117,9 @@ Phase functions will use 181 samples per default and the `density` mode will sam
 
 Below are the input values which we currently use for Earth's atmosphere in CosmoScout VR.
 
+<details>
+<summary>Pre-processor Commands</summary>
+
 ```bash
 # Molecules
 ./atmosphere-preprocessor density -i ../../../plugins/csp-atmospheres/preprocessor/density-settings/earth_bruneton_molecules.json -o earth_cosmoscout_molecules
@@ -130,10 +133,14 @@ Below are the input values which we currently use for Earth's atmosphere in Cosm
 ./atmosphere-preprocessor density -i ../../../plugins/csp-atmospheres/preprocessor/density-settings/earth_bruneton_ozone.json -o earth_cosmoscout_ozone
 ./atmosphere-preprocessor ozone -o earth_cosmoscout_ozone
 ```
+</details>
 
 ### Mars
 
 Below are the input values which we currently use for the Martian atmosphere in CosmoScout VR.
+
+<details>
+<summary>Pre-processor Commands</summary>
 
 ```bash
 # Molecules
@@ -144,6 +151,7 @@ Below are the input values which we currently use for the Martian atmosphere in 
 ./atmosphere-preprocessor density -i ../../../plugins/csp-atmospheres/preprocessor/density-settings/mars_cosmoscout_aerosols.json -o mars_cosmoscout_aerosols
 ./atmosphere-preprocessor mie -i ../../../plugins/csp-atmospheres/preprocessor/mie-settings/mars_bimodal.json --theta-samples 91 --number-density 5e9 --radius-samples 10000 -o mars_cosmoscout_aerosols
 ```
+</details>
 
 ## Creating Atmospheres According to Different Papers
 
@@ -158,6 +166,9 @@ Hence, we use the explicitly given numbers.
 The scattering coefficient of 2.1e-3 given in the paper seems very large.
 If we divide it by 100, we get plausible results.
 
+<details>
+<summary>Pre-processor Commands</summary>
+
 ```bash
 # Molecules
 ./atmosphere-preprocessor density -i ../../../plugins/csp-atmospheres/preprocessor/density-settings/earth_bruneton_molecules.json -o earth_bruneton2008_molecules
@@ -170,6 +181,7 @@ If we divide it by 100, we get plausible results.
 ./atmosphere-preprocessor manual --lambdas 440e-9,550e-9,680e-9 --quantity beta_sca --values 2.1e-5 -o earth_bruneton2008_aerosols_scattering
 ./atmosphere-preprocessor manual --lambdas 440e-9,550e-9,680e-9 --quantity beta_abs --values 2.1e-6 -o earth_bruneton2008_aerosols_absorption
 ```
+</details>
 
 ### [Earth] E. Bruneton: [A Qualitative and Quantitative Evaluation of 8 Clear Sky Models](https://arxiv.org/abs/1612.04336)
 
@@ -177,6 +189,9 @@ In his 2016 paper, Eric Bruneton uses spectral pre-processing.
 For **molecules**, he uses the standard Rayleigh phase function and extinction values from Penndorf.
 **Aerosols** are modelled with a wavelength-independent Cornette-Shanks phase function and extinction coefficients based on Ångström's turbidity formula.
 In this paper, Eric Bruneton also included **Ozone**.
+
+<details>
+<summary>Pre-processor Commands</summary>
 
 ```bash
 # Molecules
@@ -192,6 +207,7 @@ In this paper, Eric Bruneton also included **Ozone**.
 ./atmosphere-preprocessor density -i ../../../plugins/csp-atmospheres/preprocessor/density-settings/earth_bruneton_ozone.json -o earth_bruneton2016_ozone
 ./atmosphere-preprocessor ozone --lambda-samples 40 -o earth_bruneton2016_ozone
 ```
+</details>
 
 ### [Earth] Costa et al.: [Interactive Visualization of Atmospheric Effects for Celestial Bodies](https://arxiv.org/abs/2010.03534)
 
@@ -203,6 +219,9 @@ The given scattering and absorption coefficients are maybe wrong, as beta_sca > 
 We assume that this is a typo.
 
 They actually use a different **ozone** density profile than Bruneton, but the results should be similar.
+
+<details>
+<summary>Pre-processor Commands</summary>
 
 ```bash
 # Molecules
@@ -219,11 +238,15 @@ They actually use a different **ozone** density profile than Bruneton, but the r
 ./atmosphere-preprocessor density -i ../../../plugins/csp-atmospheres/preprocessor/density-settings/earth_bruneton_ozone.json -o earth_costa_ozone
 ./atmosphere-preprocessor ozone --lambdas 440e-9,550e-9,680e-9 -o earth_costa_ozone
 ```
+</details>
 
 ### [Mars] P. Collienne: [Physically Based Rendering of the Martian Atmosphere](https://www.semanticscholar.org/paper/Physically-Based-Rendering-of-the-Martian-Collienne-Wolff/e71c3683a70f75aedfce3f6bad401e6819d0d713)
 
 In this paper, **molecules** are modelled using a manual parametrization of Rayleigh scattering.
 **Aerosols** use a wavelength-independent Cornette-Shanks phase function and some arbitrary density values.
+
+<details>
+<summary>Pre-processor Commands</summary>
 
 ```bash
 # Molecules
@@ -237,6 +260,7 @@ In this paper, **molecules** are modelled using a manual parametrization of Rayl
 ./atmosphere-preprocessor manual --lambdas 440e-9,550e-9,680e-9 --quantity beta_sca --values 3e-6 -o mars_collienne_aerosols_scattering
 ./atmosphere-preprocessor manual --lambdas 440e-9,550e-9,680e-9 --quantity beta_abs --values 0 -o mars_collienne_aerosols_absorption
 ```
+</details>
 
 ### [Mars] Costa et al.: [Interactive Visualization of Atmospheric Effects for Celestial Bodies](https://arxiv.org/abs/2010.03534)
 
@@ -263,6 +287,9 @@ This is clearly impossible.
 We only achieved plausible values with very low turbidity values, such as 1.01.
 The values below generate a plausible atmosphere, however most of the values are not from the original paper.
 
+<details>
+<summary>Pre-processor Commands</summary>
+
 ```bash
 # Molecules
 ./atmosphere-preprocessor density -i ../../../plugins/csp-atmospheres/preprocessor/density-settings/mars_costa_molecules.json -o mars_costa_molecules
@@ -276,3 +303,4 @@ The values below generate a plausible atmosphere, however most of the values are
 # Paper values:
 #./atmosphere-preprocessor dhenyey --lambdas 440e-9,550e-9,680e-9 --g1 0.67,0.4,0.03 --g2 0.099,0.89,0.094 --alpha 0.01,0.04,0.743 -o mars_costa_aerosols
 ```
+</details>
