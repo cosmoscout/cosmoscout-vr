@@ -3,7 +3,7 @@ SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
 SPDX-License-Identifier: CC-BY-4.0
  -->
 
- <p align="center"> 
+<p align="center"> 
   <img src ="../../docs/img/banner-sunset.jpg" />
 </p>
 

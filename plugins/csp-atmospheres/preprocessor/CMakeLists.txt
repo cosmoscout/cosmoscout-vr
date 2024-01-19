@@ -5,9 +5,9 @@
 # SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
 # SPDX-License-Identifier: MIT
 
-option(CS_ATMOSPHERE_GENERATOR "Enable compilation of the Atmosphere Generator" OFF)
+option(CS_ATMOSPHERE_PREPROCESSOR "Enable compilation of the Atmosphere Preprocessor" OFF)
 
-if (NOT CS_ATMOSPHERE_GENERATOR)
+if (NOT CS_ATMOSPHERE_PREPROCESSOR)
   return()
 endif()
 

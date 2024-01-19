@@ -13,7 +13,7 @@ endif()
 
 # build the pre-processor --------------------------------------------------------------------------
 
-add_subdirectory(atmosphere-generator)
+add_subdirectory(preprocessor)
 
 # build plugin -------------------------------------------------------------------------------------
 
