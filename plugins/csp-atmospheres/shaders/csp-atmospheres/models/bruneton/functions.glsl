@@ -755,8 +755,9 @@ vec3 getSkyRadiance(AtmosphereComponents atmosphere, sampler2D transmittanceText
 // An explanation of the following methods is available online:
 // https://ebruneton.github.io/precomputed_atmospheric_scattering/atmosphere/functions.glsl.html#rendering_aerial_perspective
 
-// The only difference is that we removed the code for light shafts, as this is currently not
-// supported by CosmoScout VR.
+// We removed the code for light shafts, as this is currently not supported by CosmoScout VR. We
+// also disabled the "Hack to avoid rendering artifacts when the sun is below the horizon". With
+// this hack, the shadow transition in the dusty atemosphere of Mars becomes very harsh.
 
 vec3 getSkyRadianceToPoint(AtmosphereComponents atmosphere, sampler2D transmittanceTexture,
     sampler3D multipleScatteringTexture, sampler3D singleAerosolsScatteringTexture, vec3 camera,
@@ -806,7 +807,7 @@ vec3 getSkyRadianceToPoint(AtmosphereComponents atmosphere, sampler2D transmitta
   singleAerosolsScattering = singleAerosolsScattering - transmittance * singleAerosolsScatteringP;
 
   // Hack to avoid rendering artifacts when the sun is below the horizon.
-  singleAerosolsScattering = singleAerosolsScattering * smoothstep(0.0, 0.01, muS);
+  // singleAerosolsScattering = singleAerosolsScattering * smoothstep(0.0, 0.01, muS);
 
   return multipleScattering * phaseFunction(atmosphere.molecules, nu) +
          singleAerosolsScattering * phaseFunction(atmosphere.aerosols, nu);
