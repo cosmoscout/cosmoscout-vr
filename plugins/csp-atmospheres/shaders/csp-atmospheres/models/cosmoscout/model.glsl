@@ -21,8 +21,9 @@ uniform float uSunIlluminance;
 
 // -------------------------------------------------------------------------------- internal methods
 
-// The Henyey-Greenstein phase function returns the probability of scattering based on the cosine
-// between in and out direction (c) and the anisotropy (g).
+// The Cornette-Shanks phase function returns the probability of scattering based on the cosine
+// between in and out direction (c) and the anisotropy (g). It converges to Rayleigh scattering
+// for small values of g.
 //
 //            3 * (1 - g*g)               1 + c*c
 // phase = -------------------- * -----------------------

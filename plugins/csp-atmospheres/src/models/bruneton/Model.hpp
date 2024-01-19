@@ -66,7 +66,7 @@ class Model : public ModelBase {
     cs::utils::DefaultProperty<int32_t> mSampleCountOpticalDepth{500};
 
     /// The number of samples to evaluate when pre-computing the single scattering. Larger values
-    /// improves the sampling of thin atmospheric layers.
+    /// improve the sampling of thin atmospheric layers.
     cs::utils::DefaultProperty<int32_t> mSampleCountSingleScattering{50};
 
     /// The number of samples to evaluate when pre-computing the multiple scattering. Larger values
