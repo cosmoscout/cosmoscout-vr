@@ -373,6 +373,7 @@ void from_json(nlohmann::json const& j, Settings::Audio& o) {
   Settings::deserialize(j, "mixerOutputFrequency", o.pMixerFrequency);
   Settings::deserialize(j, "volumeCullingThreshold", o.pVolumeCullingThreshold);
   Settings::deserialize(j, "distanceCullingThreshold", o.pDistanceCullingThreshold);
+  Settings::deserialize(j, "stationaryOutputDevice", o.pStationaryOutputDevice);
 }
 
 void to_json(nlohmann::json& j, Settings::Audio const& o) {
@@ -383,6 +384,7 @@ void to_json(nlohmann::json& j, Settings::Audio const& o) {
   Settings::serialize(j, "contextSync", o.pContextSync);
   Settings::serialize(j, "volumeCullingThreshold", o.pVolumeCullingThreshold);
   Settings::serialize(j, "distanceCullingThreshold", o.pDistanceCullingThreshold);
+  Settings::serialize(j, "stationaryOutputDevice", o.pStationaryOutputDevice);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

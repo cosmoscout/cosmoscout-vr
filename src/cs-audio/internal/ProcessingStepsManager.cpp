@@ -63,11 +63,11 @@ std::shared_ptr<ProcessingStep> ProcessingStepsManager::getProcessingStep(
     std::string processingStep) {
 
   if (processingStep == "PointSpatialization") {
-    return PointSpatialization_PS::create();
+    return PointSpatialization_PS::create(mSettings->mAudio.pStationaryOutputDevice.get());
   }
 
   if (processingStep == "SphereSpatialization") {
-    return SphereSpatialization_PS::create();
+    return SphereSpatialization_PS::create(mSettings->mAudio.pStationaryOutputDevice.get());
   }
 
   if (processingStep == "DirectPlay") {

@@ -15,9 +15,10 @@
 
 namespace cs::audio {
 
-SpatializationUtils::SpatializationUtils()
+SpatializationUtils::SpatializationUtils(bool stationaryOutputDevice)
     : mSourcePositions(std::map<ALuint, SourceContainer>())
-    , mLastTime(std::chrono::system_clock::now()) {
+    , mLastTime(std::chrono::system_clock::now())
+    , mStationaryOutputDevice(stationaryOutputDevice) {
 }
 
 void SpatializationUtils::calculateVelocity() {
@@ -59,7 +60,7 @@ void SpatializationUtils::calculateVelocity() {
   mLastTime = currentTime;
 }
 
-void SpatializationUtils::rotateSourcePosByViewer(glm::dvec3& position) {
+void SpatializationUtils::compensateSpeakerRotation(glm::dvec3& position) {
   auto viewerOrient = GetVistaSystem()
                           ->GetDisplayManager()
                           ->GetDisplaySystem()

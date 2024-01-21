@@ -19,17 +19,19 @@ namespace cs::audio {
 
 class CS_AUDIO_EXPORT SpatializationUtils {
  public:
-  SpatializationUtils();
+  SpatializationUtils(bool stationaryOutputDevice);
 
   /// @brief Calculates and applies the velocity for each spatialized source via the change of
   /// position
   void calculateVelocity();
 
-  /// @brief Rotates the the position of source around the vista viewer orientation. This is needed
-  /// because the head rotation is not considered in CelestialObject::getObserverRelativePosition()
-  /// when using a VR headset.
+  /// @brief Rotates the the position of source around the inverse of the vista viewer orientation.
+  /// This is needed to keep the relative position between the physical audio output device and the
+  /// audio source in Cosmoscout the same when the output device, for example when using headphones
+  /// on a head mounted display, rotate with the user. This is only gets called if the config value 
+  /// stationarySpeaker is set to false. 
   /// @param position Relative position to observer
-  void rotateSourcePosByViewer(glm::dvec3& position);
+  void compensateSpeakerRotation(glm::dvec3& position);
 
   /// @brief Sets the position and Velocity of a source to zero and removes said source from the
   /// update list.
@@ -49,6 +51,8 @@ class CS_AUDIO_EXPORT SpatializationUtils {
   std::map<ALuint, SourceContainer> mSourcePositions;
   /// Point in time since the last calculateVelocity() call
   std::chrono::system_clock::time_point mLastTime;
+  /// Whether the audio output devices moves with the user or is stationary
+  bool mStationaryOutputDevice;
 };
 
 } // namespace cs::audio

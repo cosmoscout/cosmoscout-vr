@@ -21,15 +21,16 @@
 
 namespace cs::audio {
 
-std::shared_ptr<ProcessingStep> PointSpatialization_PS::create() {
+std::shared_ptr<ProcessingStep> PointSpatialization_PS::create(bool stationaryOutputDevice) {
   static auto spatialization_ps =
-      std::shared_ptr<PointSpatialization_PS>(new PointSpatialization_PS());
+      std::shared_ptr<PointSpatialization_PS>(new PointSpatialization_PS(stationaryOutputDevice));
   return spatialization_ps;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-PointSpatialization_PS::PointSpatialization_PS() {
+PointSpatialization_PS::PointSpatialization_PS(bool stationaryOutputDevice)
+  : SpatializationUtils(stationaryOutputDevice) {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -70,8 +71,9 @@ bool PointSpatialization_PS::processPosition(std::shared_ptr<SourceBase> source,
   }
 
   glm::dvec3 positionValue = std::any_cast<glm::dvec3>(value);
-  rotateSourcePosByViewer(positionValue);
-
+  if (!mStationaryOutputDevice) {
+    compensateSpeakerRotation(positionValue);
+  }
   alSource3f(openAlId, AL_POSITION, (ALfloat)positionValue.x, (ALfloat)positionValue.y,
       (ALfloat)positionValue.z);
 

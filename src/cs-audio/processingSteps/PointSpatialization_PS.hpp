@@ -31,7 +31,7 @@ class CS_AUDIO_EXPORT PointSpatialization_PS : public ProcessingStep, public Spa
  public:
   /// @brief Creates new access to the single PointSpatialization_PS object
   /// @return Pointer to the PS
-  static std::shared_ptr<ProcessingStep> create();
+  static std::shared_ptr<ProcessingStep> create(bool stationaryOutputDevice);
 
   /// @brief processes a source with the given settings
   /// @param source Source to process
@@ -48,7 +48,7 @@ class CS_AUDIO_EXPORT PointSpatialization_PS : public ProcessingStep, public Spa
   void update() override;
 
  private:
-  PointSpatialization_PS();
+  PointSpatialization_PS(bool stationaryOutputDevice);
   bool processPosition(std::shared_ptr<SourceBase> source, std::any position);
 };
 

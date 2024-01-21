@@ -38,7 +38,7 @@ sourceRadius  float         0.0 -       Radius of the sphere.
 */
 class CS_AUDIO_EXPORT SphereSpatialization_PS : public ProcessingStep, public SpatializationUtils {
  public:
-  static std::shared_ptr<ProcessingStep> create();
+  static std::shared_ptr<ProcessingStep> create(bool stationaryOutputDevice);
 
   void process(std::shared_ptr<SourceBase>             source,
       std::shared_ptr<std::map<std::string, std::any>> settings,
@@ -49,7 +49,7 @@ class CS_AUDIO_EXPORT SphereSpatialization_PS : public ProcessingStep, public Sp
   void update() override;
 
  private:
-  SphereSpatialization_PS();
+  SphereSpatialization_PS(bool stationaryOutputDevice);
   bool processPosition(ALuint openAlId, std::any position);
   bool processRadius(ALuint openAlId, std::any sourceRadius);
   bool processSpatialization(

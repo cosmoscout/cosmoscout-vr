@@ -15,15 +15,16 @@
 
 namespace cs::audio {
 
-std::shared_ptr<ProcessingStep> SphereSpatialization_PS::create() {
+std::shared_ptr<ProcessingStep> SphereSpatialization_PS::create(bool stationaryOutputDevice) {
   static auto sphereSpatialization_PS =
-      std::shared_ptr<SphereSpatialization_PS>(new SphereSpatialization_PS());
+      std::shared_ptr<SphereSpatialization_PS>(new SphereSpatialization_PS(stationaryOutputDevice));
   return sphereSpatialization_PS;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-SphereSpatialization_PS::SphereSpatialization_PS() {
+SphereSpatialization_PS::SphereSpatialization_PS(bool stationaryOutputDevice)
+  : SpatializationUtils(stationaryOutputDevice) {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -124,7 +125,9 @@ bool SphereSpatialization_PS::processSpatialization(
     std::shared_ptr<SourceBase> source, std::any position, std::any sourceRadius) {
 
   auto sourcePosToObserver = std::any_cast<glm::dvec3>(position);
-  rotateSourcePosByViewer(sourcePosToObserver);
+  if (!mStationaryOutputDevice) {
+    compensateSpeakerRotation(sourcePosToObserver);
+  }
   auto   radius   = std::any_cast<float>(sourceRadius);
   ALuint openAlId = source->getOpenAlId();
 

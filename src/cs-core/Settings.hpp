@@ -499,6 +499,10 @@ class CS_CORE_EXPORT Settings {
 
     /// *real* Distance at which a source will stop playing if the distance culling PS is active
     utils::DefaultProperty<double> pDistanceCullingThreshold{100.0};
+
+    /// Specifies wheter the audio output device is stationary or moves with the user (e.g. when
+    /// using a head mounted display with headphones)
+    utils::DefaultProperty<bool> pStationaryOutputDevice{true};
   };
 
   Audio mAudio;
