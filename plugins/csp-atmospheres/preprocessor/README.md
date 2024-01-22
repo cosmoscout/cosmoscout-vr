@@ -33,24 +33,24 @@ export LD_LIBRARY_PATH=../lib:$LD_LIBRARY_PATH
 
 ### The Preprocessing Modes
 
-There are many ways phase functions, scattering coefficients, and absorption coefficients can be computed.
+There are many ways to compute phase functions, scattering coefficients, and absorption coefficients.
 This tool provides means to compute them physically-based using Mie Theory as well as several approximations which have been used in the literature.
-To learn about the different operation modes, you can now issue this command:
+To learn about the different operation modes, you can issue this command:
 
 ```bash
 ./atmosphere-preprocessor --help
 ```
 
 > [!NOTE]
-> Unless stated otherwise, length units must always be given in m. For instance, this is true for altitudes, wavelengths, and for particle radii.
+> Unless stated otherwise, length units must always be given in [m]. For instance, this is true for altitudes, wavelengths, and for particle radii.
 
 Mode | Description
 ---- | -----------
 `mie` | This mode computes phase functions as well as scattering- and absorption coefficients for a given particle mixture using Mie Theory. The particle mixture follows a specified multi-modal size distribution and can have a complex, wavelength-dependent refractive index. Use `./atmosphere-preprocessor mie --help` to learn about all the options. Also, below a multiple examples to get you started.
 `rayleigh` | This mode writes the phase function and scattering coefficients of Rayleigh molecules for the specified wavelengths. Use `./atmosphere-preprocessor rayleigh --help` to learn about all the options.
 `angstrom` | This mode writes scattering, and absorption coefficients based on Ångström's turbidity formula and a single-scattering albedo value. Use `./atmosphere-preprocessor angstrom --help` to learn about all the options.
-`hulst` | This mode writes scattering, and absorption coefficients based on van de Hulst's Anomalous Diffraction Approximation and the turbidity approximation used in the Costa paper. Use `./atmosphere-preprocessor hulst --help` to learn about all the options.
-`manual` | This mode writes some user-specified values for the scattering coefficients or absorption coefficients for the specified wavelengths. Use `./atmosphere-preprocessor manual --help` to learn about all the options.
+`hulst` | This mode writes scattering, and absorption coefficients based on van de Hulst's Anomalous Diffraction Approximation and the turbidity approximation used in the [Costa Paper](https://arxiv.org/abs/2010.03534). Use `./atmosphere-preprocessor hulst --help` to learn about all the options.
+`manual` | This mode writes some user-specified scattering coefficients or absorption coefficients for the specified wavelengths. Use `./atmosphere-preprocessor manual --help` to learn about all the options.
 `cornette` `henyey` `dhenyey` | These modes write either the Cornette-Shanks, the Henyey-Greenstein, or the Double-Henyey-Greenstein parametric phase function for the specified wavelengths. Use `./atmosphere-preprocessor <mode> --help` to learn about all the options.
 `ozone` | This mode writes the absorption coefficients of ozone molecules for the specified wavelengths. Use `./atmosphere-preprocessor ozone --help` to learn about all the options.
 `density` | This mode samples a given multi-modal density function at evenly spaced altitudes and writes the resulting data. Use `./atmosphere-preprocessor density --help` to learn about all the options.
@@ -63,8 +63,9 @@ With this information, it is possible to produce similar files with different to
 
 ### Phase Functions
 
-Phase function intensity values are stored per wavelength and per scattering angle.
+Phase functions are stored per wavelength and per scattering angle.
 Each row corresponds to a phase function sampled at evenly spaced angles for a specific wavelength.
+The first column lists the different wavelengths in [m].
 Here is how this could look like:
 
 ```csv
@@ -78,15 +79,15 @@ lambda,  0.0,   1.0,   2.0,   ..., 180.0
 ### Extinction Coefficients
 
 Scattering (`beta_sca`) and absorption (`beta_abs`) coefficients are stored per wavelength as well.
-Their unit is [m^-1].
+Their unit is [1/m].
 Here is how this could look like:
 
 ```csv
 lambda,  beta_sca
-3.6e-07, 5.70e-07
-3.9e-07, 5.33e-07
+3.6e-07, 5.70e-06
+3.9e-07, 5.33e-06
 ...,     ...
-8.3e-07, 1.00e-07
+8.3e-07, 1.00e-06
 ```
 
 ### Density Distributions
@@ -108,7 +109,7 @@ density
 ## Pre-processing Examples
 
 > [!IMPORTANT]
-> It is required, that for one atmosphere, all components provide tabulated values for the same number of wavelengths, phase-function angles, and altitudes. Else CosmoScout VR will report an error.
+> It is required that for one atmosphere, all components provide tabulated values for the same number of wavelengths, phase-function angles, and altitudes. Else CosmoScout VR will report an error.
 
 Per default, all modes will sample 15 wavelengths from 360nm to 830nm.
 Phase functions will use 181 samples per default and the `density` mode will sample at 1024 different altitudes between 0m and 80km.
@@ -138,6 +139,11 @@ Below are the input values which we currently use for Earth's atmosphere in Cosm
 ### Mars
 
 Below are the input values which we currently use for the Martian atmosphere in CosmoScout VR.
+The cinematic variant is pretty similar to the realistic variant.
+To reduce the produced dynamic range, it uses a flattened phase function (via the `--phase-flattening` parameter) and a bit more hematite to compensate the loss of color due to the flattening.
+In addition, it only operates on three wavelengths.
+This does not change the appearance much but results in significantly faster preprocessing times.
+The molecules are identical in both versions; they only differ in the number of precomputed wavelengths.
 
 <details>
 <summary>Realistic Variant</summary>

@@ -73,7 +73,7 @@ They are not physically based but provide some plausible results.
 ```javascript
 "Earth": {
   "topAltitude": 80000,
-  "bottomAltitude": -100,
+  "bottomAltitude": 0,
   "cloudTexture": "../share/resources/textures/earth-clouds.jpg",
   "model": "CosmoScoutVR",
   "modelSettings": {
@@ -127,10 +127,10 @@ They are not physically based but provide some plausible results.
 Property | Default Value | Description
 -------- | ------------- | -----------
 `mieHeight` | `1200.0` | The scale height in [m] for aerosol particles relative to the lower atmosphere boundary.
-`mieScattering` | `[4.0e-5, 4.0e-5, 4.0e-5]` | The RGB scattering coefficients for aerosols in [m^-1].
+`mieScattering` | `[4.0e-5, 4.0e-5, 4.0e-5]` | The RGB scattering coefficients for aerosols in [1/m].
 `mieAnisotropy` | `0.76` | The `g` parameter of the Cornette-Shanks phase function.
 `rayleighHeight` | `8000.0` | The scale height in [m] for moleules relative to the lower atmosphere boundary.
-`rayleighScattering` | `[5.1768e-6, 12.2588e-6, 30.5964e-6]` | The RGB scattering coefficients for molecules in [m^-1].
+`rayleighScattering` | `[5.1768e-6, 12.2588e-6, 30.5964e-6]` | The RGB scattering coefficients for molecules in [1/m].
 `rayleighAnisotropy` | `0.0` | The `g` parameter of the Cornette-Shanks phase function. Use `0.0` for Rayleigh scattering.
 `primaryRaySteps` | `7` | The number of samples to take along each primary ray.
 `secondaryRaySteps` | `3` | The number of samples to take along each secondary ray.
@@ -140,14 +140,14 @@ Property | Default Value | Description
 The Bruneton model is significantly more advanced.
 It pre-computes multiple scattering and is based on [this open-source implementation](https://github.com/ebruneton/precomputed_atmospheric_scattering) (see also the corresponding [Paper](https://inria.hal.science/inria-00288758/en)).
 
-Similar to the `CosmoScoutVR` model, the original implementation of by Eric Bruneton uses Rayleigh scattering for molecules and the Cornette-Shanks phase function for aerosols.
-We generalized this implementation to load phase functions, extinction coefficients, and particle density distributions from CSV files.
+Similar to the `CosmoScoutVR` model, the original implementation by Eric Bruneton uses Rayleigh scattering for molecules and the Cornette-Shanks phase function for aerosols.
+We generalized this implementation by loading phase functions, extinction coefficients, and particle density distributions from CSV files.
 This allows us to simulate arbitrary particle types.
 In particular, we can now use Mie Theory to pre-compute the scattering behaviour of a wide variety of particle types, including for instance Martian dust.
 
 To perform this pre-processing, the `csp-atmospheres` plugin comes with a small command-line utility: [`atmosphere-preprocessor`](preprocessor/README.md).
 You can use this to generate the CSV files used in the examples below.
-Also, the [README.md](preprocessor/README.md) of the command-line utility provides more information on the required CSV file format.
+Also, the [README.md](preprocessor/README.md) of the command-line utility provides more information on the resulting CSV file format.
 
 <details>
 <summary>Example Configuration for Earth</summary>
@@ -156,7 +156,7 @@ Also, the [README.md](preprocessor/README.md) of the command-line utility provid
 "Earth": {
   "cloudTexture": "../share/resources/textures/earth-clouds.jpg",
   "topAltitude": 80000,
-  "bottomAltitude": -100,
+  "bottomAltitude": 0,
   "model": "Bruneton",
   "modelSettings": {
     "multiScatteringOrder": 10,
@@ -198,16 +198,16 @@ Also, the [README.md](preprocessor/README.md) of the command-line utility provid
     "sunAngularRadius": 0.003054,
     "multiScatteringOrder": 15,
     "molecules": {
-      "phase": "../share/resources/data/csp-atmospheres/mars_cosmoscout_molecules_cinematic_phase.csv",
-      "betaSca": "../share/resources/data/csp-atmospheres/mars_cosmoscout_molecules_cinematic_scattering.csv",
-      "betaAbs": "../share/resources/data/csp-atmospheres/mars_cosmoscout_molecules_cinematic_absorption.csv",
-      "density": "../share/resources/data/csp-atmospheres/mars_cosmoscout_molecules_cinematic_density.csv"
+      "phase": "../share/resources/data/csp-atmospheres/mars_cosmoscout_molecules_realistic_phase.csv",
+      "betaSca": "../share/resources/data/csp-atmospheres/mars_cosmoscout_molecules_realistic_scattering.csv",
+      "betaAbs": "../share/resources/data/csp-atmospheres/mars_cosmoscout_molecules_realistic_absorption.csv",
+      "density": "../share/resources/data/csp-atmospheres/mars_cosmoscout_molecules_realistic_density.csv"
     },
     "aerosols": {
-      "phase": "../share/resources/data/csp-atmospheres/mars_cosmoscout_aerosols_cinematic_phase.csv",
-      "betaSca": "../share/resources/data/csp-atmospheres/mars_cosmoscout_aerosols_cinematic_scattering.csv",
-      "betaAbs": "../share/resources/data/csp-atmospheres/mars_cosmoscout_aerosols_cinematic_absorption.csv",
-      "density": "../share/resources/data/csp-atmospheres/mars_cosmoscout_aerosols_cinematic_density.csv"
+      "phase": "../share/resources/data/csp-atmospheres/mars_cosmoscout_aerosols_realistic_phase.csv",
+      "betaSca": "../share/resources/data/csp-atmospheres/mars_cosmoscout_aerosols_realistic_scattering.csv",
+      "betaAbs": "../share/resources/data/csp-atmospheres/mars_cosmoscout_aerosols_realistic_absorption.csv",
+      "density": "../share/resources/data/csp-atmospheres/mars_cosmoscout_aerosols_realistic_density.csv"
     }
   }
 }
@@ -243,6 +243,15 @@ Also, the [README.md](preprocessor/README.md) of the command-line utility provid
 }
 ```
 </details>
+
+The cinematic variant above is pretty similar to the realistic variant.
+However, it has been optimized for a better appearance in CosmoScout VR.
+Most importantly, the realistic phase function produces an extreme dynamic range: The sky around the Sun is about a thousand times brighter than the rest of the sky.
+This does not work well with the filmic tone-mapping used by CosmoScout VR.
+To improve this situation, the 'cinematic' variant uses a flattened phase function and a bit more hematite to compensate the loss of color due to the flattening.
+In addition, it only operates on three wavelengths.
+This does not change the appearance much but results in significantly faster preprocessing times.
+The molecules are identical in both versions; they only differ in the number of precomputed wavelengths.
 
 Property | Default Value | Description
 -------- | ------------- | -----------
