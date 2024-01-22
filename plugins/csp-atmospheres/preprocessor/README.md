@@ -140,16 +140,30 @@ Below are the input values which we currently use for Earth's atmosphere in Cosm
 Below are the input values which we currently use for the Martian atmosphere in CosmoScout VR.
 
 <details>
-<summary>Pre-processor Commands</summary>
+<summary>Realistic Variant</summary>
 
 ```bash
 # Molecules
-./atmosphere-preprocessor density -i ../../../plugins/csp-atmospheres/preprocessor/density-settings/mars_cosmoscout_molecules.json -o mars_cosmoscout_molecules
-./atmosphere-preprocessor rayleigh --ior 1.00000337 --scattering-depolarization 0.09 --phase-depolarization 0.09 --number-density 2.05e23 --theta-samples 91 -o mars_cosmoscout_molecules
+./atmosphere-preprocessor density -i ../../../plugins/csp-atmospheres/preprocessor/density-settings/mars_cosmoscout_molecules.json -o mars_cosmoscout_molecules_realistic
+./atmosphere-preprocessor rayleigh --ior 1.00000337 --scattering-depolarization 0.09 --phase-depolarization 0.09 --number-density 2.05e23 --theta-samples 91 -o mars_cosmoscout_molecules_realistic
 
 # Aerosols
-./atmosphere-preprocessor density -i ../../../plugins/csp-atmospheres/preprocessor/density-settings/mars_cosmoscout_aerosols.json -o mars_cosmoscout_aerosols
-./atmosphere-preprocessor mie -i ../../../plugins/csp-atmospheres/preprocessor/mie-settings/mars_bimodal.json --theta-samples 91 --number-density 5e9 --radius-samples 10000 -o mars_cosmoscout_aerosols
+./atmosphere-preprocessor density -i ../../../plugins/csp-atmospheres/preprocessor/density-settings/mars_cosmoscout_aerosols_realistic.json -o mars_cosmoscout_aerosols_realistic
+./atmosphere-preprocessor mie -i ../../../plugins/csp-atmospheres/preprocessor/mie-settings/mars_realistic.json --theta-samples 91 --number-density 5e9 --radius-samples 10000 -o mars_cosmoscout_aerosols_realistic
+```
+</details>
+
+<details>
+<summary>Cinematic Variant</summary>
+
+```bash
+# Molecules
+./atmosphere-preprocessor density -i ../../../plugins/csp-atmospheres/preprocessor/density-settings/mars_cosmoscout_molecules.json -o mars_cosmoscout_molecules_cinematic
+./atmosphere-preprocessor rayleigh --lambdas 440e-9,550e-9,680e-9 --ior 1.00000337 --scattering-depolarization 0.09 --phase-depolarization 0.09 --number-density 2.05e23 --theta-samples 91 -o mars_cosmoscout_molecules_cinematic
+
+# Aerosols
+./atmosphere-preprocessor density -i ../../../plugins/csp-atmospheres/preprocessor/density-settings/mars_cosmoscout_aerosols_cinematic.json -o mars_cosmoscout_aerosols_cinematic
+./atmosphere-preprocessor mie --lambdas 440e-9,550e-9,680e-9 -i ../../../plugins/csp-atmospheres/preprocessor/mie-settings/mars_cinematic.json --phase-flattening 0.8 --theta-samples 91 --number-density 5e9 --radius-samples 10000 -o mars_cosmoscout_aerosols_cinematic
 ```
 </details>
 
@@ -161,7 +175,7 @@ Here we provide the parametrization for various other models for Earth and Mars 
 ### [Earth] Bruneton et al.: [Precomputed Atmospheric Scattering](https://inria.hal.science/inria-00288758/en)
 
 In this work, **molecules** are modelled using standard Rayleigh scattering. However, neither the molecular number density nor the index of refraction is given.
-Hence, we use the explicitly given numbers.
+Hence, we use the explicitly given numbers for the scattering and absorption coefficients.
 **Aerosols** use a wavelength-independent Cornette-Shanks phase function.
 The scattering coefficient of 2.1e-3 given in the paper seems very large.
 If we divide it by 100, we get plausible results.

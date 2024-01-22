@@ -183,7 +183,7 @@ Also, the [README.md](preprocessor/README.md) of the command-line utility provid
 </details>
 
 <details>
-<summary>Example Configuration for Mars</summary>
+<summary>Example Configuration for Mars (Realistic)</summary>
 
 ```javascript
 "Mars": {
@@ -191,18 +191,53 @@ Also, the [README.md](preprocessor/README.md) of the command-line utility provid
   "bottomAltitude": -4500,
   "model": "Bruneton",
   "modelSettings": {
+    "transmittanceTextureWidth": 1024,
+    "transmittanceTextureHeight": 512,
+    "scatteringTextureNuSize": 64,
+    "scatteringTextureRSize": 16,
     "sunAngularRadius": 0.003054,
+    "multiScatteringOrder": 15,
     "molecules": {
-      "phase": "../share/resources/data/csp-atmospheres/mars_cosmoscout_molecules_phase.csv",
-      "betaSca": "../share/resources/data/csp-atmospheres/mars_cosmoscout_molecules_scattering.csv",
-      "betaAbs": "../share/resources/data/csp-atmospheres/mars_cosmoscout_molecules_absorption.csv",
-      "density": "../share/resources/data/csp-atmospheres/mars_cosmoscout_molecules_density.csv"
+      "phase": "../share/resources/data/csp-atmospheres/mars_cosmoscout_molecules_cinematic_phase.csv",
+      "betaSca": "../share/resources/data/csp-atmospheres/mars_cosmoscout_molecules_cinematic_scattering.csv",
+      "betaAbs": "../share/resources/data/csp-atmospheres/mars_cosmoscout_molecules_cinematic_absorption.csv",
+      "density": "../share/resources/data/csp-atmospheres/mars_cosmoscout_molecules_cinematic_density.csv"
     },
     "aerosols": {
-      "phase": "../share/resources/data/csp-atmospheres/mars_cosmoscout_aerosols_phase.csv",
-      "betaSca": "../share/resources/data/csp-atmospheres/mars_cosmoscout_aerosols_scattering.csv",
-      "betaAbs": "../share/resources/data/csp-atmospheres/mars_cosmoscout_aerosols_absorption.csv",
-      "density": "../share/resources/data/csp-atmospheres/mars_cosmoscout_aerosols_density.csv"
+      "phase": "../share/resources/data/csp-atmospheres/mars_cosmoscout_aerosols_cinematic_phase.csv",
+      "betaSca": "../share/resources/data/csp-atmospheres/mars_cosmoscout_aerosols_cinematic_scattering.csv",
+      "betaAbs": "../share/resources/data/csp-atmospheres/mars_cosmoscout_aerosols_cinematic_absorption.csv",
+      "density": "../share/resources/data/csp-atmospheres/mars_cosmoscout_aerosols_cinematic_density.csv"
+    }
+  }
+}
+```
+</details>
+
+<details>
+<summary>Example Configuration for Mars (Cinematic)</summary>
+
+```javascript
+ "Mars": {
+  "topAltitude": 80000,
+  "bottomAltitude": -4500,
+  "model": "Bruneton",
+  "modelSettings": {
+    "transmittanceTextureWidth": 1024,
+    "transmittanceTextureHeight": 512,
+    "sunAngularRadius": 0.003054,
+    "multiScatteringOrder": 15,
+    "molecules": {
+      "phase": "../share/resources/data/csp-atmospheres/mars_cosmoscout_molecules_cinematic_phase.csv",
+      "betaSca": "../share/resources/data/csp-atmospheres/mars_cosmoscout_molecules_cinematic_scattering.csv",
+      "betaAbs": "../share/resources/data/csp-atmospheres/mars_cosmoscout_molecules_cinematic_absorption.csv",
+      "density": "../share/resources/data/csp-atmospheres/mars_cosmoscout_molecules_cinematic_density.csv"
+    },
+    "aerosols": {
+      "phase": "../share/resources/data/csp-atmospheres/mars_cosmoscout_aerosols_cinematic_phase.csv",
+      "betaSca": "../share/resources/data/csp-atmospheres/mars_cosmoscout_aerosols_cinematic_scattering.csv",
+      "betaAbs": "../share/resources/data/csp-atmospheres/mars_cosmoscout_aerosols_cinematic_absorption.csv",
+      "density": "../share/resources/data/csp-atmospheres/mars_cosmoscout_aerosols_cinematic_density.csv"
     }
   }
 }
