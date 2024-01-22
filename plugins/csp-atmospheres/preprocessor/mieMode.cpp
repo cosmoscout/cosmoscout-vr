@@ -322,16 +322,17 @@ MieResult mieDisperse(int32_t thetaSamples, double lambda, std::complex<double> 
 
 int mieMode(std::vector<std::string> const& arguments) {
 
-  bool        cPrintHelp     = false;
-  std::string cInput         = "";
-  std::string cOutput        = "mie";
-  double      cNumberDensity = 1000;
-  std::string cLambdas       = "";
-  double      cMinLambda     = 0.36e-6;
-  double      cMaxLambda     = 0.83e-6;
-  int32_t     cLambdaSamples = 15;
-  int32_t     cThetaSamples  = 91;
-  int32_t     cRadiusSamples = 1000;
+  bool        cPrintHelp       = false;
+  std::string cInput           = "";
+  std::string cOutput          = "mie";
+  double      cNumberDensity   = 1000;
+  double      cPhaseFlattening = 0.0;
+  std::string cLambdas         = "";
+  double      cMinLambda       = 0.36e-6;
+  double      cMaxLambda       = 0.83e-6;
+  int32_t     cLambdaSamples   = 15;
+  int32_t     cThetaSamples    = 91;
+  int32_t     cRadiusSamples   = 1000;
 
   // First configure all possible command line options.
   cs::utils::CommandLine args("Here are the available options:");
@@ -346,6 +347,11 @@ int mieMode(std::vector<std::string> const& arguments) {
           std::to_string(cRadiusSamples) + ").");
   args.addArgument({"--number-density"}, &cNumberDensity,
       "The peak number of particles per m³ (default: " + std::to_string(cNumberDensity) + ").");
+  args.addArgument({"--phase-flattening"}, &cPhaseFlattening,
+      "This can be used to artificially mix the resulting phase function with an isotropic phase "
+      "function. This can be useful to reduce the dynamic range for cinematic purposes. This "
+      "should be in the range [0..1] (default: " +
+          std::to_string(cPhaseFlattening) + ").");
   common::addLambdaFlags(args, &cLambdas, &cMinLambda, &cMaxLambda, &cLambdaSamples);
   common::addThetaFlags(args, &cThetaSamples);
   args.addArgument({"-h", "--help"}, &cPrintHelp, "Show this help message.");
@@ -473,7 +479,9 @@ int mieMode(std::vector<std::string> const& arguments) {
                      << std::endl;
     phaseOutput << fmt::format("{}", lambda);
     for (double p : phase) {
-      phaseOutput << fmt::format(",{}", p / totalPhaseWeight);
+      const double isotropic = 0.25 / glm::pi<double>();
+      p = (1.0 - cPhaseFlattening) * p / totalPhaseWeight + cPhaseFlattening * isotropic;
+      phaseOutput << fmt::format(",{}", p);
     }
     phaseOutput << std::endl;
   }
