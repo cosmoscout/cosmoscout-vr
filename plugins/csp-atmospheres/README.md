@@ -13,6 +13,8 @@ This is a CosmoScout VR plugin which draws atmospheres around celestial bodies.
 It is designed so that multiple atmospheric models can be implemented and configured through the scene settings.
 For now, it supports a simple `"CosmoScoutVR"` model which performs raytracing in the fragment shader without any preprocessing as well a more advanced `"Bruneton"` model based on the [excellent work](https://github.com/ebruneton/precomputed_atmospheric_scattering) by Eric Bruneton.
 
+> [!INFO]
+> This plugin uses code published by Eric Bruneton under the BSD-3-Clause license. Consequently, not all source files are available under the MIT license. See the individual SPDX-tags for details.
 
 This plugin can be enabled with a configuration like the following in your `settings.json`.
 You will have to configure the individual `atmospheres` according to the instructions further below.

@@ -13,6 +13,9 @@ This tool can be used to precompute the atmospheric data required for the advanc
 It generates tabulated phase functions, scattering coefficients, absorption coefficients, and density distributions.
 The resulting data is stored in CSV files and loaded by CosmoScout VR at runtime.
 
+> [!INFO]
+> This tool uses the widely used `bhmie` scattering code originally published in the appendix of Bohren, Craig F., and Donald R. Huffman: _Absorption and scattering of light by small particles_. John Wiley & Sons, 2008. The original code can be found [here](http://scatterlib.wikidot.com/mie).
+
 ## Usage
 
 > [!IMPORTANT]
