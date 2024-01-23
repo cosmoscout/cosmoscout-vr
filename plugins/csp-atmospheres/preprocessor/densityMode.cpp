@@ -27,10 +27,10 @@ enum class DensityDistributionType { eExponential, eDoubleExponential, eTent };
 // Make the DensityDistributionTypes available for JSON deserialization.
 NLOHMANN_JSON_SERIALIZE_ENUM(
     DensityDistributionType, {
-                          {DensityDistributionType::eExponential, "exponential"},
-                          {DensityDistributionType::eDoubleExponential, "doubleExponential"},
-                          {DensityDistributionType::eTent, "tent"},
-                      })
+                                 {DensityDistributionType::eExponential, "exponential"},
+                                 {DensityDistributionType::eDoubleExponential, "doubleExponential"},
+                                 {DensityDistributionType::eTent, "tent"},
+                             })
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // This type describes a particle density distribution. Depending on the type, the parameters A   //

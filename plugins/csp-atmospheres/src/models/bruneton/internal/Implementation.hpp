@@ -67,10 +67,10 @@ struct Params {
   std::vector<float> mWavelengths;
 
   /// See the Model class header for an explanation of these properties.
-  float  mSunAngularRadius;
-  float  mBottomRadius;
-  float  mTopRadius;
-  float  mGroundAlbedo;
+  float   mSunAngularRadius;
+  float   mBottomRadius;
+  float   mTopRadius;
+  float   mGroundAlbedo;
   int32_t mSampleCountOpticalDepth;
   int32_t mSampleCountSingleScattering;
   int32_t mSampleCountMultiScattering;
@@ -125,7 +125,7 @@ class Implementation {
 
   void updatePhaseFunctionTexture(
       std::vector<Params::ScatteringComponent> const& scatteringComponents,
-      glm::vec3 const&                               lambdas);
+      glm::vec3 const&                                lambdas);
 
   const Params  mParams;
   const int32_t mScatteringTextureWidth;

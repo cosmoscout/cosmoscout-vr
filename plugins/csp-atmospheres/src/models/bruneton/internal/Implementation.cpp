@@ -548,7 +548,7 @@ float CieColorMatchingFunctionTableValue(float wavelength, int column) {
     return 0.F;
   }
   float u   = (wavelength - WAVELENGTHS.front()) / 5.F;
-  int    row = static_cast<int>(std::floor(u));
+  int   row = static_cast<int>(std::floor(u));
   assert(row >= 0 && row + 1 < 95);
   assert(CIE_2_DEG_COLOR_MATCHING_FUNCTIONS[4 * row] <= wavelength &&
          CIE_2_DEG_COLOR_MATCHING_FUNCTIONS[4 * (row + 1)] >= wavelength);
@@ -582,12 +582,11 @@ float Interpolate(std::vector<float> const& xVals, std::vector<float> const& yVa
 
 // This is functionality-wise identical to the original implementation.
 
-void ComputeSpectralRadianceToLuminanceFactors(
-    float lambdaPower, float* kR, float* kG, float* kB) {
+void ComputeSpectralRadianceToLuminanceFactors(float lambdaPower, float* kR, float* kG, float* kB) {
 
-  *kR            = 0.F;
-  *kG            = 0.F;
-  *kB            = 0.F;
+  *kR           = 0.F;
+  *kG           = 0.F;
+  *kB           = 0.F;
   float solarR  = Interpolate(WAVELENGTHS, SOLAR_IRRADIANCE, Implementation::kLambdaR);
   float solarG  = Interpolate(WAVELENGTHS, SOLAR_IRRADIANCE, Implementation::kLambdaG);
   float solarB  = Interpolate(WAVELENGTHS, SOLAR_IRRADIANCE, Implementation::kLambdaB);
@@ -690,7 +689,7 @@ Implementation::Implementation(Params params)
   // yields artefacts (because the values are too large), so we store illuminance values divided by
   // MAX_LUMINOUS_EFFICACY instead. This is why, in precomputed illuminance mode, we set
   // SKY_RADIANCE_TO_LUMINANCE to MAX_LUMINOUS_EFFICACY.
-  bool   precomputeIlluminance = mParams.mWavelengths.size() > 3;
+  bool  precomputeIlluminance = mParams.mWavelengths.size() > 3;
   float skyKR, skyKG, skyKB;
   if (precomputeIlluminance) {
     skyKR = skyKG = skyKB = MAX_LUMINOUS_EFFICACY;
@@ -770,8 +769,8 @@ Implementation::Implementation(Params params)
     densityData.insert(
         densityData.end(), mParams.mOzone.mDensity.begin(), mParams.mOzone.mDensity.end());
 
-    mDensityTexture =
-        NewTexture2d(static_cast<int>(numDensities), static_cast<int>(numComponents), GL_R32F, GL_RED, GL_FLOAT, densityData.data());
+    mDensityTexture = NewTexture2d(static_cast<int>(numDensities), static_cast<int>(numComponents),
+        GL_R32F, GL_RED, GL_FLOAT, densityData.data());
   }
 
   // Create and compile the shader providing our API.
@@ -856,7 +855,7 @@ void Implementation::init(unsigned int numScatteringOrders) {
   if (mParams.mWavelengths.size() <= 3) {
     logger().info("Precomputing atmospheric scattering (1/1)...");
     glm::vec3 lambdas{kLambdaR, kLambdaG, kLambdaB};
-    glm::mat3  luminanceFromRadiance{1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0};
+    glm::mat3 luminanceFromRadiance{1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0};
     precompute(fbo, deltaIrradianceTexture, deltaMoleculesScatteringTexture,
         deltaAerosolsScatteringTexture, deltaScatteringDensityTexture,
         deltaMultipleScatteringTexture, lambdas, luminanceFromRadiance, false /* blend */,
@@ -1178,7 +1177,7 @@ void Implementation::precompute(GLuint fbo, GLuint deltaIrradianceTexture,
 
 void Implementation::updatePhaseFunctionTexture(
     std::vector<Params::ScatteringComponent> const& scatteringComponents,
-    glm::vec3 const&                               lambdas) {
+    glm::vec3 const&                                lambdas) {
 
   if (mPhaseTexture != 0) {
     glDeleteTextures(1, &mPhaseTexture);
@@ -1198,8 +1197,8 @@ void Implementation::updatePhaseFunctionTexture(
     }
   }
 
-  mPhaseTexture = NewTexture2d(
-      static_cast<int>(numAngles), static_cast<int>(scatteringComponents.size()), GL_RGBA32F, GL_RGBA, GL_FLOAT, data.data());
+  mPhaseTexture = NewTexture2d(static_cast<int>(numAngles),
+      static_cast<int>(scatteringComponents.size()), GL_RGBA32F, GL_RGBA, GL_FLOAT, data.data());
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

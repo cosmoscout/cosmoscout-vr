@@ -108,7 +108,7 @@ bool Model::init(
   internal::Params params;
 
   std::vector<float> wavelengths;
-  uint32_t            densityCount = 0;
+  uint32_t           densityCount = 0;
 
   params.mMolecules.mDensity =
       internal::CSVLoader::readDensity(settings.mMolecules.mDensity, densityCount);

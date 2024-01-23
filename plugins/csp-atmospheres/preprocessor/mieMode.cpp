@@ -17,8 +17,8 @@
 #include <complex>
 #include <fstream>
 #include <map>
-#include <random>
 #include <optional>
+#include <random>
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Allow deserialization of std::complex types using nlohmann::json.                              //
@@ -50,11 +50,11 @@ enum class SizeDistributionType { eGamma, eModifiedGamma, eLogNormal, eModifiedL
 // Make the SizeDistributionTypes available for JSON deserialization.
 NLOHMANN_JSON_SERIALIZE_ENUM(
     SizeDistributionType, {
-                          {SizeDistributionType::eGamma, "gamma"},
-                          {SizeDistributionType::eModifiedGamma, "modifiedGamma"},
-                          {SizeDistributionType::eLogNormal, "logNormal"},
-                          {SizeDistributionType::eModifiedLogNormal, "modifiedLogNormal"},
-                      })
+                              {SizeDistributionType::eGamma, "gamma"},
+                              {SizeDistributionType::eModifiedGamma, "modifiedGamma"},
+                              {SizeDistributionType::eLogNormal, "logNormal"},
+                              {SizeDistributionType::eModifiedLogNormal, "modifiedLogNormal"},
+                          })
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // This type describes a particle size distribution. Depending on the type, the parameters A and  //
@@ -267,7 +267,7 @@ MieResult mieDisperse(int32_t thetaSamples, double lambda, std::complex<double> 
   result.cSca  = 0.0;
 
 #pragma omp parallel for
-  for (auto i(0); i<radii.size(); ++i) {
+  for (auto i(0); i < radii.size(); ++i) {
     double r = radii[i];
     double x = 2.0 * r * glm::pi<double>() / lambda;
 
