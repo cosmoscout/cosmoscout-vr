@@ -42,139 +42,139 @@ namespace {
 // 360 and 370nm). Values in W.m^-2. Copied from:
 // https://github.com/ebruneton/precomputed_atmospheric_scattering/blob/master/atmosphere/demo/demo.cc
 // clang-format off
-const std::vector<double> SOLAR_IRRADIANCE = {
-                                                          1.11776, 1.14259, 1.01249, 1.14716,
-    1.72765, 1.73054, 1.6887,  1.61253, 1.91198, 2.03474, 2.02042, 2.02212, 1.93377, 1.95809,
-    1.91686, 1.8298,  1.8685,  1.8931,  1.85149, 1.8504,  1.8341,  1.8345,  1.8147,  1.78158,
-    1.7533,  1.6965,  1.68194, 1.64654, 1.6048,  1.52143, 1.55622, 1.5113,  1.474,   1.4482,
-    1.41018, 1.36775, 1.34188, 1.31429, 1.28303, 1.26758, 1.2367,  1.2082,  1.18737, 1.14683,
-    1.12362, 1.1058, 1.07124, 1.04992
+const std::vector<float> SOLAR_IRRADIANCE = {
+                                                                1.11776F, 1.14259F, 1.01249F, 1.14716F,
+    1.72765F, 1.73054F, 1.6887F,  1.61253F, 1.91198F, 2.03474F, 2.02042F, 2.02212F, 1.93377F, 1.95809F,
+    1.91686F, 1.8298F,  1.8685F,  1.8931F,  1.85149F, 1.8504F,  1.8341F,  1.8345F,  1.8147F,  1.78158F,
+    1.7533F,  1.6965F,  1.68194F, 1.64654F, 1.6048F,  1.52143F, 1.55622F, 1.5113F,  1.474F,   1.4482F,
+    1.41018F, 1.36775F, 1.34188F, 1.31429F, 1.28303F, 1.26758F, 1.2367F,  1.2082F,  1.18737F, 1.14683F,
+    1.12362F, 1.1058F,  1.07124F, 1.04992F
 };
 
-const std::vector<double> WAVELENGTHS = {
-                                  360, 370, 380, 390,
-    400, 410, 420, 430, 440, 450, 460, 470, 480, 490,
-    500, 510, 520, 530, 540, 550, 560, 570, 580, 590,
-    600, 610, 620, 630, 640, 650, 660, 670, 680, 690,
-    700, 710, 720, 730, 740, 750, 760, 770, 780, 790,
-    800, 810, 820, 830
+const std::vector<float> WAVELENGTHS = {
+                                              360.F, 370.F, 380.F, 390.F,
+    400.F, 410.F, 420.F, 430.F, 440.F, 450.F, 460.F, 470.F, 480.F, 490.F,
+    500.F, 510.F, 520.F, 530.F, 540.F, 550.F, 560.F, 570.F, 580.F, 590.F,
+    600.F, 610.F, 620.F, 630.F, 640.F, 650.F, 660.F, 670.F, 680.F, 690.F,
+    700.F, 710.F, 720.F, 730.F, 740.F, 750.F, 760.F, 770.F, 780.F, 790.F,
+    800.F, 810.F, 820.F, 830.F
 };
 // clang-format on
 
 // The conversion factor between watts and lumens.
-constexpr double MAX_LUMINOUS_EFFICACY = 683.0;
+constexpr float MAX_LUMINOUS_EFFICACY = 683.0;
 
 // Values from "CIE (1931) 2-deg color matching functions", see
 // "http://web.archive.org/web/20081228084047/http://www.cvrl.org/database/data/cmfs/ciexyz31.txt".
 // Copied from:
 // https://github.com/ebruneton/precomputed_atmospheric_scattering/blob/master/atmosphere/constants.h
 // clang-format off
-constexpr double CIE_2_DEG_COLOR_MATCHING_FUNCTIONS[380] = {
-    360, 0.000129900000, 0.000003917000, 0.000606100000,
-    365, 0.000232100000, 0.000006965000, 0.001086000000,
-    370, 0.000414900000, 0.000012390000, 0.001946000000,
-    375, 0.000741600000, 0.000022020000, 0.003486000000,
-    380, 0.001368000000, 0.000039000000, 0.006450001000,
-    385, 0.002236000000, 0.000064000000, 0.010549990000,
-    390, 0.004243000000, 0.000120000000, 0.020050010000,
-    395, 0.007650000000, 0.000217000000, 0.036210000000,
-    400, 0.014310000000, 0.000396000000, 0.067850010000,
-    405, 0.023190000000, 0.000640000000, 0.110200000000,
-    410, 0.043510000000, 0.001210000000, 0.207400000000,
-    415, 0.077630000000, 0.002180000000, 0.371300000000,
-    420, 0.134380000000, 0.004000000000, 0.645600000000,
-    425, 0.214770000000, 0.007300000000, 1.039050100000,
-    430, 0.283900000000, 0.011600000000, 1.385600000000,
-    435, 0.328500000000, 0.016840000000, 1.622960000000,
-    440, 0.348280000000, 0.023000000000, 1.747060000000,
-    445, 0.348060000000, 0.029800000000, 1.782600000000,
-    450, 0.336200000000, 0.038000000000, 1.772110000000,
-    455, 0.318700000000, 0.048000000000, 1.744100000000,
-    460, 0.290800000000, 0.060000000000, 1.669200000000,
-    465, 0.251100000000, 0.073900000000, 1.528100000000,
-    470, 0.195360000000, 0.090980000000, 1.287640000000,
-    475, 0.142100000000, 0.112600000000, 1.041900000000,
-    480, 0.095640000000, 0.139020000000, 0.812950100000,
-    485, 0.057950010000, 0.169300000000, 0.616200000000,
-    490, 0.032010000000, 0.208020000000, 0.465180000000,
-    495, 0.014700000000, 0.258600000000, 0.353300000000,
-    500, 0.004900000000, 0.323000000000, 0.272000000000,
-    505, 0.002400000000, 0.407300000000, 0.212300000000,
-    510, 0.009300000000, 0.503000000000, 0.158200000000,
-    515, 0.029100000000, 0.608200000000, 0.111700000000,
-    520, 0.063270000000, 0.710000000000, 0.078249990000,
-    525, 0.109600000000, 0.793200000000, 0.057250010000,
-    530, 0.165500000000, 0.862000000000, 0.042160000000,
-    535, 0.225749900000, 0.914850100000, 0.029840000000,
-    540, 0.290400000000, 0.954000000000, 0.020300000000,
-    545, 0.359700000000, 0.980300000000, 0.013400000000,
-    550, 0.433449900000, 0.994950100000, 0.008749999000,
-    555, 0.512050100000, 1.000000000000, 0.005749999000,
-    560, 0.594500000000, 0.995000000000, 0.003900000000,
-    565, 0.678400000000, 0.978600000000, 0.002749999000,
-    570, 0.762100000000, 0.952000000000, 0.002100000000,
-    575, 0.842500000000, 0.915400000000, 0.001800000000,
-    580, 0.916300000000, 0.870000000000, 0.001650001000,
-    585, 0.978600000000, 0.816300000000, 0.001400000000,
-    590, 1.026300000000, 0.757000000000, 0.001100000000,
-    595, 1.056700000000, 0.694900000000, 0.001000000000,
-    600, 1.062200000000, 0.631000000000, 0.000800000000,
-    605, 1.045600000000, 0.566800000000, 0.000600000000,
-    610, 1.002600000000, 0.503000000000, 0.000340000000,
-    615, 0.938400000000, 0.441200000000, 0.000240000000,
-    620, 0.854449900000, 0.381000000000, 0.000190000000,
-    625, 0.751400000000, 0.321000000000, 0.000100000000,
-    630, 0.642400000000, 0.265000000000, 0.000049999990,
-    635, 0.541900000000, 0.217000000000, 0.000030000000,
-    640, 0.447900000000, 0.175000000000, 0.000020000000,
-    645, 0.360800000000, 0.138200000000, 0.000010000000,
-    650, 0.283500000000, 0.107000000000, 0.000000000000,
-    655, 0.218700000000, 0.081600000000, 0.000000000000,
-    660, 0.164900000000, 0.061000000000, 0.000000000000,
-    665, 0.121200000000, 0.044580000000, 0.000000000000,
-    670, 0.087400000000, 0.032000000000, 0.000000000000,
-    675, 0.063600000000, 0.023200000000, 0.000000000000,
-    680, 0.046770000000, 0.017000000000, 0.000000000000,
-    685, 0.032900000000, 0.011920000000, 0.000000000000,
-    690, 0.022700000000, 0.008210000000, 0.000000000000,
-    695, 0.015840000000, 0.005723000000, 0.000000000000,
-    700, 0.011359160000, 0.004102000000, 0.000000000000,
-    705, 0.008110916000, 0.002929000000, 0.000000000000,
-    710, 0.005790346000, 0.002091000000, 0.000000000000,
-    715, 0.004109457000, 0.001484000000, 0.000000000000,
-    720, 0.002899327000, 0.001047000000, 0.000000000000,
-    725, 0.002049190000, 0.000740000000, 0.000000000000,
-    730, 0.001439971000, 0.000520000000, 0.000000000000,
-    735, 0.000999949300, 0.000361100000, 0.000000000000,
-    740, 0.000690078600, 0.000249200000, 0.000000000000,
-    745, 0.000476021300, 0.000171900000, 0.000000000000,
-    750, 0.000332301100, 0.000120000000, 0.000000000000,
-    755, 0.000234826100, 0.000084800000, 0.000000000000,
-    760, 0.000166150500, 0.000060000000, 0.000000000000,
-    765, 0.000117413000, 0.000042400000, 0.000000000000,
-    770, 0.000083075270, 0.000030000000, 0.000000000000,
-    775, 0.000058706520, 0.000021200000, 0.000000000000,
-    780, 0.000041509940, 0.000014990000, 0.000000000000,
-    785, 0.000029353260, 0.000010600000, 0.000000000000,
-    790, 0.000020673830, 0.000007465700, 0.000000000000,
-    795, 0.000014559770, 0.000005257800, 0.000000000000,
-    800, 0.000010253980, 0.000003702900, 0.000000000000,
-    805, 0.000007221456, 0.000002607800, 0.000000000000,
-    810, 0.000005085868, 0.000001836600, 0.000000000000,
-    815, 0.000003581652, 0.000001293400, 0.000000000000,
-    820, 0.000002522525, 0.000000910930, 0.000000000000,
-    825, 0.000001776509, 0.000000641530, 0.000000000000,
-    830, 0.000001251141, 0.000000451810, 0.000000000000,
+constexpr float CIE_2_DEG_COLOR_MATCHING_FUNCTIONS[380] = {
+    360.F, 0.000129900000F, 0.000003917000F, 0.000606100000F,
+    365.F, 0.000232100000F, 0.000006965000F, 0.001086000000F,
+    370.F, 0.000414900000F, 0.000012390000F, 0.001946000000F,
+    375.F, 0.000741600000F, 0.000022020000F, 0.003486000000F,
+    380.F, 0.001368000000F, 0.000039000000F, 0.006450001000F,
+    385.F, 0.002236000000F, 0.000064000000F, 0.010549990000F,
+    390.F, 0.004243000000F, 0.000120000000F, 0.020050010000F,
+    395.F, 0.007650000000F, 0.000217000000F, 0.036210000000F,
+    400.F, 0.014310000000F, 0.000396000000F, 0.067850010000F,
+    405.F, 0.023190000000F, 0.000640000000F, 0.110200000000F,
+    410.F, 0.043510000000F, 0.001210000000F, 0.207400000000F,
+    415.F, 0.077630000000F, 0.002180000000F, 0.371300000000F,
+    420.F, 0.134380000000F, 0.004000000000F, 0.645600000000F,
+    425.F, 0.214770000000F, 0.007300000000F, 1.039050100000F,
+    430.F, 0.283900000000F, 0.011600000000F, 1.385600000000F,
+    435.F, 0.328500000000F, 0.016840000000F, 1.622960000000F,
+    440.F, 0.348280000000F, 0.023000000000F, 1.747060000000F,
+    445.F, 0.348060000000F, 0.029800000000F, 1.782600000000F,
+    450.F, 0.336200000000F, 0.038000000000F, 1.772110000000F,
+    455.F, 0.318700000000F, 0.048000000000F, 1.744100000000F,
+    460.F, 0.290800000000F, 0.060000000000F, 1.669200000000F,
+    465.F, 0.251100000000F, 0.073900000000F, 1.528100000000F,
+    470.F, 0.195360000000F, 0.090980000000F, 1.287640000000F,
+    475.F, 0.142100000000F, 0.112600000000F, 1.041900000000F,
+    480.F, 0.095640000000F, 0.139020000000F, 0.812950100000F,
+    485.F, 0.057950010000F, 0.169300000000F, 0.616200000000F,
+    490.F, 0.032010000000F, 0.208020000000F, 0.465180000000F,
+    495.F, 0.014700000000F, 0.258600000000F, 0.353300000000F,
+    500.F, 0.004900000000F, 0.323000000000F, 0.272000000000F,
+    505.F, 0.002400000000F, 0.407300000000F, 0.212300000000F,
+    510.F, 0.009300000000F, 0.503000000000F, 0.158200000000F,
+    515.F, 0.029100000000F, 0.608200000000F, 0.111700000000F,
+    520.F, 0.063270000000F, 0.710000000000F, 0.078249990000F,
+    525.F, 0.109600000000F, 0.793200000000F, 0.057250010000F,
+    530.F, 0.165500000000F, 0.862000000000F, 0.042160000000F,
+    535.F, 0.225749900000F, 0.914850100000F, 0.029840000000F,
+    540.F, 0.290400000000F, 0.954000000000F, 0.020300000000F,
+    545.F, 0.359700000000F, 0.980300000000F, 0.013400000000F,
+    550.F, 0.433449900000F, 0.994950100000F, 0.008749999000F,
+    555.F, 0.512050100000F, 1.000000000000F, 0.005749999000F,
+    560.F, 0.594500000000F, 0.995000000000F, 0.003900000000F,
+    565.F, 0.678400000000F, 0.978600000000F, 0.002749999000F,
+    570.F, 0.762100000000F, 0.952000000000F, 0.002100000000F,
+    575.F, 0.842500000000F, 0.915400000000F, 0.001800000000F,
+    580.F, 0.916300000000F, 0.870000000000F, 0.001650001000F,
+    585.F, 0.978600000000F, 0.816300000000F, 0.001400000000F,
+    590.F, 1.026300000000F, 0.757000000000F, 0.001100000000F,
+    595.F, 1.056700000000F, 0.694900000000F, 0.001000000000F,
+    600.F, 1.062200000000F, 0.631000000000F, 0.000800000000F,
+    605.F, 1.045600000000F, 0.566800000000F, 0.000600000000F,
+    610.F, 1.002600000000F, 0.503000000000F, 0.000340000000F,
+    615.F, 0.938400000000F, 0.441200000000F, 0.000240000000F,
+    620.F, 0.854449900000F, 0.381000000000F, 0.000190000000F,
+    625.F, 0.751400000000F, 0.321000000000F, 0.000100000000F,
+    630.F, 0.642400000000F, 0.265000000000F, 0.000049999990F,
+    635.F, 0.541900000000F, 0.217000000000F, 0.000030000000F,
+    640.F, 0.447900000000F, 0.175000000000F, 0.000020000000F,
+    645.F, 0.360800000000F, 0.138200000000F, 0.000010000000F,
+    650.F, 0.283500000000F, 0.107000000000F, 0.000000000000F,
+    655.F, 0.218700000000F, 0.081600000000F, 0.000000000000F,
+    660.F, 0.164900000000F, 0.061000000000F, 0.000000000000F,
+    665.F, 0.121200000000F, 0.044580000000F, 0.000000000000F,
+    670.F, 0.087400000000F, 0.032000000000F, 0.000000000000F,
+    675.F, 0.063600000000F, 0.023200000000F, 0.000000000000F,
+    680.F, 0.046770000000F, 0.017000000000F, 0.000000000000F,
+    685.F, 0.032900000000F, 0.011920000000F, 0.000000000000F,
+    690.F, 0.022700000000F, 0.008210000000F, 0.000000000000F,
+    695.F, 0.015840000000F, 0.005723000000F, 0.000000000000F,
+    700.F, 0.011359160000F, 0.004102000000F, 0.000000000000F,
+    705.F, 0.008110916000F, 0.002929000000F, 0.000000000000F,
+    710.F, 0.005790346000F, 0.002091000000F, 0.000000000000F,
+    715.F, 0.004109457000F, 0.001484000000F, 0.000000000000F,
+    720.F, 0.002899327000F, 0.001047000000F, 0.000000000000F,
+    725.F, 0.002049190000F, 0.000740000000F, 0.000000000000F,
+    730.F, 0.001439971000F, 0.000520000000F, 0.000000000000F,
+    735.F, 0.000999949300F, 0.000361100000F, 0.000000000000F,
+    740.F, 0.000690078600F, 0.000249200000F, 0.000000000000F,
+    745.F, 0.000476021300F, 0.000171900000F, 0.000000000000F,
+    750.F, 0.000332301100F, 0.000120000000F, 0.000000000000F,
+    755.F, 0.000234826100F, 0.000084800000F, 0.000000000000F,
+    760.F, 0.000166150500F, 0.000060000000F, 0.000000000000F,
+    765.F, 0.000117413000F, 0.000042400000F, 0.000000000000F,
+    770.F, 0.000083075270F, 0.000030000000F, 0.000000000000F,
+    775.F, 0.000058706520F, 0.000021200000F, 0.000000000000F,
+    780.F, 0.000041509940F, 0.000014990000F, 0.000000000000F,
+    785.F, 0.000029353260F, 0.000010600000F, 0.000000000000F,
+    790.F, 0.000020673830F, 0.000007465700F, 0.000000000000F,
+    795.F, 0.000014559770F, 0.000005257800F, 0.000000000000F,
+    800.F, 0.000010253980F, 0.000003702900F, 0.000000000000F,
+    805.F, 0.000007221456F, 0.000002607800F, 0.000000000000F,
+    810.F, 0.000005085868F, 0.000001836600F, 0.000000000000F,
+    815.F, 0.000003581652F, 0.000001293400F, 0.000000000000F,
+    820.F, 0.000002522525F, 0.000000910930F, 0.000000000000F,
+    825.F, 0.000001776509F, 0.000000641530F, 0.000000000000F,
+    830.F, 0.000001251141F, 0.000000451810F, 0.000000000000F,
 };
 // clang-format on
 
 // The conversion matrix from XYZ to linear sRGB color spaces.
 // Values from https://en.wikipedia.org/wiki/SRGB.
 // clang-format off
-constexpr double XYZ_TO_SRGB[9] = {
-    +3.2406, -1.5372, -0.4986,
-    -0.9689, +1.8758, +0.0415,
-    +0.0557, -0.2040, +1.0570
+constexpr float XYZ_TO_SRGB[9] = {
+    +3.2406F, -1.5372F, -0.4986F,
+    -0.9689F, +1.8758F, +0.0415F,
+    +0.0557F, -0.2040F, +1.0570F
 };
 // clang-format on
 
@@ -543,17 +543,17 @@ void DrawQuad(std::vector<bool> const& enableBlend, GLuint quadVAO) {
 
 // This is functionality-wise identical to the original implementation.
 
-double CieColorMatchingFunctionTableValue(double wavelength, int column) {
+float CieColorMatchingFunctionTableValue(float wavelength, int column) {
   if (wavelength <= WAVELENGTHS.front() || wavelength >= WAVELENGTHS.back()) {
-    return 0.0;
+    return 0.F;
   }
-  double u   = (wavelength - WAVELENGTHS.front()) / 5.0;
+  float u   = (wavelength - WAVELENGTHS.front()) / 5.F;
   int    row = static_cast<int>(std::floor(u));
   assert(row >= 0 && row + 1 < 95);
   assert(CIE_2_DEG_COLOR_MATCHING_FUNCTIONS[4 * row] <= wavelength &&
          CIE_2_DEG_COLOR_MATCHING_FUNCTIONS[4 * (row + 1)] >= wavelength);
   u -= row;
-  return CIE_2_DEG_COLOR_MATCHING_FUNCTIONS[4 * row + column] * (1.0 - u) +
+  return CIE_2_DEG_COLOR_MATCHING_FUNCTIONS[4 * row + column] * (1.F - u) +
          CIE_2_DEG_COLOR_MATCHING_FUNCTIONS[4 * (row + 1) + column] * u;
 }
 
@@ -561,7 +561,7 @@ double CieColorMatchingFunctionTableValue(double wavelength, int column) {
 
 // This is functionality-wise identical to the original implementation.
 
-double Interpolate(std::vector<double> const& xVals, std::vector<double> const& yVals, double x) {
+float Interpolate(std::vector<float> const& xVals, std::vector<float> const& yVals, float x) {
   assert(yVals.size() == xVals.size());
 
   if (x < xVals[0]) {
@@ -570,8 +570,8 @@ double Interpolate(std::vector<double> const& xVals, std::vector<double> const& 
 
   for (unsigned int i = 0; i < xVals.size() - 1; ++i) {
     if (x < xVals[i + 1]) {
-      double u = (x - xVals[i]) / (xVals[i + 1] - xVals[i]);
-      return yVals[i] * (1.0 - u) + yVals[i + 1] * u;
+      float u = (x - xVals[i]) / (xVals[i + 1] - xVals[i]);
+      return yVals[i] * (1.F - u) + yVals[i + 1] * u;
     }
   }
 
@@ -583,24 +583,24 @@ double Interpolate(std::vector<double> const& xVals, std::vector<double> const& 
 // This is functionality-wise identical to the original implementation.
 
 void ComputeSpectralRadianceToLuminanceFactors(
-    double lambdaPower, double* kR, double* kG, double* kB) {
+    float lambdaPower, float* kR, float* kG, float* kB) {
 
-  *kR            = 0.0;
-  *kG            = 0.0;
-  *kB            = 0.0;
-  double solarR  = Interpolate(WAVELENGTHS, SOLAR_IRRADIANCE, Implementation::kLambdaR);
-  double solarG  = Interpolate(WAVELENGTHS, SOLAR_IRRADIANCE, Implementation::kLambdaG);
-  double solarB  = Interpolate(WAVELENGTHS, SOLAR_IRRADIANCE, Implementation::kLambdaB);
-  int    dLambda = 1;
-  for (int lambda = WAVELENGTHS.front(); lambda <= WAVELENGTHS.back(); lambda += dLambda) {
-    double        x_bar      = CieColorMatchingFunctionTableValue(lambda, 1);
-    double        y_bar      = CieColorMatchingFunctionTableValue(lambda, 2);
-    double        z_bar      = CieColorMatchingFunctionTableValue(lambda, 3);
-    const double* xyz2srgb   = XYZ_TO_SRGB;
-    double        r_bar      = xyz2srgb[0] * x_bar + xyz2srgb[1] * y_bar + xyz2srgb[2] * z_bar;
-    double        g_bar      = xyz2srgb[3] * x_bar + xyz2srgb[4] * y_bar + xyz2srgb[5] * z_bar;
-    double        b_bar      = xyz2srgb[6] * x_bar + xyz2srgb[7] * y_bar + xyz2srgb[8] * z_bar;
-    double        irradiance = Interpolate(WAVELENGTHS, SOLAR_IRRADIANCE, lambda);
+  *kR            = 0.F;
+  *kG            = 0.F;
+  *kB            = 0.F;
+  float solarR  = Interpolate(WAVELENGTHS, SOLAR_IRRADIANCE, Implementation::kLambdaR);
+  float solarG  = Interpolate(WAVELENGTHS, SOLAR_IRRADIANCE, Implementation::kLambdaG);
+  float solarB  = Interpolate(WAVELENGTHS, SOLAR_IRRADIANCE, Implementation::kLambdaB);
+  float dLambda = 1.0;
+  for (float lambda = WAVELENGTHS.front(); lambda <= WAVELENGTHS.back(); lambda += dLambda) {
+    float        x_bar      = CieColorMatchingFunctionTableValue(lambda, 1);
+    float        y_bar      = CieColorMatchingFunctionTableValue(lambda, 2);
+    float        z_bar      = CieColorMatchingFunctionTableValue(lambda, 3);
+    const float* xyz2srgb   = XYZ_TO_SRGB;
+    float        r_bar      = xyz2srgb[0] * x_bar + xyz2srgb[1] * y_bar + xyz2srgb[2] * z_bar;
+    float        g_bar      = xyz2srgb[3] * x_bar + xyz2srgb[4] * y_bar + xyz2srgb[5] * z_bar;
+    float        b_bar      = xyz2srgb[6] * x_bar + xyz2srgb[7] * y_bar + xyz2srgb[8] * z_bar;
+    float        irradiance = Interpolate(WAVELENGTHS, SOLAR_IRRADIANCE, lambda);
     *kR += r_bar * irradiance / solarR * pow(lambda / Implementation::kLambdaR, lambdaPower);
     *kG += g_bar * irradiance / solarG * pow(lambda / Implementation::kLambdaG, lambdaPower);
     *kB += b_bar * irradiance / solarB * pow(lambda / Implementation::kLambdaB, lambdaPower);
@@ -620,18 +620,18 @@ void ComputeSpectralRadianceToLuminanceFactors(
 // function. The function is defined by the first two parameters and the three values are extracted
 // by linear interpolation using the three values passed in as last parameter.
 std::string extractVec3(
-    std::vector<double> const& xVals, std::vector<double> const& yVals, glm::dvec3 const& lambdas) {
-  double r = Interpolate(xVals, yVals, lambdas[0]);
-  double g = Interpolate(xVals, yVals, lambdas[1]);
-  double b = Interpolate(xVals, yVals, lambdas[2]);
+    std::vector<float> const& xVals, std::vector<float> const& yVals, glm::vec3 const& lambdas) {
+  float r = Interpolate(xVals, yVals, lambdas[0]);
+  float g = Interpolate(xVals, yVals, lambdas[1]);
+  float b = Interpolate(xVals, yVals, lambdas[2]);
   return "vec3(" + cs::utils::toString(r) + "," + cs::utils::toString(g) + "," +
          cs::utils::toString(b) + ")";
 }
 
 // This creates an GLSL snippet corresponding to the given scattering component.
 std::string printScatteringComponent(Params::ScatteringComponent const& component,
-    std::vector<double> const& wavelengths, float phaseTextureV, float densityTextureV,
-    glm::dvec3 const& lambdas) {
+    std::vector<float> const& wavelengths, float phaseTextureV, float densityTextureV,
+    glm::vec3 const& lambdas) {
 
   auto absorption = extractVec3(wavelengths, component.mAbsorption, lambdas);
   auto scattering = extractVec3(wavelengths, component.mScattering, lambdas);
@@ -649,7 +649,7 @@ std::string printScatteringComponent(Params::ScatteringComponent const& componen
 
 // This creates an GLSL snippet corresponding to the given absorbing component.
 std::string printAbsorbingComponent(Params::AbsorbingComponent const& component,
-    std::vector<double> const& wavelengths, float densityTextureV, glm::dvec3 const& lambdas) {
+    std::vector<float> const& wavelengths, float densityTextureV, glm::vec3 const& lambdas) {
 
   auto absorption = extractVec3(wavelengths, component.mAbsorption, lambdas);
 
@@ -691,14 +691,14 @@ Implementation::Implementation(Params params)
   // MAX_LUMINOUS_EFFICACY instead. This is why, in precomputed illuminance mode, we set
   // SKY_RADIANCE_TO_LUMINANCE to MAX_LUMINOUS_EFFICACY.
   bool   precomputeIlluminance = mParams.mWavelengths.size() > 3;
-  double skyKR, skyKG, skyKB;
+  float skyKR, skyKG, skyKB;
   if (precomputeIlluminance) {
     skyKR = skyKG = skyKB = MAX_LUMINOUS_EFFICACY;
   } else {
     ComputeSpectralRadianceToLuminanceFactors(-3 /* lambdaPower */, &skyKR, &skyKG, &skyKB);
   }
   // Compute the values for the SUN_RADIANCE_TO_LUMINANCE constant.
-  double sunKR, sunKG, sunKB;
+  float sunKR, sunKG, sunKB;
   ComputeSpectralRadianceToLuminanceFactors(0 /* lambdaPower */, &sunKR, &sunKG, &sunKB);
 
   // A lambda that creates a GLSL header containing our atmosphere computation functions,
@@ -709,7 +709,7 @@ Implementation::Implementation(Params params)
       "../share/resources/shaders/csp-atmospheres/models/bruneton/functions.glsl");
 
   // clang-format off
-  mGlslHeaderFactory = [=](glm::dvec3 const& lambdas) {
+  mGlslHeaderFactory = [=](glm::vec3 const& lambdas) {
     return
       "#version 330\n" +
       definitions +
@@ -771,7 +771,7 @@ Implementation::Implementation(Params params)
         densityData.end(), mParams.mOzone.mDensity.begin(), mParams.mOzone.mDensity.end());
 
     mDensityTexture =
-        NewTexture2d(numDensities, numComponents, GL_R32F, GL_RED, GL_FLOAT, densityData.data());
+        NewTexture2d(static_cast<int>(numDensities), static_cast<int>(numComponents), GL_R32F, GL_RED, GL_FLOAT, densityData.data());
   }
 
   // Create and compile the shader providing our API.
@@ -855,28 +855,28 @@ void Implementation::init(unsigned int numScatteringOrders) {
   // illuminance values.
   if (mParams.mWavelengths.size() <= 3) {
     logger().info("Precomputing atmospheric scattering (1/1)...");
-    glm::dvec3 lambdas{kLambdaR, kLambdaG, kLambdaB};
+    glm::vec3 lambdas{kLambdaR, kLambdaG, kLambdaB};
     glm::mat3  luminanceFromRadiance{1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0};
     precompute(fbo, deltaIrradianceTexture, deltaMoleculesScatteringTexture,
         deltaAerosolsScatteringTexture, deltaScatteringDensityTexture,
         deltaMultipleScatteringTexture, lambdas, luminanceFromRadiance, false /* blend */,
         numScatteringOrders);
   } else {
-    int numIterations = mParams.mWavelengths.size() / 3;
+    int numIterations = static_cast<int>(mParams.mWavelengths.size()) / 3;
     for (int i = 0; i < numIterations; ++i) {
       logger().info("Precomputing atmospheric scattering ({}/{})...", i + 1, numIterations);
 
-      glm::dvec3 lambdas{mParams.mWavelengths[i * 3 + 0], mParams.mWavelengths[i * 3 + 1],
+      glm::vec3 lambdas{mParams.mWavelengths[i * 3 + 0], mParams.mWavelengths[i * 3 + 1],
           mParams.mWavelengths[i * 3 + 2]};
 
-      auto coeff = [this](double lambda, int component) {
+      auto coeff = [this](float lambda, int component) {
         // Note that we don't include MAX_LUMINOUS_EFFICACY here, to avoid artefacts due to too
         // large values when using half precision on GPU. We add this term back in
         // kAtmosphereShader, via SKY_SPECTRAL_RADIANCE_TO_LUMINANCE (see also the comments in the
         // Model constructor).
-        double x = CieColorMatchingFunctionTableValue(lambda, 1);
-        double y = CieColorMatchingFunctionTableValue(lambda, 2);
-        double z = CieColorMatchingFunctionTableValue(lambda, 3);
+        float x = CieColorMatchingFunctionTableValue(lambda, 1);
+        float y = CieColorMatchingFunctionTableValue(lambda, 2);
+        float z = CieColorMatchingFunctionTableValue(lambda, 3);
         return static_cast<float>(
             (XYZ_TO_SRGB[component * 3] * x + XYZ_TO_SRGB[component * 3 + 1] * y +
                 XYZ_TO_SRGB[component * 3 + 2] * z) *
@@ -1018,7 +1018,7 @@ the molecules phase function.
 void Implementation::precompute(GLuint fbo, GLuint deltaIrradianceTexture,
     GLuint deltaMoleculesScatteringTexture, GLuint deltaAerosolsScatteringTexture,
     GLuint deltaScatteringDensityTexture, GLuint deltaMultipleScatteringTexture,
-    glm::dvec3 const& lambdas, glm::mat3 const& luminanceFromRadiance, bool blend,
+    glm::vec3 const& lambdas, glm::mat3 const& luminanceFromRadiance, bool blend,
     unsigned int numScatteringOrders) {
 
   // The precomputations require specific GLSL programs, for each precomputation step. We create and
@@ -1178,7 +1178,7 @@ void Implementation::precompute(GLuint fbo, GLuint deltaIrradianceTexture,
 
 void Implementation::updatePhaseFunctionTexture(
     std::vector<Params::ScatteringComponent> const& scatteringComponents,
-    glm::dvec3 const&                               lambdas) {
+    glm::vec3 const&                               lambdas) {
 
   if (mPhaseTexture != 0) {
     glDeleteTextures(1, &mPhaseTexture);
@@ -1191,15 +1191,15 @@ void Implementation::updatePhaseFunctionTexture(
 
   for (size_t i(0); i < scatteringComponents.size(); ++i) {
     for (auto const& spectrum : scatteringComponents[i].mPhase) {
-      data.push_back(Interpolate(mParams.mWavelengths, spectrum, lambdas[0]));
-      data.push_back(Interpolate(mParams.mWavelengths, spectrum, lambdas[1]));
-      data.push_back(Interpolate(mParams.mWavelengths, spectrum, lambdas[2]));
+      data.push_back(static_cast<float>(Interpolate(mParams.mWavelengths, spectrum, lambdas[0])));
+      data.push_back(static_cast<float>(Interpolate(mParams.mWavelengths, spectrum, lambdas[1])));
+      data.push_back(static_cast<float>(Interpolate(mParams.mWavelengths, spectrum, lambdas[2])));
       data.push_back(0.f);
     }
   }
 
   mPhaseTexture = NewTexture2d(
-      numAngles, scatteringComponents.size(), GL_RGBA32F, GL_RGBA, GL_FLOAT, data.data());
+      static_cast<int>(numAngles), static_cast<int>(scatteringComponents.size()), GL_RGBA32F, GL_RGBA, GL_FLOAT, data.data());
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

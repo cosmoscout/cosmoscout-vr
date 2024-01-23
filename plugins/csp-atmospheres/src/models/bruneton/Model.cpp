@@ -107,7 +107,7 @@ bool Model::init(
 
   internal::Params params;
 
-  std::vector<double> wavelengths;
+  std::vector<float> wavelengths;
   uint32_t            densityCount = 0;
 
   params.mMolecules.mDensity =
@@ -135,8 +135,8 @@ bool Model::init(
         internal::CSVLoader::readExtinction(settings.mOzone->mBetaAbs, params.mWavelengths);
 
   } else {
-    params.mOzone.mDensity    = std::vector<double>(densityCount, 0.0);
-    params.mOzone.mAbsorption = std::vector<double>(params.mWavelengths.size(), 0.0);
+    params.mOzone.mDensity    = std::vector<float>(densityCount, 0.0);
+    params.mOzone.mAbsorption = std::vector<float>(params.mWavelengths.size(), 0.0);
   }
 
   // Check for valid wavelengths.
@@ -152,10 +152,10 @@ bool Model::init(
   }
 
   params.mSunAngularRadius              = settings.mSunAngularRadius;
-  params.mBottomRadius                  = planetRadius;
-  params.mTopRadius                     = atmosphereRadius;
+  params.mBottomRadius                  = static_cast<float>(planetRadius);
+  params.mTopRadius                     = static_cast<float>(atmosphereRadius);
   params.mGroundAlbedo                  = settings.mGroundAlbedo.get();
-  params.mMaxSunZenithAngle             = 120.0 / 180.0 * glm::pi<double>();
+  params.mMaxSunZenithAngle             = 120.F / 180.F * glm::pi<float>();
   params.mSampleCountOpticalDepth       = settings.mSampleCountOpticalDepth.get();
   params.mSampleCountSingleScattering   = settings.mSampleCountSingleScattering.get();
   params.mSampleCountMultiScattering    = settings.mSampleCountMultiScattering.get();

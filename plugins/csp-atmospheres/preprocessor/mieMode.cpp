@@ -18,6 +18,7 @@
 #include <fstream>
 #include <map>
 #include <random>
+#include <optional>
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Allow deserialization of std::complex types using nlohmann::json.                              //
@@ -44,15 +45,15 @@ namespace {
 // and variances as input parameters.                                                             //
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-enum class DistributionType { eGamma, eModifiedGamma, eLogNormal, eModifiedLogNormal };
+enum class SizeDistributionType { eGamma, eModifiedGamma, eLogNormal, eModifiedLogNormal };
 
-// Make the DistributionTypes available for JSON deserialization.
+// Make the SizeDistributionTypes available for JSON deserialization.
 NLOHMANN_JSON_SERIALIZE_ENUM(
-    DistributionType, {
-                          {DistributionType::eGamma, "gamma"},
-                          {DistributionType::eModifiedGamma, "modifiedGamma"},
-                          {DistributionType::eLogNormal, "logNormal"},
-                          {DistributionType::eModifiedLogNormal, "modifiedLogNormal"},
+    SizeDistributionType, {
+                          {SizeDistributionType::eGamma, "gamma"},
+                          {SizeDistributionType::eModifiedGamma, "modifiedGamma"},
+                          {SizeDistributionType::eLogNormal, "logNormal"},
+                          {SizeDistributionType::eModifiedLogNormal, "modifiedLogNormal"},
                       })
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -60,10 +61,10 @@ NLOHMANN_JSON_SERIALIZE_ENUM(
 // B will store different things.                                                                 //
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-struct Distribution {
+struct SizeDistribution {
 
   // Type of the distribution, e.g. gamma or log-normal.
-  DistributionType type;
+  SizeDistributionType type;
 
   // Shape for gamma distribution, Mean for log-normal distribution, and Effective Radius for the
   // modified variants.
@@ -78,24 +79,24 @@ struct Distribution {
 };
 
 // Make this type available for JSON deserialization.
-void from_json(nlohmann::json const& j, Distribution& s) {
+void from_json(nlohmann::json const& j, SizeDistribution& s) {
   j.at("type").get_to(s.type);
   j.at("relativeNumberDensity").get_to(s.relativeNumberDensity);
 
   switch (s.type) {
-  case DistributionType::eGamma:
+  case SizeDistributionType::eGamma:
     j.at("shape").get_to(s.paramA);
     j.at("scale").get_to(s.paramB);
     break;
-  case DistributionType::eModifiedGamma:
+  case SizeDistributionType::eModifiedGamma:
     j.at("effectiveRadius").get_to(s.paramA);
     j.at("effectiveVariance").get_to(s.paramB);
     break;
-  case DistributionType::eLogNormal:
+  case SizeDistributionType::eLogNormal:
     j.at("mean").get_to(s.paramA);
     j.at("sigma").get_to(s.paramB);
     break;
-  case DistributionType::eModifiedLogNormal:
+  case SizeDistributionType::eModifiedLogNormal:
     j.at("effectiveRadius").get_to(s.paramA);
     j.at("effectiveVariance").get_to(s.paramB);
     break;
@@ -103,20 +104,20 @@ void from_json(nlohmann::json const& j, Distribution& s) {
 }
 
 // Draws a random set of radii from the given distribution.
-std::vector<double> sampleRadii(Distribution const& distribution, int32_t count) {
+std::vector<double> sampleRadii(SizeDistribution const& distribution, int32_t count) {
 
   std::random_device rd{};
   std::mt19937       gen{rd()};
 
   std::vector<double> radii(count);
 
-  if (distribution.type == DistributionType::eGamma ||
-      distribution.type == DistributionType::eModifiedGamma) {
+  if (distribution.type == SizeDistributionType::eGamma ||
+      distribution.type == SizeDistributionType::eModifiedGamma) {
 
     double shape = distribution.paramA;
     double scale = distribution.paramB;
 
-    if (distribution.type == DistributionType::eModifiedGamma) {
+    if (distribution.type == SizeDistributionType::eModifiedGamma) {
       shape = (1.0 - 2.0 * distribution.paramB) / distribution.paramB;
       scale = distribution.paramA * distribution.paramB;
     }
@@ -127,13 +128,13 @@ std::vector<double> sampleRadii(Distribution const& distribution, int32_t count)
       radii[i] = d(gen);
     }
 
-  } else if (distribution.type == DistributionType::eLogNormal ||
-             distribution.type == DistributionType::eModifiedLogNormal) {
+  } else if (distribution.type == SizeDistributionType::eLogNormal ||
+             distribution.type == SizeDistributionType::eModifiedLogNormal) {
 
     double mean  = distribution.paramA;
     double sigma = distribution.paramB;
 
-    if (distribution.type == DistributionType::eModifiedLogNormal) {
+    if (distribution.type == SizeDistributionType::eModifiedLogNormal) {
       double s2 = std::log(distribution.paramB + 1);
       mean      = std::log(distribution.paramA) - 2.5 * s2;
       sigma     = std::sqrt(s2);
@@ -186,7 +187,7 @@ std::complex<double> getRefractiveIndex(double lambda, IoRSpectrum const& iorSpe
 struct ParticleSettings {
 
   // The particle sizes can follow a mixture of various random distributions.
-  std::vector<Distribution> sizeModes;
+  std::vector<SizeDistribution> sizeModes;
 
   // The potentially complex and wavelength-dependent index of refraction of the particles. If an
   // inclusion is given, the imaginary part of this index of refraction will be ignored.
@@ -266,7 +267,8 @@ MieResult mieDisperse(int32_t thetaSamples, double lambda, std::complex<double> 
   result.cSca  = 0.0;
 
 #pragma omp parallel for
-  for (double r : radii) {
+  for (auto i(0); i<radii.size(); ++i) {
+    double r = radii[i];
     double x = 2.0 * r * glm::pi<double>() / lambda;
 
     double                            qext, qsca, qback, gsca;
@@ -433,7 +435,7 @@ int mieMode(std::vector<std::string> const& arguments) {
   }
   phaseOutput << std::endl;
 
-  int32_t totalSteps  = lambdas.size() * particleSettings.sizeModes.size();
+  int32_t totalSteps  = static_cast<int32_t>(lambdas.size() * particleSettings.sizeModes.size());
   int32_t currentStep = 0;
 
   // Now write a line to the CSV file for each wavelength.

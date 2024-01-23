@@ -28,9 +28,9 @@ void bhmie(double x, std::complex<double> cxref, unsigned long nang,
 
   // Series expansion terminated after NSTOP terms.
   xstop = x + 4.0 * std::pow(x, 0.3333) + 2.0;
-  nstop = xstop;
+  nstop = static_cast<unsigned int>(xstop);
   ymod  = std::abs(cxy);
-  nmx   = std::max(xstop, ymod) + 15;
+  nmx   = static_cast<unsigned int>(std::max(xstop, ymod)) + 15;
 
   // Local Arrays.
   std::vector<std::complex<double>> cxd(nmx + 1);

@@ -33,7 +33,7 @@ class CSVLoader {
   /// ...
   /// 0.0
   ///
-  static std::vector<double> readDensity(std::string const& filename, uint32_t& densityCount);
+  static std::vector<float> readDensity(std::string const& filename, uint32_t& densityCount);
 
   /// This loads a 2D wavelength-dependent phase function sampled a specific angles and wavelengths
   /// from a CSV file. The method basically returns the columns from the CSV file. This means, for
@@ -49,8 +49,8 @@ class CSVLoader {
   /// 5.5e-07, 0.257, 0.257, 0.256, ..., 0.025
   /// 6.8e-07, 0.091, 0.091, 0.091, ..., 0.045
   ///
-  static std::vector<std::vector<double>> readPhase(
-      std::string const& filename, std::vector<double>& wavelengths);
+  static std::vector<std::vector<float>> readPhase(
+      std::string const& filename, std::vector<float>& wavelengths);
 
   /// This loads wavelength-dependent scattering coefficients (beta_sca) or absorption coefficients
   /// (beta_abs) from CSV files. If the wavelengths parameter is initially empty, it will be filled
@@ -65,8 +65,8 @@ class CSVLoader {
   /// 5.5e-07, 2.33e-07
   /// 6.8e-07, 1.00e-07
   ///
-  static std::vector<double> readExtinction(
-      std::string const& filename, std::vector<double>& wavelengths);
+  static std::vector<float> readExtinction(
+      std::string const& filename, std::vector<float>& wavelengths);
 };
 
 } // namespace csp::atmospheres::models::bruneton::internal

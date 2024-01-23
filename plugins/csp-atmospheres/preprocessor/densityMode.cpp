@@ -22,14 +22,14 @@ namespace {
 // The particles can be distributed according to various functions.                               //
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-enum class DistributionType { eExponential, eDoubleExponential, eTent };
+enum class DensityDistributionType { eExponential, eDoubleExponential, eTent };
 
-// Make the DistributionTypes available for JSON deserialization.
+// Make the DensityDistributionTypes available for JSON deserialization.
 NLOHMANN_JSON_SERIALIZE_ENUM(
-    DistributionType, {
-                          {DistributionType::eExponential, "exponential"},
-                          {DistributionType::eDoubleExponential, "doubleExponential"},
-                          {DistributionType::eTent, "tent"},
+    DensityDistributionType, {
+                          {DensityDistributionType::eExponential, "exponential"},
+                          {DensityDistributionType::eDoubleExponential, "doubleExponential"},
+                          {DensityDistributionType::eTent, "tent"},
                       })
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -37,10 +37,10 @@ NLOHMANN_JSON_SERIALIZE_ENUM(
 // and B will store different things.                                                             //
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-struct Distribution {
+struct DensityDistribution {
 
   // Type of the distribution, e.g. exponential or double-exponential.
-  DistributionType type;
+  DensityDistributionType type;
 
   // For the exponential fall-offs, this is the scale height. For the tent type, this is the
   // altitude of maximum density.
@@ -54,18 +54,18 @@ struct Distribution {
 };
 
 // Make this type available for JSON deserialization.
-void from_json(nlohmann::json const& j, Distribution& s) {
+void from_json(nlohmann::json const& j, DensityDistribution& s) {
   j.at("type").get_to(s.type);
   j.at("relativeNumberDensity").get_to(s.relativeNumberDensity);
 
   switch (s.type) {
-  case DistributionType::eExponential:
+  case DensityDistributionType::eExponential:
     j.at("scaleHeight").get_to(s.paramA);
     break;
-  case DistributionType::eDoubleExponential:
+  case DensityDistributionType::eDoubleExponential:
     j.at("scaleHeight").get_to(s.paramA);
     break;
-  case DistributionType::eTent:
+  case DensityDistributionType::eTent:
     j.at("peakAltitude").get_to(s.paramA);
     j.at("width").get_to(s.paramB);
     break;
@@ -73,19 +73,19 @@ void from_json(nlohmann::json const& j, Distribution& s) {
 }
 
 // Sample the density distribution at a given altitude.
-double sampleDensity(Distribution const& distribution, double altitude) {
+double sampleDensity(DensityDistribution const& distribution, double altitude) {
 
-  if (distribution.type == DistributionType::eExponential) {
+  if (distribution.type == DensityDistributionType::eExponential) {
 
     double scaleHeight = distribution.paramA;
     return std::exp(-altitude / scaleHeight);
 
-  } else if (distribution.type == DistributionType::eDoubleExponential) {
+  } else if (distribution.type == DensityDistributionType::eDoubleExponential) {
 
     double scaleHeight = distribution.paramA;
     return std::exp(1.0 - 1.0 / std::exp(-altitude / scaleHeight));
 
-  } else if (distribution.type == DistributionType::eTent) {
+  } else if (distribution.type == DensityDistributionType::eTent) {
 
     double tentHeight      = distribution.paramA;
     double tentWidth       = distribution.paramB;
@@ -103,7 +103,7 @@ double sampleDensity(Distribution const& distribution, double altitude) {
 struct DensitySettings {
 
   // The density distribution can follow a mixture of various distributions.
-  std::vector<Distribution> densityModes;
+  std::vector<DensityDistribution> densityModes;
 };
 
 // Make this type available for JSON deserialization.

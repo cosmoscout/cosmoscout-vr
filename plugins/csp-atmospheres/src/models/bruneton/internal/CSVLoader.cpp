@@ -105,8 +105,8 @@ void readLines(std::string const&                          filename,
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::vector<double> CSVLoader::readDensity(std::string const& filename, uint32_t& densityCount) {
-  std::vector<double> result;
+std::vector<float> CSVLoader::readDensity(std::string const& filename, uint32_t& densityCount) {
+  std::vector<float> result;
 
   // Read the file line-by-line.
   readLines(filename, [&](long lineNumber, std::string line) {
@@ -129,7 +129,7 @@ std::vector<double> CSVLoader::readDensity(std::string const& filename, uint32_t
           "': Number of density values differs from a previously loaded data set!");
     }
   } else {
-    densityCount = result.size();
+    densityCount = static_cast<uint32_t>(result.size());
   }
 
   return result;
@@ -137,10 +137,10 @@ std::vector<double> CSVLoader::readDensity(std::string const& filename, uint32_t
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::vector<std::vector<double>> CSVLoader::readPhase(
-    std::string const& filename, std::vector<double>& wavelengths) {
+std::vector<std::vector<float>> CSVLoader::readPhase(
+    std::string const& filename, std::vector<float>& wavelengths) {
 
-  std::vector<std::vector<double>> phaseFunctions;
+  std::vector<std::vector<float>> phaseFunctions;
 
   // We will check the read wavelengths if some target wavelengths are given.
   bool checkWavelengths = !wavelengths.empty();
@@ -157,7 +157,7 @@ std::vector<std::vector<double>> CSVLoader::readPhase(
     auto elements = lineToArray(ss, ',');
 
     // Convert to nanometers.
-    float lambda = stringToFloat(elements[0]) * 1e9;
+    float lambda = stringToFloat(elements[0]) * 1e9F;
 
     if (checkWavelengths) {
       if (lambda != wavelengths[lineNumber - 1]) {
@@ -169,7 +169,7 @@ std::vector<std::vector<double>> CSVLoader::readPhase(
       wavelengths.push_back(lambda);
     }
 
-    std::vector<double> phase;
+    std::vector<float> phase;
 
     // Remove first lambda column.
     elements.erase(elements.begin());
@@ -186,7 +186,7 @@ std::vector<std::vector<double>> CSVLoader::readPhase(
   size_t angleCount  = phaseFunctions.front().size();
   size_t lambdaCount = wavelengths.size();
 
-  std::vector<std::vector<double>> spectra(angleCount);
+  std::vector<std::vector<float>> spectra(angleCount);
   for (size_t i(0); i < angleCount; ++i) {
     spectra[i].resize(lambdaCount);
   }
@@ -202,9 +202,9 @@ std::vector<std::vector<double>> CSVLoader::readPhase(
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::vector<double> CSVLoader::readExtinction(
-    std::string const& filename, std::vector<double>& wavelengths) {
-  std::vector<double> result;
+std::vector<float> CSVLoader::readExtinction(
+    std::string const& filename, std::vector<float>& wavelengths) {
+  std::vector<float> result;
 
   // We will check the read wavelengths if some target wavelengths are given.
   bool checkWavelengths = !wavelengths.empty();
@@ -221,7 +221,7 @@ std::vector<double> CSVLoader::readExtinction(
     auto elements = lineToArray(ss, ',');
 
     // Convert to nanometers.
-    float lambda = stringToFloat(elements[0]) * 1e9;
+    float lambda = stringToFloat(elements[0]) * 1e9F;
 
     if (checkWavelengths) {
       if (lambda != wavelengths[lineNumber - 1]) {

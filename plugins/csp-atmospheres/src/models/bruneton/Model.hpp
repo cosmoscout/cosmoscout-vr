@@ -54,10 +54,10 @@ class Model : public ModelBase {
 
     /// The angular radius of the Sun needs to be specified. As SPICE is not fully available when
     /// the plugin is loaded, we cannot compute it. Also, this actually varies in reality.
-    double mSunAngularRadius = 0.004675;
+    float mSunAngularRadius = 0.004675F;
 
     /// The average reflectance of the ground used during multiple scattering.
-    cs::utils::DefaultProperty<double> mGroundAlbedo{0.1};
+    cs::utils::DefaultProperty<float> mGroundAlbedo{0.1F};
 
     /// The number of multiple scattering events to precompute. Use zero for single-scattering only.
     cs::utils::DefaultProperty<int32_t> mMultiScatteringOrder{4};
