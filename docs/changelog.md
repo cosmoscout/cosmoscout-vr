@@ -9,6 +9,22 @@ SPDX-License-Identifier: CC-BY-4.0
 
 # Changelog of CosmoScout VR
 
+## v1.9.0 [unreleased]
+
+**Release Date:** TBD
+
+#### New Features
+
+* The `Bruneton` atmospheric model of `csp-atmospheres` has been generalized by loading phase functions, extinction coefficients, and particle density distributions from CSV files.
+This allows us to simulate arbitrary particle types.
+In particular, we can now use Mie Theory to pre-compute the scattering behaviour of a wide variety of particle types, including for instance Martian dust.
+This generalized atmospheric model is now used per default for Mars and Earth.
+
+#### Other Changes
+
+* The default minimum auto exposure has been slightly reduced in order to avoid excessive over-exposure when looking at the Sun in HDR mode.
+
+
 ## [v1.8.0](https://github.com/cosmoscout/cosmoscout-vr/releases)
 
 **Release Date:** 2023-12-20
