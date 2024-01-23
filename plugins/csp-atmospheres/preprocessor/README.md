@@ -13,12 +13,12 @@ This tool can be used to precompute the atmospheric data required for the advanc
 It generates tabulated phase functions, scattering coefficients, absorption coefficients, and density distributions.
 The resulting data is stored in CSV files and loaded by CosmoScout VR at runtime.
 
-> [!INFO]
+> [!NOTE]
 > This tool uses the widely used `bhmie` scattering code originally published in the appendix of Bohren, Craig F., and Donald R. Huffman: _Absorption and scattering of light by small particles_. John Wiley & Sons, 2008. The original code can be found [here](http://scatterlib.wikidot.com/mie).
 
 ## Usage
 
-> [!IMPORTANT]
+> [!TIP]
 > Per default, the atmosphere preprocessor is not built. To build it, you need to pass `-DCS_ATMOSPHERE_PREPROCESSOR=On` in the make script.
 
 Once compiled, you'll need to set the library search path to contain the `install/<os>-<build_type>/lib` directory.
@@ -44,7 +44,7 @@ To learn about the different operation modes, you can issue this command:
 ./atmosphere-preprocessor --help
 ```
 
-> [!NOTE]
+> [!TIP]
 > Unless stated otherwise, length units must always be given in [m]. For instance, this is true for altitudes, wavelengths, and for particle radii.
 
 Mode | Description
