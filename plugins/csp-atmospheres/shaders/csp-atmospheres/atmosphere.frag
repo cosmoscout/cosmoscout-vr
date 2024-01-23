@@ -29,17 +29,16 @@ uniform sampler2D uColorBuffer;
 uniform sampler2D uDepthBuffer;
 #endif
 
-uniform vec3  uSunDir;
-uniform float uSunIlluminance;
-uniform float uSunLuminance;
-uniform float uTime;
-uniform mat4 uMatM;
-uniform mat4 uMatScale;
-uniform mat4  uMatInvP;
-uniform float uWaterLevel;
+uniform vec3      uSunDir;
+uniform float     uSunIlluminance;
+uniform float     uSunLuminance;
+uniform float     uTime;
+uniform mat4      uMatM;
+uniform mat4      uMatScale;
+uniform mat4      uMatInvP;
+uniform float     uWaterLevel;
 uniform sampler2D uCloudTexture;
 uniform float     uCloudAltitude;
-
 uniform float     uSunElevation;
 
 // outputs
