@@ -267,7 +267,7 @@ MieResult mieDisperse(int32_t thetaSamples, double lambda, std::complex<double> 
   result.cSca  = 0.0;
 
 #pragma omp parallel for
-  for (auto i(0); i < radii.size(); ++i) {
+  for (size_t i = 0; i < radii.size(); ++i) {
     double r = radii[i];
     double x = 2.0 * r * glm::pi<double>() / lambda;
 
