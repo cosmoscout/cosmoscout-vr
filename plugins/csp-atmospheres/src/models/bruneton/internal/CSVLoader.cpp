@@ -55,7 +55,7 @@ std::string replaceTabsWithWhitespaces(std::string& s) {
 float stringToFloat(std::string const& s) {
   try {
     return std::stof(s);
-  } catch (std::exception const& e) {
+  } catch (std::exception const&) {
     std::cout << "Failed to convert string '" << s << "' to float! Using 0 instead." << std::endl;
   }
 
