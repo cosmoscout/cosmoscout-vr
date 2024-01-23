@@ -1,0 +1,15 @@
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+
+Files: plugins/csp-atmospheres/data/csp-atmospheres/*
+Copyright: German Aerospace Center (DLR) <cosmoscout@dlr.de>
+License: CC0-1.0
+
+Files: plugins/csp-atmospheres/preprocessor/density-settings/*
+Copyright: German Aerospace Center (DLR) <cosmoscout@dlr.de>
+License: CC0-1.0
+
+Files: plugins/csp-atmospheres/preprocessor/mie-settings/*
+Copyright: German Aerospace Center (DLR) <cosmoscout@dlr.de>
+License: CC0-1.0
+
+
