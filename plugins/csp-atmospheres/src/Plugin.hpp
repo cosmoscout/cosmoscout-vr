@@ -51,6 +51,10 @@ class Plugin : public cs::core::PluginBase {
       cs::utils::DefaultProperty<bool>   mEnableClouds{true};
       std::optional<std::string>         mCloudTexture;          ///< Path to the cloud texture.
       cs::utils::DefaultProperty<float>  mCloudAltitude{3000.F}; ///< In meters.
+
+      /// If this is set to true, the plugin will save a fish-eye view of the sky to a file one
+      /// the preprocessing is done.
+      cs::utils::DefaultProperty<bool> mRenderSkydome{false};
     };
 
     std::unordered_map<std::string, Atmosphere> mAtmospheres;

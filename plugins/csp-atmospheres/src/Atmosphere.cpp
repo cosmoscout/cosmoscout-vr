@@ -154,7 +154,9 @@ void Atmosphere::configure(Plugin::Settings::Atmosphere const& settings) {
 
     mSettings = settings;
 
-    renderSkyDome(mObjectName);
+    if (mSettings.mRenderSkydome.get()) {
+      renderSkyDome(mObjectName);
+    }
   }
 }
 

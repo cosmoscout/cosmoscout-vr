@@ -69,6 +69,7 @@ void from_json(nlohmann::json const& j, Plugin::Settings::Atmosphere& o) {
   cs::core::Settings::deserialize(j, "enableClouds", o.mEnableClouds);
   cs::core::Settings::deserialize(j, "cloudTexture", o.mCloudTexture);
   cs::core::Settings::deserialize(j, "cloudAltitude", o.mCloudAltitude);
+  cs::core::Settings::deserialize(j, "renderSkydome", o.mRenderSkydome);
 }
 
 void to_json(nlohmann::json& j, Plugin::Settings::Atmosphere const& o) {
@@ -82,6 +83,7 @@ void to_json(nlohmann::json& j, Plugin::Settings::Atmosphere const& o) {
   cs::core::Settings::serialize(j, "enableClouds", o.mEnableClouds);
   cs::core::Settings::serialize(j, "cloudTexture", o.mCloudTexture);
   cs::core::Settings::serialize(j, "cloudAltitude", o.mCloudAltitude);
+  cs::core::Settings::serialize(j, "renderSkydome", o.mRenderSkydome);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
