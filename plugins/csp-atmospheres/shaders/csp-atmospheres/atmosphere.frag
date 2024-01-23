@@ -452,10 +452,16 @@ float getCloudShadow(vec3 rayOrigin, vec3 rayDir) {
 
 #if SKYDOME_MODE
 
+// In this special mode, the atmosphere shader will draw a fish-eye view of the entire sky. This is
+// meant for testing and debugging purposes.
 void main() {
-  float cAltitude     = 1.0;
   float cSunElevation = uSunElevation / 180.0 * PI;
-  bool  cHorizon      = false;
+
+  // The altitude of the viewer above the ground.
+  float cAltitude = 1.0;
+
+  // If this is set to true, the horizon will be placed in the center of the fish-eye view.
+  bool cHorizon = false;
 
   oColor = vec3(0.0);
 
