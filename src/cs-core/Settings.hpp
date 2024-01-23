@@ -419,7 +419,7 @@ class CS_CORE_EXPORT Settings {
 
     /// The range from which to choose values for the auto exposure. Measured in exposure values
     /// (EV).
-    utils::DefaultProperty<glm::vec2> pAutoExposureRange{glm::vec2(-12.F, 9.F)};
+    utils::DefaultProperty<glm::vec2> pAutoExposureRange{glm::vec2(-13.F, 9.F)};
 
     /// An additional exposure control which is applied after auto exposure. Has no effect if HDR
     /// rendering is disabled. Measured in exposure values (EV).
