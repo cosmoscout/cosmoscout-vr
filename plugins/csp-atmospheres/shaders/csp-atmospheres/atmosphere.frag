@@ -744,6 +744,12 @@ void main() {
 #if !ENABLE_HDR
   oColor = linearToSRGB(oColor);
 #endif
+
+  // This shouldn't happen. But if an atmospheric model produces a single NaN, the post processing
+  // glare will make the entire screen black, so let's be rather safe then sorry :)
+  if (any(isnan(oColor))) {
+    oColor = vec3(0.0);
+  }
 }
 
 #endif
