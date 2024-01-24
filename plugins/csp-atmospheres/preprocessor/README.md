@@ -109,7 +109,7 @@ density
 0.0
 ```
 
-## Pre-processing Examples
+## Preprocessing Examples
 
 > [!IMPORTANT]
 > It is required that for one atmosphere, all components provide tabulated values for the same number of wavelengths, phase-function angles, and altitudes. Else CosmoScout VR will report an error.
@@ -122,7 +122,7 @@ Phase functions will use 181 samples per default and the `density` mode will sam
 Below are the input values which we currently use for Earth's atmosphere in CosmoScout VR.
 
 <details>
-<summary>Pre-processor Commands</summary>
+<summary>Preprocessor Commands</summary>
 
 ```bash
 # Molecules
@@ -190,7 +190,7 @@ The scattering coefficient of 2.1e-3 given in the paper seems very large.
 If we divide it by 100, we get plausible results.
 
 <details>
-<summary>Pre-processor Commands</summary>
+<summary>Preprocessor Commands</summary>
 
 ```bash
 # Molecules
@@ -208,13 +208,13 @@ If we divide it by 100, we get plausible results.
 
 ### [Earth] E. Bruneton: [A Qualitative and Quantitative Evaluation of 8 Clear Sky Models](https://arxiv.org/abs/1612.04336)
 
-In his 2016 paper, Eric Bruneton uses spectral pre-processing.
+In his 2016 paper, Eric Bruneton uses spectral preprocessing.
 For **molecules**, he uses the standard Rayleigh phase function and extinction values from Penndorf.
 **Aerosols** are modelled with a wavelength-independent Cornette-Shanks phase function and extinction coefficients based on Ångström's turbidity formula.
 In this paper, Eric Bruneton also included **Ozone**.
 
 <details>
-<summary>Pre-processor Commands</summary>
+<summary>Preprocessor Commands</summary>
 
 ```bash
 # Molecules
@@ -244,7 +244,7 @@ We assume that this is a typo.
 They actually use a different **ozone** density profile than Bruneton, but the results should be similar.
 
 <details>
-<summary>Pre-processor Commands</summary>
+<summary>Preprocessor Commands</summary>
 
 ```bash
 # Molecules
@@ -269,7 +269,7 @@ In this paper, **molecules** are modelled using a manual parametrization of Rayl
 **Aerosols** use a wavelength-independent Cornette-Shanks phase function and some arbitrary density values.
 
 <details>
-<summary>Pre-processor Commands</summary>
+<summary>Preprocessor Commands</summary>
 
 ```bash
 # Molecules
@@ -311,7 +311,7 @@ We only achieved plausible values with very low turbidity values, such as 1.01.
 The values below generate a plausible atmosphere, however most of the values are not from the original paper.
 
 <details>
-<summary>Pre-processor Commands</summary>
+<summary>Preprocessor Commands</summary>
 
 ```bash
 # Molecules

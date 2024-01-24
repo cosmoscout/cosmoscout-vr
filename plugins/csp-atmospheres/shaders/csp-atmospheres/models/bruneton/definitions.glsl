@@ -22,7 +22,7 @@ uniform sampler2D uPhaseTexture;
 // The v coordinate maps to the various components. The density function of the first component is
 // stored in the top row of pixels, the second in the next and so on. So usually the molecules are
 // in the first row, aerosols in the second row, and ozone is in the last row.
-// The density_texture is only sampled during pre-processing. It is not used at runtime in the final
+// The density_texture is only sampled during preprocessing. It is not used at runtime in the final
 // fragment shader.
 uniform sampler2D uDensityTexture;
 

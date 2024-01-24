@@ -12,7 +12,7 @@
 #include <vector>
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-// This method is used to pre-compute the scattering behavior of a particle mixture using Mie     //
+// This method is used to precompute the scattering behavior of a particle mixture using Mie      //
 // Theory. See README.md for usage details.                                                       //
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 

@@ -181,7 +181,7 @@ constexpr float XYZ_TO_SRGB[9] = {
 // Shader Definitions ------------------------------------------------------------------------------
 
 // Below, the source code for several shaders is defined. Most of them are used during the
-// pre-processing. Only the last one is is linked into the final fragment shader used at run-time.
+// preprocessing. Only the last one is is linked into the final fragment shader used at run-time.
 
 // An explanation of the following shaders is available online:
 // https://ebruneton.github.io/precomputed_atmospheric_scattering/atmosphere/model.cc.html#shaders
@@ -821,7 +821,7 @@ Implementation::~Implementation() {
 // Functionality-wise, this is almost identical to the original implementation. There are some minor
 // changes, for instance do we need to bind the density distribution texture for computing the
 // transmittance. Also, we need to update the phase function texture after the last iteration of the
-// pre-computation.
+// precomputation.
 
 void Implementation::init(unsigned int numScatteringOrders) {
   // The precomputations require temporary textures, in particular to store the contribution of one
@@ -966,7 +966,7 @@ void Implementation::setProgramUniforms(GLuint program, GLuint phaseTextureUnit,
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /*
-The actual pre-computation is also almost identical to the original implementation. The main
+The actual precomputation is also almost identical to the original implementation. The main
 differences are that we now updated the phase-function texture before each iteration and have to
 bind it together with the density-distribution texture in some of the steps.
 
@@ -974,8 +974,8 @@ You can have a look at the original implementation along with some explanations 
 of this page:
 https://ebruneton.github.io/precomputed_atmospheric_scattering/atmosphere/model.cc.html#implementation
 
-To help understanding the process, here is an outline of the data flow of the pre-computation. The
-pre-computation is executed for batches of three wavelengths at a time.
+To help understanding the process, here is an outline of the data flow of the precomputation. The
+precomputation is executed for batches of three wavelengths at a time.
 
 1. Compute the transmittance (a vec3) of the atmosphere for every point in every direction and store
    it in mTransmittanceTexture. This incorporates extinction based on molecules, aerosols, and
@@ -1171,7 +1171,7 @@ void Implementation::precompute(GLuint fbo, GLuint deltaIrradianceTexture,
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // This final method is used to update the phase function texture according to the currently
-// pre-computed wavelengths. It extracts the corresponding intensity values and stores them in a 2D
+// precomputed wavelengths. It extracts the corresponding intensity values and stores them in a 2D
 // texture. Each row of pixels corresponds to one scattering component. Forward-scattering is on the
 // left, back-scattering is on the right.
 

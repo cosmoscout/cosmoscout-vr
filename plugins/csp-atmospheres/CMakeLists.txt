@@ -11,7 +11,7 @@ if (NOT CSP_ATMOSPHERES)
   return()
 endif()
 
-# build the pre-processor --------------------------------------------------------------------------
+# build the preprocessor ---------------------------------------------------------------------------
 
 add_subdirectory(preprocessor)
 

@@ -62,22 +62,22 @@ class Model : public ModelBase {
     /// The number of multiple scattering events to precompute. Use zero for single-scattering only.
     cs::utils::DefaultProperty<int32_t> mMultiScatteringOrder{4};
 
-    /// The number of samples to evaluate when pre-computing the optical depth.
+    /// The number of samples to evaluate when precomputing the optical depth.
     cs::utils::DefaultProperty<int32_t> mSampleCountOpticalDepth{500};
 
-    /// The number of samples to evaluate when pre-computing the single scattering. Larger values
+    /// The number of samples to evaluate when precomputing the single scattering. Larger values
     /// improve the sampling of thin atmospheric layers.
     cs::utils::DefaultProperty<int32_t> mSampleCountSingleScattering{50};
 
-    /// The number of samples to evaluate when pre-computing the multiple scattering. Larger values
+    /// The number of samples to evaluate when precomputing the multiple scattering. Larger values
     /// tend to darken the horizon for thick atmospheres.
     cs::utils::DefaultProperty<int32_t> mSampleCountMultiScattering{50};
 
-    /// The number of samples to evaluate when pre-computing the scattering density. Larger values
+    /// The number of samples to evaluate when precomputing the scattering density. Larger values
     /// spread out colors in the sky.
     cs::utils::DefaultProperty<int32_t> mSampleCountScatteringDensity{16};
 
-    /// The number of samples to evaluate when pre-computing the indirect irradiance.
+    /// The number of samples to evaluate when precomputing the indirect irradiance.
     cs::utils::DefaultProperty<int32_t> mSampleCountIndirectIrradiance{32};
 
     /// The resolution of the transmittance texture. Larger values can improve the sampling of thin

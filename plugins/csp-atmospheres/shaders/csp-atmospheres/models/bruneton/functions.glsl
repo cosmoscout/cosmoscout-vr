@@ -92,9 +92,9 @@ vec3 computeTransmittanceToTopAtmosphereBoundary(
                                                  atmosphere.ozone.densityTextureV, r, mu)));
 }
 
-// Transmittance Texture Pre-Computation -----------------------------------------------------------
+// Transmittance Texture Precomputation ------------------------------------------------------------
 
-// The code below is used to store the pre-computed transmittance values in a 2D lookup table.
+// The code below is used to store the precomputed transmittance values in a 2D lookup table.
 
 // An explanation of the following methods is available online:
 // https://ebruneton.github.io/precomputed_atmospheric_scattering/atmosphere/functions.glsl.html#transmittance_precomputation
@@ -254,7 +254,7 @@ vec3 phaseFunction(ScatteringComponent component, float nu) {
   return texture2D(uPhaseTexture, vec2(theta, component.phaseTextureV)).rgb;
 }
 
-// Single-Scattering Texture Pre-Computation -------------------------------------------------------
+// Single-Scattering Texture Precomputation --------------------------------------------------------
 
 // The code below is used to store the single scattering (without the phase function applied) in a
 // 4D lookup table.
@@ -530,7 +530,7 @@ vec3 computeMultipleScattering(sampler2D transmittanceTexture, sampler3D scatter
   return moleculesAerosolsSum;
 }
 
-// Multiple-Scattering Texture Pre-Computation -----------------------------------------------------
+// Multiple-Scattering Texture Precomputation ------------------------------------------------------
 
 // The code below is used to store the multiple scattering (with the phase function applied) in a
 // 4D lookup table.
@@ -614,7 +614,7 @@ vec3 computeIndirectIrradiance(AtmosphereComponents atmosphere,
   return result;
 }
 
-// Irradiance-Texture Pre-Computation --------------------------------------------------------------
+// Irradiance-Texture Precomputation ---------------------------------------------------------------
 
 // The code below is used to store the direct and indirect irradiance received at any altitude in 2D
 // lookup tables.
@@ -701,7 +701,7 @@ void getCombinedScattering(sampler3D multipleScatteringTexture,
 
 // Commpute Sky Radiance ---------------------------------------------------------------------------
 
-// The code below is used to retrieve the color of the sky from the pre-computed textures.
+// The code below is used to retrieve the color of the sky from the precomputed textures.
 
 // An explanation of the following methods is available online:
 // https://ebruneton.github.io/precomputed_atmospheric_scattering/atmosphere/functions.glsl.html#rendering_sky

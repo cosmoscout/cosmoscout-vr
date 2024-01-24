@@ -12,7 +12,7 @@
 #include <vector>
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-// This method is used to pre-compute the relative number density of atmospheric particles as a   //
+// This method is used to precompute the relative number density of atmospheric particles as a    //
 // function of altitude. See README.md for usage details.                                         //
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 

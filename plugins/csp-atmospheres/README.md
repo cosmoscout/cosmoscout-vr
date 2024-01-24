@@ -141,14 +141,14 @@ Property | Default Value | Description
 ## The `Bruneton` model
 
 The Bruneton model is significantly more advanced.
-It pre-computes multiple scattering and is based on [this open-source implementation](https://github.com/ebruneton/precomputed_atmospheric_scattering) (see also the corresponding [Paper](https://inria.hal.science/inria-00288758/en)).
+It precomputes multiple scattering and is based on [this open-source implementation](https://github.com/ebruneton/precomputed_atmospheric_scattering) (see also the corresponding [Paper](https://inria.hal.science/inria-00288758/en)).
 
 Similar to the `CosmoScoutVR` model, the original implementation by Eric Bruneton uses Rayleigh scattering for molecules and the Cornette-Shanks phase function for aerosols.
 We generalized this implementation by loading phase functions, extinction coefficients, and particle density distributions from CSV files.
 This allows us to simulate arbitrary particle types.
-In particular, we can now use Mie Theory to pre-compute the scattering behaviour of a wide variety of particle types, including for instance Martian dust.
+In particular, we can now use Mie Theory to precompute the scattering behaviour of a wide variety of particle types, including for instance Martian dust.
 
-To perform this pre-processing, the `csp-atmospheres` plugin comes with a small command-line utility: [`atmosphere-preprocessor`](preprocessor/README.md).
+To perform this preprocessing, the `csp-atmospheres` plugin comes with a small command-line utility: [`atmosphere-preprocessor`](preprocessor/README.md).
 You can use this to generate the CSV files used in the examples below.
 Also, the [README.md](preprocessor/README.md) of the command-line utility provides more information on the resulting CSV file format.
 
@@ -264,11 +264,11 @@ Property | Default Value | Description
 `sunAngularRadius` | `0.004675` | The angular radius of the Sun needs to be specified. As SPICE is not fully available when the plugin is loaded, we cannot compute it.
 `groundAlbedo` | `0.1` | The average reflectance of the ground used during multiple scattering.
 `multiScatteringOrder` | `4` | The number of multiple scattering events to precompute. Use zero for single-scattering only.
-`sampleCountOpticalDepth` | `500` | The number of samples to evaluate when pre-computing the optical depth.
-`sampleCountSingleScattering` | `50` | The number of samples to evaluate when pre-computing the single scattering. Larger values improve the sampling of thin atmospheric layers.
-`sampleCountMultiScattering` | `50` | The number of samples to evaluate when pre-computing the multiple scattering. Larger values tend to darken the horizon for thick atmospheres.
-`sampleCountScatteringDensity` | `16` | The number of samples to evaluate when pre-computing the scattering density. Larger values spread out colors in the sky.
-`sampleCountIndirectIrradiance` | `32` | The number of samples to evaluate when pre-computing the indirect irradiance.
+`sampleCountOpticalDepth` | `500` | The number of samples to evaluate when precomputing the optical depth.
+`sampleCountSingleScattering` | `50` | The number of samples to evaluate when precomputing the single scattering. Larger values improve the sampling of thin atmospheric layers.
+`sampleCountMultiScattering` | `50` | The number of samples to evaluate when precomputing the multiple scattering. Larger values tend to darken the horizon for thick atmospheres.
+`sampleCountScatteringDensity` | `16` | The number of samples to evaluate when precomputing the scattering density. Larger values spread out colors in the sky.
+`sampleCountIndirectIrradiance` | `32` | The number of samples to evaluate when precomputing the indirect irradiance.
 `transmittanceTextureWidth` | `256` | The horizontal resolution of the transmittance texture. Larger values can improve the sampling of thin atmospheric layers close to the horizon.
 `transmittanceTextureHeight` | `64` | The vertical resolution of the transmittance texture. Larger values can improve the sampling of thin atmospheric layers close to the horizon.
 `scatteringTextureRSize` | `32` | Larger values improve sampling of thick low-altitude layers.
