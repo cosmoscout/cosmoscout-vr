@@ -9,6 +9,14 @@ SPDX-License-Identifier: CC-BY-4.0
 
 # Changelog of CosmoScout VR
 
+## v1.9.0 [unreleased]
+
+**Release Date:** TBD
+
+#### Bug Fixes
+
+* Fixed initial level-of-detail value used by planets of `csp-lod-bodies` if `autoLod` was disabled in the settings.
+
 ## [v1.8.0](https://github.com/cosmoscout/cosmoscout-vr/releases)
 
 **Release Date:** 2023-12-20
