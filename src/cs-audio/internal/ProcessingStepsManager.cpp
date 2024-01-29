@@ -11,7 +11,7 @@
 #include <set>
 
 // processingSteps:
-#include "../processingSteps/Default_PS.hpp"
+#include "../processingSteps/SoundAttributes_PS.hpp"
 #include "../processingSteps/DirectPlay_PS.hpp"
 #include "../processingSteps/DistanceCulling_PS.hpp"
 #include "../processingSteps/DistanceModel_PS.hpp"
@@ -39,7 +39,6 @@ void ProcessingStepsManager::createPipeline(
     std::vector<std::string> processingSteps, int audioControllerId) {
 
   std::set<std::shared_ptr<ProcessingStep>> pipeline;
-  pipeline.insert(Default_PS::create());
 
   for (std::string processingStep : processingSteps) {
     auto ps = getProcessingStep(processingStep);
@@ -61,6 +60,10 @@ void ProcessingStepsManager::createPipeline(
 
 std::shared_ptr<ProcessingStep> ProcessingStepsManager::getProcessingStep(
     std::string processingStep) {
+
+  if (processingStep == "SoundAttributes") {
+    return SoundAttributes_PS::create();
+  } 
 
   if (processingStep == "PointSpatialization") {
     return PointSpatialization_PS::create(mSettings->mAudio.pStationaryOutputDevice.get());

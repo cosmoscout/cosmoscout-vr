@@ -5,8 +5,8 @@
 // SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
 // SPDX-License-Identifier: MIT
 
-#ifndef CS_AUDIO_PS_DEFAULT_HPP
-#define CS_AUDIO_PS_DEFAULT_HPP
+#ifndef CS_AUDIO_PS_SOUND_ATTRIBUTES_HPP
+#define CS_AUDIO_PS_SOUND_ATTRIBUTES_HPP
 
 #include "../internal/SourceBase.hpp"
 #include "ProcessingStep.hpp"
@@ -28,9 +28,9 @@ looping   bool               Whether the source shall loop the playback or stop 
                              playing the buffer once.
 --------------------------------------------
 */
-class CS_AUDIO_EXPORT Default_PS : public ProcessingStep {
+class CS_AUDIO_EXPORT SoundAttributes_PS : public ProcessingStep {
  public:
-  /// @brief Creates new access to the single Default_PS object
+  /// @brief Creates new access to the single SoundAttributes_PS object
   /// @return Pointer to the PS
   static std::shared_ptr<ProcessingStep> create();
 
@@ -49,7 +49,7 @@ class CS_AUDIO_EXPORT Default_PS : public ProcessingStep {
   void update() override;
 
  private:
-  Default_PS();
+  SoundAttributes_PS();
   bool processGain(ALuint openAlId, std::any value);
   bool processLooping(std::shared_ptr<SourceBase> source, std::any value);
   bool processPitch(ALuint openAlId, std::any value);
@@ -57,4 +57,4 @@ class CS_AUDIO_EXPORT Default_PS : public ProcessingStep {
 
 } // namespace cs::audio
 
-#endif // CS_AUDIO_PS_DEFAULT_HPP
+#endif // CS_AUDIO_PS_SOUND_ATTRIBUTES_HPP

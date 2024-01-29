@@ -5,7 +5,7 @@
 // SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
 // SPDX-License-Identifier: MIT
 
-#include "Default_PS.hpp"
+#include "SoundAttributes_PS.hpp"
 #include "../StreamingSource.hpp"
 #include "../internal/AlErrorHandling.hpp"
 #include "../logger.hpp"
@@ -16,19 +16,19 @@
 
 namespace cs::audio {
 
-std::shared_ptr<ProcessingStep> Default_PS::create() {
-  static auto default_ps = std::shared_ptr<Default_PS>(new Default_PS());
-  return default_ps;
+std::shared_ptr<ProcessingStep> SoundAttributes_PS::create() {
+  static auto attributes_ps = std::shared_ptr<SoundAttributes_PS>(new SoundAttributes_PS());
+  return attributes_ps;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-Default_PS::Default_PS() {
+SoundAttributes_PS::SoundAttributes_PS() {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Default_PS::process(std::shared_ptr<SourceBase> source,
+void SoundAttributes_PS::process(std::shared_ptr<SourceBase> source,
     std::shared_ptr<std::map<std::string, std::any>> settings,
     std::shared_ptr<std::vector<std::string>>        failedSettings) {
 
@@ -55,7 +55,7 @@ void Default_PS::process(std::shared_ptr<SourceBase> source,
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool Default_PS::processGain(ALuint openAlId, std::any value) {
+bool SoundAttributes_PS::processGain(ALuint openAlId, std::any value) {
   if (value.type() != typeid(float)) {
 
     // remove gain
@@ -93,7 +93,7 @@ bool Default_PS::processGain(ALuint openAlId, std::any value) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool Default_PS::processLooping(std::shared_ptr<SourceBase> source, std::any value) {
+bool SoundAttributes_PS::processLooping(std::shared_ptr<SourceBase> source, std::any value) {
   ALuint openAlId = source->getOpenAlId();
   if (value.type() != typeid(bool)) {
 
@@ -132,7 +132,7 @@ bool Default_PS::processLooping(std::shared_ptr<SourceBase> source, std::any val
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool Default_PS::processPitch(ALuint openAlId, std::any value) {
+bool SoundAttributes_PS::processPitch(ALuint openAlId, std::any value) {
   if (value.type() != typeid(float)) {
 
     // remove pitch
@@ -170,13 +170,13 @@ bool Default_PS::processPitch(ALuint openAlId, std::any value) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool Default_PS::requiresUpdate() const {
+bool SoundAttributes_PS::requiresUpdate() const {
   return false;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Default_PS::update() {
+void SoundAttributes_PS::update() {
 }
 
 } // namespace cs::audio
