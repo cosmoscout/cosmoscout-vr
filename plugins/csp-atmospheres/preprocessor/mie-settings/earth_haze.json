@@ -1,0 +1,25 @@
+{
+    "sizeModes": [
+        {
+            "type": "logNormal",
+            "mean": -16.316,
+            "sigma": 0.6,
+            "relativeNumberDensity": 10000
+        },
+        {
+            "type": "logNormal",
+            "mean": -13.616,
+            "sigma": 0.6,
+            "relativeNumberDensity": 1
+        }
+    ],
+    "ior": [
+        [
+            0,
+            [
+                1.4,
+                0.015
+            ]
+        ]
+    ]
+}

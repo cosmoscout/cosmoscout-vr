@@ -3,39 +3,103 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
-// SPDX-License-Identifier: MIT
+// SPDX-FileCopyrightText: 2017 Eric Bruneton
+// SPDX-License-Identifier: BSD-3-Clause
 
 #ifndef CSP_ATMOSPHERES_MODELS_BRUNETON_MODEL_HPP
 #define CSP_ATMOSPHERES_MODELS_BRUNETON_MODEL_HPP
 
 #include "../../../../src/cs-core/Settings.hpp"
 #include "../../ModelBase.hpp"
-#include "internal/Model.hpp"
+#include "internal/Implementation.hpp"
 
 namespace csp::atmospheres::models::bruneton {
 
-/// This atmospheric model uses an implementation of multi-scattering by Eric Bruneton. More
-/// information can be found in the repo
-/// https://github.com/ebruneton/precomputed_atmospheric_scattering as well as in the paper
+/// This atmospheric model is based on an implementation of multiple-scattering by Eric Bruneton.
+/// The main difference to the original implementation is that this variant uses phase functions,
+/// extinction coefficients, and density distributions loaded from CSV files instead of analytic
+/// descriptions.
+/// More information on the original implementation can be found in the repo by Eric Bruneton:
+/// https://github.com/ebruneton/precomputed_atmospheric_scattering as well as in his paper
 /// "Precomputed Atmospheric Scattering" (https://hal.inria.fr/inria-00288758/en).
+/// The default values for the model parameters further down this file are based on the parameters
+/// from Eric Bruneton:
+/// https://github.com/ebruneton/precomputed_atmospheric_scattering/blob/master/atmosphere/constants.h
 class Model : public ModelBase {
  public:
-  /// Some of the model parameters can be configured via the settings. An example parametrization is
-  /// given in README.md, more details can be found in the paper "Precomputed Atmospheric
-  /// Scattering" by Eric Bruneton. The default values below are used if parsing the settings
-  /// failed.
   struct Settings {
-    double mSunAngularRadius          = 0.004675;
-    double mRayleigh                  = 1.24062e-6;
-    double mRayleighScaleHeight       = 8000.0; ///< In meters.
-    double mMieScaleHeight            = 1200.0; ///< In meters.
-    double mMieAngstromAlpha          = 0.0;
-    double mMieAngstromBeta           = 5.328e-3;
-    double mMieSingleScatteringAlbedo = 0.9;
-    double mMiePhaseFunctionG         = 0.8;
 
-    cs::utils::DefaultProperty<double> mGroundAlbedo{0.1};
-    cs::utils::DefaultProperty<bool>   mUseOzone{false};
+    /// This stores file paths to the CSV files containing the respective data. See the README of
+    /// this plugin for a more detailed description.
+    struct ScatteringComponent {
+      std::string mBetaSca;
+      std::string mBetaAbs;
+      std::string mPhase;
+      std::string mDensity;
+    };
+
+    /// This stores file paths to the CSV files containing the respective data. See the README of
+    /// this plugin for a more detailed description.
+    struct AbsorbingComponent {
+      std::string mBetaAbs;
+      std::string mDensity;
+    };
+
+    /// In this model, an atmosphere can consist out of three particle types. Two of them can
+    /// scatter light, one can only absorb light. The former are usually used for small molecules
+    /// and larger aerosols respectively, while the latter is used for ozone.
+    ScatteringComponent               mMolecules;
+    ScatteringComponent               mAerosols;
+    std::optional<AbsorbingComponent> mOzone;
+
+    /// The angular radius of the Sun needs to be specified. As SPICE is not fully available when
+    /// the plugin is loaded, we cannot compute it. Also, this actually varies in reality.
+    float mSunAngularRadius = 0.004675F;
+
+    /// The average reflectance of the ground used during multiple scattering.
+    cs::utils::DefaultProperty<float> mGroundAlbedo{0.1F};
+
+    /// The number of multiple scattering events to precompute. Use zero for single-scattering only.
+    cs::utils::DefaultProperty<int32_t> mMultiScatteringOrder{4};
+
+    /// The number of samples to evaluate when precomputing the optical depth.
+    cs::utils::DefaultProperty<int32_t> mSampleCountOpticalDepth{500};
+
+    /// The number of samples to evaluate when precomputing the single scattering. Larger values
+    /// improve the sampling of thin atmospheric layers.
+    cs::utils::DefaultProperty<int32_t> mSampleCountSingleScattering{50};
+
+    /// The number of samples to evaluate when precomputing the multiple scattering. Larger values
+    /// tend to darken the horizon for thick atmospheres.
+    cs::utils::DefaultProperty<int32_t> mSampleCountMultiScattering{50};
+
+    /// The number of samples to evaluate when precomputing the scattering density. Larger values
+    /// spread out colors in the sky.
+    cs::utils::DefaultProperty<int32_t> mSampleCountScatteringDensity{16};
+
+    /// The number of samples to evaluate when precomputing the indirect irradiance.
+    cs::utils::DefaultProperty<int32_t> mSampleCountIndirectIrradiance{32};
+
+    /// The resolution of the transmittance texture. Larger values can improve the sampling of thin
+    /// atmospheric layers close to the horizon.
+    cs::utils::DefaultProperty<int32_t> mTransmittanceTextureWidth{256};
+    cs::utils::DefaultProperty<int32_t> mTransmittanceTextureHeight{64};
+
+    /// Larger values improve sampling of thick low-altitude layers.
+    cs::utils::DefaultProperty<int32_t> mScatteringTextureRSize{32};
+
+    /// Larger values reduce circular banding artifacts around zenith for thick atmospheres.
+    cs::utils::DefaultProperty<int32_t> mScatteringTextureMuSize{128};
+
+    /// Larger values reduce banding in the day-night transition when seen from space.
+    cs::utils::DefaultProperty<int32_t> mScatteringTextureMuSSize{32};
+
+    /// Larger values reduce circular banding artifacts around sun for thick atmospheres.
+    cs::utils::DefaultProperty<int32_t> mScatteringTextureNuSize{8};
+
+    /// The resolution of the irradiance texture.
+    cs::utils::DefaultProperty<int32_t> mIrradianceTextureWidth{64};
+    cs::utils::DefaultProperty<int32_t> mIrradianceTextureHeight{16};
   };
 
   /// Whenever the model parameters are changed, this method needs to be called. It will return true
@@ -44,15 +108,15 @@ class Model : public ModelBase {
   bool init(
       nlohmann::json const& modelSettings, double planetRadius, double atmosphereRadius) override;
 
-  /// Returns a fragment shader which you can link to your shader program. See the ModelBase class
-  /// for more details. You have to call init() for accessing the shader.
+  /// Returns a fragment shader which you can link into your shader program. See the ModelBase class
+  /// for more details. You have to call init() befor accessing the shader.
   GLuint getShader() const override;
 
-  /// This model sets three texture uniforms. So it will return startTextureUnit + 3.
+  /// This model sets five texture uniforms. So it will return startTextureUnit + 5.
   GLuint setUniforms(GLuint program, GLuint startTextureUnit) const override;
 
  private:
-  std::unique_ptr<internal::Model> mModel;
+  std::unique_ptr<internal::Implementation> mImpl;
 };
 
 } // namespace csp::atmospheres::models::bruneton
