@@ -5,7 +5,7 @@
 // SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
 // SPDX-License-Identifier: MIT
 
-#include "CSVLoader.hpp"
+#include "csv.hpp"
 
 #include <fstream>
 #include <iostream>
@@ -105,7 +105,11 @@ void readLines(std::string const&                          filename,
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::vector<float> CSVLoader::readDensity(std::string const& filename, uint32_t& densityCount) {
+namespace csv {
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+std::vector<float> readDensity(std::string const& filename, uint32_t& densityCount) {
   std::vector<float> result;
 
   // Read the file line-by-line.
@@ -137,7 +141,7 @@ std::vector<float> CSVLoader::readDensity(std::string const& filename, uint32_t&
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::vector<std::vector<float>> CSVLoader::readPhase(
+std::vector<std::vector<float>> readPhase(
     std::string const& filename, std::vector<float>& wavelengths) {
 
   std::vector<std::vector<float>> phaseFunctions;
@@ -202,8 +206,7 @@ std::vector<std::vector<float>> CSVLoader::readPhase(
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::vector<float> CSVLoader::readExtinction(
-    std::string const& filename, std::vector<float>& wavelengths) {
+std::vector<float> readExtinction(std::string const& filename, std::vector<float>& wavelengths) {
   std::vector<float> result;
 
   // We will check the read wavelengths if some target wavelengths are given.
@@ -238,6 +241,10 @@ std::vector<float> CSVLoader::readExtinction(
 
   return result;
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+} // namespace csv
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 

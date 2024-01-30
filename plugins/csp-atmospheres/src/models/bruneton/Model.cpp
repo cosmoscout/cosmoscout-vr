@@ -9,7 +9,7 @@
 #include "Model.hpp"
 
 #include "../../logger.hpp"
-#include "internal/CSVLoader.hpp"
+#include "internal/csv.hpp"
 
 #include <glm/gtc/constants.hpp>
 
@@ -111,28 +111,26 @@ bool Model::init(
   uint32_t           densityCount = 0;
 
   params.mMolecules.mDensity =
-      internal::CSVLoader::readDensity(settings.mMolecules.mDensity, densityCount);
+      internal::csv::readDensity(settings.mMolecules.mDensity, densityCount);
   params.mMolecules.mPhase =
-      internal::CSVLoader::readPhase(settings.mMolecules.mPhase, params.mWavelengths);
+      internal::csv::readPhase(settings.mMolecules.mPhase, params.mWavelengths);
   params.mMolecules.mScattering =
-      internal::CSVLoader::readExtinction(settings.mMolecules.mBetaSca, params.mWavelengths);
+      internal::csv::readExtinction(settings.mMolecules.mBetaSca, params.mWavelengths);
   params.mMolecules.mAbsorption =
-      internal::CSVLoader::readExtinction(settings.mMolecules.mBetaAbs, params.mWavelengths);
+      internal::csv::readExtinction(settings.mMolecules.mBetaAbs, params.mWavelengths);
 
-  params.mAerosols.mDensity =
-      internal::CSVLoader::readDensity(settings.mAerosols.mDensity, densityCount);
+  params.mAerosols.mDensity = internal::csv::readDensity(settings.mAerosols.mDensity, densityCount);
   params.mAerosols.mPhase =
-      internal::CSVLoader::readPhase(settings.mAerosols.mPhase, params.mWavelengths);
+      internal::csv::readPhase(settings.mAerosols.mPhase, params.mWavelengths);
   params.mAerosols.mScattering =
-      internal::CSVLoader::readExtinction(settings.mAerosols.mBetaSca, params.mWavelengths);
+      internal::csv::readExtinction(settings.mAerosols.mBetaSca, params.mWavelengths);
   params.mAerosols.mAbsorption =
-      internal::CSVLoader::readExtinction(settings.mAerosols.mBetaAbs, params.mWavelengths);
+      internal::csv::readExtinction(settings.mAerosols.mBetaAbs, params.mWavelengths);
 
   if (settings.mOzone) {
-    params.mOzone.mDensity =
-        internal::CSVLoader::readDensity(settings.mOzone->mDensity, densityCount);
+    params.mOzone.mDensity = internal::csv::readDensity(settings.mOzone->mDensity, densityCount);
     params.mOzone.mAbsorption =
-        internal::CSVLoader::readExtinction(settings.mOzone->mBetaAbs, params.mWavelengths);
+        internal::csv::readExtinction(settings.mOzone->mBetaAbs, params.mWavelengths);
 
   } else {
     params.mOzone.mDensity    = std::vector<float>(densityCount, 0.0);

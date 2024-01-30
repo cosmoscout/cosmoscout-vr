@@ -8,11 +8,9 @@
 
 #include "Implementation.hpp"
 
-#include "../../../logger.hpp"
-#include "CSVLoader.hpp"
-
 #include "../../../../src/cs-utils/filesystem.hpp"
 #include "../../../../src/cs-utils/utils.hpp"
+#include "../../../logger.hpp"
 
 #include <cassert>
 #include <cmath>
