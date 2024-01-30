@@ -96,7 +96,7 @@ In fact, without any plugins, CosmoScout VR is just a black and empty universe. 
 Official Plugins | Description | Screenshot
 :----|:-----------------|:----------
 [csp-anchor-labels](plugins/csp-anchor-labels) | Draws a click-able label at each celestial anchor. When activated, the user automatically travels to the selected body. The size and overlapping-behavior of the labels can be adjusted. | ![screenshot](docs/img/csp-anchor-labels.jpg)
-[csp-atmospheres](plugins/csp-atmospheres) | Draws atmospheres around celestial bodies. It calculates single Mie- and Rayleigh scattering via raycasting in real-time. | ![screenshot](docs/img/csp-atmospheres.jpg)
+[csp-atmospheres](plugins/csp-atmospheres) | Draws atmospheres around celestial bodies. It supports multiple atmospheric models. | ![screenshot](docs/img/csp-atmospheres.jpg)
 [csp-custom-web-ui](plugins/csp-custom-web-ui) | Allows adding custom HTML-based user interface elements as sidebar-tabs, as floating windows or into free space. | ![screenshot](docs/img/csp-custom-web-ui.jpg)
 [csp-demo-node-editor](plugins/csp-demo-node-editor) | An example on how to use the `csl-node-editor` plugin library for creating data flow graphs within CosmoScout VR. | ![screenshot](docs/img/csp-demo-node-editor.jpg)
 [csp-fly-to-locations](plugins/csp-fly-to-locations) | Adds several quick travel targets to the sidebar. It supports shortcuts to celestial bodies and to specific geographic locations on those bodies. | ![screenshot](docs/img/csp-fly-to-locations.jpg)

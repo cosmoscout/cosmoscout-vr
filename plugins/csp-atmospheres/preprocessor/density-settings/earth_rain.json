@@ -1,0 +1,9 @@
+{
+    "densityModes": [
+        {
+            "type": "exponential",
+            "scaleHeight": 2000,
+            "relativeNumberDensity": 1
+        }
+    ]
+}

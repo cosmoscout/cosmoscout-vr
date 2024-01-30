@@ -52,6 +52,8 @@ class Atmosphere : public IVistaOpenGLDraw {
  private:
   void updateShader();
 
+  void renderSkyDome(std::string const& name) const;
+
   std::shared_ptr<Plugin::Settings>                mPluginSettings;
   std::shared_ptr<cs::core::Settings>              mAllSettings;
   std::shared_ptr<cs::core::SolarSystem>           mSolarSystem;
@@ -84,7 +86,7 @@ class Atmosphere : public IVistaOpenGLDraw {
   glm::dvec3 mSunDirection   = glm::dvec3(1.0, 0.0, 0.0);
   double     mTime           = 0.0;
 
-  struct {
+  struct Uniforms {
     uint32_t sunDir                  = 0;
     uint32_t sunIlluminance          = 0;
     uint32_t sunLuminance            = 0;

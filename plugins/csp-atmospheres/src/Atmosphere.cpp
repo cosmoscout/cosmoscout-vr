@@ -28,6 +28,11 @@
 
 #include <glm/gtc/type_ptr.hpp>
 
+#define STB_IMAGE_IMPLEMENTATION
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include <stb_image.h>
+#include <stb_image_write.h>
+
 namespace csp::atmospheres {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -116,10 +121,12 @@ void Atmosphere::configure(Plugin::Settings::Atmosphere const& settings) {
     }
 
     // Reconfigure the model if any related parameter changed.
-    if (mRadii != radii || settings.mHeight != mSettings.mHeight ||
+    if (mRadii != radii || settings.mTopAltitude != mSettings.mTopAltitude ||
+        settings.mBottomAltitude != mSettings.mBottomAltitude ||
         settings.mModelSettings != mSettings.mModelSettings) {
 
-      if (mModel->init(settings.mModelSettings, radii[0], radii[0] + settings.mHeight)) {
+      if (mModel->init(settings.mModelSettings, radii[0] + settings.mBottomAltitude.get(),
+              radii[0] + settings.mTopAltitude)) {
         mShaderDirty = true;
       }
     }
@@ -140,13 +147,19 @@ void Atmosphere::configure(Plugin::Settings::Atmosphere const& settings) {
       mShaderDirty = true;
     }
 
-    if (mSettings.mHeight != settings.mHeight || mSettings.mEnableWater != settings.mEnableWater ||
+    if (mSettings.mTopAltitude != settings.mTopAltitude ||
+        mSettings.mBottomAltitude != settings.mBottomAltitude ||
+        mSettings.mEnableWater != settings.mEnableWater ||
         mSettings.mEnableWaves != settings.mEnableWaves ||
         mSettings.mEnableClouds != settings.mEnableClouds) {
       mShaderDirty = true;
     }
 
     mSettings = settings;
+
+    if (mSettings.mRenderSkydome.get()) {
+      renderSkyDome(mObjectName);
+    }
   }
 }
 
@@ -160,9 +173,11 @@ void Atmosphere::updateShader() {
   auto sFrag = cs::utils::filesystem::loadToString(
       "../share/resources/shaders/csp-atmospheres/atmosphere.frag");
 
-  cs::utils::replaceString(sFrag, "PLANET_RADIUS", std::to_string(mRadii[0]));
+  cs::utils::replaceString(sFrag, "SKYDOME_MODE", "0");
   cs::utils::replaceString(
-      sFrag, "ATMOSPHERE_RADIUS", std::to_string(mRadii[0] + mSettings.mHeight));
+      sFrag, "PLANET_RADIUS", std::to_string(mRadii[0] + mSettings.mBottomAltitude.get()));
+  cs::utils::replaceString(
+      sFrag, "ATMOSPHERE_RADIUS", std::to_string(mRadii[0] + mSettings.mTopAltitude));
   cs::utils::replaceString(
       sFrag, "ENABLE_CLOUDS", std::to_string(mSettings.mEnableClouds.get() && mCloudTexture));
   cs::utils::replaceString(sFrag, "ENABLE_WATER", std::to_string(mSettings.mEnableWater.get()));
@@ -227,8 +242,8 @@ void Atmosphere::update(double time) {
 
     // Altitude in [0.2x atmosphere boundary ... 5x atmosphere boundary] -> [0 ... 1]
     double heightInAtmosphere =
-        std::min(1.0, std::max(0.0, (dist - object->getRadii()[0] - mSettings.mHeight * 0.2) /
-                                        (mSettings.mHeight * 5.0)));
+        std::min(1.0, std::max(0.0, (dist - object->getRadii()[0] - mSettings.mTopAltitude * 0.2) /
+                                        (mSettings.mTopAltitude * 5.0)));
 
     // [noon ... midnight] -> [1 ... -1]
     double daySide = glm::dot(-toPlanet, glm::dvec3(mSunDirection));
@@ -340,7 +355,8 @@ bool Atmosphere::Do() {
 
   if (mSettings.mEnableWater.get()) {
     mAtmoShader.SetUniform(mUniforms.waterLevel,
-        mSettings.mWaterLevel.get() * mAllSettings->mGraphics.pHeightScale.get());
+        mSettings.mWaterLevel.get() * mAllSettings->mGraphics.pHeightScale.get() -
+            static_cast<float>(mSettings.mBottomAltitude.get()));
   }
 
   if (mSettings.mEnableClouds.get() && mCloudTexture) {
@@ -403,6 +419,103 @@ bool Atmosphere::GetBoundingBox(VistaBoundingBox& bb) {
   bb.SetBounds(fMin.data(), fMax.data());
 
   return true;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Atmosphere::renderSkyDome(std::string const& name) const {
+  const int SIZE = 512;
+
+  VistaGLSLShader shader;
+
+  auto sVert = cs::utils::filesystem::loadToString(
+      "../share/resources/shaders/csp-atmospheres/atmosphere.vert");
+  auto sFrag = cs::utils::filesystem::loadToString(
+      "../share/resources/shaders/csp-atmospheres/atmosphere.frag");
+
+  cs::utils::replaceString(sFrag, "SKYDOME_MODE", "1");
+  cs::utils::replaceString(
+      sFrag, "PLANET_RADIUS", std::to_string(mRadii[0] + mSettings.mBottomAltitude.get()));
+  cs::utils::replaceString(
+      sFrag, "ATMOSPHERE_RADIUS", std::to_string(mRadii[0] + mSettings.mTopAltitude));
+  cs::utils::replaceString(sFrag, "ENABLE_CLOUDS", "0");
+  cs::utils::replaceString(sFrag, "ENABLE_WATER", "0");
+  cs::utils::replaceString(sFrag, "ENABLE_WAVES", "0");
+  cs::utils::replaceString(sFrag, "ENABLE_HDR", "0");
+  cs::utils::replaceString(sFrag, "HDR_SAMPLES", "0");
+  cs::utils::replaceString(
+      sFrag, "ECLIPSE_SHADER_SNIPPET", mEclipseShadowReceiver->getShaderSnippet());
+
+  shader.InitVertexShaderFromString(sVert);
+  shader.InitFragmentShaderFromString(sFrag);
+
+  // Add the fragment shader from the atmospheric model.
+  glAttachShader(shader.GetProgram(), mModel->getShader());
+
+  shader.Link();
+
+  GLuint texture;
+  glGenTextures(1, &texture);
+  glActiveTexture(GL_TEXTURE0);
+  glBindTexture(GL_TEXTURE_2D, texture);
+  glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, SIZE, SIZE, 0, GL_RGBA, GL_FLOAT, nullptr);
+
+  GLuint fbo;
+  glGenFramebuffers(1, &fbo);
+  glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+
+  glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, texture, 0);
+  glDrawBuffer(GL_COLOR_ATTACHMENT0);
+  glViewport(0, 0, SIZE, SIZE);
+  glScissor(0, 0, SIZE, SIZE);
+
+  // save current lighting and meterial state of the OpenGL state machine ----
+  glPushAttrib(GL_LIGHTING_BIT | GL_ENABLE_BIT);
+  glDisable(GL_LIGHTING);
+  glDisable(GL_DEPTH_TEST);
+  glDisable(GL_BLEND);
+  glEnable(GL_TEXTURE_2D);
+  glDepthMask(GL_FALSE);
+
+  // set uniforms ------------------------------------------------------------
+  shader.Bind();
+
+  double const sunLuminousPower = 3.75e28;
+  double       sunDist          = 149597870700;
+  double       sunIlluminance   = sunLuminousPower / (sunDist * sunDist * 4.0 * glm::pi<double>());
+
+  shader.SetUniform(
+      shader.GetUniformLocation("uSunIlluminance"), static_cast<float>(sunIlluminance));
+
+  std::vector<float> pixels(SIZE * SIZE * 4);
+
+  std::vector<float> elevation = {0.0, 45.0, 75.0, 90.0};
+
+  for (float e : elevation) {
+    shader.SetUniform(shader.GetUniformLocation("uSunElevation"), e);
+
+    mModel->setUniforms(shader.GetProgram(), 4);
+
+    // draw --------------------------------------------------------------------
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+    glReadPixels(0, 0, SIZE, SIZE, GL_RGBA, GL_FLOAT, &pixels[0]);
+
+    stbi_write_hdr(fmt::format("{}_{}.hdr", name, e).c_str(), SIZE, SIZE, 4, pixels.data());
+  }
+
+  // clean up ----------------------------------------------------------------
+  glDepthMask(GL_TRUE);
+
+  shader.Release();
+
+  glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+  glDeleteFramebuffers(1, &fbo);
+  glDeleteTextures(1, &texture);
+
+  glPopAttrib();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

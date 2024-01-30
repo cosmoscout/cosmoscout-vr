@@ -29,16 +29,17 @@ uniform sampler2D uColorBuffer;
 uniform sampler2D uDepthBuffer;
 #endif
 
-uniform vec3  uSunDir;
-uniform float uSunIlluminance;
-uniform float uSunLuminance;
-uniform float uTime;
-uniform mat4 uMatM;
-uniform mat4 uMatScale;
-uniform mat4  uMatInvP;
-uniform float uWaterLevel;
+uniform vec3      uSunDir;
+uniform float     uSunIlluminance;
+uniform float     uSunLuminance;
+uniform float     uTime;
+uniform mat4      uMatM;
+uniform mat4      uMatScale;
+uniform mat4      uMatInvP;
+uniform float     uWaterLevel;
 uniform sampler2D uCloudTexture;
 uniform float     uCloudAltitude;
+uniform float     uSunElevation;
 
 // outputs
 layout(location = 0) out vec3 oColor;
@@ -300,7 +301,7 @@ float getSurfaceDistance(vec3 rayOrigin, vec3 rayDir) {
   // We compute the observer-centric distance to the current pixel. uMatScale is required to apply
   // the non-uniform scale of the ellipsoidal atmosphere to the reconstructed position.
   vec4 fragDir = uMatInvP * vec4(2.0 * vsIn.texcoords - 1, 2 * depth - 1, 1);
-  fragDir      /= fragDir.w;
+  fragDir /= fragDir.w;
   fragDir       = uMatScale * fragDir;
   float depthMS = length(fragDir.xyz);
 
@@ -362,7 +363,7 @@ float getCloudDensity(vec3 rayOrigin, vec3 rayDir, float tIntersection) {
 vec4 getCloudColor(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, float surfaceDistance) {
 
   // The distance between the top and bottom cloud layers.
-  float thickness = uCloudAltitude * 0.2;
+  float thickness = uCloudAltitude * 0.5;
 
   // The distance to the planet surface where the fade-out starts.
   float fadeWidth = thickness * 2.0;
@@ -437,7 +438,7 @@ float getCloudShadow(vec3 rayOrigin, vec3 rayDir) {
   }
 
   // We have to fade out the cloud shadow in the same manner as the cloud color.
-  float thickness = uCloudAltitude * 0.2;
+  float thickness = uCloudAltitude * 0.5;
   float fadeWidth = thickness * 2.0;
 
   // Reduce cloud opacity when end point is very close to planet surface.
@@ -447,6 +448,80 @@ float getCloudShadow(vec3 rayOrigin, vec3 rayDir) {
 }
 
 // -------------------------------------------------------------------------------------------------
+
+#if SKYDOME_MODE
+
+// In this special mode, the atmosphere shader will draw a fish-eye view of the entire sky. This is
+// meant for testing and debugging purposes.
+void main() {
+  float cSunElevation = uSunElevation / 180.0 * PI;
+
+  // The altitude of the viewer above the ground.
+  float cAltitude = 1.0;
+
+  // If this is set to true, the horizon will be placed in the center of the fish-eye view.
+  bool cHorizon = false;
+
+  oColor = vec3(0.0);
+
+  const vec3 rayOrigin = vec3(0.0, PLANET_RADIUS + cAltitude, 0.0);
+  const vec3 sunDir    = normalize(vec3(0.0, sin(cSunElevation), cos(cSunElevation)));
+  vec3       rayDir;
+  vec2       coords = vsIn.texcoords * 2.0 - 1.0;
+
+  if (length(coords) > 1.0) {
+    return;
+  }
+
+  coords *= PI * 0.5;
+
+  if (cHorizon) {
+    rayDir = normalize(vec3(sin(coords.x), sin(coords.y), cos(length(coords))));
+
+  } else {
+    rayDir = normalize(vec3(sin(coords.x), cos(length(coords)), sin(-coords.y)));
+  }
+
+  vec2 atmosphereIntersections = intersectAtmosphere(rayOrigin, rayDir);
+  if (atmosphereIntersections.x > atmosphereIntersections.y || atmosphereIntersections.y < 0) {
+    return;
+  }
+
+  // If something is in front of the atmosphere, we do not have to do anything either.
+  float surfaceDistance = getSurfaceDistance(rayOrigin, rayDir);
+  if (surfaceDistance < atmosphereIntersections.x) {
+    return;
+  }
+
+  bool hitsSurface = surfaceDistance < atmosphereIntersections.y;
+
+  vec3 transmittance, inScatter;
+
+  if (hitsSurface) {
+
+    oColor = vec3(0.5);
+
+    // If the ray hits the ground, we have to compute the amount of light reaching the ground as
+    // well as how much of the reflected light is attenuated on its path to the observer.
+    vec3 skyIlluminance;
+    vec3 surfacePoint = rayOrigin + rayDir * surfaceDistance;
+    inScatter         = GetSkyLuminanceToPoint(rayOrigin, surfacePoint, sunDir, transmittance);
+    vec3 illuminance  = GetSunAndSkyIlluminance(surfacePoint, sunDir, skyIlluminance);
+    illuminance += skyIlluminance;
+
+    oColor *= illuminance;
+
+  } else {
+    oColor = vec3(0.0);
+
+    // If the ray leaves the atmosphere unblocked, we only need to compute the luminance of the sky.
+    inScatter = GetSkyLuminance(rayOrigin, rayDir, sunDir, transmittance);
+  }
+
+  oColor = transmittance * oColor + inScatter;
+}
+
+#else
 
 // We start with the planet / background color without any atmosphere. First, we will overlay the
 // water color (if enabled). Thereafter, we compute the atmospheric scattering and overlay the
@@ -503,8 +578,8 @@ void main() {
     // Looking down onto the ocean.
     if (oceanIntersections.x > 0) {
 
-      vec3 oceanSurface = vsIn.rayOrigin + rayDir * oceanIntersections.x;
-      vec3 idealNormal  = normalize(oceanSurface);
+      vec3        oceanSurface      = vsIn.rayOrigin + rayDir * oceanIntersections.x;
+      vec3        idealNormal       = normalize(oceanSurface);
 
 #if ENABLE_WAVES
       const float WAVE_SPEED        = 0.2;
@@ -669,4 +744,12 @@ void main() {
 #if !ENABLE_HDR
   oColor = linearToSRGB(oColor);
 #endif
+
+  // This shouldn't happen. But if an atmospheric model produces a single NaN, the post processing
+  // glare will make the entire screen black, so let's be rather safe then sorry :)
+  if (any(isnan(oColor))) {
+    oColor = vec3(0.0);
+  }
 }
+
+#endif
