@@ -9,9 +9,9 @@ SPDX-License-Identifier: CC-BY-4.0
 
 # Changelog of CosmoScout VR
 
-## v1.9.0 [unreleased]
+## [v1.9.0](https://github.com/cosmoscout/cosmoscout-vr/releases)
 
-**Release Date:** TBD
+**Release Date:** 2024-01-30
 
 #### New Features
 
