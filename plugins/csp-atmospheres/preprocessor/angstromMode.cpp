@@ -9,7 +9,6 @@
 
 #include "common.hpp"
 
-#include <glm/gtc/constants.hpp>
 #include <nlohmann/json.hpp>
 #include <spdlog/spdlog.h>
 

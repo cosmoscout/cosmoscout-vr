@@ -16,7 +16,7 @@
 
 namespace common {
 
-/// This adds the --lambda-samples,--min-lambda, --max-lambda, and --lambda-samples commandline
+/// This adds the --lambda-samples, --min-lambda, --max-lambda, and --lambda-samples commandline
 /// parameters to the given CommandLine object.
 void addLambdaFlags(cs::utils::CommandLine& commandLine, std::string* lambdas, double* minLambda,
     double* maxLambda, int32_t* lambdaSamples);

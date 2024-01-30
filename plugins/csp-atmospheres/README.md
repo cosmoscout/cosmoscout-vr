@@ -55,7 +55,7 @@ Property | Default Value | Description
 `enableWater` | `false` | If set to `true`, an ocean will be drawn.
 `enableWaves` | `true` | If set to `true`, the ocean will have some animated waves.
 `waterLevel` | `0.0` | The altitude in [m] of the ocean surface relative to the planet's surface.
-`renderSkydome` | `false` | If this is set to `true`, the plugin will save a fish-eye view of the sky to a file one the preprocessing is done.
+`renderSkydome` | `false` | If this is set to `true`, the plugin will save a fish-eye view of the sky to a file once the preprocessing is done.
 `model` | `"CosmoScoutVR"` | The model to use for this atmosphere. This can either be `"CosmoScoutVR"` or `"Bruneton"`.
 `modelSettings` | _model-dependent_ | The parameters for the model. See below.
 

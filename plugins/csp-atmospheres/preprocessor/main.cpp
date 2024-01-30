@@ -32,7 +32,7 @@ void printHelp() {
   std::cout << "rayleigh  Write the Rayleigh phase function and scattering coefficients for the given wavelengths." << std::endl;
   std::cout << "angstrom  Write the scattering and absorption coefficients using Ångström's turbidity formula." << std::endl;
   std::cout << "hulst     Write the scattering and absorption coefficients using approximations by Van de Hulst." << std::endl;
-  std::cout << "manual    Write the any scattering and absorption coefficients for the given wavelengths." << std::endl;
+  std::cout << "manual    Write any scattering and absorption coefficients for the given wavelengths." << std::endl;
   std::cout << "cornette  Write the Cornette-Shanks phase function for the given wavelengths." << std::endl;
   std::cout << "henyey    Write the Henyey-Greenstein phase function for the given wavelengths." << std::endl;
   std::cout << "dhenyey   Write the Double-Henyey-Greenstein phase function for the given wavelengths." << std::endl;
