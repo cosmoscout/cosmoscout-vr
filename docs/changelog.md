@@ -24,6 +24,9 @@ This generalized atmospheric model is now used per default for Mars and Earth.
 
 * The default minimum auto exposure has been slightly reduced in order to avoid excessive over-exposure when looking at the Sun in HDR mode.
 
+#### Bug Fixes
+
+* Fixed initial level-of-detail value used by planets of `csp-lod-bodies` if `autoLod` was disabled in the settings.
 
 ## [v1.8.0](https://github.com/cosmoscout/cosmoscout-vr/releases)
 

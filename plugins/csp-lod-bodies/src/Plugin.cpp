@@ -465,15 +465,12 @@ void Plugin::update() {
               std::min(1.0, 0.02 * (minTime - cs::utils::FrameStats::get().pFrameTime.get()))));
     }
 
-    // Apply the computed LoD factor.
-    for (auto&& body : mLodBodies) {
-      body.second->setLODFactor(mAutoLod);
-    }
-
     mGuiManager->setSliderValue("lodBodies.setTerrainLod", mAutoLod);
   }
 
   for (auto const& [name, body] : mLodBodies) {
+    body->setLODFactor(
+        mPluginSettings->mAutoLOD.get() ? mAutoLod : mPluginSettings->mLODFactor.get());
     body->update();
   }
 }
