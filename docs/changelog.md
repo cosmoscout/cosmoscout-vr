@@ -15,9 +15,9 @@ SPDX-License-Identifier: CC-BY-4.0
 
 #### New Features
 
-* The `Bruneton` atmospheric model of `csp-atmospheres` has been generalized by loading phase functions, extinction coefficients, and particle density distributions from CSV files.
+* The `Bruneton` atmospheric model of [`csp-atmospheres`](../plugins/csp-atmospheres/) has been generalized by loading phase functions, extinction coefficients, and particle density distributions from [CSV files](../plugins/csp-atmospheres/data/csp-atmospheres/).
 This allows us to simulate arbitrary particle types.
-In particular, we can now use Mie Theory to pre-compute the scattering behaviour of a wide variety of particle types, including for instance Martian dust.
+In particular, we can now use Mie Theory to [pre-compute the scattering behaviour](../plugins/csp-atmospheres/preprocessor/) of a wide variety of particle types, including for instance Martian dust.
 This generalized atmospheric model is now used per default for Mars and Earth.
 
 #### Other Changes
