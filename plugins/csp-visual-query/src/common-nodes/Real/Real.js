@@ -31,7 +31,9 @@ class RealComponent extends Rete.Component {
 
     // Add the number input widget. The name parameter must be unique
     // amongst all controls of this node. The NumberControl class is defined further below.
-    let control = new RealControl('real');
+    let control = new RealInputControl('real', (callbackReturn) => {
+      CosmoScout.sendMessageToCPP(parseFloat(callbackReturn.value), callbackReturn.id);
+    }, "", 0);
     node.addControl(control);
 
     // Once the HTML element for this node has been created, the node.onInit() method will be
@@ -41,46 +43,5 @@ class RealComponent extends Rete.Component {
     node.onInit = (nodeDiv) => { control.init(nodeDiv, node.data); };
 
     return node;
-  }
-}
-
-// This is the widget which is used for inserting the number.
-class RealControl extends Rete.Control {
-  constructor(key) {
-    super(key);
-
-    // This HTML code will be used whenever a node is created with this widget.
-    this.template = `
-          <input class="number-input" type="text" value="0" />
-
-          <style>
-            .number-input {
-              margin: 10px 15px !important;
-              width: 150px !important;
-            }
-          </style>
-        `;
-  }
-
-  // This is called by the node.onInit() above once the HTML element for the node has been
-  // created. If present, the data object may contain a number as returned by
-  // Real::getData() which - if present - should be preselected.
-  init(nodeDiv, data) {
-
-    // Get our input element.
-    const el = nodeDiv.querySelector("input");
-
-    // Preselect a number if one was given.
-    if (data.value) {
-      el.value = data.value;
-    }
-
-    // Send an update to the node editor server whenever the user enters a new value.
-    el.addEventListener(
-        'input', e => { CosmoScout.sendMessageToCPP(parseFloat(e.target.value), this.parent.id); });
-
-    // Stop propagation of pointer move events. Else we would drag the node if we tried to
-    // select some text in the input field.
-    el.addEventListener('pointermove', e => e.stopPropagation());
   }
 }
