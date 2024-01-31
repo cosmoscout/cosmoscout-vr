@@ -118,6 +118,7 @@ Core Plugins | Description | Screenshot
 Additional Plugins | Description | Screenshot
 :----|:-----------------|:----------
 [csp-gaussian-splatting](https://github.com/cosmoscout/csp-gaussian-splatting) | This plugin uses the code provided for the paper "3D Gaussian Splatting for Real-Time Radiance Field Rendering" to visualize radiance fields. | ![screenshot](docs/img/csp-gaussian-splatting.jpg)
+[csp-user-study](https://github.com/cosmoscout/csp-user-study) |This plugin was used for the user study of the IEEE Aerospace paper "CosmoScout VR: A Modular 3D Solar System Based on SPICE". It can be used to record a series of checkpoints which the user has to fly through. | ![screenshot](docs/img/csp-user-study.jpg)
 
 ### Credits
 
