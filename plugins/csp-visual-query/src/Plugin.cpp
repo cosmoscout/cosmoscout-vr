@@ -1,4 +1,4 @@
-////////////////////////////////////////////////////////////////////////////////////////////////////
+﻿////////////////////////////////////////////////////////////////////////////////////////////////////
 //                               This file is part of CosmoScout VR                               //
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -12,6 +12,7 @@
 
 #include "../../../src/cs-utils/filesystem.hpp"
 #include "common-nodes/Real/Real.hpp"
+#include "common-nodes/RealVec2/RealVec2.hpp"
 #include "common-nodes/Int/Int.hpp"
 #include "common-nodes/TimeInterval/TimeInterval.hpp"
 #include "operation-nodes/DifferenceImage2D/DifferenceImage2D.hpp"
@@ -178,6 +179,7 @@ void Plugin::setupNodeEditor(uint16_t port) {
   // NodeFactory::registerNodeType().
   // Commons
   factory.registerNodeType<Real>();
+  factory.registerNodeType<RealVec2>();
   factory.registerNodeType<Int>();
   factory.registerNodeType<TimeInterval>(mTimeControl);
   // Operations
