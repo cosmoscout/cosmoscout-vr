@@ -136,6 +136,18 @@ bool WorldSpaceGuiArea::getIgnoreDepth() const {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void WorldSpaceGuiArea::setEnableBackfaceCulling(bool enable) {
+  mBackfaceCulling = enable;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+bool WorldSpaceGuiArea::getEnableBackfaceCulling() const {
+  return mBackfaceCulling;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 bool WorldSpaceGuiArea::calculateMousePosition(
     VistaVector3D const& vRayOrigin, VistaVector3D const& vRayEnd, int& x, int& y) {
 
@@ -190,6 +202,10 @@ bool WorldSpaceGuiArea::Do() {
     glDisable(GL_DEPTH_TEST);
   }
 
+  if (!mBackfaceCulling) {
+    glDisable(GL_CULL_FACE);
+  }
+
   mShader.Bind();
 
   // get modelview and projection matrices
@@ -233,6 +249,10 @@ bool WorldSpaceGuiArea::Do() {
 
   if (mIgnoreDepth) {
     glDepthMask(GL_TRUE);
+  }
+
+  if (!mBackfaceCulling) {
+    glEnable(GL_CULL_FACE);
   }
 
   glPopAttrib();
