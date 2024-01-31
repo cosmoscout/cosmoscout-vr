@@ -30,6 +30,7 @@ Renderer::Renderer(std::shared_ptr<cs::core::SolarSystem> solarSystem,
     , mSolarSystem(std::move(solarSystem))
     , mSettings(std::move(settings))
     , mTexture(GL_TEXTURE_2D)
+    , mLUT(GL_TEXTURE_1D)
     , mHasTexture(false)
     , mMinBounds(0)
     , mMaxBounds(0) {
@@ -53,6 +54,11 @@ Renderer::Renderer(std::shared_ptr<cs::core::SolarSystem> solarSystem,
   mTexture.SetWrapS(GL_CLAMP_TO_EDGE);
   mTexture.SetWrapT(GL_CLAMP_TO_EDGE);
   mTexture.Unbind();
+
+  mLUT.Bind();
+  mLUT.SetWrapS(GL_CLAMP_TO_EDGE);
+  mLUT.SetWrapT(GL_CLAMP_TO_EDGE);
+  mLUT.Unbind();
 
   // Add to scenegraph.
   VistaSceneGraph* pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
@@ -145,6 +151,13 @@ void Renderer::setData(std::shared_ptr<Image2D> const& image) {
   }
 }
 
+void Renderer::setLUT(std::vector<glm::vec4> const& lut) {
+  mLUT.Bind();
+  glTexImage1D(GL_TEXTURE_1D, 0, GL_RGBA32F, static_cast<int32_t>(lut.size()), 0, GL_RGBA, GL_FLOAT, lut.data());
+  glTexParameteri(mLUT.GetTarget(), GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+  mLUT.Unbind();
+}
+
 void Renderer::setCenter(std::string center) {
   mObjectName = std::move(center);
   if (mObjectName == "None" || mObjectName.empty()) {
@@ -225,9 +238,11 @@ bool Renderer::Do() {
   // Only bind the enabled textures.
   depthBuffer.Bind(GL_TEXTURE0);
   mTexture.Bind(GL_TEXTURE1);
+  mLUT.Bind(GL_TEXTURE3);
 
   mShader.SetUniform(mShader.GetUniformLocation("uDepthBuffer"), 0);
   mShader.SetUniform(mShader.GetUniformLocation("uTexture"), 1);
+  mShader.SetUniform(mShader.GetUniformLocation("uLUT"), 3);
 
   GLint loc = mShader.GetUniformLocation("uMatInvMVP");
   glUniformMatrix4dv(loc, 1, GL_FALSE, glm::value_ptr(matInvMVP));
@@ -280,6 +295,7 @@ bool Renderer::Do() {
   // Dummy draw
   glDrawArrays(GL_POINTS, 0, 1);
 
+  mLUT.Unbind(GL_TEXTURE3);
   depthBuffer.Unbind(GL_TEXTURE0);
   mTexture.Unbind(GL_TEXTURE1);
 

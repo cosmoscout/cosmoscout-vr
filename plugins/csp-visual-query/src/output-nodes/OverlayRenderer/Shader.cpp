@@ -53,6 +53,7 @@ const std::string Renderer::SURFACE_FRAG = R"(
 
   uniform sampler2DRect uDepthBuffer;
   uniform sampler2D     uTexture;
+  uniform sampler1D     uLUT;
 
   uniform dmat4         uMatInvMVP;
 
@@ -101,7 +102,7 @@ const std::string Renderer::SURFACE_FRAG = R"(
         double norm_v = (lnglat.y - uLatRange.x) / (uLatRange.y - uLatRange.x);
         vec2 newCoords = vec2(float(norm_u), float(1.0 - norm_v));
 
-        FragColor = texture(uTexture, newCoords);
+        FragColor = texture(uLUT, texture(uTexture, newCoords).r);
       } else {
         discard;
       }

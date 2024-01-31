@@ -60,6 +60,10 @@ class IntControl extends Rete.Control {
             }
           </style>
         `;
+
+    let x = new RegExp(/([^\d\-])/g); // matches every character that is not a digit or minus
+    let y = new RegExp(/(?<=.)-/g); // matches any minus character that is not the first character
+    this.intRegex = new RegExp(x.source + "|" + y.source);
   }
 
   // This is called by the node.onInit() above once the HTML element for the node has been
@@ -78,7 +82,7 @@ class IntControl extends Rete.Control {
     // Send an update to the node editor server whenever the user enters a new value.
     el.addEventListener(
       'input', e => { 
-        e.target.value = e.target.value.replace(/([^\d])/g,""); // remove any non-digit characters
+        e.target.value = e.target.value.replace(this.intRegex, "");
         CosmoScout.sendMessageToCPP(parseInt(e  .target.value), this.parent.id); 
       });
 

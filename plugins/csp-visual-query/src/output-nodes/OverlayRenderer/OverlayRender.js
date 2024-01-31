@@ -21,6 +21,9 @@ class OverlayRenderComponent extends Rete.Component {
     let input = new Rete.Input('Image2D', "Image 2D", CosmoScout.socketTypes['Image2D']);
     node.addInput(input);
 
+    let lutInput = new Rete.Input('lut', "LookUp Table", CosmoScout.socketTypes['LUT']);
+    node.addInput(lutInput);
+
     const dropDownCallback = (selection) => CosmoScout.sendMessageToCPP(selection, node.id);
 
     let centerControl = new DropDownControl('center', dropDownCallback, "Body", [{value: 0, text: 'None'}]);

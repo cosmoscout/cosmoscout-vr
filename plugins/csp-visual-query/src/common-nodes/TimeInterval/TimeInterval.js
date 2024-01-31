@@ -14,8 +14,7 @@
 function convertToReadableDate(dateText) {
   let dateTime = dateText.split(".")[0];
   dateTime = dateTime.split("T");
-  result = dateTime[0] + " " + dateTime[1];
-  return result;
+  return dateTime[0] + " " + dateTime[1];
 }
 
 // The TimeInterval has a single output socket and a custom widget for entering a date and time. The
@@ -28,7 +27,7 @@ class TimeIntervalComponent extends Rete.Component {
     super("TimeInterval");
 
     // This specifies the submenu from which this node can be created in the node editor.
-    this.category = "Constants";
+    this.category = "Operations";
   }
 
   // Called whenever a new node of this type needs to be constructed.

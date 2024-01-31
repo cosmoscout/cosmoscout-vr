@@ -12,6 +12,7 @@
 
 #include "../../../src/cs-utils/filesystem.hpp"
 #include "common-nodes/Real/Real.hpp"
+#include "common-nodes/RealVec2/RealVec2.hpp"
 #include "common-nodes/Int/Int.hpp"
 #include "common-nodes/TimeInterval/TimeInterval.hpp"
 #include "operation-nodes/DifferenceImage2D/DifferenceImage2D.hpp"
@@ -170,12 +171,15 @@ void Plugin::setupNodeEditor(uint16_t port) {
   // Register control types:
   factory.registerControlType(cs::utils::filesystem::loadToString(
       "../share/resources/nodes/csp-visual-query/DropDownControl.js"));
+  factory.registerControlType(cs::utils::filesystem::loadToString(
+      "../share/resources/nodes/csp-visual-query/RealInputControl.js"));
 
   // Now, we register our custom node types. Any parameter given to this method, will later be
   // passed to the constructor of the node instances. For more information, see the documentation of
   // NodeFactory::registerNodeType().
   // Commons
   factory.registerNodeType<Real>();
+  factory.registerNodeType<RealVec2>();
   factory.registerNodeType<Int>();
   factory.registerNodeType<TimeInterval>(mTimeControl);
   // Operations

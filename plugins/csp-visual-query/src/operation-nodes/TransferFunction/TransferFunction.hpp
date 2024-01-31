@@ -47,6 +47,8 @@ class TransferFunction final : public csl::nodeeditor::Node {
   void setData(nlohmann::json const& json) override;
 
 private:
+  glm::vec4 lerpVec4(glm::vec4 v0, glm::vec4 v1, double t);
+
   std::vector<glm::vec4> mLut;
 };
 
