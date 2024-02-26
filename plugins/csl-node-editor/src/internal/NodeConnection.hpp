@@ -9,6 +9,7 @@
 #define CSL_NODE_EDITOR_NODE_CONNECTION_HPP
 
 #include <any>
+#include <cstdint>
 #include <string>
 
 namespace csl::nodeeditor {
