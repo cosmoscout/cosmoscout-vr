@@ -59,11 +59,15 @@ class CSL_TOOLS_EXPORT Mark : public IVistaOpenGLDraw, public Tool {
   Mark(Mark&& other) = default;
 
   Mark& operator=(Mark const& other) = delete;
-  Mark& operator=(Mark&& other) = delete;
+  Mark& operator=(Mark&& other)      = delete;
 
   ~Mark() override;
 
   glm::dvec3 const& getPosition() const;
+
+  /// If draggable is set to true, the mark can be moved by dragging it with the mouse.
+  void setIsDraggable(bool draggable);
+  bool getIsDraggable() const;
 
   /// Called from Tools class.
   void update() override;
@@ -84,6 +88,7 @@ class CSL_TOOLS_EXPORT Mark : public IVistaOpenGLDraw, public Tool {
   void initData();
 
   glm::dvec3 mPosition;
+  bool       mIsDraggable = true;
 
   std::unique_ptr<VistaVertexArrayObject> mVAO;
   std::unique_ptr<VistaBufferObject>      mVBO;
