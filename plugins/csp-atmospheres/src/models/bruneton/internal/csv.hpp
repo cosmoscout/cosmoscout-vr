@@ -8,6 +8,7 @@
 #ifndef CSP_ATMOSPHERES_MODELS_BRUNETON_INTERNAL_CSV_HPP
 #define CSP_ATMOSPHERES_MODELS_BRUNETON_INTERNAL_CSV_HPP
 
+#include <cstdint>
 #include <functional>
 #include <string>
 #include <vector>
