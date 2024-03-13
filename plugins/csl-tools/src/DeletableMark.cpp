@@ -65,7 +65,6 @@ void DeletableMark::initData() {
 
   mGuiItem->setCursorChangeCallback([](cs::gui::Cursor c) { cs::core::GuiManager::setCursor(c); });
   mGuiItem->setCanScroll(false);
-  mGuiItem->waitForFinishedLoading();
 
   mGuiNode = pSG->NewOpenGLNode(pGuiTransform, mGuiArea.get());
   mInputManager->registerSelectable(mGuiNode);
@@ -87,7 +86,7 @@ void DeletableMark::initData() {
 
   pDeletable.connect([this](bool val) {
     if (!val) {
-      mGuiItem->callJavascript("setMinimized", true);
+      pSelected = false;
     }
   });
 }
