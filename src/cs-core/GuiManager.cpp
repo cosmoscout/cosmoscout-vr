@@ -111,8 +111,8 @@ GuiManager::GuiManager(
   // documentation of cs::gui::WebView::setZoomLevel in great detail. This also means that all other
   // WebViews with an URL starting with "file://{mainUIZoom}../" will be automatically affected by
   // the pMainUIScale factor.
-  mCosmoScoutGui = std::make_unique<gui::GuiItem>(
-      "file://{mainUIZoom}../share/resources/gui/cosmoscout.html", true);
+  mCosmoScoutGui =
+      std::make_unique<gui::GuiItem>("file://{mainUIZoom}../share/resources/gui/cosmoscout.html");
 
   // Usually, all GuiItems are attached to the global world-space GuiArea if it is
   // available. If not, they are added to the local screen-space GuiArea.
