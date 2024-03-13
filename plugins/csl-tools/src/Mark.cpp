@@ -38,10 +38,12 @@ layout(location=0) in vec3 iPosition;
 
 uniform mat4 uMatModelView;
 uniform mat4 uMatProjection;
+uniform vec3 uScale;
+uniform vec3 uOffset;
 
 void main()
 {
-    vec3 pos    = (uMatModelView * vec4(iPosition*0.005, 1.0)).xyz;
+    vec3 pos    = (uMatModelView * vec4(iPosition * uScale + uOffset, 1.0)).xyz;
     gl_Position = uMatProjection * vec4(pos, 1.0);
 }
 )";
@@ -74,7 +76,6 @@ Mark::Mark(std::shared_ptr<cs::core::InputManager> pInputManager,
     , mInputManager(std::move(pInputManager))
     , mSolarSystem(std::move(pSolarSystem))
     , mSettings(std::move(settings))
-    , mPosition(0.0, 0.0, 0.0)
     , mVAO(std::make_unique<VistaVertexArrayObject>())
     , mVBO(std::make_unique<VistaBufferObject>())
     , mIBO(std::make_unique<VistaBufferObject>())
@@ -88,15 +89,19 @@ Mark::Mark(std::shared_ptr<cs::core::InputManager> pInputManager,
 Mark::Mark(Mark const& other)
     : IVistaOpenGLDraw(other)
     , Tool(other)
-    , pLngLat(other.pLngLat)
     , pHovered(other.pHovered)
     , pSelected(other.pSelected)
     , pActive(other.pActive)
+    , pLngLat(other.pLngLat)
+    , pElevation(other.pElevation)
+    , pDraggable(other.pDraggable)
+    , pColor(other.pColor)
     , pScaleDistance(other.pScaleDistance)
     , mInputManager(other.mInputManager)
     , mSolarSystem(other.mSolarSystem)
     , mSettings(other.mSettings)
     , mPosition(other.mPosition)
+    , mScale(other.mScale)
     , mVAO(std::make_unique<VistaVertexArrayObject>())
     , mVBO(std::make_unique<VistaBufferObject>())
     , mIBO(std::make_unique<VistaBufferObject>())
@@ -141,10 +146,10 @@ void Mark::update() {
                      glm::length(object->getObserverRelativePosition(mPosition));
   }
 
-  auto scale = mSolarSystem->getScaleBasedOnObserverDistance(
+  mScale = mSolarSystem->getScaleBasedOnObserverDistance(
       object, mPosition, pScaleDistance.get(), mSettings->mGraphics.pWorldUIScale.get());
   auto rotation  = mSolarSystem->getRotationToObserver(object, mPosition, true);
-  auto transform = object->getObserverRelativeTransform(mPosition, rotation, scale);
+  auto transform = object->getObserverRelativeTransform(mPosition, rotation, mScale);
 
   mTransform->SetTransform(glm::value_ptr(transform), true);
 }
@@ -157,6 +162,8 @@ bool Mark::Do() {
   glGetFloatv(GL_MODELVIEW_MATRIX, glMatMV.data());
   glGetFloatv(GL_PROJECTION_MATRIX, glMatP.data());
 
+  glDisable(GL_CULL_FACE);
+
   mShader->Bind();
   mVAO->Bind();
   glUniformMatrix4fv(mUniforms.modelViewMatrix, 1, GL_FALSE, glMatMV.data());
@@ -164,11 +171,18 @@ bool Mark::Do() {
   mShader->SetUniform(mUniforms.hoverSelectActive, pHovered.get() ? 1.F : 0.F,
       pSelected.get() ? 1.F : 0.F, pActive.get() ? 1.F : 0.F);
   mShader->SetUniform(mUniforms.color, pColor.get().x, pColor.get().y, pColor.get().z);
+  mShader->SetUniform(mUniforms.scale, 0.005F, 0.005F, 0.005F);
+  mShader->SetUniform(mUniforms.offset, 0.F, 0.F, 0.F);
 
-  glDisable(GL_CULL_FACE);
   glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(mIndexCount), GL_UNSIGNED_INT, nullptr);
-  glEnable(GL_CULL_FACE);
 
+  if (pElevation.get() > 0) {
+    mShader->SetUniform(mUniforms.scale, 0.001F, pElevation.get() / mScale, 0.001F);
+    mShader->SetUniform(mUniforms.offset, 0.F, -pElevation.get() / mScale, 0.F);
+    glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(mIndexCount), GL_UNSIGNED_INT, nullptr);
+  }
+
+  glEnable(GL_CULL_FACE);
   mVAO->Release();
   mShader->Release();
 
@@ -198,6 +212,8 @@ void Mark::initData() {
   mUniforms.modelViewMatrix   = mShader->GetUniformLocation("uMatModelView");
   mUniforms.projectionMatrix  = mShader->GetUniformLocation("uMatProjection");
   mUniforms.hoverSelectActive = mShader->GetUniformLocation("uHoverSelectActive");
+  mUniforms.scale             = mShader->GetUniformLocation("uScale");
+  mUniforms.offset            = mShader->GetUniformLocation("uOffset");
   mUniforms.color             = mShader->GetUniformLocation("uColor");
 
   auto* pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
@@ -217,44 +233,13 @@ void Mark::initData() {
       glm::vec3(-1, -1, 1), glm::vec3(-1, 1, 1), glm::vec3(1, 1, -1), glm::vec3(1, 1, 1),
       glm::vec3(1, -1, 1), glm::vec3(-1, 1, 1), glm::vec3(-1, 1, 1), glm::vec3(-1, -1, -1)};
 
-  const std::array<uint32_t, 36> INDICES = {
-      0,
-      1,
-      2,
-      3,
-      4,
-      5,
-      6,
-      7,
-      8,
-      9,
-      10,
-      11,
-      12,
-      13,
-      14,
-      15,
-      16,
-      17,
-      0,
-      18,
-      1,
-      3,
-      19,
-      4,
-      20,
-      21,
-      22,
-      9,
-      23,
-      10,
-      12,
-      24,
-      13,
-      15,
-      25,
-      16,
+  // clang-format off
+  const std::array<uint32_t, 36> INDICES = { 
+     0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11,
+    12, 13, 14, 15, 16, 17,  0, 18,  1,  3, 19,  4,
+    20, 21, 22,  9, 23, 10, 12, 24, 13, 15, 25, 16
   };
+  // clang-format on
 
   mIndexCount = INDICES.size();
 
@@ -298,26 +283,29 @@ void Mark::initData() {
         }
       });
 
-  // update position
-  mSelfLngLatConnection = pLngLat.connect([this](glm::dvec2 const& lngLat) {
-    // Request the height under the Mark and add it
-    auto   object  = mSolarSystem->getObject(getObjectName());
-    auto   surface = object->getSurface();
-    double height  = surface ? surface->getHeight(lngLat) : 0.0;
-    auto   radii   = object->getRadii();
-    mPosition      = cs::utils::convert::toCartesian(
-        lngLat, radii, height * mSettings->mGraphics.pHeightScale.get());
+  // Update 3D position if the lngLat value changes.
+  pLngLat.connect([this](glm::dvec2 const& lngLat) {
+    updatePosition(lngLat, pElevation.get(), mSettings->mGraphics.pHeightScale.get());
   });
 
-  // connect the heightscale value to this object. Whenever the heightscale value changes
-  // the landmark will be set to the correct height value
-  mHeightScaleConnection = mSettings->mGraphics.pHeightScale.connect([this](float h) {
-    auto   object  = mSolarSystem->getObject(getObjectName());
-    auto   surface = object->getSurface();
-    double height  = surface ? surface->getHeight(pLngLat.get()) * h : 0.0;
-    auto   radii   = object->getRadii();
-    mPosition      = cs::utils::convert::toCartesian(pLngLat.get(), radii, height);
+  // Update 3D position if the global height scale changes.
+  mHeightScaleConnection = mSettings->mGraphics.pHeightScale.connect(
+      [this](float heightScale) { updatePosition(pLngLat.get(), pElevation.get(), heightScale); });
+
+  // Update 3D position if the elevation changes.
+  pElevation.connect([this](double elevation) {
+    updatePosition(pLngLat.get(), elevation, mSettings->mGraphics.pHeightScale.get());
   });
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Mark::updatePosition(glm::dvec2 const& lngLat, double elevation, float heightScale) {
+  auto   object  = mSolarSystem->getObject(getObjectName());
+  auto   surface = object->getSurface();
+  double height  = (surface ? surface->getHeight(lngLat) : 0.0) + elevation;
+  auto   radii   = object->getRadii();
+  mPosition      = cs::utils::convert::toCartesian(lngLat, radii, height * heightScale);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

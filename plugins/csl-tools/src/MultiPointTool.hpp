@@ -48,6 +48,9 @@ class CSL_TOOLS_EXPORT MultiPointTool : public Tool {
   /// If this is true, the points of the tool can be removed.
   cs::utils::Property<bool> pPointsDeletable = true;
 
+  /// All points are drawn with this constant offset from the surface in meters.
+  cs::utils::Property<double> pElevation = 0.0;
+
   /// Derived classes should set this to the initial distance of the tool to the observer when the
   /// tool is first updated. It will be used to scale the handles based on the current observer
   /// distance.

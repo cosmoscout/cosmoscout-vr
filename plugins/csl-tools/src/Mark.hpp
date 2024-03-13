@@ -40,13 +40,23 @@ namespace csl::tools {
 /// A mark is a single point on the surface. It is selectable and draggable.
 class CSL_TOOLS_EXPORT Mark : public IVistaOpenGLDraw, public Tool {
  public:
-  /// Observable properties to get updates on state changes.
-  cs::utils::Property<glm::dvec2> pLngLat    = glm::dvec2(0.0);
-  cs::utils::Property<bool>       pHovered   = false;
-  cs::utils::Property<bool>       pSelected  = false;
-  cs::utils::Property<bool>       pActive    = false;
-  cs::utils::Property<bool>       pDraggable = true;
-  cs::utils::Property<glm::vec3>  pColor     = glm::vec3(0.75, 0.75, 1.0);
+  /// Observable properties to get updates on state changes. Consider these to be read-only.
+  cs::utils::Property<bool> pHovered  = false;
+  cs::utils::Property<bool> pSelected = false;
+  cs::utils::Property<bool> pActive   = false;
+
+  /// The position of the mark in longitude and latitude (in radians).
+  cs::utils::Property<glm::dvec2> pLngLat = glm::dvec2(0.0);
+
+  /// The elevation of the mark in meters. If this is set to 0, the mark will be placed on the
+  /// surface. For positive values, the mark will be floating above the surface with a thin line
+  /// connecting it to the surface.
+  cs::utils::Property<double> pElevation = 0.0;
+
+  /// If this is true, the mark can be dragged around. You can connect to pLngLat to get updates on
+  /// the position.
+  cs::utils::Property<bool>      pDraggable = true;
+  cs::utils::Property<glm::vec3> pColor     = glm::vec3(0.75, 0.75, 1.0);
 
   /// This should be set to the initial distance of the tool to the observer. It will be used to
   /// scale the tool based on the current observer distance.
@@ -83,8 +93,10 @@ class CSL_TOOLS_EXPORT Mark : public IVistaOpenGLDraw, public Tool {
 
  private:
   void initData();
+  void updatePosition(glm::dvec2 const& lngLat, double elevation, float heightScale);
 
-  glm::dvec3 mPosition;
+  glm::dvec3 mPosition = glm::dvec3(0.0);
+  double     mScale    = 1.0;
 
   std::unique_ptr<VistaVertexArrayObject> mVAO;
   std::unique_ptr<VistaBufferObject>      mVBO;
@@ -95,13 +107,15 @@ class CSL_TOOLS_EXPORT Mark : public IVistaOpenGLDraw, public Tool {
     uint32_t modelViewMatrix   = 0;
     uint32_t projectionMatrix  = 0;
     uint32_t hoverSelectActive = 0;
+    uint32_t scale             = 0;
+    uint32_t offset            = 0;
     uint32_t color             = 0;
   } mUniforms;
 
   size_t mIndexCount{};
 
-  int mSelfLngLatConnection = -1, mHoveredNodeConnection = -1, mSelectedNodeConnection = -1,
-      mButtonsConnection = -1, mHoveredPlanetConnection = -1, mHeightScaleConnection = -1;
+  int mHoveredNodeConnection = -1, mSelectedNodeConnection = -1, mButtonsConnection = -1,
+      mHoveredPlanetConnection = -1, mHeightScaleConnection = -1;
 };
 
 } // namespace csl::tools

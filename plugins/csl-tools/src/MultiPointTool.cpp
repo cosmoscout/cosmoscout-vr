@@ -89,6 +89,9 @@ void MultiPointTool::addPoint(std::optional<glm::dvec2> const& lngLat) {
   // Update the deletable state.
   mPoints.back()->pDeletable.connectFrom(pPointsDeletable);
 
+  // Update the elevation.
+  mPoints.back()->pElevation.connectFrom(pElevation);
+
   // Call update once since new data is available.
   onPointAdded();
 }
