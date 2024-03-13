@@ -130,16 +130,6 @@ glm::dvec3 const& Mark::getPosition() const {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Mark::setIsDraggable(bool draggable) {
-  mIsDraggable = draggable;
-}
-
-bool Mark::getIsDraggable() const {
-  return mIsDraggable;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
 void Mark::update() {
 
   auto object = mSolarSystem->getObject(getObjectName());
@@ -299,7 +289,7 @@ void Mark::initData() {
 
   mHoveredPlanetConnection =
       mInputManager->pHoveredObject.connect([this](cs::core::InputManager::Intersection const& i) {
-        if (pActive.get() && i.mObject && mIsDraggable) {
+        if (pActive.get() && i.mObject && pDraggable.get()) {
           auto object = mSolarSystem->getObject(getObjectName());
           if (i.mObject == object) {
             auto radii = object->getRadii();

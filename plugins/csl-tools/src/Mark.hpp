@@ -41,11 +41,12 @@ namespace csl::tools {
 class CSL_TOOLS_EXPORT Mark : public IVistaOpenGLDraw, public Tool {
  public:
   /// Observable properties to get updates on state changes.
-  cs::utils::Property<glm::dvec2> pLngLat   = glm::dvec2(0.0);
-  cs::utils::Property<bool>       pHovered  = false;
-  cs::utils::Property<bool>       pSelected = false;
-  cs::utils::Property<bool>       pActive   = false;
-  cs::utils::Property<glm::vec3>  pColor    = glm::vec3(0.75, 0.75, 1.0);
+  cs::utils::Property<glm::dvec2> pLngLat    = glm::dvec2(0.0);
+  cs::utils::Property<bool>       pHovered   = false;
+  cs::utils::Property<bool>       pSelected  = false;
+  cs::utils::Property<bool>       pActive    = false;
+  cs::utils::Property<bool>       pDraggable = true;
+  cs::utils::Property<glm::vec3>  pColor     = glm::vec3(0.75, 0.75, 1.0);
 
   /// This should be set to the initial distance of the tool to the observer. It will be used to
   /// scale the tool based on the current observer distance.
@@ -64,10 +65,6 @@ class CSL_TOOLS_EXPORT Mark : public IVistaOpenGLDraw, public Tool {
   ~Mark() override;
 
   glm::dvec3 const& getPosition() const;
-
-  /// If draggable is set to true, the mark can be moved by dragging it with the mouse.
-  void setIsDraggable(bool draggable);
-  bool getIsDraggable() const;
 
   /// Called from Tools class.
   void update() override;
@@ -88,7 +85,6 @@ class CSL_TOOLS_EXPORT Mark : public IVistaOpenGLDraw, public Tool {
   void initData();
 
   glm::dvec3 mPosition;
-  bool       mIsDraggable = true;
 
   std::unique_ptr<VistaVertexArrayObject> mVAO;
   std::unique_ptr<VistaBufferObject>      mVBO;
