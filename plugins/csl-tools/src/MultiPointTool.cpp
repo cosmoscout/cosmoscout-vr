@@ -83,6 +83,12 @@ void MultiPointTool::addPoint(std::optional<glm::dvec2> const& lngLat) {
   // Update scaling distance.
   mPoints.back()->pScaleDistance.connectFrom(pScaleDistance);
 
+  // Update the draggable state.
+  mPoints.back()->pDraggable.connectFrom(pPointsDraggable);
+
+  // Update the deletable state.
+  mPoints.back()->pDeletable.connectFrom(pPointsDeletable);
+
   // Call update once since new data is available.
   onPointAdded();
 }
@@ -91,6 +97,7 @@ void MultiPointTool::addPoint(std::optional<glm::dvec2> const& lngLat) {
 
 void MultiPointTool::update() {
   bool anyPointSelected = false;
+  bool anyPointActive   = false;
   int  index            = 0;
 
   // Update all points and remove them if required.
@@ -100,6 +107,7 @@ void MultiPointTool::update() {
       mark = mPoints.erase(mark);
     } else {
       anyPointSelected |= static_cast<bool>((*mark)->pSelected.get());
+      anyPointActive |= static_cast<bool>((*mark)->pActive.get());
       (*mark)->update();
       ++mark;
       ++index;
@@ -107,6 +115,7 @@ void MultiPointTool::update() {
   }
 
   pAnyPointSelected = anyPointSelected;
+  pAnyPointActive   = anyPointActive;
 
   // Request deletion of the tool itself if there are no points left.
   if (mPoints.empty()) {

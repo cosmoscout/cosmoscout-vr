@@ -31,11 +31,22 @@ class CSL_TOOLS_EXPORT MultiPointTool : public Tool {
   /// Public properties where external can connect slots to.
   cs::utils::Property<bool> pAddPointMode = false;
 
-  /// Consider this to be read-only.
+  /// This is true if any of the tool's points has currently the selected state. Consider this to be
+  /// read-only.
   cs::utils::Property<bool> pAnyPointSelected = false;
+
+  /// This is true if any of the tool's points has currently the active state. This is usually the
+  /// case if it is dragged around. Consider this to be read-only.
+  cs::utils::Property<bool> pAnyPointActive = false;
 
   /// All handels are drawn with this color.
   cs::utils::Property<glm::vec3> pColor = glm::vec3(0.75, 0.75, 1.0);
+
+  /// If this is true, the points of the tool can be dragged around.
+  cs::utils::Property<bool> pPointsDraggable = true;
+
+  /// If this is true, the points of the tool can be removed.
+  cs::utils::Property<bool> pPointsDeletable = true;
 
   /// Derived classes should set this to the initial distance of the tool to the observer when the
   /// tool is first updated. It will be used to scale the handles based on the current observer
@@ -50,7 +61,7 @@ class CSL_TOOLS_EXPORT MultiPointTool : public Tool {
   MultiPointTool(MultiPointTool&& other)      = delete;
 
   MultiPointTool& operator=(MultiPointTool const& other) = delete;
-  MultiPointTool& operator=(MultiPointTool&& other) = delete;
+  MultiPointTool& operator=(MultiPointTool&& other)      = delete;
 
   ~MultiPointTool() override;
 
