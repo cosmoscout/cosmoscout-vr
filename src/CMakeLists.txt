@@ -8,6 +8,7 @@
 add_subdirectory(cs-utils)
 add_subdirectory(cs-core)
 add_subdirectory(cs-graphics)
+add_subdirectory(cs-audio)
 add_subdirectory(cs-gui)
 add_subdirectory(cs-scene)
 add_subdirectory(cosmoscout)

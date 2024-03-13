@@ -1,0 +1,26 @@
+<!-- 
+SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
+SPDX-License-Identifier: MIT
+-->
+
+
+<div class="row">
+    <div class="col-5">
+        Master Volume
+    </div>
+    <div class="col-7">
+        <div data-callback="audio.masterVolume"></div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-5">
+      Output Device
+    </div>
+    <div class="col-7">
+      <select data-callback="audio.outputDevice" data-container="#cosmoscout" data-width="100%"
+        class="simple-value-dropdown">
+        <!-- Filled by JavaScript Function -->
+      </select>
+    </div>
+  </div>

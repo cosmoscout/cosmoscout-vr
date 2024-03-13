@@ -475,6 +475,40 @@ class CS_CORE_EXPORT Settings {
 
   // -----------------------------------------------------------------------------------------------
 
+  struct Audio {
+    /// Enables or disables HRTF
+    utils::DefaultProperty<bool> pEnableHRTF{true};
+
+    /// Specifies the maximum number of mono sources
+    utils::DefaultProperty<int> pNumberMonoSources{512};
+
+    /// Specifies the maximum number of stereo sources
+    utils::DefaultProperty<int> pNumberStereoSources{5};
+
+    /// Specifies the Refresh rate of the context processing
+    utils::DefaultProperty<int> pRefreshRate{30};
+
+    /// Specifies whether it should be a sychronous or asynchronous(default) context
+    utils::DefaultProperty<bool> pContextSync{false};
+
+    ///	Frequency for mixing in the output buffer, measured in Hz
+    utils::DefaultProperty<int> pMixerFrequency{48000};
+
+    /// Gain at which a source will stop playing if the volume culling PS is active
+    utils::DefaultProperty<float> pVolumeCullingThreshold{0.01f};
+
+    /// *real* Distance at which a source will stop playing if the distance culling PS is active
+    utils::DefaultProperty<double> pDistanceCullingThreshold{100.0};
+
+    /// Specifies wheter the audio output device is stationary or moves with the user (e.g. when
+    /// using a head mounted display with headphones)
+    utils::DefaultProperty<bool> pStationaryOutputDevice{true};
+  };
+
+  Audio mAudio;
+
+  // -----------------------------------------------------------------------------------------------
+
   /// A map with configuration options for each plugin. The JSON object is not parsed, this is done
   /// by the plugins themselves.
   std::map<std::string, nlohmann::json> mPlugins;
@@ -567,6 +601,8 @@ CS_CORE_EXPORT void from_json(nlohmann::json const& j, Settings::SceneScale& o);
 CS_CORE_EXPORT void to_json(nlohmann::json& j, Settings::SceneScale const& o);
 CS_CORE_EXPORT void from_json(nlohmann::json const& j, Settings::Graphics& o);
 CS_CORE_EXPORT void to_json(nlohmann::json& j, Settings::Graphics const& o);
+CS_CORE_EXPORT void from_json(nlohmann::json const& j, Settings::Audio& o);
+CS_CORE_EXPORT void to_json(nlohmann::json& j, Settings::Audio const& o);
 CS_CORE_EXPORT void from_json(nlohmann::json const& j, Settings& o);
 CS_CORE_EXPORT void to_json(nlohmann::json& j, Settings const& o);
 

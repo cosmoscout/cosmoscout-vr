@@ -22,6 +22,7 @@ class VistaSceneGraph;
 
 namespace cs::core {
 class GraphicsEngine;
+class AudioEngine;
 class GuiManager;
 class InputManager;
 class TimeControl;
@@ -50,7 +51,7 @@ class CS_CORE_EXPORT PluginBase {
   void setAPI(std::shared_ptr<Settings> settings, std::shared_ptr<SolarSystem> solarSystem,
       std::shared_ptr<GuiManager> guiManager, std::shared_ptr<InputManager> inputManager,
       VistaSceneGraph* sceneGraph, std::shared_ptr<GraphicsEngine> graphicsEngine,
-      std::shared_ptr<TimeControl> timeControl);
+      std::shared_ptr<AudioEngine> audioEngine, std::shared_ptr<TimeControl> timeControl);
 
   /// Override this function to initialize your plugin. It will be called directly after
   /// application startup and before the update loop starts.
@@ -70,6 +71,7 @@ class CS_CORE_EXPORT PluginBase {
   VistaSceneGraph*                mSceneGraph{};
   std::shared_ptr<GuiManager>     mGuiManager;
   std::shared_ptr<GraphicsEngine> mGraphicsEngine;
+  std::shared_ptr<AudioEngine>    mAudioEngine;
   std::shared_ptr<InputManager>   mInputManager;
   std::shared_ptr<TimeControl>    mTimeControl;
 };
