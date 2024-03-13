@@ -65,6 +65,7 @@ void DeletableMark::initData() {
 
   mGuiItem->setCursorChangeCallback([](cs::gui::Cursor c) { cs::core::GuiManager::setCursor(c); });
   mGuiItem->setCanScroll(false);
+  mGuiItem->waitForFinishedLoading();
 
   mGuiNode = pSG->NewOpenGLNode(pGuiTransform, mGuiArea.get());
   mInputManager->registerSelectable(mGuiNode);
@@ -72,11 +73,23 @@ void DeletableMark::initData() {
   VistaOpenSGMaterialTools::SetSortKeyOnSubtree(
       pGuiTransform, static_cast<int>(cs::utils::DrawOrder::eTransparentItems));
 
-  mGuiItem->registerCallback("deleteMe", "Call this to remove the tool.",
-      std::function([this]() { pShouldDelete = true; }));
+  mGuiItem->registerCallback("deleteMe", "Call this to remove the tool.", std::function([this]() {
+    if (pDeletable.get()) {
+      pShouldDelete = true;
+    }
+  }));
 
-  mSelfSelectedConnection =
-      pSelected.connect([this](bool val) { mGuiItem->callJavascript("setMinimized", !val); });
+  pSelected.connect([this](bool val) {
+    if (pDeletable.get()) {
+      mGuiItem->callJavascript("setMinimized", !val);
+    }
+  });
+
+  pDeletable.connect([this](bool val) {
+    if (!val) {
+      mGuiItem->callJavascript("setMinimized", true);
+    }
+  });
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

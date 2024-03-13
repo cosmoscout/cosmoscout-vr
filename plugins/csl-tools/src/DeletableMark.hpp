@@ -20,6 +20,9 @@ namespace csl::tools {
 /// A Mark with a delete symbol above when it is selected.
 class CSL_TOOLS_EXPORT DeletableMark : public Mark {
  public:
+  /// With this, you can set if the mark is deletable or not.
+  cs::utils::Property<bool> pDeletable = true;
+
   DeletableMark(std::shared_ptr<cs::core::InputManager> pInputManager,
       std::shared_ptr<cs::core::SolarSystem>            pSolarSystem,
       std::shared_ptr<cs::core::Settings> settings, std::string objectName);
@@ -28,7 +31,7 @@ class CSL_TOOLS_EXPORT DeletableMark : public Mark {
   DeletableMark(DeletableMark&& other)      = delete;
 
   DeletableMark& operator=(DeletableMark const& other) = delete;
-  DeletableMark& operator=(DeletableMark&& other) = delete;
+  DeletableMark& operator=(DeletableMark&& other)      = delete;
 
   ~DeletableMark() override;
 
@@ -38,8 +41,6 @@ class CSL_TOOLS_EXPORT DeletableMark : public Mark {
   VistaOpenGLNode*                            mGuiNode = nullptr;
   std::unique_ptr<cs::gui::WorldSpaceGuiArea> mGuiArea;
   std::unique_ptr<cs::gui::GuiItem>           mGuiItem;
-
-  int mSelfSelectedConnection = -1;
 };
 
 } // namespace csl::tools
