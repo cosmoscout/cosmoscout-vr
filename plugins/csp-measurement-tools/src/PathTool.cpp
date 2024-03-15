@@ -190,13 +190,13 @@ void PathTool::onPointMoved() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void PathTool::onPointAdded() {
+void PathTool::onPointAdded(size_t /*index*/) {
   mVerticesDirty = true;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void PathTool::onPointRemoved(int /*index*/) {
+void PathTool::onPointRemoved(size_t /*index*/) {
   mVerticesDirty = true;
 }
 

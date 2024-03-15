@@ -57,43 +57,48 @@ MultiPointTool::~MultiPointTool() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void MultiPointTool::addPoint(std::optional<glm::dvec2> const& lngLat) {
-  // Add the Mark to the list.
-  mPoints.emplace_back(
-      std::make_shared<DeletableMark>(mInputManager, mSolarSystem, mSettings, getObjectName()));
+void MultiPointTool::addPoint(
+    std::optional<glm::dvec2> const& lngLat, std::optional<size_t> const& index) {
+
+  auto newPoint =
+      std::make_shared<DeletableMark>(mInputManager, mSolarSystem, mSettings, getObjectName());
 
   // if there is a planet intersection, move the point to the intersection location
   if (lngLat) {
-    mPoints.back()->pLngLat = lngLat.value();
+    newPoint->pLngLat = lngLat.value();
   } else {
     auto intersection = mInputManager->pHoveredObject.get();
     if (intersection.mObject && intersection.mObjectName == getObjectName()) {
-      auto       radii = intersection.mObject->getRadii();
-      glm::dvec2 pos   = cs::utils::convert::cartesianToLngLat(intersection.mPosition, radii);
-      mPoints.back()->pLngLat = pos;
+      auto       radii  = intersection.mObject->getRadii();
+      glm::dvec2 pos    = cs::utils::convert::cartesianToLngLat(intersection.mPosition, radii);
+      newPoint->pLngLat = pos;
     }
   }
 
   // register callback to update line vertices when the landmark position has been changed
-  mPoints.back()->pLngLat.connect([this](glm::dvec2 const& /*unused*/) { onPointMoved(); });
+  newPoint->pLngLat.connect([this](glm::dvec2 const& /*unused*/) { onPointMoved(); });
 
   // Update the color.
-  mPoints.back()->pColor.connectFrom(pColor);
+  newPoint->pColor.connectFrom(pColor);
 
   // Update scaling distance.
-  mPoints.back()->pScaleDistance.connectFrom(pScaleDistance);
+  newPoint->pScaleDistance.connectFrom(pScaleDistance);
 
   // Update the draggable state.
-  mPoints.back()->pDraggable.connectFrom(pPointsDraggable);
+  newPoint->pDraggable.connectFrom(pPointsDraggable);
 
   // Update the deletable state.
-  mPoints.back()->pDeletable.connectFrom(pPointsDeletable);
+  newPoint->pDeletable.connectFrom(pPointsDeletable);
 
   // Update the elevation.
-  mPoints.back()->pElevation.connectFrom(pElevation);
+  newPoint->pElevation.connectFrom(pElevation);
+
+  // Add the Mark to the list.
+  size_t i = index.value_or(mPoints.size());
+  mPoints.insert(std::next(mPoints.begin(), i), newPoint);
 
   // Call update once since new data is available.
-  onPointAdded();
+  onPointAdded(i);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

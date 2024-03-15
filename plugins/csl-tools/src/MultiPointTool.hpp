@@ -83,15 +83,17 @@ class CSL_TOOLS_EXPORT MultiPointTool : public Tool {
   void setPositions(std::vector<glm::dvec2> const& positions);
 
   /// A derived class may call this in order to add a new point at the given position. If no
-  /// position is given, the current pointer position will be used.
-  void addPoint(std::optional<glm::dvec2> const& lngLat = std::nullopt);
+  /// position is given, the current pointer position will be used. If an index is given, the new
+  /// point will be inserted at this position. Otherwise it will be appended to the end.
+  void addPoint(std::optional<glm::dvec2> const& lngLat = std::nullopt,
+      std::optional<size_t> const&               index  = std::nullopt);
 
  protected:
   /// Derived classes should implement these - they will be called after the corresponding event
   /// happened.
-  virtual void onPointMoved()            = 0;
-  virtual void onPointAdded()            = 0;
-  virtual void onPointRemoved(int index) = 0;
+  virtual void onPointMoved()               = 0;
+  virtual void onPointAdded(size_t index)   = 0;
+  virtual void onPointRemoved(size_t index) = 0;
 
   std::shared_ptr<cs::core::InputManager> mInputManager;
   std::shared_ptr<cs::core::SolarSystem>  mSolarSystem;

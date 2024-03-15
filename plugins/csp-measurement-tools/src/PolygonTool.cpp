@@ -961,7 +961,7 @@ void PolygonTool::onPointMoved() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void PolygonTool::onPointAdded() {
+void PolygonTool::onPointAdded(size_t /*index*/) {
   // Return if point is not on planet
   for (auto const& mark : mPoints) {
     glm::dvec3 vec = mark->getPosition();
@@ -975,7 +975,7 @@ void PolygonTool::onPointAdded() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void PolygonTool::onPointRemoved(int /*index*/) {
+void PolygonTool::onPointRemoved(size_t /*index*/) {
   // Don't allow to become only one line
   if (mPoints.size() == 2) {
     pAddPointMode = true;

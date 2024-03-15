@@ -48,7 +48,7 @@ class DipStrikeTool : public IVistaOpenGLDraw, public csl::tools::MultiPointTool
   DipStrikeTool(DipStrikeTool&& other)      = delete;
 
   DipStrikeTool& operator=(DipStrikeTool const& other) = delete;
-  DipStrikeTool& operator=(DipStrikeTool&& other) = delete;
+  DipStrikeTool& operator=(DipStrikeTool&& other)      = delete;
 
   ~DipStrikeTool() override;
 
@@ -69,8 +69,8 @@ class DipStrikeTool : public IVistaOpenGLDraw, public csl::tools::MultiPointTool
 
   /// These are called by the base class MultiPointTool.
   void onPointMoved() override;
-  void onPointAdded() override;
-  void onPointRemoved(int index) override;
+  void onPointAdded(size_t index) override;
+  void onPointRemoved(size_t index) override;
 
   std::unique_ptr<cs::gui::WorldSpaceGuiArea> mGuiArea;
   std::unique_ptr<cs::gui::GuiItem>           mGuiItem;

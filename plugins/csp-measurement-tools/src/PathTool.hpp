@@ -42,7 +42,7 @@ class PathTool : public IVistaOpenGLDraw, public csl::tools::MultiPointTool {
   PathTool(PathTool&& other)      = delete;
 
   PathTool& operator=(PathTool const& other) = delete;
-  PathTool& operator=(PathTool&& other) = delete;
+  PathTool& operator=(PathTool&& other)      = delete;
 
   ~PathTool() override;
 
@@ -65,8 +65,8 @@ class PathTool : public IVistaOpenGLDraw, public csl::tools::MultiPointTool {
 
   /// These are called by the base class MultiPointTool.
   void onPointMoved() override;
-  void onPointAdded() override;
-  void onPointRemoved(int index) override;
+  void onPointAdded(size_t index) override;
+  void onPointRemoved(size_t index) override;
 
   std::unique_ptr<VistaTransformNode>         mGuiAnchor;
   std::unique_ptr<VistaTransformNode>         mGuiTransform;

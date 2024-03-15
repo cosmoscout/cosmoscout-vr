@@ -219,13 +219,13 @@ void DipStrikeTool::onPointMoved() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void DipStrikeTool::onPointAdded() {
+void DipStrikeTool::onPointAdded(size_t /*index*/) {
   mVerticesDirty = true;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void DipStrikeTool::onPointRemoved(int /*index*/) {
+void DipStrikeTool::onPointRemoved(size_t /*index*/) {
   mVerticesDirty = true;
 }
 
