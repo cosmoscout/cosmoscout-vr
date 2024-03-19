@@ -94,6 +94,7 @@ Mark::Mark(Mark const& other)
     , pActive(other.pActive)
     , pLngLat(other.pLngLat)
     , pElevation(other.pElevation)
+    , pElevationMode(other.pElevationMode)
     , pDraggable(other.pDraggable)
     , pColor(other.pColor)
     , pScaleDistance(other.pScaleDistance)
@@ -176,9 +177,9 @@ bool Mark::Do() {
 
   glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(mIndexCount), GL_UNSIGNED_INT, nullptr);
 
-  if (pElevation.get() > 0) {
-    mShader->SetUniform(mUniforms.scale, 0.001F, pElevation.get() / mScale, 0.001F);
-    mShader->SetUniform(mUniforms.offset, 0.F, -pElevation.get() / mScale, 0.F);
+  if (pElevation.get() > 0 || pElevationMode.get() == ElevationMode::eOverZero) {
+    mShader->SetUniform(mUniforms.scale, 0.001F, 1000.F, 0.001F);
+    mShader->SetUniform(mUniforms.offset, 0.F, -1000.F, 0.F);
     glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(mIndexCount), GL_UNSIGNED_INT, nullptr);
   }
 
@@ -285,27 +286,42 @@ void Mark::initData() {
 
   // Update 3D position if the lngLat value changes.
   pLngLat.connect([this](glm::dvec2 const& lngLat) {
-    updatePosition(lngLat, pElevation.get(), mSettings->mGraphics.pHeightScale.get());
+    updatePosition(
+        lngLat, pElevation.get(), pElevationMode.get(), mSettings->mGraphics.pHeightScale.get());
   });
 
   // Update 3D position if the global height scale changes.
-  mHeightScaleConnection = mSettings->mGraphics.pHeightScale.connect(
-      [this](float heightScale) { updatePosition(pLngLat.get(), pElevation.get(), heightScale); });
+  mHeightScaleConnection = mSettings->mGraphics.pHeightScale.connect([this](float heightScale) {
+    updatePosition(pLngLat.get(), pElevation.get(), pElevationMode.get(), heightScale);
+  });
 
   // Update 3D position if the elevation changes.
   pElevation.connect([this](double elevation) {
-    updatePosition(pLngLat.get(), elevation, mSettings->mGraphics.pHeightScale.get());
+    updatePosition(
+        pLngLat.get(), elevation, pElevationMode.get(), mSettings->mGraphics.pHeightScale.get());
+  });
+
+  // Update 3D position if the elevation mode changes.
+  pElevationMode.connect([this](ElevationMode mode) {
+    updatePosition(pLngLat.get(), pElevation.get(), mode, mSettings->mGraphics.pHeightScale.get());
   });
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Mark::updatePosition(glm::dvec2 const& lngLat, double elevation, float heightScale) {
-  auto   object  = mSolarSystem->getObject(getObjectName());
-  auto   surface = object->getSurface();
-  double height  = (surface ? surface->getHeight(lngLat) : 0.0) + elevation;
-  auto   radii   = object->getRadii();
-  mPosition      = cs::utils::convert::toCartesian(lngLat, radii, height * heightScale);
+void Mark::updatePosition(
+    glm::dvec2 const& lngLat, double elevation, ElevationMode mode, float heightScale) {
+
+  auto object = mSolarSystem->getObject(getObjectName());
+  auto radii  = object->getRadii();
+
+  if (mode == ElevationMode::eOverSurface) {
+    auto   surface = object->getSurface();
+    double height  = (surface ? surface->getHeight(lngLat) : 0.0) + elevation;
+    mPosition      = cs::utils::convert::toCartesian(lngLat, radii, height * heightScale);
+  } else {
+    mPosition = cs::utils::convert::toCartesian(lngLat, radii, elevation * heightScale);
+  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

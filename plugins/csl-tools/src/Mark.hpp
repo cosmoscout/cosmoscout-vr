@@ -40,6 +40,8 @@ namespace csl::tools {
 /// A mark is a single point on the surface. It is selectable and draggable.
 class CSL_TOOLS_EXPORT Mark : public IVistaOpenGLDraw, public Tool {
  public:
+  enum class ElevationMode { eOverSurface, eOverZero };
+
   /// Observable properties to get updates on state changes. Consider these to be read-only.
   cs::utils::Property<bool> pHovered  = false;
   cs::utils::Property<bool> pSelected = false;
@@ -51,7 +53,8 @@ class CSL_TOOLS_EXPORT Mark : public IVistaOpenGLDraw, public Tool {
   /// The elevation of the mark in meters. If this is set to 0, the mark will be placed on the
   /// surface. For positive values, the mark will be floating above the surface with a thin line
   /// connecting it to the surface.
-  cs::utils::Property<double> pElevation = 0.0;
+  cs::utils::Property<double>        pElevation     = 0.0;
+  cs::utils::Property<ElevationMode> pElevationMode = ElevationMode::eOverSurface;
 
   /// If this is true, the mark can be dragged around. You can connect to pLngLat to get updates on
   /// the position.
@@ -93,7 +96,8 @@ class CSL_TOOLS_EXPORT Mark : public IVistaOpenGLDraw, public Tool {
 
  private:
   void initData();
-  void updatePosition(glm::dvec2 const& lngLat, double elevation, float heightScale);
+  void updatePosition(
+      glm::dvec2 const& lngLat, double elevation, ElevationMode mode, float heightScale);
 
   glm::dvec3 mPosition = glm::dvec3(0.0);
   double     mScale    = 1.0;
