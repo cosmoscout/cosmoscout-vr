@@ -121,11 +121,13 @@ void TreeManager::request(std::vector<TileId> const& tileIds) {
   // load the tile.
   // In the case of async loading, register @c onDataLoaded as the callback
   // that the source invokes when the tile is ready.
-  std::unique_lock<std::mutex> lck(mPendingMtx);
 
   for (auto const& tileId : tileIds) {
+    mPendingMtx.lock();
+
     if (mPendingTiles.count(tileId) == 0) {
       mPendingTiles[tileId] = new TileNode(tileId);
+      mPendingMtx.unlock();
 
       for (auto const& src : mTileDataSources.mChannels) {
         if (src) {
@@ -138,6 +140,8 @@ void TreeManager::request(std::vector<TileId> const& tileIds) {
           }
         }
       }
+    } else {
+      mPendingMtx.unlock();
     }
   }
 }
@@ -343,6 +347,8 @@ void TreeManager::merge() {
   // discarded.
   for (std::size_t i = 0; i < mUnmergedNodes.size();) {
     TileNode* node = mUnmergedNodes[i].mNode;
+
+    std::unique_lock<std::mutex> lck(mPendingMtx);
 
     if (insertNode(&mTree, node)) {
       // insert succeeded, remove from pending and unmerged and
