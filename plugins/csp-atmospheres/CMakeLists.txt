@@ -13,7 +13,7 @@ endif()
 
 # build the preprocessor ---------------------------------------------------------------------------
 
-add_subdirectory(preprocessor)
+add_subdirectory(csv-generator)
 
 # build plugin -------------------------------------------------------------------------------------
 

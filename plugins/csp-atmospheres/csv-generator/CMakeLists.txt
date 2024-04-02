@@ -5,9 +5,9 @@
 # SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
 # SPDX-License-Identifier: MIT
 
-option(CS_ATMOSPHERE_PREPROCESSOR "Enable compilation of the Atmosphere Preprocessor" OFF)
+option(CSP_ATMOSPHERES_CSV_GENERATOR "Enable compilation of the Atmosphere CSV Generator" OFF)
 
-if (NOT CS_ATMOSPHERE_PREPROCESSOR)
+if (NOT CSP_ATMOSPHERES_CSV_GENERATOR)
   return()
 endif()
 
@@ -22,23 +22,23 @@ file(GLOB SOURCE_FILES *.cpp)
 # Header files are only added in order to make them available in your IDE.
 file(GLOB HEADER_FILES *.hpp)
 
-add_executable(atmosphere-preprocessor
+add_executable(csv-generator
   ${SOURCE_FILES}
   ${HEADER_FILES}
 )
 
-target_link_libraries(atmosphere-preprocessor
+target_link_libraries(csv-generator
   cs-utils
   OpenMP::OpenMP_CXX
 )
 
 # Make directory structure available in your IDE.
-source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}" PREFIX "atmosphere-preprocessor"
+source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}" PREFIX "csv-generator"
   FILES ${SOURCE_FILES} ${HEADER_FILES}
 )
 
 # Make sure that CosmoScout VR can be directly started from within Visual Studio.
-set_target_properties(atmosphere-preprocessor PROPERTIES 
+set_target_properties(csv-generator PROPERTIES 
   VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_INSTALL_PREFIX}\\bin"
   VS_DEBUGGER_ENVIRONMENT "PATH=..\\lib;%PATH%"
 )
@@ -46,6 +46,6 @@ set_target_properties(atmosphere-preprocessor PROPERTIES
 # install executable ---------------------------------------------------------------------------------
 
 install(
-  TARGETS atmosphere-preprocessor
+  TARGETS csv-generator
   RUNTIME DESTINATION "bin"
 )
