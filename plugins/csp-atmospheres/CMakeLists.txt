@@ -11,9 +11,10 @@ if (NOT CSP_ATMOSPHERES)
   return()
 endif()
 
-# build the preprocessor ---------------------------------------------------------------------------
+# build the preprocessors --------------------------------------------------------------------------
 
 add_subdirectory(csv-generator)
+add_subdirectory(atmosphere-preprocessor)
 
 # build plugin -------------------------------------------------------------------------------------
 

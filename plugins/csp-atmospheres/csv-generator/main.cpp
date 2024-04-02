@@ -20,7 +20,7 @@
 
 // clang-format off
 void printHelp() {
-  std::cout << "Welcome to the atmosphere preprocessor! Usage:" << std::endl;
+  std::cout << "Welcome to the CSV Generator! Usage:" << std::endl;
   std::cout << std::endl;
   std::cout << "  ./csv-generator <mode> <options>" << std::endl;
   std::cout << std::endl;

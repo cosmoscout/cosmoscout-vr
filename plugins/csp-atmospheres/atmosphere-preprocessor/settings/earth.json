@@ -1,0 +1,20 @@
+{
+    "sunAngularRadius": 0.004675,
+    "multiScatteringOrder": 10,
+    "molecules": {
+        "phase": "../share/resources/data/csp-atmospheres/earth_cosmoscout_molecules_phase.csv",
+        "betaSca": "../share/resources/data/csp-atmospheres/earth_cosmoscout_molecules_scattering.csv",
+        "betaAbs": "../share/resources/data/csp-atmospheres/earth_cosmoscout_molecules_absorption.csv",
+        "density": "../share/resources/data/csp-atmospheres/earth_cosmoscout_molecules_density.csv"
+    },
+    "aerosols": {
+        "phase": "../share/resources/data/csp-atmospheres/earth_cosmoscout_aerosols_phase.csv",
+        "betaSca": "../share/resources/data/csp-atmospheres/earth_cosmoscout_aerosols_scattering.csv",
+        "betaAbs": "../share/resources/data/csp-atmospheres/earth_cosmoscout_aerosols_absorption.csv",
+        "density": "../share/resources/data/csp-atmospheres/earth_cosmoscout_aerosols_density.csv"
+    },
+    "ozone": {
+        "betaAbs": "../share/resources/data/csp-atmospheres/earth_cosmoscout_ozone_absorption.csv",
+        "density": "../share/resources/data/csp-atmospheres/earth_cosmoscout_ozone_density.csv"
+    }
+}
