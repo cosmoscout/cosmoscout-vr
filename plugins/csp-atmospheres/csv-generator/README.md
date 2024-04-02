@@ -19,7 +19,7 @@ The resulting data is stored in CSV files and loaded by CosmoScout VR at runtime
 ## Usage
 
 > [!TIP]
-> Per default, the atmosphere preprocessor is not built. To build it, you need to pass `-DCS_ATMOSPHERE_PREPROCESSOR=On` in the make script.
+> Per default, the atmosphere preprocessor is not built. To build it, you need to pass `-DCSP_ATMOSPHERES_CSV_GENERATOR=On` in the make script.
 
 Once compiled, you'll need to set the library search path to contain the `install/<os>-<build_type>/lib` directory.
 This depends on where the `csv-generator` is installed to, but this may be something like this:
