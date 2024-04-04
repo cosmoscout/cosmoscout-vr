@@ -759,11 +759,11 @@
             "transmittanceTextureWidth": 1024,
             "transmittanceTextureHeight": 512,
             "sunAngularRadius": 0.003054,
-            "phaseTexture": "earth-atmo/phase.tif",
-            "transmittanceTexture": "earth-atmo/transmittance.tif",
-            "irradianceTexture": "earth-atmo/irradiance.tif",
-            "singleScatteringTexture": "earth-atmo/single_aerosols_scattering.tif",
-            "multipleScatteringTexture": "earth-atmo/multiple_scattering.tif"
+            "phaseTexture": "mars-atmo/phase.tif",
+            "transmittanceTexture": "mars-atmo/transmittance.tif",
+            "irradianceTexture": "mars-atmo/irradiance.tif",
+            "singleScatteringTexture": "mars-atmo/single_aerosols_scattering.tif",
+            "multipleScatteringTexture": "mars-atmo/multiple_scattering.tif"
           }
         }
       }
