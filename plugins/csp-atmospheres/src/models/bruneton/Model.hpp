@@ -11,7 +11,6 @@
 
 #include "../../../../src/cs-core/Settings.hpp"
 #include "../../ModelBase.hpp"
-#include "internal/Implementation.hpp"
 
 namespace csp::atmospheres::models::bruneton {
 
@@ -27,58 +26,25 @@ namespace csp::atmospheres::models::bruneton {
 /// https://github.com/ebruneton/precomputed_atmospheric_scattering/blob/master/atmosphere/constants.h
 class Model : public ModelBase {
  public:
+  /// If only three wavelengths are used during rendering, these three are used:
+  static constexpr float kLambdaR = 680.0;
+  static constexpr float kLambdaG = 550.0;
+  static constexpr float kLambdaB = 440.0;
+
   struct Settings {
 
-    /// This stores file paths to the CSV files containing the respective data. See the README of
-    /// this plugin for a more detailed description.
-    struct ScatteringComponent {
-      std::string mBetaSca;
-      std::string mBetaAbs;
-      std::string mPhase;
-      std::string mDensity;
-    };
-
-    /// This stores file paths to the CSV files containing the respective data. See the README of
-    /// this plugin for a more detailed description.
-    struct AbsorbingComponent {
-      std::string mBetaAbs;
-      std::string mDensity;
-    };
-
-    /// In this model, an atmosphere can consist out of three particle types. Two of them can
-    /// scatter light, one can only absorb light. The former are usually used for small molecules
-    /// and larger aerosols respectively, while the latter is used for ozone.
-    ScatteringComponent               mMolecules;
-    ScatteringComponent               mAerosols;
-    std::optional<AbsorbingComponent> mOzone;
+    std::string mPhaseTexture;
+    std::string mTransmittanceTexture;
+    std::string mIrradianceTexture;
+    std::string mSingleScatteringTexture;
+    std::string mMultipleScatteringTexture;
 
     /// The angular radius of the Sun needs to be specified. As SPICE is not fully available when
     /// the plugin is loaded, we cannot compute it. Also, this actually varies in reality.
     float mSunAngularRadius = 0.004675F;
 
-    /// The average reflectance of the ground used during multiple scattering.
-    cs::utils::DefaultProperty<float> mGroundAlbedo{0.1F};
-
-    /// The number of multiple scattering events to precompute. Use zero for single-scattering only.
-    cs::utils::DefaultProperty<int32_t> mMultiScatteringOrder{4};
-
-    /// The number of samples to evaluate when precomputing the optical depth.
-    cs::utils::DefaultProperty<int32_t> mSampleCountOpticalDepth{500};
-
-    /// The number of samples to evaluate when precomputing the single scattering. Larger values
-    /// improve the sampling of thin atmospheric layers.
-    cs::utils::DefaultProperty<int32_t> mSampleCountSingleScattering{50};
-
-    /// The number of samples to evaluate when precomputing the multiple scattering. Larger values
-    /// tend to darken the horizon for thick atmospheres.
-    cs::utils::DefaultProperty<int32_t> mSampleCountMultiScattering{50};
-
-    /// The number of samples to evaluate when precomputing the scattering density. Larger values
-    /// spread out colors in the sky.
-    cs::utils::DefaultProperty<int32_t> mSampleCountScatteringDensity{16};
-
-    /// The number of samples to evaluate when precomputing the indirect irradiance.
-    cs::utils::DefaultProperty<int32_t> mSampleCountIndirectIrradiance{32};
+    cs::utils::DefaultProperty<float> mPlanetRadius{6371000.F};
+    cs::utils::DefaultProperty<float> mAtmosphereRadius{6471000.F};
 
     /// The resolution of the transmittance texture. Larger values can improve the sampling of thin
     /// atmospheric layers close to the horizon.
@@ -100,7 +66,15 @@ class Model : public ModelBase {
     /// The resolution of the irradiance texture.
     cs::utils::DefaultProperty<int32_t> mIrradianceTextureWidth{64};
     cs::utils::DefaultProperty<int32_t> mIrradianceTextureHeight{16};
+
+    /// The maximum Sun zenith angle for which atmospheric scattering must be precomputed, in
+    /// radians (for maximum precision, use the smallest Sun zenith angle yielding negligible sky
+    /// light radiance values. For instance, for the Earth case, 102 degrees is a good choice for
+    /// most cases (120 degrees is necessary for very high exposure values).
+    cs::utils::DefaultProperty<float> mMaxSunZenithAngle{120.F / 180.F * glm::pi<float>()};
   };
+
+  virtual ~Model();
 
   /// Whenever the model parameters are changed, this method needs to be called. It will return true
   /// if the shader needed to be recompiled. If that's the case, you can retrieve the new shader
@@ -116,7 +90,17 @@ class Model : public ModelBase {
   GLuint setUniforms(GLuint program, GLuint startTextureUnit) const override;
 
  private:
-  std::unique_ptr<internal::Implementation> mImpl;
+  // To optimize resource usage, this texture stores single molecule-scattering plus all
+  // multiple-scattering contributions. The single aerosols scattering is stored in an extra
+  // texture.
+  GLuint mMultipleScatteringTexture       = 0;
+  GLuint mSingleAerosolsScatteringTexture = 0;
+
+  GLuint mPhaseTexture         = 0;
+  GLuint mTransmittanceTexture = 0;
+  GLuint mIrradianceTexture    = 0;
+
+  GLuint mAtmosphereShader = 0;
 };
 
 } // namespace csp::atmospheres::models::bruneton

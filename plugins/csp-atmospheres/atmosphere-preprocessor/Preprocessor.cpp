@@ -676,9 +676,9 @@ Preprocessor::Preprocessor(Params params)
   // A lambda that creates a GLSL header containing our atmosphere computation functions,
   // specialized for the given atmosphere parameters and for the 3 wavelengths in 'lambdas'.
   auto definitions = cs::utils::filesystem::loadToString(
-      "../share/resources/shaders/csp-atmospheres/models/bruneton/definitions.glsl");
+      "../share/resources/shaders/atmosphere-preprocessing-definitions.glsl");
   auto functions = cs::utils::filesystem::loadToString(
-      "../share/resources/shaders/csp-atmospheres/models/bruneton/functions.glsl");
+      "../share/resources/shaders/atmosphere-preprocessing-functions.glsl");
 
   // clang-format off
   mGlslHeaderFactory = [=](glm::vec3 const& lambdas) {
@@ -721,9 +721,8 @@ Preprocessor::Preprocessor(Params params)
             mScatteringTextureDepth, GL_RGB32F, GL_RGB, GL_FLOAT);
   mSingleAerosolsScatteringTexture = NewTexture3d(mScatteringTextureWidth, mScatteringTextureHeight,
       mScatteringTextureDepth, GL_RGB32F, GL_RGB, GL_FLOAT);
-
-  mIrradianceTexture = NewTexture2d(mParams.mIrradianceTextureWidth.get(),
-      mParams.mIrradianceTextureHeight.get(), GL_RGB32F, GL_RGB, GL_FLOAT);
+  mIrradianceTexture               = NewTexture2d(mParams.mIrradianceTextureWidth.get(),
+                    mParams.mIrradianceTextureHeight.get(), GL_RGB32F, GL_RGB, GL_FLOAT);
 
   // Create the density profile texture. It contains three rows of pixels, one for each constituent
   // of the atmosphere. The bottom-most density values are on the left, the top-most density values
@@ -918,7 +917,7 @@ void Preprocessor::save(std::string const& directory) {
     TIFFSetField(tiff, TIFFTAG_COMPRESSION, COMPRESSION_NONE);
     TIFFSetField(tiff, TIFFTAG_ROWSPERSTRIP, 1);
     for (int y = 0; y < height; ++y) {
-      TIFFWriteScanline(tiff, data.data() + y * width * 3, y, 0);
+      TIFFWriteScanline(tiff, data.data() + y * width * 3, y);
     }
     TIFFClose(tiff);
   };
@@ -944,7 +943,7 @@ void Preprocessor::save(std::string const& directory) {
       TIFFSetField(tiff, TIFFTAG_COMPRESSION, COMPRESSION_NONE);
       TIFFSetField(tiff, TIFFTAG_ROWSPERSTRIP, 1);
       for (int y = 0; y < height; ++y) {
-        TIFFWriteScanline(tiff, data.data() + z * width * height * 3 + y * width * 3, y, 0);
+        TIFFWriteScanline(tiff, data.data() + z * width * height * 3 + y * width * 3, y);
       }
       TIFFWriteDirectory(tiff);
     }
