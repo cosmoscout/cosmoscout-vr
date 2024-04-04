@@ -316,8 +316,6 @@ std::string extractVec3(
 
 void from_json(nlohmann::json const& j, Model::Settings& o) {
   cs::core::Settings::deserialize(j, "sunAngularRadius", o.mSunAngularRadius);
-  cs::core::Settings::deserialize(j, "planetRadius", o.mPlanetRadius);
-  cs::core::Settings::deserialize(j, "atmosphereRadius", o.mAtmosphereRadius);
   cs::core::Settings::deserialize(j, "phaseTexture", o.mPhaseTexture);
   cs::core::Settings::deserialize(j, "transmittanceTexture", o.mTransmittanceTexture);
   cs::core::Settings::deserialize(j, "irradianceTexture", o.mIrradianceTexture);
@@ -336,8 +334,6 @@ void from_json(nlohmann::json const& j, Model::Settings& o) {
 
 void to_json(nlohmann::json& j, Model::Settings const& o) {
   cs::core::Settings::serialize(j, "sunAngularRadius", o.mSunAngularRadius);
-  cs::core::Settings::serialize(j, "planetRadius", o.mPlanetRadius);
-  cs::core::Settings::serialize(j, "atmosphereRadius", o.mAtmosphereRadius);
   cs::core::Settings::serialize(j, "phaseTexture", o.mPhaseTexture);
   cs::core::Settings::serialize(j, "transmittanceTexture", o.mTransmittanceTexture);
   cs::core::Settings::serialize(j, "irradianceTexture", o.mIrradianceTexture);
@@ -423,8 +419,8 @@ bool Model::init(
     "const vec3 SUN_SPECTRAL_RADIANCE_TO_LUMINANCE = vec3(" + cs::utils::toString(sunKR) + "," + cs::utils::toString(sunKG) + "," + cs::utils::toString(sunKB) + ");\n" +
     "const vec3 SOLAR_IRRADIANCE = "                + extractVec3(WAVELENGTHS, SOLAR_IRRADIANCE, {kLambdaR, kLambdaG, kLambdaB}) + ";\n" +
     "const float SUN_ANGULAR_RADIUS = "             + cs::utils::toString(settings.mSunAngularRadius) + ";\n" +
-    "const float BOTTOM_RADIUS = "                  + cs::utils::toString(settings.mPlanetRadius) + ";\n" +
-    "const float TOP_RADIUS = "                     + cs::utils::toString(settings.mAtmosphereRadius) + ";\n" +
+    "const float BOTTOM_RADIUS = "                  + cs::utils::toString(planetRadius) + ";\n" +
+    "const float TOP_RADIUS = "                     + cs::utils::toString(atmosphereRadius) + ";\n" +
     "const float MU_S_MIN = "                       + cs::utils::toString(std::cos(settings.mMaxSunZenithAngle.get()))+ ";\n" +
     "const float MOLECULES_PHASE_FUNCTION_V = 0.0;\n" +
     "const float AEROSOLS_PHASE_FUNCTION_V = 1.0;\n" +

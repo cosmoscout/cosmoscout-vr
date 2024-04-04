@@ -43,9 +43,6 @@ class Model : public ModelBase {
     /// the plugin is loaded, we cannot compute it. Also, this actually varies in reality.
     float mSunAngularRadius = 0.004675F;
 
-    cs::utils::DefaultProperty<float> mPlanetRadius{6371000.F};
-    cs::utils::DefaultProperty<float> mAtmosphereRadius{6471000.F};
-
     /// The resolution of the transmittance texture. Larger values can improve the sampling of thin
     /// atmospheric layers close to the horizon.
     cs::utils::DefaultProperty<int32_t> mTransmittanceTextureWidth{256};
