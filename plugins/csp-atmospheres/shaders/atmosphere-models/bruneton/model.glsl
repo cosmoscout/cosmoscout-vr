@@ -18,201 +18,22 @@
 // Below, we will indicate for each group of function whether something has been changed and a link
 // to the original explanations of the methods by Eric Bruneton.
 
+const float PI = 3.14159265358979323846;
+
 uniform sampler2D uPhaseTexture;
 uniform sampler2D uTransmittanceTexture;
 uniform sampler3D uMultipleScatteringTexture;
 uniform sampler3D uSingleAerosolsScatteringTexture;
 uniform sampler2D uIrradianceTexture;
 
-// Helpers -----------------------------------------------------------------------------------------
-
-// We start with some helper methods which have not been changed functionality-wise.
-// https://ebruneton.github.io/precomputed_atmospheric_scattering/atmosphere/functions.glsl.html
-
-const float PI = 3.14159265358979323846;
-
-float clampCosine(float mu) {
-  return clamp(mu, -1.0, 1.0);
-}
-
-float clampDistance(float d) {
-  return max(d, 0.0);
-}
-
-float clampRadius(float r) {
-  return clamp(r, BOTTOM_RADIUS, TOP_RADIUS);
-}
-
-float safeSqrt(float a) {
-  return sqrt(max(a, 0.0));
-}
-
-// Transmittance Computation -----------------------------------------------------------------------
-
-// The code below is used to comute the optical depth (or transmittance) from any point in the
-// atmosphere towards the top atmosphere boundary.
-
-// An explanation of the following methods is available online:
-// https://ebruneton.github.io/precomputed_atmospheric_scattering/atmosphere/functions.glsl.html#transmittance
-
-// The only functional difference is that the density of the air molecules, aerosols, and ozone
-// molecules is now sampled from a texture (in getDensity()) instead of analytically computed.
-
-float distanceToTopAtmosphereBoundary(float r, float mu) {
-  float discriminant = r * r * (mu * mu - 1.0) + TOP_RADIUS * TOP_RADIUS;
-  return clampDistance(-r * mu + safeSqrt(discriminant));
-}
-
-bool rayIntersectsGround(float r, float mu) {
-  return mu < 0.0 && r * r * (mu * mu - 1.0) + BOTTOM_RADIUS * BOTTOM_RADIUS >= 0.0;
-}
-
-// Transmittance Texture Precomputation ------------------------------------------------------------
-
-// The code below is used to store the precomputed transmittance values in a 2D lookup table.
-
-// An explanation of the following methods is available online:
-// https://ebruneton.github.io/precomputed_atmospheric_scattering/atmosphere/functions.glsl.html#transmittance_precomputation
-
-// There is no functional difference to the original code.
-
-float getTextureCoordFromUnitRange(float x, int textureSize) {
-  return 0.5 / float(textureSize) + x * (1.0 - 1.0 / float(textureSize));
-}
-
-vec2 getTransmittanceTextureUvFromRMu(float r, float mu) {
-  // Distance to top atmosphere boundary for a horizontal ray at ground level.
-  float H = sqrt(TOP_RADIUS * TOP_RADIUS - BOTTOM_RADIUS * BOTTOM_RADIUS);
-  // Distance to the horizon.
-  float rho = safeSqrt(r * r - BOTTOM_RADIUS * BOTTOM_RADIUS);
-  // Distance to the top atmosphere boundary for the ray (r,mu), and its minimum
-  // and maximum values over all mu - obtained for (r,1) and (r,mu_horizon).
-  float d    = distanceToTopAtmosphereBoundary(r, mu);
-  float dMin = TOP_RADIUS - r;
-  float dMax = rho + H;
-  float xMu  = (d - dMin) / (dMax - dMin);
-  float xR   = rho / H;
-  return vec2(getTextureCoordFromUnitRange(xMu, TRANSMITTANCE_TEXTURE_WIDTH),
-      getTextureCoordFromUnitRange(xR, TRANSMITTANCE_TEXTURE_HEIGHT));
-}
-
-// Transmittance Texture Lookup --------------------------------------------------------------------
-
-// The code below is used to retrieve the transmittance values from the lookup tables.
-
-// An explanation of the following methods is available online:
-// https://ebruneton.github.io/precomputed_atmospheric_scattering/atmosphere/functions.glsl.html#transmittance_lookup
-
-// There is no functional difference to the original code.
-
-vec3 getTransmittanceToTopAtmosphereBoundary(sampler2D transmittanceTexture, float r, float mu) {
-  vec2 uv = getTransmittanceTextureUvFromRMu(r, mu);
-  return vec3(texture(transmittanceTexture, uv));
-}
-
-vec3 getTransmittance(
-    sampler2D transmittanceTexture, float r, float mu, float d, bool rayRMuIntersectsGround) {
-
-  float rD  = clampRadius(sqrt(d * d + 2.0 * r * mu * d + r * r));
-  float muD = clampCosine((r * mu + d) / rD);
-
-  if (rayRMuIntersectsGround) {
-    return min(getTransmittanceToTopAtmosphereBoundary(transmittanceTexture, rD, -muD) /
-                   getTransmittanceToTopAtmosphereBoundary(transmittanceTexture, r, -mu),
-        vec3(1.0));
-  } else {
-    return min(getTransmittanceToTopAtmosphereBoundary(transmittanceTexture, r, mu) /
-                   getTransmittanceToTopAtmosphereBoundary(transmittanceTexture, rD, muD),
-        vec3(1.0));
-  }
-}
-
-vec3 getTransmittanceToSun(sampler2D transmittanceTexture, float r, float muS) {
-  float sinThetaH = BOTTOM_RADIUS / r;
-  float cosThetaH = -sqrt(max(1.0 - sinThetaH * sinThetaH, 0.0));
-  return getTransmittanceToTopAtmosphereBoundary(transmittanceTexture, r, muS) *
-         smoothstep(
-             -sinThetaH * SUN_ANGULAR_RADIUS, sinThetaH * SUN_ANGULAR_RADIUS, muS - cosThetaH);
-}
-
-vec3 phaseFunction(float texture_v, float nu) {
+vec3 moleculePhaseFunction(float nu) {
   float theta = acos(nu) / PI; // 0<->1
-  return texture2D(uPhaseTexture, vec2(theta, texture_v)).rgb;
+  return texture2D(uPhaseTexture, vec2(theta, 0.0)).rgb;
 }
 
-// Single-Scattering Texture Precomputation --------------------------------------------------------
-
-// The code below is used to store the single scattering (without the phase function applied) in a
-// 4D lookup table.
-
-// An explanation of the following methods is available online:
-// https://ebruneton.github.io/precomputed_atmospheric_scattering/atmosphere/functions.glsl.html#single_scattering_precomputation
-
-// There is no functional difference to the original code.
-
-vec4 getScatteringTextureUvwzFromRMuMuSNu(
-    float r, float mu, float muS, float nu, bool rayRMuIntersectsGround) {
-
-  // Distance to top atmosphere boundary for a horizontal ray at ground level.
-  float H = sqrt(TOP_RADIUS * TOP_RADIUS - BOTTOM_RADIUS * BOTTOM_RADIUS);
-  // Distance to the horizon.
-  float rho = safeSqrt(r * r - BOTTOM_RADIUS * BOTTOM_RADIUS);
-  float u_r = getTextureCoordFromUnitRange(rho / H, SCATTERING_TEXTURE_R_SIZE);
-
-  // Discriminant of the quadratic equation for the intersections of the ray (r,mu) with the ground
-  // (see rayIntersectsGround).
-  float rMu          = r * mu;
-  float discriminant = rMu * rMu - r * r + BOTTOM_RADIUS * BOTTOM_RADIUS;
-  float uMu;
-  if (rayRMuIntersectsGround) {
-    // Distance to the ground for the ray (r,mu), and its minimum and maximum values over all mu -
-    // obtained for (r,-1) and (r,mu_horizon).
-    float d    = -rMu - safeSqrt(discriminant);
-    float dMin = r - BOTTOM_RADIUS;
-    float dMax = rho;
-    uMu = 0.5 - 0.5 * getTextureCoordFromUnitRange(dMax == dMin ? 0.0 : (d - dMin) / (dMax - dMin),
-                          SCATTERING_TEXTURE_MU_SIZE / 2);
-  } else {
-    // Distance to the top atmosphere boundary for the ray (r,mu), and its minimum and maximum
-    // values over all mu - obtained for (r,1) and (r,mu_horizon).
-    float d    = -rMu + safeSqrt(discriminant + H * H);
-    float dMin = TOP_RADIUS - r;
-    float dMax = rho + H;
-    uMu        = 0.5 + 0.5 * getTextureCoordFromUnitRange(
-                          (d - dMin) / (dMax - dMin), SCATTERING_TEXTURE_MU_SIZE / 2);
-  }
-
-  float d    = distanceToTopAtmosphereBoundary(BOTTOM_RADIUS, muS);
-  float dMin = TOP_RADIUS - BOTTOM_RADIUS;
-  float dMax = H;
-  float a    = (d - dMin) / (dMax - dMin);
-  float D    = distanceToTopAtmosphereBoundary(BOTTOM_RADIUS, MU_S_MIN);
-  float A    = (D - dMin) / (dMax - dMin);
-  // An ad-hoc function equal to 0 for muS = MU_S_MIN (because then d = D and thus a = A), equal to
-  // 1 for muS = 1 (because then d = dMin and thus a = 0), and with a large slope around muS = 0,
-  // to get more texture samples near the horizon.
-  float uMuS =
-      getTextureCoordFromUnitRange(max(1.0 - a / A, 0.0) / (1.0 + a), SCATTERING_TEXTURE_MU_S_SIZE);
-
-  float uNu = (nu + 1.0) / 2.0;
-  return vec4(uNu, uMuS, uMu, u_r);
-}
-
-// Irradiance-Texture Precomputation ---------------------------------------------------------------
-
-// The code below is used to store the direct and indirect irradiance received at any altitude in 2D
-// lookup tables.
-
-// An explanation of the following methods is available online:
-// https://ebruneton.github.io/precomputed_atmospheric_scattering/atmosphere/functions.glsl.html#irradiance_precomputation
-
-// There is no functional difference to the original code.
-
-vec2 getIrradianceTextureUvFromRMuS(float r, float muS) {
-  float xR   = (r - BOTTOM_RADIUS) / (TOP_RADIUS - BOTTOM_RADIUS);
-  float xMuS = muS * 0.5 + 0.5;
-  return vec2(getTextureCoordFromUnitRange(xMuS, IRRADIANCE_TEXTURE_WIDTH),
-      getTextureCoordFromUnitRange(xR, IRRADIANCE_TEXTURE_HEIGHT));
+vec3 aerosolPhaseFunction(float nu) {
+  float theta = acos(nu) / PI; // 0<->1
+  return texture2D(uPhaseTexture, vec2(theta, 1.0)).rgb;
 }
 
 // Combining Single- and Multiple-Scattering Contributions -----------------------------------------
@@ -286,8 +107,8 @@ vec3 getSkyRadiance(sampler2D transmittanceTexture, sampler3D multipleScattering
   getCombinedScattering(multipleScatteringTexture, singleAerosolsScatteringTexture, r, mu, muS, nu,
       rayRMuIntersectsGround, multipleScattering, singleAerosolsScattering);
 
-  return multipleScattering * phaseFunction(MOLECULES_PHASE_FUNCTION_V, nu) +
-         singleAerosolsScattering * phaseFunction(AEROSOLS_PHASE_FUNCTION_V, nu);
+  return multipleScattering * moleculePhaseFunction(nu) +
+         singleAerosolsScattering * aerosolPhaseFunction(nu);
 }
 
 // Arial Perspective -------------------------------------------------------------------------------
@@ -352,8 +173,8 @@ vec3 getSkyRadianceToPoint(sampler2D transmittanceTexture, sampler3D multipleSca
   // Hack to avoid rendering artifacts when the sun is below the horizon.
   // singleAerosolsScattering = singleAerosolsScattering * smoothstep(0.0, 0.01, muS);
 
-  return multipleScattering * phaseFunction(MOLECULES_PHASE_FUNCTION_V, nu) +
-         singleAerosolsScattering * phaseFunction(AEROSOLS_PHASE_FUNCTION_V, nu);
+  return multipleScattering * moleculePhaseFunction(nu) +
+         singleAerosolsScattering * aerosolPhaseFunction(nu);
 }
 
 // Ground ------------------------------------------------------------------------------------------

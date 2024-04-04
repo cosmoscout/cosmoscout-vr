@@ -678,6 +678,8 @@ Preprocessor::Preprocessor(Params params)
       "../share/resources/shaders/csp-atmosphere-preprocessing-definitions.glsl");
   auto functions = cs::utils::filesystem::loadToString(
       "../share/resources/shaders/csp-atmosphere-preprocessing-functions.glsl");
+  auto common = cs::utils::filesystem::loadToString(
+      "../share/resources/shaders/atmosphere-models/bruneton/common.glsl");
 
   // clang-format off
   mGlslHeaderFactory = [=](glm::vec3 const& lambdas) {
@@ -707,6 +709,7 @@ Preprocessor::Preprocessor(Params params)
         printScatteringComponent(mParams.mMolecules, mParams.mWavelengths, 0.0, 0.0, lambdas) + ",\n" +
         printScatteringComponent(mParams.mAerosols, mParams.mWavelengths, 1.0, 0.5, lambdas) + ",\n" +
         printAbsorbingComponent(mParams.mOzone.value(), mParams.mWavelengths, 1.0, lambdas) + ");\n" +
+      common + "\n" +
       functions;
     };
   // clang-format on

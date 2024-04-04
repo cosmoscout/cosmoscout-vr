@@ -111,6 +111,8 @@ bool Model::init(
   // specialized for the given atmosphere parameters and for the 3 wavelengths in 'lambdas'.
   auto model = cs::utils::filesystem::loadToString(
       "../share/resources/shaders/atmosphere-models/bruneton/model.glsl");
+  auto common = cs::utils::filesystem::loadToString(
+      "../share/resources/shaders/atmosphere-models/bruneton/common.glsl");
 
   // clang-format off
   std::string shader =
@@ -128,8 +130,7 @@ bool Model::init(
     "const float BOTTOM_RADIUS = "                  + cs::utils::toString(planetRadius) + ";\n" +
     "const float TOP_RADIUS = "                     + cs::utils::toString(atmosphereRadius) + ";\n" +
     "const float MU_S_MIN = "                       + cs::utils::toString(std::cos(settings.mMaxSunZenithAngle.get()))+ ";\n" +
-    "const float MOLECULES_PHASE_FUNCTION_V = 0.0;\n" +
-    "const float AEROSOLS_PHASE_FUNCTION_V = 1.0;\n" +
+    common + "\n" +
     model;
   // clang-format on
 
