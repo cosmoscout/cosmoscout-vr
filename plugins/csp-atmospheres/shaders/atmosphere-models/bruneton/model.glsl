@@ -215,21 +215,6 @@ vec2 getIrradianceTextureUvFromRMuS(float r, float muS) {
       getTextureCoordFromUnitRange(xR, IRRADIANCE_TEXTURE_HEIGHT));
 }
 
-// Irradiance-Texture Lookup -----------------------------------------------------------------------
-
-// The code below is used to retrieve the Sun and sky irradiance values from any altitude from the
-// lookup tables.
-
-// An explanation of the following methods is available online:
-// https://ebruneton.github.io/precomputed_atmospheric_scattering/atmosphere/functions.glsl.html#irradiance_lookup
-
-// There is no functional difference to the original code.
-
-vec3 getIrradiance(sampler2D irradianceTexture, float r, float muS) {
-  vec2 uv = getIrradianceTextureUvFromRMuS(r, muS);
-  return vec3(texture(irradianceTexture, uv));
-}
-
 // Combining Single- and Multiple-Scattering Contributions -----------------------------------------
 
 // The code below is used to retrieve single molecule-scattrering + multiple-scattering, and single
@@ -392,7 +377,8 @@ vec3 getSunAndSkyIrradiance(sampler2D transmittanceTexture, sampler2D irradiance
   float muS = dot(point, sunDirection) / r;
 
   // Indirect irradiance.
-  skyIrradiance = getIrradiance(irradianceTexture, r, muS);
+  vec2 uv       = getIrradianceTextureUvFromRMuS(r, muS);
+  skyIrradiance = vec3(texture(irradianceTexture, uv));
 
   // Direct irradiance.
   return SOLAR_ILLUMINANCE * getTransmittanceToSun(transmittanceTexture, r, muS);

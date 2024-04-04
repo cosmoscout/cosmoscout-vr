@@ -282,7 +282,7 @@ const char kComputeScatteringDensityShader[] = R"(
 
 const char kComputeIndirectIrradianceShader[] = R"(
   layout(location = 0) out vec3 oDeltaIrradiance;
-  layout(location = 1) out vec3 oIrradiance;
+  layout(location = 1) out vec3 oIlluminance;
 
   uniform mat3 uLuminanceFromRadiance;
   uniform sampler3D uSingleMoleculesScatteringTexture;
@@ -295,7 +295,7 @@ const char kComputeIndirectIrradianceShader[] = R"(
                                                         uSingleAerosolsScatteringTexture,
                                                         uMultipleScatteringTexture,
                                                         gl_FragCoord.xy, uScatteringOrder);
-    oIrradiance = uLuminanceFromRadiance * oDeltaIrradiance;
+    oIlluminance = uLuminanceFromRadiance * oDeltaIrradiance;
   }
 )";
 
@@ -468,7 +468,6 @@ GLuint NewTexture2d(int width, int height, GLenum internalFormat, GLenum format,
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-  glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
   glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, width, height, 0, format, type, data);
   return texture;
 }
@@ -484,7 +483,6 @@ GLuint NewTexture3d(int width, int height, int depth, GLenum internalFormat, GLe
   glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
   glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
   glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-  glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
   glTexImage3D(GL_TEXTURE_3D, 0, internalFormat, width, height, depth, 0, format, type, data);
   return texture;
 }
@@ -677,9 +675,9 @@ Preprocessor::Preprocessor(Params params)
   // A lambda that creates a GLSL header containing our atmosphere computation functions,
   // specialized for the given atmosphere parameters and for the 3 wavelengths in 'lambdas'.
   auto definitions = cs::utils::filesystem::loadToString(
-      "../share/resources/shaders/atmosphere-preprocessing-definitions.glsl");
+      "../share/resources/shaders/csp-atmosphere-preprocessing-definitions.glsl");
   auto functions = cs::utils::filesystem::loadToString(
-      "../share/resources/shaders/atmosphere-preprocessing-functions.glsl");
+      "../share/resources/shaders/csp-atmosphere-preprocessing-functions.glsl");
 
   // clang-format off
   mGlslHeaderFactory = [=](glm::vec3 const& lambdas) {
@@ -739,7 +737,6 @@ Preprocessor::Preprocessor(Params params)
         densityData.end(), mParams.mAerosols.mDensity.begin(), mParams.mAerosols.mDensity.end());
     densityData.insert(
         densityData.end(), mParams.mOzone->mDensity.begin(), mParams.mOzone->mDensity.end());
-
     mDensityTexture = NewTexture2d(static_cast<int>(numDensities), static_cast<int>(numComponents),
         GL_R32F, GL_RED, GL_FLOAT, densityData.data());
   }

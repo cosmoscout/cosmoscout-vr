@@ -88,6 +88,9 @@ class Model : public ModelBase {
   GLuint setUniforms(GLuint program, GLuint startTextureUnit) const override;
 
  private:
+  GLuint read2DTexture(std::string const& path) const;
+  GLuint read3DTexture(std::string const& path) const;
+
   // To optimize resource usage, this texture stores single molecule-scattering plus all
   // multiple-scattering contributions. The single aerosols scattering is stored in an extra
   // texture.

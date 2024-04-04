@@ -37,54 +37,6 @@ namespace csp::atmospheres::models::bruneton {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace {
-
-// Utility classes and Functions -------------------------------------------------------------------
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-// These GL-texture generators have been made a bit more flexible to allow for different pixel
-// formats. At the same time, we have removed support for the half-resolution pixel formats (they
-// quickly lead to artefacts with the high-dynamic range of CosmoScout VR). Also, we do not check
-// for the availability of RGB textures anymore but use RGB textures everywhere.
-
-GLuint NewTexture2d(int width, int height, GLenum internalFormat, GLenum format, GLenum type,
-    void* data = nullptr) {
-  GLuint texture;
-  glGenTextures(1, &texture);
-  glActiveTexture(GL_TEXTURE0);
-  glBindTexture(GL_TEXTURE_2D, texture);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-  glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
-  glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, width, height, 0, format, type, data);
-  return texture;
-}
-
-GLuint NewTexture3d(int width, int height, int depth, GLenum internalFormat, GLenum format,
-    GLenum type, void* data = nullptr) {
-  GLuint texture;
-  glGenTextures(1, &texture);
-  glActiveTexture(GL_TEXTURE0);
-  glBindTexture(GL_TEXTURE_3D, texture);
-  glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-  glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-  glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-  glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-  glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-  glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
-  glTexImage3D(GL_TEXTURE_3D, 0, internalFormat, width, height, depth, 0, format, type, data);
-  return texture;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-} // namespace
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
 void from_json(nlohmann::json const& j, Model::Settings& o) {
   cs::core::Settings::deserialize(j, "sunAngularRadius", o.mSunAngularRadius);
   cs::core::Settings::deserialize(j, "sunIlluminance", o.mSunIlluminance);
@@ -158,7 +110,7 @@ bool Model::init(
   // A lambda that creates a GLSL header containing our atmosphere computation functions,
   // specialized for the given atmosphere parameters and for the 3 wavelengths in 'lambdas'.
   auto model = cs::utils::filesystem::loadToString(
-      "../share/resources/shaders/csp-atmospheres/models/bruneton/model.glsl");
+      "../share/resources/shaders/atmosphere-models/bruneton/model.glsl");
 
   // clang-format off
   std::string shader =
@@ -181,70 +133,11 @@ bool Model::init(
     model;
   // clang-format on
 
-  auto read2D = [](std::string const& path) {
-    auto* data = TIFFOpen(path.c_str(), "r");
-
-    if (!data) {
-      logger().error("Failed to open TIFF file '{}'", path);
-      return 0u;
-    }
-
-    uint32_t width{};
-    uint32_t height{};
-
-    TIFFGetField(data, TIFFTAG_IMAGELENGTH, &height);
-    TIFFGetField(data, TIFFTAG_IMAGEWIDTH, &width);
-
-    std::vector<float> pixels(width * height * 3);
-
-    for (unsigned y = 0; y < height; y++) {
-      TIFFReadScanline(data, &pixels[width * 3 * y], y);
-    }
-
-    TIFFClose(data);
-
-    return NewTexture2d(width, height, GL_RGB32F, GL_RGB, GL_FLOAT, pixels.data());
-  };
-
-  mPhaseTexture         = read2D(settings.mPhaseTexture);
-  mTransmittanceTexture = read2D(settings.mTransmittanceTexture);
-  mIrradianceTexture    = read2D(settings.mIrradianceTexture);
-
-  auto read3D = [](std::string const& path) {
-    auto* data = TIFFOpen(path.c_str(), "r");
-
-    if (!data) {
-      logger().error("Failed to open TIFF file '{}'", path);
-      return 0u;
-    }
-
-    uint32_t width{};
-    uint32_t height{};
-    uint32_t depth{};
-
-    TIFFGetField(data, TIFFTAG_IMAGELENGTH, &height);
-    TIFFGetField(data, TIFFTAG_IMAGEWIDTH, &width);
-
-    do {
-      depth++;
-    } while (TIFFReadDirectory(data));
-
-    std::vector<float> pixels(width * height * depth * 3);
-
-    for (unsigned z = 0; z < depth; z++) {
-      TIFFSetDirectory(data, z);
-      for (unsigned y = 0; y < height; y++) {
-        TIFFReadScanline(data, &pixels[width * 3 * y + (3 * width * height * z)], y);
-      }
-    }
-
-    TIFFClose(data);
-
-    return NewTexture3d(width, height, depth, GL_RGB32F, GL_RGB, GL_FLOAT, pixels.data());
-  };
-
-  mMultipleScatteringTexture       = read3D(settings.mMultipleScatteringTexture);
-  mSingleAerosolsScatteringTexture = read3D(settings.mSingleScatteringTexture);
+  mPhaseTexture                    = read2DTexture(settings.mPhaseTexture);
+  mTransmittanceTexture            = read2DTexture(settings.mTransmittanceTexture);
+  mIrradianceTexture               = read2DTexture(settings.mIrradianceTexture);
+  mMultipleScatteringTexture       = read3DTexture(settings.mMultipleScatteringTexture);
+  mSingleAerosolsScatteringTexture = read3DTexture(settings.mSingleScatteringTexture);
 
   // Create and compile the shader providing our API.
   const char* source = shader.c_str();
@@ -287,6 +180,92 @@ GLuint Model::setUniforms(GLuint program, GLuint startTextureUnit) const {
       glGetUniformLocation(program, "uSingleAerosolsScatteringTexture"), startTextureUnit + 4);
 
   return startTextureUnit + 5;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+GLuint Model::read2DTexture(std::string const& path) const {
+  auto* data = TIFFOpen(path.c_str(), "r");
+
+  if (!data) {
+    logger().error("Failed to open TIFF file '{}'", path);
+    return 0u;
+  }
+
+  uint32_t width{};
+  uint32_t height{};
+
+  TIFFGetField(data, TIFFTAG_IMAGELENGTH, &height);
+  TIFFGetField(data, TIFFTAG_IMAGEWIDTH, &width);
+
+  std::vector<float> pixels(width * height * 3);
+
+  for (unsigned y = 0; y < height; y++) {
+    TIFFReadScanline(data, &pixels[width * 3 * y], y);
+  }
+
+  TIFFClose(data);
+
+  GLuint texture;
+  glGenTextures(1, &texture);
+  glActiveTexture(GL_TEXTURE0);
+  glBindTexture(GL_TEXTURE_2D, texture);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+  glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, width, height, 0, GL_RGB, GL_FLOAT, pixels.data());
+
+  return texture;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+GLuint Model::read3DTexture(std::string const& path) const {
+  auto* data = TIFFOpen(path.c_str(), "r");
+
+  if (!data) {
+    logger().error("Failed to open TIFF file '{}'", path);
+    return 0u;
+  }
+
+  uint32_t width{};
+  uint32_t height{};
+  uint32_t depth{};
+
+  TIFFGetField(data, TIFFTAG_IMAGELENGTH, &height);
+  TIFFGetField(data, TIFFTAG_IMAGEWIDTH, &width);
+
+  do {
+    depth++;
+  } while (TIFFReadDirectory(data));
+
+  std::vector<float> pixels(width * height * depth * 3);
+
+  for (unsigned z = 0; z < depth; z++) {
+    TIFFSetDirectory(data, z);
+    for (unsigned y = 0; y < height; y++) {
+      TIFFReadScanline(data, &pixels[width * 3 * y + (3 * width * height * z)], y);
+    }
+  }
+
+  TIFFClose(data);
+
+  GLuint texture;
+  glGenTextures(1, &texture);
+  glActiveTexture(GL_TEXTURE0);
+  glBindTexture(GL_TEXTURE_3D, texture);
+  glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+  glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+  glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+  glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
+  glTexImage3D(
+      GL_TEXTURE_3D, 0, GL_RGB32F, width, height, depth, 0, GL_RGB, GL_FLOAT, pixels.data());
+
+  return texture;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
