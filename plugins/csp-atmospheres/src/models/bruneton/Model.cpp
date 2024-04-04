@@ -40,11 +40,7 @@ namespace csp::atmospheres::models::bruneton {
 void from_json(nlohmann::json const& j, Model::Settings& o) {
   cs::core::Settings::deserialize(j, "sunAngularRadius", o.mSunAngularRadius);
   cs::core::Settings::deserialize(j, "sunIlluminance", o.mSunIlluminance);
-  cs::core::Settings::deserialize(j, "phaseTexture", o.mPhaseTexture);
-  cs::core::Settings::deserialize(j, "transmittanceTexture", o.mTransmittanceTexture);
-  cs::core::Settings::deserialize(j, "irradianceTexture", o.mIrradianceTexture);
-  cs::core::Settings::deserialize(j, "singleScatteringTexture", o.mSingleScatteringTexture);
-  cs::core::Settings::deserialize(j, "multipleScatteringTexture", o.mMultipleScatteringTexture);
+  cs::core::Settings::deserialize(j, "dataDirectory", o.mDataDirectory);
   cs::core::Settings::deserialize(j, "scatteringTextureNuSize", o.mScatteringTextureNuSize);
   cs::core::Settings::deserialize(j, "maxSunZenithAngle", o.mMaxSunZenithAngle);
 }
@@ -52,11 +48,7 @@ void from_json(nlohmann::json const& j, Model::Settings& o) {
 void to_json(nlohmann::json& j, Model::Settings const& o) {
   cs::core::Settings::serialize(j, "sunAngularRadius", o.mSunAngularRadius);
   cs::core::Settings::serialize(j, "sunIlluminance", o.mSunIlluminance);
-  cs::core::Settings::serialize(j, "phaseTexture", o.mPhaseTexture);
-  cs::core::Settings::serialize(j, "transmittanceTexture", o.mTransmittanceTexture);
-  cs::core::Settings::serialize(j, "irradianceTexture", o.mIrradianceTexture);
-  cs::core::Settings::serialize(j, "singleScatteringTexture", o.mSingleScatteringTexture);
-  cs::core::Settings::serialize(j, "multipleScatteringTexture", o.mMultipleScatteringTexture);
+  cs::core::Settings::serialize(j, "dataDirectory", o.mDataDirectory);
   cs::core::Settings::serialize(j, "scatteringTextureNuSize", o.mScatteringTextureNuSize);
   cs::core::Settings::serialize(j, "maxSunZenithAngle", o.mMaxSunZenithAngle);
 }
@@ -100,24 +92,24 @@ bool Model::init(
   auto common = cs::utils::filesystem::loadToString(
       "../share/resources/shaders/atmosphere-models/bruneton/common.glsl");
 
-  mPhaseTexture = std::get<0>(read2DTexture(settings.mPhaseTexture));
+  mPhaseTexture = std::get<0>(read2DTexture(settings.mDataDirectory + "/phase.tif"));
 
   {
-    auto const [t, w, h]        = read2DTexture(settings.mTransmittanceTexture);
+    auto const [t, w, h]        = read2DTexture(settings.mDataDirectory + "/transmittance.tif");
     mTransmittanceTexture       = t;
     mTransmittanceTextureWidth  = w;
     mTransmittanceTextureHeight = h;
   }
 
   {
-    auto const [t, w, h]     = read2DTexture(settings.mIrradianceTexture);
+    auto const [t, w, h]     = read2DTexture(settings.mDataDirectory + "/indirect_illuminance.tif");
     mIrradianceTexture       = t;
     mIrradianceTextureWidth  = w;
     mIrradianceTextureHeight = h;
   }
 
   {
-    auto const [t, w, h, d]    = read3DTexture(settings.mMultipleScatteringTexture);
+    auto const [t, w, h, d] = read3DTexture(settings.mDataDirectory + "/multiple_scattering.tif");
     mMultipleScatteringTexture = t;
     mScatteringTextureNuSize   = settings.mScatteringTextureNuSize;
     mScatteringTextureMuSSize  = w / mScatteringTextureNuSize;
@@ -125,7 +117,8 @@ bool Model::init(
     mScatteringTextureRSize    = d;
   }
 
-  mSingleAerosolsScatteringTexture = std::get<0>(read3DTexture(settings.mSingleScatteringTexture));
+  mSingleAerosolsScatteringTexture =
+      std::get<0>(read3DTexture(settings.mDataDirectory + "/single_aerosols_scattering.tif"));
 
   // clang-format off
   std::string shader =

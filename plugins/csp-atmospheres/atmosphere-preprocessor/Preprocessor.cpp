@@ -956,11 +956,10 @@ void Preprocessor::save(std::string const& directory) {
 
   size_t numAngles = mParams.mMolecules.mPhase.size();
   write2D(directory + "/phase.tif", mPhaseTexture, numAngles, 2);
-
   write2D(directory + "/transmittance.tif", mTransmittanceTexture,
       mParams.mTransmittanceTextureWidth.get(), mParams.mTransmittanceTextureHeight.get());
-  write2D(directory + "/irradiance.tif", mIrradianceTexture, mParams.mIrradianceTextureWidth.get(),
-      mParams.mIrradianceTextureHeight.get());
+  write2D(directory + "/indirect_illuminance.tif", mIrradianceTexture,
+      mParams.mIrradianceTextureWidth.get(), mParams.mIrradianceTextureHeight.get());
   write3D(directory + "/multiple_scattering.tif", mMultipleScatteringTexture,
       mScatteringTextureWidth, mScatteringTextureHeight, mScatteringTextureDepth);
   write3D(directory + "/single_aerosols_scattering.tif", mSingleAerosolsScatteringTexture,

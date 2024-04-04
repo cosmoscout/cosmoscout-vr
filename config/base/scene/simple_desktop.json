@@ -750,11 +750,7 @@
               129444,
               127099
             ],
-            "phaseTexture": "earth-atmo/phase.tif",
-            "transmittanceTexture": "earth-atmo/transmittance.tif",
-            "irradianceTexture": "earth-atmo/irradiance.tif",
-            "singleScatteringTexture": "earth-atmo/single_aerosols_scattering.tif",
-            "multipleScatteringTexture": "earth-atmo/multiple_scattering.tif"
+            "dataDirectory": "earth-atmo"
           }
         },
         "Mars": {
@@ -769,11 +765,7 @@
               55776.7,
               54766.3
             ],
-            "phaseTexture": "mars-atmo/phase.tif",
-            "transmittanceTexture": "mars-atmo/transmittance.tif",
-            "irradianceTexture": "mars-atmo/irradiance.tif",
-            "singleScatteringTexture": "mars-atmo/single_aerosols_scattering.tif",
-            "multipleScatteringTexture": "mars-atmo/multiple_scattering.tif"
+            "dataDirectory": "mars-atmo"
           }
         }
       }

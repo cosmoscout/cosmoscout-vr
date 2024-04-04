@@ -33,11 +33,7 @@ class Model : public ModelBase {
 
   struct Settings {
 
-    std::string mPhaseTexture;
-    std::string mTransmittanceTexture;
-    std::string mIrradianceTexture;
-    std::string mSingleScatteringTexture;
-    std::string mMultipleScatteringTexture;
+    std::string mDataDirectory;
 
     /// The angular radius of the Sun needs to be specified. As SPICE is not fully available when
     /// the plugin is loaded, we cannot compute it. Also, this actually varies in reality.
