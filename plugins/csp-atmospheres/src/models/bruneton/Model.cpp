@@ -45,14 +45,7 @@ void from_json(nlohmann::json const& j, Model::Settings& o) {
   cs::core::Settings::deserialize(j, "irradianceTexture", o.mIrradianceTexture);
   cs::core::Settings::deserialize(j, "singleScatteringTexture", o.mSingleScatteringTexture);
   cs::core::Settings::deserialize(j, "multipleScatteringTexture", o.mMultipleScatteringTexture);
-  cs::core::Settings::deserialize(j, "transmittanceTextureWidth", o.mTransmittanceTextureWidth);
-  cs::core::Settings::deserialize(j, "transmittanceTextureHeight", o.mTransmittanceTextureHeight);
-  cs::core::Settings::deserialize(j, "scatteringTextureRSize", o.mScatteringTextureRSize);
-  cs::core::Settings::deserialize(j, "scatteringTextureMuSize", o.mScatteringTextureMuSize);
-  cs::core::Settings::deserialize(j, "scatteringTextureMuSSize", o.mScatteringTextureMuSSize);
   cs::core::Settings::deserialize(j, "scatteringTextureNuSize", o.mScatteringTextureNuSize);
-  cs::core::Settings::deserialize(j, "irradianceTextureWidth", o.mIrradianceTextureWidth);
-  cs::core::Settings::deserialize(j, "irradianceTextureHeight", o.mIrradianceTextureHeight);
   cs::core::Settings::deserialize(j, "maxSunZenithAngle", o.mMaxSunZenithAngle);
 }
 
@@ -64,14 +57,7 @@ void to_json(nlohmann::json& j, Model::Settings const& o) {
   cs::core::Settings::serialize(j, "irradianceTexture", o.mIrradianceTexture);
   cs::core::Settings::serialize(j, "singleScatteringTexture", o.mSingleScatteringTexture);
   cs::core::Settings::serialize(j, "multipleScatteringTexture", o.mMultipleScatteringTexture);
-  cs::core::Settings::serialize(j, "transmittanceTextureWidth", o.mTransmittanceTextureWidth);
-  cs::core::Settings::serialize(j, "transmittanceTextureHeight", o.mTransmittanceTextureHeight);
-  cs::core::Settings::serialize(j, "scatteringTextureRSize", o.mScatteringTextureRSize);
-  cs::core::Settings::serialize(j, "scatteringTextureMuSize", o.mScatteringTextureMuSize);
-  cs::core::Settings::serialize(j, "scatteringTextureMuSSize", o.mScatteringTextureMuSSize);
   cs::core::Settings::serialize(j, "scatteringTextureNuSize", o.mScatteringTextureNuSize);
-  cs::core::Settings::serialize(j, "irradianceTextureWidth", o.mIrradianceTextureWidth);
-  cs::core::Settings::serialize(j, "irradianceTextureHeight", o.mIrradianceTextureHeight);
   cs::core::Settings::serialize(j, "maxSunZenithAngle", o.mMaxSunZenithAngle);
 }
 
@@ -114,31 +100,52 @@ bool Model::init(
   auto common = cs::utils::filesystem::loadToString(
       "../share/resources/shaders/atmosphere-models/bruneton/common.glsl");
 
+  mPhaseTexture = std::get<0>(read2DTexture(settings.mPhaseTexture));
+
+  {
+    auto const [t, w, h]        = read2DTexture(settings.mTransmittanceTexture);
+    mTransmittanceTexture       = t;
+    mTransmittanceTextureWidth  = w;
+    mTransmittanceTextureHeight = h;
+  }
+
+  {
+    auto const [t, w, h]     = read2DTexture(settings.mIrradianceTexture);
+    mIrradianceTexture       = t;
+    mIrradianceTextureWidth  = w;
+    mIrradianceTextureHeight = h;
+  }
+
+  {
+    auto const [t, w, h, d]    = read3DTexture(settings.mMultipleScatteringTexture);
+    mMultipleScatteringTexture = t;
+    mScatteringTextureNuSize   = settings.mScatteringTextureNuSize;
+    mScatteringTextureMuSSize  = w / mScatteringTextureNuSize;
+    mScatteringTextureMuSize   = h;
+    mScatteringTextureRSize    = d;
+  }
+
+  mSingleAerosolsScatteringTexture = std::get<0>(read3DTexture(settings.mSingleScatteringTexture));
+
   // clang-format off
   std::string shader =
     std::string("#version 330\n") +
-    "const int TRANSMITTANCE_TEXTURE_WIDTH = "      + cs::utils::toString(settings.mTransmittanceTextureWidth) + ";\n" +
-    "const int TRANSMITTANCE_TEXTURE_HEIGHT = "     + cs::utils::toString(settings.mTransmittanceTextureHeight) + ";\n" +
-    "const int SCATTERING_TEXTURE_R_SIZE = "        + cs::utils::toString(settings.mScatteringTextureRSize) + ";\n" +
-    "const int SCATTERING_TEXTURE_MU_SIZE = "       + cs::utils::toString(settings.mScatteringTextureMuSize) + ";\n" +
-    "const int SCATTERING_TEXTURE_MU_S_SIZE = "     + cs::utils::toString(settings.mScatteringTextureMuSSize) + ";\n" +
-    "const int SCATTERING_TEXTURE_NU_SIZE = "       + cs::utils::toString(settings.mScatteringTextureNuSize) + ";\n" +
-    "const int IRRADIANCE_TEXTURE_WIDTH = "         + cs::utils::toString(settings.mIrradianceTextureWidth) + ";\n" +
-    "const int IRRADIANCE_TEXTURE_HEIGHT = "        + cs::utils::toString(settings.mIrradianceTextureHeight) + ";\n" +
-    "const vec3 SOLAR_ILLUMINANCE = vec3(" + cs::utils::toString(settings.mSunIlluminance.r) + "," + cs::utils::toString(settings.mSunIlluminance.g) + "," + cs::utils::toString(settings.mSunIlluminance.b) + ");\n" +
-    "const float SUN_ANGULAR_RADIUS = "             + cs::utils::toString(settings.mSunAngularRadius) + ";\n" +
-    "const float BOTTOM_RADIUS = "                  + cs::utils::toString(planetRadius) + ";\n" +
-    "const float TOP_RADIUS = "                     + cs::utils::toString(atmosphereRadius) + ";\n" +
-    "const float MU_S_MIN = "                       + cs::utils::toString(std::cos(settings.mMaxSunZenithAngle.get()))+ ";\n" +
+    "const int TRANSMITTANCE_TEXTURE_WIDTH = "  + cs::utils::toString(mTransmittanceTextureWidth) + ";\n" +
+    "const int TRANSMITTANCE_TEXTURE_HEIGHT = " + cs::utils::toString(mTransmittanceTextureHeight) + ";\n" +
+    "const int SCATTERING_TEXTURE_R_SIZE = "    + cs::utils::toString(mScatteringTextureRSize) + ";\n" +
+    "const int SCATTERING_TEXTURE_MU_SIZE = "   + cs::utils::toString(mScatteringTextureMuSize) + ";\n" +
+    "const int SCATTERING_TEXTURE_MU_S_SIZE = " + cs::utils::toString(mScatteringTextureMuSSize) + ";\n" +
+    "const int SCATTERING_TEXTURE_NU_SIZE = "   + cs::utils::toString(mScatteringTextureNuSize) + ";\n" +
+    "const int IRRADIANCE_TEXTURE_WIDTH = "     + cs::utils::toString(mIrradianceTextureWidth) + ";\n" +
+    "const int IRRADIANCE_TEXTURE_HEIGHT = "    + cs::utils::toString(mIrradianceTextureHeight) + ";\n" +
+    "const vec3 SOLAR_ILLUMINANCE = vec3("      + cs::utils::toString(settings.mSunIlluminance.r) + "," + cs::utils::toString(settings.mSunIlluminance.g) + "," + cs::utils::toString(settings.mSunIlluminance.b) + ");\n" +
+    "const float SUN_ANGULAR_RADIUS = "         + cs::utils::toString(settings.mSunAngularRadius) + ";\n" +
+    "const float BOTTOM_RADIUS = "              + cs::utils::toString(planetRadius) + ";\n" +
+    "const float TOP_RADIUS = "                 + cs::utils::toString(atmosphereRadius) + ";\n" +
+    "const float MU_S_MIN = "                   + cs::utils::toString(std::cos(settings.mMaxSunZenithAngle.get()))+ ";\n" +
     common + "\n" +
     model;
   // clang-format on
-
-  mPhaseTexture                    = read2DTexture(settings.mPhaseTexture);
-  mTransmittanceTexture            = read2DTexture(settings.mTransmittanceTexture);
-  mIrradianceTexture               = read2DTexture(settings.mIrradianceTexture);
-  mMultipleScatteringTexture       = read3DTexture(settings.mMultipleScatteringTexture);
-  mSingleAerosolsScatteringTexture = read3DTexture(settings.mSingleScatteringTexture);
 
   // Create and compile the shader providing our API.
   const char* source = shader.c_str();
@@ -185,12 +192,12 @@ GLuint Model::setUniforms(GLuint program, GLuint startTextureUnit) const {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-GLuint Model::read2DTexture(std::string const& path) const {
+std::tuple<GLuint, int32_t, int32_t> Model::read2DTexture(std::string const& path) const {
   auto* data = TIFFOpen(path.c_str(), "r");
 
   if (!data) {
     logger().error("Failed to open TIFF file '{}'", path);
-    return 0u;
+    return {0u, 0, 0};
   }
 
   uint32_t width{};
@@ -218,17 +225,17 @@ GLuint Model::read2DTexture(std::string const& path) const {
   glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, width, height, 0, GL_RGB, GL_FLOAT, pixels.data());
 
-  return texture;
+  return {texture, width, height};
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-GLuint Model::read3DTexture(std::string const& path) const {
+std::tuple<GLuint, int32_t, int32_t, int32_t> Model::read3DTexture(std::string const& path) const {
   auto* data = TIFFOpen(path.c_str(), "r");
 
   if (!data) {
     logger().error("Failed to open TIFF file '{}'", path);
-    return 0u;
+    return {0u, 0, 0, 0};
   }
 
   uint32_t width{};
@@ -266,7 +273,7 @@ GLuint Model::read3DTexture(std::string const& path) const {
   glTexImage3D(
       GL_TEXTURE_3D, 0, GL_RGB32F, width, height, depth, 0, GL_RGB, GL_FLOAT, pixels.data());
 
-  return texture;
+  return {texture, width, height, depth};
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

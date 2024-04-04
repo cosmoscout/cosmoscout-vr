@@ -44,26 +44,8 @@ class Model : public ModelBase {
     float     mSunAngularRadius = 0.004675F;
     glm::vec3 mSunIlluminance   = glm::vec3(144810, 129444, 127099);
 
-    /// The resolution of the transmittance texture. Larger values can improve the sampling of thin
-    /// atmospheric layers close to the horizon.
-    cs::utils::DefaultProperty<int32_t> mTransmittanceTextureWidth{256};
-    cs::utils::DefaultProperty<int32_t> mTransmittanceTextureHeight{64};
-
-    /// Larger values improve sampling of thick low-altitude layers.
-    cs::utils::DefaultProperty<int32_t> mScatteringTextureRSize{32};
-
-    /// Larger values reduce circular banding artifacts around zenith for thick atmospheres.
-    cs::utils::DefaultProperty<int32_t> mScatteringTextureMuSize{128};
-
-    /// Larger values reduce banding in the day-night transition when seen from space.
-    cs::utils::DefaultProperty<int32_t> mScatteringTextureMuSSize{32};
-
     /// Larger values reduce circular banding artifacts around sun for thick atmospheres.
-    cs::utils::DefaultProperty<int32_t> mScatteringTextureNuSize{8};
-
-    /// The resolution of the irradiance texture.
-    cs::utils::DefaultProperty<int32_t> mIrradianceTextureWidth{64};
-    cs::utils::DefaultProperty<int32_t> mIrradianceTextureHeight{16};
+    int32_t mScatteringTextureNuSize;
 
     /// The maximum Sun zenith angle for which atmospheric scattering must be precomputed, in
     /// radians (for maximum precision, use the smallest Sun zenith angle yielding negligible sky
@@ -88,8 +70,17 @@ class Model : public ModelBase {
   GLuint setUniforms(GLuint program, GLuint startTextureUnit) const override;
 
  private:
-  GLuint read2DTexture(std::string const& path) const;
-  GLuint read3DTexture(std::string const& path) const;
+  std::tuple<GLuint, int32_t, int32_t>          read2DTexture(std::string const& path) const;
+  std::tuple<GLuint, int32_t, int32_t, int32_t> read3DTexture(std::string const& path) const;
+
+  int32_t mTransmittanceTextureWidth{};
+  int32_t mTransmittanceTextureHeight{};
+  int32_t mIrradianceTextureWidth{};
+  int32_t mIrradianceTextureHeight{};
+  int32_t mScatteringTextureRSize{};
+  int32_t mScatteringTextureMuSize{};
+  int32_t mScatteringTextureMuSSize{};
+  int32_t mScatteringTextureNuSize{};
 
   // To optimize resource usage, this texture stores single molecule-scattering plus all
   // multiple-scattering contributions. The single aerosols scattering is stored in an extra
