@@ -1,6 +1,8 @@
 {
     "sunAngularRadius": 0.004675,
     "multiScatteringOrder": 10,
+    "minAltitude": 6370900,
+    "maxAltitude": 6451000,
     "molecules": {
         "phase": "../share/resources/data/csp-atmospheres/earth_cosmoscout_molecules_phase.csv",
         "betaSca": "../share/resources/data/csp-atmospheres/earth_cosmoscout_molecules_scattering.csv",

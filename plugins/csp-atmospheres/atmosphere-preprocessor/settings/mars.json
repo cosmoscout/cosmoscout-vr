@@ -3,6 +3,8 @@
     "transmittanceTextureHeight": 512,
     "sunAngularRadius": 0.003054,
     "multiScatteringOrder": 10,
+    "minAltitude": 3385000,
+    "maxAltitude": 3469500,
     "molecules": {
         "phase": "../share/resources/data/csp-atmospheres/mars_cosmoscout_molecules_cinematic_phase.csv",
         "betaSca": "../share/resources/data/csp-atmospheres/mars_cosmoscout_molecules_cinematic_scattering.csv",

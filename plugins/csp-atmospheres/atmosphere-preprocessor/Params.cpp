@@ -31,8 +31,8 @@ void from_json(nlohmann::json const& j, Params& o) {
   cs::core::Settings::deserialize(j, "molecules", o.mMolecules);
   cs::core::Settings::deserialize(j, "aerosols", o.mAerosols);
   cs::core::Settings::deserialize(j, "ozone", o.mOzone);
-  cs::core::Settings::deserialize(j, "planetRadius", o.mPlanetRadius);
-  cs::core::Settings::deserialize(j, "atmosphereRadius", o.mAtmosphereRadius);
+  cs::core::Settings::deserialize(j, "minAltitude", o.mMinAltitude);
+  cs::core::Settings::deserialize(j, "maxAltitude", o.mMaxAltitude);
   cs::core::Settings::deserialize(j, "groundAlbedo", o.mGroundAlbedo);
   cs::core::Settings::deserialize(j, "multiScatteringOrder", o.mMultiScatteringOrder);
   cs::core::Settings::deserialize(j, "sampleCountOpticalDepth", o.mSampleCountOpticalDepth);

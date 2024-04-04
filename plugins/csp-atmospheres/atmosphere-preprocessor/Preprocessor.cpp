@@ -703,8 +703,8 @@ Preprocessor::Preprocessor(Params params)
       "const vec3 SOLAR_IRRADIANCE = "                + extractVec3(WAVELENGTHS, SOLAR_IRRADIANCE, lambdas) + ";\n" +
       "const vec3 GROUND_ALBEDO = vec3("              + cs::utils::toString(mParams.mGroundAlbedo) + ");\n" +
       "const float SUN_ANGULAR_RADIUS = "             + cs::utils::toString(mParams.mSunAngularRadius) + ";\n" +
-      "const float BOTTOM_RADIUS = "                  + cs::utils::toString(mParams.mPlanetRadius) + ";\n" +
-      "const float TOP_RADIUS = "                     + cs::utils::toString(mParams.mAtmosphereRadius) + ";\n" +
+      "const float BOTTOM_RADIUS = "                  + cs::utils::toString(mParams.mMinAltitude) + ";\n" +
+      "const float TOP_RADIUS = "                     + cs::utils::toString(mParams.mMaxAltitude) + ";\n" +
       "const float MU_S_MIN = "                       + cs::utils::toString(std::cos(mParams.mMaxSunZenithAngle.get()))+ ";\n" +
       "const AtmosphereComponents ATMOSPHERE = AtmosphereComponents(\n" +
         printScatteringComponent(mParams.mMolecules, mParams.mWavelengths, 0.0, 0.0, lambdas) + ",\n" +
@@ -911,7 +911,7 @@ void Preprocessor::save(std::string const& directory) {
     TIFFSetField(tiff, TIFFTAG_IMAGELENGTH, height);
     TIFFSetField(tiff, TIFFTAG_SAMPLESPERPIXEL, 3);
     TIFFSetField(tiff, TIFFTAG_BITSPERSAMPLE, 32);
-    TIFFSetField(tiff, TIFFTAG_SAMPLEFORMAT, 3);
+    TIFFSetField(tiff, TIFFTAG_SAMPLEFORMAT, SAMPLEFORMAT_IEEEFP);
     TIFFSetField(tiff, TIFFTAG_PHOTOMETRIC, PHOTOMETRIC_RGB);
     TIFFSetField(tiff, TIFFTAG_PLANARCONFIG, PLANARCONFIG_CONTIG);
     TIFFSetField(tiff, TIFFTAG_COMPRESSION, COMPRESSION_NONE);
@@ -937,7 +937,7 @@ void Preprocessor::save(std::string const& directory) {
       TIFFSetField(tiff, TIFFTAG_IMAGELENGTH, height);
       TIFFSetField(tiff, TIFFTAG_SAMPLESPERPIXEL, 3);
       TIFFSetField(tiff, TIFFTAG_BITSPERSAMPLE, 32);
-      TIFFSetField(tiff, TIFFTAG_SAMPLEFORMAT, 3);
+      TIFFSetField(tiff, TIFFTAG_SAMPLEFORMAT, SAMPLEFORMAT_IEEEFP);
       TIFFSetField(tiff, TIFFTAG_PHOTOMETRIC, PHOTOMETRIC_RGB);
       TIFFSetField(tiff, TIFFTAG_PLANARCONFIG, PLANARCONFIG_CONTIG);
       TIFFSetField(tiff, TIFFTAG_COMPRESSION, COMPRESSION_NONE);
