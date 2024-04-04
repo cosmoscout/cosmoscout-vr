@@ -395,24 +395,21 @@ vec3 getSunAndSkyIrradiance(sampler2D transmittanceTexture, sampler2D irradiance
   skyIrradiance = getIrradiance(irradianceTexture, r, muS);
 
   // Direct irradiance.
-  return SOLAR_IRRADIANCE * getTransmittanceToSun(transmittanceTexture, r, muS);
+  return SOLAR_ILLUMINANCE * getTransmittanceToSun(transmittanceTexture, r, muS);
 }
 
 vec3 GetSkyLuminance(vec3 camera, vec3 viewRay, vec3 sunDirection, out vec3 transmittance) {
   return getSkyRadiance(uTransmittanceTexture, uMultipleScatteringTexture,
-             uSingleAerosolsScatteringTexture, camera, viewRay, sunDirection, transmittance) *
-         SKY_SPECTRAL_RADIANCE_TO_LUMINANCE;
+      uSingleAerosolsScatteringTexture, camera, viewRay, sunDirection, transmittance);
 }
 
 vec3 GetSkyLuminanceToPoint(vec3 camera, vec3 point, vec3 sunDirection, out vec3 transmittance) {
   return getSkyRadianceToPoint(uTransmittanceTexture, uMultipleScatteringTexture,
-             uSingleAerosolsScatteringTexture, camera, point, sunDirection, transmittance) *
-         SKY_SPECTRAL_RADIANCE_TO_LUMINANCE;
+      uSingleAerosolsScatteringTexture, camera, point, sunDirection, transmittance);
 }
 
 vec3 GetSunAndSkyIlluminance(vec3 p, vec3 sunDirection, out vec3 skyIrradiance) {
   vec3 sun_irradiance = getSunAndSkyIrradiance(
       uTransmittanceTexture, uIrradianceTexture, p, sunDirection, skyIrradiance);
-  skyIrradiance *= SKY_SPECTRAL_RADIANCE_TO_LUMINANCE;
-  return sun_irradiance * SUN_SPECTRAL_RADIANCE_TO_LUMINANCE;
+  return sun_irradiance;
 }

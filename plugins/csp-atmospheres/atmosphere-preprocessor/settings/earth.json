@@ -1,6 +1,6 @@
 {
-    "sunAngularRadius": 0.004675,
     "multiScatteringOrder": 10,
+    "sunDistance": 149600000000,
     "minAltitude": 6370900,
     "maxAltitude": 6451000,
     "molecules": {

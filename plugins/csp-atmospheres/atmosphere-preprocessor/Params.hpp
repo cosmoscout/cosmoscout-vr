@@ -72,10 +72,7 @@ struct Params {
   /// phase functions and extinction coefficients in the atmosphere components are given.
   std::vector<float> mWavelengths;
 
-  /// The angular radius of the Sun needs to be specified. As SPICE is not fully available when
-  /// the plugin is loaded, we cannot compute it. Also, this actually varies in reality.
-  float mSunAngularRadius = 0.004675F;
-
+  float mSunDistance = 149600000000.F;
   float mMinAltitude = 6371000.F;
   float mMaxAltitude = 6471000.F;
 

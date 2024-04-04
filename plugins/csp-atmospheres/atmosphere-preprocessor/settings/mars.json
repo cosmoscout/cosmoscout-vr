@@ -1,7 +1,7 @@
 {
     "transmittanceTextureWidth": 1024,
     "transmittanceTextureHeight": 512,
-    "sunAngularRadius": 0.003054,
+    "sunDistance": 227900000000,
     "multiScatteringOrder": 10,
     "minAltitude": 3385000,
     "maxAltitude": 3469500,

@@ -744,6 +744,11 @@
           "model": "Bruneton",
           "modelSettings": {
             "sunAngularRadius": 0.004675,
+            "sunIlluminance": [
+              144810,
+              129444,
+              127099
+            ],
             "phaseTexture": "earth-atmo/phase.tif",
             "transmittanceTexture": "earth-atmo/transmittance.tif",
             "irradianceTexture": "earth-atmo/irradiance.tif",
@@ -759,6 +764,11 @@
             "transmittanceTextureWidth": 1024,
             "transmittanceTextureHeight": 512,
             "sunAngularRadius": 0.003054,
+            "sunIlluminance": [
+              62397.9,
+              55776.7,
+              54766.3
+            ],
             "phaseTexture": "mars-atmo/phase.tif",
             "transmittanceTexture": "mars-atmo/transmittance.tif",
             "irradianceTexture": "mars-atmo/irradiance.tif",

@@ -656,22 +656,23 @@ Preprocessor::Preprocessor(Params params)
 
   std::cout << "Preprocessing atmosphere..." << std::endl;
 
-  // Compute the values for the SKY_RADIANCE_TO_LUMINANCE constant. In theory this should be 1 in
-  // precomputed illuminance mode (because the precomputed textures already contain illuminance
-  // values). In practice, however, storing true illuminance values in half precision textures
-  // yields artefacts (because the values are too large), so we store illuminance values divided by
-  // MAX_LUMINOUS_EFFICACY instead. This is why, in precomputed illuminance mode, we set
-  // SKY_RADIANCE_TO_LUMINANCE to MAX_LUMINOUS_EFFICACY.
-  bool  precomputeIlluminance = mParams.mWavelengths.size() > 3;
-  float skyKR, skyKG, skyKB;
-  if (precomputeIlluminance) {
-    skyKR = skyKG = skyKB = MAX_LUMINOUS_EFFICACY;
-  } else {
-    ComputeSpectralRadianceToLuminanceFactors(-3 /* lambdaPower */, &skyKR, &skyKG, &skyKB);
-  }
+  // Compute angular radius of the sun.
+  float sunRadius        = 696340000; // meters
+  float sunAngularRadius = std::asin(sunRadius / mParams.mSunDistance);
+
+  std::cout << "Angular radius of Sun: " << sunAngularRadius << " rad" << std::endl;
+
   // Compute the values for the SUN_RADIANCE_TO_LUMINANCE constant.
+  float sunAngularRadiusAtEarth = 0.0046547; // radians
+  float attenuation = std::pow(sunAngularRadius, 2.F) / std::pow(sunAngularRadiusAtEarth, 2.F);
   float sunKR, sunKG, sunKB;
   ComputeSpectralRadianceToLuminanceFactors(0 /* lambdaPower */, &sunKR, &sunKG, &sunKB);
+  sunKR *= Interpolate(WAVELENGTHS, SOLAR_IRRADIANCE, kLambdaR) * attenuation;
+  sunKG *= Interpolate(WAVELENGTHS, SOLAR_IRRADIANCE, kLambdaG) * attenuation;
+  sunKB *= Interpolate(WAVELENGTHS, SOLAR_IRRADIANCE, kLambdaB) * attenuation;
+
+  std::cout << "Sun RGB illuminance: " << sunKR << ", " << sunKG << ", " << sunKB << " lux"
+            << std::endl;
 
   // A lambda that creates a GLSL header containing our atmosphere computation functions,
   // specialized for the given atmosphere parameters and for the 3 wavelengths in 'lambdas'.
@@ -698,11 +699,9 @@ Preprocessor::Preprocessor(Params params)
       "const int SAMPLE_COUNT_SCATTERING_DENSITY = "  + cs::utils::toString(mParams.mSampleCountScatteringDensity) + ";\n" +
       "const int SAMPLE_COUNT_MULTI_SCATTERING = "    + cs::utils::toString(mParams.mSampleCountMultiScattering) + ";\n" +
       "const int SAMPLE_COUNT_INDIRECT_IRRADIANCE = " + cs::utils::toString(mParams.mSampleCountIndirectIrradiance) + ";\n" +
-      "const vec3 SKY_SPECTRAL_RADIANCE_TO_LUMINANCE = vec3(" + cs::utils::toString(skyKR) + "," + cs::utils::toString(skyKG) + "," + cs::utils::toString(skyKB) + ");\n" +
-      "const vec3 SUN_SPECTRAL_RADIANCE_TO_LUMINANCE = vec3(" + cs::utils::toString(sunKR) + "," + cs::utils::toString(sunKG) + "," + cs::utils::toString(sunKB) + ");\n" +
       "const vec3 SOLAR_IRRADIANCE = "                + extractVec3(WAVELENGTHS, SOLAR_IRRADIANCE, lambdas) + ";\n" +
       "const vec3 GROUND_ALBEDO = vec3("              + cs::utils::toString(mParams.mGroundAlbedo) + ");\n" +
-      "const float SUN_ANGULAR_RADIUS = "             + cs::utils::toString(mParams.mSunAngularRadius) + ";\n" +
+      "const float SUN_ANGULAR_RADIUS = "             + cs::utils::toString(sunAngularRadius) + ";\n" +
       "const float BOTTOM_RADIUS = "                  + cs::utils::toString(mParams.mMinAltitude) + ";\n" +
       "const float TOP_RADIUS = "                     + cs::utils::toString(mParams.mMaxAltitude) + ";\n" +
       "const float MU_S_MIN = "                       + cs::utils::toString(std::cos(mParams.mMaxSunZenithAngle.get()))+ ";\n" +
@@ -819,7 +818,11 @@ void Preprocessor::run(unsigned int numScatteringOrders) {
   if (mParams.mWavelengths.size() <= 3) {
     std::cout << "Precomputing atmospheric scattering (1/1)..." << std::endl;
     glm::vec3 lambdas{kLambdaR, kLambdaG, kLambdaB};
-    glm::mat3 luminanceFromRadiance{1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0};
+
+    float skyKR, skyKG, skyKB;
+    ComputeSpectralRadianceToLuminanceFactors(-3 /* lambdaPower */, &skyKR, &skyKG, &skyKB);
+
+    glm::mat3 luminanceFromRadiance{skyKR, 0.0, 0.0, 0.0, skyKG, 0.0, 0.0, 0.0, skyKB};
     precompute(fbo, deltaIrradianceTexture, deltaMoleculesScatteringTexture,
         deltaAerosolsScatteringTexture, deltaScatteringDensityTexture,
         deltaMultipleScatteringTexture, lambdas, luminanceFromRadiance, false /* blend */,
@@ -842,9 +845,10 @@ void Preprocessor::run(unsigned int numScatteringOrders) {
         float y = CieColorMatchingFunctionTableValue(lambda, 2);
         float z = CieColorMatchingFunctionTableValue(lambda, 3);
         return static_cast<float>(
-            (XYZ_TO_SRGB[component * 3] * x + XYZ_TO_SRGB[component * 3 + 1] * y +
-                XYZ_TO_SRGB[component * 3 + 2] * z) *
-            (mParams.mWavelengths[1] - mParams.mWavelengths[0]));
+                   (XYZ_TO_SRGB[component * 3] * x + XYZ_TO_SRGB[component * 3 + 1] * y +
+                       XYZ_TO_SRGB[component * 3 + 2] * z) *
+                   (mParams.mWavelengths[1] - mParams.mWavelengths[0])) *
+               MAX_LUMINOUS_EFFICACY;
       };
 
       glm::mat3 luminanceFromRadiance{coeff(lambdas[0], 0), coeff(lambdas[1], 0),

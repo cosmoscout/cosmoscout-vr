@@ -41,7 +41,8 @@ class Model : public ModelBase {
 
     /// The angular radius of the Sun needs to be specified. As SPICE is not fully available when
     /// the plugin is loaded, we cannot compute it. Also, this actually varies in reality.
-    float mSunAngularRadius = 0.004675F;
+    float     mSunAngularRadius = 0.004675F;
+    glm::vec3 mSunIlluminance   = glm::vec3(144810, 129444, 127099);
 
     /// The resolution of the transmittance texture. Larger values can improve the sampling of thin
     /// atmospheric layers close to the horizon.

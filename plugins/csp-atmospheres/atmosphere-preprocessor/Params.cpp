@@ -27,7 +27,7 @@ void from_json(nlohmann::json const& j, Params::AbsorbingComponent& o) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void from_json(nlohmann::json const& j, Params& o) {
-  cs::core::Settings::deserialize(j, "sunAngularRadius", o.mSunAngularRadius);
+  cs::core::Settings::deserialize(j, "sunDistance", o.mSunDistance);
   cs::core::Settings::deserialize(j, "molecules", o.mMolecules);
   cs::core::Settings::deserialize(j, "aerosols", o.mAerosols);
   cs::core::Settings::deserialize(j, "ozone", o.mOzone);
