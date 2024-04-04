@@ -655,22 +655,28 @@ Preprocessor::Preprocessor(Params params)
   std::cout << "Preprocessing atmosphere..." << std::endl;
 
   // Compute angular radius of the sun.
-  float sunRadius        = 696340000; // meters
-  float sunAngularRadius = std::asin(sunRadius / mParams.mSunDistance);
+  float sunRadius             = 696340000; // meters
+  mMetadata.mSunAngularRadius = std::asin(sunRadius / mParams.mSunDistance);
 
-  std::cout << "Angular radius of Sun: " << sunAngularRadius << " rad" << std::endl;
+  std::cout << "Angular radius of Sun: " << mMetadata.mSunAngularRadius << " rad" << std::endl;
 
   // Compute the values for the SUN_RADIANCE_TO_LUMINANCE constant.
   float sunAngularRadiusAtEarth = 0.0046547; // radians
-  float attenuation = std::pow(sunAngularRadius, 2.F) / std::pow(sunAngularRadiusAtEarth, 2.F);
+  float attenuation =
+      std::pow(mMetadata.mSunAngularRadius, 2.F) / std::pow(sunAngularRadiusAtEarth, 2.F);
   float sunKR, sunKG, sunKB;
   ComputeSpectralRadianceToLuminanceFactors(0 /* lambdaPower */, &sunKR, &sunKG, &sunKB);
   sunKR *= Interpolate(WAVELENGTHS, SOLAR_IRRADIANCE, kLambdaR) * attenuation;
   sunKG *= Interpolate(WAVELENGTHS, SOLAR_IRRADIANCE, kLambdaG) * attenuation;
   sunKB *= Interpolate(WAVELENGTHS, SOLAR_IRRADIANCE, kLambdaB) * attenuation;
 
+  mMetadata.mSunIlluminance = glm::vec3(sunKR, sunKG, sunKB);
+
   std::cout << "Sun RGB illuminance: " << sunKR << ", " << sunKG << ", " << sunKB << " lux"
             << std::endl;
+
+  mMetadata.mScatteringTextureNuSize = mParams.mScatteringTextureNuSize.get();
+  mMetadata.mMaxSunZenithAngle       = mParams.mMaxSunZenithAngle.get();
 
   // A lambda that creates a GLSL header containing our atmosphere computation functions,
   // specialized for the given atmosphere parameters and for the 3 wavelengths in 'lambdas'.
@@ -701,7 +707,7 @@ Preprocessor::Preprocessor(Params params)
       "const int SAMPLE_COUNT_INDIRECT_IRRADIANCE = " + cs::utils::toString(mParams.mSampleCountIndirectIrradiance) + ";\n" +
       "const vec3 SOLAR_IRRADIANCE = "                + extractVec3(WAVELENGTHS, SOLAR_IRRADIANCE, lambdas) + ";\n" +
       "const vec3 GROUND_ALBEDO = vec3("              + cs::utils::toString(mParams.mGroundAlbedo) + ");\n" +
-      "const float SUN_ANGULAR_RADIUS = "             + cs::utils::toString(sunAngularRadius) + ";\n" +
+      "const float SUN_ANGULAR_RADIUS = "             + cs::utils::toString(mMetadata.mSunAngularRadius) + ";\n" +
       "const float BOTTOM_RADIUS = "                  + cs::utils::toString(mParams.mMinAltitude) + ";\n" +
       "const float TOP_RADIUS = "                     + cs::utils::toString(mParams.mMaxAltitude) + ";\n" +
       "const float MU_S_MIN = "                       + cs::utils::toString(std::cos(mParams.mMaxSunZenithAngle.get()))+ ";\n" +
@@ -964,6 +970,10 @@ void Preprocessor::save(std::string const& directory) {
       mScatteringTextureWidth, mScatteringTextureHeight, mScatteringTextureDepth);
   write3D(directory + "/single_aerosols_scattering.tif", mSingleAerosolsScatteringTexture,
       mScatteringTextureWidth, mScatteringTextureHeight, mScatteringTextureDepth);
+
+  std::ofstream  out(directory + "/metadata.json");
+  nlohmann::json data = mMetadata;
+  out << std::setw(2) << data;
 
   std::cout << "Precomputed atmosphere saved to disk." << std::endl;
 }

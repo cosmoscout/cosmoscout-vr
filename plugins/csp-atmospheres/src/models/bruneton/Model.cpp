@@ -11,6 +11,7 @@
 #include "../../../src/cs-utils/filesystem.hpp"
 #include "../../../src/cs-utils/utils.hpp"
 #include "../../logger.hpp"
+#include "Metadata.hpp"
 
 #include <cassert>
 #include <cmath>
@@ -38,19 +39,11 @@ namespace csp::atmospheres::models::bruneton {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void from_json(nlohmann::json const& j, Model::Settings& o) {
-  cs::core::Settings::deserialize(j, "sunAngularRadius", o.mSunAngularRadius);
-  cs::core::Settings::deserialize(j, "sunIlluminance", o.mSunIlluminance);
   cs::core::Settings::deserialize(j, "dataDirectory", o.mDataDirectory);
-  cs::core::Settings::deserialize(j, "scatteringTextureNuSize", o.mScatteringTextureNuSize);
-  cs::core::Settings::deserialize(j, "maxSunZenithAngle", o.mMaxSunZenithAngle);
 }
 
 void to_json(nlohmann::json& j, Model::Settings const& o) {
-  cs::core::Settings::serialize(j, "sunAngularRadius", o.mSunAngularRadius);
-  cs::core::Settings::serialize(j, "sunIlluminance", o.mSunIlluminance);
   cs::core::Settings::serialize(j, "dataDirectory", o.mDataDirectory);
-  cs::core::Settings::serialize(j, "scatteringTextureNuSize", o.mScatteringTextureNuSize);
-  cs::core::Settings::serialize(j, "maxSunZenithAngle", o.mMaxSunZenithAngle);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -85,6 +78,17 @@ bool Model::init(
     logger().error("Failed to parse atmosphere parameters: {}", e.what());
   }
 
+  Metadata meta;
+
+  try {
+    std::ifstream  file(settings.mDataDirectory + "/metadata.json");
+    nlohmann::json j;
+    file >> j;
+    meta = j;
+  } catch (std::exception const& e) {
+    logger().error("Failed to parse atmosphere parameters: {}", e.what());
+  }
+
   // A lambda that creates a GLSL header containing our atmosphere computation functions,
   // specialized for the given atmosphere parameters and for the 3 wavelengths in 'lambdas'.
   auto model = cs::utils::filesystem::loadToString(
@@ -111,7 +115,7 @@ bool Model::init(
   {
     auto const [t, w, h, d] = read3DTexture(settings.mDataDirectory + "/multiple_scattering.tif");
     mMultipleScatteringTexture = t;
-    mScatteringTextureNuSize   = settings.mScatteringTextureNuSize;
+    mScatteringTextureNuSize   = meta.mScatteringTextureNuSize;
     mScatteringTextureMuSSize  = w / mScatteringTextureNuSize;
     mScatteringTextureMuSize   = h;
     mScatteringTextureRSize    = d;
@@ -131,11 +135,11 @@ bool Model::init(
     "const int SCATTERING_TEXTURE_NU_SIZE = "   + cs::utils::toString(mScatteringTextureNuSize) + ";\n" +
     "const int IRRADIANCE_TEXTURE_WIDTH = "     + cs::utils::toString(mIrradianceTextureWidth) + ";\n" +
     "const int IRRADIANCE_TEXTURE_HEIGHT = "    + cs::utils::toString(mIrradianceTextureHeight) + ";\n" +
-    "const vec3 SOLAR_ILLUMINANCE = vec3("      + cs::utils::toString(settings.mSunIlluminance.r) + "," + cs::utils::toString(settings.mSunIlluminance.g) + "," + cs::utils::toString(settings.mSunIlluminance.b) + ");\n" +
-    "const float SUN_ANGULAR_RADIUS = "         + cs::utils::toString(settings.mSunAngularRadius) + ";\n" +
+    "const vec3 SOLAR_ILLUMINANCE = vec3("      + cs::utils::toString(meta.mSunIlluminance.r) + "," + cs::utils::toString(meta.mSunIlluminance.g) + "," + cs::utils::toString(meta.mSunIlluminance.b) + ");\n" +
+    "const float SUN_ANGULAR_RADIUS = "         + cs::utils::toString(meta.mSunAngularRadius) + ";\n" +
     "const float BOTTOM_RADIUS = "              + cs::utils::toString(planetRadius) + ";\n" +
     "const float TOP_RADIUS = "                 + cs::utils::toString(atmosphereRadius) + ";\n" +
-    "const float MU_S_MIN = "                   + cs::utils::toString(std::cos(settings.mMaxSunZenithAngle.get()))+ ";\n" +
+    "const float MU_S_MIN = "                   + cs::utils::toString(std::cos(meta.mMaxSunZenithAngle))+ ";\n" +
     common + "\n" +
     model;
   // clang-format on

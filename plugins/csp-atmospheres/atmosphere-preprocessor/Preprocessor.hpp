@@ -9,6 +9,7 @@
 #ifndef PREPROCESSOR_HPP
 #define PREPROCESSOR_HPP
 
+#include "Metadata.hpp"
 #include "Params.hpp"
 
 #include <GL/glew.h>
@@ -56,6 +57,8 @@ class Preprocessor {
   const int32_t mScatteringTextureWidth;
   const int32_t mScatteringTextureHeight;
   const int32_t mScatteringTextureDepth;
+
+  Metadata mMetadata;
 
   std::function<std::string(glm::vec3 const&)> mGlslHeaderFactory;
 

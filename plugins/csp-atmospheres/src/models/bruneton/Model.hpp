@@ -32,22 +32,7 @@ class Model : public ModelBase {
   static constexpr float kLambdaB = 440.0;
 
   struct Settings {
-
     std::string mDataDirectory;
-
-    /// The angular radius of the Sun needs to be specified. As SPICE is not fully available when
-    /// the plugin is loaded, we cannot compute it. Also, this actually varies in reality.
-    float     mSunAngularRadius = 0.004675F;
-    glm::vec3 mSunIlluminance   = glm::vec3(144810, 129444, 127099);
-
-    /// Larger values reduce circular banding artifacts around sun for thick atmospheres.
-    int32_t mScatteringTextureNuSize;
-
-    /// The maximum Sun zenith angle for which atmospheric scattering must be precomputed, in
-    /// radians (for maximum precision, use the smallest Sun zenith angle yielding negligible sky
-    /// light radiance values. For instance, for the Earth case, 102 degrees is a good choice for
-    /// most cases (120 degrees is necessary for very high exposure values).
-    cs::utils::DefaultProperty<float> mMaxSunZenithAngle{120.F / 180.F * glm::pi<float>()};
   };
 
   virtual ~Model();
