@@ -159,10 +159,10 @@ As a consequence to the changes mentioned above, **two preprocessing steps are r
 
 In this first preprocessing step, the scattering properties of the individual particles are precomputed.
 
-To perform this preprocessing, the `csp-atmospheres` plugin comes with a small command-line utility: [`csv-generator`](csv-generator/README.md).
+To perform this preprocessing, the `csp-atmospheres` plugin comes with a small command-line utility: [`scattering-table-generator`](scattering-table-generator/README.md).
 You can use this to generate the CSV files used in the next preprocessing step.
-The [README.md](csv-generator/README.md) of the command-line utility provides more information on the resulting CSV file format and some examples.
-For convenience, we provide some precomputed tables for Earth and Mars in the [`csv-generator/output`](csv-generator/output) directory.
+The [README.md](scattering-table-generator/README.md) of the command-line utility provides more information on the resulting CSV file format and some examples.
+For convenience, we provide some precomputed tables for Earth and Mars in the [`scattering-table-generator/output`](scattering-table-generator/output) directory.
 
 #### Preprocessing Step 2: Precompute the Atmospheric-Scattering Textures
 

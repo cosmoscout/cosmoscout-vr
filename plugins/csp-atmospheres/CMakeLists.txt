@@ -13,7 +13,7 @@ endif()
 
 # build the preprocessors --------------------------------------------------------------------------
 
-add_subdirectory(csv-generator)
+add_subdirectory(scattering-table-generator)
 add_subdirectory(bruneton-preprocessor)
 
 # build plugin -------------------------------------------------------------------------------------
