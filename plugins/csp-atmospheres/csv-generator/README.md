@@ -7,11 +7,11 @@ SPDX-License-Identifier: CC-BY-4.0
   <img src ="../../../docs/img/banner-sunset.jpg" />
 </p>
  
-# Precomputation of Atmosphere Scattering Properties
+# Precomputation of Particle-Scattering Tables
 
 The `csv-generator` command-line tool can be used to precompute the scattering data required for the advanced `"Bruneton"` atmosphere model used by CosmoScout VR.
 It generates tabulated phase functions, scattering coefficients, absorption coefficients, and density distributions.
-The resulting data is stored in CSV files and loaded by CosmoScout VR at runtime.
+The resulting data is stored in CSV files and loaded by the `atmosphere-preprocessor` command-line utility for the precomputation of the multiple scattering lookup tables.
 
 > [!NOTE]
 > This tool uses the widely used `bhmie` scattering code originally published in the appendix of Bohren, Craig F., and Donald R. Huffman: _Absorption and scattering of light by small particles_. John Wiley & Sons, 2008. The original code can be found [here](http://scatterlib.wikidot.com/mie).
@@ -19,17 +19,17 @@ The resulting data is stored in CSV files and loaded by CosmoScout VR at runtime
 ## Usage
 
 > [!TIP]
-> Per default, the atmosphere preprocessor is not built. To build it, you need to pass `-DCSP_ATMOSPHERES_CSV_GENERATOR=On` in the make script.
+> Per default, the CSV generator is not built. To build it, you need to pass `-DCSP_ATMOSPHERES_CSV_GENERATOR=On` in the make script.
 
 Once compiled, you'll need to set the library search path to contain the `install/<os>-<build_type>/lib` directory.
 This depends on where the `csv-generator` is installed to, but this may be something like this:
 
-```powershell
-# For powershell
+```bash
+# For Windows (powershell)
 cd install\windows-Release\bin
 $env:Path += ";..\lib"
 
-# For bash
+# For Linux (bash)
 cd install/linux-Release/bin
 export LD_LIBRARY_PATH=../lib:$LD_LIBRARY_PATH
 ```
@@ -144,7 +144,10 @@ Below are the input values which we currently use for Earth's atmosphere in Cosm
 
 Below are the input values which we currently use for the Martian atmosphere in CosmoScout VR.
 The cinematic variant is pretty similar to the realistic variant.
-To reduce the produced dynamic range, it uses a flattened phase function (via the `--phase-flattening` parameter) and a bit more hematite to compensate the loss of color due to the flattening.
+However, it has been optimized for a better appearance in CosmoScout VR.
+Most importantly, the realistic phase function produces an extreme dynamic range: The sky around the Sun is about a thousand times brighter than the rest of the sky.
+This does not work well with the filmic tone-mapping used by CosmoScout VR.
+To improve this situation, the 'cinematic' variant uses a flattened phase function and a bit more hematite to compensate the loss of color due to the flattening.
 In addition, it only operates on three wavelengths.
 This does not change the appearance much but results in significantly faster preprocessing times.
 The molecules are identical in both versions; they only differ in the number of precomputed wavelengths.

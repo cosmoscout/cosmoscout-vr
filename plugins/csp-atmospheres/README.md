@@ -150,9 +150,34 @@ We generalized this implementation by loading phase functions, extinction coeffi
 This allows us to simulate arbitrary particle types.
 In particular, we can now use Mie Theory to precompute the scattering behaviour of a wide variety of particle types, including for instance Martian dust.
 
+Another change to the original implementation is that we put the precomputation of the atmospheric scattering into a separate executable.
+This allows us to perform the preprocessing offline with a much higher fidelity than what would be possible during application startup.
+
+As a consequence to the changes mentioned above, **two preprocessing steps are required to use this model**.
+
+#### Preprocessing Step 1: Precompute the Particle-Scattering CSV Tables
+
+In this first preprocessing step, the scattering properties of the individual particles are precomputed.
+
 To perform this preprocessing, the `csp-atmospheres` plugin comes with a small command-line utility: [`csv-generator`](csv-generator/README.md).
-You can use this to generate the CSV files used in the examples below.
-Also, the [README.md](csv-generator/README.md) of the command-line utility provides more information on the resulting CSV file format.
+You can use this to generate the CSV files used in the next preprocessing step.
+The [README.md](csv-generator/README.md) of the command-line utility provides more information on the resulting CSV file format and some examples.
+For convenience, we provide some precomputed tables for Earth and Mars in the [`csv-generator/output`](csv-generator/output) directory.
+
+#### Preprocessing Step 2: Precompute the Atmospheric-Scattering Textures
+
+In the second preprocessing step, multiple scattering is precomputed for an entire atmosphere and the results are stored in lookup textures.
+
+This step is performed by the command-line utility [`atmosphere-preprocessor`](atmosphere-preprocessor/README.md).
+This consumes the CSV files generated in the first step and precomputes the atmospheric scattering textures.
+The textures are accompanied by a JSON file containing some metadata on the precomputed values.
+During runtime, the plugin will load these textures and use them to render the atmosphere.
+For convenience, we provide precomputed textures for Earth and Mars in the [`atmosphere-preprocessor/output`](atmosphere-preprocessor/output) directory.
+These are installed to `share/resources/atmosphere-data` and can be used like shown below.
+
+### Example Configurations
+
+Once the multiple scattering textures are precomputed, the configuration for the `Bruneton` model is very simple:
 
 <details>
 <summary>Example Configuration for Earth</summary>
@@ -164,24 +189,7 @@ Also, the [README.md](csv-generator/README.md) of the command-line utility provi
   "bottomAltitude": 0,
   "model": "Bruneton",
   "modelSettings": {
-    "multiScatteringOrder": 10,
-    "sunAngularRadius": 0.004675,
-    "molecules": {
-      "phase": "../share/resources/data/csp-atmospheres/earth_cosmoscout_molecules_phase.csv",
-      "betaSca": "../share/resources/data/csp-atmospheres/earth_cosmoscout_molecules_scattering.csv",
-      "betaAbs": "../share/resources/data/csp-atmospheres/earth_cosmoscout_molecules_absorption.csv",
-      "density": "../share/resources/data/csp-atmospheres/earth_cosmoscout_molecules_density.csv"
-    },
-    "aerosols": {
-      "phase": "../share/resources/data/csp-atmospheres/earth_cosmoscout_aerosols_phase.csv",
-      "betaSca": "../share/resources/data/csp-atmospheres/earth_cosmoscout_aerosols_scattering.csv",
-      "betaAbs": "../share/resources/data/csp-atmospheres/earth_cosmoscout_aerosols_absorption.csv",
-      "density": "../share/resources/data/csp-atmospheres/earth_cosmoscout_aerosols_density.csv"
-    },
-    "ozone": {
-      "betaAbs": "../share/resources/data/csp-atmospheres/earth_cosmoscout_ozone_absorption.csv",
-      "density": "../share/resources/data/csp-atmospheres/earth_cosmoscout_ozone_density.csv"
-    }
+    "dataDirectory": "../share/resources/atmosphere-data/earth"
   }
 }
 ```
@@ -197,91 +205,12 @@ Also, the [README.md](csv-generator/README.md) of the command-line utility provi
   "bottomAltitude": -4500,
   "model": "Bruneton",
   "modelSettings": {
-    "transmittanceTextureWidth": 1024,
-    "transmittanceTextureHeight": 512,
-    "scatteringTextureNuSize": 64,
-    "scatteringTextureRSize": 16,
-    "sunAngularRadius": 0.003054,
-    "multiScatteringOrder": 15,
-    "molecules": {
-      "phase": "../share/resources/data/csp-atmospheres/mars_cosmoscout_molecules_realistic_phase.csv",
-      "betaSca": "../share/resources/data/csp-atmospheres/mars_cosmoscout_molecules_realistic_scattering.csv",
-      "betaAbs": "../share/resources/data/csp-atmospheres/mars_cosmoscout_molecules_realistic_absorption.csv",
-      "density": "../share/resources/data/csp-atmospheres/mars_cosmoscout_molecules_realistic_density.csv"
-    },
-    "aerosols": {
-      "phase": "../share/resources/data/csp-atmospheres/mars_cosmoscout_aerosols_realistic_phase.csv",
-      "betaSca": "../share/resources/data/csp-atmospheres/mars_cosmoscout_aerosols_realistic_scattering.csv",
-      "betaAbs": "../share/resources/data/csp-atmospheres/mars_cosmoscout_aerosols_realistic_absorption.csv",
-      "density": "../share/resources/data/csp-atmospheres/mars_cosmoscout_aerosols_realistic_density.csv"
-    }
+    "dataDirectory": "../share/resources/atmosphere-data/mars"
   }
 }
 ```
 
 </details>
-
-<details>
-<summary>Example Configuration for Mars (Cinematic)</summary>
-
-```javascript
- "Mars": {
-  "topAltitude": 80000,
-  "bottomAltitude": -4500,
-  "model": "Bruneton",
-  "modelSettings": {
-    "transmittanceTextureWidth": 1024,
-    "transmittanceTextureHeight": 512,
-    "sunAngularRadius": 0.003054,
-    "multiScatteringOrder": 15,
-    "molecules": {
-      "phase": "../share/resources/data/csp-atmospheres/mars_cosmoscout_molecules_cinematic_phase.csv",
-      "betaSca": "../share/resources/data/csp-atmospheres/mars_cosmoscout_molecules_cinematic_scattering.csv",
-      "betaAbs": "../share/resources/data/csp-atmospheres/mars_cosmoscout_molecules_cinematic_absorption.csv",
-      "density": "../share/resources/data/csp-atmospheres/mars_cosmoscout_molecules_cinematic_density.csv"
-    },
-    "aerosols": {
-      "phase": "../share/resources/data/csp-atmospheres/mars_cosmoscout_aerosols_cinematic_phase.csv",
-      "betaSca": "../share/resources/data/csp-atmospheres/mars_cosmoscout_aerosols_cinematic_scattering.csv",
-      "betaAbs": "../share/resources/data/csp-atmospheres/mars_cosmoscout_aerosols_cinematic_absorption.csv",
-      "density": "../share/resources/data/csp-atmospheres/mars_cosmoscout_aerosols_cinematic_density.csv"
-    }
-  }
-}
-```
-
-</details>
-
-The cinematic variant above is pretty similar to the realistic variant.
-However, it has been optimized for a better appearance in CosmoScout VR.
-Most importantly, the realistic phase function produces an extreme dynamic range: The sky around the Sun is about a thousand times brighter than the rest of the sky.
-This does not work well with the filmic tone-mapping used by CosmoScout VR.
-To improve this situation, the 'cinematic' variant uses a flattened phase function and a bit more hematite to compensate the loss of color due to the flattening.
-In addition, it only operates on three wavelengths.
-This does not change the appearance much but results in significantly faster preprocessing times.
-The molecules are identical in both versions; they only differ in the number of precomputed wavelengths.
-
-| Property                        | Default Value | Description                                                                                                                                     |
-| ------------------------------- | ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
-| `molecules`                     | _mandatory_   | This object should contain `"phase"`, `"betaSca"`, `"betaAbs"`, and `"density"` CSV file paths. See above for an example.                       |
-| `aerosols`                      | _mandatory_   | This object should contain `"phase"`, `"betaSca"`, `"betaAbs"`, and `"density"` CSV file paths. See above for an example.                       |
-| `ozone`                         | _optional_    | If specified, this object should contain `"betaAbs"` and `"density"` CSV file paths. See above for an example.                                  |
-| `sunAngularRadius`              | `0.004675`    | The angular radius of the Sun needs to be specified. As SPICE is not fully available when the plugin is loaded, we cannot compute it.           |
-| `groundAlbedo`                  | `0.1`         | The average reflectance of the ground used during multiple scattering.                                                                          |
-| `multiScatteringOrder`          | `4`           | The number of multiple scattering events to precompute. Use zero for single-scattering only.                                                    |
-| `sampleCountOpticalDepth`       | `500`         | The number of samples to evaluate when precomputing the optical depth.                                                                          |
-| `sampleCountSingleScattering`   | `50`          | The number of samples to evaluate when precomputing the single scattering. Larger values improve the sampling of thin atmospheric layers.       |
-| `sampleCountMultiScattering`    | `50`          | The number of samples to evaluate when precomputing the multiple scattering. Larger values tend to darken the horizon for thick atmospheres.    |
-| `sampleCountScatteringDensity`  | `16`          | The number of samples to evaluate when precomputing the scattering density. Larger values spread out colors in the sky.                         |
-| `sampleCountIndirectIrradiance` | `32`          | The number of samples to evaluate when precomputing the indirect irradiance.                                                                    |
-| `transmittanceTextureWidth`     | `256`         | The horizontal resolution of the transmittance texture. Larger values can improve the sampling of thin atmospheric layers close to the horizon. |
-| `transmittanceTextureHeight`    | `64`          | The vertical resolution of the transmittance texture. Larger values can improve the sampling of thin atmospheric layers close to the horizon.   |
-| `scatteringTextureRSize`        | `32`          | Larger values improve sampling of thick low-altitude layers.                                                                                    |
-| `scatteringTextureMuSize`       | `128`         | Larger values reduce circular banding artifacts around zenith for thick atmospheres.                                                            |
-| `scatteringTextureMuSSize`      | `32`          | Larger values reduce banding in the day-night transition when seen from space.                                                                  |
-| `scatteringTextureNuSize`       | `8`           | Larger values reduce circular banding artifacts around sun for thick atmospheres.                                                               |
-| `irradianceTextureWidth`        | `64`          | The horizontal resolution of the irradiance texture.                                                                                            |
-| `irradianceTextureHeight`       | `16`          | The vertical resolution of the irradiance texture.                                                                                              |
 
 ## Creating new Atmospheric Models
 
