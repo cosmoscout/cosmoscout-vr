@@ -11,7 +11,7 @@ SPDX-License-Identifier: CC-BY-4.0
 
 The `csv-generator` command-line tool can be used to precompute the scattering data required for the advanced `"Bruneton"` atmosphere model used by CosmoScout VR.
 It generates tabulated phase functions, scattering coefficients, absorption coefficients, and density distributions.
-The resulting data is stored in CSV files and loaded by the `atmosphere-preprocessor` command-line utility for the precomputation of the multiple scattering lookup tables.
+The resulting data is stored in CSV files and loaded by the `bruneton-preprocessor` command-line utility for the precomputation of the multiple scattering lookup tables.
 
 > [!NOTE]
 > This tool uses the widely used `bhmie` scattering code originally published in the appendix of Bohren, Craig F., and Donald R. Huffman: _Absorption and scattering of light by small particles_. John Wiley & Sons, 2008. The original code can be found [here](http://scatterlib.wikidot.com/mie).

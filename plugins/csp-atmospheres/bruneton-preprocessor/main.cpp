@@ -20,7 +20,7 @@
 void printHelp() {
   std::cout << "Welcome to the Atmosphere Preprocessor! Usage:" << std::endl;
   std::cout << std::endl;
-  std::cout << "  ./atmosphere-preprocessor <input JSON> <output directory>" << std::endl;
+  std::cout << "  ./bruneton-preprocessor <input JSON> <output directory>" << std::endl;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

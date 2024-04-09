@@ -14,7 +14,7 @@ endif()
 # build the preprocessors --------------------------------------------------------------------------
 
 add_subdirectory(csv-generator)
-add_subdirectory(atmosphere-preprocessor)
+add_subdirectory(bruneton-preprocessor)
 
 # build plugin -------------------------------------------------------------------------------------
 
@@ -52,4 +52,4 @@ install(TARGETS   csp-atmospheres                   DESTINATION "share/plugins")
 install(DIRECTORY "textures"                        DESTINATION "share/resources")
 install(DIRECTORY "shaders"                         DESTINATION "share/resources")
 install(DIRECTORY "gui"                             DESTINATION "share/resources")
-install(DIRECTORY "atmosphere-preprocessor/output/" DESTINATION "share/resources/atmosphere-data")
+install(DIRECTORY "bruneton-preprocessor/output/" DESTINATION "share/resources/atmosphere-data")

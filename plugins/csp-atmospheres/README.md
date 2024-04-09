@@ -168,11 +168,11 @@ For convenience, we provide some precomputed tables for Earth and Mars in the [`
 
 In the second preprocessing step, multiple scattering is precomputed for an entire atmosphere and the results are stored in lookup textures.
 
-This step is performed by the command-line utility [`atmosphere-preprocessor`](atmosphere-preprocessor/README.md).
+This step is performed by the command-line utility [`bruneton-preprocessor`](bruneton-preprocessor/README.md).
 This consumes the CSV files generated in the first step and precomputes the atmospheric scattering textures.
 The textures are accompanied by a JSON file containing some metadata on the precomputed values.
 During runtime, the plugin will load these textures and use them to render the atmosphere.
-For convenience, we provide precomputed textures for Earth and Mars in the [`atmosphere-preprocessor/output`](atmosphere-preprocessor/output) directory.
+For convenience, we provide precomputed textures for Earth and Mars in the [`bruneton-preprocessor/output`](bruneton-preprocessor/output) directory.
 These are installed to `share/resources/atmosphere-data` and can be used like shown below.
 
 ### Example Configurations
