@@ -1,8 +1,6 @@
 {
-    "transmittanceTextureWidth": 1024,
-    "transmittanceTextureHeight": 512,
-    "sunDistance": 227900000000,
     "multiScatteringOrder": 10,
+    "sunDistance": 227900000000,
     "minAltitude": 3385000,
     "maxAltitude": 3469500,
     "molecules": {
