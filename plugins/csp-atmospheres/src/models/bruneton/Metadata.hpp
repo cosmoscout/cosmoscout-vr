@@ -14,19 +14,23 @@
 
 namespace csp::atmospheres::models::bruneton {
 
+/// Besides the precomputed textures, the precomputation step also generates a metadata file which
+/// contains some additional information required for rendering. This struct represents the content
+/// of that file.
 struct Metadata {
-  /// The angular radius of the Sun needs to be specified. As SPICE is not fully available when
-  /// the plugin is loaded, we cannot compute it. Also, this actually varies in reality.
-  float     mSunAngularRadius{};
+  /// The angular radius of the Sun in radians.
+  float mSunAngularRadius{};
+
+  /// The RGB illuminance of the Sun in lux.
   glm::vec3 mSunIlluminance{};
 
-  /// Larger values reduce circular banding artifacts around sun for thick atmospheres.
+  /// As 4D textures are stored as layered 2D textures, we need this value to calculate the four
+  /// dimensions of the 4D textures. This basically determines how many 2D textures are packed
+  /// horizontally in each layer.
   int32_t mScatteringTextureNuSize{};
 
-  /// The maximum Sun zenith angle for which atmospheric scattering must be precomputed, in
-  /// radians (for maximum precision, use the smallest Sun zenith angle yielding negligible sky
-  /// light radiance values. For instance, for the Earth case, 102 degrees is a good choice for
-  /// most cases (120 degrees is necessary for very high exposure values).
+  /// The maximum Sun zenith angle for which atmospheric scattering is specified during the
+  /// precomputation step and passed to the plugin here.
   float mMaxSunZenithAngle{};
 };
 

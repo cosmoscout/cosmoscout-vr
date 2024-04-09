@@ -3,8 +3,7 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
-// SPDX-FileCopyrightText: 2017 Eric Bruneton
-// SPDX-License-Identifier: BSD-3-Clause
+// SPDX-License-Identifier: MIT
 
 #include "Model.hpp"
 
@@ -21,18 +20,6 @@
 #include <tiffio.h>
 
 #include <glm/gtc/constants.hpp>
-
-// This file is based in large parts on the original implementation by Eric Bruneton:
-// https://github.com/ebruneton/precomputed_atmospheric_scattering/blob/master/atmosphere/model.cc
-
-// While implementing the atmospheric model into CosmoScout VR, we have refactored some parts of the
-// code, however this is mostly related to how variables are named and how input parameters are
-// passed to the model. The only fundamental change is that the phase functions for aerosols and
-// molecules as well as their density distributions are now loaded from CSV files and then later
-// sampled from textures.
-
-// Below, we will indicate for each group of function whether something has been changed and a link
-// to the original explanations of the methods by Eric Bruneton.
 
 namespace csp::atmospheres::models::bruneton {
 
@@ -59,27 +46,21 @@ Model::~Model() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// The code below roughly follows the original implementation by Eric Bruneton.
-
-// The original explanation of the methods still applies in most parts and is available online:
-// https://ebruneton.github.io/precomputed_atmospheric_scattering/atmosphere/model.cc.html#implementation
-
-// The main differences in the constructor are that we pass significantly more constants to the
-// shader code as all the sampling counts are configurable now. Also, we create the new density
-// texture which contains the density profiles for all atmosphere constituents.
 bool Model::init(
     nlohmann::json const& modelSettings, double planetRadius, double atmosphereRadius) {
 
+  // Parse the model settings. This only contains the path to the directory where the precomputed
+  // textures are stored.
   Settings settings;
-
   try {
     settings = modelSettings;
   } catch (std::exception const& e) {
     logger().error("Failed to parse atmosphere parameters: {}", e.what());
   }
 
+  // From that directory, we need to load the metadata file. This file contains some additional
+  // information required for rendering.
   Metadata meta;
-
   try {
     std::ifstream  file(settings.mDataDirectory + "/metadata.json");
     nlohmann::json j;
@@ -89,13 +70,7 @@ bool Model::init(
     logger().error("Failed to parse atmosphere parameters: {}", e.what());
   }
 
-  // A lambda that creates a GLSL header containing our atmosphere computation functions,
-  // specialized for the given atmosphere parameters and for the 3 wavelengths in 'lambdas'.
-  auto model = cs::utils::filesystem::loadToString(
-      "../share/resources/shaders/atmosphere-models/bruneton/model.glsl");
-  auto common = cs::utils::filesystem::loadToString(
-      "../share/resources/shaders/atmosphere-models/bruneton/common.glsl");
-
+  // Load the precomputed textures.
   mPhaseTexture = std::get<0>(read2DTexture(settings.mDataDirectory + "/phase.tif"));
 
   {
@@ -124,6 +99,14 @@ bool Model::init(
   mSingleAerosolsScatteringTexture =
       std::get<0>(read3DTexture(settings.mDataDirectory + "/single_aerosols_scattering.tif"));
 
+  // Now create the shader. We load the common and model glsl files and concatenate them with the
+  // some constants and the metadata.
+
+  auto model = cs::utils::filesystem::loadToString(
+      "../share/resources/shaders/atmosphere-models/bruneton/model.glsl");
+  auto common = cs::utils::filesystem::loadToString(
+      "../share/resources/shaders/atmosphere-models/bruneton/common.glsl");
+
   // clang-format off
   std::string shader =
     std::string("#version 330\n") +
@@ -144,7 +127,6 @@ bool Model::init(
     model;
   // clang-format on
 
-  // Create and compile the shader providing our API.
   const char* source = shader.c_str();
   mAtmosphereShader  = glCreateShader(GL_FRAGMENT_SHADER);
   glShaderSource(mAtmosphereShader, 1, &source, NULL);

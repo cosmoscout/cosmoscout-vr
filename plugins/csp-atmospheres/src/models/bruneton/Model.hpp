@@ -3,8 +3,7 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
-// SPDX-FileCopyrightText: 2017 Eric Bruneton
-// SPDX-License-Identifier: BSD-3-Clause
+// SPDX-License-Identifier: MIT
 
 #ifndef CSP_ATMOSPHERES_MODELS_BRUNETON_MODEL_HPP
 #define CSP_ATMOSPHERES_MODELS_BRUNETON_MODEL_HPP
@@ -18,19 +17,16 @@ namespace csp::atmospheres::models::bruneton {
 /// The main difference to the original implementation is that this variant uses phase functions,
 /// extinction coefficients, and density distributions loaded from CSV files instead of analytic
 /// descriptions.
+/// Besides, we refactored out the precomputation step into a separate executable, which is
+/// responsible for generating the textures needed for rendering. This way, we can increase the
+/// fidelity of the preprocessing step without affecting the startup time of the application.
 /// More information on the original implementation can be found in the repo by Eric Bruneton:
 /// https://github.com/ebruneton/precomputed_atmospheric_scattering as well as in his paper
 /// "Precomputed Atmospheric Scattering" (https://hal.inria.fr/inria-00288758/en).
-/// The default values for the model parameters further down this file are based on the parameters
-/// from Eric Bruneton:
-/// https://github.com/ebruneton/precomputed_atmospheric_scattering/blob/master/atmosphere/constants.h
 class Model : public ModelBase {
  public:
-  /// If only three wavelengths are used during rendering, these three are used:
-  static constexpr float kLambdaR = 680.0;
-  static constexpr float kLambdaG = 550.0;
-  static constexpr float kLambdaB = 440.0;
-
+  /// The settings of this model are extremely simple. They only contain the path to the directory
+  /// where the precomputed textures are stored.
   struct Settings {
     std::string mDataDirectory;
   };
