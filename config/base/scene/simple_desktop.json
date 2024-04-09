@@ -743,14 +743,7 @@
           "bottomAltitude": -100,
           "model": "Bruneton",
           "modelSettings": {
-            "sunAngularRadius": 0.004675,
-            "scatteringTextureNuSize": 8,
-            "sunIlluminance": [
-              144810,
-              129444,
-              127099
-            ],
-            "dataDirectory": "earth-atmo"
+            "dataDirectory": "../share/resources/atmosphere-data/earth"
           }
         },
         "Mars": {
@@ -758,14 +751,7 @@
           "bottomAltitude": -4500,
           "model": "Bruneton",
           "modelSettings": {
-            "sunAngularRadius": 0.003054,
-            "scatteringTextureNuSize": 8,
-            "sunIlluminance": [
-              62397.9,
-              55776.7,
-              54766.3
-            ],
-            "dataDirectory": "mars-atmo"
+            "dataDirectory": "../share/resources/atmosphere-data/mars"
           }
         }
       }

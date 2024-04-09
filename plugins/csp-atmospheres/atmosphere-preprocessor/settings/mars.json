@@ -6,15 +6,15 @@
     "minAltitude": 3385000,
     "maxAltitude": 3469500,
     "molecules": {
-        "phase": "../share/resources/data/csp-atmospheres/mars_cosmoscout_molecules_cinematic_phase.csv",
-        "betaSca": "../share/resources/data/csp-atmospheres/mars_cosmoscout_molecules_cinematic_scattering.csv",
-        "betaAbs": "../share/resources/data/csp-atmospheres/mars_cosmoscout_molecules_cinematic_absorption.csv",
-        "density": "../share/resources/data/csp-atmospheres/mars_cosmoscout_molecules_cinematic_density.csv"
+        "phase": "plugins/csp-atmospheres/csv-generator/output/mars_cosmoscout_molecules_cinematic_phase.csv",
+        "betaSca": "plugins/csp-atmospheres/csv-generator/output/mars_cosmoscout_molecules_cinematic_scattering.csv",
+        "betaAbs": "plugins/csp-atmospheres/csv-generator/output/mars_cosmoscout_molecules_cinematic_absorption.csv",
+        "density": "plugins/csp-atmospheres/csv-generator/output/mars_cosmoscout_molecules_cinematic_density.csv"
     },
     "aerosols": {
-        "phase": "../share/resources/data/csp-atmospheres/mars_cosmoscout_aerosols_cinematic_phase.csv",
-        "betaSca": "../share/resources/data/csp-atmospheres/mars_cosmoscout_aerosols_cinematic_scattering.csv",
-        "betaAbs": "../share/resources/data/csp-atmospheres/mars_cosmoscout_aerosols_cinematic_absorption.csv",
-        "density": "../share/resources/data/csp-atmospheres/mars_cosmoscout_aerosols_cinematic_density.csv"
+        "phase": "plugins/csp-atmospheres/csv-generator/output/mars_cosmoscout_aerosols_cinematic_phase.csv",
+        "betaSca": "plugins/csp-atmospheres/csv-generator/output/mars_cosmoscout_aerosols_cinematic_scattering.csv",
+        "betaAbs": "plugins/csp-atmospheres/csv-generator/output/mars_cosmoscout_aerosols_cinematic_absorption.csv",
+        "density": "plugins/csp-atmospheres/csv-generator/output/mars_cosmoscout_aerosols_cinematic_density.csv"
     }
 }

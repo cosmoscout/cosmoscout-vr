@@ -680,12 +680,14 @@ Preprocessor::Preprocessor(Params params)
 
   // A lambda that creates a GLSL header containing our atmosphere computation functions,
   // specialized for the given atmosphere parameters and for the 3 wavelengths in 'lambdas'.
-  auto definitions = cs::utils::filesystem::loadToString(
-      "../share/resources/shaders/csp-atmosphere-preprocessing-definitions.glsl");
-  auto functions = cs::utils::filesystem::loadToString(
-      "../share/resources/shaders/csp-atmosphere-preprocessing-functions.glsl");
+  auto definitions =
+      cs::utils::filesystem::loadToString("plugins/csp-atmospheres/atmosphere-preprocessor/shaders/"
+                                          "csp-atmosphere-preprocessing-definitions.glsl");
+  auto functions =
+      cs::utils::filesystem::loadToString("plugins/csp-atmospheres/atmosphere-preprocessor/shaders/"
+                                          "csp-atmosphere-preprocessing-functions.glsl");
   auto common = cs::utils::filesystem::loadToString(
-      "../share/resources/shaders/atmosphere-models/bruneton/common.glsl");
+      "plugins/csp-atmospheres/shaders/atmosphere-models/bruneton/common.glsl");
 
   // clang-format off
   mGlslHeaderFactory = [=](glm::vec3 const& lambdas) {

@@ -44,5 +44,3 @@ install(
   TARGETS atmosphere-preprocessor
   RUNTIME DESTINATION "bin"
 )
-
-install(DIRECTORY "shaders" DESTINATION "share/resources")
