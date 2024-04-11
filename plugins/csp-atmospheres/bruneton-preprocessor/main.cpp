@@ -24,6 +24,10 @@ void printHelp() {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
+// This preprocessor loads the CSV files containing the scattering data and precomputes the       //
+// textures which are needed to render the atmosphere. The preprocessor is based on the           //
+// implementation by Eric Bruneton: https://github.com/ebruneton/precomputed_atmospheric_scattering
+// See the Preprocessor class for more information.                                               //
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 int main(int argc, char** argv) {
@@ -95,7 +99,7 @@ int main(int argc, char** argv) {
                              "they should be exactly for 440 nm, 550 nm, and 680 nm!");
   }
 
-  // Initialize SDL
+  // Initialize SDL.
   if (SDL_Init(SDL_INIT_VIDEO) < 0) {
     SDL_Log("Unable to initialize SDL: %s", SDL_GetError());
     return 1;
@@ -106,7 +110,7 @@ int main(int argc, char** argv) {
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 
-  // Create a window (invisible)
+  // Create a window (invisible).
   SDL_Window* window = SDL_CreateWindow("OpenGL", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
       0, // width
       0, // height
@@ -118,10 +122,10 @@ int main(int argc, char** argv) {
     return 1;
   }
 
-  // Create OpenGL context
+  // Create OpenGL context.
   SDL_GLContext context = SDL_GL_CreateContext(window);
 
-  // Initialize GLEW
+  // Initialize GLEW.
   glewExperimental = GL_TRUE;
   if (glewInit() != GLEW_OK) {
     SDL_Log("Failed to initialize GLEW");
@@ -138,9 +142,10 @@ int main(int argc, char** argv) {
   // Create the output directory if it does not exist.
   cs::utils::filesystem::createDirectoryRecursively(boost::filesystem::system_complete(cOutput));
 
+  // Save the precomputed textures.
   preprocessor.save(cOutput);
 
-  // Clean up
+  // Clean up.
   SDL_GL_DeleteContext(context);
   SDL_DestroyWindow(window);
   SDL_Quit();

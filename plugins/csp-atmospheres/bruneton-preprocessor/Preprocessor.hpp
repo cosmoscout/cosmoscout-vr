@@ -19,14 +19,14 @@
 #include <string>
 #include <vector>
 
-/// The C++ implementation of this atmospheric model is based on this class by Eric Bruneton:
+/// The preprocessor is based on this class by Eric Bruneton:
 /// https://github.com/ebruneton/precomputed_atmospheric_scattering/blob/master/atmosphere/model.h
 /// While we refactored / restyled large parts of the code, the overall flow of control remains the
 /// same.
-
+/// See the source file for more information.
 class Preprocessor {
  public:
-  /// If only three wavelengths are used during rendering, these three are used:
+  /// If only three wavelengths are used during preprocessing, these three are used:
   static constexpr float kLambdaR = 680.0;
   static constexpr float kLambdaG = 550.0;
   static constexpr float kLambdaB = 440.0;

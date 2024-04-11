@@ -12,19 +12,19 @@
 
 #include <glm/glm.hpp>
 
+/// The preprocessor not only generates textures, but also some metadata which is needed to render
+/// the atmosphere. This struct is used to store this metadata.
 struct Metadata {
-  /// The angular radius of the Sun needs to be specified. As SPICE is not fully available when
-  /// the plugin is loaded, we cannot compute it. Also, this actually varies in reality.
+  /// The angular radius of the Sun as well as the RGB illuminance at the planet's average distance
+  /// to the Sun is required during rendering.
   float     mSunAngularRadius{};
   glm::vec3 mSunIlluminance{};
 
-  /// Larger values reduce circular banding artifacts around sun for thick atmospheres.
+  /// As the scattering textures are 4D textures stored in 3D textures, we need to know the number
+  /// of textures packed next to each other in the layers of the 3D texture.
   int32_t mScatteringTextureNuSize{};
 
-  /// The maximum Sun zenith angle for which atmospheric scattering must be precomputed, in
-  /// radians (for maximum precision, use the smallest Sun zenith angle yielding negligible sky
-  /// light radiance values. For instance, for the Earth case, 102 degrees is a good choice for
-  /// most cases (120 degrees is necessary for very high exposure values).
+  /// The maximum Sun zenith angle for which atmospheric scattering was be precomputed.
   float mMaxSunZenithAngle{};
 };
 

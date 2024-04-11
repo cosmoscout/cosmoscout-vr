@@ -23,9 +23,11 @@
 
 // While implementing the atmospheric model into CosmoScout VR, we have refactored some parts of the
 // code, however this is mostly related to how variables are named and how input parameters are
-// passed to the model. The only fundamental change is that the phase functions for aerosols and
-// molecules as well as their density distributions are now loaded from CSV files and then later
-// sampled from textures.
+// passed to the model.
+// Architecture-wise, the main difference is that the preprocessing is now done offline, so all code
+// which is only required during rendering has been refactored out. Functionality-wise, the only
+// fundamental change is that the phase functions for aerosols and molecules as well as their
+// density distributions are now loaded from CSV files and then later sampled from textures.
 
 // Below, we will indicate for each group of function whether something has been changed and a link
 // to the original explanations of the methods by Eric Bruneton.

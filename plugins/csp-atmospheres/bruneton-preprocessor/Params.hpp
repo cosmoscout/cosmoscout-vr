@@ -11,20 +11,13 @@
 
 #include "../../../../src/cs-core/Settings.hpp"
 
-/// This atmospheric model is based on an implementation of multiple-scattering by Eric Bruneton.
-/// The main difference to the original implementation is that this variant uses phase functions,
-/// extinction coefficients, and density distributions loaded from CSV files instead of analytic
-/// descriptions.
-/// More information on the original implementation can be found in the repo by Eric Bruneton:
-/// https://github.com/ebruneton/precomputed_atmospheric_scattering as well as in his paper
-/// "Precomputed Atmospheric Scattering" (https://hal.inria.fr/inria-00288758/en).
-/// The default values for the model parameters further down this file are based on the parameters
-/// from Eric Bruneton:
+/// The default values for the preprocessor parameters further down this file are based on the
+/// parameters from Eric Bruneton:
 /// https://github.com/ebruneton/precomputed_atmospheric_scattering/blob/master/atmosphere/constants.h
 struct Params {
 
   /// This stores file paths to the CSV files containing the respective data. See the README of
-  /// this plugin for a more detailed description.
+  /// this preprocessor for a more detailed description.
   struct ScatteringComponent {
     std::string mPhaseFile;
     std::string mBetaScaFile;
@@ -48,7 +41,7 @@ struct Params {
   };
 
   /// This stores file paths to the CSV files containing the respective data. See the README of
-  /// this plugin for a more detailed description.
+  /// this preprocessor for a more detailed description.
   struct AbsorbingComponent {
     std::string mBetaAbsFile;
     std::string mDensityFile;
