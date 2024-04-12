@@ -22,6 +22,7 @@
 !/plugins/csp-anchor-labels
 !/plugins/csp-atmospheres
 !/plugins/csp-custom-web-ui
+!/plugins/csp-guided-tour
 !/plugins/csp-demo-node-editor
 !/plugins/csp-vr-accessibility
 !/plugins/csp-fly-to-locations
