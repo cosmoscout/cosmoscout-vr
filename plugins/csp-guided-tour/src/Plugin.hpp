@@ -5,8 +5,8 @@
 // SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
 // SPDX-License-Identifier: MIT
 
-#ifndef CSP_CUSTOM_WEB_UI_PLUGIN_HPP
-#define CSP_CUSTOM_WEB_UI_PLUGIN_HPP
+#ifndef CSP_GUIDED_TOUR_PLUGIN_HPP
+#define CSP_GUIDED_TOUR_PLUGIN_HPP
 
 #include "../../../src/cs-core/PluginBase.hpp"
 
@@ -24,7 +24,7 @@ class WorldSpaceGuiArea;
 class GuiItem;
 } // namespace cs::gui
 
-namespace csp::customwebui {
+namespace csp::guidedtour {
 
 /// This plugin allows to add custom HTML content to a sidebar-tob, to a floating window or to any
 /// position in space.
@@ -46,7 +46,7 @@ class Plugin : public cs::core::PluginBase {
       bool operator==(GuiItem const& other) const;
     };
 
-    struct SpaceItem {
+    struct CPItem {
 
       /// The SPICE center and frame names.
       std::string mObject;
@@ -66,7 +66,7 @@ class Plugin : public cs::core::PluginBase {
       /// The actual HTML code to add. You can use an <iframe> for example.
       std::string mHTML;
 
-      bool operator==(SpaceItem const& other) const;
+      bool operator==(CPItem const& other) const;
     };
 
     /// These items will be added to the sidebar.
@@ -77,7 +77,7 @@ class Plugin : public cs::core::PluginBase {
     std::vector<GuiItem> mWindowItems;
 
     /// These items will be placed somewhere on a celestial body.
-    std::vector<SpaceItem> mSpaceItems;
+    std::vector<CPItem> mCPItems;
 
     bool operator!=(Settings const& other) const;
     bool operator==(Settings const& other) const;
@@ -92,7 +92,7 @@ class Plugin : public cs::core::PluginBase {
   void onSave();
   void unload(Settings const& pluginSettings);
 
-  struct SpaceItem {
+  struct CPItem {
     std::unique_ptr<cs::gui::WorldSpaceGuiArea> mGuiArea;
     std::unique_ptr<cs::gui::GuiItem>           mGuiItem;
     std::unique_ptr<VistaTransformNode>         mAnchor;
@@ -105,12 +105,12 @@ class Plugin : public cs::core::PluginBase {
 
   Settings mPluginSettings;
 
-  std::list<SpaceItem> mSpaceItems;
+  std::list<CPItem> mCPItems;
 
   int mOnLoadConnection = -1;
   int mOnSaveConnection = -1;
 };
 
-} // namespace csp::customwebui
+} // namespace csp::guidedtour
 
-#endif // CSP_CUSTOM_WEB_UI_PLUGIN_HPP
+#endif // CSP_GUIDED_TOUR_PLUGIN_HPP

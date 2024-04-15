@@ -25,7 +25,7 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 EXPORT_FN cs::core::PluginBase* create() {
-  return new csp::customwebui::Plugin;
+  return new csp::guidedtour::Plugin;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -36,7 +36,7 @@ EXPORT_FN void destroy(cs::core::PluginBase* pluginBase) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace csp::customwebui {
+namespace csp::guidedtour {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -54,7 +54,7 @@ void to_json(nlohmann::json& j, Plugin::Settings::GuiItem const& o) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void from_json(nlohmann::json const& j, Plugin::Settings::SpaceItem& o) {
+void from_json(nlohmann::json const& j, Plugin::Settings::CPItem& o) {
   cs::core::Settings::deserialize(j, "object", o.mObject);
   cs::core::Settings::deserialize(j, "longitude", o.mLongitude);
   cs::core::Settings::deserialize(j, "latitude", o.mLatitude);
@@ -65,7 +65,7 @@ void from_json(nlohmann::json const& j, Plugin::Settings::SpaceItem& o) {
   cs::core::Settings::deserialize(j, "html", o.mHTML);
 }
 
-void to_json(nlohmann::json& j, Plugin::Settings::SpaceItem const& o) {
+void to_json(nlohmann::json& j, Plugin::Settings::CPItem const& o) {
   cs::core::Settings::serialize(j, "object", o.mObject);
   cs::core::Settings::serialize(j, "longitude", o.mLongitude);
   cs::core::Settings::serialize(j, "latitude", o.mLatitude);
@@ -81,13 +81,13 @@ void to_json(nlohmann::json& j, Plugin::Settings::SpaceItem const& o) {
 void from_json(nlohmann::json const& j, Plugin::Settings& o) {
   cs::core::Settings::deserialize(j, "sidebar-items", o.mSideBarItems);
   cs::core::Settings::deserialize(j, "window-items", o.mWindowItems);
-  cs::core::Settings::deserialize(j, "space-items", o.mSpaceItems);
+  cs::core::Settings::deserialize(j, "cp-items", o.mCPItems);
 }
 
 void to_json(nlohmann::json& j, Plugin::Settings const& o) {
   cs::core::Settings::serialize(j, "sidebar-items", o.mSideBarItems);
   cs::core::Settings::serialize(j, "window-items", o.mWindowItems);
-  cs::core::Settings::serialize(j, "space-items", o.mSpaceItems);
+  cs::core::Settings::serialize(j, "cp-items", o.mCPItems);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -96,7 +96,7 @@ bool Plugin::Settings::GuiItem::operator==(Plugin::Settings::GuiItem const& othe
   return mName == other.mName && mIcon == other.mIcon && mHTML == other.mHTML;
 }
 
-bool Plugin::Settings::SpaceItem::operator==(Plugin::Settings::SpaceItem const& other) const {
+bool Plugin::Settings::CPItem::operator==(Plugin::Settings::CPItem const& other) const {
   return mObject == other.mObject && mLongitude == other.mLongitude &&
          mLatitude == other.mLatitude && mElevation == other.mElevation && mScale == other.mScale &&
          mWidth == other.mWidth && mHeight == other.mHeight && mHTML == other.mHTML;
@@ -104,7 +104,7 @@ bool Plugin::Settings::SpaceItem::operator==(Plugin::Settings::SpaceItem const& 
 
 bool Plugin::Settings::operator==(Plugin::Settings const& other) const {
   return mSideBarItems == other.mSideBarItems && mWindowItems == other.mWindowItems &&
-         mSpaceItems == other.mSpaceItems;
+         mCPItems == other.mCPItems;
 }
 
 bool Plugin::Settings::operator!=(Plugin::Settings const& other) const {
@@ -131,7 +131,7 @@ void Plugin::init() {
 void Plugin::update() {
 
   // Rotate the space items to face the observer.
-  for (auto& item : mSpaceItems) {
+  for (auto& item : mCPItems) {
     auto object = mSolarSystem->getObject(item.mObjectName);
 
     if (object) {
@@ -167,7 +167,7 @@ void Plugin::onLoad() {
   auto oldSettings = mPluginSettings;
 
   // Read settings from JSON.
-  from_json(mAllSettings->mPlugins.at("csp-custom-web-ui"), mPluginSettings);
+  from_json(mAllSettings->mPlugins.at("csp-guided-tour"), mPluginSettings);
 
   // We simply reload everything if anything changed.
   if (mPluginSettings != oldSettings) {
@@ -184,8 +184,8 @@ void Plugin::onLoad() {
     for (size_t i(0); i < mPluginSettings.mWindowItems.size(); ++i) {
       auto const& settings = mPluginSettings.mWindowItems[i];
 
-      std::string callback = "customWebUI.toggleWindow" + std::to_string(i);
-      std::string id       = "customWebUIWindow" + std::to_string(i);
+      std::string callback = "guidedTour.toggleWindow" + std::to_string(i);
+      std::string id       = "guidedTourWindow" + std::to_string(i);
 
       // Register a callback to toggle the window.
       mGuiManager->getGui()->registerCallback(callback,
@@ -225,7 +225,7 @@ void Plugin::onLoad() {
 
     // Then add all space items.
     auto* pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
-    for (auto const& settings : mPluginSettings.mSpaceItems) {
+    for (auto const& settings : mPluginSettings.mCPItems) {
 
       auto object = mSolarSystem->getObject(settings.mObject);
 
@@ -233,7 +233,7 @@ void Plugin::onLoad() {
         continue;
       }
 
-      SpaceItem item;
+      CPItem item;
       item.mObjectName = settings.mObject;
 
       // Create a VistaTransformNode to attach our gui element to.
@@ -265,7 +265,7 @@ void Plugin::onLoad() {
 
       // Add the GuiItem to our WorldSpaceGuiArea.
       item.mGuiItem = std::make_unique<cs::gui::GuiItem>(
-          "file://../share/resources/gui/custom-web-ui-simple.html");
+          "file://../share/resources/gui/guided-tour-simple.html");
       item.mGuiArea->addItem(item.mGuiItem.get());
       item.mGuiItem->setCursorChangeCallback(
           [](cs::gui::Cursor c) { cs::core::GuiManager::setCursor(c); });
@@ -273,7 +273,7 @@ void Plugin::onLoad() {
       item.mGuiItem->callJavascript("setContent", settings.mHTML);
 
       // Store it.
-      mSpaceItems.emplace_back(std::move(item));
+      mCPItems.emplace_back(std::move(item));
     }
   }
 }
@@ -281,7 +281,7 @@ void Plugin::onLoad() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Plugin::onSave() {
-  mAllSettings->mPlugins["csp-custom-web-ui"] = mPluginSettings;
+  mAllSettings->mPlugins["csp-guided-tour"] = mPluginSettings;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -294,22 +294,22 @@ void Plugin::unload(Settings const& pluginSettings) {
 
   // Remove all window items.
   for (size_t i(0); i < pluginSettings.mWindowItems.size(); ++i) {
-    mGuiManager->getGui()->unregisterCallback("customWebUI.toggleWindow" + std::to_string(i));
+    mGuiManager->getGui()->unregisterCallback("guidedTour.toggleWindow" + std::to_string(i));
     mGuiManager->removeTimelineButton(pluginSettings.mWindowItems[i].mName);
 
-    std::string id = "customWebUIWindow" + std::to_string(i);
+    std::string id = "guidedTourWindow" + std::to_string(i);
     mGuiManager->getGui()->executeJavascript("document.querySelector('#" + id + "').remove()");
   }
 
   // Remove all space items.
   auto* pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
-  for (auto const& item : mSpaceItems) {
+  for (auto const& item : mCPItems) {
     pSG->GetRoot()->DisconnectChild(item.mAnchor.get());
     mInputManager->unregisterSelectable(item.mGuiNode.get());
   }
-  mSpaceItems.clear();
+  mCPItems.clear();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-} // namespace csp::customwebui
+} // namespace csp::guidedtour

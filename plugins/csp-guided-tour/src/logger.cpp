@@ -9,15 +9,15 @@
 
 #include "../../../src/cs-utils/logger.hpp"
 
-namespace csp::customwebui {
+namespace csp::guidedtour {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 spdlog::logger& logger() {
-  static auto logger = cs::utils::createLogger("csp-custom-web-ui");
+  static auto logger = cs::utils::createLogger("csp-guided-tour");
   return *logger;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-} // namespace csp::customwebui
+} // namespace csp::guidedtour
