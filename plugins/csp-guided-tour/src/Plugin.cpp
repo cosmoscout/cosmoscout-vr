@@ -56,6 +56,9 @@ void to_json(nlohmann::json& j, Plugin::Settings::CPItem const& o) {
   cs::core::Settings::serialize(j, "height", o.mHeight);
   cs::core::Settings::serialize(j, "file", o.mFile);
 }
+
+  //cs::core::Settings::serialize(j, "checkpoints", o.mCPItems);
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void from_json(nlohmann::json const& j, Plugin::Settings& o) {
@@ -87,6 +90,18 @@ void Plugin::init() {
 
   mOnLoadConnection = mAllSettings->onLoad().connect([this]() { onLoad(); });
   mOnSaveConnection = mAllSettings->onSave().connect([this]() { onSave(); });
+
+  mGuiManager->addPluginTabToSideBarFromHTML(
+      "Guided Tour", "flag", "../share/resources/gui/csp-guided-tour-tab.html");
+  
+  mGuiManager->getGui()->registerCallback("guidedTours.reset",
+      "Call this to reset all Checkpoints of the current tour.",
+      std::function([this]{
+        for(auto const& item: mCPItems) {
+          item.mGuiItem->callJavascript("reset()");
+        }
+      }));
+
   // Load initial settings.
 
   onLoad();
@@ -94,7 +109,6 @@ void Plugin::init() {
   logger().info("Loading done.");
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-
 
 void Plugin::update() {
   // Rotate the space items to face the observer.
@@ -117,6 +131,8 @@ void Plugin::deInit() {
   unload(mPluginSettings);
   mAllSettings->onLoad().disconnect(mOnLoadConnection);
   mAllSettings->onSave().disconnect(mOnSaveConnection);
+
+  mGuiManager->removePluginTab("Guided Tour");
 }
 
 void Plugin::onLoad() {
@@ -126,7 +142,7 @@ void Plugin::onLoad() {
   if (mPluginSettings != oldSettings) {
     unload(oldSettings);
 
-    for (auto const& settings : mPluginSettings.mCPItems) {
+    for (auto const& settings : mPluginSettings.mCPItems) { //Anpassen soll durch TOuren durchlaufen durch tour1 erstmal
       auto object = mSolarSystem->getObject(settings.mObject);
 
       if (!object) {
@@ -142,11 +158,12 @@ void Plugin::onLoad() {
       item.mScale = settings.mScale;
 
       glm::dvec2 lngLat(settings.mLongitude, settings.mLatitude);
-      lngLat = cs::utils::convert::toRadians(lngLat);
-      auto radii = object->getRadii();
+      lngLat         = cs::utils::convert::toRadians(lngLat);
+      auto radii     = object->getRadii();
       item.mPosition = cs::utils::convert::toCartesian(lngLat, radii, settings.mElevation);
 
-      item.mGuiArea = std::make_unique<cs::gui::WorldSpaceGuiArea>(settings.mWidth, settings.mHeight);
+      item.mGuiArea =
+          std::make_unique<cs::gui::WorldSpaceGuiArea>(settings.mWidth, settings.mHeight);
 
       item.mTransform.reset(pSG->NewTransformNode(item.mAnchor.get()));
       item.mTransform->Scale(0.001F * static_cast<float>(item.mGuiArea->getWidth()),
@@ -159,12 +176,11 @@ void Plugin::onLoad() {
       VistaOpenSGMaterialTools::SetSortKeyOnSubtree(
           item.mGuiNode.get(), static_cast<int>(cs::utils::DrawOrder::eTransparentItems));
 
-      item.mGuiItem = std::make_unique<cs::gui::GuiItem>(
-          "file://" + settings.mFile); //Die würde kommen da wird hier aus den settings 
+      item.mGuiItem = std::make_unique<cs::gui::GuiItem>("file://" + settings.mFile);
       item.mGuiArea->addItem(item.mGuiItem.get());
       item.mGuiItem->setCursorChangeCallback(
           [](cs::gui::Cursor c) { cs::core::GuiManager::setCursor(c); });
-      item.mGuiItem->waitForFinishedLoading();
+     // item.mGuiItem->waitForFinishedLoading();
 
       mCPItems.emplace_back(std::move(item));
     }
