@@ -25,30 +25,16 @@ class GuiItem;
 } // namespace cs::gui
 
 namespace csp::guidedtour {
-
 /// This plugin allows to add custom HTML content to a sidebar-tob, to a floating window or to any
 /// position in space.
+
 class Plugin : public cs::core::PluginBase {
  public:
   struct Settings {
 
-    struct GuiItem {
-
-      /// The name of the sidebar tab or window.
-      std::string mName;
-
-      /// Material icon, see https://material.io/resources/icons for options.
-      std::string mIcon;
-
-      /// The actual HTML code to add. You can use an <iframe> for example.
-      std::string mHTML;
-
-      bool operator==(GuiItem const& other) const;
-    };
-
     struct CPItem {
 
-      /// The SPICE center and frame names.
+  /// The SPICE center and frame names.
       std::string mObject;
 
       /// The position of the item, elevation is relative to the surface height.
@@ -65,18 +51,10 @@ class Plugin : public cs::core::PluginBase {
 
       /// The actual HTML code to add. You can use an <iframe> for example.
       std::string mHTML;
-
       bool operator==(CPItem const& other) const;
     };
-
-    /// These items will be added to the sidebar.
-    std::vector<GuiItem> mSideBarItems;
-
-    /// These items will be added as draggable windows. They will be hidden initially but there will
-    /// be buttons beneath the timeline to reveal them.
-    std::vector<GuiItem> mWindowItems;
-
     /// These items will be placed somewhere on a celestial body.
+
     std::vector<CPItem> mCPItems;
 
     bool operator!=(Settings const& other) const;

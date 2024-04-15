@@ -3,7 +3,7 @@ SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
 SPDX-License-Identifier: CC-BY-4.0
  -->
 
-# Custom Web UI for CosmoScout VR
+# GUIDED TOUR for CosmoScout VR
 
 A CosmoScout VR plugin which allows adding custom HTML-based UI elements as sidebar-tabs, as floating windows or into free space.
 
@@ -17,7 +17,7 @@ The given values are just some examples, feel free to add your own items:
   ...
   "plugins": {
     ...
-    "csp-custom-web-ui": {
+    "csp-guided-tour": {
       "sidebar-items": [
         {
           "name": "Spotify",

@@ -5,9 +5,9 @@
 # SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
 # SPDX-License-Identifier: MIT
 
-option(CSP_CUSTOM_WEB_UI "Enable compilation of this plugin" ON)
+option(CSP_GUIDED_TOUR "Enable compilation of this plugin" ON)
 
-if (NOT CSP_CUSTOM_WEB_UI)
+if (NOT CSP_GUIDED_TOUR)
   return()
 endif()
 
@@ -19,19 +19,19 @@ file(GLOB SOURCE_FILES src/*.cpp)
 file(GLOB HEADER_FILES src/*.hpp)
 file(GLOB_RECURSE RESOUCRE_FILES gui/*)
 
-add_library(csp-custom-web-ui SHARED
+add_library(csp-guided-tour SHARED
   ${SOURCE_FILES}
   ${HEADER_FILES}
   ${RESOUCRE_FILES}
 )
 
-target_link_libraries(csp-custom-web-ui
+target_link_libraries(csp-guided-tour
   PUBLIC
     cs-core
 )
 
 # Add this Plugin to a "plugins" folder in your IDE.
-set_property(TARGET csp-custom-web-ui PROPERTY FOLDER "plugins")
+set_property(TARGET csp-guided-tour PROPERTY FOLDER "plugins")
 
 # We mark all resource files as "header" in order to make sure that no one tries to compile them.
 set_source_files_properties(${RESOUCRE_FILES} PROPERTIES HEADER_FILE_ONLY TRUE)
@@ -43,5 +43,5 @@ source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}" FILES
 
 # install plugin -----------------------------------------------------------------------------------
 
-install(TARGETS   csp-custom-web-ui DESTINATION "share/plugins")
+install(TARGETS   csp-guided-tour DESTINATION "share/plugins")
 install(DIRECTORY "gui"             DESTINATION "share/resources")
