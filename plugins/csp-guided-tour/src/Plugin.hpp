@@ -53,9 +53,18 @@ class Plugin : public cs::core::PluginBase {
       std::string mFile;
       bool operator==(CPItem const& other) const;
     };
+
+    struct Tour{
+
+      std::string mName;
+      std::vector<CPItem> mCPItems;
+
+      bool operator==(Tour const& other) const;
+
+    }
     /// These items will be placed somewhere on a celestial body.
 
-    std::vector<CPItem> mCPItems;
+    std::vector<Tour> mTours;
 
     bool operator!=(Settings const& other) const;
     bool operator==(Settings const& other) const;
@@ -69,6 +78,7 @@ class Plugin : public cs::core::PluginBase {
   void onLoad();
   void onSave();
   void unload(Settings const& pluginSettings);
+
 
   struct CPItem {
     std::unique_ptr<cs::gui::WorldSpaceGuiArea> mGuiArea;
