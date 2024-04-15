@@ -44,4 +44,3 @@ source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}" FILES
 # install plugin -----------------------------------------------------------------------------------
 
 install(TARGETS   csp-guided-tour DESTINATION "share/plugins")
-install(DIRECTORY "gui"             DESTINATION "share/resources")

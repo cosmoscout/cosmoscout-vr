@@ -49,8 +49,8 @@ class Plugin : public cs::core::PluginBase {
       uint32_t mWidth{};
       uint32_t mHeight{};
 
-      /// The actual HTML code to add. You can use an <iframe> for example.
-      std::string mHTML;
+      /// The actual File path.
+      std::string mFile;
       bool operator==(CPItem const& other) const;
     };
     /// These items will be placed somewhere on a celestial body.

@@ -43,7 +43,7 @@ void from_json(nlohmann::json const& j, Plugin::Settings::CPItem& o) {
   cs::core::Settings::deserialize(j, "scale", o.mScale);
   cs::core::Settings::deserialize(j, "width", o.mWidth);
   cs::core::Settings::deserialize(j, "height", o.mHeight);
-  cs::core::Settings::deserialize(j, "html", o.mHTML);
+  cs::core::Settings::deserialize(j, "file", o.mFile);
 }
 
 void to_json(nlohmann::json& j, Plugin::Settings::CPItem const& o) {
@@ -54,7 +54,7 @@ void to_json(nlohmann::json& j, Plugin::Settings::CPItem const& o) {
   cs::core::Settings::serialize(j, "scale", o.mScale);
   cs::core::Settings::serialize(j, "width", o.mWidth);
   cs::core::Settings::serialize(j, "height", o.mHeight);
-  cs::core::Settings::serialize(j, "html", o.mHTML);
+  cs::core::Settings::serialize(j, "file", o.mFile);
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -70,7 +70,7 @@ void to_json(nlohmann::json& j, Plugin::Settings const& o) {
 bool Plugin::Settings::CPItem::operator==(Plugin::Settings::CPItem const& other) const {
   return mObject == other.mObject && mLongitude == other.mLongitude &&
          mLatitude == other.mLatitude && mElevation == other.mElevation && mScale == other.mScale &&
-         mWidth == other.mWidth && mHeight == other.mHeight && mHTML == other.mHTML;
+         mWidth == other.mWidth && mHeight == other.mHeight && mFile == other.mFile;
 }
 
 bool Plugin::Settings::operator==(Plugin::Settings const& other) const {
@@ -160,12 +160,11 @@ void Plugin::onLoad() {
           item.mGuiNode.get(), static_cast<int>(cs::utils::DrawOrder::eTransparentItems));
 
       item.mGuiItem = std::make_unique<cs::gui::GuiItem>(
-          "file://../share/resources/gui/guided-tour-simple.html");
+          "file://" + settings.mFile); //Die würde kommen da wird hier aus den settings 
       item.mGuiArea->addItem(item.mGuiItem.get());
       item.mGuiItem->setCursorChangeCallback(
           [](cs::gui::Cursor c) { cs::core::GuiManager::setCursor(c); });
       item.mGuiItem->waitForFinishedLoading();
-      item.mGuiItem->callJavascript("setContent", settings.mHTML);
 
       mCPItems.emplace_back(std::move(item));
     }
