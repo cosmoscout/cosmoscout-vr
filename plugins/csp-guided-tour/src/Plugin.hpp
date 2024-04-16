@@ -33,8 +33,7 @@ class Plugin : public cs::core::PluginBase {
   struct Settings {
 
     struct CPItem {
-
-  /// The SPICE center and frame names.
+      /// The SPICE center and frame names.
       std::string mObject;
 
       /// The position of the item, elevation is relative to the surface height.
@@ -59,12 +58,14 @@ class Plugin : public cs::core::PluginBase {
       std::string mName;
       std::vector<CPItem> mCPItems;
 
-      bool operator==(Tour const& other) const;
+      //bool operator==(Tour const& other) const;
 
-    }
+    };
     /// These items will be placed somewhere on a celestial body.
 
     std::vector<Tour> mTours;
+    std::vector<CPItem> mCPItems;
+
 
     bool operator!=(Settings const& other) const;
     bool operator==(Settings const& other) const;

@@ -35,38 +35,50 @@ EXPORT_FN void destroy(cs::core::PluginBase* pluginBase) {
 
 namespace csp::guidedtour {
 
+std::string currentTour = "Tour1";
+
 void from_json(nlohmann::json const& j, Plugin::Settings::CPItem& o) {
-  cs::core::Settings::deserialize(j, "object", o.mObject);
-  cs::core::Settings::deserialize(j, "longitude", o.mLongitude);
-  cs::core::Settings::deserialize(j, "latitude", o.mLatitude);
-  cs::core::Settings::deserialize(j, "elevation", o.mElevation);
-  cs::core::Settings::deserialize(j, "scale", o.mScale);
-  cs::core::Settings::deserialize(j, "width", o.mWidth);
-  cs::core::Settings::deserialize(j, "height", o.mHeight);
-  cs::core::Settings::deserialize(j, "file", o.mFile);
+  cs::core::Settings::deserialize(j, "mObject", o.mObject);
+  cs::core::Settings::deserialize(j, "mLongitude", o.mLongitude);
+  cs::core::Settings::deserialize(j, "mLatitude", o.mLatitude);
+  cs::core::Settings::deserialize(j, "mElevation", o.mElevation);
+  cs::core::Settings::deserialize(j, "mScale", o.mScale);
+  cs::core::Settings::deserialize(j, "mWidth", o.mWidth);
+  cs::core::Settings::deserialize(j, "mHeight", o.mHeight);
+  cs::core::Settings::deserialize(j, "mFile", o.mFile);
 }
 
 void to_json(nlohmann::json& j, Plugin::Settings::CPItem const& o) {
-  cs::core::Settings::serialize(j, "object", o.mObject);
-  cs::core::Settings::serialize(j, "longitude", o.mLongitude);
-  cs::core::Settings::serialize(j, "latitude", o.mLatitude);
-  cs::core::Settings::serialize(j, "elevation", o.mElevation);
-  cs::core::Settings::serialize(j, "scale", o.mScale);
-  cs::core::Settings::serialize(j, "width", o.mWidth);
-  cs::core::Settings::serialize(j, "height", o.mHeight);
-  cs::core::Settings::serialize(j, "file", o.mFile);
+  cs::core::Settings::serialize(j, "mObject", o.mObject);
+  cs::core::Settings::serialize(j, "mLongitude", o.mLongitude);
+  cs::core::Settings::serialize(j, "mLatitude", o.mLatitude);
+  cs::core::Settings::serialize(j, "mElevation", o.mElevation);
+  cs::core::Settings::serialize(j, "mScale", o.mScale);
+  cs::core::Settings::serialize(j, "mWidth", o.mWidth);
+  cs::core::Settings::serialize(j, "mHeight", o.mHeight);
+  cs::core::Settings::serialize(j, "mFile", o.mFile);
 }
 
-  //cs::core::Settings::serialize(j, "checkpoints", o.mCPItems);
+//From_Json to_json hinzugeüfgt.
+void from_json(nlohmann::json const& j, Plugin::Settings::Tour& o) {
+   cs::core::Settings::deserialize(j, "name", o.mName);
+   cs::core::Settings::deserialize(j, "CPItems", o.mCPItems);
+}
 
-////////////////////////////////////////////////////////////////////////////////////////////////////
+void to_json(nlohmann::json& j, Plugin::Settings::Tour const& o) {
+   cs::core::Settings::serialize(j, "name", o.mName);
+   cs::core::Settings::serialize(j, "CPItems", o.mCPItems);
+}
+
+/////////////////////////////////////////////////////////////////////From_Json to_json hinzugeüfgt.//
+//cs::core::Settings::serialize(j, "checkpoints", o.mCPItems);
 
 void from_json(nlohmann::json const& j, Plugin::Settings& o) {
-  cs::core::Settings::deserialize(j, "cp-items", o.mCPItems);
+  cs::core::Settings::deserialize(j, "tour-items", o.mTours);
 }
 
 void to_json(nlohmann::json& j, Plugin::Settings const& o) {
-  cs::core::Settings::serialize(j, "cp-items", o.mCPItems);
+  cs::core::Settings::serialize(j, "tour-items", o.mTours);
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -97,10 +109,11 @@ void Plugin::init() {
   mGuiManager->getGui()->registerCallback("guidedTours.reset",
       "Call this to reset all Checkpoints of the current tour.",
       std::function([this]{
-        for(auto const& item: mCPItems) {
+        for(auto const& item: mCPItems){      //For Items in Tour
           item.mGuiItem->callJavascript("reset()");
         }
       }));
+  
 
   // Load initial settings.
 
@@ -134,7 +147,6 @@ void Plugin::deInit() {
 
   mGuiManager->removePluginTab("Guided Tour");
 }
-
 void Plugin::onLoad() {
   auto oldSettings = mPluginSettings;
   from_json(mAllSettings->mPlugins.at("csp-guided-tour"), mPluginSettings);
@@ -142,12 +154,13 @@ void Plugin::onLoad() {
   if (mPluginSettings != oldSettings) {
     unload(oldSettings);
 
-    for (auto const& settings : mPluginSettings.mCPItems) { //Anpassen soll durch TOuren durchlaufen durch tour1 erstmal
-      auto object = mSolarSystem->getObject(settings.mObject);
-
-      if (!object) {
-        continue;
-      }
+    for (auto const& tour : mPluginSettings.mTours) { //Anpassen soll durch TOuren durchlaufen durch tour1 erstmal
+      for (auto const& settings : tour.mCPItems) {
+        auto object = mSolarSystem->getObject(settings.mObject);
+          if (!object) {
+             continue;
+    
+   ///////////////////////////////////////////////////////////////////////
 
       CPItem item;
       item.mObjectName = settings.mObject;
@@ -183,6 +196,8 @@ void Plugin::onLoad() {
      // item.mGuiItem->waitForFinishedLoading();
 
       mCPItems.emplace_back(std::move(item));
+       }
+      } 
     }
   }
 }
@@ -193,10 +208,11 @@ void Plugin::onSave() {
 
 void Plugin::unload(Settings const& pluginSettings) {
   auto* pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
-  for (auto const& item : mCPItems) {
-    pSG->GetRoot()->DisconnectChild(item.mAnchor.get());
-    mInputManager->unregisterSelectable(item.mGuiNode.get());
-  }
+    for (auto const& item : mCPItems) {
+      pSG->GetRoot()->DisconnectChild(item.mAnchor.get());
+      mInputManager->unregisterSelectable(item.mGuiNode.get());
+    }
+  
   mCPItems.clear();
 }
 
