@@ -52,11 +52,10 @@ class Plugin : public cs::core::PluginBase {
       std::string mFile;
     };
 
-    struct TourSettings{
+    struct TourSettings {
 
-      std::string mName;
+      std::string                     mName;
       std::vector<CheckPointSettings> mCheckpoints;
-
     };
     /// These items will be placed somewhere on a celestial body.
 
@@ -68,15 +67,12 @@ class Plugin : public cs::core::PluginBase {
   void deInit() override;
   void loadTour(std::string const& tourName);
 
-
  private:
   void onLoad();
   void onSave();
-  void unload(Settings const& pluginSettings);  
+  void unload(Settings const& pluginSettings);
   void setTour(std::string const& tourName);
-
-
-
+  void loadCheckpoints();
 
   struct CPItem {
     std::unique_ptr<cs::gui::WorldSpaceGuiArea> mGuiArea;
@@ -92,9 +88,7 @@ class Plugin : public cs::core::PluginBase {
   Settings mPluginSettings;
 
   std::list<CPItem> mCPItems;
-  std::string mCurrentTour = "none";
-
-
+  std::string       mCurrentTour = "none";
 
   int mOnLoadConnection = -1;
   int mOnSaveConnection = -1;

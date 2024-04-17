@@ -35,7 +35,6 @@ EXPORT_FN void destroy(cs::core::PluginBase* pluginBase) {
 
 namespace csp::guidedtour {
 
-
 void from_json(nlohmann::json const& j, Plugin::Settings::CheckPointSettings& o) {
   cs::core::Settings::deserialize(j, "object", o.mObject);
   cs::core::Settings::deserialize(j, "longitude", o.mLongitude);
@@ -89,12 +88,14 @@ void Plugin::init() {
   mOnLoadConnection = mAllSettings->onLoad().connect([this]() { onLoad(); });
   mOnSaveConnection = mAllSettings->onSave().connect([this]() { onSave(); });
 
+  mGuiManager->executeJavascriptFile("../share/resources/gui/js/csp-guided-tour.js");
+
   mGuiManager->addPluginTabToSideBarFromHTML(
       "Guided Tour", "flag", "../share/resources/gui/csp-guided-tour-tab.html");
 
   mGuiManager->getGui()->registerCallback("guidedTours.reset",
       "Call this to reset all Checkpoints of the current tour.", std::function([this] {
-        for (auto const& item : mCPItems) { 
+        for (auto const& item : mCPItems) {
           item.mGuiItem->callJavascript("reset()");
         }
       }));
@@ -103,9 +104,8 @@ void Plugin::init() {
       std::function([this](std::string&& tourName) { loadTour(tourName); }));
 
   // Load initial settings.
-
   onLoad();
-
+  
   logger().info("Loading done.");
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -143,13 +143,36 @@ void Plugin::onLoad() {
   logger().info("onLoad Start");
   auto oldSettings = mPluginSettings;
   from_json(mAllSettings->mPlugins.at("csp-guided-tour"), mPluginSettings);
+  //Hier alle touren durchgehen und template erstellen
+  for (auto const& tour : mPluginSettings.mTours) {
+   mGuiManager->getGui()->callJavascript(
+      "CosmoScout.guidedTours.add", tour.mName);
+  }
+  //
+  loadCheckpoints();
+  logger().info("onLoad End");
+}
 
+void Plugin::onSave() {
+  mAllSettings->mPlugins["csp-guided-tour"] = mPluginSettings;
+}
+
+void Plugin::unload(Settings const& pluginSettings) {
+  auto* pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
+  for (auto const& item : mCPItems) {
+    pSG->GetRoot()->DisconnectChild(item.mAnchor.get());
+    mInputManager->unregisterSelectable(item.mGuiNode.get());
+  }
+  mCPItems.clear();
+}
+void Plugin::loadCheckpoints() {
   if (mCurrentTour != "none") {
 
     for (auto const& tour : mPluginSettings.mTours) {
       if (tour.mName == mCurrentTour) {
         for (auto const& settings : tour.mCheckpoints) {
           auto object = mSolarSystem->getObject(settings.mObject);
+          logger().info("Name Richtig? :" + tour.mName);
 
           CPItem item;
           item.mObjectName = settings.mObject;
@@ -184,26 +207,14 @@ void Plugin::onLoad() {
       }
     }
   }
-  logger().info("onLoad End");
-}
-
-void Plugin::onSave() {
-  mAllSettings->mPlugins["csp-guided-tour"] = mPluginSettings;
-}
-
-void Plugin::unload(Settings const& pluginSettings) {
-  auto* pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
-  for (auto const& item : mCPItems) {
-    pSG->GetRoot()->DisconnectChild(item.mAnchor.get());
-    mInputManager->unregisterSelectable(item.mGuiNode.get());
-  }
-  mCPItems.clear();
 }
 
 void Plugin::loadTour(std::string const& tourName) {
-  unload(mPluginSettings);
+  logger().info("Load Tour :" + tourName);
+
+  unload(mPluginSettings); //Delete Checkpoints statt unload
   setTour(tourName);
-  onLoad();
+  loadCheckpoints();
 }
 
 } // namespace csp::guidedtour
