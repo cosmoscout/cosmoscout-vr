@@ -74,11 +74,15 @@ class Plugin : public cs::core::PluginBase {
   void init() override;
   void update() override;
   void deInit() override;
+  void loadTour(std::string const& tourName);
+
 
  private:
   void onLoad();
   void onSave();
-  void unload(Settings const& pluginSettings);
+  void unload(Settings const& pluginSettings);  
+  void setTour(std::string const& tourName);
+
 
 
   struct CPItem {
