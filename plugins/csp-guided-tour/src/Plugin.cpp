@@ -35,9 +35,8 @@ EXPORT_FN void destroy(cs::core::PluginBase* pluginBase) {
 
 namespace csp::guidedtour {
 
-std::string currentTour = "Tour1";
 
-void from_json(nlohmann::json const& j, Plugin::Settings::CPItem& o) {
+void from_json(nlohmann::json const& j, Plugin::Settings::CheckPointSettings& o) {
   cs::core::Settings::deserialize(j, "object", o.mObject);
   cs::core::Settings::deserialize(j, "longitude", o.mLongitude);
   cs::core::Settings::deserialize(j, "latitude", o.mLatitude);
@@ -48,7 +47,7 @@ void from_json(nlohmann::json const& j, Plugin::Settings::CPItem& o) {
   cs::core::Settings::deserialize(j, "file", o.mFile);
 }
 
-void to_json(nlohmann::json& j, Plugin::Settings::CPItem const& o) {
+void to_json(nlohmann::json& j, Plugin::Settings::CheckPointSettings const& o) {
   cs::core::Settings::serialize(j, "object", o.mObject);
   cs::core::Settings::serialize(j, "longitude", o.mLongitude);
   cs::core::Settings::serialize(j, "latitude", o.mLatitude);
@@ -60,14 +59,14 @@ void to_json(nlohmann::json& j, Plugin::Settings::CPItem const& o) {
 }
 
 // From_Json to_json hinzugeüfgt.
-void from_json(nlohmann::json const& j, Plugin::Settings::Tour& o) {
+void from_json(nlohmann::json const& j, Plugin::Settings::TourSettings& o) {
   cs::core::Settings::deserialize(j, "name", o.mName);
-  cs::core::Settings::deserialize(j, "CPItems", o.mCPItems);
+  cs::core::Settings::deserialize(j, "checkpoints", o.mCheckpoints);
 }
 
-void to_json(nlohmann::json& j, Plugin::Settings::Tour const& o) {
+void to_json(nlohmann::json& j, Plugin::Settings::TourSettings const& o) {
   cs::core::Settings::serialize(j, "name", o.mName);
-  cs::core::Settings::serialize(j, "CPItems", o.mCPItems);
+  cs::core::Settings::serialize(j, "checkpoints", o.mCheckpoints);
 }
 
 /////////////////////////////////////////////////////////////////////From_Json to_json
@@ -75,27 +74,13 @@ void to_json(nlohmann::json& j, Plugin::Settings::Tour const& o) {
 // cs::core::Settings::serialize(j, "checkpoints", o.mCPItems);
 
 void from_json(nlohmann::json const& j, Plugin::Settings& o) {
-  cs::core::Settings::deserialize(j, currentTour, o.mTours);
+  cs::core::Settings::deserialize(j, "tours", o.mTours);
 }
 
 void to_json(nlohmann::json& j, Plugin::Settings const& o) {
-  cs::core::Settings::serialize(j, currentTour, o.mTours);
-}
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-bool Plugin::Settings::CPItem::operator==(Plugin::Settings::CPItem const& other) const {
-  return mObject == other.mObject && mLongitude == other.mLongitude &&
-         mLatitude == other.mLatitude && mElevation == other.mElevation && mScale == other.mScale &&
-         mWidth == other.mWidth && mHeight == other.mHeight && mFile == other.mFile;
+  cs::core::Settings::serialize(j, "tours", o.mTours);
 }
 
-bool Plugin::Settings::operator==(Plugin::Settings const& other) const {
-  return mCPItems == other.mCPItems;
-}
-
-bool Plugin::Settings::operator!=(Plugin::Settings const& other) const {
-  return !(*this == other);
-}
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Plugin::init() {
@@ -109,7 +94,7 @@ void Plugin::init() {
 
   mGuiManager->getGui()->registerCallback("guidedTours.reset",
       "Call this to reset all Checkpoints of the current tour.", std::function([this] {
-        for (auto const& item : mCPItems) { // For Items in Tour
+        for (auto const& item : mCPItems) { 
           item.mGuiItem->callJavascript("reset()");
         }
       }));
@@ -149,31 +134,27 @@ void Plugin::deInit() {
 
   mGuiManager->removePluginTab("Guided Tour");
 }
+
 void Plugin::setTour(std::string const& tourName) {
-  currentTour = tourName;
+  mCurrentTour = tourName;
 }
+
 void Plugin::onLoad() {
   logger().info("onLoad Start");
   auto oldSettings = mPluginSettings;
   from_json(mAllSettings->mPlugins.at("csp-guided-tour"), mPluginSettings);
 
-  if (1 != 2) {
-    unload(oldSettings);
-    logger().info("mPluginSettings != oldSettings");
-    for (auto const& tour :
-        mPluginSettings.mTours) { 
-      logger().info("Schleife1");
-      if (tour.mName == currentTour) {
-        logger().info(tour.mName);
-        for (auto const& settings : tour.mCPItems) {
-          logger().info(settings.mFile);
+  if (mCurrentTour != "none") {
+
+    for (auto const& tour : mPluginSettings.mTours) {
+      if (tour.mName == mCurrentTour) {
+        for (auto const& settings : tour.mCheckpoints) {
           auto object = mSolarSystem->getObject(settings.mObject);
 
           CPItem item;
           item.mObjectName = settings.mObject;
 
           auto* pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
-
           item.mAnchor.reset(pSG->NewTransformNode(pSG->GetRoot()));
           item.mScale = settings.mScale;
 
@@ -184,33 +165,26 @@ void Plugin::onLoad() {
 
           item.mGuiArea =
               std::make_unique<cs::gui::WorldSpaceGuiArea>(settings.mWidth, settings.mHeight);
-
           item.mTransform.reset(pSG->NewTransformNode(item.mAnchor.get()));
           item.mTransform->Scale(0.001F * static_cast<float>(item.mGuiArea->getWidth()),
               0.001F * static_cast<float>(item.mGuiArea->getHeight()), 1.F);
           item.mTransform->Rotate(
               VistaAxisAndAngle(VistaVector3D(0.0, 1.0, 0.0), -glm::pi<float>() / 2.F));
-
           item.mGuiNode.reset(pSG->NewOpenGLNode(item.mTransform.get(), item.mGuiArea.get()));
           mInputManager->registerSelectable(item.mGuiNode.get());
           VistaOpenSGMaterialTools::SetSortKeyOnSubtree(
               item.mGuiNode.get(), static_cast<int>(cs::utils::DrawOrder::eTransparentItems));
-
           item.mGuiItem = std::make_unique<cs::gui::GuiItem>("file://" + settings.mFile);
           item.mGuiArea->addItem(item.mGuiItem.get());
           item.mGuiItem->setCursorChangeCallback(
               [](cs::gui::Cursor c) { cs::core::GuiManager::setCursor(c); });
-          item.mGuiItem->waitForFinishedLoading();
-
+          // item.mGuiItem->waitForFinishedLoading();
           mCPItems.emplace_back(std::move(item));
-          logger().info("Schleife5");
-          logger().info("Es wurden keine Checkpoints gefunden");
         }
-      } else {
-        logger().info("Die Tour konnte nicht gefunden werden!");
       }
     }
   }
+  logger().info("onLoad End");
 }
 
 void Plugin::onSave() {
@@ -223,11 +197,13 @@ void Plugin::unload(Settings const& pluginSettings) {
     pSG->GetRoot()->DisconnectChild(item.mAnchor.get());
     mInputManager->unregisterSelectable(item.mGuiNode.get());
   }
-
   mCPItems.clear();
 }
+
 void Plugin::loadTour(std::string const& tourName) {
-  logger().info("Trying to load tour: " + tourName);
+  unload(mPluginSettings);
+  setTour(tourName);
+  onLoad();
 }
 
 } // namespace csp::guidedtour

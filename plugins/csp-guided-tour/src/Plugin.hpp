@@ -32,7 +32,7 @@ class Plugin : public cs::core::PluginBase {
  public:
   struct Settings {
 
-    struct CPItem {
+    struct CheckPointSettings {
       /// The SPICE center and frame names.
       std::string mObject;
 
@@ -50,25 +50,17 @@ class Plugin : public cs::core::PluginBase {
 
       /// The actual File path.
       std::string mFile;
-      bool operator==(CPItem const& other) const;
     };
 
-    struct Tour{
+    struct TourSettings{
 
       std::string mName;
-      std::vector<CPItem> mCPItems;
-
-      //bool operator==(Tour const& other) const;
+      std::vector<CheckPointSettings> mCheckpoints;
 
     };
     /// These items will be placed somewhere on a celestial body.
 
-    std::vector<Tour> mTours;
-    std::vector<CPItem> mCPItems;
-
-
-    bool operator!=(Settings const& other) const;
-    bool operator==(Settings const& other) const;
+    std::vector<TourSettings> mTours;
   };
 
   void init() override;
@@ -82,6 +74,7 @@ class Plugin : public cs::core::PluginBase {
   void onSave();
   void unload(Settings const& pluginSettings);  
   void setTour(std::string const& tourName);
+
 
 
 
@@ -99,6 +92,9 @@ class Plugin : public cs::core::PluginBase {
   Settings mPluginSettings;
 
   std::list<CPItem> mCPItems;
+  std::string mCurrentTour = "none";
+
+
 
   int mOnLoadConnection = -1;
   int mOnSaveConnection = -1;

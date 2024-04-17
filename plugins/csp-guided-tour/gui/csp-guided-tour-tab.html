@@ -1,9 +1,25 @@
-<button class='btn glass block px-3' style='width: 100%;'
-    onclick='CosmoScout.callbacks.guidedTours.reset()' data-original-title=''>Test
-</button>
-<button class='btn glass block px-3' style='width: 100%;'
-    onclick='CosmoScout.callbacks.guidedTours.loadTour("Tour1")' data-original-title=''>LoadTour1
-</button>
-<button class='btn glass block px-3' style='width: 100%;'
-    onclick='CosmoScout.callbacks.guidedTours.loadTour("Tour2")' data-original-title=''>LoadTour1
-</button>
+<div style='display: flex; flex-direction: row;'>
+    <div style='width: 50%; margin-right: 5%;'>
+        <a class='btn glass block px-3' data-toggle='tooltip' title='' data-boundary='window' onclick='CosmoScout.callbacks.guidedTours.loadTour("Tour1")' data-original-title=""> Tour 1 </a>
+    </div>
+    <div style='width: 20%;'>
+        <button class='btn glass block px-3' style='width: 100%;' onclick='CosmoScout.callbacks.guidedTours.reset()' data-original-title=''>reload1</button>
+    </div>
+    <div style='width: 1%;'></div>
+    <div style='width: 20%;'>
+        <button class='btn glass block px-3' style='width: 100%;'onclick='CosmoScout.callbacks.guidedTours.loadTour("none")' data-original-title=''>X1</button>
+    </div>
+</div>
+<div style='margin-top: 2%;'></div>
+<div style='display: flex; flex-direction: row;'>
+    <div style='width: 50%; margin-right: 5%;'>
+        <a class='btn glass block px-3' data-toggle='tooltip' title='' data-boundary='window' onclick='CosmoScout.callbacks.guidedTours.loadTour("Tour2")' data-original-title=''>Tour 2</a>
+    </div>
+    <div style='width: 20%;'>
+        <button class='btn glass block px-3' style='width: 100%;'  onclick='CosmoScout.callbacks.guidedTours.reset()' data-original-title=''>reload2</button>
+    </div>
+    <div style='width: 1%;'></div>
+    <div style='width: 20%;'>
+        <button class='btn glass block px-3' style='width: 100%;' onclick='CosmoScout.callbacks.guidedTours.loadTour("none")' data-original-title=''>X2</button>
+    </div>
+</div>
