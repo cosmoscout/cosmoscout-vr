@@ -101,16 +101,23 @@ void Plugin::init() {
       }));
   mGuiManager->getGui()->registerCallback("guidedTours.loadTour",
       "Call this to load the specified tour.",
-      std::function([this](std::string&& tourName) { loadTour(tourName); }));
+      std::function([this](std::string&& tourName) { mCurrentTour = tourName; }));
 
   // Load initial settings.
   onLoad();
-  
+
   logger().info("Loading done.");
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Plugin::update() {
+  if (mCurrentTour != "") {
+    unload(mPluginSettings); // Delete Checkpoints statt unload
+    if (mCurrentTour != "none") {
+      loadCheckpoints();
+    }
+    mCurrentTour = "";
+  }
   // Rotate the space items to face the observer.
   for (auto& item : mCPItems) {
     auto object = mSolarSystem->getObject(item.mObjectName);
@@ -135,18 +142,13 @@ void Plugin::deInit() {
   mGuiManager->removePluginTab("Guided Tour");
 }
 
-void Plugin::setTour(std::string const& tourName) {
-  mCurrentTour = tourName;
-}
-
 void Plugin::onLoad() {
   logger().info("onLoad Start");
   auto oldSettings = mPluginSettings;
   from_json(mAllSettings->mPlugins.at("csp-guided-tour"), mPluginSettings);
-  //Hier alle touren durchgehen und template erstellen
+  // Hier alle touren durchgehen und template erstellen
   for (auto const& tour : mPluginSettings.mTours) {
-   mGuiManager->getGui()->callJavascript(
-      "CosmoScout.guidedTours.add", tour.mName);
+    mGuiManager->getGui()->callJavascript("CosmoScout.guidedTours.add", tour.mName);
   }
   //
   loadCheckpoints();
@@ -166,55 +168,61 @@ void Plugin::unload(Settings const& pluginSettings) {
   mCPItems.clear();
 }
 void Plugin::loadCheckpoints() {
-  if (mCurrentTour != "none") {
 
-    for (auto const& tour : mPluginSettings.mTours) {
-      if (tour.mName == mCurrentTour) {
-        for (auto const& settings : tour.mCheckpoints) {
-          auto object = mSolarSystem->getObject(settings.mObject);
-          logger().info("Name Richtig? :" + tour.mName);
+  for (auto const& tour : mPluginSettings.mTours) {
+    if (tour.mName == mCurrentTour) {
+      for (auto const& settings : tour.mCheckpoints) {
+        auto object = mSolarSystem->getObject(settings.mObject);
+        logger().info("Name Richtig? :" + tour.mName);
 
-          CPItem item;
-          item.mObjectName = settings.mObject;
+        CPItem item;
+        item.mObjectName = settings.mObject;
 
-          auto* pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
-          item.mAnchor.reset(pSG->NewTransformNode(pSG->GetRoot()));
-          item.mScale = settings.mScale;
+        auto* pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
+        item.mAnchor.reset(pSG->NewTransformNode(pSG->GetRoot()));
+        item.mScale = settings.mScale;
 
-          glm::dvec2 lngLat(settings.mLongitude, settings.mLatitude);
-          lngLat         = cs::utils::convert::toRadians(lngLat);
-          auto radii     = object->getRadii();
-          item.mPosition = cs::utils::convert::toCartesian(lngLat, radii, settings.mElevation);
+        glm::dvec2 lngLat(settings.mLongitude, settings.mLatitude);
+        lngLat         = cs::utils::convert::toRadians(lngLat);
+        auto radii     = object->getRadii();
+        item.mPosition = cs::utils::convert::toCartesian(lngLat, radii, settings.mElevation);
 
-          item.mGuiArea =
-              std::make_unique<cs::gui::WorldSpaceGuiArea>(settings.mWidth, settings.mHeight);
-          item.mTransform.reset(pSG->NewTransformNode(item.mAnchor.get()));
-          item.mTransform->Scale(0.001F * static_cast<float>(item.mGuiArea->getWidth()),
-              0.001F * static_cast<float>(item.mGuiArea->getHeight()), 1.F);
-          item.mTransform->Rotate(
-              VistaAxisAndAngle(VistaVector3D(0.0, 1.0, 0.0), -glm::pi<float>() / 2.F));
-          item.mGuiNode.reset(pSG->NewOpenGLNode(item.mTransform.get(), item.mGuiArea.get()));
-          mInputManager->registerSelectable(item.mGuiNode.get());
-          VistaOpenSGMaterialTools::SetSortKeyOnSubtree(
-              item.mGuiNode.get(), static_cast<int>(cs::utils::DrawOrder::eTransparentItems));
-          item.mGuiItem = std::make_unique<cs::gui::GuiItem>("file://" + settings.mFile);
-          item.mGuiArea->addItem(item.mGuiItem.get());
-          item.mGuiItem->setCursorChangeCallback(
-              [](cs::gui::Cursor c) { cs::core::GuiManager::setCursor(c); });
-          // item.mGuiItem->waitForFinishedLoading();
-          mCPItems.emplace_back(std::move(item));
-        }
+        item.mGuiArea =
+            std::make_unique<cs::gui::WorldSpaceGuiArea>(settings.mWidth, settings.mHeight);
+        item.mTransform.reset(pSG->NewTransformNode(item.mAnchor.get()));
+        item.mTransform->Scale(0.001F * static_cast<float>(item.mGuiArea->getWidth()),
+            0.001F * static_cast<float>(item.mGuiArea->getHeight()), 1.F);
+        item.mTransform->Rotate(
+            VistaAxisAndAngle(VistaVector3D(0.0, 1.0, 0.0), -glm::pi<float>() / 2.F));
+        item.mGuiNode.reset(pSG->NewOpenGLNode(item.mTransform.get(), item.mGuiArea.get()));
+        mInputManager->registerSelectable(item.mGuiNode.get());
+        VistaOpenSGMaterialTools::SetSortKeyOnSubtree(
+            item.mGuiNode.get(), static_cast<int>(cs::utils::DrawOrder::eTransparentItems));
+        item.mGuiItem = std::make_unique<cs::gui::GuiItem>("file://" + settings.mFile);
+
+        item.mGuiItem->registerCallback(
+            "setVisitedCpp", "Sets the isVisited Boolean.", std::function<void()>([&]() {
+              settings.mIsVisited = true;
+              // hier rein den Zähler wie viele Touren fertig sin
+              int cpCount   = tour.mCheckpoints.size();
+              int cpVisited = 0;
+              for (auto const& settings : tour.mCheckpoints) {
+                if (settings.mIsVisited) {
+                  cpVisited++;
+                }
+              }
+              mGuiManager->getGui()->callJavascript(
+                  "CosmoScout.guidedTours.setProgress", tour.mName, cpCount, cpVisited);
+            }));
+        item.mGuiArea->addItem(item.mGuiItem.get());
+        item.mGuiItem->setCursorChangeCallback(
+            [](cs::gui::Cursor c) { cs::core::GuiManager::setCursor(c); });
+        item.mGuiItem->waitForFinishedLoading();
+        item.mGuiItem->callJavascript("setVisited", settings.mIsVisited);
+        mCPItems.emplace_back(std::move(item));
       }
     }
   }
-}
-
-void Plugin::loadTour(std::string const& tourName) {
-  logger().info("Load Tour :" + tourName);
-
-  unload(mPluginSettings); //Delete Checkpoints statt unload
-  setTour(tourName);
-  loadCheckpoints();
 }
 
 } // namespace csp::guidedtour

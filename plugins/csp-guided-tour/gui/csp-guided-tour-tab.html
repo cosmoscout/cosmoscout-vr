@@ -6,6 +6,13 @@
 
 <template id="tour-button-template">
 <div>
-    <button class='btn glass block px-3' data-toggle='tooltip' title='' data-boundary='window' onclick='CosmoScout.callbacks.guidedTours.loadTour("%TOURNAME%")' data-original-title=''>%TOURNAME%</button> 
+    <label>
+        <input type="checkbox" name="guided-tour" class="radio-button guided-tour-button"  onclick='CosmoScout.guidedTours.onTourButtonClick(this,"%TOURNAME%")'/>
+        <span class="block btn glass">
+          <br>
+          <span>%TOURNAME%</span>
+        </span>
+    </label>
 </div>
 </template>
+

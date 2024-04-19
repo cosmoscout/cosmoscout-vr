@@ -50,6 +50,8 @@ class Plugin : public cs::core::PluginBase {
 
       /// The actual File path.
       std::string mFile;
+      
+      mutable bool mIsVisited;
     };
 
     struct TourSettings {
