@@ -95,9 +95,17 @@ void Plugin::init() {
 
   mGuiManager->getGui()->registerCallback("guidedTours.reset",
       "Call this to reset all Checkpoints of the current tour.", std::function([this] {
-        for (auto const& item : mCPItems) {
-          item.mGuiItem->callJavascript("reset()");
+          for (auto& tour : mPluginSettings.mTours) {
+                      unload(mPluginSettings);
+
+            for (auto& checkpoint : tour.mCheckpoints) {
+
+                checkpoint.mIsVisited = false;
+            }
         }
+        
+        unload(mPluginSettings);
+        mGuiManager->getGui()->callJavascript("CosmoScout.guidedTours.resetAll");
       }));
   mGuiManager->getGui()->registerCallback("guidedTours.loadTour",
       "Call this to load the specified tour.",
@@ -173,7 +181,6 @@ void Plugin::loadCheckpoints() {
     if (tour.mName == mCurrentTour) {
       for (auto const& settings : tour.mCheckpoints) {
         auto object = mSolarSystem->getObject(settings.mObject);
-        logger().info("Name Richtig? :" + tour.mName);
 
         CPItem item;
         item.mObjectName = settings.mObject;
@@ -203,7 +210,7 @@ void Plugin::loadCheckpoints() {
         item.mGuiItem->registerCallback(
             "setVisitedCpp", "Sets the isVisited Boolean.", std::function<void()>([&]() {
               settings.mIsVisited = true;
-              // hier rein den Zähler wie viele Touren fertig sin
+
               int cpCount   = tour.mCheckpoints.size();
               int cpVisited = 0;
               for (auto const& settings : tour.mCheckpoints) {

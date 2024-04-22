@@ -29,7 +29,6 @@
       area.appendChild(tourButton);
     }
     onTourButtonClick(button, tourname) {
-      console.log("testing0" + button.checked)
 
       if (button.checked) {
         let buttons = document.querySelectorAll(".guided-tour-button");
@@ -38,20 +37,44 @@
             b.checked = false;
           }
         })
-        console.log("testing1" + button.checked)
         CosmoScout.callbacks.guidedTours.loadTour(tourname);
 
       }
       else {
-        console.log("testing2")
         CosmoScout.callbacks.guidedTours.loadTour("none");
       }
     }
-    setProgress(tourName, cpCount, cpVisited)
-    {
-        console.log(tourName, cpCount, cpVisited);
+    resetAll() {
+      let buttons = document.querySelectorAll(".guided-tour-button");
+      buttons.forEach(b => {
+          b.checked = false;
+          const tourStatusLabel = b.nextElementSibling.querySelector('.guided-tour-status');
+          const label = tourStatusLabel.innerText.trim(); 
+          if (label !== "") {
+              const [firstNumber, secondNumber] = label.split('/');
+              const newFirstNumber = "0";
+              const newLabel = `${newFirstNumber}/${secondNumber}`;
+              tourStatusLabel.innerText = newLabel;
+          }
+      });
+  }
+  
+    setProgress(tourName, cpCount, cpVisited) {
+
+      console.log(tourName, cpCount, cpVisited);
+      const tourButtons = document.querySelectorAll('.guided-tour-label');
+
+      tourButtons.forEach(button => {
+        if (tourName == button.querySelector('span').innerText) {
+          const tourStatusLabel = button.querySelector('.guided-tour-status');
+          tourStatusLabel.innerText = cpVisited + "/" + cpCount;
+
+        }
+      });
+
     }
   }
+
 
   CosmoScout.init(GuidedToursApi);
 })();
