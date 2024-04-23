@@ -15,6 +15,8 @@
 #include <list>
 #include <string>
 #include <vector>
+#include <array>
+
 
 class VistaOpenGLNode;
 class VistaTransformNode;
@@ -50,13 +52,15 @@ class Plugin : public cs::core::PluginBase {
 
       /// The actual File path.
       std::string mFile;
-      
       mutable bool mIsVisited;
     };
 
     struct TourSettings {
 
       std::string                     mName;
+      std::string                     mPlanet;            
+      std::list<double>            mTourPositionStart;
+      std::list<double>            mTourRotationStart;
       std::vector<CheckPointSettings> mCheckpoints;
     };
     /// These items will be placed somewhere on a celestial body.

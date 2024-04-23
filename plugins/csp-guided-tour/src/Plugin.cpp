@@ -8,6 +8,7 @@
 #include "Plugin.hpp"
 #include "logger.hpp"
 
+
 #include "../../../src/cs-core/GraphicsEngine.hpp"
 #include "../../../src/cs-core/GuiManager.hpp"
 #include "../../../src/cs-core/InputManager.hpp"
@@ -60,11 +61,17 @@ void to_json(nlohmann::json& j, Plugin::Settings::CheckPointSettings const& o) {
 // From_Json to_json hinzugeüfgt.
 void from_json(nlohmann::json const& j, Plugin::Settings::TourSettings& o) {
   cs::core::Settings::deserialize(j, "name", o.mName);
+  cs::core::Settings::deserialize(j, "planet", o.mPlanet);
+  cs::core::Settings::deserialize(j, "startPosition", o.mTourPositionStart);
+  cs::core::Settings::deserialize(j, "startRotation", o.mTourRotationStart);
   cs::core::Settings::deserialize(j, "checkpoints", o.mCheckpoints);
 }
 
 void to_json(nlohmann::json& j, Plugin::Settings::TourSettings const& o) {
   cs::core::Settings::serialize(j, "name", o.mName);
+  cs::core::Settings::serialize(j, "planet", o.mPlanet);
+  cs::core::Settings::serialize(j, "startPosition", o.mTourPositionStart);
+  cs::core::Settings::serialize(j, "startRotation", o.mTourRotationStart);
   cs::core::Settings::serialize(j, "checkpoints", o.mCheckpoints);
 }
 
@@ -95,15 +102,14 @@ void Plugin::init() {
 
   mGuiManager->getGui()->registerCallback("guidedTours.reset",
       "Call this to reset all Checkpoints of the current tour.", std::function([this] {
-          for (auto& tour : mPluginSettings.mTours) {
-                      unload(mPluginSettings);
+        for (auto& tour : mPluginSettings.mTours) {
+          unload(mPluginSettings);
+          for (auto& checkpoint : tour.mCheckpoints) {
 
-            for (auto& checkpoint : tour.mCheckpoints) {
-
-                checkpoint.mIsVisited = false;
-            }
+            checkpoint.mIsVisited = false;
+          }
         }
-        
+
         unload(mPluginSettings);
         mGuiManager->getGui()->callJavascript("CosmoScout.guidedTours.resetAll");
       }));
@@ -154,7 +160,6 @@ void Plugin::onLoad() {
   logger().info("onLoad Start");
   auto oldSettings = mPluginSettings;
   from_json(mAllSettings->mPlugins.at("csp-guided-tour"), mPluginSettings);
-  // Hier alle touren durchgehen und template erstellen
   for (auto const& tour : mPluginSettings.mTours) {
     mGuiManager->getGui()->callJavascript("CosmoScout.guidedTours.add", tour.mName);
   }
@@ -179,7 +184,36 @@ void Plugin::loadCheckpoints() {
 
   for (auto const& tour : mPluginSettings.mTours) {
     if (tour.mName == mCurrentTour) {
+
+      logger().info(tour.mPlanet);
+      mGuiManager->getGui()->callJavascript(
+          "CosmoScout.callbacks.navigation.setBody", tour.mPlanet);
+
+      // Übergeben der Position an JavaScript
+      auto posIterator = tour.mTourPositionStart.begin();
+      auto firstPos    = *posIterator;
+      ++posIterator;
+      auto secondPos = *posIterator;
+      ++posIterator;
+      auto thirdPos = *posIterator;
+           auto rotIterator = tour.mTourRotationStart.begin();
+      auto firstRot    = *rotIterator;
+      ++rotIterator;
+      auto secondRot = *rotIterator;
+      ++rotIterator;
+      auto thirdRot = *rotIterator;
+      ++rotIterator;
+      auto fourthRot = *rotIterator;
+
+      mGuiManager->getGui()->callJavascript(
+          "CosmoScout.callbacks.navigation.setPosition", firstPos, secondPos, thirdPos);
+
+      
+      //mGuiManager->getGui()->callJavascript(
+      //    "CosmoScout.callbacks.navigation.setRotation", firstRot, secondRot, thirdRot, fourthRot);
+
       for (auto const& settings : tour.mCheckpoints) {
+
         auto object = mSolarSystem->getObject(settings.mObject);
 
         CPItem item;

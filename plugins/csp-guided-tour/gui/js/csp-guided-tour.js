@@ -57,24 +57,21 @@
               tourStatusLabel.innerText = newLabel;
           }
       });
-  }
+    }
   
     setProgress(tourName, cpCount, cpVisited) {
 
-      console.log(tourName, cpCount, cpVisited);
       const tourButtons = document.querySelectorAll('.guided-tour-label');
 
       tourButtons.forEach(button => {
         if (tourName == button.querySelector('span').innerText) {
           const tourStatusLabel = button.querySelector('.guided-tour-status');
           tourStatusLabel.innerText = cpVisited + "/" + cpCount;
-
         }
       });
 
     }
   }
-
 
   CosmoScout.init(GuidedToursApi);
 })();
