@@ -381,6 +381,11 @@ vec4 getCloudColor(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, float surfaceDistan
     return vec4(0.0);
   }
 
+  // If we are below the clouds and the ray intersects the ground, we can also return early.
+  if (intersections.x < 0 && surfaceDistance < intersections.y) {
+    return vec4(0.0);
+  }
+
   // Compute intersection point of view ray with clouds. Use this to compute the illuminance at this
   // point as well as the transmittance of the atmosphere towards the observer.
   vec3 p = rayOrigin + rayDir * (intersections.x < 0 ? intersections.y : intersections.x);
