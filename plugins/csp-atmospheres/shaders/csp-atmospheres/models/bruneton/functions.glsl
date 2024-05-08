@@ -473,8 +473,8 @@ vec3 computeScatteringDensity(AtmosphereComponents atmosphere, sampler2D transmi
       // given by the precomputed scattering texture for the (n-1)-th order:
       float nu1              = dot(omegaS, omega_i);
       vec3  incidentRadiance = getScattering(atmosphere, singleMoleculesScatteringTexture,
-          singleAerosolsScatteringTexture, multipleScatteringTexture, r, omega_i.z, muS, nu1,
-          rayRThetaIntersectsGround, scatteringOrder - 1);
+           singleAerosolsScatteringTexture, multipleScatteringTexture, r, omega_i.z, muS, nu1,
+           rayRThetaIntersectsGround, scatteringOrder - 1);
 
       // and of the contribution from the light paths with n-1 bounces and whose last bounce is on
       // the ground. This contribution is the product of the transmittance to the ground, the ground
@@ -694,7 +694,7 @@ void getCombinedScattering(sampler3D multipleScatteringTexture,
   vec3  uvw1      = vec3((texX + 1.0 + uvwz.y) / float(SCATTERING_TEXTURE_NU_SIZE), uvwz.z, uvwz.w);
 
   multipleScattering       = vec3(texture(multipleScatteringTexture, uvw0) * (1.0 - lerp) +
-                            texture(multipleScatteringTexture, uvw1) * lerp);
+                                  texture(multipleScatteringTexture, uvw1) * lerp);
   singleAerosolsScattering = vec3(texture(singleAerosolsScatteringTexture, uvw0) * (1.0 - lerp) +
                                   texture(singleAerosolsScatteringTexture, uvw1) * lerp);
 }
@@ -805,6 +805,10 @@ vec3 getSkyRadianceToPoint(AtmosphereComponents atmosphere, sampler2D transmitta
   // Combine the lookup results to get the scattering between camera and point.
   multipleScattering       = multipleScattering - transmittance * multipleScatteringP;
   singleAerosolsScattering = singleAerosolsScattering - transmittance * singleAerosolsScatteringP;
+
+  // Avoid negative values due to precision errors.
+  multipleScattering       = max(multipleScattering, vec3(0.0));
+  singleAerosolsScattering = max(singleAerosolsScattering, vec3(0.0));
 
   // Hack to avoid rendering artifacts when the sun is below the horizon.
   // singleAerosolsScattering = singleAerosolsScattering * smoothstep(0.0, 0.01, muS);
