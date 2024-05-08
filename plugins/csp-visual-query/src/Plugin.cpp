@@ -11,15 +11,15 @@
 #include "logger.hpp"
 
 #include "../../../src/cs-utils/filesystem.hpp"
+#include "common-nodes/Int/Int.hpp"
 #include "common-nodes/Real/Real.hpp"
 #include "common-nodes/RealVec2/RealVec2.hpp"
-#include "common-nodes/Int/Int.hpp"
 #include "common-nodes/TimeInterval/TimeInterval.hpp"
 #include "operation-nodes/DifferenceImage2D/DifferenceImage2D.hpp"
 #include "operation-nodes/TransferFunction/TransferFunction.hpp"
+#include "output-nodes/CoverageInfo/CoverageInfo.hpp"
 #include "output-nodes/OverlayRenderer/OverlayRender.hpp"
 #include "output-nodes/VolumeRenderer/VolumeRenderer.hpp"
-#include "output-nodes/CoverageInfo/CoverageInfo.hpp"
 #include "source-nodes/JsonVolumeFileLoader/JsonVolumeFileLoader.hpp"
 #include "source-nodes/RandomDataSource2D/RandomDataSource2D.hpp"
 #include "source-nodes/RandomDataSource3D/RandomDataSource3D.hpp"
@@ -64,18 +64,10 @@ void Plugin::init() {
   mOnLoadConnection = mAllSettings->onLoad().connect([this]() { onLoad(); });
   mOnSaveConnection = mAllSettings->onSave().connect([this]() { onSave(); });
 
-  // Restart the node editor if the port changes.
-  mPluginSettings.mPort.connect([this](uint16_t port) { setupNodeEditor(port); });
-
   onLoad();
 
-  // load WCS
-  for (std::string const& url : mPluginSettings.mWcsUrl) {
-    mPluginSettings.mWebCoverages.emplace_back(url, csl::ogc::WebServiceBase::CacheMode::eAlways,
-        "../../install/windows-Release/share/csp-visual-query/wcs-cache"
-
-    );
-  }
+  // Restart the node editor if the port changes.
+  mPluginSettings.mPort.connectAndTouch([this](uint16_t port) { setupNodeEditor(port); });
 
   logger().info("Loading done.");
 }
@@ -115,6 +107,15 @@ void Plugin::onLoad() {
     try {
       mNodeEditor->fromJSON(mPluginSettings.mGraph.value());
     } catch (std::exception const& e) { logger().warn("Failed to load node graph: {}", e.what()); }
+  }
+
+  // load WCS
+  mPluginSettings.mWebCoverages.clear();
+  for (std::string const& url : mPluginSettings.mWcsUrl) {
+    mPluginSettings.mWebCoverages.emplace_back(url, csl::ogc::WebServiceBase::CacheMode::eAlways,
+        "../../install/windows-Release/share/csp-visual-query/wcs-cache"
+
+    );
   }
 }
 
@@ -163,7 +164,11 @@ void Plugin::setupNodeEditor(uint16_t port) {
   factory.registerSocketType("WCSTimeIntervals", "#FFB319");
   factory.registerSocketType("WCSTime", "#b08ab3");
   factory.registerSocketType("WCSBounds", "#b08ab3");
-  factory.registerSocketType("LUT", "linear-gradient(90deg, rgba(255,0,0,1) 0%, rgba(255,154,0,1) 10%, rgba(208,222,33,1) 20%, rgba(79,220,74,1) 30%, rgba(63,218,216,1) 40%, rgba(47,201,226,1) 50%, rgba(28,127,238,1) 60%, rgba(95,21,242,1) 70%, rgba(186,12,248,1) 80%, rgba(251,7,217,1) 90%, rgba(255,0,0,1) 100%);");
+  factory.registerSocketType("LUT",
+      "linear-gradient(90deg, rgba(255,0,0,1) 0%, rgba(255,154,0,1) 10%, rgba(208,222,33,1) "
+      "20%, rgba(79,220,74,1) 30%, rgba(63,218,216,1) 40%, rgba(47,201,226,1) 50%, "
+      "rgba(28,127,238,1) 60%, rgba(95,21,242,1) 70%, rgba(186,12,248,1) 80%, "
+      "rgba(251,7,217,1) 90%, rgba(255,0,0,1) 100%);");
 
   factory.registerLibrary(
       R"HTML(<script type="module" src="third-party/js/transfer-function-editor.js"></script>)HTML");
