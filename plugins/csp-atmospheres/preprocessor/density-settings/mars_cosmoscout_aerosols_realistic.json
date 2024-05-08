@@ -1,0 +1,14 @@
+{
+    "densityModes": [
+        {
+            "type": "doubleExponential",
+            "scaleHeight": 4000,
+            "relativeNumberDensity": 3
+        },
+        {
+            "type": "doubleExponential",
+            "scaleHeight": 20000,
+            "relativeNumberDensity": 1
+        }
+    ]
+}

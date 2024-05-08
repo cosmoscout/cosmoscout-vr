@@ -9,9 +9,36 @@ SPDX-License-Identifier: CC-BY-4.0
 
 # Changelog of CosmoScout VR
 
-## [v1.8.0](https://github.com/cosmoscout/cosmoscout-vr/releases)
+## [unreleased]
 
 **Release Date:** TBD
+
+#### Bug Fixes
+
+* Fixed invalid terrain height of LoD bodies after reloading of the scene settings.
+
+## [v1.9.0](https://github.com/cosmoscout/cosmoscout-vr/releases)
+
+**Release Date:** 2024-01-30
+
+#### New Features
+
+* The `Bruneton` atmospheric model of [`csp-atmospheres`](../plugins/csp-atmospheres/) has been generalized by loading phase functions, extinction coefficients, and particle density distributions from [CSV files](../plugins/csp-atmospheres/data/csp-atmospheres/).
+This allows us to simulate arbitrary particle types.
+In particular, we can now use Mie Theory to [pre-compute the scattering behaviour](../plugins/csp-atmospheres/preprocessor/) of a wide variety of particle types, including for instance Martian dust.
+This generalized atmospheric model is now used per default for Mars and Earth.
+
+#### Other Changes
+
+* The default minimum auto exposure has been slightly reduced in order to avoid excessive over-exposure when looking at the Sun in HDR mode.
+
+#### Bug Fixes
+
+* Fixed initial level-of-detail value used by planets of `csp-lod-bodies` if `autoLod` was disabled in the settings.
+
+## [v1.8.0](https://github.com/cosmoscout/cosmoscout-vr/releases)
+
+**Release Date:** 2023-12-20
 
 #### New Features
 

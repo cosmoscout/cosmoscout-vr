@@ -465,15 +465,12 @@ void Plugin::update() {
               std::min(1.0, 0.02 * (minTime - cs::utils::FrameStats::get().pFrameTime.get()))));
     }
 
-    // Apply the computed LoD factor.
-    for (auto&& body : mLodBodies) {
-      body.second->setLODFactor(mAutoLod);
-    }
-
     mGuiManager->setSliderValue("lodBodies.setTerrainLod", mAutoLod);
   }
 
   for (auto const& [name, body] : mLodBodies) {
+    body->setLODFactor(
+        mPluginSettings->mAutoLOD.get() ? mAutoLod : mPluginSettings->mLODFactor.get());
     body->update();
   }
 }
@@ -535,8 +532,14 @@ void Plugin::onLoad() {
   // Then add new lodBodies.
   for (auto const& settings : mPluginSettings->mBodies) {
 
-    // Skip already existing bodies.
-    if (mLodBodies.find(settings.first) != mLodBodies.end()) {
+    auto object = mSolarSystem->getObject(settings.first);
+
+    // Skip already existing bodies. Only make sure that they are registered as surface and
+    // intersectable object.
+    auto existingBody = mLodBodies.find(settings.first);
+    if (existingBody != mLodBodies.end()) {
+      object->setSurface(existingBody->second);
+      object->setIntersectableObject(existingBody->second);
       continue;
     }
 
@@ -545,7 +548,6 @@ void Plugin::onLoad() {
 
     body->setObjectName(settings.first);
 
-    auto object = mSolarSystem->getObject(settings.first);
     object->setSurface(body);
     object->setIntersectableObject(body);
 

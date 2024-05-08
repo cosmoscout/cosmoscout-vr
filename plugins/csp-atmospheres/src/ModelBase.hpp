@@ -47,7 +47,7 @@ class ModelBase {
   /// Whenever the model parameters are changed (e.g. when the settings of CosmoScout VR got
   /// reloaded), this method will be called. The modelSettings parameter contains everything which
   /// the user passed to the corresponding "modelSettings" object in the settings.
-  /// Use this method to perform any required pre-processing. You should also create and compile a
+  /// Use this method to perform any required preprocessing. You should also create and compile a
   /// fragment shader according to the description above. Later, this shader should be returned by
   /// the getShader() method.
   /// All computations are performed in a spherical atmosphere. The shader which calls the model API

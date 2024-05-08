@@ -15,9 +15,9 @@ It lets you explore, analyze and present huge planetary data sets and large simu
 [![Coverage Status](https://coveralls.io/repos/github/cosmoscout/cosmoscout-vr/badge.svg?branch=main)](https://coveralls.io/github/cosmoscout/cosmoscout-vr?branch=main)
 [![documentation](https://img.shields.io/badge/Docs-online-34D058.svg)](docs/README.md)
 [![license](https://img.shields.io/badge/License-MIT-purple.svg)](LICENSE.md)
-[![source loc](https://img.shields.io/badge/LoC-15.3k-green.svg)](tools/cloc.sh)
-[![plugin loc](https://img.shields.io/badge/LoC_Plugins-22.7k-green.svg)](tools/cloc.sh)
-[![comments](https://img.shields.io/badge/Comments-7.4k-yellow.svg)](tools/cloc.sh)
+[![source loc](https://img.shields.io/badge/LoC-15.6k-green.svg)](tools/cloc.sh)
+[![plugin loc](https://img.shields.io/badge/LoC_Plugins-24.5k-green.svg)](tools/cloc.sh)
+[![comments](https://img.shields.io/badge/Comments-8.1k-yellow.svg)](tools/cloc.sh)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.3381953.svg)](https://doi.org/10.5281/zenodo.3381953)
 
 The software can be build on Linux (gcc or clang) and Windows (msvc).
@@ -91,12 +91,13 @@ This is actually quite easy as there are several guides in the **[`docs`](docs)*
 # Plugins for CosmoScout VR
 
 CosmoScout VR can be extended via plugins.
-In fact, without any plugins, CosmoScout VR is just a black and empty universe. Here is a list of available plugins.
+In fact, without any plugins, CosmoScout VR is just a black and empty universe. Here is a list of plugins which are included in this repository.
+There are also additional plugins which are listed further below.
 
-Official Plugins | Description | Screenshot
+Core Plugins | Description | Screenshot
 :----|:-----------------|:----------
 [csp-anchor-labels](plugins/csp-anchor-labels) | Draws a click-able label at each celestial anchor. When activated, the user automatically travels to the selected body. The size and overlapping-behavior of the labels can be adjusted. | ![screenshot](docs/img/csp-anchor-labels.jpg)
-[csp-atmospheres](plugins/csp-atmospheres) | Draws atmospheres around celestial bodies. It calculates single Mie- and Rayleigh scattering via raycasting in real-time. | ![screenshot](docs/img/csp-atmospheres.jpg)
+[csp-atmospheres](plugins/csp-atmospheres) | Draws atmospheres around celestial bodies. It supports multiple atmospheric models. | ![screenshot](docs/img/csp-atmospheres.jpg)
 [csp-custom-web-ui](plugins/csp-custom-web-ui) | Allows adding custom HTML-based user interface elements as sidebar-tabs, as floating windows or into free space. | ![screenshot](docs/img/csp-custom-web-ui.jpg)
 [csp-demo-node-editor](plugins/csp-demo-node-editor) | An example on how to use the `csl-node-editor` plugin library for creating data flow graphs within CosmoScout VR. | ![screenshot](docs/img/csp-demo-node-editor.jpg)
 [csp-fly-to-locations](plugins/csp-fly-to-locations) | Adds several quick travel targets to the sidebar. It supports shortcuts to celestial bodies and to specific geographic locations on those bodies. | ![screenshot](docs/img/csp-fly-to-locations.jpg)
@@ -113,6 +114,11 @@ Official Plugins | Description | Screenshot
 [csp-trajectories](plugins/csp-trajectories) | Draws trajectories of celestial bodies and spacecrafts based on SPICE. The color, length, number of samples and the reference frame can be configured. | ![screenshot](docs/img/csp-trajectories.jpg)
 [csp-web-api](plugins/csp-web-api) | Allows to control CosmoScout VR via an HTTP protocol. It also allows capturing screenshots over HTTP. | ![screenshot](docs/img/csp-web-api.jpg)
 [csp-wms-overlays](plugins/csp-wms-overlays) | Overlays time dependent map data from Web-Map-Services (WMS) over bodies rendered by other plugins. | ![screenshot](docs/img/csp-wms-overlays.jpg)
+
+Additional Plugins | Description | Screenshot
+:----|:-----------------|:----------
+[csp-gaussian-splatting](https://github.com/cosmoscout/csp-gaussian-splatting) | This plugin uses the code provided for the paper "3D Gaussian Splatting for Real-Time Radiance Field Rendering" to visualize radiance fields. | ![screenshot](docs/img/csp-gaussian-splatting.jpg)
+[csp-user-study](https://github.com/cosmoscout/csp-user-study) |This plugin was used for the user study of the IEEE Aerospace paper "CosmoScout VR: A Modular 3D Solar System Based on SPICE". It can be used to record a series of checkpoints which the user has to fly through. | ![screenshot](docs/img/csp-user-study.jpg)
 
 ### Credits
 
