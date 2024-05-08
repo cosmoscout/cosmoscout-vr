@@ -30,13 +30,13 @@ std::string WCSCoverage::sSource() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 std::unique_ptr<WCSCoverage> WCSCoverage::sCreate(
-  std::shared_ptr<std::vector<csl::ogc::WebCoverageService>> wcs) {
+  std::vector<csl::ogc::WebCoverageService> wcs) {
   return std::make_unique<WCSCoverage>(std::move(wcs));
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-WCSCoverage::WCSCoverage(std::shared_ptr<std::vector<csl::ogc::WebCoverageService>> wcs)
+WCSCoverage::WCSCoverage(std::vector<csl::ogc::WebCoverageService> wcs)
   : mWcs(std::move(wcs))
   , mSelectedServer(nullptr)
   , mSelectedImageChannel(nullptr) {
@@ -73,7 +73,7 @@ void WCSCoverage::onMessageFromJS(nlohmann::json const& message) {
 
     // set new server and send available image channels
     } else {
-      for (auto const& wcs : (*mWcs)) {
+      for (auto const& wcs : mWcs) {
         if (wcs.getTitle() == message["server"]) {
           mSelectedServer = std::make_shared<csl::ogc::WebCoverageService>(wcs);
           break;
@@ -110,7 +110,7 @@ nlohmann::json WCSCoverage::getData() const {
   nlohmann::json data;
 
   std::vector<std::string> serverNames{"None"};
-  for (csl::ogc::WebCoverageService const& server : *mWcs) {
+  for (csl::ogc::WebCoverageService const& server : mWcs) {
     serverNames.push_back(server.getTitle());
   }
 
@@ -140,7 +140,7 @@ nlohmann::json WCSCoverage::getData() const {
 void WCSCoverage::setData(nlohmann::json const& json) {
   if (json.find("selectedURL") != json.end()) {
 
-    for (csl::ogc::WebCoverageService const& wcs : *mWcs) {
+    for (csl::ogc::WebCoverageService const& wcs : mWcs) {
       if (wcs.getUrl() == json["selectedURL"]) {
         mSelectedServer = std::make_shared<csl::ogc::WebCoverageService>(wcs);
         break;
@@ -160,7 +160,7 @@ void WCSCoverage::setData(nlohmann::json const& json) {
 
 void WCSCoverage::init() {
   std::vector<std::string> serverNames{"None"};
-  for (csl::ogc::WebCoverageService const& server : *mWcs) {
+  for (csl::ogc::WebCoverageService const& server : mWcs) {
     serverNames.push_back(server.getTitle());
   }
   nlohmann::json server;

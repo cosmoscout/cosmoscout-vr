@@ -22,7 +22,7 @@ WebCoverageException::WebCoverageException(VistaXML::TiXmlElement* element)
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 WebCoverageExceptionReport::WebCoverageExceptionReport(VistaXML::TiXmlDocument const& doc)
-    : OGCExceptionReport(std::move(parseExceptions(doc))) {
+    : OGCExceptionReport(parseExceptions(doc)) {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

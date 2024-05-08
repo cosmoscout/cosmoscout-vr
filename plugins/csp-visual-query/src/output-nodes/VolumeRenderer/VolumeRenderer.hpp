@@ -9,6 +9,7 @@
 #define CSP_VISUAL_QUERY_VOLUMERENDERER_HPP
 
 #include "../../../../csl-node-editor/src/Node.hpp"
+#include "../../types/types.hpp"
 
 class VistaOpenGLNode;
 

@@ -22,14 +22,13 @@ class WCSCoverage : public csl::nodeeditor::Node {
 
   static const std::string            sName;
   static std::string                  sSource();
-  static std::unique_ptr<WCSCoverage> sCreate(
-      std::shared_ptr<std::vector<csl::ogc::WebCoverageService>> wcs);
+  static std::unique_ptr<WCSCoverage> sCreate(std::vector<csl::ogc::WebCoverageService> wcs);
 
   // instance interface ----------------------------------------------------------------------------
 
   /// New instances of this node are created by the node factory.
 
-  explicit WCSCoverage(std::shared_ptr<std::vector<csl::ogc::WebCoverageService>> wcsUrl);
+  explicit WCSCoverage(std::vector<csl::ogc::WebCoverageService> wcsUrl);
   ~WCSCoverage() override;
 
   /// Each node must override this. It simply returns the static sName.
@@ -60,9 +59,9 @@ class WCSCoverage : public csl::nodeeditor::Node {
 
  private:
   // Image2D mImage;
-  std::shared_ptr<std::vector<csl::ogc::WebCoverageService>> mWcs;
-  std::shared_ptr<csl::ogc::WebCoverageService>              mSelectedServer;
-  std::shared_ptr<csl::ogc::WebCoverage>                     mSelectedImageChannel;
+  std::vector<csl::ogc::WebCoverageService>     mWcs;
+  std::shared_ptr<csl::ogc::WebCoverageService> mSelectedServer;
+  std::shared_ptr<csl::ogc::WebCoverage>        mSelectedImageChannel;
 };
 
 } // namespace csp::visualquery

@@ -10,6 +10,7 @@
 
 #include "../../../../csl-node-editor/src/Node.hpp"
 
+#include <glm/glm.hpp>
 #include <memory>
 
 namespace csp::visualquery {

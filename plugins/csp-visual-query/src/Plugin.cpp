@@ -186,8 +186,7 @@ void Plugin::setupNodeEditor(uint16_t port) {
   factory.registerNodeType<DifferenceImage2D>();
   factory.registerNodeType<TransferFunction>();
   // Outputs
-  factory.registerNodeType<WCSCoverage>(
-      std::shared_ptr<std::vector<csl::ogc::WebCoverageService>>(&mPluginSettings.mWebCoverages));
+  factory.registerNodeType<WCSCoverage>(mPluginSettings.mWebCoverages);
   factory.registerNodeType<CoverageInfo>();
   // Sources
   factory.registerNodeType<RandomDataSource2D>();

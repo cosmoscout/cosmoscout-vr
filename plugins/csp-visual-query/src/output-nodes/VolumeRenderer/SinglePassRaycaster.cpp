@@ -34,8 +34,8 @@ SinglePassRaycaster::SinglePassRaycaster(std::shared_ptr<cs::core::SolarSystem> 
     , mSettings(std::move(settings))
     , mTexture(GL_TEXTURE_3D)
     , mPreLookupTexture(GL_TEXTURE_2D)
-    , mLUT(GL_TEXTURE_1D)
     , mHasTexture(false)
+    , mLUT(GL_TEXTURE_1D)
     , mMinBounds(0)
     , mMaxBounds(0) {
 

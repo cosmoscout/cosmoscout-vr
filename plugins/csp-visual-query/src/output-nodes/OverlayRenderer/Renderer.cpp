@@ -30,8 +30,8 @@ Renderer::Renderer(std::shared_ptr<cs::core::SolarSystem> solarSystem,
     , mSolarSystem(std::move(solarSystem))
     , mSettings(std::move(settings))
     , mTexture(GL_TEXTURE_2D)
-    , mLUT(GL_TEXTURE_1D)
     , mHasTexture(false)
+    , mLUT(GL_TEXTURE_1D)
     , mMinBounds(0)
     , mMaxBounds(0) {
 

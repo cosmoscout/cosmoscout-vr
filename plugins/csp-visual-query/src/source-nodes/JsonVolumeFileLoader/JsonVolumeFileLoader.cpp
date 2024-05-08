@@ -7,6 +7,7 @@
 
 #include "JsonVolumeFileLoader.hpp"
 
+#include "../../../../src/cs-core/Settings.hpp"
 #include "../../../../src/cs-utils/filesystem.hpp"
 #include "../../logger.hpp"
 

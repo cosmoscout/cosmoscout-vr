@@ -5,10 +5,12 @@
 // SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
 // SPDX-License-Identifier: MIT
 
+#include "../../../../src/cs-core/Settings.hpp"
 #include "../../../../src/cs-utils/filesystem.hpp"
 #include "TransferFunction.hpp"
 #include <cmath>
 #include <algorithm>
+#include <iostream>
 
 // testing:
 #include <fstream>
@@ -41,8 +43,8 @@ std::string const& TransferFunction::getName() const {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void TransferFunction::process() {
-  auto minMax = readInput<std::pair<double, double>>("minMax", std::pair<double,double>(0, 256));
   /*
+  auto minMax = readInput<std::pair<double, double>>("minMax", std::pair<double,double>(0, 256));
 
   TODO:
   - statistics node (min, max, average)
