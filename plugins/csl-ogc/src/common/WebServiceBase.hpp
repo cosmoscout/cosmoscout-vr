@@ -78,7 +78,7 @@ class CSL_OGC_EXPORT WebServiceBase {
   std::optional<std::tuple<VistaXML::TiXmlDocument, std::optional<std::string>>>
   checkUpdateSequence(VistaXML::TiXmlDocument cacheDoc);
 
-  const std::string mUrl{};
+  std::string       mUrl{};
   const CacheMode   mCacheMode{};
   const std::string mCacheDir{};
   const std::string mCacheFileName{};

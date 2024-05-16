@@ -216,11 +216,10 @@ boost::filesystem::path WebCoverageTextureLoader::getCachePath(WebCoverageServic
 
   // Add Bound string to cache file name
   std::stringstream bound;
-  bound << "_Bounds_" 
-    << utils::toStringWithoutTrailing(request.mBounds.mMinLon) << "_" 
-    << utils::toStringWithoutTrailing(request.mBounds.mMaxLon) << "_" 
-    << utils::toStringWithoutTrailing(request.mBounds.mMinLat) << "_" 
-    << utils::toStringWithoutTrailing(request.mBounds.mMaxLat);
+  bound << "_Bounds_" << utils::toStringWithoutTrailing(request.mBounds.mMinLon) << "_"
+        << utils::toStringWithoutTrailing(request.mBounds.mMaxLon) << "_"
+        << utils::toStringWithoutTrailing(request.mBounds.mMinLat) << "_"
+        << utils::toStringWithoutTrailing(request.mBounds.mMaxLat);
 
   // Add time string to cache file name if time is specified
   if (request.mTime.has_value()) {
@@ -245,7 +244,7 @@ std::string WebCoverageTextureLoader::getRequestUrl(
   url.precision(std::numeric_limits<double>::max_digits10);
 
   url << wcs.getUrl();
-  url << "?SERVICE=WCS";
+  url << "&SERVICE=WCS";
   url << "&VERSION=2.0.1";
   url << "&REQUEST=GetCoverage";
   url << "&COVERAGEID=" << coverage.getId();

@@ -118,7 +118,7 @@ bool WebCoverage::isRequestable() const {
 void WebCoverage::loadCoverageDetails() {
   std::stringstream urlStream;
   urlStream << mUrl;
-  urlStream << "?SERVICE=WCS";
+  urlStream << "&SERVICE=WCS";
   urlStream << "&VERSION=2.0.1";
   urlStream << "&REQUEST=DescribeCoverage";
   urlStream << "&COVERAGEID=" << mId;

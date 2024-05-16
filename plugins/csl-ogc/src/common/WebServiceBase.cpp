@@ -30,6 +30,11 @@ WebServiceBase::WebServiceBase(std::string url, CacheMode cacheMode, std::string
     , mServiceType(std::move(serviceType))
     , mSupportedVersion(std::move(supportedVersion))
     , mTagNames(std::move(tagNames)) {
+
+  // Ensure that the URL contains the ? character indicating the start of the query string.
+  if (mUrl.find('?') == std::string::npos) {
+    mUrl += '?';
+  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -259,7 +264,7 @@ WebServiceBase::checkUpdateSequence(VistaXML::TiXmlDocument cacheDoc) {
 
 std::stringstream WebServiceBase::getGetCapabilitiesUrl() const noexcept {
   return std::stringstream{fmt::format(
-      "{}?SERVICE={}&VERSION={}&REQUEST=GetCapabilities", mUrl, mServiceType, mSupportedVersion)};
+      "{}&SERVICE={}&VERSION={}&REQUEST=GetCapabilities", mUrl, mServiceType, mSupportedVersion)};
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
