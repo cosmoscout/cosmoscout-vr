@@ -165,12 +165,9 @@ void WebCoverage::loadCoverageDetails() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void WebCoverage::parseTime() {
-  auto* time = mDoc.value()
-                   .FirstChildElement("wcs:CoverageDescriptions")
-                   ->FirstChildElement("wcs:CoverageDescription")
-                   ->FirstChildElement("gmlcov:metadata")
-                   ->FirstChildElement("gmlcov:Extension")
-                   ->FirstChildElement("wcsgs:TimeDomain");
+  auto time = csl::ogc::utils::getElement(
+      &mDoc.value(), {"wcs:CoverageDescriptions", "wcs:CoverageDescription", "gmlcov:metadata",
+                         "gmlcov:Extension", "wcsgs:TimeDomain"});
 
   if (time && time->FirstChildElement("gml:TimePeriod")) {
     time        = time->FirstChildElement("gml:TimePeriod");
@@ -248,14 +245,9 @@ void WebCoverage::parseDetails() {
     return;
   }
 
-  auto* labels = mDoc.value()
-                     .FirstChildElement("wcs:CoverageDescriptions")
-                     ->FirstChildElement("wcs:CoverageDescription")
-                     ->FirstChildElement("gml:domainSet")
-                     ->FirstChildElement("gml:RectifiedGrid")
-                     ->FirstChildElement("gml:axisLabels");
-
-  auto labelsValue = utils::getElementValue<std::string>(labels);
+  auto labelsValue = utils::getElementValue<std::string>(
+      &mDoc.value(), {"wcs:CoverageDescriptions", "wcs:CoverageDescription", "gml:domainSet",
+                         "gml:RectifiedGrid", "gml:axisLabels"});
 
   if (labelsValue.has_value()) {
     std::vector<std::string> labelsSplit = utils::split(labelsValue.value(), ' ');
