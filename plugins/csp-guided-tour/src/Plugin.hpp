@@ -16,6 +16,7 @@
 #include <string>
 #include <vector>
 #include <array>
+#include <glm/gtc/quaternion.hpp>
 
 
 class VistaOpenGLNode;
@@ -58,9 +59,10 @@ class Plugin : public cs::core::PluginBase {
     struct TourSettings {
 
       std::string                     mName;
+      std::string                     mFrame;
       std::string                     mPlanet;            
-      std::list<double>            mTourPositionStart;
-      std::list<double>            mTourRotationStart;
+      glm::dvec3            mTourPositionStart;
+      glm::dquat             mTourRotationStart;
       std::vector<CheckPointSettings> mCheckpoints;
     };
     /// These items will be placed somewhere on a celestial body.
@@ -72,6 +74,7 @@ class Plugin : public cs::core::PluginBase {
   void update() override;
   void deInit() override;
   void loadTour(std::string const& tourName);
+  void resetTour(std::string const& tourName);
 
  private:
   void onLoad();
@@ -95,6 +98,8 @@ class Plugin : public cs::core::PluginBase {
 
   std::list<CPItem> mCPItems;
   std::string       mCurrentTour = "none";
+  std::string       mLoadedTour  = "none";
+
 
   int mOnLoadConnection = -1;
   int mOnSaveConnection = -1;

@@ -8,7 +8,6 @@
 #include "Plugin.hpp"
 #include "logger.hpp"
 
-
 #include "../../../src/cs-core/GraphicsEngine.hpp"
 #include "../../../src/cs-core/GuiManager.hpp"
 #include "../../../src/cs-core/InputManager.hpp"
@@ -100,12 +99,15 @@ void Plugin::init() {
   mGuiManager->addPluginTabToSideBarFromHTML(
       "Guided Tour", "flag", "../share/resources/gui/csp-guided-tour-tab.html");
 
+  mGuiManager->getGui()->registerCallback("guidedTours.resetTour",
+      "Call this to reset a specific tour.",
+      std::function([this](std::string&& tourName) { resetTour(tourName); }));
+
   mGuiManager->getGui()->registerCallback("guidedTours.reset",
       "Call this to reset all Checkpoints of the current tour.", std::function([this] {
         for (auto& tour : mPluginSettings.mTours) {
           unload(mPluginSettings);
           for (auto& checkpoint : tour.mCheckpoints) {
-
             checkpoint.mIsVisited = false;
           }
         }
@@ -115,7 +117,9 @@ void Plugin::init() {
       }));
   mGuiManager->getGui()->registerCallback("guidedTours.loadTour",
       "Call this to load the specified tour.",
-      std::function([this](std::string&& tourName) { mCurrentTour = tourName; }));
+      std::function([this](std::string&& tourName) { 
+        mCurrentTour = tourName;
+        mLoadedTour = tourName; }));
 
   // Load initial settings.
   onLoad();
@@ -143,6 +147,22 @@ void Plugin::update() {
 
       auto transform = object->getObserverRelativeTransform(item.mPosition, rotation, scale);
       item.mAnchor->SetTransform(glm::value_ptr(transform), true);
+    }
+  }
+}
+void Plugin::resetTour(std::string const& tourName) {
+  for (auto& tour : mPluginSettings.mTours) {
+      logger().info(mLoadedTour);
+
+    if(tourName == mLoadedTour){
+    unload(mPluginSettings);
+    }
+    if (tour.mName == tourName) {
+        mGuiManager->getGui()->callJavascript("CosmoScout.guidedTours.resetTour" , tourName);
+      for (auto& checkpoint : tour.mCheckpoints) {
+        checkpoint.mIsVisited = false;
+      }
+      return;
     }
   }
 }
@@ -185,32 +205,8 @@ void Plugin::loadCheckpoints() {
   for (auto const& tour : mPluginSettings.mTours) {
     if (tour.mName == mCurrentTour) {
 
-      logger().info(tour.mPlanet);
-      mGuiManager->getGui()->callJavascript(
-          "CosmoScout.callbacks.navigation.setBody", tour.mPlanet);
+      mSolarSystem->flyObserverTo("Mars", "IAU_Mars" ,  tour.mTourPositionStart , tour.mTourRotationStart , 5.0);
 
-      // Übergeben der Position an JavaScript
-      auto posIterator = tour.mTourPositionStart.begin();
-      auto firstPos    = *posIterator;
-      ++posIterator;
-      auto secondPos = *posIterator;
-      ++posIterator;
-      auto thirdPos = *posIterator;
-           auto rotIterator = tour.mTourRotationStart.begin();
-      auto firstRot    = *rotIterator;
-      ++rotIterator;
-      auto secondRot = *rotIterator;
-      ++rotIterator;
-      auto thirdRot = *rotIterator;
-      ++rotIterator;
-      auto fourthRot = *rotIterator;
-
-      mGuiManager->getGui()->callJavascript(
-          "CosmoScout.callbacks.navigation.setPosition", firstPos, secondPos, thirdPos);
-
-      
-      //mGuiManager->getGui()->callJavascript(
-      //    "CosmoScout.callbacks.navigation.setRotation", firstRot, secondRot, thirdRot, fourthRot);
 
       for (auto const& settings : tour.mCheckpoints) {
 

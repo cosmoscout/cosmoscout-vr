@@ -20,6 +20,7 @@
      * @param name {string}
      */
     // eslint-disable-next-line class-methods-use-this
+
     add(name) {
       const area = document.getElementById('tour-buttons');
 
@@ -44,21 +45,61 @@
         CosmoScout.callbacks.guidedTours.loadTour("none");
       }
     }
+    onTourResetButtonClick(button, tourname) {
+
+      if (button.checked) {
+        let buttons = document.querySelectorAll(".guided-tour-button");
+        buttons.forEach(b => {
+          if (b != button) {
+            b.checked = false;
+          }
+        })
+        CosmoScout.callbacks.guidedTours.loadTour(tourname);
+
+      }
+      else {
+        CosmoScout.callbacks.guidedTours.loadTour("none");
+      }
+    }
     resetAll() {
       let buttons = document.querySelectorAll(".guided-tour-button");
       buttons.forEach(b => {
-          b.checked = false;
-          const tourStatusLabel = b.nextElementSibling.querySelector('.guided-tour-status');
-          const label = tourStatusLabel.innerText.trim(); 
-          if (label !== "") {
-              const [firstNumber, secondNumber] = label.split('/');
-              const newFirstNumber = "0";
-              const newLabel = `${newFirstNumber}/${secondNumber}`;
-              tourStatusLabel.innerText = newLabel;
-          }
+        b.checked = false;
+        const tourStatusLabel = b.nextElementSibling.querySelector('.guided-tour-status');
+        const label = tourStatusLabel.innerText.trim();
+        if (label !== "") {
+          const [firstNumber, secondNumber] = label.split('/');
+          const newFirstNumber = "0";
+          const newLabel = `${newFirstNumber}/${secondNumber}`;
+          tourStatusLabel.innerText = newLabel;
+        }
       });
     }
-  
+    resetTour(tourName) {
+      let buttons = document.querySelectorAll('.guided-tour-button');
+      buttons.forEach(b => {
+        const buttonTourName = b.nextElementSibling.querySelector('span').innerText;
+        if (buttonTourName === tourName) {
+          b.checked = false;
+        }
+      });
+
+      const tourButtons = document.querySelectorAll('.guided-tour-label');
+      tourButtons.forEach(button => {
+        const tourStatusLabel = button.querySelector('.guided-tour-status');
+        const label = tourStatusLabel.innerText.trim();
+        if(label !== ""){
+          if (tourName === button.querySelector('span').innerText) {
+
+            const tourStatusLabel = button.querySelector('.guided-tour-status');
+            const [_, secondNumber] = tourStatusLabel.innerText.split('/');
+            tourStatusLabel.innerText = `0/${secondNumber}`;
+          }
+        }
+      });
+    }
+
+
     setProgress(tourName, cpCount, cpVisited) {
 
       const tourButtons = document.querySelectorAll('.guided-tour-label');
