@@ -112,10 +112,8 @@ void Plugin::onLoad() {
   // load WCS
   mPluginSettings.mWebCoverages.clear();
   for (std::string const& url : mPluginSettings.mWcsUrl) {
-    mPluginSettings.mWebCoverages.emplace_back(url, csl::ogc::WebServiceBase::CacheMode::eAlways,
-        "../../install/windows-Release/share/csp-visual-query/wcs-cache"
-
-    );
+    mPluginSettings.mWebCoverages.emplace_back(
+        url, csl::ogc::WebServiceBase::CacheMode::eAlways, "wcs-cache");
   }
 }
 

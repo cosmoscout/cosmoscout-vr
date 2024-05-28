@@ -82,8 +82,8 @@ void WCSCoverageImage::process() {
 
   // load texture
   auto texLoader  = csl::ogc::WebCoverageTextureLoader();
-  auto textureOpt = texLoader.loadTexture(*coverage->mServer, *coverage->mImageChannel, request,
-      "../../../install/windows-Release/share/cache/csp-visual-query/texture-cache", true);
+  auto textureOpt = texLoader.loadTexture(
+      *coverage->mServer, *coverage->mImageChannel, request, "wcs-cache", true);
 
   if (textureOpt.has_value()) {
     auto texture     = textureOpt.value();
@@ -94,12 +94,8 @@ void WCSCoverageImage::process() {
     image.mDimension  = {texture.x, texture.y};
 
     // convert radians to degree
-    image.mBounds = {
-      texture.lnglatBounds[0] * (180 / M_PI),
-      texture.lnglatBounds[2] * (180 / M_PI),
-      texture.lnglatBounds[3] * (180 / M_PI),
-      texture.lnglatBounds[1] * (180 / M_PI)
-    };
+    image.mBounds = {texture.lnglatBounds[0] * (180 / M_PI), texture.lnglatBounds[2] * (180 / M_PI),
+        texture.lnglatBounds[3] * (180 / M_PI), texture.lnglatBounds[1] * (180 / M_PI)};
 
     switch (texture.type) {
     case 1: // UInt8
@@ -185,7 +181,7 @@ void WCSCoverageImage::process() {
       F32ValueVector pointData{};
 
       for (float scalar : textureData) {
-          pointData.emplace_back(std::vector{scalar});
+        pointData.emplace_back(std::vector{scalar});
       }
 
       image.mPoints = pointData;
