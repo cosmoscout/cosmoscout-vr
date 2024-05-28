@@ -87,18 +87,14 @@ void GDALReader::ReadGrayScaleTexture(GreyScaleTexture& texture, std::string fil
     return;
   }
 
-  csl::ogc::logger().info("Reading filename {} and layer {}", filename, layer);
-  std::stringstream str;
-  str << filename << layer;
-
   // Check for texture in cache
   GDALReader::mMutex.lock();
-  auto it = mTextureCache.find(str.str());
+  auto it = mTextureCache.find(fmt::format("{}{}", filename, layer));
   if (it != mTextureCache.end()) {
     texture = it->second;
 
     GDALReader::mMutex.unlock();
-    csl::ogc::logger().debug("Found {} in gdal cache.", str.str());
+    csl::ogc::logger().debug("Found {} in gdal cache.", filename);
 
     return;
   }
@@ -123,48 +119,33 @@ void GDALReader::ReadGrayScaleTexture(GDALReader::GreyScaleTexture& texture,
     return;
   }
 
-  csl::ogc::logger().info("Reading streamdata and layer {}", layer);
-  std::stringstream str;
-  str << filename << layer;
-
   // Check for texture in cache
   GDALReader::mMutex.lock();
-  auto it = mTextureCache.find(str.str());
+  auto it = mTextureCache.find(fmt::format("{}{}", filename, layer));
   if (it != mTextureCache.end()) {
     texture = it->second;
 
     GDALReader::mMutex.unlock();
-    csl::ogc::logger().debug("Found {} in gdal cache.", str.str());
+    csl::ogc::logger().debug("Found {} in gdal cache.", filename);
 
     return;
   }
   GDALReader::mMutex.unlock();
 
-  // TODO: This is not optimal (?)
-  std::streambuf*                            buf    = data.rdbuf();
-  const typename std::stringstream::pos_type offset = buf->pubseekoff(0, std::stringstream::end);
-  buf->pubseekpos(0);
-
-  std::ostringstream dataInStream;
-  dataInStream << buf;
-  std::string wcsData = dataInStream.str();
+  std::string dataStr  = data.str();
+  std::size_t dataSize = dataStr.size();
 
   /// See https://gdal.org/user/virtual_file_systems.html#vsimem-in-memory-files for more info
   /// on in memory files
-  std::stringstream memPath;
-  memPath << "/vsimem/";
-  memPath << csl::ogc::utils::split(filename, '/').back();
-
   VSILFILE* fpMem = VSIFileFromMemBuffer(
-      memPath.str().c_str(), (GByte*)wcsData.c_str(), static_cast<vsi_l_offset>(offset), FALSE);
+      "/vsimem/tmp.tiff", reinterpret_cast<GByte*>(&dataStr[0]), dataSize, FALSE);
   VSIFCloseL(fpMem);
 
-  GDALDataset* poDatasetSrc =
-      static_cast<GDALDataset*>(GDALOpen(memPath.str().c_str(), GA_ReadOnly));
+  GDALDataset* poDatasetSrc = static_cast<GDALDataset*>(GDALOpen("/vsimem/tmp.tiff", GA_ReadOnly));
 
   GDALReader::BuildTexture(poDatasetSrc, texture, filename, layer);
 
-  VSIUnlink(memPath.str().c_str());
+  VSIUnlink("/vsimem/tmp.tiff");
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -333,7 +314,7 @@ void GDALReader::BuildTexture(GDALDataset* poDatasetSrc, GDALReader::GreyScaleTe
     texture.typeSize = 1;
   }
 
-  GDALReader::AddTextureToCache(filename, texture);
+  GDALReader::AddTextureToCache(fmt::format("{}{}", filename, layer), texture);
 }
 
 } // namespace csl::ogc
