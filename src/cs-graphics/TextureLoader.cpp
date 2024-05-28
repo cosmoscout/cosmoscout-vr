@@ -50,15 +50,15 @@ std::unique_ptr<VistaTexture> TextureLoader::loadFromFile(std::string const& sFi
       return nullptr;
     }
 
-    uint32 width{};
-    uint32 height{};
+    uint32_t width{};
+    uint32_t height{};
     TIFFGetField(data, TIFFTAG_IMAGELENGTH, &height);
     TIFFGetField(data, TIFFTAG_IMAGEWIDTH, &width);
 
-    uint16 bpp{};
+    uint16_t bpp{};
     TIFFGetField(data, TIFFTAG_BITSPERSAMPLE, &bpp);
 
-    int16 channels{};
+    int16_t channels{};
     TIFFGetField(data, TIFFTAG_SAMPLESPERPIXEL, &channels);
 
     if (bpp != 8) {
