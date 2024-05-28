@@ -36,7 +36,7 @@ class CSL_OGC_EXPORT GDALReader {
     int                   buffersize{};
     void*                 buffer{};
     int                   timeIndex = 0;
-    int                   layers    = 1;
+    int                   bands     = 1;
     // The gdal data type of the texture, e.g. Float32, UInt16 etc.
     GDALDataType type{};
     // As buffer is a void pointer, we'll need the size of the underlying type
@@ -51,18 +51,18 @@ class CSL_OGC_EXPORT GDALReader {
   /**
    * Reads a GDAL supported gray scale image into the texture passed as reference
    */
-  static void ReadGrayScaleTexture(GreyScaleTexture& texture, std::string filename, int layer = 1);
+  static void ReadGrayScaleTexture(GreyScaleTexture& texture, std::string filename, int band = 1);
 
   /**
    * Reads a GDAL supported gray scale image from a stream into the texture passed as reference
    */
   static void ReadGrayScaleTexture(GreyScaleTexture& texture, std::stringstream const& data,
-      const std::string& filename, int layer = 1);
+      const std::string& filename, int band = 1);
 
   /**
-   * Get the number of layers in the texture
+   * Get the number of bands in the texture
    */
-  static int ReadNumberOfLayers(std::string filename);
+  static int ReadNumberOfBands(std::string filename);
 
   /**
    * Adds a texture with unique path to the cache
@@ -79,7 +79,7 @@ class CSL_OGC_EXPORT GDALReader {
    * Warps the given dataset to WGS84, writes the data to "texture" and caches it
    */
   static void BuildTexture(GDALDataset* poDatasetSrc, GreyScaleTexture& texture,
-      std::string const& filename, int layer = 1);
+      std::string const& filename, int band = 1);
 
   /**
    * Mapping of (virtual) filesystem path to calculated greyscale texture

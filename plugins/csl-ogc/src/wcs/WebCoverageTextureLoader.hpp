@@ -41,9 +41,7 @@ class CSL_OGC_EXPORT WebCoverageTextureLoader {
     Bounds2D                   mBounds;
     std::optional<std::string> mTime;
     std::optional<std::string> mFormat;
-
-    // Not used in actual requests, only internally
-    std::optional<int> layer;
+    std::optional<int>         mBand;
   };
 
   /// Creates a new ThreadPool with the specified amount of threads.
@@ -66,7 +64,7 @@ class CSL_OGC_EXPORT WebCoverageTextureLoader {
   /// Returns a binary stream of the texture file if the request succeeds.
   /// Returns an empty optional if the request fails.
   std::optional<std::stringstream> requestTexture(
-      WebCoverageService const& wcs, WebCoverage const& layer, Request const& request);
+      WebCoverageService const& wcs, WebCoverage const& coverage, Request const& request);
 
   /// Saves a binary stream of a texture file to the given path.
   void saveTextureToFile(boost::filesystem::path const& file, std::stringstream const& data);

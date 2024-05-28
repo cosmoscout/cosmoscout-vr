@@ -47,7 +47,7 @@ std::optional<GDALReader::GreyScaleTexture> WebCoverageTextureLoader::loadTextur
 
   if (saveToCache && boost::filesystem::exists(cachePath) &&
       boost::filesystem::file_size(cachePath) > 0) {
-    GDALReader::ReadGrayScaleTexture(texture, cachePath.string(), request.layer.value_or(1));
+    GDALReader::ReadGrayScaleTexture(texture, cachePath.string(), request.mBand.value_or(1));
   } else {
     textureStream = requestTexture(wcs, coverage, request);
     if (!textureStream.has_value()) {
@@ -55,7 +55,7 @@ std::optional<GDALReader::GreyScaleTexture> WebCoverageTextureLoader::loadTextur
     }
 
     GDALReader::ReadGrayScaleTexture(
-        texture, textureStream.value(), cachePath.string(), request.layer.value_or(1));
+        texture, textureStream.value(), cachePath.string(), request.mBand.value_or(1));
 
     if (saveToCache) {
       textureStream.value().rdbuf()->pubseekpos(0);
@@ -73,9 +73,9 @@ std::optional<GDALReader::GreyScaleTexture> WebCoverageTextureLoader::loadTextur
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 std::optional<std::stringstream> WebCoverageTextureLoader::requestTexture(
-    WebCoverageService const& wcs, WebCoverage const& layer, Request const& wcsrequest) {
+    WebCoverageService const& wcs, WebCoverage const& coverage, Request const& wcsrequest) {
 
-  std::string url = getRequestUrl(wcs, layer, wcsrequest);
+  std::string url = getRequestUrl(wcs, coverage, wcsrequest);
 
   logger().debug("Performing WCS request '{}'.", url);
 
@@ -189,15 +189,15 @@ boost::filesystem::path WebCoverageTextureLoader::getCachePath(WebCoverageServic
     WebCoverage const& coverage, Request const& request, std::string const& coverageCache) {
 
   // Replace forbidden characters in coverage string before creating cache dir.
-  std::string layerFixed;
+  std::string coverageFixed;
   boost::replace_copy_if(
-      coverage.getId(), std::back_inserter(layerFixed), boost::is_any_of("*.,:[|]\""), '_');
+      coverage.getId(), std::back_inserter(coverageFixed), boost::is_any_of("*.,:[|]\""), '_');
 
   // Set file format to three characters.
   std::string fileFormat = mMimeToExtension.at(request.mFormat.value_or("image/tiff"));
 
   std::stringstream cacheDir;
-  cacheDir << coverageCache << "/" << layerFixed << "/";
+  cacheDir << coverageCache << "/" << coverageFixed << "/";
   cacheDir << request.mMaxSize << "px/";
 
   if (request.mTime.has_value()) {
@@ -211,8 +211,8 @@ boost::filesystem::path WebCoverageTextureLoader::getCachePath(WebCoverageServic
 
   std::stringstream cacheFile(cacheDir.str());
 
-  std::stringstream layer;
-  layer << "_Layer_" << std::to_string(request.layer.value_or(1));
+  std::stringstream band;
+  band << "_Band_" << std::to_string(request.mBand.value_or(1));
 
   // Add Bound string to cache file name
   std::stringstream bound;
@@ -227,9 +227,9 @@ boost::filesystem::path WebCoverageTextureLoader::getCachePath(WebCoverageServic
     std::replace(timeForFile.begin(), timeForFile.end(), '/', '-');
     std::replace(timeForFile.begin(), timeForFile.end(), ':', '-');
 
-    cacheFile << cacheDir.str() << timeForFile << bound.str() << layer.str() << "." << fileFormat;
+    cacheFile << cacheDir.str() << timeForFile << bound.str() << band.str() << "." << fileFormat;
   } else {
-    cacheFile << cacheDir.str() << layerFixed << bound.str() << layer.str() << "." << fileFormat;
+    cacheFile << cacheDir.str() << coverageFixed << bound.str() << band.str() << "." << fileFormat;
   }
 
   return boost::filesystem::path(cacheFile.str());

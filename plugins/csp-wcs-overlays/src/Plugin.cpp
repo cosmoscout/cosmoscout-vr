@@ -85,7 +85,8 @@ void Plugin::init() {
       "WCS Overlays", "category", "../share/resources/gui/wcs_overlays_tab.html");
   mGuiManager->addSettingsSectionToSideBarFromHTML(
       "WCS Overlays", "category", "../share/resources/gui/wcs_settings.html");
-  mGuiManager->addTemplate("wcsOverlays-infoWindow-template", "../share/resources/gui/wcs_info_window_template.html");
+  mGuiManager->addTemplate(
+      "wcsOverlays-infoWindow-template", "../share/resources/gui/wcs_info_window_template.html");
   mGuiManager->executeJavascriptFile("../share/resources/gui/js/csp-wcs-overlays.js");
   mGuiManager->addCSS("css/csp-wcs-overlays.css");
 
@@ -626,7 +627,7 @@ void Plugin::registerSidebarCallbacks() {
           return;
         }
 
-        mActiveOverlay->setLayer(std::stoi(layer));
+        mActiveOverlay->setBand(std::stoi(layer));
       }));
 
   mGuiManager->getGui()->registerCallback(
