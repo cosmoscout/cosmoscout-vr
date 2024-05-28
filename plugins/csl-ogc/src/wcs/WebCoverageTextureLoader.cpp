@@ -209,17 +209,16 @@ boost::filesystem::path WebCoverageTextureLoader::getCachePath(WebCoverageServic
     cacheDir << year << "/";
   }
 
-  std::stringstream cacheFile(cacheDir.str());
-
-  std::stringstream band;
-  band << "_Band_" << std::to_string(request.mBand.value_or(1));
+  std::stringstream cacheFile;
+  cacheFile << cacheDir.str() << coverageFixed;
+  cacheFile << "_Band_" << std::to_string(request.mBand.value_or(1));
+  cacheFile << "_Layer_" << std::to_string(request.mLayer.value_or(1));
 
   // Add Bound string to cache file name
-  std::stringstream bound;
-  bound << "_Bounds_" << utils::toStringWithoutTrailing(request.mBounds.mMinLon) << "_"
-        << utils::toStringWithoutTrailing(request.mBounds.mMaxLon) << "_"
-        << utils::toStringWithoutTrailing(request.mBounds.mMinLat) << "_"
-        << utils::toStringWithoutTrailing(request.mBounds.mMaxLat);
+  cacheFile << "_Bounds_" << utils::toStringWithoutTrailing(request.mBounds.mMinLon) << "_"
+            << utils::toStringWithoutTrailing(request.mBounds.mMaxLon) << "_"
+            << utils::toStringWithoutTrailing(request.mBounds.mMinLat) << "_"
+            << utils::toStringWithoutTrailing(request.mBounds.mMaxLat);
 
   // Add time string to cache file name if time is specified
   if (request.mTime.has_value()) {
@@ -227,10 +226,10 @@ boost::filesystem::path WebCoverageTextureLoader::getCachePath(WebCoverageServic
     std::replace(timeForFile.begin(), timeForFile.end(), '/', '-');
     std::replace(timeForFile.begin(), timeForFile.end(), ':', '-');
 
-    cacheFile << cacheDir.str() << timeForFile << bound.str() << band.str() << "." << fileFormat;
-  } else {
-    cacheFile << cacheDir.str() << coverageFixed << bound.str() << band.str() << "." << fileFormat;
+    cacheFile << timeForFile;
   }
+
+  cacheFile << "." << fileFormat;
 
   return boost::filesystem::path(cacheFile.str());
 }
@@ -283,7 +282,10 @@ std::string WebCoverageTextureLoader::getRequestUrl(
 
   url << "&FORMAT=" << request.mFormat.value_or("image%2Ftiff");
 
-  url << "&RANGESUBSET=200";
+  if (request.mLayer.has_value()) {
+    url << "&RANGESUBSET="
+        << std::max(1, std::min(coverage.getSettings().mNumLayers, request.mLayer.value()));
+  }
 
   return url.str();
 }
