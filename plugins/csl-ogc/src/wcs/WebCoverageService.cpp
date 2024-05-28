@@ -25,7 +25,7 @@ namespace csl::ogc {
 
 WebCoverageService::WebCoverageService(std::string url, CacheMode cacheMode, std::string cacheDir)
     : WebServiceBase(
-          std::move(url), cacheMode, std::move(cacheDir), "WCS", "2.0.1", {"wcs:Capabilities"}) {
+          std::move(url), cacheMode, std::move(cacheDir), "WCS", "1.1.1", {"Capabilities"}) {
   setTitle(parseTitle());
   parseCoverages();
 }
@@ -65,7 +65,7 @@ std::unique_ptr<OGCExceptionReport> WebCoverageService::createExceptionReport(
 
 void WebCoverageService::parseCoverages() {
   VistaXML::TiXmlHandle   capabilityHandle(getCapabilities());
-  VistaXML::TiXmlElement* contents = capabilityHandle.FirstChildElement("wcs:Contents").ToElement();
+  VistaXML::TiXmlElement* contents = capabilityHandle.FirstChildElement("Contents").ToElement();
 
   WebCoverage::Settings settings;
 
@@ -81,7 +81,7 @@ void WebCoverageService::parseCoverages() {
     }
   }
 
-  for (auto* coverage = contents->FirstChild("wcs:CoverageSummary"); coverage;
+  for (auto* coverage = contents->FirstChild("CoverageSummary"); coverage;
        coverage       = coverage->NextSibling()) {
     if (!coverage->NoChildren()) {
       try {
