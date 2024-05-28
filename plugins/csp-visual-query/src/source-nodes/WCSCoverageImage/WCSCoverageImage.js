@@ -26,37 +26,42 @@ class WCSCoverageImageComponent extends Rete.Component {
     // parameter references a socket type which has been registered with the node factory
     // before. It is required that the class is called <NAME>Component.
 
-    let coverageInput = new Rete.Input('coverageIn', "Coverage", CosmoScout.socketTypes['Coverage']);
+    let coverageInput =
+        new Rete.Input('coverageIn', "Coverage", CosmoScout.socketTypes['Coverage']);
     node.addInput(coverageInput);
 
-    let lngBoundMinInput = new Rete.Input('lngBoundMinIn', "Longitude Min", CosmoScout.socketTypes['Real']);
+    let lngBoundMinInput =
+        new Rete.Input('lngBoundMinIn', "Longitude Min", CosmoScout.socketTypes['Real']);
     node.addInput(lngBoundMinInput);
 
-    let lngBoundMaxInput = new Rete.Input('lngBoundMaxIn', "Longitude Max", CosmoScout.socketTypes['Real']);
+    let lngBoundMaxInput =
+        new Rete.Input('lngBoundMaxIn', "Longitude Max", CosmoScout.socketTypes['Real']);
     node.addInput(lngBoundMaxInput);
 
-    let latBoundMinInput = new Rete.Input('latBoundMinIn', "Latitude Min", CosmoScout.socketTypes['Real']);
+    let latBoundMinInput =
+        new Rete.Input('latBoundMinIn', "Latitude Min", CosmoScout.socketTypes['Real']);
     node.addInput(latBoundMinInput);
 
-    let latBoundMaxInput = new Rete.Input('latBoundMaxIn', "Latitude Max", CosmoScout.socketTypes['Real']);
+    let latBoundMaxInput =
+        new Rete.Input('latBoundMaxIn', "Latitude Max", CosmoScout.socketTypes['Real']);
     node.addInput(latBoundMaxInput);
-    
+
     let timeInput = new Rete.Input('wcsTimeIn', "Time", CosmoScout.socketTypes['WCSTime']);
     node.addInput(timeInput);
-    
-    let resolutionInput = new Rete.Input('resolutionIn', "Resolution", CosmoScout.socketTypes['Int']);
+
+    let resolutionInput =
+        new Rete.Input('resolutionIn', "Resolution", CosmoScout.socketTypes['Int']);
     node.addInput(resolutionInput);
 
     let imageOutput = new Rete.Output('imageOut', 'Image 2D', CosmoScout.socketTypes['Image2D']);
     node.addOutput(imageOutput);
-    
-    node.onInit = (nodeDiv) => { 
 
-     
-      node.onMessageFromCPP = (message) => {
-        
-      };
-    }
+    node.onInit =
+        (nodeDiv) => {
+          node.onMessageFromCPP = (message) => {
+
+          };
+        }
 
     return node;
   }
