@@ -42,6 +42,7 @@ class CSL_OGC_EXPORT WebCoverageTextureLoader {
     std::optional<std::string> mTime;
     std::optional<std::string> mFormat;
     std::optional<int>         mBand;
+    std::optional<int>         mLayer;
   };
 
   /// Creates a new ThreadPool with the specified amount of threads.

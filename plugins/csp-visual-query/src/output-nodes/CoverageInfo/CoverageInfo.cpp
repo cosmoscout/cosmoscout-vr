@@ -38,7 +38,7 @@ std::string const& CoverageInfo::getName() const {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void CoverageInfo::process() {
-  auto coverage = readInput<std::shared_ptr<CoverageContainer>>("coverageIn", nullptr);
+  auto           coverage = readInput<std::shared_ptr<CoverageContainer>>("coverageIn", nullptr);
   nlohmann::json json;
 
   if (coverage != nullptr) {
@@ -48,6 +48,13 @@ void CoverageInfo::process() {
     json["bounds"]["maxLong"] = coverageSettings.mBounds.mMaxLon;
     json["bounds"]["minLat"]  = coverageSettings.mBounds.mMinLat;
     json["bounds"]["maxLat"]  = coverageSettings.mBounds.mMaxLat;
+
+    if (coverageSettings.mAxisResolution[0] > 0 && coverageSettings.mAxisResolution[1] > 0) {
+      json["size"]["width"]  = coverageSettings.mAxisResolution[0];
+      json["size"]["height"] = coverageSettings.mAxisResolution[1];
+    }
+
+    json["layers"] = coverageSettings.mNumLayers;
 
     if (coverageSettings.mAttribution.has_value()) {
       json["attribution"] = coverageSettings.mAttribution.value();
@@ -64,7 +71,7 @@ void CoverageInfo::process() {
     if (intervals.size() > 0) {
       json["intervals"] = intervals;
     }
-    
+
     auto keywords = coverage->mImageChannel->getKeywords();
     if (keywords.has_value()) {
       json["keywords"] = keywords.value();

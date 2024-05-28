@@ -130,7 +130,7 @@ void WebCoverage::loadCoverageDetails() {
   request.setOpt(curlpp::options::NoSignal(true));
   request.setOpt(curlpp::options::SslVerifyPeer(false));
 
-  logger().debug("Requesting WCS describe coverage via '{}'", mUrl);
+  logger().debug("Requesting WCS describe coverage via '{}'", urlStream.str());
 
   try {
     request.perform();
@@ -243,10 +243,6 @@ void WebCoverage::update() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void WebCoverage::parseDetails() {
-  if (mSettings.mAxisLabels.size() == 2) {
-    return;
-  }
-
   auto labelsValue = utils::getElementValue<std::string>(
       &mDoc.value(), {"wcs:CoverageDescriptions", "wcs:CoverageDescription", "gml:domainSet",
                          "gml:RectifiedGrid", "gml:axisLabels"});
@@ -268,6 +264,19 @@ void WebCoverage::parseDetails() {
     if (resolutionSplit.size() == 2) {
       mSettings.mAxisResolution[0] = std::stoi(resolutionSplit[0]);
       mSettings.mAxisResolution[1] = std::stoi(resolutionSplit[1]);
+    }
+  }
+
+  auto dataRecord =
+      utils::getElement(&mDoc.value(), {"wcs:CoverageDescriptions", "wcs:CoverageDescription",
+                                           "gmlcov:rangeType", "swe:DataRecord"});
+  if (dataRecord) {
+    mSettings.mNumLayers = 0;
+    auto child           = dataRecord->FirstChildElement();
+
+    while (child) {
+      mSettings.mNumLayers++;
+      child = child->NextSiblingElement();
     }
   }
 }

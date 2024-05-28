@@ -28,12 +28,15 @@ class CSL_OGC_EXPORT WebCoverage {
     /// Default (maximum) bounds of the coverage.
     Bounds2D mBounds;
     /// TimeIntervals, for which data is available.
-    std::vector<TimeInterval> mTimeIntervals;
+    std::vector<TimeInterval> mTimeIntervals = {};
     /// Attribution for the coverage.
-    std::optional<std::string> mAttribution;
+    std::optional<std::string> mAttribution = {};
     /// Axis labels used for scaling
-    std::array<std::string, 2> mAxisLabels;
-    std::array<int32_t, 2>     mAxisResolution;
+    std::array<std::string, 2> mAxisLabels = {};
+    /// The resolution of the axis
+    std::array<int32_t, 2> mAxisResolution = {};
+    /// The number of layers
+    int32_t mNumLayers = 1;
   };
 
   WebCoverage(VistaXML::TiXmlElement* element, Settings settings, std::string mUrl);
