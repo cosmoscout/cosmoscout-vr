@@ -40,8 +40,8 @@ class Renderer final : public IVistaOpenGLDraw {
 
   void        setData(std::shared_ptr<Image2D> const& image);
   void        setLUT(std::vector<glm::vec4> const& lut);
-  void        setCenter(std::string center);
-  std::string getCenter() const;
+  void        setObject(std::string objectName);
+  std::string getObject() const;
 
  private:
   std::string                            mObjectName;

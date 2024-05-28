@@ -153,18 +153,19 @@ void Renderer::setData(std::shared_ptr<Image2D> const& image) {
 
 void Renderer::setLUT(std::vector<glm::vec4> const& lut) {
   mLUT.Bind();
-  glTexImage1D(GL_TEXTURE_1D, 0, GL_RGBA32F, static_cast<int32_t>(lut.size()), 0, GL_RGBA, GL_FLOAT, lut.data());
+  glTexImage1D(GL_TEXTURE_1D, 0, GL_RGBA32F, static_cast<int32_t>(lut.size()), 0, GL_RGBA, GL_FLOAT,
+      lut.data());
   glTexParameteri(mLUT.GetTarget(), GL_TEXTURE_MIN_FILTER, GL_LINEAR);
   mLUT.Unbind();
 }
 
-void Renderer::setCenter(std::string center) {
-  mObjectName = std::move(center);
+void Renderer::setObject(std::string objectName) {
+  mObjectName = std::move(objectName);
   if (mObjectName == "None" || mObjectName.empty()) {
     return;
   }
 
-  auto object = mSolarSystem->getObjectByCenterName(mObjectName);
+  auto object = mSolarSystem->getObject(mObjectName);
   if (!object) {
     return;
   }
@@ -173,7 +174,7 @@ void Renderer::setCenter(std::string center) {
   mMaxBounds = object->getRadii();
 }
 
-std::string Renderer::getCenter() const {
+std::string Renderer::getObject() const {
   return mObjectName;
 }
 
@@ -182,7 +183,7 @@ bool Renderer::Do() {
     return false;
   }
 
-  auto object   = mSolarSystem->getObjectByCenterName(mObjectName);
+  auto object   = mSolarSystem->getObject(mObjectName);
   auto observer = mSolarSystem->getObserver();
   if (!object || object->getCenterName() != observer.getCenterName()) {
     return false;

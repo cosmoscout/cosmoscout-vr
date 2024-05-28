@@ -70,17 +70,17 @@ OverlayRender::~OverlayRender() = default;
 nlohmann::json OverlayRender::getData() const {
   nlohmann::json data;
 
-  std::set<std::string> centerNames{};
+  std::set<std::string> objects{};
 
   for (const auto& item : mSettings->mObjects) {
-    centerNames.insert(item.second->getCenterName());
+    objects.insert(item.first);
   }
 
-  std::vector<std::string> list{centerNames.begin(), centerNames.end()};
+  std::vector<std::string> list{objects.begin(), objects.end()};
   list.insert(list.begin(), "None");
 
   data["options"]      = list;
-  data["selectedBody"] = mRenderer->getCenter();
+  data["selectedBody"] = mRenderer->getObject();
 
   return data;
 }
@@ -89,7 +89,7 @@ nlohmann::json OverlayRender::getData() const {
 
 void OverlayRender::setData(nlohmann::json const& json) {
   if (json.find("selectedBody") != json.end()) {
-    mRenderer->setCenter(json["selectedBody"]);
+    mRenderer->setObject(json["selectedBody"]);
   }
 }
 
@@ -111,7 +111,7 @@ void OverlayRender::init() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void OverlayRender::onMessageFromJS(const nlohmann::json& message) {
-  mRenderer->setCenter(message.at("text").get<std::string>());
+  mRenderer->setObject(message.at("text").get<std::string>());
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -131,7 +131,6 @@ void OverlayRender::process() {
     }
   }
   mRenderer->setLUT(lut);
-
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
