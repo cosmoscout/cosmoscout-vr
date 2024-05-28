@@ -259,11 +259,17 @@ std::string WebCoverageTextureLoader::getRequestUrl(
     url << "&SUBSET=Long%28" << request.mBounds.mMinLon << "," << request.mBounds.mMaxLon << "%29";
   }
 
-  if (request.mMaxSize > 0 && coverage.getSettings().mAxisLabels.size() == 2) {
+  int32_t width  = coverage.getSettings().mAxisResolution[0];
+  int32_t height = coverage.getSettings().mAxisResolution[1];
+
+  if (request.mMaxSize > 0 && (width > request.mMaxSize || height > request.mMaxSize)) {
+    double aspect = static_cast<double>(width) / static_cast<double>(height);
+    width         = aspect > 1 ? request.mMaxSize : static_cast<int32_t>(request.mMaxSize * aspect);
+    height        = aspect > 1 ? static_cast<int32_t>(request.mMaxSize / aspect) : request.mMaxSize;
+
     // &SCALESIZE=i(...),j(...)
-    url << "&SCALESIZE=" << coverage.getSettings().mAxisLabels[0] << "%28" << request.mMaxSize
-        << "%29";
-    url << "," << coverage.getSettings().mAxisLabels[1] << "%28" << request.mMaxSize << "%29";
+    url << "&SCALESIZE=" << coverage.getSettings().mAxisLabels[0] << "%28" << width << "%29";
+    url << "," << coverage.getSettings().mAxisLabels[1] << "%28" << height << "%29";
   }
 
   // Add time string to map server request if time is specified
@@ -276,6 +282,8 @@ std::string WebCoverageTextureLoader::getRequestUrl(
   url << "&SUBSETTINGCRS=http%3A%2F%2Fwww.opengis.net%2Fdef%2Fcrs%2FEPSG%2F0%2F4326";
 
   url << "&FORMAT=" << request.mFormat.value_or("image%2Ftiff");
+
+  url << "&RANGESUBSET=200";
 
   return url.str();
 }

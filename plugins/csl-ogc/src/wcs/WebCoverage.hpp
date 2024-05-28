@@ -32,7 +32,8 @@ class CSL_OGC_EXPORT WebCoverage {
     /// Attribution for the coverage.
     std::optional<std::string> mAttribution;
     /// Axis labels used for scaling
-    std::vector<std::string> mAxisLabels;
+    std::array<std::string, 2> mAxisLabels;
+    std::array<int32_t, 2>     mAxisResolution;
   };
 
   WebCoverage(VistaXML::TiXmlElement* element, Settings settings, std::string mUrl);

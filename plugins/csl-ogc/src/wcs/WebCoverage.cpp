@@ -130,6 +130,8 @@ void WebCoverage::loadCoverageDetails() {
   request.setOpt(curlpp::options::NoSignal(true));
   request.setOpt(curlpp::options::SslVerifyPeer(false));
 
+  logger().debug("Requesting WCS describe coverage via '{}'", mUrl);
+
   try {
     request.perform();
   } catch (std::exception const& e) {
@@ -252,7 +254,20 @@ void WebCoverage::parseDetails() {
   if (labelsValue.has_value()) {
     std::vector<std::string> labelsSplit = utils::split(labelsValue.value(), ' ');
     if (labelsSplit.size() == 2) {
-      mSettings.mAxisLabels = labelsSplit;
+      mSettings.mAxisLabels[0] = labelsSplit[0];
+      mSettings.mAxisLabels[1] = labelsSplit[1];
+    }
+  }
+
+  auto resolutionValue = utils::getElementValue<std::string>(
+      &mDoc.value(), {"wcs:CoverageDescriptions", "wcs:CoverageDescription", "gml:domainSet",
+                         "gml:RectifiedGrid", "gml:limits", "gml:GridEnvelope", "gml:high"});
+
+  if (resolutionValue.has_value()) {
+    std::vector<std::string> resolutionSplit = utils::split(resolutionValue.value(), ' ');
+    if (resolutionSplit.size() == 2) {
+      mSettings.mAxisResolution[0] = std::stoi(resolutionSplit[0]);
+      mSettings.mAxisResolution[1] = std::stoi(resolutionSplit[1]);
     }
   }
 }
