@@ -53,6 +53,9 @@ class WCSCoverageImageComponent extends Rete.Component {
         new Rete.Input('resolutionIn', "Resolution Max", CosmoScout.socketTypes['Int']);
     node.addInput(resolutionInput);
 
+    let layerInput = new Rete.Input('layerIn', "Layer", CosmoScout.socketTypes['Int']);
+    node.addInput(layerInput);
+
     let imageOutput = new Rete.Output('imageOut', 'Image 2D', CosmoScout.socketTypes['Image2D']);
     node.addOutput(imageOutput);
 

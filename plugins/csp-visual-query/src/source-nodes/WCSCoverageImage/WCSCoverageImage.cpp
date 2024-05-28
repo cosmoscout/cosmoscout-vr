@@ -212,6 +212,7 @@ csl::ogc::WebCoverageTextureLoader::Request WCSCoverageImage::getRequest() {
   request.mBounds = bound;
 
   request.mMaxSize = readInput<int>("resolutionIn", 1024);
+  request.mLayer   = readInput<int>("layerIn", 1);
 
   request.mFormat = "image/tiff";
 
