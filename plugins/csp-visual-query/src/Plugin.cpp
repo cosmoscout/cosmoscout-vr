@@ -14,6 +14,7 @@
 #include "common-nodes/Int/Int.hpp"
 #include "common-nodes/Real/Real.hpp"
 #include "common-nodes/RealVec2/RealVec2.hpp"
+#include "common-nodes/RealVec4/RealVec4.hpp"
 #include "common-nodes/TimeInterval/TimeInterval.hpp"
 #include "operation-nodes/DifferenceImage2D/DifferenceImage2D.hpp"
 #include "operation-nodes/TransferFunction/TransferFunction.hpp"
@@ -183,6 +184,7 @@ void Plugin::setupNodeEditor(uint16_t port) {
   // Commons
   factory.registerNodeType<Real>();
   factory.registerNodeType<RealVec2>();
+  factory.registerNodeType<RealVec4>();
   factory.registerNodeType<Int>();
   factory.registerNodeType<TimeInterval>(mTimeControl);
   // Operations
