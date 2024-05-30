@@ -124,10 +124,11 @@ void OverlayRender::process() {
   mRenderer->setData(input);
 
   auto lut = readInput<std::vector<glm::vec4>>("lut", {});
-  // use a transparent transfer function if none is connected
+  // use a grayscale transfer function if none is connected
   if (lut.empty()) {
     for (int i = 0; i < 256; i++) {
-      lut.push_back(glm::vec4(0));
+      float value = static_cast<float>(i) / 255.0f;
+      lut.push_back(glm::vec4(value, value, value, 1.f));
     }
   }
   mRenderer->setLUT(lut);
