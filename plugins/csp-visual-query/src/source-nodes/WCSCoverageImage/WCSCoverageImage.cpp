@@ -204,12 +204,13 @@ csl::ogc::WebCoverageTextureLoader::Request WCSCoverageImage::getRequest() {
     request.mTime.reset();
   }
 
+  auto bounds = readInput<std::array<double, 4>>("boundsIn", {-180., 180., -90., 90.});
+
   csl::ogc::Bounds2D bound;
-  bound.mMinLon   = readInput<double>("lngBoundMinIn", -180.);
-  bound.mMaxLon   = readInput<double>("lngBoundMaxIn", 180.);
-  bound.mMinLat   = readInput<double>("latBoundMinIn", -90.);
-  bound.mMaxLat   = readInput<double>("latBoundMaxIn", 90.);
-  request.mBounds = bound;
+  request.mBounds.mMinLon = bounds[0];
+  request.mBounds.mMaxLon = bounds[1];
+  request.mBounds.mMinLat = bounds[2];
+  request.mBounds.mMaxLat = bounds[3];
 
   request.mMaxSize = readInput<int>("resolutionIn", 1024);
   request.mLayer   = readInput<int>("layerIn", 1);

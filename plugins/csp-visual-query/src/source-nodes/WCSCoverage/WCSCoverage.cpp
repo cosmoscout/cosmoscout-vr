@@ -29,17 +29,16 @@ std::string WCSCoverage::sSource() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::unique_ptr<WCSCoverage> WCSCoverage::sCreate(
-  std::vector<csl::ogc::WebCoverageService> wcs) {
+std::unique_ptr<WCSCoverage> WCSCoverage::sCreate(std::vector<csl::ogc::WebCoverageService> wcs) {
   return std::make_unique<WCSCoverage>(std::move(wcs));
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 WCSCoverage::WCSCoverage(std::vector<csl::ogc::WebCoverageService> wcs)
-  : mWcs(std::move(wcs))
-  , mSelectedServer(nullptr)
-  , mSelectedImageChannel(nullptr) {
+    : mWcs(std::move(wcs))
+    , mSelectedServer(nullptr)
+    , mSelectedImageChannel(nullptr) {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -64,14 +63,14 @@ void WCSCoverage::onMessageFromJS(nlohmann::json const& message) {
 
     // reset server and image channel selection
     if (message["server"] == "None") {
-      mSelectedServer = nullptr;
+      mSelectedServer       = nullptr;
       mSelectedImageChannel = nullptr;
 
       nlohmann::json imageChannel;
       imageChannel["imageChannels"] = "reset";
       sendMessageToJS(imageChannel);
 
-    // set new server and send available image channels
+      // set new server and send available image channels
     } else {
       for (auto const& wcs : mWcs) {
         if (wcs.getTitle() == message["server"]) {
@@ -85,16 +84,17 @@ void WCSCoverage::onMessageFromJS(nlohmann::json const& message) {
   }
 
   // set newly selected image channel
-  if (message.find("imageChannel") !=  message.end()) {
+  if (message.find("imageChannel") != message.end()) {
 
     // reset image channel selection
     if (message["imageChannel"] == "None") {
       mSelectedImageChannel = nullptr;
 
-    // set new image channel
+      // set new image channel
     } else {
       auto temp = mSelectedServer->getCoverage(message["imageChannel"]);
-      mSelectedImageChannel = (temp.has_value() ? std::make_shared<csl::ogc::WebCoverage>(temp.value()) : nullptr);
+      mSelectedImageChannel =
+          (temp.has_value() ? std::make_shared<csl::ogc::WebCoverage>(temp.value()) : nullptr);
     }
   }
 
@@ -117,7 +117,7 @@ nlohmann::json WCSCoverage::getData() const {
   data["servers"] = serverNames;
 
   if (mSelectedServer != nullptr) {
-    data["selectedURL"] = mSelectedServer->getUrl();
+    data["selectedURL"]    = mSelectedServer->getUrl();
     data["selectedServer"] = mSelectedServer->getTitle();
 
     std::vector<std::string> imageChannelNames{"None"};
@@ -129,7 +129,7 @@ nlohmann::json WCSCoverage::getData() const {
 
     if (mSelectedImageChannel != nullptr) {
       data["selectedCoverageId"] = mSelectedImageChannel->getId();
-      data["selectedCoverage"] = mSelectedImageChannel->getTitle();
+      data["selectedCoverage"]   = mSelectedImageChannel->getTitle();
     }
   }
   return data;
@@ -150,7 +150,8 @@ void WCSCoverage::setData(nlohmann::json const& json) {
     if (mSelectedServer != nullptr && json.find("selectedCoverage") != json.end()) {
 
       auto temp = mSelectedServer->getCoverage(json["selectedCoverageId"]);
-      mSelectedImageChannel = (temp.has_value() ? std::make_shared<csl::ogc::WebCoverage>(temp.value()) : nullptr);
+      mSelectedImageChannel =
+          (temp.has_value() ? std::make_shared<csl::ogc::WebCoverage>(temp.value()) : nullptr);
     }
   }
   // process() ?
@@ -177,20 +178,21 @@ void WCSCoverage::process() {
 
   mSelectedImageChannel->update();
   auto coverageSettings = mSelectedImageChannel->getSettings();
-  writeOutput("timeIntervalsOut", coverageSettings.mTimeIntervals);
-  writeOutput("lngBoundMinOut", coverageSettings.mBounds.mMinLon);
-  writeOutput("lngBoundMaxOut", coverageSettings.mBounds.mMaxLon);
-  writeOutput("latBoundMinOut", coverageSettings.mBounds.mMinLat);
-  writeOutput("latBoundMaxOut", coverageSettings.mBounds.mMaxLat);
 
-  writeOutput("coverageOut", std::make_shared<CoverageContainer>(mSelectedServer, mSelectedImageChannel));
+  std::array<double, 4> bounds{coverageSettings.mBounds.mMinLon, coverageSettings.mBounds.mMaxLon,
+      coverageSettings.mBounds.mMinLat, coverageSettings.mBounds.mMaxLat};
+
+  writeOutput("timeIntervalsOut", coverageSettings.mTimeIntervals);
+  writeOutput("boundsOut", bounds);
+  writeOutput(
+      "coverageOut", std::make_shared<CoverageContainer>(mSelectedServer, mSelectedImageChannel));
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void WCSCoverage::sendImageChannelsToJs() {
   std::vector<std::string> imageChannelNames{"None"};
-  
+
   for (csl::ogc::WebCoverage const& imageChannel : mSelectedServer->getCoverages()) {
     imageChannelNames.push_back(imageChannel.getTitle());
   }

@@ -26,27 +26,21 @@ class WCSCoverageComponent extends Rete.Component {
     // parameter references a socket type which has been registered with the node factory
     // before. It is required that the class is called <NAME>Component.
 
-    let imageOutput = new Rete.Output('coverageOut', 'Coverage', CosmoScout.socketTypes['Coverage']);
+    let imageOutput =
+        new Rete.Output('coverageOut', 'Coverage', CosmoScout.socketTypes['Coverage']);
     node.addOutput(imageOutput);
 
-    let timeIntervals = new Rete.Output('timeIntervalsOut', 'Time Intervals', CosmoScout.socketTypes['WCSTimeIntervals']);
+    let timeIntervals = new Rete.Output(
+        'timeIntervalsOut', 'Time Intervals', CosmoScout.socketTypes['WCSTimeIntervals']);
     node.addOutput(timeIntervals);
 
-    let lngBoundMinOutput = new Rete.Output('lngBoundMinOut', "Longitude Min", CosmoScout.socketTypes['Real']);
-    node.addOutput(lngBoundMinOutput);
+    let boundsOut =
+        new Rete.Output('boundsOut', "Long/Lat Bounds", CosmoScout.socketTypes['RVec4']);
+    node.addOutput(boundsOut);
 
-    let lngBoundMaxOutput = new Rete.Output('lngBoundMaxOut', "Longitude Max", CosmoScout.socketTypes['Real']);
-    node.addOutput(lngBoundMaxOutput);
-
-    let latBoundMinOutput = new Rete.Output('latBoundMinOut', "Latitude Min", CosmoScout.socketTypes['Real']);
-    node.addOutput(latBoundMinOutput);
-
-    let latBoundMaxOutput = new Rete.Output('latBoundMaxOut', "Latitude Max", CosmoScout.socketTypes['Real']);
-    node.addOutput(latBoundMaxOutput);
-
-    let serverDropDown = new DropDownControl('selectServer', (newServer) => {
-      CosmoScout.sendMessageToCPP({server: newServer.text}, node.id);
-    }, "Server", [{value: 0, text: "None"}]);
+    let serverDropDown = new DropDownControl('selectServer',
+        (newServer) => { CosmoScout.sendMessageToCPP({server: newServer.text}, node.id); },
+        "Server", [{value: 0, text: "None"}]);
     node.addControl(serverDropDown);
 
     let coverageDropDown = new DropDownControl('selectCoverage', (newCoverage) => {
@@ -69,7 +63,8 @@ class WCSCoverageComponent extends Rete.Component {
           node.data.imageChannels = [];
           coverageDropDown.setOptions([{value: 0, text: "None"}]);
         } else {
-          const coverages = message["imageChannels"].map((channel, index) => ({value: index, text: channel}));
+          const coverages =
+              message["imageChannels"].map((channel, index) => ({value: index, text: channel}));
           node.data.coverages = coverages;
           coverageDropDown.setOptions(coverages);
         }
@@ -81,18 +76,12 @@ class WCSCoverageComponent extends Rete.Component {
 
     node.onInit = (nodeDiv) => {
       serverDropDown.init(nodeDiv, {
-        options: node.data.servers?.map((server, index) => ({
-          value: index,
-          text: server
-        })),
+        options: node.data.servers?.map((server, index) => ({value: index, text: server})),
         selectedValue: node.data.selectedServer
       });
 
       coverageDropDown.init(nodeDiv, {
-        options: node.data.coverages?.map((channel, index) => ({
-          value: index,
-          text: channel
-        })),
+        options: node.data.coverages?.map((channel, index) => ({value: index, text: channel})),
         selectedValue: node.data.selectedCoverage
       });
     };
