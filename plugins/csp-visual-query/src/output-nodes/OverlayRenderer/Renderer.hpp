@@ -40,6 +40,7 @@ class Renderer final : public IVistaOpenGLDraw {
 
   void        setData(std::shared_ptr<Image2D> const& image);
   void        setLUT(std::vector<glm::vec4> const& lut);
+  void        setMinMax(glm::vec2 const& minMax);
   void        setObject(std::string objectName);
   std::string getObject() const;
 
@@ -58,6 +59,8 @@ class Renderer final : public IVistaOpenGLDraw {
 
   VistaTexture mLUT;
   bool         mHasLUT;
+
+  glm::vec2 mMinMax = glm::vec2(0, 1);
 
   /// Store one buffer per viewport
   std::map<VistaViewport*, VistaTexture> mDepthBufferData;

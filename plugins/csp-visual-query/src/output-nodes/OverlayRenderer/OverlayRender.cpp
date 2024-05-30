@@ -123,6 +123,9 @@ void OverlayRender::process() {
   }
   mRenderer->setData(input);
 
+  auto minMax = readInput<std::pair<double, double>>("minMax", std::pair<double, double>(0.0, 1.0));
+  mRenderer->setMinMax(glm::vec2(minMax.first, minMax.second));
+
   auto lut = readInput<std::vector<glm::vec4>>("lut", {});
   // use a grayscale transfer function if none is connected
   if (lut.empty()) {

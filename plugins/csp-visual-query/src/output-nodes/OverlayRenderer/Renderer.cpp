@@ -159,6 +159,10 @@ void Renderer::setLUT(std::vector<glm::vec4> const& lut) {
   mLUT.Unbind();
 }
 
+void Renderer::setMinMax(glm::vec2 const& minMax) {
+  mMinMax = minMax;
+}
+
 void Renderer::setObject(std::string objectName) {
   mObjectName = std::move(objectName);
   if (mObjectName == "None" || mObjectName.empty()) {
@@ -244,6 +248,7 @@ bool Renderer::Do() {
   mShader.SetUniform(mShader.GetUniformLocation("uDepthBuffer"), 0);
   mShader.SetUniform(mShader.GetUniformLocation("uTexture"), 1);
   mShader.SetUniform(mShader.GetUniformLocation("uLUT"), 3);
+  mShader.SetUniform(mShader.GetUniformLocation("uLUTRange"), mMinMax.x, mMinMax.y);
 
   GLint loc = mShader.GetUniformLocation("uMatInvMVP");
   glUniformMatrix4dv(loc, 1, GL_FALSE, glm::value_ptr(matInvMVP));

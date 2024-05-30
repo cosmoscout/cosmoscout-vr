@@ -20,8 +20,8 @@ class TransferFunction final : public csl::nodeeditor::Node {
  public:
   // static interface ------------------------------------------------------------------------------
 
-  static const std::string               sName;
-  static std::string                     sSource();
+  static const std::string                 sName;
+  static std::string                       sSource();
   static std::unique_ptr<TransferFunction> sCreate();
 
   // instance interface ----------------------------------------------------------------------------
@@ -29,8 +29,8 @@ class TransferFunction final : public csl::nodeeditor::Node {
   /// Each node must override this. It simply returns the static sName.
   std::string const& getName() const override;
 
-  /// Whenever the value of the node is required, the VolumeTransferFunctionNode will send a message to
-  /// the C++ instance of the node via onMessageFromJS, which in turn will call the process()
+  /// Whenever the value of the node is required, the VolumeTransferFunctionNode will send a message
+  /// to the C++ instance of the node via onMessageFromJS, which in turn will call the process()
   /// method.
   /// This method may also get called occasionally by the node editor,
   /// for example if a new web client was connected hence needs updated values for all nodes.
@@ -47,9 +47,7 @@ class TransferFunction final : public csl::nodeeditor::Node {
   /// This is called whenever the node needs to be deserialized.
   void setData(nlohmann::json const& json) override;
 
-private:
-  glm::vec4 lerpVec4(glm::vec4 v0, glm::vec4 v1, double t);
-
+ private:
   std::vector<glm::vec4> mLut;
 };
 

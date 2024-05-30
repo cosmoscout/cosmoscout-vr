@@ -24,25 +24,25 @@ class OverlayRenderComponent extends Rete.Component {
     let lutInput = new Rete.Input('lut', "LookUp Table", CosmoScout.socketTypes['LUT']);
     node.addInput(lutInput);
 
+    const minMaxInput = new Rete.Input('minMax', 'LUT Min/Max', CosmoScout.socketTypes['RVec2']);
+    node.addInput(minMaxInput);
+
     const dropDownCallback = (selection) => CosmoScout.sendMessageToCPP(selection, node.id);
 
-    let centerControl = new DropDownControl('center', dropDownCallback, "Body", [{value: 0, text: 'None'}]);
+    let centerControl =
+        new DropDownControl('center', dropDownCallback, "Body", [{value: 0, text: 'None'}]);
     node.addControl(centerControl);
 
-    node.onMessageFromCPP = (message) => centerControl.setOptions(message.map((centerName, index) => ({
-      value: index,
-      text: centerName
-    })));
+    node.onMessageFromCPP = (message) => centerControl.setOptions(
+        message.map((centerName, index) => ({value: index, text: centerName})));
 
-    node.onInit = (nodeDiv) => {
-      centerControl.init(nodeDiv, {
-        options: node.data.options?.map((body, index) => ({
-          value: index,
-          text: body
-        })),
-        selectedValue: node.data.selectedBody
-      });
-    }
+    node.onInit =
+        (nodeDiv) => {
+          centerControl.init(nodeDiv, {
+            options: node.data.options?.map((body, index) => ({value: index, text: body})),
+            selectedValue: node.data.selectedBody
+          });
+        }
 
     return node;
   }

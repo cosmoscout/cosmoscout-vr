@@ -19,9 +19,6 @@ class TransferFunctionComponent extends Rete.Component {
   builder(node) {
     const tfControl = new TransferFunctionControl("volume-tf");
 
-    const minMaxInput = new Rete.Input('minMax', 'Min/Max', CosmoScout.socketTypes['RVec2']);
-    node.addInput(minMaxInput);
-
     const lutOutput = new Rete.Output('lut', 'LookUp Table', CosmoScout.socketTypes['LUT']);
     node.addOutput(lutOutput);
 
@@ -29,9 +26,7 @@ class TransferFunctionComponent extends Rete.Component {
 
     const tfCallback = (newLut) => CosmoScout.sendMessageToCPP({lut: newLut}, node.id)
 
-    node.onInit = (nodeDiv) => {
-      tfControl.init(nodeDiv, tfCallback);
-    };
+    node.onInit = (nodeDiv) => { tfControl.init(nodeDiv, tfCallback); };
     return node;
   }
 }
@@ -40,7 +35,7 @@ class TransferFunctionControl extends Rete.Control {
   constructor(key) {
     super(key);
 
-    this.id = crypto.randomUUID();
+    this.id       = crypto.randomUUID();
     this.template = `
       <style>
         .tfe-transparency-editor {
@@ -79,9 +74,8 @@ class TransferFunctionControl extends Rete.Control {
     dd.classList.add("form-select", "dropdown-toggle", "btn");
     dd.style.textAlign = "left";
 
-    dd.querySelectorAll("option").forEach(el => {
-      el.classList.add("dropdown-item", "dropdown-menu", "inner", "show");
-    });
+    dd.querySelectorAll("option").forEach(
+        el => { el.classList.add("dropdown-item", "dropdown-menu", "inner", "show"); });
 
     let first = true;
 
@@ -102,6 +96,6 @@ function getChunksFromString(string, chunkSize) {
 
 function hexToRGBA(hex) {
   const chunkSize = Math.floor((hex.length - 1) / 3);
-  const hexArr = getChunksFromString(hex.slice(1), chunkSize);
+  const hexArr    = getChunksFromString(hex.slice(1), chunkSize);
   return hexArr.map((hexString) => parseInt(hexString.repeat(2 / hexString.length), 16) / 255);
 }
