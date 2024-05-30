@@ -5,7 +5,7 @@
 // SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
 // SPDX-License-Identifier: MIT
 
-#include "WCSCoverageImage.hpp"
+#include "WCSImage2D.hpp"
 
 #include "../../../../csl-ogc/src/wcs/WebCoverageService.hpp"
 #include "../../../../csl-ogc/src/wcs/WebCoverageTextureLoader.hpp"
@@ -18,60 +18,60 @@ namespace csp::visualquery {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-const std::string WCSCoverageImage::sName = "WCSCoverageImage";
+const std::string WCSImage2D::sName = "WCSImage2D";
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::string WCSCoverageImage::sSource() {
+std::string WCSImage2D::sSource() {
   return cs::utils::filesystem::loadToString(
-      "../share/resources/nodes/csp-visual-query/WCSCoverageImage.js");
+      "../share/resources/nodes/csp-visual-query/WCSImage2D.js");
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::unique_ptr<WCSCoverageImage> WCSCoverageImage::sCreate() {
-  return std::make_unique<WCSCoverageImage>();
+std::unique_ptr<WCSImage2D> WCSImage2D::sCreate() {
+  return std::make_unique<WCSImage2D>();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-WCSCoverageImage::WCSCoverageImage() {
+WCSImage2D::WCSImage2D() {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-WCSCoverageImage::~WCSCoverageImage() {
+WCSImage2D::~WCSImage2D() {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::string const& WCSCoverageImage::getName() const {
+std::string const& WCSImage2D::getName() const {
   return sName;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void WCSCoverageImage::onMessageFromJS(nlohmann::json const& message) {
+void WCSImage2D::onMessageFromJS(nlohmann::json const& message) {
 
-  logger().debug("WCSCoverageImage: Message form JS: {}", message.dump());
+  logger().debug("WCSImage2D: Message form JS: {}", message.dump());
 
   // process();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-nlohmann::json WCSCoverageImage::getData() const {
+nlohmann::json WCSImage2D::getData() const {
   return nlohmann::json();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void WCSCoverageImage::setData(nlohmann::json const& json) {
+void WCSImage2D::setData(nlohmann::json const& json) {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void WCSCoverageImage::process() {
+void WCSImage2D::process() {
   auto coverage = readInput<std::shared_ptr<CoverageContainer>>("coverageIn", nullptr);
   if (coverage == nullptr) {
     return;
@@ -196,7 +196,7 @@ void WCSCoverageImage::process() {
   }
 }
 
-csl::ogc::WebCoverageTextureLoader::Request WCSCoverageImage::getRequest() {
+csl::ogc::WebCoverageTextureLoader::Request WCSImage2D::getRequest() {
   csl::ogc::WebCoverageTextureLoader::Request request;
 
   request.mTime = readInput<std::string>("wcsTimeIn", "");

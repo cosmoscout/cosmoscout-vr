@@ -5,8 +5,8 @@
 // SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
 // SPDX-License-Identifier: MIT
 
-#ifndef CSP_VISUAL_QUERY_WCS_COVERAGE_IMAGE_HPP
-#define CSP_VISUAL_QUERY_WCS_COVERAGE_IMAGE_HPP
+#ifndef CSP_VISUAL_QUERY_WCS_IMAGE_2D_HPP
+#define CSP_VISUAL_QUERY_WCS_IMAGE_2D_HPP
 
 #include "../../../../csl-node-editor/src/Node.hpp"
 #include "../../../../csl-ogc/src/wcs/WebCoverageService.hpp"
@@ -15,20 +15,20 @@
 
 namespace csp::visualquery {
 
-class WCSCoverageImage : public csl::nodeeditor::Node {
+class WCSImage2D : public csl::nodeeditor::Node {
  public:
   // static interface ------------------------------------------------------------------------------
 
-  static const std::string          sName;
-  static std::string                sSource();
-  static std::unique_ptr<WCSCoverageImage> sCreate();
+  static const std::string           sName;
+  static std::string                 sSource();
+  static std::unique_ptr<WCSImage2D> sCreate();
 
   // instance interface ----------------------------------------------------------------------------
 
   /// New instances of this node are created by the node factory.
 
-  explicit WCSCoverageImage();
-  ~WCSCoverageImage() override;
+  explicit WCSImage2D();
+  ~WCSImage2D() override;
 
   /// Each node must override this. It simply returns the static sName.
   std::string const& getName() const override;
@@ -62,4 +62,4 @@ class WCSCoverageImage : public csl::nodeeditor::Node {
 
 } // namespace csp::visualquery
 
-#endif // CSP_VISUAL_QUERY_WCS_COVERAGE_IMAGE_HPP
+#endif // CSP_VISUAL_QUERY_WCS_IMAGE_2D_HPP

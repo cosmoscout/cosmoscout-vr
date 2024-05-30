@@ -7,11 +7,11 @@
 
 // The TimeNode is pretty simple as it only has a single output socket. The component serves as
 // a kind of factory. Whenever a new node is created, the builder() method is called.
-class WCSCoverageImageComponent extends Rete.Component {
+class WCSImage2DComponent extends Rete.Component {
 
   constructor() {
     // This name must match the WCSSourceNode::sName defined in WCSSource.cpp.
-    super("WCSCoverageImage");
+    super("WCSImage2D");
 
     // This specifies the submenu from which this node can be created in the node editor.
     this.category = "Sources";

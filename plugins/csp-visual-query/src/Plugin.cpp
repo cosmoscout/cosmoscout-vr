@@ -25,7 +25,7 @@
 #include "source-nodes/RandomDataSource2D/RandomDataSource2D.hpp"
 #include "source-nodes/RandomDataSource3D/RandomDataSource3D.hpp"
 #include "source-nodes/WCSCoverage/WCSCoverage.hpp"
-#include "source-nodes/WCSCoverageImage/WCSCoverageImage.hpp"
+#include "source-nodes/WCSImage2D/WCSImage2D.hpp"
 
 #include <vector>
 
@@ -200,7 +200,7 @@ void Plugin::setupNodeEditor(uint16_t port) {
 
   // Sources
   factory.registerNodeType<WCSCoverage>(mPluginSettings.mWebCoverages);
-  factory.registerNodeType<WCSCoverageImage>();
+  factory.registerNodeType<WCSImage2D>();
   factory.registerNodeType<JsonVolumeFileLoader>();
   factory.registerNodeType<RandomDataSource2D>();
   factory.registerNodeType<RandomDataSource3D>();
