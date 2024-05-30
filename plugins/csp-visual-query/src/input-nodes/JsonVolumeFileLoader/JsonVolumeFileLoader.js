@@ -9,7 +9,7 @@ class JsonVolumeFileLoaderComponent extends Rete.Component {
 
   constructor() {
     super("JsonVolumeFileLoader");
-    this.category = "Sources";
+    this.category = "Input";
   }
 
   builder(node) {
@@ -24,7 +24,6 @@ class JsonVolumeFileLoaderComponent extends Rete.Component {
     return node;
   }
 }
-
 
 class TextControl extends Rete.Control {
   constructor(key) {
@@ -44,7 +43,7 @@ class TextControl extends Rete.Control {
     const el = nodeDiv.querySelector(`#text-input-${this.id}`);
 
     if (data?.file) {
-      el.value = data.file;
+      el.value  = data.file;
       this.data = data;
     }
 

@@ -201,7 +201,7 @@ body {
     background-color: var(--cs-color-background-dark) !important;
     padding: 0 !important;
     border-radius: 5px;
-    width: auto !important;
+    width: max-content !important;
 }
 
 .context-menu .search,

@@ -11,21 +11,21 @@
 #include "logger.hpp"
 
 #include "../../../src/cs-utils/filesystem.hpp"
-#include "common-nodes/Int/Int.hpp"
-#include "common-nodes/Real/Real.hpp"
-#include "common-nodes/RealVec2/RealVec2.hpp"
-#include "common-nodes/RealVec4/RealVec4.hpp"
-#include "common-nodes/TimeInterval/TimeInterval.hpp"
+#include "constant-nodes/Int/Int.hpp"
+#include "constant-nodes/Real/Real.hpp"
+#include "constant-nodes/RealVec2/RealVec2.hpp"
+#include "constant-nodes/RealVec4/RealVec4.hpp"
+#include "extract-nodes/TimeInterval/TimeInterval.hpp"
+#include "extract-nodes/WCSImage2D/WCSImage2D.hpp"
+#include "input-nodes/JsonVolumeFileLoader/JsonVolumeFileLoader.hpp"
+#include "input-nodes/RandomDataSource2D/RandomDataSource2D.hpp"
+#include "input-nodes/RandomDataSource3D/RandomDataSource3D.hpp"
+#include "input-nodes/TransferFunction/TransferFunction.hpp"
+#include "input-nodes/WCSCoverage/WCSCoverage.hpp"
 #include "operation-nodes/DifferenceImage2D/DifferenceImage2D.hpp"
-#include "operation-nodes/TransferFunction/TransferFunction.hpp"
 #include "output-nodes/CoverageInfo/CoverageInfo.hpp"
 #include "output-nodes/OverlayRenderer/OverlayRender.hpp"
 #include "output-nodes/VolumeRenderer/VolumeRenderer.hpp"
-#include "source-nodes/JsonVolumeFileLoader/JsonVolumeFileLoader.hpp"
-#include "source-nodes/RandomDataSource2D/RandomDataSource2D.hpp"
-#include "source-nodes/RandomDataSource3D/RandomDataSource3D.hpp"
-#include "source-nodes/WCSCoverage/WCSCoverage.hpp"
-#include "source-nodes/WCSImage2D/WCSImage2D.hpp"
 
 #include <vector>
 
@@ -182,28 +182,30 @@ void Plugin::setupNodeEditor(uint16_t port) {
   // passed to the constructor of the node instances. For more information, see the documentation of
   // NodeFactory::registerNodeType().
 
-  // Commons
+  // Constants
   factory.registerNodeType<Int>();
   factory.registerNodeType<Real>();
   factory.registerNodeType<RealVec2>();
   factory.registerNodeType<RealVec4>();
 
+  // Data Extraction
+  factory.registerNodeType<TimeInterval>(mTimeControl);
+  factory.registerNodeType<WCSImage2D>();
+
   // Operations
   factory.registerNodeType<DifferenceImage2D>();
-  factory.registerNodeType<TimeInterval>(mTimeControl);
-  factory.registerNodeType<TransferFunction>();
 
   // Outputs
   factory.registerNodeType<CoverageInfo>();
   factory.registerNodeType<OverlayRender>(mSolarSystem, mAllSettings);
   factory.registerNodeType<VolumeRenderer>(mSolarSystem, mAllSettings);
 
-  // Sources
+  // Inputs
   factory.registerNodeType<WCSCoverage>(mPluginSettings.mWebCoverages);
-  factory.registerNodeType<WCSImage2D>();
   factory.registerNodeType<JsonVolumeFileLoader>();
   factory.registerNodeType<RandomDataSource2D>();
   factory.registerNodeType<RandomDataSource3D>();
+  factory.registerNodeType<TransferFunction>();
 
   // Finally, create the node editor. It will start the server so that we can now open a web browser
   // and navigate to localhost:<port>.

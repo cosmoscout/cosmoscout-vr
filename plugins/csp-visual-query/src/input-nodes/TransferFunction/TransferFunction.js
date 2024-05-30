@@ -12,7 +12,7 @@ class TransferFunctionComponent extends Rete.Component {
     super("TransferFunction");
 
     // This specifies the submenu from which this node can be created in the node editor.
-    this.category = "Operations";
+    this.category = "Input";
   }
 
   // Called whenever a new node of this type needs to be constructed.

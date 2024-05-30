@@ -9,7 +9,7 @@ class RandomDataSource3DComponent extends Rete.Component {
 
   constructor() {
     super("RandomDataSource3D");
-    this.category = "Sources";
+    this.category = "Input";
   }
 
   builder(node) {
@@ -26,7 +26,6 @@ class RandomDataSource3DComponent extends Rete.Component {
     return node;
   }
 }
-
 
 class BoundsControl3D extends Rete.Control {
   constructor(key) {
@@ -52,33 +51,40 @@ class BoundsControl3D extends Rete.Control {
         </div>
         <div class="row">
           <div class="col-2">Lat:</div>
-          <input id="min-lat-${this.id}" class="offset-1 col-3" type="text" value="0" style="text-align: end" />
-          <input id="max-lat-${this.id}" class="offset-1 col-3" type="text" value="0" style="text-align: end" />
+          <input id="min-lat-${
+        this.id}" class="offset-1 col-3" type="text" value="0" style="text-align: end" />
+          <input id="max-lat-${
+        this.id}" class="offset-1 col-3" type="text" value="0" style="text-align: end" />
         </div>
         <div class="row">
           <div class="col-2">Lon:</div>
-          <input id="min-lon-${this.id}" class="offset-1 col-3" type="text" value="0" style="text-align: end" />
-          <input id="max-lon-${this.id}" class="offset-1 col-3" type="text" value="0" style="text-align: end" />
+          <input id="min-lon-${
+        this.id}" class="offset-1 col-3" type="text" value="0" style="text-align: end" />
+          <input id="max-lon-${
+        this.id}" class="offset-1 col-3" type="text" value="0" style="text-align: end" />
         </div>
         <div class="row">
           <div class="col-2">Height:</div>
-          <input id="min-height-${this.id}" class="offset-1 col-3" type="text" value="0" style="text-align: end" />
-          <input id="max-height-${this.id}" class="offset-1 col-3" type="text" value="0" style="text-align: end" />
+          <input id="min-height-${
+        this.id}" class="offset-1 col-3" type="text" value="0" style="text-align: end" />
+          <input id="max-height-${
+        this.id}" class="offset-1 col-3" type="text" value="0" style="text-align: end" />
         </div>
       </div>
     `;
   }
 
   init(nodeDiv, data) {
-    const minLatEl = nodeDiv.querySelector(`#min-lat-${this.id}`);
-    const maxLatEl = nodeDiv.querySelector(`#max-lat-${this.id}`);
-    const minLonEl = nodeDiv.querySelector(`#min-lon-${this.id}`);
-    const maxLonEl = nodeDiv.querySelector(`#max-lon-${this.id}`);
+    const minLatEl    = nodeDiv.querySelector(`#min-lat-${this.id}`);
+    const maxLatEl    = nodeDiv.querySelector(`#max-lat-${this.id}`);
+    const minLonEl    = nodeDiv.querySelector(`#min-lon-${this.id}`);
+    const maxLonEl    = nodeDiv.querySelector(`#max-lon-${this.id}`);
     const minHeightEl = nodeDiv.querySelector(`#min-height-${this.id}`);
     const maxHeightEl = nodeDiv.querySelector(`#max-height-${this.id}`);
 
-    if (typeof data.minLat == 'number' && typeof data.maxLat == 'number' && typeof data.minLon == 'number' &&
-      typeof data.maxLon == 'number' && typeof data.minHeight == 'number' && typeof data.maxHeight == 'number') {
+    if (typeof data.minLat == 'number' && typeof data.maxLat == 'number' &&
+        typeof data.minLon == 'number' && typeof data.maxLon == 'number' &&
+        typeof data.minHeight == 'number' && typeof data.maxHeight == 'number') {
       this.data = data;
     }
 

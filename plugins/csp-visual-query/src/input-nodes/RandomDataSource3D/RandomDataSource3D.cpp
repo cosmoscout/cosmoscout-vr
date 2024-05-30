@@ -7,8 +7,8 @@
 
 #include "RandomDataSource3D.hpp"
 
-#include "../../logger.hpp"
 #include "../../../../src/cs-utils/filesystem.hpp"
+#include "../../logger.hpp"
 
 namespace csp::visualquery {
 

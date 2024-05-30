@@ -9,7 +9,7 @@ class RandomDataSource2DComponent extends Rete.Component {
 
   constructor() {
     super("RandomDataSource2D");
-    this.category = "Sources";
+    this.category = "Input";
   }
 
   builder(node) {
@@ -26,7 +26,6 @@ class RandomDataSource2DComponent extends Rete.Component {
     return node;
   }
 }
-
 
 class BoundsControl extends Rete.Control {
   constructor(key) {
@@ -50,13 +49,17 @@ class BoundsControl extends Rete.Control {
         </div>
         <div class="row">
           <div class="col-2">Lat:</div>
-          <input id="min-lat-${this.id}" class="offset-1 col-3" type="text" value="0" style="text-align: end" />
-          <input id="max-lat-${this.id}" class="offset-1 col-3" type="text" value="0" style="text-align: end" />
+          <input id="min-lat-${
+        this.id}" class="offset-1 col-3" type="text" value="0" style="text-align: end" />
+          <input id="max-lat-${
+        this.id}" class="offset-1 col-3" type="text" value="0" style="text-align: end" />
         </div>
         <div class="row">
           <div class="col-2">Lon:</div>
-          <input id="min-lon-${this.id}" class="offset-1 col-3" type="text" value="0" style="text-align: end" />
-          <input id="max-lon-${this.id}" class="offset-1 col-3" type="text" value="0" style="text-align: end" />
+          <input id="min-lon-${
+        this.id}" class="offset-1 col-3" type="text" value="0" style="text-align: end" />
+          <input id="max-lon-${
+        this.id}" class="offset-1 col-3" type="text" value="0" style="text-align: end" />
         </div>
       </div>
     `;

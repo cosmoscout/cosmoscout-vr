@@ -14,7 +14,7 @@ class WCSImage2DComponent extends Rete.Component {
     super("WCSImage2D");
 
     // This specifies the submenu from which this node can be created in the node editor.
-    this.category = "Sources";
+    this.category = "Data Extraction";
   }
 
   // Called whenever a new node of this type needs to be constructed.
