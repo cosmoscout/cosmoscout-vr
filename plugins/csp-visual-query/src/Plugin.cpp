@@ -181,26 +181,29 @@ void Plugin::setupNodeEditor(uint16_t port) {
   // Now, we register our custom node types. Any parameter given to this method, will later be
   // passed to the constructor of the node instances. For more information, see the documentation of
   // NodeFactory::registerNodeType().
+
   // Commons
+  factory.registerNodeType<Int>();
   factory.registerNodeType<Real>();
   factory.registerNodeType<RealVec2>();
   factory.registerNodeType<RealVec4>();
-  factory.registerNodeType<Int>();
-  factory.registerNodeType<TimeInterval>(mTimeControl);
+
   // Operations
   factory.registerNodeType<DifferenceImage2D>();
+  factory.registerNodeType<TimeInterval>(mTimeControl);
   factory.registerNodeType<TransferFunction>();
-  // Outputs
-  factory.registerNodeType<WCSCoverage>(mPluginSettings.mWebCoverages);
-  factory.registerNodeType<CoverageInfo>();
-  // Sources
-  factory.registerNodeType<RandomDataSource2D>();
-  factory.registerNodeType<RandomDataSource3D>();
-  factory.registerNodeType<WCSCoverageImage>();
-  factory.registerNodeType<JsonVolumeFileLoader>();
 
+  // Outputs
+  factory.registerNodeType<CoverageInfo>();
   factory.registerNodeType<OverlayRender>(mSolarSystem, mAllSettings);
   factory.registerNodeType<VolumeRenderer>(mSolarSystem, mAllSettings);
+
+  // Sources
+  factory.registerNodeType<WCSCoverage>(mPluginSettings.mWebCoverages);
+  factory.registerNodeType<WCSCoverageImage>();
+  factory.registerNodeType<JsonVolumeFileLoader>();
+  factory.registerNodeType<RandomDataSource2D>();
+  factory.registerNodeType<RandomDataSource3D>();
 
   // Finally, create the node editor. It will start the server so that we can now open a web browser
   // and navigate to localhost:<port>.
