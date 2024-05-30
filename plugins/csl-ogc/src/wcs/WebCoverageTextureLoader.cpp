@@ -211,11 +211,18 @@ boost::filesystem::path WebCoverageTextureLoader::getCachePath(WebCoverageServic
 
   std::stringstream cacheFile;
   cacheFile << cacheDir.str() << coverageFixed;
-  cacheFile << "_Band_" << std::to_string(request.mBand.value_or(1));
-  cacheFile << "_Layer_" << std::to_string(request.mLayer.value_or(1));
+
+  if (request.mTime.has_value()) {
+    cacheFile << "_" << request.mTime.value();
+  }
+
+  if (request.mLayerRange.has_value()) {
+    cacheFile << "_" << std::to_string(request.mLayerRange.value().first) << "_"
+              << std::to_string(request.mLayerRange.value().second);
+  }
 
   // Add Bound string to cache file name
-  cacheFile << "_Bounds_" << utils::toStringWithoutTrailing(request.mBounds.mMinLon) << "_"
+  cacheFile << "_" << utils::toStringWithoutTrailing(request.mBounds.mMinLon) << "_"
             << utils::toStringWithoutTrailing(request.mBounds.mMaxLon) << "_"
             << utils::toStringWithoutTrailing(request.mBounds.mMinLat) << "_"
             << utils::toStringWithoutTrailing(request.mBounds.mMaxLat);
@@ -282,9 +289,15 @@ std::string WebCoverageTextureLoader::getRequestUrl(
 
   url << "&FORMAT=" << request.mFormat.value_or("image%2Ftiff");
 
-  if (request.mLayer.has_value()) {
-    url << "&RANGESUBSET="
-        << std::max(1, std::min(coverage.getSettings().mNumLayers, request.mLayer.value()));
+  if (request.mLayerRange.has_value()) {
+    int minLayer = std::max(1, request.mLayerRange.value().first);
+    int maxLayer = std::min(coverage.getSettings().mNumLayers, request.mLayerRange.value().second);
+
+    if (minLayer == maxLayer) {
+      url << "&RANGESUBSET=" << minLayer;
+    } else {
+      url << "&RANGESUBSET=" << minLayer << "%2C" << maxLayer;
+    }
   }
 
   return url.str();
