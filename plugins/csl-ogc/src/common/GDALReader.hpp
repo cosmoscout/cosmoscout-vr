@@ -39,7 +39,7 @@ class CSL_OGC_EXPORT GDALReader {
     uint32_t mLayers{};
 
     // The number of channels in the texture, e.g. 1 for greyscale, 3 for RGB etc.
-    char mChannels = 1;
+    char mBands = 1;
 
     // The geo-referenced bounds of the texture [minX, maxX, minY, maxY].
     std::array<double, 4> mLnglatBounds{};
@@ -58,10 +58,8 @@ class CSL_OGC_EXPORT GDALReader {
     float mDataMaxValue = 1.F;
 
     // The buffer containing the texture data.
-    void* mBuffer{};
-
-    // The size of the buffer in bytes.
-    size_t mBuffersize{};
+    void*  mBuffer     = nullptr;
+    size_t mBufferSize = 0;
   };
 
   /**
@@ -70,25 +68,20 @@ class CSL_OGC_EXPORT GDALReader {
   static void InitGDAL();
 
   /**
-   * Reads a GDAL supported gray scale image into the texture passed as reference
+   * Reads a GDAL supported image into the texture passed as reference.
    */
-  static void ReadTexture(Texture& texture, std::string filename, int band = 1);
+  static void ReadTexture(Texture& texture, std::string filename);
 
   /**
-   * Reads a GDAL supported gray scale image from a stream into the texture passed as reference
+   * Reads a GDAL supported gray scale image from a stream into the texture passed as reference.
    */
   static void ReadTexture(
-      Texture& texture, std::stringstream const& data, const std::string& filename, int band = 1);
+      Texture& texture, std::stringstream const& data, const std::string& filename);
 
   /**
-   * Get the number of bands in the texture
+   * Adds a texture with unique key to the cache
    */
-  static int ReadNumberOfBands(std::string filename);
-
-  /**
-   * Adds a texture with unique path to the cache
-   */
-  static void AddTextureToCache(const std::string& path, Texture& texture);
+  static void AddTextureToCache(std::string const& key, Texture const& texture);
 
   /**
    * Clear cache
@@ -97,10 +90,9 @@ class CSL_OGC_EXPORT GDALReader {
 
  private:
   /**
-   * Warps the given dataset to WGS84, writes the data to "texture" and caches it
+   * Warps the given dataset to WGS84, writes the data to "texture" and caches it.
    */
-  static void BuildTexture(
-      GDALDataset* poDatasetSrc, Texture& texture, std::string const& filename, int band = 1);
+  static void BuildTexture(GDALDataset* dataset, Texture& texture, std::string const& filename);
 
   /**
    * Mapping of (virtual) filesystem path to calculated greyscale texture
@@ -110,9 +102,8 @@ class CSL_OGC_EXPORT GDALReader {
   /**
    * Mapping of (virtual) filesystem path to number of bands in a texture
    */
-  static std::map<std::string, int> mBandsCache;
-  static std::mutex                 mMutex;
-  static bool                       mIsInitialized;
+  static std::mutex mMutex;
+  static bool       mIsInitialized;
 };
 
 } // namespace csl::ogc

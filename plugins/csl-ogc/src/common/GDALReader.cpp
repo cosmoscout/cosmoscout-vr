@@ -13,6 +13,7 @@
 #include <cpl_vsi.h>
 #include <gdalwarper.h>
 #include <ogr_spatialref.h>
+#include <ogrsf_frmts.h>
 
 #include <cstring>
 #include <iostream>
@@ -23,7 +24,6 @@
 namespace csl::ogc {
 
 std::map<std::string, GDALReader::Texture> GDALReader::mTextureCache;
-std::map<std::string, int>                 GDALReader::mBandsCache;
 std::mutex                                 GDALReader::mMutex;
 bool                                       GDALReader::mIsInitialized = false;
 
@@ -36,7 +36,7 @@ void GDALReader::InitGDAL() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void GDALReader::AddTextureToCache(const std::string& path, Texture& texture) {
+void GDALReader::AddTextureToCache(std::string const& path, Texture const& texture) {
   GDALReader::mMutex.lock();
   // Cache the texture
   mTextureCache.insert(std::make_pair(path, texture));
@@ -45,42 +45,7 @@ void GDALReader::AddTextureToCache(const std::string& path, Texture& texture) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-int GDALReader::ReadNumberOfBands(std::string filename) {
-  if (!GDALReader::mIsInitialized) {
-    csl::ogc::logger().error(
-        "[GDALReader] GDAL not initialized! Call GDALReader::InitGDAL() first");
-    return -1;
-  }
-
-  // Check for texture in cache
-  GDALReader::mMutex.lock();
-  auto it = mBandsCache.find(filename);
-  if (it != mBandsCache.end()) {
-    auto bands = it->second;
-
-    GDALReader::mMutex.unlock();
-    csl::ogc::logger().debug("Found {} in gdal bands cache.", filename);
-
-    return bands;
-  }
-  GDALReader::mMutex.unlock();
-
-  auto* poDatasetSrc = static_cast<GDALDataset*>(GDALOpen(filename.data(), GA_ReadOnly));
-
-  if (poDatasetSrc == nullptr) {
-    csl::ogc::logger().error("[GDALReader::ReadNumberOfLayers] Failed to load {}", filename);
-    return -1;
-  }
-  int bands = poDatasetSrc->GetRasterCount();
-  GDALClose(poDatasetSrc);
-
-  csl::ogc::logger().info("Reading number of layers from {} : {}", filename, bands);
-  return bands;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void GDALReader::ReadTexture(Texture& texture, std::string filename, int band) {
+void GDALReader::ReadTexture(Texture& texture, std::string filename) {
   if (!GDALReader::mIsInitialized) {
     csl::ogc::logger().error(
         "[GDALReader] GDAL not initialized! Call GDALReader::InitGDAL() first");
@@ -89,7 +54,7 @@ void GDALReader::ReadTexture(Texture& texture, std::string filename, int band) {
 
   // Check for texture in cache
   GDALReader::mMutex.lock();
-  auto it = mTextureCache.find(fmt::format("{}{}", filename, band));
+  auto it = mTextureCache.find(filename);
   if (it != mTextureCache.end()) {
     texture = it->second;
 
@@ -106,13 +71,13 @@ void GDALReader::ReadTexture(Texture& texture, std::string filename, int band) {
   auto* dataset = static_cast<GDALDataset*>(GDALOpen(filename.data(), GA_ReadOnly));
   GDALReader::mMutex.unlock();
 
-  GDALReader::BuildTexture(dataset, texture, filename, band);
+  GDALReader::BuildTexture(dataset, texture, filename);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void GDALReader::ReadTexture(GDALReader::Texture& texture, std::stringstream const& data,
-    const std::string& filename, int band) {
+void GDALReader::ReadTexture(
+    GDALReader::Texture& texture, std::stringstream const& data, const std::string& filename) {
   if (!GDALReader::mIsInitialized) {
     csl::ogc::logger().error(
         "[GDALReader] GDAL not initialized! Call GDALReader::InitGDAL() first");
@@ -121,7 +86,7 @@ void GDALReader::ReadTexture(GDALReader::Texture& texture, std::stringstream con
 
   // Check for texture in cache
   GDALReader::mMutex.lock();
-  auto it = mTextureCache.find(fmt::format("{}{}", filename, band));
+  auto it = mTextureCache.find(filename);
   if (it != mTextureCache.end()) {
     texture = it->second;
 
@@ -141,9 +106,9 @@ void GDALReader::ReadTexture(GDALReader::Texture& texture, std::stringstream con
       "/vsimem/tmp.tiff", reinterpret_cast<GByte*>(&dataStr[0]), dataSize, FALSE);
   VSIFCloseL(fpMem);
 
-  GDALDataset* poDatasetSrc = static_cast<GDALDataset*>(GDALOpen("/vsimem/tmp.tiff", GA_ReadOnly));
+  GDALDataset* dataset = static_cast<GDALDataset*>(GDALOpen("/vsimem/tmp.tiff", GA_ReadOnly));
 
-  GDALReader::BuildTexture(poDatasetSrc, texture, filename, band);
+  GDALReader::BuildTexture(dataset, texture, filename);
 
   VSIUnlink("/vsimem/tmp.tiff");
 }
@@ -165,41 +130,75 @@ void GDALReader::ClearCache() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void GDALReader::BuildTexture(GDALDataset* poDatasetSrc, GDALReader::Texture& texture,
-    std::string const& filename, int band) {
-  // Meta data storage
-  double                adfSrcGeoTransform[6];
-  double                adfDstGeoTransform[6];
-  std::array<double, 4> bounds{};
-  std::array<double, 2> d_dataRange{};
+void GDALReader::BuildTexture(
+    GDALDataset* dataset, GDALReader::Texture& texture, std::string const& filename) {
 
-  int resX = 0;
-  int resY = 0;
-
-  if (poDatasetSrc == nullptr) {
+  if (dataset == nullptr) {
     csl::ogc::logger().error("[GDALReader::ReadTexture] Failed to load {}", filename);
     return;
   }
 
-  if (poDatasetSrc->GetProjectionRef() == nullptr) {
+  if (dataset->GetProjectionRef() == nullptr) {
     csl::ogc::logger().error("[GDALReader::ReadTexture] No projection defined for {}", filename);
     return;
   }
 
-  // Read geotransform from src image
-  poDatasetSrc->GetGeoTransform(adfSrcGeoTransform);
+  // Get band ranges -------------------------------------------------------------------------------
 
-  int   bGotMin = 0;
-  int   bGotMax = 0; // like bool if it was successful
-  auto* poBand  = poDatasetSrc->GetRasterBand(band);
+  texture.mLayerRanges.clear();
 
-  d_dataRange[0] = poBand->GetMinimum(&bGotMin);
-  d_dataRange[1] = poBand->GetMaximum(&bGotMax);
-  if (!(bGotMin && bGotMax)) {
-    GDALComputeRasterMinMax(static_cast<GDALRasterBandH>(poBand), TRUE, d_dataRange.data());
+  // Get the global min and max values of all bands.
+  texture.mDataRange[0] = std::numeric_limits<double>::max();
+  texture.mDataRange[1] = std::numeric_limits<double>::lowest();
+
+  texture.mLayers    = dataset->GetLayerCount() > 0 ? dataset->GetLayerCount() : 1;
+  uint32_t bandCount = 0;
+
+  csl::ogc::logger().info("[GDALReader::ReadTexture] Layer count {} ", texture.mLayers);
+
+  for (uint32_t l = 1; l <= texture.mLayers; l++) {
+    GDALDataset* layer =
+        dataset->GetLayerCount() > 0 ? dataset->GetLayer(l)->GetDataset() : dataset;
+    uint32_t layerBands = layer->GetRasterCount();
+
+    if (bandCount != 0 && layerBands != bandCount) {
+      csl::ogc::logger().error(
+          "[GDALReader::ReadTexture] Layer {} has different number of bands than previous layers",
+          l);
+      return;
+    } else {
+      bandCount = layerBands;
+    }
+
+    std::array<double, 2> dataRange{
+        std::numeric_limits<double>::max(), std::numeric_limits<double>::lowest()};
+
+    for (uint32_t b = 1; b <= bandCount; b++) {
+      int   bGotMin = 0;
+      int   bGotMax = 0; // like bool if it was successful
+      auto* poBand  = layer->GetRasterBand(b);
+
+      dataRange[0] = poBand->GetMinimum(&bGotMin);
+      dataRange[1] = poBand->GetMaximum(&bGotMax);
+      if (!bGotMin || !bGotMax) {
+        GDALComputeRasterMinMax(static_cast<GDALRasterBandH>(poBand), TRUE, dataRange.data());
+      }
+
+      texture.mLayerRanges.push_back(dataRange);
+
+      texture.mDataRange[0] = std::min(texture.mDataRange[0], dataRange[0]);
+      texture.mDataRange[1] = std::max(texture.mDataRange[1], dataRange[1]);
+    }
   }
 
-  /////////////////////// Reprojection /////////////////////
+  csl::ogc::logger().info("[GDALReader::ReadTexture] Band count {} ", bandCount);
+
+  // Reprojection ----------------------------------------------------------------------------------
+
+  // Read geotransform from src image'.
+  double adfSrcGeoTransform[6];
+  dataset->GetGeoTransform(adfSrcGeoTransform);
+
   char* pszDstWKT = nullptr;
 
   // Setup output coordinate system to WGS84 (latitude/longitude).
@@ -209,47 +208,45 @@ void GDALReader::BuildTexture(GDALDataset* poDatasetSrc, GDALReader::Texture& te
 
   // Create the transformation object handle
   auto* hTransformArg = GDALCreateGenImgProjTransformer(
-      poDatasetSrc, poDatasetSrc->GetProjectionRef(), nullptr, pszDstWKT, FALSE, 0.0, 1);
+      dataset, dataset->GetProjectionRef(), nullptr, pszDstWKT, FALSE, 0.0, 1);
 
   // Create output coordinate system and store transformation
-  GDALSuggestedWarpOutput(
-      poDatasetSrc, GDALGenImgProjTransform, hTransformArg, adfDstGeoTransform, &resX, &resY);
+  double transform[6];
+  int    resX = 0;
+  int    resY = 0;
+  GDALSuggestedWarpOutput(dataset, GDALGenImgProjTransform, hTransformArg, transform, &resX, &resY);
 
   // Calculate extents of the image
-  bounds[0] =
-      (adfDstGeoTransform[0] + 0 * adfDstGeoTransform[1] + 0 * adfDstGeoTransform[2]) * M_PI / 180;
-  bounds[1] =
-      (adfDstGeoTransform[3] + 0 * adfDstGeoTransform[4] + 0 * adfDstGeoTransform[5]) * M_PI / 180;
-  bounds[2] =
-      (adfDstGeoTransform[0] + resX * adfDstGeoTransform[1] + resY * adfDstGeoTransform[2]) * M_PI /
-      180;
-  bounds[3] =
-      (adfDstGeoTransform[3] + resX * adfDstGeoTransform[4] + resY * adfDstGeoTransform[5]) * M_PI /
-      180;
+  std::array<double, 4> bounds{};
+  bounds[0] = (transform[0] + 0 * transform[1] + 0 * transform[2]) * M_PI / 180;
+  bounds[1] = (transform[3] + 0 * transform[4] + 0 * transform[5]) * M_PI / 180;
+  bounds[2] = (transform[0] + resX * transform[1] + resY * transform[2]) * M_PI / 180;
+  bounds[3] = (transform[3] + resX * transform[4] + resY * transform[5]) * M_PI / 180;
 
   // Store the data type of the raster band
-  auto eDT = GDALGetRasterDataType(GDALGetRasterBand(poDatasetSrc, band));
+  auto eDT = GDALGetRasterDataType(GDALGetRasterBand(dataset, 1));
 
   // Setup the warping parameters
   GDALWarpOptions* psWarpOptions = GDALCreateWarpOptions();
-  psWarpOptions->hSrcDS          = poDatasetSrc;
+  psWarpOptions->hSrcDS          = dataset;
   psWarpOptions->hDstDS          = nullptr;
-  psWarpOptions->nBandCount      = 1;
-  psWarpOptions->panSrcBands =
-      static_cast<int*>(CPLMalloc(sizeof(int) * psWarpOptions->nBandCount));
-  psWarpOptions->panSrcBands[0] = band;
-  psWarpOptions->panDstBands =
-      static_cast<int*>(CPLMalloc(sizeof(int) * psWarpOptions->nBandCount));
-  psWarpOptions->panDstBands[0] = 1;
-  psWarpOptions->pfnProgress    = GDALTermProgress;
+
+  psWarpOptions->nBandCount  = bandCount;
+  psWarpOptions->panSrcBands = static_cast<int*>(CPLMalloc(sizeof(int) * bandCount));
+  psWarpOptions->panDstBands = static_cast<int*>(CPLMalloc(sizeof(int) * bandCount));
+
+  for (uint32_t i = 0; i < bandCount; i++) {
+    psWarpOptions->panSrcBands[i] = i + 1;
+    psWarpOptions->panDstBands[i] = i + 1;
+  }
 
   psWarpOptions->pTransformerArg = GDALCreateGenImgProjTransformer3(
-      GDALGetProjectionRef(poDatasetSrc), adfSrcGeoTransform, pszDstWKT, adfDstGeoTransform);
+      GDALGetProjectionRef(dataset), adfSrcGeoTransform, pszDstWKT, transform);
   psWarpOptions->pfnTransformer = GDALGenImgProjTransform;
 
   // Allocate memory for the image pixels
-
-  int bufferSize = resX * resY * GDALGetDataTypeSizeBytes(eDT);
+  int elementCount = resX * resY * bandCount;
+  int bufferSize   = elementCount * GDALGetDataTypeSizeBytes(eDT);
 
   void* bufferData = CPLMalloc(bufferSize);
 
@@ -260,25 +257,22 @@ void GDALReader::BuildTexture(GDALDataset* poDatasetSrc, GDALReader::Texture& te
   GDALDestroyGenImgProjTransformer(psWarpOptions->pTransformerArg);
   GDALDestroyWarpOptions(psWarpOptions);
 
-  mBandsCache.insert(std::make_pair(filename, poDatasetSrc->GetRasterCount()));
-
-  GDALClose(poDatasetSrc);
+  GDALClose(dataset);
 
   /////////////////////// Reprojection End /////////////////
-  texture.mBuffersize   = bufferSize;
+  texture.mBufferSize   = bufferSize;
   texture.mBuffer       = static_cast<void*>(CPLMalloc(bufferSize));
   texture.mWidth        = resX;
   texture.mHeight       = resY;
-  texture.mDataRange    = d_dataRange;
   texture.mLnglatBounds = bounds;
   texture.mDataType     = eDT;
-  texture.mChannels     = poDatasetSrc->GetRasterCount();
+  texture.mBands        = bandCount;
   std::memcpy(texture.mBuffer, bufferData, bufferSize);
 
   if (eDT == 7) {
     // Double support. we need to convert to float do to opengl
-    std::vector<double> dData(
-        static_cast<double*>(texture.mBuffer), static_cast<double*>(texture.mBuffer) + resX * resY);
+    std::vector<double> dData(static_cast<double*>(texture.mBuffer),
+        static_cast<double*>(texture.mBuffer) + elementCount);
 
     std::vector<float> fData{};
     fData.resize(dData.size());
@@ -288,8 +282,8 @@ void GDALReader::BuildTexture(GDALDataset* poDatasetSrc, GDALReader::Texture& te
 
     CPLFree(texture.mBuffer);
 
-    texture.mBuffer = static_cast<void*>(CPLMalloc(resX * resY * sizeof(float)));
-    std::memcpy(texture.mBuffer, &fData[0], resX * resY * sizeof(float));
+    texture.mBuffer = static_cast<void*>(CPLMalloc(elementCount * sizeof(float)));
+    std::memcpy(texture.mBuffer, &fData[0], elementCount * sizeof(float));
   }
 
   switch (eDT) {
@@ -313,7 +307,7 @@ void GDALReader::BuildTexture(GDALDataset* poDatasetSrc, GDALReader::Texture& te
     texture.mDataMaxValue = 1;
   }
 
-  GDALReader::AddTextureToCache(fmt::format("{}{}", filename, band), texture);
+  GDALReader::AddTextureToCache(filename, texture);
 }
 
 } // namespace csl::ogc

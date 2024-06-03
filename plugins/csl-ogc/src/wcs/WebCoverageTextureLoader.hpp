@@ -37,11 +37,11 @@ class CSL_OGC_EXPORT WebCoverageTextureLoader {
  public:
   /// Struct for defining parameters for a request to a WCS.
   struct Request {
-    int32_t                            mMaxSize{};
-    Bounds2D                           mBounds;
+    int32_t  mMaxSize{};
+    Bounds2D mBounds;
+
     std::optional<std::string>         mTime;
     std::optional<std::string>         mFormat;
-    std::optional<int>                 mBand;
     std::optional<std::pair<int, int>> mLayerRange;
   };
 

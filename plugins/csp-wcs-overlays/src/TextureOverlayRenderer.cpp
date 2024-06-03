@@ -340,7 +340,6 @@ csl::ogc::WebCoverageTextureLoader::Request TextureOverlayRenderer::getRequest()
   csl::ogc::WebCoverageTextureLoader::Request request;
   request.mMaxSize = mPluginSettings->mMaxTextureSize.get();
   request.mBounds  = getBounds();
-  request.mBand    = mActiveBand;
   request.mFormat  = mPluginSettings->mWcsRequestFormat.get();
   return request;
 }
@@ -359,8 +358,8 @@ void TextureOverlayRenderer::getTimeIndependentTexture(
       if (texture.has_value()) {
         mUpdateTexture = true;
         mTexture       = texture.value();
-        mGuiManager->getGui()->callJavascript("CosmoScout.wcsOverlays.setNumberOfBands",
-            mTexture.mChannels, request.mBand.value_or(1));
+        mGuiManager->getGui()->callJavascript(
+            "CosmoScout.wcsOverlays.setNumberOfBands", mTexture.mBands, 1);
       }
       mGuiManager->getGui()->callJavascript(
           "CosmoScout.wcsOverlays.setCoverageSelectDisabled", false);
@@ -424,7 +423,6 @@ bool TextureOverlayRenderer::Do() {
         request.mTime    = timeString;
         request.mBounds  = getBounds();
         request.mMaxSize = mPluginSettings->mMaxTextureSize.get();
-        request.mBand    = mActiveBand;
 
         mTexturesBuffer.insert(
             std::pair<std::string, std::future<std::optional<csl::ogc::GDALReader::Texture>>>(

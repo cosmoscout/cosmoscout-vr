@@ -47,15 +47,14 @@ std::optional<GDALReader::Texture> WebCoverageTextureLoader::loadTexture(
 
   if (saveToCache && boost::filesystem::exists(cachePath) &&
       boost::filesystem::file_size(cachePath) > 0) {
-    GDALReader::ReadTexture(texture, cachePath.string(), request.mBand.value_or(1));
+    GDALReader::ReadTexture(texture, cachePath.string());
   } else {
     textureStream = requestTexture(wcs, coverage, request);
     if (!textureStream.has_value()) {
       return {};
     }
 
-    GDALReader::ReadTexture(
-        texture, textureStream.value(), cachePath.string(), request.mBand.value_or(1));
+    GDALReader::ReadTexture(texture, textureStream.value(), cachePath.string());
 
     if (saveToCache) {
       textureStream.value().rdbuf()->pubseekpos(0);
@@ -73,9 +72,9 @@ std::optional<GDALReader::Texture> WebCoverageTextureLoader::loadTexture(
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 std::optional<std::stringstream> WebCoverageTextureLoader::requestTexture(
-    WebCoverageService const& wcs, WebCoverage const& coverage, Request const& wcsrequest) {
+    WebCoverageService const& wcs, WebCoverage const& coverage, Request const& request) {
 
-  std::string url = getRequestUrl(wcs, coverage, wcsrequest);
+  std::string url = getRequestUrl(wcs, coverage, request);
 
   logger().debug("Performing WCS request '{}'.", url);
 
@@ -87,21 +86,21 @@ std::optional<std::stringstream> WebCoverageTextureLoader::requestTexture(
 
     std::stringstream out(std::ios_base::out | std::ios_base::in | std::ios_base::binary);
 
-    curlpp::Easy request;
-    request.setOpt(curlpp::options::Url(url));
-    request.setOpt(curlpp::options::WriteStream(&out));
-    request.setOpt(curlpp::options::NoSignal(true));
-    request.setOpt(curlpp::options::SslVerifyPeer(false));
-    request.setOpt(curlpp::options::FollowLocation(true));
+    curlpp::Easy curlRequest;
+    curlRequest.setOpt(curlpp::options::Url(url));
+    curlRequest.setOpt(curlpp::options::WriteStream(&out));
+    curlRequest.setOpt(curlpp::options::NoSignal(true));
+    curlRequest.setOpt(curlpp::options::SslVerifyPeer(false));
+    curlRequest.setOpt(curlpp::options::FollowLocation(true));
 
     try {
-      request.perform();
+      curlRequest.perform();
     } catch (std::exception& e) {
       logger().warn("Failed to perform WCS request '{}': '{}'!", url, e.what());
       continue;
     }
 
-    std::string contentType = curlpp::Info<CURLINFO_CONTENT_TYPE, std::string>::get(request);
+    std::string contentType = curlpp::Info<CURLINFO_CONTENT_TYPE, std::string>::get(curlRequest);
     // Remove suffix and parameter from content type
     size_t suffixPos    = contentType.find('+');
     size_t parameterPos = contentType.find(';');
@@ -131,12 +130,13 @@ std::optional<std::stringstream> WebCoverageTextureLoader::requestTexture(
         logger().debug("Could not create WebCoverageExceptionReport: '{}'.", e.what());
         continue;
       }
-    } else if (contentType != wcsrequest.mFormat.value_or("image/tiff")) {
+    } else if (contentType != request.mFormat.value_or("image/tiff")) {
       logger().debug("Received response of invalid MIME type '{}'.", contentType);
       continue;
     }
     return std::move(out);
   }
+
   logger().warn("Could not get a valid response for WCS request '{}'!", url);
   return {};
 }
