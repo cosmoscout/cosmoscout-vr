@@ -50,13 +50,13 @@ class CSL_OGC_EXPORT WebCoverageTextureLoader {
 
   /// Async WCS texture loader.
   /// Returns an empty optional if loading the texture failed.
-  std::future<std::optional<GDALReader::GreyScaleTexture>> loadTextureAsync(
-      WebCoverageService const& wcs, WebCoverage const& coverage, Request const& request,
-      std::string const& coverageCache, bool saveToCache);
+  std::future<std::optional<GDALReader::Texture>> loadTextureAsync(WebCoverageService const& wcs,
+      WebCoverage const& coverage, Request const& request, std::string const& coverageCache,
+      bool saveToCache);
 
   /// WCS texture loader.
   /// Returns an empty optional if loading the texture failed.
-  std::optional<GDALReader::GreyScaleTexture> loadTexture(WebCoverageService const& wcs,
+  std::optional<GDALReader::Texture> loadTexture(WebCoverageService const& wcs,
       WebCoverage const& coverage, Request const& request, std::string const& coverageCache,
       bool saveToCache);
 

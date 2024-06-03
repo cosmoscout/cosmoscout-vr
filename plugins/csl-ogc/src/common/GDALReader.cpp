@@ -22,10 +22,10 @@
 
 namespace csl::ogc {
 
-std::map<std::string, GDALReader::GreyScaleTexture> GDALReader::mTextureCache;
-std::map<std::string, int>                          GDALReader::mBandsCache;
-std::mutex                                          GDALReader::mMutex;
-bool                                                GDALReader::mIsInitialized = false;
+std::map<std::string, GDALReader::Texture> GDALReader::mTextureCache;
+std::map<std::string, int>                 GDALReader::mBandsCache;
+std::mutex                                 GDALReader::mMutex;
+bool                                       GDALReader::mIsInitialized = false;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -36,7 +36,7 @@ void GDALReader::InitGDAL() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void GDALReader::AddTextureToCache(const std::string& path, GreyScaleTexture& texture) {
+void GDALReader::AddTextureToCache(const std::string& path, Texture& texture) {
   GDALReader::mMutex.lock();
   // Cache the texture
   mTextureCache.insert(std::make_pair(path, texture));
@@ -80,7 +80,7 @@ int GDALReader::ReadNumberOfBands(std::string filename) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void GDALReader::ReadGrayScaleTexture(GreyScaleTexture& texture, std::string filename, int band) {
+void GDALReader::ReadTexture(Texture& texture, std::string filename, int band) {
   if (!GDALReader::mIsInitialized) {
     csl::ogc::logger().error(
         "[GDALReader] GDAL not initialized! Call GDALReader::InitGDAL() first");
@@ -111,8 +111,8 @@ void GDALReader::ReadGrayScaleTexture(GreyScaleTexture& texture, std::string fil
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void GDALReader::ReadGrayScaleTexture(GDALReader::GreyScaleTexture& texture,
-    std::stringstream const& data, const std::string& filename, int band) {
+void GDALReader::ReadTexture(GDALReader::Texture& texture, std::stringstream const& data,
+    const std::string& filename, int band) {
   if (!GDALReader::mIsInitialized) {
     csl::ogc::logger().error(
         "[GDALReader] GDAL not initialized! Call GDALReader::InitGDAL() first");
@@ -151,13 +151,13 @@ void GDALReader::ReadGrayScaleTexture(GDALReader::GreyScaleTexture& texture,
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void GDALReader::ClearCache() {
-  std::map<std::string, GreyScaleTexture>::iterator it;
+  std::map<std::string, Texture>::iterator it;
 
   GDALReader::mMutex.lock();
   // Loop over textures and delete buffer
   for (it = mTextureCache.begin(); it != mTextureCache.end(); it++) {
-    GreyScaleTexture texture = it->second;
-    free(texture.buffer);
+    Texture texture = it->second;
+    free(texture.mBuffer);
   }
   mTextureCache.clear();
   GDALReader::mMutex.unlock();
@@ -165,7 +165,7 @@ void GDALReader::ClearCache() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void GDALReader::BuildTexture(GDALDataset* poDatasetSrc, GDALReader::GreyScaleTexture& texture,
+void GDALReader::BuildTexture(GDALDataset* poDatasetSrc, GDALReader::Texture& texture,
     std::string const& filename, int band) {
   // Meta data storage
   double                adfSrcGeoTransform[6];
@@ -177,13 +177,12 @@ void GDALReader::BuildTexture(GDALDataset* poDatasetSrc, GDALReader::GreyScaleTe
   int resY = 0;
 
   if (poDatasetSrc == nullptr) {
-    csl::ogc::logger().error("[GDALReader::ReadGrayScaleTexture] Failed to load {}", filename);
+    csl::ogc::logger().error("[GDALReader::ReadTexture] Failed to load {}", filename);
     return;
   }
 
   if (poDatasetSrc->GetProjectionRef() == nullptr) {
-    csl::ogc::logger().error(
-        "[GDALReader::ReadGrayScaleTexture] No projection defined for {}", filename);
+    csl::ogc::logger().error("[GDALReader::ReadTexture] No projection defined for {}", filename);
     return;
   }
 
@@ -266,20 +265,20 @@ void GDALReader::BuildTexture(GDALDataset* poDatasetSrc, GDALReader::GreyScaleTe
   GDALClose(poDatasetSrc);
 
   /////////////////////// Reprojection End /////////////////
-  texture.buffersize   = bufferSize;
-  texture.buffer       = static_cast<void*>(CPLMalloc(bufferSize));
-  texture.x            = resX;
-  texture.y            = resY;
-  texture.dataRange    = d_dataRange;
-  texture.lnglatBounds = bounds;
-  texture.type         = eDT;
-  texture.bands        = poDatasetSrc->GetRasterCount();
-  std::memcpy(texture.buffer, bufferData, bufferSize);
+  texture.mBuffersize   = bufferSize;
+  texture.mBuffer       = static_cast<void*>(CPLMalloc(bufferSize));
+  texture.mWidth        = resX;
+  texture.mHeight       = resY;
+  texture.mDataRange    = d_dataRange;
+  texture.mLnglatBounds = bounds;
+  texture.mDataType     = eDT;
+  texture.mChannels     = poDatasetSrc->GetRasterCount();
+  std::memcpy(texture.mBuffer, bufferData, bufferSize);
 
   if (eDT == 7) {
     // Double support. we need to convert to float do to opengl
     std::vector<double> dData(
-        static_cast<double*>(texture.buffer), static_cast<double*>(texture.buffer) + resX * resY);
+        static_cast<double*>(texture.mBuffer), static_cast<double*>(texture.mBuffer) + resX * resY);
 
     std::vector<float> fData{};
     fData.resize(dData.size());
@@ -287,31 +286,31 @@ void GDALReader::BuildTexture(GDALDataset* poDatasetSrc, GDALReader::GreyScaleTe
     std::transform(
         dData.begin(), dData.end(), fData.begin(), [](double d) { return static_cast<float>(d); });
 
-    CPLFree(texture.buffer);
+    CPLFree(texture.mBuffer);
 
-    texture.buffer = static_cast<void*>(CPLMalloc(resX * resY * sizeof(float)));
-    std::memcpy(texture.buffer, &fData[0], resX * resY * sizeof(float));
+    texture.mBuffer = static_cast<void*>(CPLMalloc(resX * resY * sizeof(float)));
+    std::memcpy(texture.mBuffer, &fData[0], resX * resY * sizeof(float));
   }
 
   switch (eDT) {
   case 1: // UInt8
-    texture.typeSize = std::numeric_limits<uint8_t>::max();
+    texture.mDataMaxValue = std::numeric_limits<uint8_t>::max();
     break;
   case 2: // UInt16
-    texture.typeSize = std::numeric_limits<uint16_t>::max();
+    texture.mDataMaxValue = std::numeric_limits<uint16_t>::max();
     break;
   case 3: // Int16
-    texture.typeSize = std::numeric_limits<int16_t>::max();
+    texture.mDataMaxValue = std::numeric_limits<int16_t>::max();
     break;
   case 4: // UInt32
-    texture.typeSize = static_cast<float>(std::numeric_limits<uint32_t>::max());
+    texture.mDataMaxValue = static_cast<float>(std::numeric_limits<uint32_t>::max());
     break;
   case 5: // Int32
-    texture.typeSize = static_cast<float>(std::numeric_limits<int32_t>::max());
+    texture.mDataMaxValue = static_cast<float>(std::numeric_limits<int32_t>::max());
     break;
 
   default: // Float
-    texture.typeSize = 1;
+    texture.mDataMaxValue = 1;
   }
 
   GDALReader::AddTextureToCache(fmt::format("{}{}", filename, band), texture);

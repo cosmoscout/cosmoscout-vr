@@ -127,18 +127,16 @@ class TextureOverlayRenderer : public IVistaOpenGLDraw {
 
   std::unordered_map<VistaViewport*, GBufferData> mGBufferData; //! Store one buffer per viewport
 
-  csl::ogc::GDALReader::GreyScaleTexture
-       mTexture;               //! The textured passed from outside via SetOverlayTexture
+  csl::ogc::GDALReader::Texture mTexture; //! The textured passed from outside via SetOverlayTexture
   int  mActiveBand    = 1;     //! Active band of the coverage (if the texture has more than one)
   bool mUpdateTexture = false; //! Flag if a texture upload is required
 
   std::unique_ptr<cs::graphics::ColorMap> mTransferFunction; //! Transfer function used in shader
 
   /// Stores all textures, for which the request ist still pending.
-  std::map<std::string, std::future<std::optional<csl::ogc::GDALReader::GreyScaleTexture>>>
-      mTexturesBuffer;
+  std::map<std::string, std::future<std::optional<csl::ogc::GDALReader::Texture>>> mTexturesBuffer;
   /// Stores all successfully loaded textures.
-  std::map<std::string, csl::ogc::GDALReader::GreyScaleTexture> mTextures;
+  std::map<std::string, csl::ogc::GDALReader::Texture> mTextures;
   /// Stores textures, for which loading failed.
   std::vector<std::string> mWrongTextures;
 

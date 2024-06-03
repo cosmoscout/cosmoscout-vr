@@ -87,21 +87,22 @@ void WCSImage2D::process() {
 
   if (textureOpt.has_value()) {
     auto texture     = textureOpt.value();
-    auto textureSize = texture.x * texture.y;
+    auto textureSize = texture.mWidth * texture.mHeight;
 
     Image2D image;
     image.mNumScalars = 1;
-    image.mDimension  = {texture.x, texture.y};
+    image.mDimension  = {texture.mWidth, texture.mHeight};
 
     // convert radians to degree
-    image.mBounds = {texture.lnglatBounds[0] * (180 / M_PI), texture.lnglatBounds[2] * (180 / M_PI),
-        texture.lnglatBounds[3] * (180 / M_PI), texture.lnglatBounds[1] * (180 / M_PI)};
+    image.mBounds = {texture.mLnglatBounds[0] * (180 / M_PI),
+        texture.mLnglatBounds[2] * (180 / M_PI), texture.mLnglatBounds[3] * (180 / M_PI),
+        texture.mLnglatBounds[1] * (180 / M_PI)};
 
-    switch (texture.type) {
+    switch (texture.mDataType) {
     case 1: // UInt8
     {
-      std::vector<uint8_t> textureData(static_cast<uint8_t*>(texture.buffer),
-          static_cast<uint8_t*>(texture.buffer) + textureSize);
+      std::vector<uint8_t> textureData(static_cast<uint8_t*>(texture.mBuffer),
+          static_cast<uint8_t*>(texture.mBuffer) + textureSize);
 
       U8ValueVector pointData{};
 
@@ -115,8 +116,8 @@ void WCSImage2D::process() {
 
     case 2: // UInt16
     {
-      std::vector<uint16_t> textureData(static_cast<uint16_t*>(texture.buffer),
-          static_cast<uint16_t*>(texture.buffer) + textureSize);
+      std::vector<uint16_t> textureData(static_cast<uint16_t*>(texture.mBuffer),
+          static_cast<uint16_t*>(texture.mBuffer) + textureSize);
 
       U16ValueVector pointData{};
 
@@ -130,8 +131,8 @@ void WCSImage2D::process() {
 
     case 3: // Int16
     {
-      std::vector<int16_t> textureData(static_cast<int16_t*>(texture.buffer),
-          static_cast<int16_t*>(texture.buffer) + textureSize);
+      std::vector<int16_t> textureData(static_cast<int16_t*>(texture.mBuffer),
+          static_cast<int16_t*>(texture.mBuffer) + textureSize);
 
       I16ValueVector pointData{};
 
@@ -145,8 +146,8 @@ void WCSImage2D::process() {
 
     case 4: // UInt32
     {
-      std::vector<uint32_t> textureData(static_cast<uint32_t*>(texture.buffer),
-          static_cast<uint32_t*>(texture.buffer) + textureSize);
+      std::vector<uint32_t> textureData(static_cast<uint32_t*>(texture.mBuffer),
+          static_cast<uint32_t*>(texture.mBuffer) + textureSize);
 
       U32ValueVector pointData{};
 
@@ -160,8 +161,8 @@ void WCSImage2D::process() {
 
     case 5: // Int32
     {
-      std::vector<int32_t> textureData(static_cast<int32_t*>(texture.buffer),
-          static_cast<int32_t*>(texture.buffer) + textureSize);
+      std::vector<int32_t> textureData(static_cast<int32_t*>(texture.mBuffer),
+          static_cast<int32_t*>(texture.mBuffer) + textureSize);
 
       I32ValueVector pointData{};
 
@@ -176,7 +177,7 @@ void WCSImage2D::process() {
     case 6: // Float32
     case 7: {
       std::vector<float> textureData(
-          static_cast<float*>(texture.buffer), static_cast<float*>(texture.buffer) + textureSize);
+          static_cast<float*>(texture.mBuffer), static_cast<float*>(texture.mBuffer) + textureSize);
 
       F32ValueVector pointData{};
 

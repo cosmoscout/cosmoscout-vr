@@ -28,7 +28,7 @@ WebCoverageTextureLoader::WebCoverageTextureLoader()
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::future<std::optional<GDALReader::GreyScaleTexture>> WebCoverageTextureLoader::loadTextureAsync(
+std::future<std::optional<GDALReader::Texture>> WebCoverageTextureLoader::loadTextureAsync(
     WebCoverageService const& wcs, WebCoverage const& coverage, Request const& request,
     std::string const& coverageCache, bool saveToCache) {
   return mThreadPool.enqueue(
@@ -37,24 +37,24 @@ std::future<std::optional<GDALReader::GreyScaleTexture>> WebCoverageTextureLoade
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::optional<GDALReader::GreyScaleTexture> WebCoverageTextureLoader::loadTexture(
+std::optional<GDALReader::Texture> WebCoverageTextureLoader::loadTexture(
     WebCoverageService const& wcs, WebCoverage const& coverage, Request const& request,
     std::string const& coverageCache, bool saveToCache) {
   boost::filesystem::path cachePath = getCachePath(wcs, coverage, request, coverageCache);
 
   std::optional<std::stringstream> textureStream;
-  GDALReader::GreyScaleTexture     texture;
+  GDALReader::Texture              texture;
 
   if (saveToCache && boost::filesystem::exists(cachePath) &&
       boost::filesystem::file_size(cachePath) > 0) {
-    GDALReader::ReadGrayScaleTexture(texture, cachePath.string(), request.mBand.value_or(1));
+    GDALReader::ReadTexture(texture, cachePath.string(), request.mBand.value_or(1));
   } else {
     textureStream = requestTexture(wcs, coverage, request);
     if (!textureStream.has_value()) {
       return {};
     }
 
-    GDALReader::ReadGrayScaleTexture(
+    GDALReader::ReadTexture(
         texture, textureStream.value(), cachePath.string(), request.mBand.value_or(1));
 
     if (saveToCache) {
@@ -63,7 +63,7 @@ std::optional<GDALReader::GreyScaleTexture> WebCoverageTextureLoader::loadTextur
     }
   }
 
-  if (!texture.buffer) {
+  if (!texture.mBuffer) {
     return {};
   }
 
