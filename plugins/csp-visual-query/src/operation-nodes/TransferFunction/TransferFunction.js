@@ -86,7 +86,7 @@ class TransferFunctionControl extends Rete.Control {
     let first = true;
 
     this.tf.addListener((tfEditor) => {
-      const lut = tfEditor.createLookUpTable(256).map((value) => hexToRGBA(value));
+      const lut = tfEditor.createLogLookUpTable(256, 5).map((value) => hexToRGBA(value));
       if (!first) {
         callback(lut);
       } else {

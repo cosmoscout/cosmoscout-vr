@@ -118,6 +118,12 @@ vec4 getColor(vec3 lngLatHeight) {
   return vec4(0);
 }
 
+float logLUT(float x) {
+  const float a = 0;
+  const float expNA = exp(-a);
+  return 1.0 - (1.0 / -a) * log(x * (1.0 - expNA) + expNA);
+}
+
 void main() {
   Ray r = Ray(uMatInvMV[3].xyz, normalize(rayDirection));
 

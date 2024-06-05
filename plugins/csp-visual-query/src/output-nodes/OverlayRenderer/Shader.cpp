@@ -64,6 +64,9 @@ const std::string Renderer::SURFACE_FRAG = R"(
   uniform float         uSunIlluminance;
   uniform vec3          uSunDirection;
 
+  uniform float         uMin;
+  uniform float         uMax;
+
   in vec2 texcoord;
 
   const float PI = 3.14159265359;
@@ -85,7 +88,7 @@ const std::string Renderer::SURFACE_FRAG = R"(
   }
 
   void main() {
-    vec2  vTexcoords = texcoord*textureSize(uDepthBuffer);
+    vec2  vTexcoords = texcoord * textureSize(uDepthBuffer);
     float fDepth     = texture(uDepthBuffer, vTexcoords).r;
 
     if (fDepth == 1.0) {
@@ -101,7 +104,8 @@ const std::string Renderer::SURFACE_FRAG = R"(
         double norm_v = (lnglat.y - uLatRange.x) / (uLatRange.y - uLatRange.x);
         vec2 newCoords = vec2(float(norm_u), float(1.0 - norm_v));
 
-        FragColor = texture(uTexture, newCoords);
+        FragColor = texture(uTexture, newCoords).rrrr;
+        FragColor = (FragColor - uMin) / (uMax - uMin);
       } else {
         discard;
       }

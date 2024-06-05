@@ -66,6 +66,9 @@ class Renderer final : public IVistaOpenGLDraw {
 
   csl::ogc::Bounds2D mBounds;
 
+  float mMinValue;
+  float mMaxValue;
+
   bool mShaderDirty = true;
 
   /// Code for the geometry shader
