@@ -145,50 +145,32 @@ void GDALReader::BuildTexture(
 
   // Get band ranges -------------------------------------------------------------------------------
 
-  texture.mLayerRanges.clear();
+  texture.mBandDataRanges.clear();
 
   // Get the global min and max values of all bands.
   texture.mDataRange[0] = std::numeric_limits<double>::max();
   texture.mDataRange[1] = std::numeric_limits<double>::lowest();
 
-  texture.mLayers    = dataset->GetLayerCount() > 0 ? dataset->GetLayerCount() : 1;
-  uint32_t bandCount = 0;
+  uint32_t bandCount = dataset->GetRasterCount();
 
-  csl::ogc::logger().info("[GDALReader::ReadTexture] Layer count {} ", texture.mLayers);
+  std::array<double, 2> bandRange{
+      std::numeric_limits<double>::max(), std::numeric_limits<double>::lowest()};
 
-  for (uint32_t l = 1; l <= texture.mLayers; l++) {
-    GDALDataset* layer =
-        dataset->GetLayerCount() > 0 ? dataset->GetLayer(l)->GetDataset() : dataset;
-    uint32_t layerBands = layer->GetRasterCount();
+  for (uint32_t b = 1; b <= bandCount; b++) {
+    int   bGotMin = 0;
+    int   bGotMax = 0; // like bool if it was successful
+    auto* poBand  = dataset->GetRasterBand(b);
 
-    if (bandCount != 0 && layerBands != bandCount) {
-      csl::ogc::logger().error(
-          "[GDALReader::ReadTexture] Layer {} has different number of bands than previous layers",
-          l);
-      return;
-    } else {
-      bandCount = layerBands;
+    bandRange[0] = poBand->GetMinimum(&bGotMin);
+    bandRange[1] = poBand->GetMaximum(&bGotMax);
+    if (!bGotMin || !bGotMax) {
+      GDALComputeRasterMinMax(static_cast<GDALRasterBandH>(poBand), TRUE, bandRange.data());
     }
 
-    std::array<double, 2> dataRange{
-        std::numeric_limits<double>::max(), std::numeric_limits<double>::lowest()};
+    texture.mBandDataRanges.push_back(bandRange);
 
-    for (uint32_t b = 1; b <= bandCount; b++) {
-      int   bGotMin = 0;
-      int   bGotMax = 0; // like bool if it was successful
-      auto* poBand  = layer->GetRasterBand(b);
-
-      dataRange[0] = poBand->GetMinimum(&bGotMin);
-      dataRange[1] = poBand->GetMaximum(&bGotMax);
-      if (!bGotMin || !bGotMax) {
-        GDALComputeRasterMinMax(static_cast<GDALRasterBandH>(poBand), TRUE, dataRange.data());
-      }
-
-      texture.mLayerRanges.push_back(dataRange);
-
-      texture.mDataRange[0] = std::min(texture.mDataRange[0], dataRange[0]);
-      texture.mDataRange[1] = std::max(texture.mDataRange[1], dataRange[1]);
-    }
+    texture.mDataRange[0] = std::min(texture.mDataRange[0], bandRange[0]);
+    texture.mDataRange[1] = std::max(texture.mDataRange[1], bandRange[1]);
   }
 
   csl::ogc::logger().info("[GDALReader::ReadTexture] Band count {} ", bandCount);

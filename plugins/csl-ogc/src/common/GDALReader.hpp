@@ -34,12 +34,7 @@ class CSL_OGC_EXPORT GDALReader {
     // and the height to the latitude range.
     uint32_t mWidth{};
     uint32_t mHeight{};
-
-    // If multiple layers had been requested, the z axis corresponds to the layer index.
-    uint32_t mLayers{};
-
-    // The number of channels in the texture, e.g. 1 for greyscale, 3 for RGB etc.
-    char mBands = 1;
+    uint32_t mBands{};
 
     // The geo-referenced bounds of the texture [minX, maxX, minY, maxY].
     std::array<double, 4> mLnglatBounds{};
@@ -47,17 +42,18 @@ class CSL_OGC_EXPORT GDALReader {
     // The gdal data type of the texture, e.g. Float32, UInt16 etc.
     GDALDataType mDataType{};
 
-    // The entire data range of all layers of.
+    // The entire data range of all layers.
     std::array<double, 2> mDataRange{};
 
-    // The data ranges of the individual layers.
-    std::vector<std::array<double, 2>> mLayerRanges{};
+    // The data ranges of the individual bands.
+    std::vector<std::array<double, 2>> mBandDataRanges{};
 
     // The typical maximum value of the data type, e.g. 255 for UInt8, 65535 for UInt16,
     // 1.F for Float32 etc.
     float mDataMaxValue = 1.F;
 
-    // The buffer containing the texture data.
+    // The buffer containing the texture data. If mBands > 1, the data for each band is
+    // stored sequentially.
     void*  mBuffer     = nullptr;
     size_t mBufferSize = 0;
   };

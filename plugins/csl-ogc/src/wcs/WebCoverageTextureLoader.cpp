@@ -259,10 +259,10 @@ std::string WebCoverageTextureLoader::getRequestUrl(
   /// This is only really an issue with tomcat servers
 
   if (request.mBounds != coverage.getSettings().mBounds && request.mBounds != Bounds2D()) {
-    // &SUBSET=Lat(...,...)
-    url << "&SUBSET=Lat%28" << request.mBounds.mMinLat << "," << request.mBounds.mMaxLat << "%29";
-    // &SUBSET=Long(...,...)
-    url << "&SUBSET=Long%28" << request.mBounds.mMinLon << "," << request.mBounds.mMaxLon << "%29";
+    // &SUBSET=y(...,...)
+    url << "&SUBSET=y%28" << request.mBounds.mMinLat << "," << request.mBounds.mMaxLat << "%29";
+    // &SUBSET=x(...,...)
+    url << "&SUBSET=x%28" << request.mBounds.mMinLon << "," << request.mBounds.mMaxLon << "%29";
   }
 
   int32_t width  = coverage.getSettings().mAxisResolution[0];
@@ -272,6 +272,9 @@ std::string WebCoverageTextureLoader::getRequestUrl(
     double aspect = static_cast<double>(width) / static_cast<double>(height);
     width         = aspect > 1 ? request.mMaxSize : static_cast<int32_t>(request.mMaxSize * aspect);
     height        = aspect > 1 ? static_cast<int32_t>(request.mMaxSize / aspect) : request.mMaxSize;
+
+    width  = std::max(1, width);  // Ensure width is at least 1
+    height = std::max(1, height); // Ensure height is at least 1
 
     // &SCALESIZE=i(...),j(...)
     url << "&SCALESIZE=" << coverage.getSettings().mAxisLabels[0] << "%28" << width << "%29";
@@ -296,7 +299,7 @@ std::string WebCoverageTextureLoader::getRequestUrl(
     if (minLayer == maxLayer) {
       url << "&RANGESUBSET=" << minLayer;
     } else {
-      url << "&RANGESUBSET=" << minLayer << "%2C" << maxLayer;
+      url << "&RANGESUBSET=" << minLayer << "%3A" << maxLayer;
     }
   }
 
