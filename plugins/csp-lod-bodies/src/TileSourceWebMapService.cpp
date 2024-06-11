@@ -280,15 +280,15 @@ bool TileSourceWebMapService::getXY(TileId const& tileId, int& x, int& y) {
 
 std::optional<std::string> TileSourceWebMapService::loadData(TileId const& tileId, int x, int y) {
 
-  std::string format;
-  std::string type;
+  std::string mimeType;
+  std::string extension;
 
   if (mFormat == TileDataType::eElevation) {
-    format = "tiffGray";
-    type   = "tiff";
+    mimeType  = "image/tiff";
+    extension = "tiff";
   } else {
-    format = "pngRGB";
-    type   = "png";
+    mimeType  = "image/png";
+    extension = "png";
   }
 
   // We encode the layers and the tile resolution in the cache file path.
@@ -296,7 +296,7 @@ std::optional<std::string> TileSourceWebMapService::loadData(TileId const& tileI
   cacheDir << mCache << "/" << mLayers << "x" << mResolution << "/" << tileId.level() << "/" << x;
 
   std::stringstream cacheFile(cacheDir.str());
-  cacheFile << cacheDir.str() << "/" << y << "." << type;
+  cacheFile << cacheDir.str() << "/" << y << "." << extension;
   std::stringstream url;
 
   double size = 1.0 / (1 << tileId.level());
@@ -345,7 +345,7 @@ std::optional<std::string> TileSourceWebMapService::loadData(TileId const& tileI
       << "&bbox=" << x * size - offsets.x << "," << y * size - offsets.y << ","
       << x * size + size + offsets.z << "," << y * size + size + offsets.w
       << "&width=" << mResolution << "&height=" << mResolution
-      << "&srs=EPSG:900914&format=" << format;
+      << "&srs=EPSG:900914&format=" << mimeType;
 
   auto cacheFilePath(boost::filesystem::path(cacheFile.str()));
 
