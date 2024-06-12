@@ -44,6 +44,15 @@ install\windows-Release\bin\bruneton-preprocessor <settings.json> <output direct
 install/linux-Release/bin/bruneton-preprocessor <settings.json> <output directory>
 ```
 
+For instance, the currently used lookup tables were generated with the following command:
+
+```bash
+cd cosmoscout-vr
+export LD_LIBRARY_PATH=install/linux-Release/lib:$LD_LIBRARY_PATH
+install/linux-Release/bin/bruneton-preprocessor plugins/csp-atmospheres/bruneton-preprocessor/settings/earth.json plugins/csp-atmospheres/bruneton-preprocessor/output/earth
+install/linux-Release/bin/bruneton-preprocessor plugins/csp-atmospheres/bruneton-preprocessor/settings/mars.json plugins/csp-atmospheres/bruneton-preprocessor/output/mars
+```
+
 ### Configuration Files
 
 The settings file is a JSON file that specifies the parameters for the precomputation.
