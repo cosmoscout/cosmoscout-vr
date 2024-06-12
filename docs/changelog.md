@@ -9,6 +9,15 @@ SPDX-License-Identifier: CC-BY-4.0
 
 # Changelog of CosmoScout VR
 
+## [unreleased]
+
+**Release Date:** TBD
+
+#### Bug Fixes
+
+* Fixed invalid terrain height of LoD bodies after reloading of the scene settings.
+* Fixed a bug which caused red rings in the clouds deep in the shadow-side of a planet.
+
 ## [v1.9.0](https://github.com/cosmoscout/cosmoscout-vr/releases)
 
 **Release Date:** 2024-01-30

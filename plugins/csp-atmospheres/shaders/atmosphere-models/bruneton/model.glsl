@@ -170,6 +170,10 @@ vec3 getSkyRadianceToPoint(sampler2D transmittanceTexture, sampler3D multipleSca
   multipleScattering       = multipleScattering - transmittance * multipleScatteringP;
   singleAerosolsScattering = singleAerosolsScattering - transmittance * singleAerosolsScatteringP;
 
+  // Avoid negative values due to precision errors.
+  multipleScattering       = max(multipleScattering, vec3(0.0));
+  singleAerosolsScattering = max(singleAerosolsScattering, vec3(0.0));
+
   // Hack to avoid rendering artifacts when the sun is below the horizon.
   // singleAerosolsScattering = singleAerosolsScattering * smoothstep(0.0, 0.01, muS);
 
