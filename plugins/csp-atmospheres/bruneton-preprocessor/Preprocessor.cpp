@@ -719,14 +719,17 @@ Preprocessor::Preprocessor(Params params)
   // clang-format on
 
   // Allocate the precomputed textures, but don't precompute them yet.
-  mTransmittanceTexture            = NewTexture2d(mParams.mTransmittanceTextureWidth.get(),
-                 mParams.mTransmittanceTextureHeight.get(), GL_RGB32F, GL_RGB, GL_FLOAT);
-  mMultipleScatteringTexture       = NewTexture3d(mScatteringTextureWidth, mScatteringTextureHeight,
-            mScatteringTextureDepth, GL_RGB32F, GL_RGB, GL_FLOAT);
+  mTransmittanceTexture = NewTexture2d(mParams.mTransmittanceTextureWidth.get(),
+      mParams.mTransmittanceTextureHeight.get(), GL_RGB32F, GL_RGB, GL_FLOAT);
+
+  mMultipleScatteringTexture = NewTexture3d(mScatteringTextureWidth, mScatteringTextureHeight,
+      mScatteringTextureDepth, GL_RGB32F, GL_RGB, GL_FLOAT);
+
   mSingleAerosolsScatteringTexture = NewTexture3d(mScatteringTextureWidth, mScatteringTextureHeight,
       mScatteringTextureDepth, GL_RGB32F, GL_RGB, GL_FLOAT);
-  mIrradianceTexture               = NewTexture2d(mParams.mIrradianceTextureWidth.get(),
-                    mParams.mIrradianceTextureHeight.get(), GL_RGB32F, GL_RGB, GL_FLOAT);
+
+  mIrradianceTexture = NewTexture2d(mParams.mIrradianceTextureWidth.get(),
+      mParams.mIrradianceTextureHeight.get(), GL_RGB32F, GL_RGB, GL_FLOAT);
 
   // Create the density profile texture. It contains three rows of pixels, one for each constituent
   // of the atmosphere. The bottom-most density values are on the left, the top-most density values
@@ -795,14 +798,17 @@ void Preprocessor::run(unsigned int numScatteringOrders) {
   // scattering order, which is needed to compute the next order of scattering (the final
   // precomputed textures store the sum of all the scattering orders). We allocate them here, and
   // destroy them at the end of this method.
-  GLuint deltaIrradianceTexture          = NewTexture2d(mParams.mIrradianceTextureWidth.get(),
-               mParams.mIrradianceTextureHeight.get(), GL_RGB32F, GL_RGB, GL_FLOAT);
+  GLuint deltaIrradianceTexture = NewTexture2d(mParams.mIrradianceTextureWidth.get(),
+      mParams.mIrradianceTextureHeight.get(), GL_RGB32F, GL_RGB, GL_FLOAT);
+
   GLuint deltaMoleculesScatteringTexture = NewTexture3d(mScatteringTextureWidth,
       mScatteringTextureHeight, mScatteringTextureDepth, GL_RGB32F, GL_RGB, GL_FLOAT);
-  GLuint deltaAerosolsScatteringTexture  = NewTexture3d(mScatteringTextureWidth,
-       mScatteringTextureHeight, mScatteringTextureDepth, GL_RGB32F, GL_RGB, GL_FLOAT);
-  GLuint deltaScatteringDensityTexture   = NewTexture3d(mScatteringTextureWidth,
-        mScatteringTextureHeight, mScatteringTextureDepth, GL_RGB32F, GL_RGB, GL_FLOAT);
+
+  GLuint deltaAerosolsScatteringTexture = NewTexture3d(mScatteringTextureWidth,
+      mScatteringTextureHeight, mScatteringTextureDepth, GL_RGB32F, GL_RGB, GL_FLOAT);
+
+  GLuint deltaScatteringDensityTexture = NewTexture3d(mScatteringTextureWidth,
+      mScatteringTextureHeight, mScatteringTextureDepth, GL_RGB32F, GL_RGB, GL_FLOAT);
 
   // deltaMultipleScatteringTexture is only needed to compute scattering order 3 or more, while
   // deltaMoleculesScatteringTexture and deltaAerosolsScatteringTexture are only needed to
