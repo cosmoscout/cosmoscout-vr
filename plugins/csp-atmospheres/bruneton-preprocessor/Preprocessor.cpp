@@ -27,7 +27,8 @@
 // Architecture-wise, the main difference is that the preprocessing is now done offline, so all code
 // which is only required during rendering has been refactored out. Functionality-wise, the only
 // fundamental change is that the phase functions for aerosols and molecules as well as their
-// density distributions are now loaded from CSV files and then later sampled from textures.
+// density distributions are now loaded from CSV files and then later sampled from textures. We also
+// store photometric values instead of radiometric values in the final textures.
 
 // Below, we will indicate for each group of function whether something has been changed and a link
 // to the original explanations of the methods by Eric Bruneton.
@@ -178,8 +179,7 @@ constexpr float XYZ_TO_SRGB[9] = {
 
 // Shader Definitions ------------------------------------------------------------------------------
 
-// Below, the source code for several shaders is defined. Most of them are used during the
-// preprocessing. Only the last one is is linked into the final fragment shader used at run-time.
+// Below, the source code for several shaders is defined.
 
 // An explanation of the following shaders is available online:
 // https://ebruneton.github.io/precomputed_atmospheric_scattering/atmosphere/model.cc.html#shaders
@@ -637,7 +637,7 @@ std::string printAbsorbingComponent(Params::AbsorbingComponent const& component,
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// Model Implementation ---------------------------------------------------------------------------
+// Preprocessor Implementation ---------------------------------------------------------------------
 
 // The code below roughly follows the original implementation by Eric Bruneton.
 
@@ -660,8 +660,6 @@ Preprocessor::Preprocessor(Params params)
   float sunRadius             = 696340000; // meters
   mMetadata.mSunAngularRadius = std::asin(sunRadius / mParams.mSunDistance);
 
-  std::cout << "Angular radius of Sun: " << mMetadata.mSunAngularRadius << " rad" << std::endl;
-
   // Compute the values for the SUN_RADIANCE_TO_LUMINANCE constant.
   float sunAngularRadiusAtEarth = 0.0046547; // radians
   float attenuation =
@@ -672,11 +670,7 @@ Preprocessor::Preprocessor(Params params)
   sunKG *= Interpolate(WAVELENGTHS, SOLAR_IRRADIANCE, kLambdaG) * attenuation;
   sunKB *= Interpolate(WAVELENGTHS, SOLAR_IRRADIANCE, kLambdaB) * attenuation;
 
-  mMetadata.mSunIlluminance = glm::vec3(sunKR, sunKG, sunKB);
-
-  std::cout << "Sun RGB illuminance: " << sunKR << ", " << sunKG << ", " << sunKB << " lux"
-            << std::endl;
-
+  mMetadata.mSunIlluminance          = glm::vec3(sunKR, sunKG, sunKB);
   mMetadata.mScatteringTextureNuSize = mParams.mScatteringTextureNuSize.get();
   mMetadata.mMaxSunZenithAngle       = mParams.mMaxSunZenithAngle.get();
 
@@ -907,6 +901,9 @@ void Preprocessor::run(unsigned int numScatteringOrders) {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// This method did not exist in the original implementation. It saves the precomputed textures as
+// tiff files to disk. The metadata is saved as a json file.
 
 void Preprocessor::save(std::string const& directory) {
   std::cout << "Saving precomputed atmosphere to disk..." << std::endl;
