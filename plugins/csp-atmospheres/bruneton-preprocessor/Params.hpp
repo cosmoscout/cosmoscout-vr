@@ -69,6 +69,11 @@ struct Params {
   float mMinAltitude = 6371000.F;
   float mMaxAltitude = 6471000.F;
 
+  /// Refract the light when it travels through the atmosphere. This will produce an additional
+  /// look-up texture in the same parameter space as the transmittance texture. For each sample,
+  /// it contains the wavelength-dependent angular deviation of the light ray due to refraction.
+  cs::utils::DefaultProperty<bool> mRefraction{true};
+
   /// The average reflectance of the ground used during multiple scattering.
   cs::utils::DefaultProperty<float> mGroundAlbedo{0.1F};
 
