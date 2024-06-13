@@ -61,6 +61,12 @@ struct Params {
   ScatteringComponent               mAerosols;
   std::optional<AbsorbingComponent> mOzone;
 
+  /// To compute the refraction of light in the atmosphere, the refractive index of the atmosphere
+  /// is needed. This is also precomputed for each wavelength and stored in a CSV file. For
+  /// increased precision, the refractive index is stored as n-1.
+  std::optional<std::string> mRefractiveIndexFile;
+  std::vector<float>         mRefractiveIndex;
+
   /// The wavelength values, in nanometers, and sorted in increasing order, for which the
   /// phase functions and extinction coefficients in the atmosphere components are given.
   std::vector<float> mWavelengths;

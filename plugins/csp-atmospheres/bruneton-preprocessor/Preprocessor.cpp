@@ -690,6 +690,7 @@ Preprocessor::Preprocessor(Params params)
     return
       "#version 330\n" +
       definitions +
+      "#define COMPUTE_REFRACTION "                   + cs::utils::toString(mParams.mRefraction) + "\n" +
       "const int TRANSMITTANCE_TEXTURE_WIDTH = "      + cs::utils::toString(mParams.mTransmittanceTextureWidth) + ";\n" +
       "const int TRANSMITTANCE_TEXTURE_HEIGHT = "     + cs::utils::toString(mParams.mTransmittanceTextureHeight) + ";\n" +
       "const int SCATTERING_TEXTURE_R_SIZE = "        + cs::utils::toString(mParams.mScatteringTextureRSize) + ";\n" +
@@ -705,6 +706,7 @@ Preprocessor::Preprocessor(Params params)
       "const int SAMPLE_COUNT_INDIRECT_IRRADIANCE = " + cs::utils::toString(mParams.mSampleCountIndirectIrradiance) + ";\n" +
       "const vec3 SOLAR_IRRADIANCE = "                + extractVec3(WAVELENGTHS, SOLAR_IRRADIANCE, lambdas) + ";\n" +
       "const vec3 GROUND_ALBEDO = vec3("              + cs::utils::toString(mParams.mGroundAlbedo) + ");\n" +
+      "const vec3 INDEX_OF_REFRACTION = "             + extractVec3(mParams.mWavelengths, mParams.mRefractiveIndex, lambdas) + ";\n" +
       "const float SUN_ANGULAR_RADIUS = "             + cs::utils::toString(mMetadata.mSunAngularRadius) + ";\n" +
       "const float BOTTOM_RADIUS = "                  + cs::utils::toString(mParams.mMinAltitude) + ";\n" +
       "const float TOP_RADIUS = "                     + cs::utils::toString(mParams.mMaxAltitude) + ";\n" +

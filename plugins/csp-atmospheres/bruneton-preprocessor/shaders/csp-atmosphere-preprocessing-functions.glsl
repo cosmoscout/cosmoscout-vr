@@ -12,11 +12,29 @@
 
 // While implementing the atmospheric model into CosmoScout VR, we have refactored some parts of the
 // code, however this is mostly related to how variables are named and how input parameters are
-// passed to the shader. The only fundamental change is that the phase functions for aerosols and
-// molecules as well as their density distributions are now sampled from textures.
+// passed to the shader. The are only two fundamental changes:
+//   1. The phase functions for aerosols and molecules as well as their density distributions are
+//      now sampled from textures.
+//   2. The index of refraction of the atmosphere is now passed to the shader and rays are refracted
+//      accordingly.
 
-// Below, we will indicate for each group of function whether something has been changed and a link
-// to the original explanations of the methods by Eric Bruneton.
+// Below, we will indicate for each group of function whether something important has been changed
+// and a link to the original explanations of the methods by Eric Bruneton.
+
+// Refraction Computation --------------------------------------------------------------------------
+
+// This part is new. The wavelength-dependent INDEX_OF_REFRACTION is passed to the shader. According
+// to the Gladsstone-Dale relation, the refractive index is proportional to the density of the air
+// molecules. The density of the air molecules and aerosols is sampled from a texture.
+
+float getDensity(float densityTextureV, float altitude) {
+  float u = clamp(altitude / (TOP_RADIUS - BOTTOM_RADIUS), 0.0, 1.0);
+  return texture(uDensityTexture, vec2(u, densityTextureV)).r;
+}
+
+vec3 getRefractiveIndex(float altitude) {
+  return INDEX_OF_REFRACTION * getDensity(ATMOSPHERE.molecules.densityTextureV, altitude);
+}
 
 // Transmittance Computation -----------------------------------------------------------------------
 
@@ -29,10 +47,33 @@
 // The only functional difference is that the density of the air molecules, aerosols, and ozone
 // molecules is now sampled from a texture (in getDensity()) instead of analytically computed.
 
-float getDensity(float densityTextureV, float altitude) {
-  float u = clamp(altitude / (TOP_RADIUS - BOTTOM_RADIUS), 0.0, 1.0);
-  return texture(uDensityTexture, vec2(u, densityTextureV)).r;
+#if COMPUTE_REFRACTION
+
+float computeOpticalLengthToTopAtmosphereBoundary(float densityTextureV, float r, float mu) {
+
+  // The longest possible distance through the atmosphere is horizontally along the ground.
+  float dx =
+      distanceToTopAtmosphereBoundary(BOTTOM_RADIUS, 0.0) / float(SAMPLE_COUNT_OPTICAL_DEPTH);
+
+  int samples = 0;
+  // float ior     = getRefractiveIndex(r);
+  float result = 0.0;
+
+  while (++samples < SAMPLE_COUNT_OPTICAL_DEPTH && r <= TOP_RADIUS && r >= BOTTOM_RADIUS) {
+    float d = getDensity(densityTextureV, r - BOTTOM_RADIUS);
+    result += d * dx;
+
+    float r_next  = sqrt(r * r + dx * dx + 2.0 * r * dx * mu);
+    float mu_next = (dx * dx + r_next * r_next - r * r) / (2.0 * r_next * dx);
+
+    r  = r_next;
+    mu = mu_next;
+  }
+
+  return result;
 }
+
+#else
 
 float computeOpticalLengthToTopAtmosphereBoundary(float densityTextureV, float r, float mu) {
   float dx     = distanceToTopAtmosphereBoundary(r, mu) / float(SAMPLE_COUNT_OPTICAL_DEPTH);
@@ -46,6 +87,8 @@ float computeOpticalLengthToTopAtmosphereBoundary(float densityTextureV, float r
   }
   return result;
 }
+
+#endif
 
 vec3 computeTransmittanceToTopAtmosphereBoundary(
     AtmosphereComponents atmosphere, float r, float mu) {

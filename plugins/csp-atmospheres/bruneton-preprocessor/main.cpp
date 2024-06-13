@@ -85,6 +85,12 @@ int main(int argc, char** argv) {
     params.mOzone->mDensity    = std::vector<float>(densityCount, 0.0);
     params.mOzone->mAbsorption = std::vector<float>(params.mWavelengths.size(), 0.0);
   }
+
+  if (params.mRefractiveIndexFile) {
+    params.mRefractiveIndex = csv::readIoR(*params.mRefractiveIndexFile, params.mWavelengths);
+  } else {
+    params.mRefractiveIndex = std::vector<float>(params.mWavelengths.size(), 0.0);
+  }
   // clang-format on
 
   // Check for valid wavelengths.

@@ -31,6 +31,7 @@ void from_json(nlohmann::json const& j, Params& o) {
   cs::core::Settings::deserialize(j, "molecules", o.mMolecules);
   cs::core::Settings::deserialize(j, "aerosols", o.mAerosols);
   cs::core::Settings::deserialize(j, "ozone", o.mOzone);
+  cs::core::Settings::deserialize(j, "ior", o.mRefractiveIndexFile);
   cs::core::Settings::deserialize(j, "minAltitude", o.mMinAltitude);
   cs::core::Settings::deserialize(j, "maxAltitude", o.mMaxAltitude);
   cs::core::Settings::deserialize(j, "refraction", o.mRefraction);
