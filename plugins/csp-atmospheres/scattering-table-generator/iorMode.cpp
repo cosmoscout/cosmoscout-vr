@@ -68,31 +68,31 @@ double getIoR(GasType type, double lambda, double pressure, double temperature) 
   switch (type) {
     // E. R. Peck and B. N. Khanna. Dispersion of nitrogen
   case GasType::eNitrogen:
-    n0 = 1 + 6.8552e-5 + 3.243157e-2 / (144 - mu2);
+    n0 = 1.0 + 6.8552e-5 + 3.243157e-2 / (144 - mu2);
     break;
 
     //  J. Zhang, Z. H. Lu, and L. J. Wang. Precision refractive index measurements of air, N2, O2,
     //  Ar, and CO2 with a frequency comb. This is given at 20°C.
   case GasType::eOxygen:
-    n0 = 1 + 1.181494e-4 + 9.708931e-3 / (75.4 - mu2);
-    n0 = 1 + (n0 - 1) * 293.15 / 273; // Correct for the actual temperature.
+    n0 = 1.0 + 1.181494e-4 + 9.708931e-3 / (75.4 - mu2);
+    n0 = 1.0 + (n0 - 1) * 293.15 / 273; // Correct for the actual temperature.
     break;
 
     // E. R. Peck and D. J. Fisher. Dispersion of argon
   case GasType::eArgon:
-    n0 = 1 + 6.7867e-5 + 3.0182943e-2 / (144 - mu2);
+    n0 = 1.0 + 6.7867e-5 + 3.0182943e-2 / (144 - mu2);
     break;
 
     // J. G. Old, K. L. Gentili, and E. R. Peck. Dispersion of Carbon Dioxide
   case GasType::eCarbonDioxide:
-    n0 = 1 + 0.00000154489 / (0.0584738 - mu2) + 0.083091927 / (210.9241 - mu2) +
+    n0 = 1.0 + 0.00000154489 / (0.0584738 - mu2) + 0.083091927 / (210.9241 - mu2) +
          0.0028764190 / (60.122959 - mu2);
     break;
   }
 
   // The pressure is given in Pa, the temperature in K. The IoR above is measured at STP (273 K,
   // 101325 Pa). We need to correct for the actual pressure and temperature.
-  return 1 + (n0 - 1) * pressure / temperature * 273 / 101325.0;
+  return 1.0 + (n0 - 1.0) * pressure / temperature * 273 / 101325.0;
 }
 
 } // namespace
@@ -186,7 +186,7 @@ int iorMode(std::vector<std::string> const& arguments) {
              totalVolume;
     }
 
-    output << fmt::format("{},{}", lambda, ior) << std::endl;
+    output << fmt::format("{},{}", lambda, ior - 1.0) << std::endl;
   }
 
   return 0;
