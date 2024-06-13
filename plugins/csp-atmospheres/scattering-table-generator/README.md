@@ -57,6 +57,7 @@ To learn about the different operation modes, you can issue this command:
 | `cornette` `henyey` `dhenyey` | These modes write either the Cornette-Shanks, the Henyey-Greenstein, or the Double-Henyey-Greenstein parametric phase function for the specified wavelengths. Use `./scattering-table-generator <mode> --help` to learn about all the options.                                                                                                                                                               |
 | `ozone`                       | This mode writes the absorption coefficients of ozone molecules for the specified wavelengths. Use `./scattering-table-generator ozone --help` to learn about all the options.                                                                                                                                                                                                                               |
 | `density`                     | This mode samples a given multi-modal density function at evenly spaced altitudes and writes the resulting data. Use `./scattering-table-generator density --help` to learn about all the options.                                                                                                                                                                                                           |
+| `ior`                         | This mode approximates the refractive index of a mixture of gases. Use `./scattering-table-generator ior --help` to learn about all the options.                                                                                                                                                                                                                                                             |
 
 ## The CSV Files
 
@@ -136,6 +137,10 @@ Below are the input values which we currently use for Earth's atmosphere in Cosm
 # Ozone
 ./scattering-table-generator density -i ../../../plugins/csp-atmospheres/preprocessor/density-settings/earth_bruneton_ozone.json -o earth_cosmoscout_ozone
 ./scattering-table-generator ozone -o earth_cosmoscout_ozone
+
+# IoR Information for Light Refraction
+./scattering-table-generator ior -i ../../../plugins/csp-atmospheres/scattering-table-generator/ior-settings/earth.json -o earth_cosmoscout_ior --temperature 288 --pressure 101325
+
 ```
 
 </details>
@@ -163,6 +168,9 @@ The molecules are identical in both versions; they only differ in the number of 
 # Aerosols
 ./scattering-table-generator density -i ../../../plugins/csp-atmospheres/preprocessor/density-settings/mars_cosmoscout_aerosols_realistic.json -o mars_cosmoscout_aerosols_realistic
 ./scattering-table-generator mie -i ../../../plugins/csp-atmospheres/preprocessor/mie-settings/mars_realistic.json --theta-samples 91 --number-density 5e9 --radius-samples 10000 -o mars_cosmoscout_aerosols_realistic
+
+# IoR Information for Light Refraction
+./scattering-table-generator ior -i ../../../plugins/csp-atmospheres/scattering-table-generator/ior-settings/mars.json -o mars_cosmoscout_ior --temperature 215 --pressure 610
 ```
 
 </details>
@@ -178,6 +186,9 @@ The molecules are identical in both versions; they only differ in the number of 
 # Aerosols
 ./scattering-table-generator density -i ../../../plugins/csp-atmospheres/preprocessor/density-settings/mars_cosmoscout_aerosols_cinematic.json -o mars_cosmoscout_aerosols_cinematic
 ./scattering-table-generator mie --lambdas 440e-9,550e-9,680e-9 -i ../../../plugins/csp-atmospheres/preprocessor/mie-settings/mars_cinematic.json --phase-flattening 0.8 --theta-samples 91 --number-density 5e9 --radius-samples 10000 -o mars_cosmoscout_aerosols_cinematic
+
+# IoR Information for Light Refraction
+./scattering-table-generator ior -i ../../../plugins/csp-atmospheres/scattering-table-generator/ior-settings/mars.json -o mars_cosmoscout_ior --temperature 215 --pressure 610
 ```
 
 </details>
