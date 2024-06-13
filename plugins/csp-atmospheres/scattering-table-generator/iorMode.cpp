@@ -168,7 +168,7 @@ int iorMode(std::vector<std::string> const& arguments) {
 
   // Open the output file for writing and write the CSV header.
   std::ofstream output(cOutput + ".csv");
-  output << "lambda,ior" << std::endl;
+  output << "lambda,n-1" << std::endl;
 
   // Now assemble a list of wavelengths in m. This is either provided with the --lambda-samples
   // command-line parameter or via the combination of --min-lambda, --max-lambda, and
