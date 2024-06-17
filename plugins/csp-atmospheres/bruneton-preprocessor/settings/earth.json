@@ -3,7 +3,9 @@
   "sunDistance": 149600000000,
   "minAltitude": 6370900,
   "maxAltitude": 6451000,
-  "sampleCountOpticalDepth": 100,
+  "sampleCountOpticalDepth": 500,
+  "transmittanceTextureWidth": 1024,
+  "transmittanceTextureHeight": 512,
   "refraction": true,
   "molecules": {
     "phase": "plugins/csp-atmospheres/scattering-table-generator/output/earth_cosmoscout_molecules_phase.csv",
