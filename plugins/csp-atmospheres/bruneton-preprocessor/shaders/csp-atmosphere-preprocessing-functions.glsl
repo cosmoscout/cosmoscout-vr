@@ -49,15 +49,16 @@ vec3 getRefractiveIndex(float altitude) {
 
 #if COMPUTE_REFRACTION
 
+/*
+
 float computeOpticalLengthToTopAtmosphereBoundary(float densityTextureV, float r, float mu) {
 
   // The longest possible distance through the atmosphere is horizontally along the ground.
-  float dx =
-      distanceToTopAtmosphereBoundary(BOTTOM_RADIUS, 0.0) / float(SAMPLE_COUNT_OPTICAL_DEPTH);
+  float exitDistance = distanceToTopAtmosphereBoundary(BOTTOM_RADIUS, 0.0);
+  float dx           = exitDistance / float(SAMPLE_COUNT_OPTICAL_DEPTH);
 
-  int samples = 0;
-  // float ior     = getRefractiveIndex(r);
-  float result = 0.0;
+  int   samples = 0;
+  float result  = 0.0;
 
   while (++samples < SAMPLE_COUNT_OPTICAL_DEPTH && r <= TOP_RADIUS && r >= BOTTOM_RADIUS) {
     float d = getDensity(densityTextureV, r - BOTTOM_RADIUS);
@@ -68,6 +69,29 @@ float computeOpticalLengthToTopAtmosphereBoundary(float densityTextureV, float r
 
     r  = r_next;
     mu = mu_next;
+  }
+
+  return result;
+}
+*/
+
+float computeOpticalLengthToTopAtmosphereBoundary(float densityTextureV, float r, float mu) {
+
+  // The longest possible distance through the atmosphere is horizontally along the ground.
+  float exitDistance = distanceToTopAtmosphereBoundary(BOTTOM_RADIUS, 0.0);
+  float dx           = exitDistance / float(SAMPLE_COUNT_OPTICAL_DEPTH);
+
+  int   samples = 0;
+  float result  = 0.0;
+
+  vec2 samplePos = vec2(0.0, r);
+  vec2 sampleDir = vec2(sqrt(1 - mu * mu), mu) * dx;
+
+  while (++samples < SAMPLE_COUNT_OPTICAL_DEPTH && r <= TOP_RADIUS) {
+    r       = length(samplePos);
+    float d = getDensity(densityTextureV, r - BOTTOM_RADIUS);
+    result += d * dx;
+    samplePos += sampleDir;
   }
 
   return result;
