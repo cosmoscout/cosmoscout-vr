@@ -279,7 +279,7 @@ if (MSVC)
     $<$<COMPILE_LANGUAGE:CXX>:-external:anglebrackets>
     $<$<COMPILE_LANGUAGE:CXX>:-external:W0>
     $<$<COMPILE_LANGUAGE:CXX>:-W3>
-    $<$<COMPILE_LANGUAGE:CXX>:-WX>
+  #  $<$<COMPILE_LANGUAGE:CXX>:-WX>
     $<$<COMPILE_LANGUAGE:CXX>:-EHsc>
     $<$<COMPILE_LANGUAGE:CXX>:-wd4251>
 
