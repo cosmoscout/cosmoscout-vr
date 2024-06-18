@@ -26,6 +26,10 @@ uniform sampler3D uMultipleScatteringTexture;
 uniform sampler3D uSingleAerosolsScatteringTexture;
 uniform sampler2D uIrradianceTexture;
 
+#if USE_REFRACTION
+uniform sampler2D uMuDeviationTexture;
+#endif
+
 vec3 moleculePhaseFunction(float nu) {
   float theta = acos(nu) / PI; // 0<->1
   return texture2D(uPhaseTexture, vec2(theta, 0.0)).rgb;
@@ -207,6 +211,51 @@ vec3 getSunAndSkyIrradiance(sampler2D transmittanceTexture, sampler2D irradiance
 
   // Direct irradiance.
   return SOLAR_ILLUMINANCE * getTransmittanceToSun(transmittanceTexture, r, muS);
+}
+
+// Public API --------------------------------------------------------------------------------------
+
+bool RefractionSupported() {
+#if USE_REFRACTION
+  return true;
+#else
+  return false;
+#endif
+}
+
+vec3 rotate_vector(vec3 v, vec3 a, float mu) {
+
+  // Calculate sin(theta) from cos(theta)
+  float sin_theta = sqrt(1.0 - mu * mu);
+
+  // Rodrigues' rotation formula
+  vec3 v_rot = v * mu + cross(a, v) * sin_theta + a * dot(a, v) * (1.0 - mu);
+
+  return v_rot;
+}
+
+void GetRefractedViewRay(
+    vec3 camera, vec3 viewRay, out vec3 viewR, out vec3 viewG, out vec3 viewB) {
+#if USE_REFRACTION
+  float r  = length(camera);
+  float mu = dot(camera / r, viewRay);
+  vec2  uv = getTransmittanceTextureUvFromRMu(r, mu);
+
+  // Cosine of the angular deviation of the ray due to refraction.
+  vec3 muRGB = cos(texture(uMuDeviationTexture, uv).rgb);
+
+  vec3 axis = normalize(cross(camera, viewRay));
+
+  // Rotate viewRay around axis by acos(muRGB.x) to get viewR.
+  viewR = rotate_vector(viewRay, axis, muRGB.x);
+  viewG = rotate_vector(viewRay, axis, muRGB.y);
+  viewB = rotate_vector(viewRay, axis, muRGB.z);
+
+#else
+  viewR = viewRay;
+  viewG = viewRay;
+  viewB = viewRay;
+#endif
 }
 
 vec3 GetSkyLuminance(vec3 camera, vec3 viewRay, vec3 sunDirection, out vec3 transmittance) {

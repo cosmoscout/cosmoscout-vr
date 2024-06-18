@@ -87,19 +87,20 @@ class Atmosphere : public IVistaOpenGLDraw {
   double     mTime           = 0.0;
 
   struct Uniforms {
-    uint32_t sunDir                  = 0;
-    uint32_t sunIlluminance          = 0;
-    uint32_t sunLuminance            = 0;
-    uint32_t time                    = 0;
-    uint32_t depthBuffer             = 0;
-    uint32_t colorBuffer             = 0;
-    uint32_t waterLevel              = 0;
-    uint32_t cloudTexture            = 0;
-    uint32_t cloudAltitude           = 0;
-    uint32_t inverseModelViewMatrix  = 0;
-    uint32_t inverseProjectionMatrix = 0;
-    uint32_t scaleMatrix             = 0;
-    uint32_t modelMatrix             = 0;
+    uint32_t sunDir                    = 0;
+    uint32_t sunIlluminance            = 0;
+    uint32_t sunLuminance              = 0;
+    uint32_t time                      = 0;
+    uint32_t depthBuffer               = 0;
+    uint32_t colorBuffer               = 0;
+    uint32_t waterLevel                = 0;
+    uint32_t cloudTexture              = 0;
+    uint32_t cloudAltitude             = 0;
+    uint32_t inverseModelViewMatrix    = 0;
+    uint32_t inverseProjectionMatrix   = 0;
+    uint32_t scaleMatrix               = 0;
+    uint32_t modelMatrix               = 0;
+    uint32_t modelViewProjectionMatrix = 0;
   } mUniforms;
 
   std::unique_ptr<ModelBase> mModel;

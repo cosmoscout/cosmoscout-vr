@@ -16,6 +16,7 @@ void from_json(nlohmann::json const& j, Metadata& o) {
   cs::core::Settings::deserialize(j, "sunIlluminance", o.mSunIlluminance);
   cs::core::Settings::deserialize(j, "scatteringTextureNuSize", o.mScatteringTextureNuSize);
   cs::core::Settings::deserialize(j, "maxSunZenithAngle", o.mMaxSunZenithAngle);
+  cs::core::Settings::deserialize(j, "refraction", o.mRefraction);
 }
 
 } // namespace csp::atmospheres::models::bruneton

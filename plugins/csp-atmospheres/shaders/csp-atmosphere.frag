@@ -34,6 +34,7 @@ uniform float     uSunIlluminance;
 uniform float     uSunLuminance;
 uniform float     uTime;
 uniform mat4      uMatM;
+uniform mat4      uMatMVP;
 uniform mat4      uMatScale;
 uniform mat4      uMatInvP;
 uniform float     uWaterLevel;
@@ -48,6 +49,14 @@ layout(location = 0) out vec3 oColor;
 
 // Each atmospheric model will implement these three methods. We forward-declare them here. The
 // actual implementation comes from the model's shader which is linked to this shader.
+
+// This will return true or false depending on whether the atmosphere model supports refraction.
+bool RefractionSupported();
+
+// This will return the view ray after refraction by the atmosphere. This is only called if
+// RefractionSupported() returns true. Also, refraction is wavelength-dependent. The view ray is
+// split into three rays (red, green, blue) which are refracted separately.
+void GetRefractedViewRay(vec3 camera, vec3 viewRay, out vec3 viewR, out vec3 viewG, out vec3 viewB);
 
 // Returns the sky luminance (in cd/m^2) along the segment from 'camera' to the nearest
 // atmosphere boundary in direction 'viewRay', as well as the transmittance along this segment.
@@ -258,16 +267,29 @@ vec2 getLngLat(vec3 position) {
 
 // Returns the background color at the current pixel. If multisampling is used, we take the average
 // color.
-vec3 getFramebufferColor() {
+vec3 getFramebufferColor(vec2 texcoords) {
 #if HDR_SAMPLES > 0
   vec3 color = vec3(0.0);
   for (int i = 0; i < HDR_SAMPLES; ++i) {
-    color += texelFetch(uColorBuffer, ivec2(vsIn.texcoords * textureSize(uColorBuffer)), i).rgb;
+    color += texelFetch(uColorBuffer, ivec2(texcoords * textureSize(uColorBuffer)), i).rgb;
   }
   return color / HDR_SAMPLES;
 #else
-  return texture(uColorBuffer, vsIn.texcoords).rgb;
+  return texture(uColorBuffer, texcoords).rgb;
 #endif
+}
+
+vec3 getRefractedFramebufferColor(vec3 rayOrigin, vec3 rayDir) {
+
+  vec3 viewR;
+  vec3 viewG;
+  vec3 viewB;
+  GetRefractedViewRay(rayOrigin, rayDir, viewR, viewG, viewB);
+
+  vec4 texcoords = uMatMVP * vec4(rayOrigin + viewR * 1e10, 1.0);
+  texcoords /= texcoords.w;
+
+  return getFramebufferColor(texcoords.xy * 0.5 + 0.5);
 }
 
 // Returns the depth at the current pixel. If multisampling is used, we take the minimum depth.
@@ -535,30 +557,45 @@ void main() {
 void main() {
   vec3 rayDir = normalize(vsIn.rayDir);
 
-  // Get the planet / background color without any atmosphere.
-  oColor = getFramebufferColor();
-
   // If the ray does not actually hit the atmosphere or the exit is already behind camera, we do not
   // have to modify the color any further.
   vec2 atmosphereIntersections = intersectAtmosphere(vsIn.rayOrigin, rayDir);
   if (atmosphereIntersections.x > atmosphereIntersections.y || atmosphereIntersections.y < 0) {
+    oColor = getFramebufferColor(vsIn.texcoords);
     return;
   }
 
   // If something is in front of the atmosphere, we do not have to do anything either.
   float surfaceDistance = getSurfaceDistance(vsIn.rayOrigin, rayDir);
   if (surfaceDistance < atmosphereIntersections.x) {
+    oColor = getFramebufferColor(vsIn.texcoords);
     return;
   }
+
+  // The ray hits an object if the distance to the depth buffer is smaller than the ray exit.
+  bool hitsSurface = surfaceDistance < atmosphereIntersections.y;
+
+  if (RefractionSupported() && !hitsSurface) {
+    vec3 rayOrigin = vsIn.rayOrigin;
+
+    // Advance the ray start to the atmosphere boundary.
+    if (atmosphereIntersections.x > 0) {
+      rayOrigin += rayDir * atmosphereIntersections.x;
+    }
+
+    oColor = getRefractedFramebufferColor(rayOrigin, rayDir);
+  } else {
+    oColor = getFramebufferColor(vsIn.texcoords);
+  }
+
+  // return;
 
   // Always operate in linear color space.
 #if !ENABLE_HDR
   oColor = sRGBtoLinear(oColor);
 #endif
 
-  // The ray hits an object if the distance to the depth buffer is smaller than the ray exit.
-  bool hitsSurface = surfaceDistance < atmosphereIntersections.y;
-  bool underWater  = false;
+  bool underWater = false;
 
   vec4 oceanWaterShade   = vec4(0.0);
   vec4 oceanSurfaceColor = vec4(0.0);

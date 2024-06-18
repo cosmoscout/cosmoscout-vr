@@ -155,6 +155,18 @@ vec3 _getInscatter(
 
 // -------------------------------------------------------------------------------------- public API
 
+// This model does not support refraction.
+bool RefractionSupported() {
+  return false;
+}
+
+void GetRefractedViewRay(
+    vec3 camera, vec3 viewRay, out vec3 viewR, out vec3 viewG, out vec3 viewB) {
+  viewR = viewRay;
+  viewG = viewRay;
+  viewB = viewRay;
+}
+
 // Returns the sky luminance (in cd/m^2) along the segment from 'camera' to the nearest
 // atmosphere boundary in direction 'viewRay', as well as the transmittance along this segment.
 vec3 GetSkyLuminance(vec3 camera, vec3 viewRay, vec3 sunDirection, out vec3 transmittance) {

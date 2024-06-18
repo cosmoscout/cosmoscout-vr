@@ -67,6 +67,7 @@ class Model : public ModelBase {
 
   GLuint mPhaseTexture         = 0;
   GLuint mTransmittanceTexture = 0;
+  GLuint mMuDeviationTexture   = 0;
   GLuint mIrradianceTexture    = 0;
 
   GLuint mAtmosphereShader = 0;

@@ -99,6 +99,10 @@ bool Model::init(
   mSingleAerosolsScatteringTexture =
       std::get<0>(read3DTexture(settings.mDataDirectory + "/single_aerosols_scattering.tif"));
 
+  if (meta.mRefraction) {
+    mMuDeviationTexture = std::get<0>(read2DTexture(settings.mDataDirectory + "/mu_deviation.tif"));
+  }
+
   // Now create the shader. We load the common and model glsl files and concatenate them with the
   // some constants and the metadata.
 
@@ -110,6 +114,7 @@ bool Model::init(
   // clang-format off
   std::string shader =
     std::string("#version 330\n") +
+    "#define USE_REFRACTION "                   + cs::utils::toString(meta.mRefraction) + "\n" +
     "const int TRANSMITTANCE_TEXTURE_WIDTH = "  + cs::utils::toString(mTransmittanceTextureWidth) + ";\n" +
     "const int TRANSMITTANCE_TEXTURE_HEIGHT = " + cs::utils::toString(mTransmittanceTextureHeight) + ";\n" +
     "const int SCATTERING_TEXTURE_R_SIZE = "    + cs::utils::toString(mScatteringTextureRSize) + ";\n" +
@@ -166,7 +171,13 @@ GLuint Model::setUniforms(GLuint program, GLuint startTextureUnit) const {
   glUniform1i(
       glGetUniformLocation(program, "uSingleAerosolsScatteringTexture"), startTextureUnit + 4);
 
-  return startTextureUnit + 5;
+  if (mMuDeviationTexture) {
+    glActiveTexture(GL_TEXTURE0 + startTextureUnit + 5);
+    glBindTexture(GL_TEXTURE_2D, mMuDeviationTexture);
+    glUniform1i(glGetUniformLocation(program, "uMuDeviationTexture"), startTextureUnit + 5);
+  }
+
+  return startTextureUnit + 6;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
