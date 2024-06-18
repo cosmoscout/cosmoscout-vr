@@ -681,6 +681,7 @@ Preprocessor::Preprocessor(Params params)
   mMetadata.mSunIlluminance          = glm::vec3(sunKR, sunKG, sunKB);
   mMetadata.mScatteringTextureNuSize = mParams.mScatteringTextureNuSize.get();
   mMetadata.mMaxSunZenithAngle       = mParams.mMaxSunZenithAngle.get();
+  mMetadata.mRefraction              = mParams.mRefraction.get();
 
   // A lambda that creates a GLSL header containing our atmosphere computation functions,
   // specialized for the given atmosphere parameters and for the 3 wavelengths in 'lambdas'.
