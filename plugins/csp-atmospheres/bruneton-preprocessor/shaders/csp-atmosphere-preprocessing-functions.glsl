@@ -32,8 +32,9 @@ float getDensity(float densityTextureV, float altitude) {
   return texture(uDensityTexture, vec2(u, densityTextureV)).r;
 }
 
-vec3 getRefractiveIndex(float altitude) {
-  return INDEX_OF_REFRACTION * getDensity(ATMOSPHERE.molecules.densityTextureV, altitude);
+dvec3 getRefractiveIndex(float altitude) {
+  return dvec3(1.0lf) +
+         dvec3(INDEX_OF_REFRACTION * getDensity(ATMOSPHERE.molecules.densityTextureV, altitude));
 }
 
 // Transmittance Computation -----------------------------------------------------------------------
@@ -49,80 +50,74 @@ vec3 getRefractiveIndex(float altitude) {
 
 #if COMPUTE_REFRACTION
 
-/*
-
-float computeOpticalLengthToTopAtmosphereBoundary(float densityTextureV, float r, float mu) {
-
-  // The longest possible distance through the atmosphere is horizontally along the ground.
-  float exitDistance = distanceToTopAtmosphereBoundary(BOTTOM_RADIUS, 0.0);
-  float dx           = exitDistance / float(SAMPLE_COUNT_OPTICAL_DEPTH);
-
-  int   samples = 0;
-  float result  = 0.0;
-
-  while (++samples < SAMPLE_COUNT_OPTICAL_DEPTH && r <= TOP_RADIUS && r >= BOTTOM_RADIUS) {
-    float d = getDensity(densityTextureV, r - BOTTOM_RADIUS);
-    result += d * dx;
-
-    float r_next  = sqrt(r * r + dx * dx + 2.0 * r * dx * mu);
-    float mu_next = (dx * dx + r_next * r_next - r * r) / (2.0 * r_next * dx);
-
-    r  = r_next;
-    mu = mu_next;
-  }
-
-  return result;
+vec3 getRefractiveIndexGradientLength(float height, float dh) {
+  return vec3(getRefractiveIndex(height + dh * 0.5) - getRefractiveIndex(height - dh * 0.5)) / dh;
 }
-*/
 
-float computeOpticalLengthToTopAtmosphereBoundary(float densityTextureV, float r, float mu) {
+struct RayInfo {
+  vec3 opticalDepth;
+  vec3 muDeviation;
+};
 
-  // The longest possible distance through the atmosphere is horizontally along the ground.
-  float exitDistance = distanceToTopAtmosphereBoundary(BOTTOM_RADIUS, 0.0);
-  float dx           = exitDistance / float(SAMPLE_COUNT_OPTICAL_DEPTH);
+RayInfo computeOpticalLengthToTopAtmosphereBoundary(float densityTextureV, float r, float mu) {
 
-  int   samples = 0;
-  float result  = 0.0;
+  float dx          = 5.0e6 / SAMPLE_COUNT_OPTICAL_DEPTH;
+  dvec2 startRayDir = vec2(sqrt(1 - mu * mu), mu);
 
-  vec2 samplePos = vec2(0.0, r);
-  vec2 sampleDir = vec2(sqrt(1 - mu * mu), mu) * dx;
+  RayInfo result;
+  result.opticalDepth = vec3(0.0);
+  result.muDeviation  = vec3(0.0);
 
-  while (++samples < SAMPLE_COUNT_OPTICAL_DEPTH && r <= TOP_RADIUS) {
-    r       = length(samplePos);
-    float d = getDensity(densityTextureV, r - BOTTOM_RADIUS);
-    result += d * dx;
-    samplePos += sampleDir;
+  for (int c = 0; c < 3; ++c) {
+    int samples = 0;
+
+    dvec2  samplePos  = vec2(0.0, r);
+    double currentR   = r;
+    dvec2  currentDir = startRayDir;
+
+    while (currentR <= TOP_RADIUS && ++samples < SAMPLE_COUNT_OPTICAL_DEPTH) {
+      result.opticalDepth[c] += getDensity(densityTextureV, float(currentR) - BOTTOM_RADIUS);
+
+      samplePos += currentDir * dx;
+      currentR = length(samplePos);
+
+      double refractiveIndex = getRefractiveIndex(float(currentR) - BOTTOM_RADIUS)[c];
+      float  gradientLength =
+          getRefractiveIndexGradientLength(float(currentR) - BOTTOM_RADIUS, dx * 0.1)[c];
+      dvec2 dn   = samplePos / currentR * gradientLength;
+      currentDir = normalize(refractiveIndex * currentDir + dn * dx);
+    }
+
+    result.muDeviation[c] = float(dot(samplePos / currentR, currentDir)) - mu;
   }
+
+  result.opticalDepth *= dx;
 
   return result;
 }
 
 #else
 
-float computeOpticalLengthToTopAtmosphereBoundary(float densityTextureV, float r, float mu) {
-  float dx     = distanceToTopAtmosphereBoundary(r, mu) / float(SAMPLE_COUNT_OPTICAL_DEPTH);
-  float result = 0.0;
+struct RayInfo {
+  float opticalDepth;
+};
+
+RayInfo computeOpticalLengthToTopAtmosphereBoundary(float densityTextureV, float r, float mu) {
+  float   dx = distanceToTopAtmosphereBoundary(r, mu) / float(SAMPLE_COUNT_OPTICAL_DEPTH);
+  RayInfo result;
+  result.opticalDepth = 0.0;
+
   for (int i = 0; i <= SAMPLE_COUNT_OPTICAL_DEPTH; ++i) {
     float d_i      = float(i) * dx;
     float r_i      = sqrt(d_i * d_i + 2.0 * r * mu * d_i + r * r);
     float y_i      = getDensity(densityTextureV, r_i - BOTTOM_RADIUS);
     float weight_i = i == 0 || i == SAMPLE_COUNT_OPTICAL_DEPTH ? 0.5 : 1.0;
-    result += y_i * weight_i * dx;
+    result.opticalDepth += y_i * weight_i * dx;
   }
   return result;
 }
 
 #endif
-
-vec3 computeTransmittanceToTopAtmosphereBoundary(
-    AtmosphereComponents atmosphere, float r, float mu) {
-  return exp(-(atmosphere.molecules.extinction * computeOpticalLengthToTopAtmosphereBoundary(
-                                                     atmosphere.molecules.densityTextureV, r, mu) +
-               atmosphere.aerosols.extinction * computeOpticalLengthToTopAtmosphereBoundary(
-                                                    atmosphere.aerosols.densityTextureV, r, mu) +
-               atmosphere.ozone.extinction * computeOpticalLengthToTopAtmosphereBoundary(
-                                                 atmosphere.ozone.densityTextureV, r, mu)));
-}
 
 // Transmittance Texture Precomputation ------------------------------------------------------------
 
@@ -133,14 +128,39 @@ vec3 computeTransmittanceToTopAtmosphereBoundary(
 
 // There is no functional difference to the original code.
 
+#if COMPUTE_REFRACTION
+
+vec3 computeTransmittanceToTopAtmosphereBoundaryTexture(
+    AtmosphereComponents atmosphere, vec2 fragCoord, out vec3 muDeviation) {
+
+#else
+
 vec3 computeTransmittanceToTopAtmosphereBoundaryTexture(
     AtmosphereComponents atmosphere, vec2 fragCoord) {
-  const vec2 TRANSMITTANCE_TEXTURE_SIZE =
-      vec2(TRANSMITTANCE_TEXTURE_WIDTH, TRANSMITTANCE_TEXTURE_HEIGHT);
+
+#endif
+
   float r;
   float mu;
-  getRMuFromTransmittanceTextureUv(fragCoord / TRANSMITTANCE_TEXTURE_SIZE, r, mu);
-  return computeTransmittanceToTopAtmosphereBoundary(atmosphere, r, mu);
+  getRMuFromTransmittanceTextureUv(
+      fragCoord / vec2(TRANSMITTANCE_TEXTURE_WIDTH, TRANSMITTANCE_TEXTURE_HEIGHT), r, mu);
+
+  RayInfo molecules =
+      computeOpticalLengthToTopAtmosphereBoundary(atmosphere.molecules.densityTextureV, r, mu);
+  RayInfo aerosols =
+      computeOpticalLengthToTopAtmosphereBoundary(atmosphere.aerosols.densityTextureV, r, mu);
+  RayInfo ozone =
+      computeOpticalLengthToTopAtmosphereBoundary(atmosphere.ozone.densityTextureV, r, mu);
+
+  vec3 transmittance = exp(-(atmosphere.molecules.extinction * molecules.opticalDepth +
+                             atmosphere.aerosols.extinction * aerosols.opticalDepth +
+                             atmosphere.ozone.extinction * ozone.opticalDepth));
+
+#if COMPUTE_REFRACTION
+  muDeviation = molecules.muDeviation;
+#endif
+
+  return transmittance;
 }
 
 // Single-Scattering Computation -------------------------------------------------------------------
