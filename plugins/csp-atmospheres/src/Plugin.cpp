@@ -203,6 +203,7 @@ void Plugin::deInit() {
 
   mGuiManager->getGui()->unregisterCallback("atmosphere.setEnable");
   mGuiManager->getGui()->unregisterCallback("atmosphere.setEnableWater");
+  mGuiManager->getGui()->unregisterCallback("atmosphere.setEnableWaves");
   mGuiManager->getGui()->unregisterCallback("atmosphere.setWaterLevel");
   mGuiManager->getGui()->unregisterCallback("atmosphere.setEnableClouds");
   mGuiManager->getGui()->unregisterCallback("atmosphere.setCloudAltitude");
