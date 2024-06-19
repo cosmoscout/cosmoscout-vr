@@ -35,52 +35,75 @@ This data flow net graph defines the interaction configuration for the ICAROS de
             <param name="prevent_navigation_when_hovered_gui" value="false" />
         </node>
 
-        <!-- movement -->
+        <!-- rotation to translation -->
 
         <node name="movement" type="Compose3DVector" />
         <node name="down_movement" type="Multiply[float]"/>
-        <node name="value_down_movement" type="ConstantValue[float]">
-            <param name="value" value="-0.05" />
-        </node>
+     
 
         <!-- rotation -->
         <node name="orientation_invert" type="Invert[VistaQuaternion]"/>
         <node name="deconstruct" type="DecomposeQuaternion"/>
 
-        <node name="yaw_rotation" type="AxisRotate"/>
-        <node name="yaw" type="Multiply[float]"/>
+        <node name="yaw" type="AxisRotate"/>
+        <node name="yaw_angle" type="Multiply[float]"/>
 
-        <node name="roll_angles_value" type="ConstantValue[float]">
+        <node name="calibrate" type="Substract[float]"/>
+
+        <node name="roll_absolute" type="Absolute[float]"/>
+        <node name="roll_limited" type="Threshold[float]"/>
+        
+        <node name="roll_bool" type="LessEqual[float]"/> 
+        <node name="roll_sign_invert_bool" type="Invert[bool]"/>
+        <node name="roll_sign_null_one" type="TypeConvert[bool,float]"/> 
+        <node name="roll_sign_multiply" type="Multiply[float]"/>   
+        <node name="roll_sign" type="Substract[float]"/>  
+
+        <node name="roll" type="Multiply[float]"/>      
+
+        <!-- speed -->
+
+        <!-- values -->
+       
+         <node name="zero" type="ConstantValue[float]">
+            <param name="value" value="0"/>
+        </node>
+
+        <node name="two" type="ConstantValue[float]">
+            <param name="value" value="-2.0" />
+        </node>
+
+        <node name="minusOne" type="ConstantValue[float]">
+            <param name="value" value="-1.0" />
+        </node>
+
+        <node name="value_down_movement" type="ConstantValue[float]">
+            <param name="value" value="0.2" />
+        </node>
+
+        <node name="yaw_angles_value" type="ConstantValue[float]">
             <param name="value" value="1.0" />
+        </node>
+
+        <node name="calibrate_value" type="ConstantValue[float]">
+            <param name="value" value="0.2" />
+        </node>
+
+         <node name="threshhold_value" type="ConstantValue[float]">
+            <param name="value" value="5.0" />
+        </node>
+
+        <node name="roll_equal" type="ConstantValue[float]">
+            <param name="value" value="0.0" />
         </node>
 
          <node name="yaw_axis" type="ConstantValue[VistaVector3D]">
             <param name="value" value="0,1,0,0" />
         </node>
 
-        <!-- bool to float -->
-       
-         <node name="zero" type="ConstantValue[float]">
-            <param name="value" value="0"/>
-        </node>
         <!-- debug text -->
         <node name="debug_text" type="SimpleText"/>
         
-
-        <!-- bevor ich das mache nen Offset Substact oder Addtion node um sie auf 0 zu schieben.  mit dem wert direkt von deconstruct -->
-        <node name="calibrate" type="Substract[float]"/>
-
-        <node name="roll_absolute" type="Absolute[float]"/>
-        <node name="roll_limited" type="Threshold[float]"/>
-        
-        <node name="roll_bool" type="LessEqual[float]"/> <!-- größer als 0 == false - kleiner als 0 == True --> 
-        <node name="roll_sign_invert_bool" type="Invert[bool]"/>
-        <node name="roll_sign_null_one" type="TypeConvert[bool,float]"/> <!--  0 bei unter 0          1 bei über 0 ==--> 
-        <node name="roll_sign_multiply" type="Multiply[float]"/>  <!--  first = roll_sign_null_one             second = 2 --> 
-        <node name="roll_sign" type="Substract[float]"/>  <!--  first = roll_sign_multiply             second = 1 --> 
-
-        <node name="roll" type="Mulitply[float]"/>     <!-- first = roll_limited    second = roll_sign  DIESER WERT WIRD DANN MIT ROLL ANGLE -->  
-        <node name="roll_angle" type="Mulitply[float]"/>
     </graph>
     <edges>
 
@@ -99,15 +122,65 @@ This data flow net graph defines the interaction configuration for the ICAROS de
         <edge fromnode="zero" tonode="movement" fromport="value" toport="z" />
 
 
-        <edge fromnode="deconstruct" tonode="yaw" fromport="y" toport="first" />
-        <edge fromnode="roll_angles" tonode="yaw" fromport="value" toport="second" />
 
-        <edge fromnode="yaw" tonode="debug_text" fromport="out"  toport="in_yaw" />
 
-        <edge fromnode="yaw" tonode="yaw_rotation" fromport="out" toport="angle" />
-        <edge fromnode="yaw_axis" tonode="yaw_rotation" fromport="value" toport="axis" />
+        <!-- von hier Rotation /> -->
 
-        <edge fromnode="yaw_rotation" tonode="observer" fromport="out" toport="rotation" />
+        <edge fromnode="deconstruct" tonode="calibrate" fromport="y" toport="first" />
+        <edge fromnode="calibrate_value" tonode="calibrate" fromport="value" toport="second" />
+
+        <edge fromnode="calibrate_value" tonode="debug_text" fromport="value"  toport="in_value_calbibrate" />
+        <edge fromnode="deconstruct" tonode="debug_text" fromport="y" toport="in_y" />
+
+        <edge fromnode="calibrate" tonode="roll_absolute" fromport="out" toport="in" />
+        <edge fromnode="calibrate" tonode="roll_bool" fromport="out" toport="first" />
+        <edge fromnode="zero" tonode="roll_bool" fromport="value" toport="second" />
+
+        <edge fromnode="calibrate" tonode="debug_text" fromport="out"  toport="in_value_calbibrate" />
+        <edge fromnode="calibrate" tonode="debug_text" fromport="out" toport="in_calibrate" />
+
+        <edge fromnode="roll_bool" tonode="roll_sign_invert_bool" fromport="out" toport="in" />
+        <edge fromnode="roll_sign_invert_bool" tonode="roll_sign_null_one" fromport="out" toport="in" />
+        <edge fromnode="roll_sign_null_one" tonode="roll_sign_multiply" fromport="out" toport="first" />
+        <edge fromnode="two" tonode="roll_sign_multiply" fromport="value" toport="second" />
+
+        <edge fromnode="roll_bool" tonode="debug_text" fromport="out"  toport="roll_bool" />
+        <edge fromnode="roll_sign_invert_bool" tonode="debug_text" fromport="out" toport="roll_sign_invert_bool" />
+        <edge fromnode="roll_sign_null_one" tonode="debug_text" fromport="out" toport="roll_sign_null_one" />
+
+        <edge fromnode="roll_sign_multiply" tonode="roll_sign" fromport="out" toport="first" />
+        <edge fromnode="minusOne" tonode="roll_sign" fromport="value" toport="second" />
+
+        <edge fromnode="roll_sign_multiply" tonode="debug_text" fromport="out" toport="roll_sign_multiply" />
+
+        <edge fromnode="roll_absolute" tonode="roll_limited" fromport="out" toport="in" />
+        <edge fromnode="threshhold_value" tonode="roll_limited" fromport="value" toport="threshold" />
+        <edge fromnode="roll_limited" tonode="roll" fromport="out" toport="first" />
+        <edge fromnode="roll_sign" tonode="roll" fromport="out" toport="second" />
+        <edge fromnode="roll_sign" tonode="debug_text" fromport="out" toport="roll_sign" />
+
+        <edge fromnode="roll_absolute" tonode="debug_text" fromport="out" toport="roll_absolute" />
+        <edge fromnode="threshhold_value" tonode="debug_text" fromport="value" toport="threshhold_value" />
+        <edge fromnode="roll_limited" tonode="debug_text" fromport="out" toport="roll_limited" />
+
+        <edge fromnode="roll" tonode="yaw_angle" fromport="out" toport="first" />
+        <edge fromnode="yaw_angles_value" tonode="yaw_angle" fromport="value" toport="second" />
+
+        <edge fromnode="roll" tonode="debug_text" fromport="out" toport="roll" />
+        <edge fromnode="yaw_angles_value" tonode="debug_text" fromport="value" toport="yaw_angles_value" />
+
+       <!-- bis hier /> -->
+
+
+        <!-- von hier Geschwindigkeit /> -->
+
+        <!-- bis hier /> -->
+
+
+        <edge fromnode="yaw_angle" tonode="yaw" fromport="out" toport="angle" />
+        <edge fromnode="yaw_axis" tonode="yaw" fromport="value" toport="axis" />
+
+        <edge fromnode="yaw" tonode="observer" fromport="out" toport="rotation" />
         <edge fromnode="movement" tonode="observer" fromport="out" toport="translation" />
         <edge fromnode="timer" tonode="observer" fromport="time" toport="time" />
 
