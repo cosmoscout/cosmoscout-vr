@@ -88,7 +88,7 @@ RayInfo computeOpticalLengthToTopAtmosphereBoundary(float densityTextureV, float
       currentDir = normalize(refractiveIndex * currentDir + dn * dx);
     }
 
-    result.muDeviation[c] = acos(mu) - acos(float(dot(samplePos / currentR, currentDir)));
+    result.muDeviation[c] = acos(float(dot(startRayDir, currentDir)));
   }
 
   result.opticalDepth *= dx;
