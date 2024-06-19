@@ -59,6 +59,12 @@ struct RayInfo {
   vec3 muDeviation;
 };
 
+// Using acos is not very stable for small angles. This function is used to compute the angle
+// between two vectors in a more stable way.
+float angleBetweenVectors(vec2 u, vec2 v) {
+  return 2.0 * asin(0.5 * length(u - v));
+}
+
 RayInfo computeOpticalLengthToTopAtmosphereBoundary(float densityTextureV, float r, float mu) {
 
   float dx          = 5.0e6 / SAMPLE_COUNT_OPTICAL_DEPTH;
@@ -88,7 +94,7 @@ RayInfo computeOpticalLengthToTopAtmosphereBoundary(float densityTextureV, float
       currentDir = normalize(refractiveIndex * currentDir + dn * dx);
     }
 
-    result.muDeviation[c] = acos(float(dot(startRayDir, currentDir)));
+    result.muDeviation[c] = angleBetweenVectors(vec2(startRayDir), vec2(currentDir));
   }
 
   result.opticalDepth *= dx;
