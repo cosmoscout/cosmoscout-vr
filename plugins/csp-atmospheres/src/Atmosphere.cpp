@@ -329,7 +329,8 @@ bool Atmosphere::Do() {
   matScale            = glm::scale(matScale, glm::dvec3(mSceneScale));
   matScale[3]         = glm::vec4(0.0);
 
-  glm::vec3 sunDir = glm::normalize(glm::vec3(matInvWorld * glm::vec4(mSunDirection, 0)));
+  glm::vec3 sunDir =
+      glm::normalize(glm::vec3(matInverseEllipsoid * matInvWorld * glm::vec4(mSunDirection, 0)));
 
   // set uniforms ------------------------------------------------------------
   mAtmoShader.Bind();
