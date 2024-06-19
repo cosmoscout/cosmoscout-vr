@@ -67,7 +67,7 @@ float angleBetweenVectors(vec2 u, vec2 v) {
 
 RayInfo computeOpticalLengthToTopAtmosphereBoundary(float densityTextureV, float r, float mu) {
 
-  float dx          = 5.0e6 / SAMPLE_COUNT_OPTICAL_DEPTH;
+  float dx          = TOP_RADIUS / SAMPLE_COUNT_OPTICAL_DEPTH;
   dvec2 startRayDir = vec2(sqrt(1 - mu * mu), mu);
 
   RayInfo result;
@@ -85,11 +85,14 @@ RayInfo computeOpticalLengthToTopAtmosphereBoundary(float densityTextureV, float
       result.opticalDepth[c] += getDensity(densityTextureV, float(currentR) - BOTTOM_RADIUS);
 
       samplePos += currentDir * dx;
-      currentR = length(samplePos);
+
+      // Make sure that we do not sample inside the planet. There we do not have a density
+      // gradient and the refraction would be wrong.
+      currentR = max(BOTTOM_RADIUS + 100, length(samplePos));
 
       double refractiveIndex = getRefractiveIndex(float(currentR) - BOTTOM_RADIUS)[c];
       float  gradientLength =
-          getRefractiveIndexGradientLength(float(currentR) - BOTTOM_RADIUS, dx * 0.1)[c];
+          getRefractiveIndexGradientLength(float(currentR) - BOTTOM_RADIUS, dx * 0.01)[c];
       dvec2 dn   = samplePos / currentR * gradientLength;
       currentDir = normalize(refractiveIndex * currentDir + dn * dx);
     }

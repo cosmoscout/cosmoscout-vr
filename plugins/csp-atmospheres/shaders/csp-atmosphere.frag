@@ -265,6 +265,19 @@ vec2 getLngLat(vec3 position) {
 
 // -------------------------------------------------------------------------------------------------
 
+// Returns the depth at the current pixel. If multisampling is used, we take the minimum depth.
+float getFramebufferDepth(vec2 texcoords) {
+#if HDR_SAMPLES > 0
+  float depth = 1.0;
+  for (int i = 0; i < HDR_SAMPLES; ++i) {
+    depth = min(depth, texelFetch(uDepthBuffer, ivec2(texcoords * textureSize(uDepthBuffer)), i).r);
+  }
+  return depth;
+#else
+  return texture(uDepthBuffer, texcoords).r;
+#endif
+}
+
 // Returns the background color at the current pixel. If multisampling is used, we take the average
 // color.
 vec3 getFramebufferColor(vec2 texcoords) {
@@ -279,31 +292,47 @@ vec3 getFramebufferColor(vec2 texcoords) {
 #endif
 }
 
-vec3 getRefractedFramebufferColor(vec3 rayOrigin, vec3 rayDir) {
-
-  vec3 viewR;
-  vec3 viewG;
-  vec3 viewB;
-  GetRefractedViewRay(rayOrigin, rayDir, viewR, viewG, viewB);
-
-  vec4 texcoords = uMatMVP * vec4(rayOrigin + viewR * 1e10, 1.0);
-  texcoords /= texcoords.w;
-
-  return getFramebufferColor(texcoords.xy * 0.5 + 0.5);
+// Using acos is not very stable for small angles. This function is used to compute the angle
+// between two vectors in a more stable way.
+float angleBetweenVectors(vec3 u, vec3 v) {
+  return 2.0 * asin(0.5 * length(u - v));
 }
 
-// Returns the depth at the current pixel. If multisampling is used, we take the minimum depth.
-float getFramebufferDepth() {
-#if HDR_SAMPLES > 0
-  float depth = 1.0;
-  for (int i = 0; i < HDR_SAMPLES; ++i) {
-    depth = min(
-        depth, texelFetch(uDepthBuffer, ivec2(vsIn.texcoords * textureSize(uDepthBuffer)), i).r);
+vec3 getRefractedFramebufferColor(vec3 rayOrigin, vec3 rayDir) {
+
+  vec3 refractedViewRays[3];
+  GetRefractedViewRay(
+      rayOrigin, rayDir, refractedViewRays[0], refractedViewRays[1], refractedViewRays[2]);
+
+  vec3 color;
+
+  for (int i = 0; i < 3; i++) {
+    vec4 texcoords = uMatMVP * vec4(rayOrigin + refractedViewRays[i] * 1e8, 1.0);
+    texcoords.xy   = texcoords.xy / texcoords.w * 0.5 + 0.5;
+
+    // We can only sample the color buffer if the point is inside the screen.
+    bool inside =
+        all(lessThan(texcoords.xy, vec2(1.0))) && all(greaterThan(texcoords.xy, vec2(0.0)));
+
+    // Also, we check the depth buffer to see if the point is occluded. If it is, we do not sample
+    // the color buffer.
+    bool occluded = getFramebufferDepth(texcoords.xy) > 0.000001;
+
+    if (inside && !occluded) {
+      color[i] = getFramebufferColor(texcoords.xy)[i];
+    } else {
+
+      float sunAngularRadius = 0.009 / 2.0;
+      bool  hitsSun = angleBetweenVectors(normalize(refractedViewRays[i]), normalize(uSunDir)) <
+                     sunAngularRadius;
+
+      if (hitsSun) {
+        color[i] = 1e9;
+      }
+    }
   }
-  return depth;
-#else
-  return texture(uDepthBuffer, vsIn.texcoords).r;
-#endif
+
+  return color;
 }
 
 // Returns the distance to the surface of the depth buffer at the current pixel. If the depth of the
@@ -314,7 +343,7 @@ float getFramebufferDepth() {
 // intersection with the planet analytically and blend to this value instead. This means, if you are
 // close to a satellite, mountains of the planet below cannot poke through the atmosphere anymore.
 float getSurfaceDistance(vec3 rayOrigin, vec3 rayDir) {
-  float depth = getFramebufferDepth();
+  float depth = getFramebufferDepth(vsIn.texcoords);
 
   // If the fragment is really far away, the inverse reverse infinite projection divides by zero.
   // So we add a minimum threshold here.
@@ -587,8 +616,6 @@ void main() {
   } else {
     oColor = getFramebufferColor(vsIn.texcoords);
   }
-
-  // return;
 
   // Always operate in linear color space.
 #if !ENABLE_HDR

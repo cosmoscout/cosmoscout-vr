@@ -223,15 +223,10 @@ bool RefractionSupported() {
 #endif
 }
 
-vec3 rotate_vector(vec3 v, vec3 a, float mu) {
-
-  // Calculate sin(theta) from cos(theta)
-  float sin_theta = sqrt(1.0 - mu * mu);
-
-  // Rodrigues' rotation formula
-  vec3 v_rot = v * mu + cross(a, v) * sin_theta + a * dot(a, v) * (1.0 - mu);
-
-  return v_rot;
+// Rodrigues' rotation formula
+vec3 rotateVector(vec3 v, vec3 a, float cosMu) {
+  float sinMu = sqrt(1.0 - cosMu * cosMu);
+  return v * cosMu + cross(a, v) * sinMu + a * dot(a, v) * (1.0 - cosMu);
 }
 
 void GetRefractedViewRay(
@@ -243,13 +238,12 @@ void GetRefractedViewRay(
 
   // Cosine of the angular deviation of the ray due to refraction.
   vec3 muRGB = cos(texture(uMuDeviationTexture, uv).rgb);
-
-  vec3 axis = normalize(cross(camera, viewRay));
+  vec3 axis  = normalize(cross(camera, viewRay));
 
   // Rotate viewRay around axis by acos(muRGB.x) to get viewR.
-  viewR = rotate_vector(viewRay, axis, muRGB.x);
-  viewG = rotate_vector(viewRay, axis, muRGB.y);
-  viewB = rotate_vector(viewRay, axis, muRGB.z);
+  viewR = rotateVector(viewRay, axis, muRGB.x);
+  viewG = rotateVector(viewRay, axis, muRGB.y);
+  viewB = rotateVector(viewRay, axis, muRGB.z);
 
 #else
   viewR = viewRay;
