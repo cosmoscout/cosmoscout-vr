@@ -322,13 +322,13 @@ vec3 getRefractedFramebufferColor(vec3 rayOrigin, vec3 rayDir) {
       color[i] = getFramebufferColor(texcoords.xy)[i];
     } else {
 
-      float sunAngularRadius = 0.009 / 2.0;
-      bool  hitsSun = angleBetweenVectors(normalize(refractedViewRays[i]), normalize(uSunDir)) <
-                     sunAngularRadius;
+      float sunAngularRadius = 0.0082 / 2.0;
 
-      if (hitsSun) {
-        color[i] = 1e9;
-      }
+      // Smooth edge for the Sun.
+      float sunEdge = smoothstep(sunAngularRadius - 0.0005, sunAngularRadius + 0.0005,
+          angleBetweenVectors(normalize(refractedViewRays[i]), normalize(uSunDir)));
+
+      color[i] = mix(1.1e9, 0.0, sunEdge);
     }
   }
 
