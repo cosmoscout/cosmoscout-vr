@@ -100,7 +100,8 @@ bool Model::init(
       std::get<0>(read3DTexture(settings.mDataDirectory + "/single_aerosols_scattering.tif"));
 
   if (meta.mRefraction) {
-    mMuDeviationTexture = std::get<0>(read2DTexture(settings.mDataDirectory + "/mu_deviation.tif"));
+    mThetaDeviationTexture =
+        std::get<0>(read2DTexture(settings.mDataDirectory + "/theta_deviation.tif"));
   }
 
   // Now create the shader. We load the common and model glsl files and concatenate them with the
@@ -171,10 +172,10 @@ GLuint Model::setUniforms(GLuint program, GLuint startTextureUnit) const {
   glUniform1i(
       glGetUniformLocation(program, "uSingleAerosolsScatteringTexture"), startTextureUnit + 4);
 
-  if (mMuDeviationTexture) {
+  if (mThetaDeviationTexture) {
     glActiveTexture(GL_TEXTURE0 + startTextureUnit + 5);
-    glBindTexture(GL_TEXTURE_2D, mMuDeviationTexture);
-    glUniform1i(glGetUniformLocation(program, "uMuDeviationTexture"), startTextureUnit + 5);
+    glBindTexture(GL_TEXTURE_2D, mThetaDeviationTexture);
+    glUniform1i(glGetUniformLocation(program, "uThetaDeviationTexture"), startTextureUnit + 5);
   }
 
   return startTextureUnit + 6;

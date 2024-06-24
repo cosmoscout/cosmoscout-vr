@@ -32,11 +32,6 @@ float getDensity(float densityTextureV, float altitude) {
   return texture(uDensityTexture, vec2(u, densityTextureV)).r;
 }
 
-dvec3 getRefractiveIndex(float altitude) {
-  return dvec3(1.0lf) +
-         dvec3(INDEX_OF_REFRACTION * getDensity(ATMOSPHERE.molecules.densityTextureV, altitude));
-}
-
 // Transmittance Computation -----------------------------------------------------------------------
 
 // The code below is used to comute the optical depth (or transmittance) from any point in the
@@ -50,13 +45,18 @@ dvec3 getRefractiveIndex(float altitude) {
 
 #if COMPUTE_REFRACTION
 
+dvec3 getRefractiveIndex(float altitude) {
+  return dvec3(1.0lf) +
+         dvec3(INDEX_OF_REFRACTION * getDensity(ATMOSPHERE.molecules.densityTextureV, altitude));
+}
+
 vec3 getRefractiveIndexGradientLength(float height, float dh) {
   return vec3(getRefractiveIndex(height + dh * 0.5) - getRefractiveIndex(height - dh * 0.5)) / dh;
 }
 
 struct RayInfo {
   vec3 opticalDepth;
-  vec3 muDeviation;
+  vec3 thetaDeviation;
 };
 
 // Using acos is not very stable for small angles. This function is used to compute the angle
@@ -71,8 +71,8 @@ RayInfo computeOpticalLengthToTopAtmosphereBoundary(float densityTextureV, float
   dvec2 startRayDir = vec2(sqrt(1 - mu * mu), mu);
 
   RayInfo result;
-  result.opticalDepth = vec3(0.0);
-  result.muDeviation  = vec3(0.0);
+  result.opticalDepth   = vec3(0.0);
+  result.thetaDeviation = vec3(0.0);
 
   for (int c = 0; c < 3; ++c) {
     int samples = 0;
@@ -97,7 +97,7 @@ RayInfo computeOpticalLengthToTopAtmosphereBoundary(float densityTextureV, float
       currentDir = normalize(refractiveIndex * currentDir + dn * dx);
     }
 
-    result.muDeviation[c] = angleBetweenVectors(vec2(startRayDir), vec2(currentDir));
+    result.thetaDeviation[c] = angleBetweenVectors(vec2(startRayDir), vec2(currentDir));
   }
 
   result.opticalDepth *= dx;
@@ -140,7 +140,7 @@ RayInfo computeOpticalLengthToTopAtmosphereBoundary(float densityTextureV, float
 #if COMPUTE_REFRACTION
 
 vec3 computeTransmittanceToTopAtmosphereBoundaryTexture(
-    AtmosphereComponents atmosphere, vec2 fragCoord, out vec3 muDeviation) {
+    AtmosphereComponents atmosphere, vec2 fragCoord, out vec3 thetaDeviation) {
 
 #else
 
@@ -166,7 +166,7 @@ vec3 computeTransmittanceToTopAtmosphereBoundaryTexture(
                              atmosphere.ozone.extinction * ozone.opticalDepth));
 
 #if COMPUTE_REFRACTION
-  muDeviation = molecules.muDeviation;
+  thetaDeviation = molecules.thetaDeviation;
 #endif
 
   return transmittance;

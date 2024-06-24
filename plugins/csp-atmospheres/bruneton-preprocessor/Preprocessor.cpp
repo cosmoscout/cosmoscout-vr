@@ -227,12 +227,12 @@ const char kComputeTransmittanceShader[] = R"(
   layout(location = 0) out vec3 oTransmittance;
 
 #if COMPUTE_REFRACTION
-  layout(location = 1) out vec3 oMuDeviation;
+  layout(location = 1) out vec3 oThetaDeviation;
 #endif
 
   void main() {
     #if COMPUTE_REFRACTION
-      oTransmittance = computeTransmittanceToTopAtmosphereBoundaryTexture(ATMOSPHERE, gl_FragCoord.xy, oMuDeviation);
+      oTransmittance = computeTransmittanceToTopAtmosphereBoundaryTexture(ATMOSPHERE, gl_FragCoord.xy, oThetaDeviation);
     #else
       oTransmittance = computeTransmittanceToTopAtmosphereBoundaryTexture(ATMOSPHERE, gl_FragCoord.xy);
     #endif
@@ -733,7 +733,7 @@ Preprocessor::Preprocessor(Params params)
   mTransmittanceTexture = NewTexture2d(mParams.mTransmittanceTextureWidth.get(),
       mParams.mTransmittanceTextureHeight.get(), GL_RGB32F, GL_RGB, GL_FLOAT);
 
-  mMuDeviationTexture = NewTexture2d(mParams.mTransmittanceTextureWidth.get(),
+  mThetaDeviationTexture = NewTexture2d(mParams.mTransmittanceTextureWidth.get(),
       mParams.mTransmittanceTextureHeight.get(), GL_RGB32F, GL_RGB, GL_FLOAT);
 
   mMultipleScatteringTexture = NewTexture3d(mScatteringTextureWidth, mScatteringTextureHeight,
@@ -795,7 +795,7 @@ Preprocessor::~Preprocessor() {
   glDeleteVertexArrays(1, &mFullScreenQuadVAO);
   glDeleteTextures(1, &mPhaseTexture);
   glDeleteTextures(1, &mTransmittanceTexture);
-  glDeleteTextures(1, &mMuDeviationTexture);
+  glDeleteTextures(1, &mThetaDeviationTexture);
   glDeleteTextures(1, &mMultipleScatteringTexture);
   glDeleteTextures(1, &mSingleAerosolsScatteringTexture);
   glDeleteTextures(1, &mIrradianceTexture);
@@ -886,7 +886,7 @@ void Preprocessor::run(unsigned int numScatteringOrders) {
           numScatteringOrders);
     }
 
-    // After the above iterations, the transmittance texture and the mu-deviation texture contain
+    // After the above iterations, the transmittance texture and the theta-deviation texture contain
     // data for the 3 wavelengths used at the last iteration. But we want data at kLambdaR,
     // kLambdaG, kLambdaB instead, so we must recompute it here for these 3 wavelengths:
     std::string header = mGlslHeaderFactory({kLambdaR, kLambdaG, kLambdaB});
@@ -894,7 +894,7 @@ void Preprocessor::run(unsigned int numScatteringOrders) {
     glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, mTransmittanceTexture, 0);
 
     if (mParams.mRefraction.get()) {
-      glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, mMuDeviationTexture, 0);
+      glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, mThetaDeviationTexture, 0);
 
       const GLuint kDrawBuffers[4] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1};
       glDrawBuffers(2, kDrawBuffers);
@@ -1003,7 +1003,7 @@ void Preprocessor::save(std::string const& directory) {
       mScatteringTextureWidth, mScatteringTextureHeight, mScatteringTextureDepth);
 
   if (mParams.mRefraction.get()) {
-    write2D(directory + "/mu_deviation.tif", mMuDeviationTexture,
+    write2D(directory + "/theta_deviation.tif", mThetaDeviationTexture,
         mParams.mTransmittanceTextureWidth.get(), mParams.mTransmittanceTextureHeight.get());
   }
 
@@ -1101,7 +1101,7 @@ void Preprocessor::precompute(GLuint fbo, GLuint deltaIrradianceTexture,
   glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, mTransmittanceTexture, 0);
 
   if (mParams.mRefraction.get()) {
-    glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, mMuDeviationTexture, 0);
+    glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, mThetaDeviationTexture, 0);
 
     const GLuint kDrawBuffers[4] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1};
     glDrawBuffers(2, kDrawBuffers);

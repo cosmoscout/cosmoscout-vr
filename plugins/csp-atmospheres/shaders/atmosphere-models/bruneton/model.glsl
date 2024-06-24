@@ -27,7 +27,7 @@ uniform sampler3D uSingleAerosolsScatteringTexture;
 uniform sampler2D uIrradianceTexture;
 
 #if USE_REFRACTION
-uniform sampler2D uMuDeviationTexture;
+uniform sampler2D uThetaDeviationTexture;
 #endif
 
 vec3 moleculePhaseFunction(float nu) {
@@ -237,7 +237,7 @@ void GetRefractedViewRay(
   vec2  uv = getTransmittanceTextureUvFromRMu(r, mu);
 
   // Cosine of the angular deviation of the ray due to refraction.
-  vec3 muRGB = cos(texture(uMuDeviationTexture, uv).rgb);
+  vec3 muRGB = cos(texture(uThetaDeviationTexture, uv).rgb);
   vec3 axis  = normalize(cross(camera, viewRay));
 
   // Rotate viewRay around axis by acos(muRGB.x) to get viewR.
