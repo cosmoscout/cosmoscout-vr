@@ -15,6 +15,16 @@
 #include "Preprocessor.hpp"
 #include "csv.hpp"
 
+#ifdef _WIN64
+extern "C" {
+// This tells Windows to use the dedicated NVIDIA GPU over Intel integrated graphics.
+__declspec(dllexport) uint32_t NvOptimusEnablement = 0x00000001;
+
+// This tells Windows to use the dedicated AMD GPU over Intel integrated graphics.
+__declspec(dllexport) int AmdPowerXpressRequestHighPerformance = 1;
+}
+#endif
+
 // -------------------------------------------------------------------------------------------------
 
 void printHelp() {
