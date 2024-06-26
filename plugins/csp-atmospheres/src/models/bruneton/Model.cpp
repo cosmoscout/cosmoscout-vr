@@ -18,6 +18,7 @@
 #include <iostream>
 #include <memory>
 #include <tiffio.h>
+#include <fstream>
 
 #include <glm/gtc/constants.hpp>
 
