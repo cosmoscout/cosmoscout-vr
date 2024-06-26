@@ -99,14 +99,16 @@ int main(int argc, char** argv) {
 
   // Check for valid wavelengths.
   if (params.mWavelengths.size() < 3) {
-    std::cerr <<
-        "At least three different wavelengths should be given in the scattering data!" << std::endl;
-        return 1;
+    std::cerr << "At least three different wavelengths should be given in the scattering data!"
+              << std::endl;
+    return 1;
   } else if (params.mWavelengths.size() == 3 &&
              (params.mWavelengths[0] != Preprocessor::kLambdaB ||
                  params.mWavelengths[1] != Preprocessor::kLambdaG ||
                  params.mWavelengths[2] != Preprocessor::kLambdaR)) {
-    std::cerr << "If three different wavelengths are given in the scattering data, they should be exactly for 440 nm, 550 nm, and 680 nm!" << std::endl;
+    std::cerr << "If three different wavelengths are given in the scattering data, they should be "
+                 "exactly for 440 nm, 550 nm, and 680 nm!"
+              << std::endl;
     return 1;
   }
 
