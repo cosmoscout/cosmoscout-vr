@@ -931,7 +931,6 @@ void Preprocessor::save(std::string const& directory) {
     TIFFSetField(tiff, TIFFTAG_SAMPLEFORMAT, SAMPLEFORMAT_IEEEFP);
     TIFFSetField(tiff, TIFFTAG_PHOTOMETRIC, PHOTOMETRIC_RGB);
     TIFFSetField(tiff, TIFFTAG_PLANARCONFIG, PLANARCONFIG_CONTIG);
-    TIFFSetField(tiff, TIFFTAG_COMPRESSION, COMPRESSION_DEFLATE);
     TIFFSetField(tiff, TIFFTAG_ROWSPERSTRIP, 1);
     for (int y = 0; y < height; ++y) {
       TIFFWriteScanline(tiff, data.data() + y * width * 3, y);
@@ -957,7 +956,6 @@ void Preprocessor::save(std::string const& directory) {
       TIFFSetField(tiff, TIFFTAG_SAMPLEFORMAT, SAMPLEFORMAT_IEEEFP);
       TIFFSetField(tiff, TIFFTAG_PHOTOMETRIC, PHOTOMETRIC_RGB);
       TIFFSetField(tiff, TIFFTAG_PLANARCONFIG, PLANARCONFIG_CONTIG);
-      TIFFSetField(tiff, TIFFTAG_COMPRESSION, COMPRESSION_DEFLATE);
       TIFFSetField(tiff, TIFFTAG_ROWSPERSTRIP, 1);
       for (int y = 0; y < height; ++y) {
         TIFFWriteScanline(tiff, data.data() + z * width * height * 3 + y * width * 3, y);
