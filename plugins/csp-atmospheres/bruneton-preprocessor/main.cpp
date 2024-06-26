@@ -15,6 +15,16 @@
 #include "Preprocessor.hpp"
 #include "csv.hpp"
 
+#ifdef _WIN64
+extern "C" {
+// This tells Windows to use the dedicated NVIDIA GPU over Intel integrated graphics.
+__declspec(dllexport) uint32_t NvOptimusEnablement = 0x00000001;
+
+// This tells Windows to use the dedicated AMD GPU over Intel integrated graphics.
+__declspec(dllexport) int AmdPowerXpressRequestHighPerformance = 1;
+}
+#endif
+
 // -------------------------------------------------------------------------------------------------
 
 void printHelp() {
@@ -95,14 +105,17 @@ int main(int argc, char** argv) {
 
   // Check for valid wavelengths.
   if (params.mWavelengths.size() < 3) {
-    throw std::runtime_error(
-        "At least three different wavelengths should be given in the scattering data!");
+    std::cerr << "At least three different wavelengths should be given in the scattering data!"
+              << std::endl;
+    return 1;
   } else if (params.mWavelengths.size() == 3 &&
              (params.mWavelengths[0] != Preprocessor::kLambdaB ||
                  params.mWavelengths[1] != Preprocessor::kLambdaG ||
                  params.mWavelengths[2] != Preprocessor::kLambdaR)) {
-    throw std::runtime_error("If three different wavelengths are given in the scattering data, "
-                             "they should be exactly for 440 nm, 550 nm, and 680 nm!");
+    std::cerr << "If three different wavelengths are given in the scattering data, they should be "
+                 "exactly for 440 nm, 550 nm, and 680 nm!"
+              << std::endl;
+    return 1;
   }
 
   // Initialize SDL.
