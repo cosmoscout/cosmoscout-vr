@@ -657,11 +657,11 @@ Preprocessor::Preprocessor(Params params)
   std::cout << "Preprocessing atmosphere..." << std::endl;
 
   // Compute angular radius of the sun.
-  float sunRadius             = 696340000; // meters
+  float sunRadius             = 696340000.F; // meters
   mMetadata.mSunAngularRadius = std::asin(sunRadius / mParams.mSunDistance);
 
   // Compute the values for the SUN_RADIANCE_TO_LUMINANCE constant.
-  float sunAngularRadiusAtEarth = 0.0046547; // radians
+  float sunAngularRadiusAtEarth = 0.0046547F; // radians
   float attenuation =
       std::pow(mMetadata.mSunAngularRadius, 2.F) / std::pow(sunAngularRadiusAtEarth, 2.F);
   float sunKR, sunKG, sunKB;
@@ -967,7 +967,7 @@ void Preprocessor::save(std::string const& directory) {
     TIFFClose(tiff);
   };
 
-  size_t numAngles = mParams.mMolecules.mPhase.size();
+  int numAngles = static_cast<int>(mParams.mMolecules.mPhase.size());
   write2D(directory + "/phase.tif", mPhaseTexture, numAngles, 2);
   write2D(directory + "/transmittance.tif", mTransmittanceTexture,
       mParams.mTransmittanceTextureWidth.get(), mParams.mTransmittanceTextureHeight.get());
