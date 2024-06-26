@@ -14,11 +14,11 @@
 
 #include <cassert>
 #include <cmath>
+#include <fstream>
 #include <glm/gtc/type_ptr.hpp>
 #include <iostream>
 #include <memory>
 #include <tiffio.h>
-#include <fstream>
 
 #include <glm/gtc/constants.hpp>
 
