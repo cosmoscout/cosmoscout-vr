@@ -126,15 +126,15 @@ Below are the input values which we currently use for Earth's atmosphere in Cosm
 
 ```bash
 # Molecules
-./scattering-table-generator density -i ../../../plugins/csp-atmospheres/preprocessor/density-settings/earth_bruneton_molecules.json -o earth_cosmoscout_molecules
+./scattering-table-generator density -i ../../../plugins/csp-atmospheres/scattering-table-generator/density-settings/earth_bruneton_molecules.json -o earth_cosmoscout_molecules
 ./scattering-table-generator rayleigh --scattering-depolarization 0.0279 --phase-depolarization 0.0279 --penndorf-ior --theta-samples 91 -o earth_cosmoscout_molecules
 
 # Aerosols
-./scattering-table-generator density -i ../../../plugins/csp-atmospheres/preprocessor/density-settings/earth_bruneton_aerosols.json -o earth_cosmoscout_aerosols
-./scattering-table-generator mie -i ../../../plugins/csp-atmospheres/preprocessor/mie-settings/earth_haze.json --theta-samples 91 --number-density 5e8 --radius-samples 10000 -o earth_cosmoscout_aerosols
+./scattering-table-generator density -i ../../../plugins/csp-atmospheres/scattering-table-generator/density-settings/earth_bruneton_aerosols.json -o earth_cosmoscout_aerosols
+./scattering-table-generator mie -i ../../../plugins/csp-atmospheres/scattering-table-generator/mie-settings/earth_haze.json --theta-samples 91 --number-density 5e8 --radius-samples 10000 -o earth_cosmoscout_aerosols
 
 # Ozone
-./scattering-table-generator density -i ../../../plugins/csp-atmospheres/preprocessor/density-settings/earth_bruneton_ozone.json -o earth_cosmoscout_ozone
+./scattering-table-generator density -i ../../../plugins/csp-atmospheres/scattering-table-generator/density-settings/earth_bruneton_ozone.json -o earth_cosmoscout_ozone
 ./scattering-table-generator ozone -o earth_cosmoscout_ozone
 ```
 
@@ -157,12 +157,12 @@ The molecules are identical in both versions; they only differ in the number of 
 
 ```bash
 # Molecules
-./scattering-table-generator density -i ../../../plugins/csp-atmospheres/preprocessor/density-settings/mars_cosmoscout_molecules.json -o mars_cosmoscout_molecules_realistic
+./scattering-table-generator density -i ../../../plugins/csp-atmospheres/scattering-table-generator/density-settings/mars_cosmoscout_molecules.json -o mars_cosmoscout_molecules_realistic
 ./scattering-table-generator rayleigh --ior 1.00000337 --scattering-depolarization 0.09 --phase-depolarization 0.09 --number-density 2.05e23 --theta-samples 91 -o mars_cosmoscout_molecules_realistic
 
 # Aerosols
-./scattering-table-generator density -i ../../../plugins/csp-atmospheres/preprocessor/density-settings/mars_cosmoscout_aerosols_realistic.json -o mars_cosmoscout_aerosols_realistic
-./scattering-table-generator mie -i ../../../plugins/csp-atmospheres/preprocessor/mie-settings/mars_realistic.json --theta-samples 91 --number-density 5e9 --radius-samples 10000 -o mars_cosmoscout_aerosols_realistic
+./scattering-table-generator density -i ../../../plugins/csp-atmospheres/scattering-table-generator/density-settings/mars_cosmoscout_aerosols_realistic.json -o mars_cosmoscout_aerosols_realistic
+./scattering-table-generator mie -i ../../../plugins/csp-atmospheres/scattering-table-generator/mie-settings/mars_realistic.json --theta-samples 91 --number-density 5e9 --radius-samples 10000 -o mars_cosmoscout_aerosols_realistic
 ```
 
 </details>
@@ -172,12 +172,12 @@ The molecules are identical in both versions; they only differ in the number of 
 
 ```bash
 # Molecules
-./scattering-table-generator density -i ../../../plugins/csp-atmospheres/preprocessor/density-settings/mars_cosmoscout_molecules.json -o mars_cosmoscout_molecules_cinematic
+./scattering-table-generator density -i ../../../plugins/csp-atmospheres/scattering-table-generator/density-settings/mars_cosmoscout_molecules.json -o mars_cosmoscout_molecules_cinematic
 ./scattering-table-generator rayleigh --lambdas 440e-9,550e-9,680e-9 --ior 1.00000337 --scattering-depolarization 0.09 --phase-depolarization 0.09 --number-density 2.05e23 --theta-samples 91 -o mars_cosmoscout_molecules_cinematic
 
 # Aerosols
-./scattering-table-generator density -i ../../../plugins/csp-atmospheres/preprocessor/density-settings/mars_cosmoscout_aerosols_cinematic.json -o mars_cosmoscout_aerosols_cinematic
-./scattering-table-generator mie --lambdas 440e-9,550e-9,680e-9 -i ../../../plugins/csp-atmospheres/preprocessor/mie-settings/mars_cinematic.json --phase-flattening 0.8 --theta-samples 91 --number-density 5e9 --radius-samples 10000 -o mars_cosmoscout_aerosols_cinematic
+./scattering-table-generator density -i ../../../plugins/csp-atmospheres/scattering-table-generator/density-settings/mars_cosmoscout_aerosols_cinematic.json -o mars_cosmoscout_aerosols_cinematic
+./scattering-table-generator mie --lambdas 440e-9,550e-9,680e-9 -i ../../../plugins/csp-atmospheres/scattering-table-generator/mie-settings/mars_cinematic.json --phase-flattening 0.8 --theta-samples 91 --number-density 5e9 --radius-samples 10000 -o mars_cosmoscout_aerosols_cinematic
 ```
 
 </details>
@@ -200,12 +200,12 @@ If we divide it by 100, we get plausible results.
 
 ```bash
 # Molecules
-./scattering-table-generator density -i ../../../plugins/csp-atmospheres/preprocessor/density-settings/earth_bruneton_molecules.json -o earth_bruneton2008_molecules
+./scattering-table-generator density -i ../../../plugins/csp-atmospheres/scattering-table-generator/density-settings/earth_bruneton_molecules.json -o earth_bruneton2008_molecules
 ./scattering-table-generator rayleigh --lambdas 440e-9,550e-9,680e-9 -o earth_bruneton2008_molecules
 ./scattering-table-generator manual --lambdas 440e-9,550e-9,680e-9 --quantity beta_sca --values 33.1e-6,15.5e-6,5.8e-6 -o earth_bruneton2008_molecules_scattering
 
 # Aerosols
-./scattering-table-generator density -i ../../../plugins/csp-atmospheres/preprocessor/density-settings/earth_bruneton_aerosols.json -o earth_bruneton2008_aerosols
+./scattering-table-generator density -i ../../../plugins/csp-atmospheres/scattering-table-generator/density-settings/earth_bruneton_aerosols.json -o earth_bruneton2008_aerosols
 ./scattering-table-generator cornette --lambdas 440e-9,550e-9,680e-9 --g 0.76 -o earth_bruneton2008_aerosols
 ./scattering-table-generator manual --lambdas 440e-9,550e-9,680e-9 --quantity beta_sca --values 2.1e-5 -o earth_bruneton2008_aerosols_scattering
 ./scattering-table-generator manual --lambdas 440e-9,550e-9,680e-9 --quantity beta_abs --values 2.1e-6 -o earth_bruneton2008_aerosols_absorption
@@ -225,16 +225,16 @@ In this paper, Eric Bruneton also included **Ozone**.
 
 ```bash
 # Molecules
-./scattering-table-generator density -i ../../../plugins/csp-atmospheres/preprocessor/density-settings/earth_bruneton_molecules.json -o earth_bruneton2016_molecules
+./scattering-table-generator density -i ../../../plugins/csp-atmospheres/scattering-table-generator/density-settings/earth_bruneton_molecules.json -o earth_bruneton2016_molecules
 ./scattering-table-generator rayleigh --lambda-samples 40 --penndorf-extinction -o earth_bruneton2016_molecules
 
 # Aerosols
-./scattering-table-generator density -i ../../../plugins/csp-atmospheres/preprocessor/density-settings/earth_bruneton_aerosols.json -o earth_bruneton2016_aerosols
+./scattering-table-generator density -i ../../../plugins/csp-atmospheres/scattering-table-generator/density-settings/earth_bruneton_aerosols.json -o earth_bruneton2016_aerosols
 ./scattering-table-generator cornette --lambda-samples 40 --g 0.7 -o earth_bruneton2016_aerosols
 ./scattering-table-generator angstrom --lambda-samples 40 --alpha 0.8 --beta 0.04 --single-scattering-albedo 0.8 --scale-height 1200 -o earth_bruneton2016_aerosols
 
 # Ozone
-./scattering-table-generator density -i ../../../plugins/csp-atmospheres/preprocessor/density-settings/earth_bruneton_ozone.json -o earth_bruneton2016_ozone
+./scattering-table-generator density -i ../../../plugins/csp-atmospheres/scattering-table-generator/density-settings/earth_bruneton_ozone.json -o earth_bruneton2016_ozone
 ./scattering-table-generator ozone --lambda-samples 40 -o earth_bruneton2016_ozone
 ```
 
@@ -256,17 +256,17 @@ They actually use a different **ozone** density profile than Bruneton, but the r
 
 ```bash
 # Molecules
-./scattering-table-generator density -i ../../../plugins/csp-atmospheres/preprocessor/density-settings/earth_bruneton_molecules.json -o earth_costa_molecules
+./scattering-table-generator density -i ../../../plugins/csp-atmospheres/scattering-table-generator/density-settings/earth_bruneton_molecules.json -o earth_costa_molecules
 ./scattering-table-generator rayleigh --lambdas 440e-9,550e-9,680e-9 --penndorf-ior --penndorf-phase --scattering-depolarization 0.0279 --number-density 2.68731e25 -o earth_costa_molecules
 
 # Aerosols
-./scattering-table-generator density -i ../../../plugins/csp-atmospheres/preprocessor/density-settings/earth_bruneton_aerosols.json -o earth_costa_aerosols
+./scattering-table-generator density -i ../../../plugins/csp-atmospheres/scattering-table-generator/density-settings/earth_bruneton_aerosols.json -o earth_costa_aerosols
 ./scattering-table-generator henyey --lambdas 440e-9,550e-9,680e-9 --g 0.85 -o earth_costa_aerosols
 ./scattering-table-generator manual --lambdas 440e-9,550e-9,680e-9 --quantity beta_sca --values 4e-5 -o earth_costa_aerosols_scattering
 ./scattering-table-generator manual --lambdas 440e-9,550e-9,680e-9 --quantity beta_abs --values 4e-6 -o earth_costa_aerosols_absorption
 
 # Ozone
-./scattering-table-generator density -i ../../../plugins/csp-atmospheres/preprocessor/density-settings/earth_bruneton_ozone.json -o earth_costa_ozone
+./scattering-table-generator density -i ../../../plugins/csp-atmospheres/scattering-table-generator/density-settings/earth_bruneton_ozone.json -o earth_costa_ozone
 ./scattering-table-generator ozone --lambdas 440e-9,550e-9,680e-9 -o earth_costa_ozone
 ```
 
@@ -282,12 +282,12 @@ In this paper, **molecules** are modelled using a manual parametrization of Rayl
 
 ```bash
 # Molecules
-./scattering-table-generator density -i ../../../plugins/csp-atmospheres/preprocessor/density-settings/mars_collienne_molecules.json -o mars_collienne_molecules
+./scattering-table-generator density -i ../../../plugins/csp-atmospheres/scattering-table-generator/density-settings/mars_collienne_molecules.json -o mars_collienne_molecules
 ./scattering-table-generator rayleigh --lambdas 440e-9,550e-9,680e-9 -o mars_collienne_molecules
 ./scattering-table-generator manual --lambdas 440e-9,550e-9,680e-9 --quantity beta_sca --values 5.75e-6,13.57e-6,19.918e-6 -o mars_collienne_molecules_scattering
 
 # Aerosols
-./scattering-table-generator density -i ../../../plugins/csp-atmospheres/preprocessor/density-settings/mars_collienne_aerosols.json -o mars_collienne_aerosols
+./scattering-table-generator density -i ../../../plugins/csp-atmospheres/scattering-table-generator/density-settings/mars_collienne_aerosols.json -o mars_collienne_aerosols
 ./scattering-table-generator cornette --lambdas 440e-9,550e-9,680e-9 --g 0.76 -o mars_collienne_aerosols
 ./scattering-table-generator manual --lambdas 440e-9,550e-9,680e-9 --quantity beta_sca --values 3e-6 -o mars_collienne_aerosols_scattering
 ./scattering-table-generator manual --lambdas 440e-9,550e-9,680e-9 --quantity beta_abs --values 0 -o mars_collienne_aerosols_absorption
@@ -325,11 +325,11 @@ The values below generate a plausible atmosphere, however most of the values are
 
 ```bash
 # Molecules
-./scattering-table-generator density -i ../../../plugins/csp-atmospheres/preprocessor/density-settings/mars_costa_molecules.json -o mars_costa_molecules
+./scattering-table-generator density -i ../../../plugins/csp-atmospheres/scattering-table-generator/density-settings/mars_costa_molecules.json -o mars_costa_molecules
 ./scattering-table-generator rayleigh --lambdas 440e-9,550e-9,680e-9 --ior 1.00000337 --penndorf-phase --scattering-depolarization 0.09 --number-density 2.05e23 -o mars_costa_molecules
 
 # Aerosols
-./scattering-table-generator density -i ../../../plugins/csp-atmospheres/preprocessor/density-settings/mars_costa_aerosols.json -o mars_costa_aerosols
+./scattering-table-generator density -i ../../../plugins/csp-atmospheres/scattering-table-generator/density-settings/mars_costa_aerosols.json -o mars_costa_aerosols
 ./scattering-table-generator hulst --lambdas 440e-9,550e-9,680e-9 --junge 4 --number-density 0.02e8 --kappa 0.07,0.16,0.31 --turbidity 1.01 --radius 1.6e-6 -n 1.52 -k 0.013,0.006,0.001 -o mars_costa_aerosols
 ./scattering-table-generator dhenyey --lambdas 440e-9,550e-9,680e-9 --g1 0.67,0.4,0.03 --g2 0.094,0.094,0.094 --alpha 0.743,0.743,0.743 -o mars_costa_aerosols
 
