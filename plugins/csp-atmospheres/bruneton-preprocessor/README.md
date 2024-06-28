@@ -47,6 +47,13 @@ install/linux-Release/bin/bruneton-preprocessor <settings.json> <output director
 For instance, the currently used lookup tables were generated with the following command:
 
 ```bash
+# For Windows (powershell)
+cd cosmoscout-vr
+$env:Path += ";install\windows-Release\lib"
+install\windows-Release\bin\bruneton-preprocessor.exe plugins/csp-atmospheres/bruneton-preprocessor/settings/earth.json plugins/csp-atmospheres/bruneton-preprocessor/output/earth
+install\windows-Release\bin\bruneton-preprocessor.exe plugins/csp-atmospheres/bruneton-preprocessor/settings/mars.json plugins/csp-atmospheres/bruneton-preprocessor/output/mars
+
+# For Linux (bash)
 cd cosmoscout-vr
 export LD_LIBRARY_PATH=install/linux-Release/lib:$LD_LIBRARY_PATH
 install/linux-Release/bin/bruneton-preprocessor plugins/csp-atmospheres/bruneton-preprocessor/settings/earth.json plugins/csp-atmospheres/bruneton-preprocessor/output/earth
