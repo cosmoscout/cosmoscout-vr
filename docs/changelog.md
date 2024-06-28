@@ -13,6 +13,10 @@ SPDX-License-Identifier: CC-BY-4.0
 
 **Release Date:** TBD
 
+#### Other Changes
+
+* It is now possible to use the vista debug text rendering again.
+
 #### Bug Fixes
 
 * Fixed invalid terrain height of LoD bodies after reloading of the scene settings.
