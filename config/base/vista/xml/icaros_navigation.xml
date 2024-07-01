@@ -17,16 +17,13 @@ This data flow net graph defines the interaction configuration for the ICAROS de
 
         <!-- calibrate-->
         <node name="key_calibrate_LatestUpdate" type="LatestUpdate[bool]"/>
-
         <node name="calibration_condition" type="ConditionalRoute"/>
-
         <node name="calibration" type="Substract[VistaVector3D]"/>
-
 
         <!-- time input -->
         <node name="timer" type="Timer" />
+
         <!-- icaros device input -->
-        
         <node name="icaros" type="DriverSensor">
             <param name="sensor_index" value="0" />
             <param name="driver" value="ICAROS" />
@@ -51,7 +48,6 @@ This data flow net graph defines the interaction configuration for the ICAROS de
         </node>
 
         <!-- rotation to translation -->
-
         <node name="movement" type="Compose3DVector" />
         <node name="down_movement" type="Multiply[float]"/>
      
@@ -60,7 +56,6 @@ This data flow net graph defines the interaction configuration for the ICAROS de
         <node name="orientation_invert" type="Invert[VistaQuaternion]"/>
         <node name="quaterionToEuler" type="QuaternionToEuler"/>
         <node name="deconstruct" type="Decompose3DVector"/>
-
 
         <node name="yaw" type="AxisRotate"/>
         <node name="yaw_angle" type="Multiply[float]"/>
@@ -116,7 +111,6 @@ This data flow net graph defines the interaction configuration for the ICAROS de
         </node>
 
         <!-- constant float values -->
-       
          <node name="zero" type="ConstantValue[float]">
             <param name="value" value="0"/>
         </node>
@@ -130,7 +124,6 @@ This data flow net graph defines the interaction configuration for the ICAROS de
         </node>
 
         <!-- setting values -->
-
         <node name="value_down_movement" type="ConstantValue[float]">
             <param name="value" value="0.02" />
         </node>
@@ -156,7 +149,6 @@ This data flow net graph defines the interaction configuration for the ICAROS de
         </node>
 
         <!-- speed values -->
-
         <node name="speed_level_0" type="ConstantValue[float]">
             <param name="value" value="0" />
         </node>
@@ -182,7 +174,6 @@ This data flow net graph defines the interaction configuration for the ICAROS de
         </node>
         
         <!-- clamp values -->
-
         <node name="clamp_low_value" type="ConstantValue[float]">
             <param name="value" value="0" />
         </node>
@@ -194,143 +185,97 @@ This data flow net graph defines the interaction configuration for the ICAROS de
         <node name="debug_text" type="SimpleText"/>
         
     </graph>
+
     <edges>
 
         <edge fromnode="icaros" tonode="history" fromport="history" toport="history" />
         <edge fromnode="sampling_mode" tonode="history" fromport="value" toport="sampling_mode" />
-        <edge fromnode="history" tonode="debug_text" fromport="ORIENTATION"  toport="in_1" />
         <edge fromnode="history" tonode="orientation_invert" fromport="ORIENTATION" toport="in" />
+        <!-- debug text history -->
+        <edge fromnode="history" tonode="debug_text" fromport="ORIENTATION"  toport="history_Orientation" />
 
         <edge fromnode="orientation_invert" tonode="quaterionToEuler" fromport="out" toport="quaternion" />
-
-        <edge fromnode="orientation_invert" tonode="debug_text" fromport="out"  toport="orientation_invert" />
-
         <edge fromnode="calibration" tonode="deconstruct" fromport="out" toport="in" />
-
-        <edge fromnode="calibration" tonode="debug_text" fromport="out"  toport="calibration" />
-
+        <!-- debug text calibartion -->
+        <edge fromnode="calibration" tonode="debug_text" fromport="out"  toport="Calibration" />
 
         <edge fromnode="deconstruct" tonode="down_movement" fromport="x"  toport="first" />
-
-        <edge fromnode="deconstruct" tonode="debug_text" fromport="x"  toport="deconstructX" />
-
         <edge fromnode="value_down_movement" tonode="down_movement" fromport="value"  toport="second" />
-
-        <edge fromnode="down_movement" tonode="movement" fromport="out"  toport="y" />
-        <edge fromnode="zero" tonode="movement" fromport="value" toport="x" />
-        <edge fromnode="zero" tonode="movement" fromport="value" toport="z" />
-
-        <!-- von hier Rotation /> -->
+        <!-- debug text movement -->
 
         <edge fromnode="deconstruct" tonode="calibrate" fromport="y" toport="first" />
         <edge fromnode="calibrate_value" tonode="calibrate" fromport="value" toport="second" />
-
-
         <edge fromnode="calibrate" tonode="roll_absolute" fromport="out" toport="in" />
         <edge fromnode="calibrate" tonode="roll_bool" fromport="out" toport="first" />
         <edge fromnode="zero" tonode="roll_bool" fromport="value" toport="second" />
-
         <edge fromnode="roll_bool" tonode="roll_sign_invert_bool" fromport="out" toport="in" />
         <edge fromnode="roll_sign_invert_bool" tonode="roll_sign_null_one" fromport="out" toport="in" />
         <edge fromnode="roll_sign_null_one" tonode="roll_sign_multiply" fromport="out" toport="first" />
         <edge fromnode="two" tonode="roll_sign_multiply" fromport="value" toport="second" />
-
         <edge fromnode="roll_sign_multiply" tonode="roll_sign" fromport="out" toport="first" />
         <edge fromnode="minusOne" tonode="roll_sign" fromport="value" toport="second" />
-
         <edge fromnode="roll_absolute" tonode="roll_limited" fromport="out" toport="in" />
         <edge fromnode="threshhold_value" tonode="roll_limited" fromport="value" toport="threshold" />
         <edge fromnode="roll_limited" tonode="roll" fromport="out" toport="first" />
         <edge fromnode="roll_sign" tonode="roll" fromport="out" toport="second" />
-
-       <!-- <edge fromnode="roll_sign" tonode="debug_text" fromport="out" toport="roll_sign" /> -->
-
         <edge fromnode="roll" tonode="yaw_angle" fromport="out" toport="first" />
         <edge fromnode="yaw_angles_value" tonode="yaw_angle" fromport="value" toport="second" />
-
-        <edge fromnode="calibrate_value" tonode="debug_text" fromport="value"  toport="in_value_calbibrate" />
-        <edge fromnode="deconstruct" tonode="debug_text" fromport="y" toport="in_y" />
-        <edge fromnode="calibrate" tonode="debug_text" fromport="out"  toport="in_value_calbibrate" />
-        <edge fromnode="calibrate" tonode="debug_text" fromport="out" toport="in_calibrate" />
-        <edge fromnode="roll_bool" tonode="debug_text" fromport="out"  toport="roll_bool" />
-        <edge fromnode="roll_sign_invert_bool" tonode="debug_text" fromport="out" toport="roll_sign_invert_bool" />
-        <edge fromnode="roll_sign_null_one" tonode="debug_text" fromport="out" toport="roll_sign_null_one" />
-        <edge fromnode="roll_sign_multiply" tonode="debug_text" fromport="out" toport="roll_sign_multiply" />
-        <edge fromnode="roll_absolute" tonode="debug_text" fromport="out" toport="roll_absolute" />
-        <edge fromnode="threshhold_value" tonode="debug_text" fromport="value" toport="threshhold_value" />
-        <edge fromnode="roll_limited" tonode="debug_text" fromport="out" toport="roll_limited" />
-        <edge fromnode="roll" tonode="debug_text" fromport="out" toport="roll" />
-        <edge fromnode="yaw_angles_value" tonode="debug_text" fromport="value" toport="yaw_angles_value" />
-
-        
-       <!-- bis hier /> -->
+         <edge fromnode="yaw_angle" tonode="yaw" fromport="out" toport="angle" />
+        <edge fromnode="yaw_axis" tonode="yaw" fromport="value" toport="axis" />
+       <!-- debug text rolling to yaw -->
+        <edge fromnode="yaw_angle" tonode="debug_text" fromport="out" toport="yaw_angle_value" />
 
         <edge fromnode="history" tonode="key_speed_up" fromport="BUTTON_2" toport="in_1" />
         <edge fromnode="history" tonode="key_speed_down" fromport="BUTTON_3" toport="in_1" />
-
         <edge fromnode="key_speed_up" tonode="convert_speed_up" fromport="out" toport="in" />
         <edge fromnode="key_speed_down" tonode="convert_speed_down" fromport="out" toport="in" />
-
         <edge fromnode="convert_speed_up" tonode="delta_int_speed" fromport="out" toport="first" />
         <edge fromnode="convert_speed_down" tonode="delta_int_speed" fromport="out" toport="second" />
-
         <edge fromnode="delta_int_speed" tonode="delta_absolut" fromport="out" toport="in" />
         <edge fromnode="delta_absolut" tonode="delta_bool" fromport="out" toport="in" /> 
-
         <edge fromnode="clamp_low_value" tonode="clamp_low" fromport="value"  toport="first" />
         <edge fromnode="clamp_high_value" tonode="clamp_high" fromport="value"  toport="first" />
-
-
         <edge fromnode="delta_int_speed" tonode="speed_level" fromport="out"  toport="second" />
         <edge fromnode="last_speed_level" tonode="speed_level" fromport="value"  toport="first" />
         <edge fromnode="speed_level" tonode="clamp_low" fromport="out"  toport="second" />
         <edge fromnode="clamp_low" tonode="clamp_high" fromport="out"  toport="second" />
         <edge fromnode="clamp_high" tonode="speed_level" fromport="out"  toport="first" />
-
         <edge fromnode="speed_level" tonode="speed_level_int" fromport="out"  toport="in" />
-      <!--  <edge fromnode="speed_level_int" tonode="debug_text" fromport="out"  toport="speed_level_int" /> -->
+       <!-- debug text speedlevel /> -->
+        <edge fromnode="speed_level" tonode="debug_text" fromport="out" toport="speed_level" />
 
         <edge fromnode="speed_level_int" tonode="delta_multiplex" fromport="out"  toport="select" />
-
         <edge fromnode="speed_level_0" tonode="delta_multiplex" fromport="value"  toport="0" />
         <edge fromnode="speed_level_1" tonode="delta_multiplex" fromport="value"  toport="1" />
         <edge fromnode="speed_level_2" tonode="delta_multiplex" fromport="value"  toport="2" />
         <edge fromnode="speed_level_3" tonode="delta_multiplex" fromport="value"  toport="3" />
         <edge fromnode="speed_level_4" tonode="delta_multiplex" fromport="value"  toport="4" />
         <edge fromnode="speed_level_5" tonode="delta_multiplex" fromport="value"  toport="5" />
-
-      <!--  <edge fromnode="delta_multiplex" tonode="debug_text" fromport="out"  toport="delta_multiplex" /> -->
-
         <edge fromnode="delta_multiplex" tonode="updated_speed" fromport="out" toport="second" />
         <edge fromnode="observer_speed" tonode="updated_speed" fromport="value" toport="first" />
-     <!--   <edge fromnode="updated_speed" tonode="debug_text" fromport="out"  toport="updated_speed" /> -->
+        <!-- debug text speedlevel /> -->
 
-        <edge fromnode="updated_speed" tonode="movement" fromport="out"  toport="z" />
-
-        <!-- von hier Geschwindigkeit /> -->
-
-        <edge fromnode="key_calibrate" tonode="debug_text" fromport="state"  toport="key_calibrate_l" />
 
         <edge fromnode="key_calibrate" tonode="key_calibrate_LatestUpdate" fromport="state"  toport="in_1" />
         <edge fromnode="key_calibrate_LatestUpdate" tonode="calibration_condition" fromport="out"  toport="trigger" />
         <edge fromnode="quaterionToEuler" tonode="calibration_condition" fromport="out"  toport="euler" />
         <edge fromnode="calibration_condition" tonode="calibration" fromport="euler"  toport="second" />
         <edge fromnode="quaterionToEuler" tonode="calibration" fromport="out"  toport="first" />
+        <!-- debug text speedlevel /> -->
 
 
-
-
-        <!-- bis hier /> -->
-
-    <!--    <edge fromnode="yaw" tonode="debug_text" fromport="out"  toport="yaw" /> 
-        <edge fromnode="movement" tonode="debug_text" fromport="out"  toport="movement" /> -->
-
-        <edge fromnode="yaw_angle" tonode="yaw" fromport="out" toport="angle" />
-        <edge fromnode="yaw_axis" tonode="yaw" fromport="value" toport="axis" />
-
+        <edge fromnode="down_movement" tonode="movement" fromport="out"  toport="y" />
+        <edge fromnode="zero" tonode="movement" fromport="value" toport="x" />
+        <edge fromnode="zero" tonode="movement" fromport="value" toport="z" />
+        <edge fromnode="updated_speed" tonode="movement" fromport="out"  toport="z" />
         <edge fromnode="yaw" tonode="observer" fromport="out" toport="rotation" />
         <edge fromnode="movement" tonode="observer" fromport="out" toport="translation" />
         <edge fromnode="timer" tonode="observer" fromport="time" toport="time" />
+        <!-- debug text speedlevel /> -->
+        <edge fromnode="down_movement" tonode="debug_text" fromport="out" toport="down_movement" />
+        <edge fromnode="updated_speed" tonode="debug_text" fromport="out" toport="updated_speed" />
+
+
 
 
     </edges>
