@@ -1687,7 +1687,6 @@ void Application::registerGuiCallbacks() {
             mSolarSystem->getObserver().getFrameName(), cart, rotation, duration.value_or(3.0));
       }));
 
-      
   mGuiManager->getGui()->registerCallback("input.reloadDFNs",
       "Reloads the DFNs. This can be used to hot reload the DFNs, when editing the interaction"
       "xml files.",
@@ -1699,8 +1698,8 @@ void Application::registerGuiCallbacks() {
           auto* context = interactionManager->GetInteractionContext(i);
           interactionManager->ReloadGraphForContext(
               context, GetVistaSystem()->GetClusterMode()->GetNodeName());
-      }
-  }));
+        }
+      }));
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
