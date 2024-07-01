@@ -37,6 +37,7 @@
 #include <VistaKernel/EventManager/VistaSystemEvent.h>
 #include <VistaKernel/GraphicsManager/VistaSceneGraph.h>
 #include <VistaKernel/GraphicsManager/VistaTransformNode.h>
+#include <VistaKernel/InteractionManager/VistaInteractionManager.h>
 #include <VistaKernel/VistaSystem.h>
 #include <VistaOGLExt/VistaShaderRegistry.h>
 #include <curlpp/cURLpp.hpp>
