@@ -16,6 +16,7 @@ SPDX-License-Identifier: CC-BY-4.0
 #### Other Changes
 
 * It is now possible to use the vista debug text rendering again.
+* New callback `CosmoScout.callbacks.input.reloadDFNs()` to hot reload DFN xml files.
 
 #### Bug Fixes
 
