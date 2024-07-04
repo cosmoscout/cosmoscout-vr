@@ -47,12 +47,12 @@ This data flow net graph defines the interaction configuration for the ICAROS de
             <param name="prevent_navigation_when_hovered_gui" value="false" />
         </node>
 
-        <!-- rotation to translation -->
-        <node name="movement" type="Compose3DVector" />
-        <node name="down_movement" type="Multiply[float]"/>
-     
-
         <!-- rotation -->
+        <node name="movement" type="Compose3DVector" />
+        <node name="rotation" type="Multiply[VistaQuaternion]" />
+
+
+        <!-- yaw rotation -->
         <node name="orientation_invert" type="Invert[VistaQuaternion]"/>
         <node name="quaterionToEuler" type="QuaternionToEuler"/>
         <node name="deconstruct" type="Decompose3DVector"/>
@@ -72,6 +72,9 @@ This data flow net graph defines the interaction configuration for the ICAROS de
         <node name="roll_sign" type="Substract[float]"/>  
 
         <node name="roll" type="Multiply[float]"/>      
+        <!-- pitch rotaion  -->
+        <node name="pitch_calibrate" type="Multiply[float]"/>      
+        <node name="pitch" type="AxisRotate"/>
 
         <!-- speed -->
         <node name="key_speed_up" type="LatestUpdate[bool]"/>
@@ -124,8 +127,8 @@ This data flow net graph defines the interaction configuration for the ICAROS de
         </node>
 
         <!-- setting values -->
-        <node name="value_down_movement" type="ConstantValue[float]">
-            <param name="value" value="0.02" />
+        <node name="pitch_calibrate_value" type="ConstantValue[float]">
+            <param name="value" value="0.2" />
         </node>
 
         <node name="yaw_angles_value" type="ConstantValue[float]">
@@ -144,8 +147,12 @@ This data flow net graph defines the interaction configuration for the ICAROS de
             <param name="value" value="0.0" />
         </node>
 
-         <node name="yaw_axis" type="ConstantValue[VistaVector3D]">
+        <node name="yaw_axis" type="ConstantValue[VistaVector3D]">
             <param name="value" value="0,1,0,0" />
+        </node>
+
+        <node name="pitch_axis" type="ConstantValue[VistaVector3D]">
+            <param name="value" value="1,0,0,0" />
         </node>
 
         <!-- speed values -->
@@ -198,11 +205,21 @@ This data flow net graph defines the interaction configuration for the ICAROS de
         <edge fromnode="calibration" tonode="deconstruct" fromport="out" toport="in" />
         <!-- debug text calibartion -->
         <edge fromnode="calibration" tonode="debug_text" fromport="out"  toport="Calibration" />
+        <edge fromnode="orientation_invert" tonode="debug_text" fromport="out"  toport="_Orientation" />
 
-        <edge fromnode="deconstruct" tonode="down_movement" fromport="x"  toport="first" />
-        <edge fromnode="value_down_movement" tonode="down_movement" fromport="value"  toport="second" />
+        <edge fromnode="deconstruct" tonode="pitch_calibrate" fromport="x"  toport="first" />
+        <edge fromnode="pitch_calibrate_value" tonode="pitch_calibrate" fromport="value"  toport="second" />
+        <edge fromnode="pitch_calibrate" tonode="pitch" fromport="out"  toport="angle" />
+        <edge fromnode="pitch_axis" tonode="pitch" fromport="value"  toport="axis" />
         <!-- debug text movement -->
+        <edge fromnode="deconstruct" tonode="debug_text" fromport="x" toport="x" />
+        <edge fromnode="deconstruct" tonode="debug_text" fromport="y" toport="y" />
+        <edge fromnode="pitch_calibrate_value" tonode="debug_text" fromport="value" toport="pitch_calibrate_value" />
+        <edge fromnode="pitch_calibrate" tonode="debug_text" fromport="out" toport="pitch_calibrate" />
+        <edge fromnode="pitch_axis" tonode="debug_text" fromport="value" toport="pitch_axis" />
 
+
+        <!-- debug text movement -->
         <edge fromnode="deconstruct" tonode="calibrate" fromport="y" toport="first" />
         <edge fromnode="calibrate_value" tonode="calibrate" fromport="value" toport="second" />
         <edge fromnode="calibrate" tonode="roll_absolute" fromport="out" toport="in" />
@@ -224,6 +241,7 @@ This data flow net graph defines the interaction configuration for the ICAROS de
         <edge fromnode="yaw_axis" tonode="yaw" fromport="value" toport="axis" />
        <!-- debug text rolling to yaw -->
         <edge fromnode="yaw_angle" tonode="debug_text" fromport="out" toport="yaw_angle_value" />
+
 
         <edge fromnode="history" tonode="key_speed_up" fromport="BUTTON_2" toport="in_1" />
         <edge fromnode="history" tonode="key_speed_down" fromport="BUTTON_3" toport="in_1" />
@@ -264,19 +282,21 @@ This data flow net graph defines the interaction configuration for the ICAROS de
         <!-- debug text speedlevel /> -->
 
 
-        <edge fromnode="down_movement" tonode="movement" fromport="out"  toport="y" />
+        <edge fromnode="yaw" tonode="rotation" fromport="out" toport="first" />
+        <edge fromnode="pitch" tonode="rotation" fromport="out" toport="second" />
+        <edge fromnode="rotation" tonode="observer" fromport="out" toport="rotation" />
+        <!-- debug text speedlevel /> -->
+        <edge fromnode="yaw" tonode="debug_text" fromport="out" toport="yaw" />
+        <edge fromnode="pitch" tonode="debug_text" fromport="out" toport="pitch" />
+        <edge fromnode="rotation" tonode="debug_text" fromport="out" toport="rotate" />
+
+
         <edge fromnode="zero" tonode="movement" fromport="value" toport="x" />
         <edge fromnode="zero" tonode="movement" fromport="value" toport="z" />
         <edge fromnode="updated_speed" tonode="movement" fromport="out"  toport="z" />
-        <edge fromnode="yaw" tonode="observer" fromport="out" toport="rotation" />
         <edge fromnode="movement" tonode="observer" fromport="out" toport="translation" />
         <edge fromnode="timer" tonode="observer" fromport="time" toport="time" />
         <!-- debug text speedlevel /> -->
-        <edge fromnode="down_movement" tonode="debug_text" fromport="out" toport="down_movement" />
-        <edge fromnode="updated_speed" tonode="debug_text" fromport="out" toport="updated_speed" />
-
-
-
 
     </edges>
     
