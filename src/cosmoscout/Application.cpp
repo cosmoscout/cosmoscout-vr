@@ -37,6 +37,7 @@
 #include <VistaKernel/EventManager/VistaSystemEvent.h>
 #include <VistaKernel/GraphicsManager/VistaSceneGraph.h>
 #include <VistaKernel/GraphicsManager/VistaTransformNode.h>
+#include <VistaKernel/InteractionManager/VistaInteractionManager.h>
 #include <VistaKernel/VistaSystem.h>
 #include <VistaOGLExt/VistaShaderRegistry.h>
 #include <curlpp/cURLpp.hpp>
@@ -1685,6 +1686,20 @@ void Application::registerGuiCallbacks() {
         mSolarSystem->flyObserverTo(mSolarSystem->getObserver().getCenterName(),
             mSolarSystem->getObserver().getFrameName(), cart, rotation, duration.value_or(3.0));
       }));
+
+  mGuiManager->getGui()->registerCallback("input.reloadDFNs",
+      "Reloads the DFNs. This can be used to hot reload the DFNs, when editing the interaction"
+      "xml files.",
+      std::function([] {
+        auto* interactionManager = GetVistaSystem()->GetInteractionManager();
+        auto  numContexts        = interactionManager->GetNumInteractionContexts();
+
+        for (int i = 0; i < numContexts; ++i) {
+          auto* context = interactionManager->GetInteractionContext(i);
+          interactionManager->ReloadGraphForContext(
+              context, GetVistaSystem()->GetClusterMode()->GetNodeName());
+        }
+      }));
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1724,6 +1739,7 @@ void Application::unregisterGuiCallbacks() {
   mGuiManager->getGui()->unregisterCallback("graphics.setGlareQuality");
   mGuiManager->getGui()->unregisterCallback("graphics.setExposureRange");
   mGuiManager->getGui()->unregisterCallback("graphics.setFixedSunDirection");
+  mGuiManager->getGui()->unregisterCallback("input.reloadDFNs");
   mGuiManager->getGui()->unregisterCallback("navigation.fixHorizon");
   mGuiManager->getGui()->unregisterCallback("navigation.northUp");
   mGuiManager->getGui()->unregisterCallback("navigation.setBody");
