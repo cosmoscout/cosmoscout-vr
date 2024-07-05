@@ -50,6 +50,7 @@ This data flow net graph defines the interaction configuration for the ICAROS de
         <!-- rotation -->
         <node name="movement" type="Compose3DVector" />
         <node name="rotation" type="Multiply[VistaQuaternion]" />
+        <node name="translation"   type="Compose3DVector" />
 
 
         <!-- yaw rotation -->
@@ -100,7 +101,7 @@ This data flow net graph defines the interaction configuration for the ICAROS de
         <node name="speed_level" type="Add[float]"/>
 
         <node name="observer_speed" type="ConstantValue[float]">
-            <param name="value" value="0.35"/>
+            <param name="value" value="-0.20"/>
         </node>
 
         <node name="clamp_high" type="Min[float]"/>
@@ -128,7 +129,7 @@ This data flow net graph defines the interaction configuration for the ICAROS de
 
         <!-- setting values -->
         <node name="pitch_calibrate_value" type="ConstantValue[float]">
-            <param name="value" value="0.2" />
+            <param name="value" value="0.1" />
         </node>
 
         <node name="yaw_angles_value" type="ConstantValue[float]">
@@ -161,23 +162,23 @@ This data flow net graph defines the interaction configuration for the ICAROS de
         </node>
 
         <node name="speed_level_1" type="ConstantValue[float]">
-            <param name="value" value="-0.25" />
+            <param name="value" value="0.25" />
         </node>
 
          <node name="speed_level_2" type="ConstantValue[float]">
-            <param name="value" value="-0.5" />
+            <param name="value" value="0.5" />
         </node>
 
         <node name="speed_level_3" type="ConstantValue[float]">
-            <param name="value" value="-1" />
+            <param name="value" value="0.6" />
         </node>
 
         <node name="speed_level_4" type="ConstantValue[float]">
-            <param name="value" value="-0.4" />
-        </node>
+            <param name="value" value="0.7" />
+        </node>      
 
         <node name="speed_level_5" type="ConstantValue[float]">
-            <param name="value" value="-0.5" />
+            <param name="value" value="2.0" />
         </node>
         
         <!-- clamp values -->
@@ -185,7 +186,7 @@ This data flow net graph defines the interaction configuration for the ICAROS de
             <param name="value" value="0" />
         </node>
         <node name="clamp_high_value" type="ConstantValue[float]">
-            <param name="value" value="6" />
+            <param name="value" value="5" />
         </node>
 
         <!-- debug text -->
@@ -204,22 +205,14 @@ This data flow net graph defines the interaction configuration for the ICAROS de
         <edge fromnode="orientation_invert" tonode="quaterionToEuler" fromport="out" toport="quaternion" />
         <edge fromnode="calibration" tonode="deconstruct" fromport="out" toport="in" />
         <!-- debug text calibartion -->
-        <edge fromnode="calibration" tonode="debug_text" fromport="out"  toport="Calibration" />
-        <edge fromnode="orientation_invert" tonode="debug_text" fromport="out"  toport="_Orientation" />
 
         <edge fromnode="deconstruct" tonode="pitch_calibrate" fromport="x"  toport="first" />
         <edge fromnode="pitch_calibrate_value" tonode="pitch_calibrate" fromport="value"  toport="second" />
         <edge fromnode="pitch_calibrate" tonode="pitch" fromport="out"  toport="angle" />
         <edge fromnode="pitch_axis" tonode="pitch" fromport="value"  toport="axis" />
         <!-- debug text movement -->
-        <edge fromnode="deconstruct" tonode="debug_text" fromport="x" toport="x" />
-        <edge fromnode="deconstruct" tonode="debug_text" fromport="y" toport="y" />
-        <edge fromnode="pitch_calibrate_value" tonode="debug_text" fromport="value" toport="pitch_calibrate_value" />
-        <edge fromnode="pitch_calibrate" tonode="debug_text" fromport="out" toport="pitch_calibrate" />
-        <edge fromnode="pitch_axis" tonode="debug_text" fromport="value" toport="pitch_axis" />
 
 
-        <!-- debug text movement -->
         <edge fromnode="deconstruct" tonode="calibrate" fromport="y" toport="first" />
         <edge fromnode="calibrate_value" tonode="calibrate" fromport="value" toport="second" />
         <edge fromnode="calibrate" tonode="roll_absolute" fromport="out" toport="in" />
@@ -272,6 +265,9 @@ This data flow net graph defines the interaction configuration for the ICAROS de
         <edge fromnode="delta_multiplex" tonode="updated_speed" fromport="out" toport="second" />
         <edge fromnode="observer_speed" tonode="updated_speed" fromport="value" toport="first" />
         <!-- debug text speedlevel /> -->
+        <edge fromnode="observer_speed" tonode="debug_text" fromport="value" toport="observer_speed" />
+        <edge fromnode="delta_multiplex" tonode="debug_text" fromport="out" toport="delta_multiplex" />
+        <edge fromnode="updated_speed" tonode="debug_text" fromport="out" toport="updated_speed" />
 
 
         <edge fromnode="key_calibrate" tonode="key_calibrate_LatestUpdate" fromport="state"  toport="in_1" />
@@ -286,17 +282,15 @@ This data flow net graph defines the interaction configuration for the ICAROS de
         <edge fromnode="pitch" tonode="rotation" fromport="out" toport="second" />
         <edge fromnode="rotation" tonode="observer" fromport="out" toport="rotation" />
         <!-- debug text speedlevel /> -->
-        <edge fromnode="yaw" tonode="debug_text" fromport="out" toport="yaw" />
-        <edge fromnode="pitch" tonode="debug_text" fromport="out" toport="pitch" />
-        <edge fromnode="rotation" tonode="debug_text" fromport="out" toport="rotate" />
 
 
+        <edge fromnode="zero" tonode="movement" fromport="value" toport="y" />
         <edge fromnode="zero" tonode="movement" fromport="value" toport="x" />
-        <edge fromnode="zero" tonode="movement" fromport="value" toport="z" />
         <edge fromnode="updated_speed" tonode="movement" fromport="out"  toport="z" />
         <edge fromnode="movement" tonode="observer" fromport="out" toport="translation" />
         <edge fromnode="timer" tonode="observer" fromport="time" toport="time" />
         <!-- debug text speedlevel /> -->
+        <edge fromnode="movement" tonode="debug_text" fromport="out" toport="translation" />
 
     </edges>
     
