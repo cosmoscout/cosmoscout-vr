@@ -12,28 +12,22 @@ file(GLOB SOURCE_FILES *.cpp */*.cpp)
 # Header files are only added in order to make them available in your IDE.
 file(GLOB HEADER_FILES *.hpp */*.hpp)
 
-add_library(cs-core SHARED
+add_library(cs-audio SHARED
   ${SOURCE_FILES}
   ${HEADER_FILES}
 )
 
-target_link_libraries(cs-core
+target_link_libraries(cs-audio
   PUBLIC
-    cs-scene
-    cs-graphics
-    cs-audio
-    cs-gui
+    ${SNDFILE_LIBRARY}
+    ${OPENAL_LIBRARY}
     cs-utils
+    cs-scene
 )
 
 if(COSMOSCOUT_USE_PRECOMPILED_HEADERS)
-  target_precompile_headers(cs-core PRIVATE precompiled.pch)
+  target_precompile_headers(cs-audio PRIVATE precompiled.pch)
 endif()
-
-target_include_directories(cs-core
-  PUBLIC
-    ${VISTACORELIBS_INCLUDE_DIRS}
-)
 
 # Make directory structure available in your IDE.
 source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}" PREFIX "src" FILES
@@ -42,10 +36,11 @@ source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}" PREFIX "src" FILES
 
 # install the library ------------------------------------------------------------------------------
 
-install(TARGETS cs-core DESTINATION lib)
+install(TARGETS cs-audio DESTINATION lib)
+install(DIRECTORY "gui"  DESTINATION "share/resources")
 
 # export header ------------------------------------------------------------------------------------
 
-generate_export_header(cs-core
-  EXPORT_FILE_NAME cs_core_export.hpp
+generate_export_header(cs-audio
+  EXPORT_FILE_NAME cs_audio_export.hpp
 )

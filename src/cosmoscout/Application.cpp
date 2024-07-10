@@ -116,6 +116,7 @@ bool Application::Init(VistaSystem* pVistaSystem) {
   mSolarSystem = std::make_shared<cs::core::SolarSystem>(mSettings, mGraphicsEngine, mTimeControl);
   mDragNavigation =
       std::make_unique<cs::core::DragNavigation>(mSolarSystem, mInputManager, mTimeControl);
+  mAudioEngine = std::make_shared<cs::core::AudioEngine>(mSettings, mGuiManager);
 
   // The ObserverNavigationNode is used by several DFN networks to move the celestial observer.
   VdfnNodeFactory* pNodeFactory = VdfnNodeFactory::GetSingleton();
@@ -212,6 +213,9 @@ void Application::Quit() {
 
   assertCleanUp("mTimeControl", mTimeControl.use_count());
   mTimeControl.reset();
+
+  assertCleanUp("mAudioEngine", mAudioEngine.use_count());
+  mAudioEngine.reset();
 
   assertCleanUp("mGuiManager", mGuiManager.use_count());
   mGuiManager.reset();
@@ -559,6 +563,12 @@ void Application::FrameUpdate() {
       cs::utils::FrameStats::ScopedTimer timer("Update Graphics Engine");
       mGraphicsEngine->update(glm::normalize(mSolarSystem->pSunPosition.get()));
     }
+
+    // Update the AudioEngine
+    {
+      cs::utils::FrameStats::ScopedTimer timer("Update Audio Engine");
+      mAudioEngine->update();
+    }
   }
 
   // Update the user interface.
@@ -756,7 +766,8 @@ void Application::initPlugin(std::string const& name) {
 
       // First provide the plugin with all required class instances.
       plugin->second.mPlugin->setAPI(mSettings, mSolarSystem, mGuiManager, mInputManager,
-          GetVistaSystem()->GetGraphicsManager()->GetSceneGraph(), mGraphicsEngine, mTimeControl);
+          GetVistaSystem()->GetGraphicsManager()->GetSceneGraph(), mGraphicsEngine, mAudioEngine,
+          mTimeControl);
 
       // Then do the actual initialization. This may actually take a while and the application will
       // become unresponsive in the meantime.
