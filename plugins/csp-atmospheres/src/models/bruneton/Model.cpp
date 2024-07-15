@@ -3,13 +3,22 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
-// SPDX-FileCopyrightText: 2017 Eric Bruneton
-// SPDX-License-Identifier: BSD-3-Clause
+// SPDX-License-Identifier: MIT
 
 #include "Model.hpp"
 
+#include "../../../src/cs-utils/filesystem.hpp"
+#include "../../../src/cs-utils/utils.hpp"
 #include "../../logger.hpp"
-#include "internal/csv.hpp"
+#include "Metadata.hpp"
+
+#include <cassert>
+#include <cmath>
+#include <fstream>
+#include <glm/gtc/type_ptr.hpp>
+#include <iostream>
+#include <memory>
+#include <tiffio.h>
 
 #include <glm/gtc/constants.hpp>
 
@@ -17,79 +26,23 @@ namespace csp::atmospheres::models::bruneton {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void from_json(nlohmann::json const& j, Model::Settings::ScatteringComponent& o) {
-  cs::core::Settings::deserialize(j, "betaSca", o.mBetaSca);
-  cs::core::Settings::deserialize(j, "betaAbs", o.mBetaAbs);
-  cs::core::Settings::deserialize(j, "phase", o.mPhase);
-  cs::core::Settings::deserialize(j, "density", o.mDensity);
-}
-
-void to_json(nlohmann::json& j, Model::Settings::ScatteringComponent const& o) {
-  cs::core::Settings::serialize(j, "betaSca", o.mBetaSca);
-  cs::core::Settings::serialize(j, "betaAbs", o.mBetaAbs);
-  cs::core::Settings::serialize(j, "phase", o.mPhase);
-  cs::core::Settings::serialize(j, "density", o.mDensity);
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void from_json(nlohmann::json const& j, Model::Settings::AbsorbingComponent& o) {
-  cs::core::Settings::deserialize(j, "betaAbs", o.mBetaAbs);
-  cs::core::Settings::deserialize(j, "density", o.mDensity);
-}
-
-void to_json(nlohmann::json& j, Model::Settings::AbsorbingComponent const& o) {
-  cs::core::Settings::serialize(j, "betaAbs", o.mBetaAbs);
-  cs::core::Settings::serialize(j, "density", o.mDensity);
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
 void from_json(nlohmann::json const& j, Model::Settings& o) {
-  cs::core::Settings::deserialize(j, "sunAngularRadius", o.mSunAngularRadius);
-  cs::core::Settings::deserialize(j, "molecules", o.mMolecules);
-  cs::core::Settings::deserialize(j, "aerosols", o.mAerosols);
-  cs::core::Settings::deserialize(j, "ozone", o.mOzone);
-  cs::core::Settings::deserialize(j, "groundAlbedo", o.mGroundAlbedo);
-  cs::core::Settings::deserialize(j, "multiScatteringOrder", o.mMultiScatteringOrder);
-  cs::core::Settings::deserialize(j, "sampleCountOpticalDepth", o.mSampleCountOpticalDepth);
-  cs::core::Settings::deserialize(j, "sampleCountSingleScattering", o.mSampleCountSingleScattering);
-  cs::core::Settings::deserialize(j, "sampleCountMultiScattering", o.mSampleCountMultiScattering);
-  cs::core::Settings::deserialize(
-      j, "sampleCountScatteringDensity", o.mSampleCountScatteringDensity);
-  cs::core::Settings::deserialize(
-      j, "sampleCountIndirectIrradiance", o.mSampleCountIndirectIrradiance);
-  cs::core::Settings::deserialize(j, "transmittanceTextureWidth", o.mTransmittanceTextureWidth);
-  cs::core::Settings::deserialize(j, "transmittanceTextureHeight", o.mTransmittanceTextureHeight);
-  cs::core::Settings::deserialize(j, "scatteringTextureRSize", o.mScatteringTextureRSize);
-  cs::core::Settings::deserialize(j, "scatteringTextureMuSize", o.mScatteringTextureMuSize);
-  cs::core::Settings::deserialize(j, "scatteringTextureMuSSize", o.mScatteringTextureMuSSize);
-  cs::core::Settings::deserialize(j, "scatteringTextureNuSize", o.mScatteringTextureNuSize);
-  cs::core::Settings::deserialize(j, "irradianceTextureWidth", o.mIrradianceTextureWidth);
-  cs::core::Settings::deserialize(j, "irradianceTextureHeight", o.mIrradianceTextureHeight);
+  cs::core::Settings::deserialize(j, "dataDirectory", o.mDataDirectory);
 }
 
 void to_json(nlohmann::json& j, Model::Settings const& o) {
-  cs::core::Settings::serialize(j, "sunAngularRadius", o.mSunAngularRadius);
-  cs::core::Settings::serialize(j, "molecules", o.mMolecules);
-  cs::core::Settings::serialize(j, "aerosols", o.mAerosols);
-  cs::core::Settings::serialize(j, "ozone", o.mOzone);
-  cs::core::Settings::serialize(j, "groundAlbedo", o.mGroundAlbedo);
-  cs::core::Settings::serialize(j, "multiScatteringOrder", o.mMultiScatteringOrder);
-  cs::core::Settings::serialize(j, "sampleCountOpticalDepth", o.mSampleCountOpticalDepth);
-  cs::core::Settings::serialize(j, "sampleCountSingleScattering", o.mSampleCountSingleScattering);
-  cs::core::Settings::serialize(j, "sampleCountMultiScattering", o.mSampleCountMultiScattering);
-  cs::core::Settings::serialize(j, "sampleCountScatteringDensity", o.mSampleCountScatteringDensity);
-  cs::core::Settings::serialize(
-      j, "sampleCountIndirectIrradiance", o.mSampleCountIndirectIrradiance);
-  cs::core::Settings::serialize(j, "transmittanceTextureWidth", o.mTransmittanceTextureWidth);
-  cs::core::Settings::serialize(j, "transmittanceTextureHeight", o.mTransmittanceTextureHeight);
-  cs::core::Settings::serialize(j, "scatteringTextureRSize", o.mScatteringTextureRSize);
-  cs::core::Settings::serialize(j, "scatteringTextureMuSize", o.mScatteringTextureMuSize);
-  cs::core::Settings::serialize(j, "scatteringTextureMuSSize", o.mScatteringTextureMuSSize);
-  cs::core::Settings::serialize(j, "scatteringTextureNuSize", o.mScatteringTextureNuSize);
-  cs::core::Settings::serialize(j, "irradianceTextureWidth", o.mIrradianceTextureWidth);
-  cs::core::Settings::serialize(j, "irradianceTextureHeight", o.mIrradianceTextureHeight);
+  cs::core::Settings::serialize(j, "dataDirectory", o.mDataDirectory);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+Model::~Model() {
+  glDeleteTextures(1, &mPhaseTexture);
+  glDeleteTextures(1, &mTransmittanceTexture);
+  glDeleteTextures(1, &mMultipleScatteringTexture);
+  glDeleteTextures(1, &mSingleAerosolsScatteringTexture);
+  glDeleteTextures(1, &mIrradianceTexture);
+  glDeleteShader(mAtmosphereShader);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -97,82 +50,88 @@ void to_json(nlohmann::json& j, Model::Settings const& o) {
 bool Model::init(
     nlohmann::json const& modelSettings, double planetRadius, double atmosphereRadius) {
 
+  // Parse the model settings. This only contains the path to the directory where the precomputed
+  // textures are stored.
   Settings settings;
-
   try {
     settings = modelSettings;
   } catch (std::exception const& e) {
     logger().error("Failed to parse atmosphere parameters: {}", e.what());
   }
 
-  internal::Params params;
-
-  std::vector<float> wavelengths;
-  uint32_t           densityCount = 0;
-
-  params.mMolecules.mDensity =
-      internal::csv::readDensity(settings.mMolecules.mDensity, densityCount);
-  params.mMolecules.mPhase =
-      internal::csv::readPhase(settings.mMolecules.mPhase, params.mWavelengths);
-  params.mMolecules.mScattering =
-      internal::csv::readExtinction(settings.mMolecules.mBetaSca, params.mWavelengths);
-  params.mMolecules.mAbsorption =
-      internal::csv::readExtinction(settings.mMolecules.mBetaAbs, params.mWavelengths);
-
-  params.mAerosols.mDensity = internal::csv::readDensity(settings.mAerosols.mDensity, densityCount);
-  params.mAerosols.mPhase =
-      internal::csv::readPhase(settings.mAerosols.mPhase, params.mWavelengths);
-  params.mAerosols.mScattering =
-      internal::csv::readExtinction(settings.mAerosols.mBetaSca, params.mWavelengths);
-  params.mAerosols.mAbsorption =
-      internal::csv::readExtinction(settings.mAerosols.mBetaAbs, params.mWavelengths);
-
-  if (settings.mOzone) {
-    params.mOzone.mDensity = internal::csv::readDensity(settings.mOzone->mDensity, densityCount);
-    params.mOzone.mAbsorption =
-        internal::csv::readExtinction(settings.mOzone->mBetaAbs, params.mWavelengths);
-
-  } else {
-    params.mOzone.mDensity    = std::vector<float>(densityCount, 0.0);
-    params.mOzone.mAbsorption = std::vector<float>(params.mWavelengths.size(), 0.0);
+  // From that directory, we need to load the metadata file. This file contains some additional
+  // information required for rendering.
+  Metadata meta;
+  try {
+    std::ifstream  file(settings.mDataDirectory + "/metadata.json");
+    nlohmann::json j;
+    file >> j;
+    meta = j;
+  } catch (std::exception const& e) {
+    logger().error("Failed to parse atmosphere parameters: {}", e.what());
   }
 
-  // Check for valid wavelengths.
-  if (params.mWavelengths.size() < 3) {
-    throw std::runtime_error(
-        "At least three different wavelengths should be given in the scattering data!");
-  } else if (params.mWavelengths.size() == 3 &&
-             (params.mWavelengths[0] != internal::Implementation::kLambdaB ||
-                 params.mWavelengths[1] != internal::Implementation::kLambdaG ||
-                 params.mWavelengths[2] != internal::Implementation::kLambdaR)) {
-    throw std::runtime_error("If three different wavelengths are given in the scattering data, "
-                             "they should be exactly for 440 nm, 550 nm, and 680 nm!");
+  // Load the precomputed textures.
+  mPhaseTexture = std::get<0>(read2DTexture(settings.mDataDirectory + "/phase.tif"));
+
+  {
+    auto const [t, w, h]        = read2DTexture(settings.mDataDirectory + "/transmittance.tif");
+    mTransmittanceTexture       = t;
+    mTransmittanceTextureWidth  = w;
+    mTransmittanceTextureHeight = h;
   }
 
-  params.mSunAngularRadius              = settings.mSunAngularRadius;
-  params.mBottomRadius                  = static_cast<float>(planetRadius);
-  params.mTopRadius                     = static_cast<float>(atmosphereRadius);
-  params.mGroundAlbedo                  = settings.mGroundAlbedo.get();
-  params.mMaxSunZenithAngle             = 120.F / 180.F * glm::pi<float>();
-  params.mSampleCountOpticalDepth       = settings.mSampleCountOpticalDepth.get();
-  params.mSampleCountSingleScattering   = settings.mSampleCountSingleScattering.get();
-  params.mSampleCountMultiScattering    = settings.mSampleCountMultiScattering.get();
-  params.mSampleCountScatteringDensity  = settings.mSampleCountScatteringDensity.get();
-  params.mSampleCountIndirectIrradiance = settings.mSampleCountIndirectIrradiance.get();
-  params.mTransmittanceTextureWidth     = settings.mTransmittanceTextureWidth.get();
-  params.mTransmittanceTextureHeight    = settings.mTransmittanceTextureHeight.get();
-  params.mScatteringTextureRSize        = settings.mScatteringTextureRSize.get();
-  params.mScatteringTextureMuSize       = settings.mScatteringTextureMuSize.get();
-  params.mScatteringTextureMuSSize      = settings.mScatteringTextureMuSSize.get();
-  params.mScatteringTextureNuSize       = settings.mScatteringTextureNuSize.get();
-  params.mIrradianceTextureWidth        = settings.mIrradianceTextureWidth.get();
-  params.mIrradianceTextureHeight       = settings.mIrradianceTextureHeight.get();
+  {
+    auto const [t, w, h]     = read2DTexture(settings.mDataDirectory + "/indirect_illuminance.tif");
+    mIrradianceTexture       = t;
+    mIrradianceTextureWidth  = w;
+    mIrradianceTextureHeight = h;
+  }
 
-  mImpl.reset(new internal::Implementation(params));
+  {
+    auto const [t, w, h, d] = read3DTexture(settings.mDataDirectory + "/multiple_scattering.tif");
+    mMultipleScatteringTexture = t;
+    mScatteringTextureNuSize   = meta.mScatteringTextureNuSize;
+    mScatteringTextureMuSSize  = w / mScatteringTextureNuSize;
+    mScatteringTextureMuSize   = h;
+    mScatteringTextureRSize    = d;
+  }
 
-  glDisable(GL_CULL_FACE);
-  mImpl->init(settings.mMultiScatteringOrder.get() + 1);
-  glEnable(GL_CULL_FACE);
+  mSingleAerosolsScatteringTexture =
+      std::get<0>(read3DTexture(settings.mDataDirectory + "/single_aerosols_scattering.tif"));
+
+  // Now create the shader. We load the common and model glsl files and concatenate them with the
+  // some constants and the metadata.
+
+  auto model = cs::utils::filesystem::loadToString(
+      "../share/resources/shaders/atmosphere-models/bruneton/model.glsl");
+  auto common = cs::utils::filesystem::loadToString(
+      "../share/resources/shaders/atmosphere-models/bruneton/common.glsl");
+
+  // clang-format off
+  std::string shader =
+    std::string("#version 330\n") +
+    "const int TRANSMITTANCE_TEXTURE_WIDTH = "  + cs::utils::toString(mTransmittanceTextureWidth) + ";\n" +
+    "const int TRANSMITTANCE_TEXTURE_HEIGHT = " + cs::utils::toString(mTransmittanceTextureHeight) + ";\n" +
+    "const int SCATTERING_TEXTURE_R_SIZE = "    + cs::utils::toString(mScatteringTextureRSize) + ";\n" +
+    "const int SCATTERING_TEXTURE_MU_SIZE = "   + cs::utils::toString(mScatteringTextureMuSize) + ";\n" +
+    "const int SCATTERING_TEXTURE_MU_S_SIZE = " + cs::utils::toString(mScatteringTextureMuSSize) + ";\n" +
+    "const int SCATTERING_TEXTURE_NU_SIZE = "   + cs::utils::toString(mScatteringTextureNuSize) + ";\n" +
+    "const int IRRADIANCE_TEXTURE_WIDTH = "     + cs::utils::toString(mIrradianceTextureWidth) + ";\n" +
+    "const int IRRADIANCE_TEXTURE_HEIGHT = "    + cs::utils::toString(mIrradianceTextureHeight) + ";\n" +
+    "const vec3 SOLAR_ILLUMINANCE = vec3("      + cs::utils::toString(meta.mSunIlluminance.r) + "," + cs::utils::toString(meta.mSunIlluminance.g) + "," + cs::utils::toString(meta.mSunIlluminance.b) + ");\n" +
+    "const float SUN_ANGULAR_RADIUS = "         + cs::utils::toString(meta.mSunAngularRadius) + ";\n" +
+    "const float BOTTOM_RADIUS = "              + cs::utils::toString(planetRadius) + ";\n" +
+    "const float TOP_RADIUS = "                 + cs::utils::toString(atmosphereRadius) + ";\n" +
+    "const float MU_S_MIN = "                   + cs::utils::toString(std::cos(meta.mMaxSunZenithAngle))+ ";\n" +
+    common + "\n" +
+    model;
+  // clang-format on
+
+  const char* source = shader.c_str();
+  mAtmosphereShader  = glCreateShader(GL_FRAGMENT_SHADER);
+  glShaderSource(mAtmosphereShader, 1, &source, NULL);
+  glCompileShader(mAtmosphereShader);
 
   return true;
 }
@@ -180,15 +139,121 @@ bool Model::init(
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 GLuint Model::getShader() const {
-  return mImpl->shader();
+  return mAtmosphereShader;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 GLuint Model::setUniforms(GLuint program, GLuint startTextureUnit) const {
-  mImpl->setProgramUniforms(program, startTextureUnit, startTextureUnit + 1, startTextureUnit + 2,
-      startTextureUnit + 3, startTextureUnit + 4);
+
+  glActiveTexture(GL_TEXTURE0 + startTextureUnit + 0);
+  glBindTexture(GL_TEXTURE_2D, mPhaseTexture);
+  glUniform1i(glGetUniformLocation(program, "uPhaseTexture"), startTextureUnit + 0);
+
+  glActiveTexture(GL_TEXTURE0 + startTextureUnit + 1);
+  glBindTexture(GL_TEXTURE_2D, mTransmittanceTexture);
+  glUniform1i(glGetUniformLocation(program, "uTransmittanceTexture"), startTextureUnit + 1);
+
+  glActiveTexture(GL_TEXTURE0 + startTextureUnit + 2);
+  glBindTexture(GL_TEXTURE_3D, mMultipleScatteringTexture);
+  glUniform1i(glGetUniformLocation(program, "uMultipleScatteringTexture"), startTextureUnit + 2);
+
+  glActiveTexture(GL_TEXTURE0 + startTextureUnit + 3);
+  glBindTexture(GL_TEXTURE_2D, mIrradianceTexture);
+  glUniform1i(glGetUniformLocation(program, "uIrradianceTexture"), startTextureUnit + 3);
+
+  glActiveTexture(GL_TEXTURE0 + startTextureUnit + 4);
+  glBindTexture(GL_TEXTURE_3D, mSingleAerosolsScatteringTexture);
+  glUniform1i(
+      glGetUniformLocation(program, "uSingleAerosolsScatteringTexture"), startTextureUnit + 4);
+
   return startTextureUnit + 5;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+std::tuple<GLuint, int32_t, int32_t> Model::read2DTexture(std::string const& path) const {
+  auto* data = TIFFOpen(path.c_str(), "r");
+
+  if (!data) {
+    logger().error("Failed to open TIFF file '{}'", path);
+    return {0u, 0, 0};
+  }
+
+  uint32_t width{};
+  uint32_t height{};
+
+  TIFFGetField(data, TIFFTAG_IMAGELENGTH, &height);
+  TIFFGetField(data, TIFFTAG_IMAGEWIDTH, &width);
+
+  std::vector<float> pixels(width * height * 3);
+
+  for (unsigned y = 0; y < height; y++) {
+    TIFFReadScanline(data, &pixels[width * 3 * y], y);
+  }
+
+  TIFFClose(data);
+
+  GLuint texture;
+  glGenTextures(1, &texture);
+  glActiveTexture(GL_TEXTURE0);
+  glBindTexture(GL_TEXTURE_2D, texture);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+  glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, width, height, 0, GL_RGB, GL_FLOAT, pixels.data());
+
+  return {texture, width, height};
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+std::tuple<GLuint, int32_t, int32_t, int32_t> Model::read3DTexture(std::string const& path) const {
+  auto* data = TIFFOpen(path.c_str(), "r");
+
+  if (!data) {
+    logger().error("Failed to open TIFF file '{}'", path);
+    return {0u, 0, 0, 0};
+  }
+
+  uint32_t width{};
+  uint32_t height{};
+  uint32_t depth{};
+
+  TIFFGetField(data, TIFFTAG_IMAGELENGTH, &height);
+  TIFFGetField(data, TIFFTAG_IMAGEWIDTH, &width);
+
+  do {
+    depth++;
+  } while (TIFFReadDirectory(data));
+
+  std::vector<float> pixels(width * height * depth * 3);
+
+  for (unsigned z = 0; z < depth; z++) {
+    TIFFSetDirectory(data, z);
+    for (unsigned y = 0; y < height; y++) {
+      TIFFReadScanline(data, &pixels[width * 3 * y + (3 * width * height * z)], y);
+    }
+  }
+
+  TIFFClose(data);
+
+  GLuint texture;
+  glGenTextures(1, &texture);
+  glActiveTexture(GL_TEXTURE0);
+  glBindTexture(GL_TEXTURE_3D, texture);
+  glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+  glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+  glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+  glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
+  glTexImage3D(
+      GL_TEXTURE_3D, 0, GL_RGB32F, width, height, depth, 0, GL_RGB, GL_FLOAT, pixels.data());
+
+  return {texture, width, height, depth};
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

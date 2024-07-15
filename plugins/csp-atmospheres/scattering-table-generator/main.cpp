@@ -20,12 +20,12 @@
 
 // clang-format off
 void printHelp() {
-  std::cout << "Welcome to the atmosphere preprocessor! Usage:" << std::endl;
+  std::cout << "Welcome to the CSV Generator! Usage:" << std::endl;
   std::cout << std::endl;
-  std::cout << "  ./atmosphere-preprocessor <mode> <options>" << std::endl;
+  std::cout << "  ./scattering-table-generator <mode> <options>" << std::endl;
   std::cout << std::endl;
   std::cout << "There are different operation modes available. " << std::endl;
-  std::cout << "Type './atmosphere-preprocessor <mode> --help' to learn more about a specific mode." << std::endl;
+  std::cout << "Type './scattering-table-generator <mode> --help' to learn more about a specific mode." << std::endl;
   std::cout << std::endl;
   std::cout << "These modes are available:" << std::endl;
   std::cout << "mie       Precompute phase functions and scattering coefficients using Mie theory." << std::endl;
