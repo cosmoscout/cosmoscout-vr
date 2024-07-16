@@ -12,6 +12,14 @@
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+__device__ void writeAsRGBValue (float value, float* shadowMap, uint32_t index) {
+  shadowMap[index * 3 + 0] = value;
+  shadowMap[index * 3 + 1] = value;
+  shadowMap[index * 3 + 2] = value;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 __global__ void computeLimbDarkeningShadow(float* shadowMap, ShadowSettings settings, LimbDarkening limbDarkening) {
   uint32_t x = blockIdx.x * blockDim.x + threadIdx.x;
   uint32_t y = blockIdx.y * blockDim.y + threadIdx.y;
@@ -26,8 +34,10 @@ __global__ void computeLimbDarkeningShadow(float* shadowMap, ShadowSettings sett
 
   double sunArea = math::getCircleArea(1.0);
 
-  shadowMap[i] = static_cast<float>(
+  float intensity = static_cast<float>(
       1 - math::sampleCircleIntersection(1.0, angles.x, angles.y, limbDarkening) / sunArea);
+
+  writeAsRGBValue(intensity, shadowMap, i);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -46,8 +56,9 @@ __global__ void computeCircleIntersectionShadow(float* shadowMap, ShadowSettings
 
   double sunArea = math::getCircleArea(1.0);
 
-  shadowMap[i] =
-      static_cast<float>(1.0 - math::getCircleIntersection(1.0, angles.x, angles.y) / sunArea);
+  float intensity = static_cast<float>(1.0 - math::getCircleIntersection(1.0, angles.x, angles.y) / sunArea);
+
+  writeAsRGBValue(intensity, shadowMap, i);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -73,7 +84,9 @@ __global__ void computeLinearShadow(float* shadowMap, ShadowSettings settings) {
 
   double maxDepth = glm::min(1.0, glm::pow(phiOcc / phiSun, 2.0));
 
-  shadowMap[i] = static_cast<float>(1.0 - maxDepth * glm::clamp(1.0 - visiblePortion, 0.0, 1.0));
+  float intensity = static_cast<float>(1.0 - maxDepth * glm::clamp(1.0 - visiblePortion, 0.0, 1.0));
+
+  writeAsRGBValue(intensity, shadowMap, i);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -99,8 +112,10 @@ __global__ void computeSmoothstepShadow(float* shadowMap, ShadowSettings setting
 
   double maxDepth = glm::min(1.0, glm::pow(phiOcc / phiSun, 2.0));
 
-  shadowMap[i] = static_cast<float>(
+  float intensity = static_cast<float>(
       1.0 - maxDepth * glm::clamp(1.0 - glm::smoothstep(0.0, 1.0, visiblePortion), 0.0, 1.0));
+
+  writeAsRGBValue(intensity, shadowMap, i);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

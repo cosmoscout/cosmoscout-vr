@@ -8,9 +8,10 @@
 #include "../../src/cs-utils/CommandLine.hpp"
 
 #include "LimbDarkening.cuh"
-#include "without_atmosphere.cuh"
 #include "math.cuh"
 #include "types.hpp"
+#include "with_atmosphere.cuh"
+#include "without_atmosphere.cuh"
 
 #define STB_IMAGE_IMPLEMENTATION
 #define STB_IMAGE_WRITE_IMPLEMENTATION
@@ -45,6 +46,7 @@ int main(int argc, char** argv) {
 
   std::string cOutput    = "shadow.hdr";
   std::string cMode      = "limb-darkening";
+  std::string cAtmosphereSettings;
   bool        cPrintHelp = false;
 
   // First configure all possible command line options.
@@ -55,8 +57,7 @@ int main(int argc, char** argv) {
   args.addArgument({"--size"}, &settings.size,
       "The output texture size (default: " + std::to_string(settings.size) + ").");
   args.addArgument({"--mode"}, &cMode,
-      "This should be either 'limb-darkening', 'circles', 'linear', or 'smoothstep' (default: " +
-          cMode + ").");
+      "This should be either 'with-atmosphere', 'limb-darkening', 'circles', 'linear', or 'smoothstep' (default: " + cMode + ").");
   args.addArgument({"--with-umbra"}, &settings.includeUmbra,
       "Add the umbra region to the shadow map (default: " + std::to_string(settings.includeUmbra) +
           ").");
@@ -65,6 +66,9 @@ int main(int argc, char** argv) {
       "umbra's end in the middle of the texture, larger values will shift this to the "
       "right. (default: " +
           std::to_string(settings.mappingExponent) + ").");
+  args.addArgument({"--atmosphere-settings"}, &cAtmosphereSettings,
+      "The path to the atmosphere settings directory. Must be given when using the "
+      "'with-atmosphere' mode.");
   args.addArgument({"-h", "--help"}, &cPrintHelp, "Show this help message.");
 
   // Then do the actual parsing.
@@ -84,9 +88,16 @@ int main(int argc, char** argv) {
 
   // Check whether a valid mode was given.
   if (cMode != "limb-darkening" && cMode != "circles" && cMode != "linear" &&
-      cMode != "smoothstep") {
+      cMode != "smoothstep" && cMode != "with-atmosphere") {
     std::cerr << "Invalid value given for --mode!" << std::endl;
+    return 1;
+  }
 
+  // If we are in atmosphere mode, we need also the atmosphere settings.
+  if (cMode == "with-atmosphere" && cAtmosphereSettings.empty()) {
+    std::cerr << "When using the 'with-atmosphere' mode, you must provide the path to the "
+                 "atmosphere settings directory using --atmosphere-settings!"
+              << std::endl;
     return 1;
   }
 
@@ -103,10 +114,12 @@ int main(int argc, char** argv) {
   // Allocate the shared memory for the shadow map.
   float* shadow = nullptr;
   gpuErrchk(cudaMallocManaged(
-      &shadow, static_cast<size_t>(settings.size * settings.size) * sizeof(float)));
+      &shadow, static_cast<size_t>(settings.size * settings.size) * 3 * sizeof(float)));
 
   // Compute the shadow map based on the given mode.
-  if (cMode == "limb-darkening") {
+  if (cMode == "with-atmosphere") {
+    computeAtmosphereShadow(shadow, settings, cAtmosphereSettings, limbDarkening);
+  }else if (cMode == "limb-darkening") {
     computeLimbDarkeningShadow<<<gridSize, blockSize>>>(shadow, settings, limbDarkening);
   } else if (cMode == "circles") {
     computeCircleIntersectionShadow<<<gridSize, blockSize>>>(shadow, settings);
@@ -121,7 +134,7 @@ int main(int argc, char** argv) {
 
   // Finally write the output texture!
   stbi_write_hdr(
-      cOutput.c_str(), static_cast<int>(settings.size), static_cast<int>(settings.size), 1, shadow);
+      cOutput.c_str(), static_cast<int>(settings.size), static_cast<int>(settings.size), 3, shadow);
 
   return 0;
 }
