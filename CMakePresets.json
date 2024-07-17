@@ -107,11 +107,13 @@
     },
     {
       "name": "windows-ninja-release",
-      "inherits": ["base", "ninja", "windows-release"]
+      "inherits": ["base", "ninja", "windows-release"],
+      "toolchainFile": "${sourceDir}/cmake/Windows.MSVC.toolchain.cmake"
     },
     {
       "name": "windows-ninja-debug",
-      "inherits": ["base", "ninja", "windows-debug"]
+      "inherits": ["base", "ninja", "windows-debug"],
+      "toolchainFile": "${sourceDir}/cmake/Windows.MSVC.toolchain.cmake"
     },
     {
       "name": "windows-vs17-release",
