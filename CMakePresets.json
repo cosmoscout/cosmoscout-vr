@@ -1,0 +1,181 @@
+{
+  "version": 6,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 22,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "base",
+      "hidden": true,
+      "cacheVariables": {
+        "CMAKE_UNITY_BUILD": "On",
+        "COSMOSCOUT_USE_PRECOMPILED_HEADERS": "On",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "On"
+      }
+    },
+    {
+      "name": "ninja",
+      "hidden": true,
+      "generator": "Ninja"
+    },
+    {
+      "name": "vs17",
+      "hidden": true,
+      "generator": "Visual Studio 15 2017",
+      "architecture": "Win64"
+    },
+    {
+      "name": "vs19",
+      "hidden": true,
+      "generator": "Visual Studio 16 2019",
+      "architecture": "x64"
+    },
+    {
+      "name": "vs22",
+      "hidden": true,
+      "generator": "Visual Studio 17 2022",
+      "architecture": "x64"
+    },
+    {
+      "name": "windows",
+      "hidden": true,
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      }
+    },
+    {
+      "name": "windows-release",
+      "hidden": true,
+      "inherits": "windows",
+      "binaryDir": "${sourceDir}/build/windows-Release",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_INSTALL_PREFIX": "${sourceDir}/install/windows-Release",
+        "COSMOSCOUT_EXTERNALS_DIR": "${sourceDir}/install/windows-externals-Release"
+      }
+    },
+    {
+      "name": "windows-debug",
+      "hidden": true,
+      "inherits": "windows",
+      "binaryDir": "${sourceDir}/build/windows-Debug",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_INSTALL_PREFIX": "${sourceDir}/install/windows-Debug",
+        "COSMOSCOUT_EXTERNALS_DIR": "${sourceDir}/install/windows-externals-Debug"
+      }
+    },
+    {
+      "name": "windows-ninja-release",
+      "inherits": ["base", "ninja", "windows-release"],
+      "displayName": "Windows Ninja Release Config"
+    },
+    {
+      "name": "windows-ninja-debug",
+      "inherits": ["base", "ninja", "windows-debug"],
+      "displayName": "Windows Ninja Debug Config"
+    },
+    {
+      "name": "windows-vs17-release",
+      "inherits": ["base", "vs17", "windows-release"],
+      "displayName": "Windows Visual Studio 2017 Release Config"
+    },
+    {
+      "name": "windows-vs17-debug",
+      "inherits": ["base", "vs17", "windows-debug"],
+      "displayName": "Windows Visual Studio 2017 Debug Config"
+    },
+    {
+      "name": "windows-vs19-release",
+      "inherits": ["base", "vs19", "windows-release"],
+      "displayName": "Windows Visual Studio 2019 Release Config"
+    },
+    {
+      "name": "windows-vs19-debug",
+      "inherits": ["base", "vs19", "windows-debug"],
+      "displayName": "Windows Visual Studio 2019 Debug Config"
+    },
+    {
+      "name": "windows-vs22-release",
+      "inherits": ["base", "vs22", "windows-release"],
+      "displayName": "Windows Visual Studio 2022 Release Config"
+    },
+    {
+      "name": "windows-vs22-debug",
+      "inherits": ["base", "vs22", "windows-debug"],
+      "displayName": "Windows Visual Studio 2022 Debug Config"
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "build-base",
+      "hidden": true,
+      "targets": "install"
+    },
+    {
+      "name": "build-windows",
+      "hidden": true,
+      "inherits": "build-base",
+      "environment": {
+        "CMAKE_BUILD_PARALLEL_LEVEL": "$env{NUMBER_OF_PROCESSORS}"
+      },
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      }
+    },
+    {
+      "name": "windows-ninja-release",
+      "inherits": "build-windows",
+      "configurePreset": "windows-ninja-release",
+      "configuration": "Release"
+    },
+    {
+      "name": "windows-ninja-debug",
+      "inherits": "build-windows",
+      "configurePreset": "windows-ninja-debug",
+      "configuration": "Debug"
+    },
+    {
+      "name": "windows-vs17-release",
+      "inherits": "build-windows",
+      "configurePreset": "windows-vs17-release",
+      "configuration": "Release"
+    },
+    {
+      "name": "windows-vs17-debug",
+      "inherits": "build-windows",
+      "configurePreset": "windows-vs17-debug",
+      "configuration": "Debug"
+    },
+    {
+      "name": "windows-vs19-release",
+      "inherits": "build-windows",
+      "configurePreset": "windows-vs19-release",
+      "configuration": "Release"
+    },
+    {
+      "name": "windows-vs19-debug",
+      "inherits": "build-windows",
+      "configurePreset": "windows-vs19-debug",
+      "configuration": "Debug"
+    },
+    {
+      "name": "windows-vs22-release",
+      "inherits": "build-windows",
+      "configurePreset": "windows-vs22-release",
+      "configuration": "Release"
+    },
+    {
+      "name": "windows-vs22-debug",
+      "inherits": "build-windows",
+      "configurePreset": "windows-vs22-debug",
+      "configuration": "Debug"
+    }
+  ]
+}
