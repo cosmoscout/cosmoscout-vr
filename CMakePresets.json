@@ -21,22 +21,8 @@
       "generator": "Ninja"
     },
     {
-      "name": "vs17",
-      "hidden": true,
-      "generator": "Visual Studio 15 2017",
-      "architecture": "Win64"
-    },
-    {
-      "name": "vs19",
-      "hidden": true,
-      "generator": "Visual Studio 16 2019",
-      "architecture": "x64"
-    },
-    {
-      "name": "vs22",
-      "hidden": true,
-      "generator": "Visual Studio 17 2022",
-      "architecture": "x64"
+      "name": "visual-studio",
+      "hidden": true
     },
     {
       "name": "make",
@@ -116,28 +102,12 @@
       "toolchainFile": "${sourceDir}/cmake/Windows.MSVC.toolchain.cmake"
     },
     {
-      "name": "windows-vs17-release",
-      "inherits": ["base", "vs17", "windows-release"]
+      "name": "windows-vs-release",
+      "inherits": ["base", "visual-studio", "windows-release"]
     },
     {
-      "name": "windows-vs17-debug",
-      "inherits": ["base", "vs17", "windows-debug"]
-    },
-    {
-      "name": "windows-vs19-release",
-      "inherits": ["base", "vs19", "windows-release"]
-    },
-    {
-      "name": "windows-vs19-debug",
-      "inherits": ["base", "vs19", "windows-debug"]
-    },
-    {
-      "name": "windows-vs22-release",
-      "inherits": ["base", "vs22", "windows-release"]
-    },
-    {
-      "name": "windows-vs22-debug",
-      "inherits": ["base", "vs22", "windows-debug"]
+      "name": "windows-vs-debug",
+      "inherits": ["base", "visual-studio", "windows-debug"]
     },
     {
       "name": "linux-ninja-release",
@@ -199,39 +169,15 @@
       "configuration": "Debug"
     },
     {
-      "name": "windows-vs17-release",
+      "name": "windows-vs-release",
       "inherits": "build-windows",
-      "configurePreset": "windows-vs17-release",
+      "configurePreset": "windows-vs-release",
       "configuration": "Release"
     },
     {
-      "name": "windows-vs17-debug",
+      "name": "windows-vs-debug",
       "inherits": "build-windows",
-      "configurePreset": "windows-vs17-debug",
-      "configuration": "Debug"
-    },
-    {
-      "name": "windows-vs19-release",
-      "inherits": "build-windows",
-      "configurePreset": "windows-vs19-release",
-      "configuration": "Release"
-    },
-    {
-      "name": "windows-vs19-debug",
-      "inherits": "build-windows",
-      "configurePreset": "windows-vs19-debug",
-      "configuration": "Debug"
-    },
-    {
-      "name": "windows-vs22-release",
-      "inherits": "build-windows",
-      "configurePreset": "windows-vs22-release",
-      "configuration": "Release"
-    },
-    {
-      "name": "windows-vs22-debug",
-      "inherits": "build-windows",
-      "configurePreset": "windows-vs22-debug",
+      "configurePreset": "windows-vs-debug",
       "configuration": "Debug"
     },
     {
