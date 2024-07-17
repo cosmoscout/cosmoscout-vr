@@ -177,9 +177,7 @@
       "name": "build-linux",
       "hidden": true,
       "inherits": "build-base",
-      "environment": {
-        "CMAKE_BUILD_PARALLEL_LEVEL": "$env{(nproc)}"
-      },
+      "jobs": 0,
       "condition": {
         "type": "equals",
         "lhs": "${hostSystemName}",
