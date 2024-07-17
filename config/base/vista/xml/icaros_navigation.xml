@@ -214,13 +214,14 @@ This data flow net graph defines the interaction configuration for the ICAROS de
 
 
 
-        <edge fromnode="deconstruct" tonode="calibrate" fromport="y" toport="first" />
-        <edge fromnode="calibrate_value" tonode="calibrate" fromport="value" toport="second" />
-        <edge fromnode="calibrate" tonode="roll_absolute" fromport="out" toport="in" />
-        <edge fromnode="calibrate" tonode="roll_bool" fromport="out" toport="first" />
+        <edge fromnode="deconstruct" tonode="roll_absolute" fromport="y" toport="in" />
+        <edge fromnode="deconstruct" tonode="roll_bool" fromport="y" toport="first" />
+
         <edge fromnode="zero" tonode="roll_bool" fromport="value" toport="second" />
         <edge fromnode="roll_bool" tonode="roll_sign_invert_bool" fromport="out" toport="in" />
+
         <edge fromnode="roll_sign_invert_bool" tonode="roll_sign_null_one" fromport="out" toport="in" />
+
         <edge fromnode="roll_sign_null_one" tonode="roll_sign_multiply" fromport="out" toport="first" />
         <edge fromnode="two" tonode="roll_sign_multiply" fromport="value" toport="second" />
         <edge fromnode="roll_sign_multiply" tonode="roll_sign" fromport="out" toport="first" />
@@ -235,6 +236,15 @@ This data flow net graph defines the interaction configuration for the ICAROS de
         <edge fromnode="yaw_axis" tonode="yaw" fromport="value" toport="axis" />
        <!-- debug text rolling to yaw -->
         <edge fromnode="yaw_angle" tonode="debug_text" fromport="out" toport="yaw_angle_value" />
+        
+        <edge fromnode="deconstruct" tonode="debug_text" fromport="y" toport="y" />
+        <edge fromnode="roll_bool" tonode="debug_text" fromport="out" toport="roll_bool" />
+        <edge fromnode="roll_sign_invert_bool" tonode="debug_text" fromport="out" toport="roll_sign_invert_bool" />
+        <edge fromnode="roll_sign_null_one" tonode="debug_text" fromport="out" toport="roll_sign_null_one" />
+        <edge fromnode="roll_sign_multiply" tonode="debug_text" fromport="out" toport="roll_sign_multiply" />
+        <edge fromnode="roll_sign" tonode="debug_text" fromport="out" toport="roll_sign" />
+
+
 
 
         <edge fromnode="history" tonode="key_speed_up" fromport="BUTTON_2" toport="in_1" />
