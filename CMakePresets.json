@@ -39,6 +39,11 @@
       "architecture": "x64"
     },
     {
+      "name": "make",
+      "hidden": true,
+      "generator": "Unix Makefiles"
+    },
+    {
       "name": "windows",
       "hidden": true,
       "condition": {
@@ -70,44 +75,83 @@
       }
     },
     {
+      "name": "linux",
+      "hidden": true,
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Linux"
+      }
+    },
+    {
+      "name": "linux-release",
+      "hidden": true,
+      "inherits": "linux",
+      "binaryDir": "${sourceDir}/build/linux-Release",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_INSTALL_PREFIX": "${sourceDir}/install/linux-Release",
+        "COSMOSCOUT_EXTERNALS_DIR": "${sourceDir}/install/linux-externals-Release"
+      }
+    },
+    {
+      "name": "linux-debug",
+      "hidden": true,
+      "inherits": "linux",
+      "binaryDir": "${sourceDir}/build/linux-Debug",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_INSTALL_PREFIX": "${sourceDir}/install/linux-Debug",
+        "COSMOSCOUT_EXTERNALS_DIR": "${sourceDir}/install/linux-externals-Debug"
+      }
+    },
+    {
       "name": "windows-ninja-release",
-      "inherits": ["base", "ninja", "windows-release"],
-      "displayName": "Windows Ninja Release Config"
+      "inherits": ["base", "ninja", "windows-release"]
     },
     {
       "name": "windows-ninja-debug",
-      "inherits": ["base", "ninja", "windows-debug"],
-      "displayName": "Windows Ninja Debug Config"
+      "inherits": ["base", "ninja", "windows-debug"]
     },
     {
       "name": "windows-vs17-release",
-      "inherits": ["base", "vs17", "windows-release"],
-      "displayName": "Windows Visual Studio 2017 Release Config"
+      "inherits": ["base", "vs17", "windows-release"]
     },
     {
       "name": "windows-vs17-debug",
-      "inherits": ["base", "vs17", "windows-debug"],
-      "displayName": "Windows Visual Studio 2017 Debug Config"
+      "inherits": ["base", "vs17", "windows-debug"]
     },
     {
       "name": "windows-vs19-release",
-      "inherits": ["base", "vs19", "windows-release"],
-      "displayName": "Windows Visual Studio 2019 Release Config"
+      "inherits": ["base", "vs19", "windows-release"]
     },
     {
       "name": "windows-vs19-debug",
-      "inherits": ["base", "vs19", "windows-debug"],
-      "displayName": "Windows Visual Studio 2019 Debug Config"
+      "inherits": ["base", "vs19", "windows-debug"]
     },
     {
       "name": "windows-vs22-release",
-      "inherits": ["base", "vs22", "windows-release"],
-      "displayName": "Windows Visual Studio 2022 Release Config"
+      "inherits": ["base", "vs22", "windows-release"]
     },
     {
       "name": "windows-vs22-debug",
-      "inherits": ["base", "vs22", "windows-debug"],
-      "displayName": "Windows Visual Studio 2022 Debug Config"
+      "inherits": ["base", "vs22", "windows-debug"]
+    },
+    {
+      "name": "linux-ninja-release",
+      "inherits": ["base", "ninja", "linux-release"]
+    },
+    {
+      "name": "linux-ninja-debug",
+      "inherits": ["base", "ninja", "linux-debug"]
+    },
+    {
+      "name": "linux-make-release",
+      "inherits": ["base", "make", "linux-release"]
+    },
+    {
+      "name": "linux-make-debug",
+      "inherits": ["base", "make", "linux-debug"]
     }
   ],
   "buildPresets": [
@@ -127,6 +171,19 @@
         "type": "equals",
         "lhs": "${hostSystemName}",
         "rhs": "Windows"
+      }
+    },
+    {
+      "name": "build-linux",
+      "hidden": true,
+      "inherits": "build-base",
+      "environment": {
+        "CMAKE_BUILD_PARALLEL_LEVEL": "$env{$(nproc)}"
+      },
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Linux"
       }
     },
     {
@@ -175,6 +232,30 @@
       "name": "windows-vs22-debug",
       "inherits": "build-windows",
       "configurePreset": "windows-vs22-debug",
+      "configuration": "Debug"
+    },
+    {
+      "name": "linux-ninja-release",
+      "inherits": "linux-windows",
+      "configurePreset": "linux-ninja-release",
+      "configuration": "Release"
+    },
+    {
+      "name": "linux-ninja-debug",
+      "inherits": "build-linux",
+      "configurePreset": "linux-ninja-debug",
+      "configuration": "Debug"
+    },
+    {
+      "name": "linux-make-release",
+      "inherits": "linux-windows",
+      "configurePreset": "linux-make-release",
+      "configuration": "Release"
+    },
+    {
+      "name": "linux-make-debug",
+      "inherits": "build-linux",
+      "configurePreset": "linux-make-debug",
       "configuration": "Debug"
     }
   ]
