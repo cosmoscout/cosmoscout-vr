@@ -234,26 +234,22 @@
     {
       "name": "linux-ninja-release",
       "inherits": "linux-windows",
-      "configurePreset": "linux-ninja-release",
-      "configuration": "Release"
+      "configurePreset": "linux-ninja-release"
     },
     {
       "name": "linux-ninja-debug",
       "inherits": "build-linux",
-      "configurePreset": "linux-ninja-debug",
-      "configuration": "Debug"
+      "configurePreset": "linux-ninja-debug"
     },
     {
       "name": "linux-make-release",
       "inherits": "linux-windows",
-      "configurePreset": "linux-make-release",
-      "configuration": "Release"
+      "configurePreset": "linux-make-release"
     },
     {
       "name": "linux-make-debug",
       "inherits": "build-linux",
-      "configurePreset": "linux-make-debug",
-      "configuration": "Debug"
+      "configurePreset": "linux-make-debug"
     }
   ]
 }
