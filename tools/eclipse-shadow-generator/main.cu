@@ -8,6 +8,7 @@
 #include "../../src/cs-utils/CommandLine.hpp"
 
 #include "LimbDarkening.cuh"
+#include "gpuErrCheck.hpp"
 #include "math.cuh"
 #include "types.hpp"
 #include "with_atmosphere.cuh"
@@ -23,29 +24,14 @@
 // README.md file in this directory for usage instructions!                                       //
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// This macro is used in multiple locations to check for Cuda errors.
-// https://stackoverflow.com/questions/14038589/what-is-the-canonical-way-to-check-for-errors-using-the-cuda-runtime-api
-#define gpuErrchk(ans)                                                                             \
-  { gpuAssert((ans), __FILE__, __LINE__); }
-inline void gpuAssert(cudaError_t code, const char* file, int line, bool abort = true) {
-  if (code != cudaSuccess) {
-    fprintf(stderr, "GPUassert: %s %s %d\n", cudaGetErrorString(code), file, line);
-    if (abort) {
-      exit(code);
-    }
-  }
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
 int main(int argc, char** argv) {
 
   stbi_flip_vertically_on_write(1);
 
   ShadowSettings settings;
 
-  std::string cOutput    = "shadow.hdr";
-  std::string cMode      = "limb-darkening";
+  std::string cOutput = "shadow.hdr";
+  std::string cMode   = "limb-darkening";
   std::string cAtmosphereSettings;
   bool        cPrintHelp = false;
 
@@ -57,7 +43,9 @@ int main(int argc, char** argv) {
   args.addArgument({"--size"}, &settings.size,
       "The output texture size (default: " + std::to_string(settings.size) + ").");
   args.addArgument({"--mode"}, &cMode,
-      "This should be either 'with-atmosphere', 'limb-darkening', 'circles', 'linear', or 'smoothstep' (default: " + cMode + ").");
+      "This should be either 'with-atmosphere', 'limb-darkening', 'circles', 'linear', or "
+      "'smoothstep' (default: " +
+          cMode + ").");
   args.addArgument({"--with-umbra"}, &settings.includeUmbra,
       "Add the umbra region to the shadow map (default: " + std::to_string(settings.includeUmbra) +
           ").");
@@ -119,7 +107,7 @@ int main(int argc, char** argv) {
   // Compute the shadow map based on the given mode.
   if (cMode == "with-atmosphere") {
     computeAtmosphereShadow(shadow, settings, cAtmosphereSettings, limbDarkening);
-  }else if (cMode == "limb-darkening") {
+  } else if (cMode == "limb-darkening") {
     computeLimbDarkeningShadow<<<gridSize, blockSize>>>(shadow, settings, limbDarkening);
   } else if (cMode == "circles") {
     computeCircleIntersectionShadow<<<gridSize, blockSize>>>(shadow, settings);

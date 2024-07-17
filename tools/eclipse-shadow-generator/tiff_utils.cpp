@@ -14,8 +14,23 @@ namespace tiff_utils {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-RGBTexture read2DTexture(std::string const& path) {
-  RGBTexture texture;
+std::vector<float> addAlphaChannel(std::vector<float> const& rgbData) {
+  std::vector<float> rgbaData(rgbData.size() * 4 / 3);
+
+  for (unsigned i = 0; i < rgbData.size() / 3; i++) {
+    rgbaData[i * 4 + 0] = rgbData[i * 3 + 0];
+    rgbaData[i * 4 + 1] = rgbData[i * 3 + 1];
+    rgbaData[i * 4 + 2] = rgbData[i * 3 + 2];
+    rgbaData[i * 4 + 3] = 1.0;
+  }
+
+  return rgbaData;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+RGBATexture read2DTexture(std::string const& path) {
+  RGBATexture texture;
 
   auto* data = TIFFOpen(path.c_str(), "r");
 
@@ -28,21 +43,23 @@ RGBTexture read2DTexture(std::string const& path) {
   TIFFGetField(data, TIFFTAG_IMAGEWIDTH, &texture.width);
   texture.depth = 1;
 
-  texture.data.resize(texture.width * texture.height * 3);
+  std::vector<float> rgbData(texture.width * texture.height * 3);
 
   for (unsigned y = 0; y < texture.height; y++) {
-    TIFFReadScanline(data, &texture.data[texture.width * 3 * y], y);
+    TIFFReadScanline(data, &rgbData[texture.width * 3 * y], y);
   }
 
   TIFFClose(data);
+
+  texture.data = addAlphaChannel(rgbData);
 
   return texture;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-RGBTexture read3DTexture(std::string const& path) {
-  RGBTexture texture;
+RGBATexture read3DTexture(std::string const& path) {
+  RGBATexture texture;
 
   auto* data = TIFFOpen(path.c_str(), "r");
 
@@ -58,17 +75,19 @@ RGBTexture read3DTexture(std::string const& path) {
     texture.depth++;
   } while (TIFFReadDirectory(data));
 
-  texture.data.resize(texture.width * texture.height * texture.depth * 3);
+  std::vector<float> rgbData(texture.width * texture.height * texture.depth * 3);
 
   for (unsigned z = 0; z < texture.depth; z++) {
     TIFFSetDirectory(data, z);
     for (unsigned y = 0; y < texture.height; y++) {
       TIFFReadScanline(
-          data, &texture.data[texture.width * 3 * y + (3 * texture.width * texture.height * z)], y);
+          data, &rgbData[texture.width * 3 * y + (3 * texture.width * texture.height * z)], y);
     }
   }
 
   TIFFClose(data);
+
+  texture.data = addAlphaChannel(rgbData);
 
   return texture;
 }
