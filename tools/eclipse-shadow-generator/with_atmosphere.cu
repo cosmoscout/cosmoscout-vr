@@ -74,6 +74,14 @@ __device__ glm::vec2 intersectSphere(glm::dvec3 rayOrigin, glm::dvec3 rayDir, do
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+// Using acos is not very stable for small angles. This function is used to compute the angle
+// between two vectors in a more stable way.
+__device__ double angleBetweenVectors(glm::dvec3 u, glm::dvec3 v) {
+  return 2.0 * glm::asin(0.5 * glm::length(u - v));
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 __device__ glm::vec4 texture2D(cudaTextureObject_t tex, glm::vec2 uv) {
   auto data = tex2D<float4>(tex, uv.x, uv.y);
   return glm::vec4(data.x, data.y, data.z, data.w);
@@ -278,11 +286,23 @@ __global__ void drawPlanet(float* shadowMap, ShadowSettings settings, LimbDarken
     return;
   }
 
-  glm::dvec3 camera      = glm::dvec3(0.0, constants.BOTTOM_RADIUS, 300000000.0);
-  double     fieldOfView = 0.02 * M_PI;
-  // glm::dvec3 camera       = glm::dvec3(0.0, 0.0, 25000000.0);
-  // double     fieldOfView  = 0.2 * M_PI;
-  glm::dvec3 sunDirection = glm::normalize(glm::vec3(0.0, 1.0, -40.0));
+  // Horizon close up from quite close to the Earth.
+  // glm::dvec3 camera       = glm::dvec3(0.0, constants.BOTTOM_RADIUS, 1000000.0);
+  // double     fieldOfView  = 0.05 * M_PI;
+  // glm::dvec3 sunDirection = glm::normalize(glm::vec3(0.0, 0.0, -1.0));
+  // float      exposure     = 0.001;
+
+  // Horizon close up from Moon.
+  glm::dvec3 camera       = glm::dvec3(0.0, constants.BOTTOM_RADIUS, 300000000.0);
+  double     fieldOfView  = 0.005 * M_PI;
+  glm::dvec3 sunDirection = glm::normalize(glm::vec3(0.0, 0.0, -1.0));
+  float      exposure     = 0.0001;
+
+  // Total eclipse from Moon.
+  // glm::dvec3 camera       = glm::dvec3(0.0, 0.0, 300000000.0);
+  // double     fieldOfView  = 0.018 * M_PI;
+  // glm::dvec3 sunDirection = glm::normalize(glm::vec3(0.0, 0.0, -1.0));
+  // float      exposure     = 0.001;
 
   // Compute the direction of the ray.
   double theta = (x / (double)settings.size - 0.5) * fieldOfView;
@@ -292,12 +312,19 @@ __global__ void drawPlanet(float* shadowMap, ShadowSettings settings, LimbDarken
       glm::dvec3(glm::sin(theta) * glm::cos(phi), glm::sin(phi), -glm::cos(theta) * glm::cos(phi));
   glm::vec3 transmittance;
 
-  glm::vec3 radiance = getSkyRadiance(constants, phaseTexture, transmittanceTexture,
+  glm::vec3 skyRadiance = getSkyRadiance(constants, phaseTexture, transmittanceTexture,
       multiscatteringTexture, singleScatteringTexture, camera, rayDir, sunDirection, transmittance);
 
-  shadowMap[i * 3 + 0] = radiance.r * 0.0001;
-  shadowMap[i * 3 + 1] = radiance.g * 0.0001;
-  shadowMap[i * 3 + 2] = radiance.b * 0.0001;
+  float sunAngularRadius = 0.0082 / 2.0;
+
+  glm::vec3 sunRadiance =
+      transmittance *
+      glm::vec3(
+          limbDarkening.get(angleBetweenVectors(rayDir, sunDirection) / sunAngularRadius) * 1.1e9);
+
+  shadowMap[i * 3 + 0] = (skyRadiance.r + sunRadiance.r) * exposure;
+  shadowMap[i * 3 + 1] = (skyRadiance.g + sunRadiance.g) * exposure;
+  shadowMap[i * 3 + 2] = (skyRadiance.b + sunRadiance.b) * exposure;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
