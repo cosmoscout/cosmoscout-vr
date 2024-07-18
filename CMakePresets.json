@@ -92,37 +92,37 @@
       }
     },
     {
-      "name": "windows-ninja-release",
+      "name": "windows-ninja-release-config",
       "inherits": ["base", "ninja", "windows-release"],
       "toolchainFile": "${sourceDir}/cmake/Windows.MSVC.toolchain.cmake"
     },
     {
-      "name": "windows-ninja-debug",
+      "name": "windows-ninja-debug-config",
       "inherits": ["base", "ninja", "windows-debug"],
       "toolchainFile": "${sourceDir}/cmake/Windows.MSVC.toolchain.cmake"
     },
     {
-      "name": "windows-vs-release",
+      "name": "windows-vs-release-config",
       "inherits": ["base", "visual-studio", "windows-release"]
     },
     {
-      "name": "windows-vs-debug",
+      "name": "windows-vs-debug-config",
       "inherits": ["base", "visual-studio", "windows-debug"]
     },
     {
-      "name": "linux-ninja-release",
+      "name": "linux-ninja-release-config",
       "inherits": ["base", "ninja", "linux-release"]
     },
     {
-      "name": "linux-ninja-debug",
+      "name": "linux-ninja-debug-config",
       "inherits": ["base", "ninja", "linux-debug"]
     },
     {
-      "name": "linux-make-release",
+      "name": "linux-make-release-config",
       "inherits": ["base", "make", "linux-release"]
     },
     {
-      "name": "linux-make-debug",
+      "name": "linux-make-debug-config",
       "inherits": ["base", "make", "linux-debug"]
     }
   ],
@@ -157,48 +157,48 @@
       }
     },
     {
-      "name": "windows-ninja-release",
+      "name": "windows-ninja-release-build",
       "inherits": "build-windows",
-      "configurePreset": "windows-ninja-release",
+      "configurePreset": "windows-ninja-release-config",
       "configuration": "Release"
     },
     {
-      "name": "windows-ninja-debug",
+      "name": "windows-ninja-debug-build",
       "inherits": "build-windows",
-      "configurePreset": "windows-ninja-debug",
+      "configurePreset": "windows-ninja-debug-config",
       "configuration": "Debug"
     },
     {
-      "name": "windows-vs-release",
+      "name": "windows-vs-release-build",
       "inherits": "build-windows",
-      "configurePreset": "windows-vs-release",
+      "configurePreset": "windows-vs-release-config",
       "configuration": "Release"
     },
     {
-      "name": "windows-vs-debug",
+      "name": "windows-vs-debug-build",
       "inherits": "build-windows",
-      "configurePreset": "windows-vs-debug",
+      "configurePreset": "windows-vs-debug-config",
       "configuration": "Debug"
     },
     {
-      "name": "linux-ninja-release",
+      "name": "linux-ninja-release-build",
       "inherits": "build-linux",
-      "configurePreset": "linux-ninja-release"
+      "configurePreset": "linux-ninja-release-config"
     },
     {
-      "name": "linux-ninja-debug",
+      "name": "linux-ninja-debug-build",
       "inherits": "build-linux",
-      "configurePreset": "linux-ninja-debug"
+      "configurePreset": "linux-ninja-debug-config"
     },
     {
-      "name": "linux-make-release",
+      "name": "linux-make-release-build",
       "inherits": "build-linux",
-      "configurePreset": "linux-make-release"
+      "configurePreset": "linux-make-release-config"
     },
     {
-      "name": "linux-make-debug",
+      "name": "linux-make-debug-build",
       "inherits": "build-linux",
-      "configurePreset": "linux-make-debug"
+      "configurePreset": "linux-make-debug-config"
     }
   ]
 }
