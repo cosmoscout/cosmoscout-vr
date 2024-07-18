@@ -369,10 +369,10 @@ __global__ void drawPlanet(float* shadowMap, ShadowSettings settings, LimbDarken
   // float      exposure     = 0.0001;
 
   // Horizon close up from Moon.
-  glm::dvec3 camera       = glm::dvec3(0.0, constants.BOTTOM_RADIUS, 300000000.0);
-  double     fieldOfView  = 0.005 * M_PI;
-  glm::dvec3 sunDirection = glm::normalize(glm::vec3(0.0, 0.0, -1.0));
-  float      exposure     = 0.0001;
+  // glm::dvec3 camera       = glm::dvec3(0.0, constants.BOTTOM_RADIUS, 380000000.0);
+  // double     fieldOfView  = 0.005 * M_PI;
+  // glm::dvec3 sunDirection = glm::normalize(glm::vec3(0.0, 0.0, -1.0));
+  // float      exposure     = 0.0001;
   // float exposure = 0.0000000001;
 
   // Total eclipse from Moon.
@@ -381,11 +381,17 @@ __global__ void drawPlanet(float* shadowMap, ShadowSettings settings, LimbDarken
   // glm::dvec3 sunDirection = glm::normalize(glm::vec3(0.0, 0.0, -1.0));
   // float      exposure     = 0.00001;
 
-  // Total eclipse from Moon, horizon close up.
-  // glm::dvec3 camera       = glm::dvec3(0.0, constants.BOTTOM_RADIUS, 300000000.0);
+  // Total eclipse from Moon, horizon.
+  // glm::dvec3 camera       = glm::dvec3(0.0, constants.BOTTOM_RADIUS, 380000000.0);
   // double     fieldOfView  = 0.005 * M_PI;
   // glm::dvec3 sunDirection = glm::normalize(glm::vec3(0.0, -0.005, -1.0));
   // float      exposure     = 0.000000005;
+
+  // Total eclipse from Moon, horizon close up.
+  glm::dvec3 camera       = glm::dvec3(0.0, constants.BOTTOM_RADIUS, 380000000.0);
+  double     fieldOfView  = 0.0005 * M_PI;
+  glm::dvec3 sunDirection = glm::normalize(glm::vec3(0.0, -0.02, -1.0));
+  float      exposure     = 0.0005;
 
   // Compute the direction of the ray.
   double theta = (x / (double)settings.size - 0.5) * fieldOfView;
