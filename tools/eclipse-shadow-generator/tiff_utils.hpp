@@ -17,12 +17,10 @@ namespace tiff_utils {
 struct RGBATexture {
   uint32_t           width  = 0;
   uint32_t           height = 0;
-  uint32_t           depth  = 0;
   std::vector<float> data;
 };
 
-RGBATexture read2DTexture(std::string const& path);
-RGBATexture read3DTexture(std::string const& path);
+RGBATexture read2DTexture(std::string const& path, uint32_t layer = 0);
 
 } // namespace tiff_utils
 

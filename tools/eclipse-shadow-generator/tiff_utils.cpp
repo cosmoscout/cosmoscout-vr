@@ -29,7 +29,7 @@ std::vector<float> addAlphaChannel(std::vector<float> const& rgbData) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-RGBATexture read2DTexture(std::string const& path) {
+RGBATexture read2DTexture(std::string const& path, uint32_t layer) {
   RGBATexture texture;
 
   auto* data = TIFFOpen(path.c_str(), "r");
@@ -41,48 +41,12 @@ RGBATexture read2DTexture(std::string const& path) {
 
   TIFFGetField(data, TIFFTAG_IMAGELENGTH, &texture.height);
   TIFFGetField(data, TIFFTAG_IMAGEWIDTH, &texture.width);
-  texture.depth = 1;
 
   std::vector<float> rgbData(texture.width * texture.height * 3);
 
+  TIFFSetDirectory(data, layer);
   for (unsigned y = 0; y < texture.height; y++) {
     TIFFReadScanline(data, &rgbData[texture.width * 3 * y], y);
-  }
-
-  TIFFClose(data);
-
-  texture.data = addAlphaChannel(rgbData);
-
-  return texture;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-RGBATexture read3DTexture(std::string const& path) {
-  RGBATexture texture;
-
-  auto* data = TIFFOpen(path.c_str(), "r");
-
-  if (!data) {
-    std::cerr << "Failed to open TIFF file '" << path << "'" << std::endl;
-    return texture;
-  }
-
-  TIFFGetField(data, TIFFTAG_IMAGELENGTH, &texture.height);
-  TIFFGetField(data, TIFFTAG_IMAGEWIDTH, &texture.width);
-
-  do {
-    texture.depth++;
-  } while (TIFFReadDirectory(data));
-
-  std::vector<float> rgbData(texture.width * texture.height * texture.depth * 3);
-
-  for (unsigned z = 0; z < texture.depth; z++) {
-    TIFFSetDirectory(data, z);
-    for (unsigned y = 0; y < texture.height; y++) {
-      TIFFReadScanline(
-          data, &rgbData[texture.width * 3 * y + (3 * texture.width * texture.height * z)], y);
-    }
   }
 
   TIFFClose(data);
