@@ -59,6 +59,39 @@ cudaTextureObject_t createCudaTexture(tiff_utils::RGBATexture const& texture) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+// Tonemapping code and color space conversions.
+// http://filmicworlds.com/blog/filmic-tonemapping-operators/
+
+__device__ glm::vec3 uncharted2Tonemap(glm::vec3 c) {
+  const float A = 0.15;
+  const float B = 0.50;
+  const float C = 0.10;
+  const float D = 0.20;
+  const float E = 0.02;
+  const float F = 0.30;
+  return ((c * (A * c + C * B) + D * E) / (c * (A * c + B) + D * F)) - E / F;
+}
+
+__device__ glm::vec3 tonemap(glm::vec3 c) {
+  const float W        = 11.2;
+  c                    = uncharted2Tonemap(10.0f * c);
+  glm::vec3 whiteScale = glm::vec3(1.0) / uncharted2Tonemap(glm::vec3(W));
+  return c * whiteScale;
+}
+
+__device__ float linearToSRGB(float c) {
+  if (c <= 0.0031308f)
+    return 12.92f * c;
+  else
+    return 1.055f * pow(c, 1.0f / 2.4f) - 0.055f;
+}
+
+__device__ glm::vec3 linearToSRGB(glm::vec3 c) {
+  return glm::vec3(linearToSRGB(c.r), linearToSRGB(c.g), linearToSRGB(c.b));
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 __device__ glm::vec4 texture2D(cudaTextureObject_t tex, glm::vec2 uv) {
   auto data = tex2D<float4>(tex, uv.x, uv.y);
   return glm::vec4(data.x, data.y, data.z, data.w);
@@ -330,16 +363,17 @@ __global__ void drawPlanet(float* shadowMap, ShadowSettings settings, LimbDarken
   }
 
   // Horizon close up from quite close to the Earth.
-  glm::dvec3 camera       = glm::dvec3(0.0, constants.BOTTOM_RADIUS, 2000000.0);
-  double     fieldOfView  = 0.01 * M_PI;
-  glm::dvec3 sunDirection = glm::normalize(glm::vec3(0.0, 0.0, -1.0));
-  float      exposure     = 0.00000001;
-
-  // Horizon close up from Moon.
-  // glm::dvec3 camera       = glm::dvec3(0.0, constants.BOTTOM_RADIUS, 300000000.0);
-  // double     fieldOfView  = 0.005 * M_PI;
+  // glm::dvec3 camera       = glm::dvec3(0.0, constants.BOTTOM_RADIUS, 2000000.0);
+  // double     fieldOfView  = 0.01 * M_PI;
   // glm::dvec3 sunDirection = glm::normalize(glm::vec3(0.0, 0.0, -1.0));
   // float      exposure     = 0.0001;
+
+  // Horizon close up from Moon.
+  glm::dvec3 camera       = glm::dvec3(0.0, constants.BOTTOM_RADIUS, 300000000.0);
+  double     fieldOfView  = 0.005 * M_PI;
+  glm::dvec3 sunDirection = glm::normalize(glm::vec3(0.0, 0.0, -1.0));
+  float      exposure     = 0.0001;
+  // float exposure = 0.0000000001;
 
   // Total eclipse from Moon.
   // glm::dvec3 camera       = glm::dvec3(0.0, 0.0, 300000000.0);
@@ -364,16 +398,11 @@ __global__ void drawPlanet(float* shadowMap, ShadowSettings settings, LimbDarken
       transmittanceTexture, multiscatteringTexture, singleScatteringTexture, camera, rayDir,
       sunDirection);
 
-  shadowMap[i * 3 + 0] = radiance.r * exposure;
-  shadowMap[i * 3 + 1] = radiance.g * exposure;
-  shadowMap[i * 3 + 2] = radiance.b * exposure;
+  radiance = linearToSRGB(tonemap(radiance * exposure));
 
-  // glm::vec2 uv         = glm::vec2(x / float(settings.size),
-  //             getTextureCoordFromUnitRange(1.0, constants.TRANSMITTANCE_TEXTURE_HEIGHT));
-  // glm::vec3 test       = glm::vec3(texture2D(thetaDeviationTexture, uv));
-  // shadowMap[i * 3 + 0] = test.r * 30;
-  // shadowMap[i * 3 + 1] = test.g * 30;
-  // shadowMap[i * 3 + 2] = test.b * 30;
+  shadowMap[i * 3 + 0] = radiance.r;
+  shadowMap[i * 3 + 1] = radiance.g;
+  shadowMap[i * 3 + 2] = radiance.b;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
