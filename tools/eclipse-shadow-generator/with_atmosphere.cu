@@ -59,6 +59,13 @@ cudaTextureObject_t createCudaTexture(tiff_utils::RGBATexture const& texture) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+__device__ glm::vec4 texture2D(cudaTextureObject_t tex, glm::vec2 uv) {
+  auto data = tex2D<float4>(tex, uv.x, uv.y);
+  return glm::vec4(data.x, data.y, data.z, data.w);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 __device__ glm::vec2 intersectSphere(glm::dvec3 rayOrigin, glm::dvec3 rayDir, double radius) {
   double b   = glm::dot(rayOrigin, rayDir);
   double c   = glm::dot(rayOrigin, rayOrigin) - radius * radius;
@@ -82,9 +89,10 @@ __device__ double angleBetweenVectors(glm::dvec3 u, glm::dvec3 v) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-__device__ glm::vec4 texture2D(cudaTextureObject_t tex, glm::vec2 uv) {
-  auto data = tex2D<float4>(tex, uv.x, uv.y);
-  return glm::vec4(data.x, data.y, data.z, data.w);
+// Rodrigues' rotation formula
+__device__ glm::dvec3 rotateVector(glm::dvec3 v, glm::dvec3 a, double cosMu) {
+  double sinMu = glm::sqrt(1.0 - cosMu * cosMu);
+  return v * cosMu + glm::cross(a, v) * sinMu + a * glm::dot(a, v) * (1.0 - cosMu);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -180,6 +188,24 @@ __device__ glm::vec3 getScatteringTextureUvwFromRMuMuSNu(
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+__device__ void getRefractedViewRays(Constants const& constants,
+    cudaTextureObject_t thetaDeviationTexture, glm::dvec3 camera, glm::dvec3 viewRay,
+    glm::dvec3& viewRayR, glm::dvec3& viewRayG, glm::dvec3& viewRayB) {
+
+  double    mu = dot(camera, viewRay) / constants.TOP_RADIUS;
+  glm::vec2 uv = getTransmittanceTextureUvFromRMu(constants, mu);
+
+  // Cosine of the angular deviation of the ray due to refraction.
+  glm::dvec3 muRGB = glm::cos(glm::dvec3(texture2D(thetaDeviationTexture, uv)));
+  glm::dvec3 axis  = glm::normalize(glm::cross(camera, viewRay));
+
+  viewRayR = normalize(rotateVector(viewRay, axis, muRGB.r));
+  viewRayG = normalize(rotateVector(viewRay, axis, muRGB.g));
+  viewRayB = normalize(rotateVector(viewRay, axis, muRGB.b));
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 __device__ glm::vec3 getTransmittanceToTopAtmosphereBoundary(
     Constants const& constants, cudaTextureObject_t transmittanceTexture, double mu) {
   glm::vec2 uv = getTransmittanceTextureUvFromRMu(constants, mu);
@@ -233,10 +259,11 @@ __device__ void getCombinedScattering(Constants const& constants,
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-__device__ glm::vec3 getSkyRadiance(Constants const& constants, cudaTextureObject_t phaseTexture,
+__device__ glm::vec3 getRadiance(Constants const& constants, LimbDarkening limbDarkening,
+    cudaTextureObject_t phaseTexture, cudaTextureObject_t thetaDeviationTexture,
     cudaTextureObject_t transmittanceTexture, cudaTextureObject_t multipleScatteringTexture,
     cudaTextureObject_t singleAerosolsScatteringTexture, glm::dvec3 camera, glm::dvec3 viewRay,
-    glm::dvec3 sunDirection, glm::vec3& transmittance) {
+    glm::dvec3 sunDirection) {
   // Compute the distance to the top atmosphere boundary along the view ray, assuming the viewer is
   // in space (or NaN if the view ray does not intersect the atmosphere).
   double r   = length(camera);
@@ -244,31 +271,47 @@ __device__ glm::vec3 getSkyRadiance(Constants const& constants, cudaTextureObjec
   double distanceToTopAtmosphereBoundary =
       -rmu - sqrt(rmu * rmu - r * r + constants.TOP_RADIUS * constants.TOP_RADIUS);
 
-  // If the view ray does not intersect the atmosphere, simply return 0.
-  if (distanceToTopAtmosphereBoundary <= 0.0 && r > constants.TOP_RADIUS) {
-    transmittance = glm::vec3(1.0);
-    return glm::vec3(0.0);
+  glm::vec3  skyRadiance   = glm::vec3(0.0);
+  glm::vec3  transmittance = glm::vec3(1.0);
+  glm::dvec3 viewRayR, viewRayG, viewRayB;
+  viewRayR = viewRayG = viewRayB = viewRay;
+
+  // We only need to compute the radiance if the view ray intersects the atmosphere.
+  if (distanceToTopAtmosphereBoundary > 0.0) {
+
+    camera += viewRay * distanceToTopAtmosphereBoundary;
+
+    // Compute the mu, muS and nu parameters needed for the texture lookups.
+    double mu                     = (rmu + distanceToTopAtmosphereBoundary) / constants.TOP_RADIUS;
+    double muS                    = dot(camera, sunDirection) / constants.TOP_RADIUS;
+    double nu                     = dot(viewRay, sunDirection);
+    bool   rayRMuIntersectsGround = rayIntersectsGround(constants, mu);
+
+    glm::vec3 multipleScattering;
+    glm::vec3 singleAerosolsScattering;
+    getCombinedScattering(constants, multipleScatteringTexture, singleAerosolsScatteringTexture, mu,
+        muS, nu, rayRMuIntersectsGround, multipleScattering, singleAerosolsScattering);
+
+    skyRadiance = multipleScattering * moleculePhaseFunction(phaseTexture, nu) +
+                  singleAerosolsScattering * aerosolPhaseFunction(phaseTexture, nu);
+
+    getRefractedViewRays(
+        constants, thetaDeviationTexture, camera, viewRay, viewRayR, viewRayG, viewRayB);
+
+    transmittance = rayRMuIntersectsGround ? glm::vec3(0.0)
+                                           : getTransmittanceToTopAtmosphereBoundary(
+                                                 constants, transmittanceTexture, mu);
   }
 
-  camera += viewRay * distanceToTopAtmosphereBoundary;
+  float sunAngularRadius = 0.0082 / 2.0;
 
-  // Compute the mu, muS and nu parameters needed for the texture lookups.
-  double mu                     = (rmu + distanceToTopAtmosphereBoundary) / constants.TOP_RADIUS;
-  double muS                    = dot(camera, sunDirection) / constants.TOP_RADIUS;
-  double nu                     = dot(viewRay, sunDirection);
-  bool   rayRMuIntersectsGround = rayIntersectsGround(constants, mu);
+  float sunR = limbDarkening.get(angleBetweenVectors(viewRayR, sunDirection) / sunAngularRadius);
+  float sunG = limbDarkening.get(angleBetweenVectors(viewRayG, sunDirection) / sunAngularRadius);
+  float sunB = limbDarkening.get(angleBetweenVectors(viewRayB, sunDirection) / sunAngularRadius);
 
-  transmittance = rayRMuIntersectsGround ? glm::vec3(0.0)
-                                         : getTransmittanceToTopAtmosphereBoundary(
-                                               constants, transmittanceTexture, mu);
+  glm::vec3 sunRadiance = transmittance * 1.1e9f * glm::vec3(sunR, sunG, sunB);
 
-  glm::vec3 multipleScattering;
-  glm::vec3 singleAerosolsScattering;
-  getCombinedScattering(constants, multipleScatteringTexture, singleAerosolsScatteringTexture, mu,
-      muS, nu, rayRMuIntersectsGround, multipleScattering, singleAerosolsScattering);
-
-  return multipleScattering * moleculePhaseFunction(phaseTexture, nu) +
-         singleAerosolsScattering * aerosolPhaseFunction(phaseTexture, nu);
+  return skyRadiance + sunRadiance;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -288,7 +331,7 @@ __global__ void drawPlanet(float* shadowMap, ShadowSettings settings, LimbDarken
 
   // Horizon close up from quite close to the Earth.
   // glm::dvec3 camera       = glm::dvec3(0.0, constants.BOTTOM_RADIUS, 1000000.0);
-  // double     fieldOfView  = 0.05 * M_PI;
+  // double     fieldOfView  = 0.02 * M_PI;
   // glm::dvec3 sunDirection = glm::normalize(glm::vec3(0.0, 0.0, -1.0));
   // float      exposure     = 0.001;
 
@@ -302,7 +345,13 @@ __global__ void drawPlanet(float* shadowMap, ShadowSettings settings, LimbDarken
   // glm::dvec3 camera       = glm::dvec3(0.0, 0.0, 300000000.0);
   // double     fieldOfView  = 0.018 * M_PI;
   // glm::dvec3 sunDirection = glm::normalize(glm::vec3(0.0, 0.0, -1.0));
-  // float      exposure     = 0.001;
+  // float      exposure     = 0.00001;
+
+  // Total eclipse from Moon, horizon close up.
+  // glm::dvec3 camera       = glm::dvec3(0.0, constants.BOTTOM_RADIUS, 300000000.0);
+  // double     fieldOfView  = 0.005 * M_PI;
+  // glm::dvec3 sunDirection = glm::normalize(glm::vec3(0.0, -0.005, -1.0));
+  // float      exposure     = 0.000000005;
 
   // Compute the direction of the ray.
   double theta = (x / (double)settings.size - 0.5) * fieldOfView;
@@ -310,21 +359,21 @@ __global__ void drawPlanet(float* shadowMap, ShadowSettings settings, LimbDarken
 
   glm::dvec3 rayDir =
       glm::dvec3(glm::sin(theta) * glm::cos(phi), glm::sin(phi), -glm::cos(theta) * glm::cos(phi));
-  glm::vec3 transmittance;
 
-  glm::vec3 skyRadiance = getSkyRadiance(constants, phaseTexture, transmittanceTexture,
-      multiscatteringTexture, singleScatteringTexture, camera, rayDir, sunDirection, transmittance);
+  glm::vec3 radiance = getRadiance(constants, limbDarkening, phaseTexture, thetaDeviationTexture,
+      transmittanceTexture, multiscatteringTexture, singleScatteringTexture, camera, rayDir,
+      sunDirection);
 
-  float sunAngularRadius = 0.0082 / 2.0;
+  shadowMap[i * 3 + 0] = radiance.r * exposure;
+  shadowMap[i * 3 + 1] = radiance.g * exposure;
+  shadowMap[i * 3 + 2] = radiance.b * exposure;
 
-  glm::vec3 sunRadiance =
-      transmittance *
-      glm::vec3(
-          limbDarkening.get(angleBetweenVectors(rayDir, sunDirection) / sunAngularRadius) * 1.1e9);
-
-  shadowMap[i * 3 + 0] = (skyRadiance.r + sunRadiance.r) * exposure;
-  shadowMap[i * 3 + 1] = (skyRadiance.g + sunRadiance.g) * exposure;
-  shadowMap[i * 3 + 2] = (skyRadiance.b + sunRadiance.b) * exposure;
+  // glm::vec2 uv         = glm::vec2(x / float(settings.size),
+  //             getTextureCoordFromUnitRange(1.0, constants.TRANSMITTANCE_TEXTURE_HEIGHT));
+  // glm::vec3 test       = glm::vec3(texture2D(thetaDeviationTexture, uv));
+  // shadowMap[i * 3 + 0] = test.r * 30;
+  // shadowMap[i * 3 + 1] = test.g * 30;
+  // shadowMap[i * 3 + 2] = test.b * 30;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
