@@ -330,16 +330,16 @@ __global__ void drawPlanet(float* shadowMap, ShadowSettings settings, LimbDarken
   }
 
   // Horizon close up from quite close to the Earth.
-  // glm::dvec3 camera       = glm::dvec3(0.0, constants.BOTTOM_RADIUS, 1000000.0);
-  // double     fieldOfView  = 0.02 * M_PI;
-  // glm::dvec3 sunDirection = glm::normalize(glm::vec3(0.0, 0.0, -1.0));
-  // float      exposure     = 0.001;
+  glm::dvec3 camera       = glm::dvec3(0.0, constants.BOTTOM_RADIUS, 2000000.0);
+  double     fieldOfView  = 0.01 * M_PI;
+  glm::dvec3 sunDirection = glm::normalize(glm::vec3(0.0, 0.0, -1.0));
+  float      exposure     = 0.00000001;
 
   // Horizon close up from Moon.
-  glm::dvec3 camera       = glm::dvec3(0.0, constants.BOTTOM_RADIUS, 300000000.0);
-  double     fieldOfView  = 0.005 * M_PI;
-  glm::dvec3 sunDirection = glm::normalize(glm::vec3(0.0, 0.0, -1.0));
-  float      exposure     = 0.0001;
+  // glm::dvec3 camera       = glm::dvec3(0.0, constants.BOTTOM_RADIUS, 300000000.0);
+  // double     fieldOfView  = 0.005 * M_PI;
+  // glm::dvec3 sunDirection = glm::normalize(glm::vec3(0.0, 0.0, -1.0));
+  // float      exposure     = 0.0001;
 
   // Total eclipse from Moon.
   // glm::dvec3 camera       = glm::dvec3(0.0, 0.0, 300000000.0);
