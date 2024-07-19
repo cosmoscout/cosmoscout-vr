@@ -60,63 +60,85 @@ You can choose to enable CMake presets. From the following you can choose one re
 
 #### Windows
 - Run Release
-  - **Type**: CMake Application
-  - **Target**: `cosmoscout`
-  - **Executable** -> _Select other_: `$PROJECT_DIR$\install\windows-Release\bin\cosmoscout.exe`
-  - **Program arguments**: `--settings=../share/config/simple_desktop.json -vista vista.ini`
-  - **Environment variables**: `VISTACORELIBS_DRIVER_PLUGIN_DIRS=..\lib\DriverPlugins;PATH=..\lib\;$Path$`
-  - **Before launch**: `install`
+
+  | **Type**                  | CMake Application                                                           |
+  |---------------------------|-----------------------------------------------------------------------------|
+  | **Target**                | `cosmoscout`                                                                |
+  | **Executable**            | `$ProjectFileDir$\install\windows-Release\bin\cosmoscout.exe`               |
+  | **Program arguments**     | `--settings=../share/config/simple_desktop.json -vista vista.ini`           |
+  | **Environment variables** | `VISTACORELIBS_DRIVER_PLUGIN_DIRS=..\lib\DriverPlugins;PATH=..\lib\;$Path$` |
+  | **Before launch**         | `install`                                                                   |
+
 - Run Debug
-  - **Type**: CMake Application
-  - **Target**: `cosmoscout`
-  - **Executable** -> _Select other_: `$PROJECT_DIR$\install\windows-Debug\bin\cosmoscout.exe`
-  - **Program arguments**: `--settings=../share/config/simple_desktop.json -vista vista.ini`
-  - **Environment variables**: `VISTACORELIBS_DRIVER_PLUGIN_DIRS=..\lib\DriverPlugins;PATH=..\lib\;$Path$`
-  - **Before launch**: `install`
+
+  | **Type**                  | CMake Application                                                           |
+  |---------------------------|-----------------------------------------------------------------------------|
+  | **Target**                | `cosmoscout`                                                                |
+  | **Executable**            | `$ProjectFileDir$\install\windows-Debug\bin\cosmoscout.exe`                 |
+  | **Program arguments**     | `--settings=../share/config/simple_desktop.json -vista vista.ini`           |
+  | **Environment variables** | `VISTACORELIBS_DRIVER_PLUGIN_DIRS=..\lib\DriverPlugins;PATH=..\lib\;$Path$` |
+  | **Before launch**         | `install`                                                                   |
+
 - Test Release
-  - **Type**: Doctest
-  - **Target**: `cosmoscout`
-  - **Program arguments**: `--run-tests --test-case-exclude="*[graphical]*"`
-  - **Working directory**: `$PROJECT_DIR$\install\windows-Release\bin`
-  - **Environment variables**: `PATH=..\lib\;$Path$`
-  - **Before launch**: `install` + `Prepare test run`
+
+  | **Type**                  | Doctest                                           |
+  |---------------------------|---------------------------------------------------|
+  | **Target**                | `cosmoscout`                                      |
+  | **Program arguments**     | `--run-tests --test-case-exclude="*[graphical]*"` |
+  | **Working directory**     | `$ProjectFileDir$\install\windows-Release\bin`    |
+  | **Environment variables** | `PATH=..\lib\;$Path$`                             |
+  | **Before launch**         | `install` + `Prepare test run`                    |
+ 
 - Test Debug
-  - **Type**: Doctest
-  - **Target**: `cosmoscout`
-  - **Program arguments**: `--run-tests --test-case-exclude="*[graphical]*"`
-  - **Working directory**: `$PROJECT_DIR$\install\windows-Debug\bin`
-  - **Environment variables**: `PATH=..\lib\;$Path$`
-  - **Before launch**: `install` + `Prepare test run`
+
+  | **Type**                  | Doctest                                           |
+  |---------------------------|---------------------------------------------------|
+  | **Target**                | `cosmoscout`                                      |
+  | **Program arguments**     | `--run-tests --test-case-exclude="*[graphical]*"` |
+  | **Working directory**     | `$ProjectFileDir$\install\windows-Debug\bin`      |
+  | **Environment variables** | `PATH=..\lib\;$Path$`                             |
+  | **Before launch**         | `install` + `Prepare test run`                    |
 
 #### Linux
 - Run Release
-  - **Type**: CMake Application
-  - **Target**: `cosmoscout`
-  - **Executable** -> _Select other_ -> `$ProjectFileDir$/install/linux-Release/bin/cosmoscout`
-  - **Program arguments**: `--settings=../share/config/simple_desktop.json -vista vista.ini`
-  - **Environment variables**: `LD_LIBRARY_PATH=../lib:../lib/DriverPlugins:$LD_LIBRARY_PATH;VISTACORELIBS_DRIVER_PLUGIN_DIRS=../lib/DriverPlugins`
-  - **Before launch**: `install`
+
+  | **Type**                  | CMake Application                                                                                                    |
+  |---------------------------|----------------------------------------------------------------------------------------------------------------------|
+  | **Target**                | `cosmoscout`                                                                                                         |
+  | **Executable**            | `$ProjectFileDir$/install/linux-Release/bin/cosmoscout`                                                              |
+  | **Program arguments**     | `--settings=../share/config/simple_desktop.json -vista vista.ini`                                                    |
+  | **Environment variables** | `LD_LIBRARY_PATH=../lib:../lib/DriverPlugins:$LD_LIBRARY_PATH;VISTACORELIBS_DRIVER_PLUGIN_DIRS=../lib/DriverPlugins` |
+  | **Before launch**         | `install`                                                                                                            |
+  
 - Run Debug
-  - **Type**: CMake Application
-  - **Target**: `cosmoscout`
-  - **Executable** -> _Select other_ -> `$ProjectFileDir$/install/linux-Debug/bin/cosmoscout`
-  - **Program arguments**: `--settings=../share/config/simple_desktop.json -vista vista.ini`
-  - **Environment variables**: `LD_LIBRARY_PATH=../lib:../lib/DriverPlugins:$LD_LIBRARY_PATH;VISTACORELIBS_DRIVER_PLUGIN_DIRS=../lib/DriverPlugins`
-  - **Before launch**: `install`
+
+  | **Type**                  | CMake Application                                                                                                    |
+  |---------------------------|----------------------------------------------------------------------------------------------------------------------|
+  | **Target**                | `cosmoscout`                                                                                                         |
+  | **Executable**            | `$ProjectFileDir$/install/linux-Debug/bin/cosmoscout`                                                                |
+  | **Program arguments**     | `--settings=../share/config/simple_desktop.json -vista vista.ini`                                                    |
+  | **Environment variables** | `LD_LIBRARY_PATH=../lib:../lib/DriverPlugins:$LD_LIBRARY_PATH;VISTACORELIBS_DRIVER_PLUGIN_DIRS=../lib/DriverPlugins` |
+  | **Before launch**         | `install`                                                                                                            |
+
 - Test Release
-  - **Type**: Doctest
-  - **Target**: `cosmoscout`
-  - **Program arguments**: `--run-tests --test-case-exclude="*[graphical]*"`
-  - **Working directory**: `$ProjectFileDir$/install/linux-Release/bin`
-  - **Environment variables**: `LD_LIBRARY_PATH=../lib:../lib/DriverPlugins:$LD_LIBRARY_PATH`
-  - **Before launch**: `install` + `Prepare test run`
+
+  | **Type**                  | Doctest                                                        |
+  |---------------------------|----------------------------------------------------------------|
+  | **Target**                | `cosmoscout`                                                   |
+  | **Program arguments**     | `--run-tests --test-case-exclude="*[graphical]*"`              |
+  | **Working directory**     | `$ProjectFileDir$/install/linux-Release/bin`                   |
+  | **Environment variables** | `LD_LIBRARY_PATH=../lib:../lib/DriverPlugins:$LD_LIBRARY_PATH` |
+  | **Before launch**         | `install` + `Prepare test run`                                 |
+
 - Test Debug
-  - **Type**: Doctest
-  - **Target**: `cosmoscout`
-  - **Program arguments**: `--run-tests --test-case-exclude="*[graphical]*"`
-  - **Working directory**: `$ProjectFileDir$/install/linux-Debug/bin`
-  - **Environment variables**: `LD_LIBRARY_PATH=../lib:../lib/DriverPlugins:$LD_LIBRARY_PATH`
-  - **Before launch**: `install` + `Prepare test run`
+
+  | **Type**                  | Doctest                                                        |
+  |---------------------------|----------------------------------------------------------------|
+  | **Target**                | `cosmoscout`                                                   |
+  | **Program arguments**     | `--run-tests --test-case-exclude="*[graphical]*"`              |
+  | **Working directory**     | `$ProjectFileDir$/install/linux-Debug/bin`                     |
+  | **Environment variables** | `LD_LIBRARY_PATH=../lib:../lib/DriverPlugins:$LD_LIBRARY_PATH` |
+  | **Before launch**         | `install` + `Prepare test run`                                 |
 
 ### Plugins
 For CLion, we can recommend these plugins for the development of CosmoScout VR:
