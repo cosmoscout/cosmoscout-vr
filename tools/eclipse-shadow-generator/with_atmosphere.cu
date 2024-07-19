@@ -365,7 +365,7 @@ __global__ void drawPlanet(float* shadowMap, ShadowSettings settings, LimbDarken
   // Horizon close up from quite close to the Earth.
   // glm::dvec3 camera       = glm::dvec3(0.0, constants.BOTTOM_RADIUS, 2000000.0);
   // double     fieldOfView  = 0.01 * M_PI;
-  // glm::dvec3 sunDirection = glm::normalize(glm::vec3(0.0, 0.0, -1.0));
+  // glm::dvec3 sunDirection = glm::normalize(glm::vec3(0.0, -0.03, -1.0));
   // float      exposure     = 0.0001;
 
   // Horizon close up from Moon.
@@ -399,6 +399,58 @@ __global__ void drawPlanet(float* shadowMap, ShadowSettings settings, LimbDarken
 
   glm::dvec3 rayDir =
       glm::dvec3(glm::sin(theta) * glm::cos(phi), glm::sin(phi), -glm::cos(theta) * glm::cos(phi));
+
+  glm::vec3 radiance = getRadiance(constants, limbDarkening, phaseTexture, thetaDeviationTexture,
+      transmittanceTexture, multiscatteringTexture, singleScatteringTexture, camera, rayDir,
+      sunDirection);
+
+  radiance = linearToSRGB(tonemap(radiance * exposure));
+
+  shadowMap[i * 3 + 0] = radiance.r;
+  shadowMap[i * 3 + 1] = radiance.g;
+  shadowMap[i * 3 + 2] = radiance.b;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+__global__ void drawAtmoPano(float* shadowMap, ShadowSettings settings, LimbDarkening limbDarkening,
+    Constants constants, cudaTextureObject_t multiscatteringTexture,
+    cudaTextureObject_t singleScatteringTexture, cudaTextureObject_t thetaDeviationTexture,
+    cudaTextureObject_t phaseTexture, cudaTextureObject_t transmittanceTexture) {
+
+  uint32_t x = blockIdx.x * blockDim.x + threadIdx.x;
+  uint32_t y = blockIdx.y * blockDim.y + threadIdx.y;
+  uint32_t i = y * settings.size + x;
+
+  if ((x >= settings.size) || (y >= settings.size)) {
+    return;
+  }
+
+  shadowMap[i * 3 + 0] = 1;
+  shadowMap[i * 3 + 1] = 1;
+  shadowMap[i * 3 + 2] = 1;
+
+  float  exposure = 0.0001;
+  double phiSun   = 0.0082 / 2.0; // Angular radius of the sun.
+  double phiOcc   = 0.02;         // Angular radius of the occluding body.
+  double delta    = 0.00; // Angular distance between the centers of the sun and the occluding body.
+
+  double occRadius = 6370900.0;
+  double occDist   = occRadius / glm::sin(phiOcc);
+
+  double atmoRadius = 6451000.0;
+  double phiAtmo    = glm::asin(atmoRadius / occDist);
+
+  glm::dvec3 camera       = glm::dvec3(0.0, 0.0, occDist);
+  glm::dvec3 sunDirection = glm::dvec3(0.0, glm::sin(delta), -glm::cos(delta));
+
+  // Compute the direction of the ray.
+  double theta    = (x / (double)settings.size) * M_PI;
+  double altitude = (y / (double)settings.size);
+
+  double     phiRay = phiOcc + altitude * (phiAtmo - phiOcc);
+  glm::dvec3 rayDir = glm::dvec3(0.0, glm::sin(phiRay), -glm::cos(phiRay));
+  rayDir = glm::normalize(rotateVector(rayDir, glm::dvec3(0.0, 0.0, -1.0), glm::cos(theta)));
 
   glm::vec3 radiance = getRadiance(constants, limbDarkening, phaseTexture, thetaDeviationTexture,
       transmittanceTexture, multiscatteringTexture, singleScatteringTexture, camera, rayDir,
@@ -449,8 +501,8 @@ void computeAtmosphereShadow(float* shadowMap, ShadowSettings settings,
   cudaTextureObject_t transmittanceTexture    = createCudaTexture(transmittance);
 
   Constants constants;
-  constants.BOTTOM_RADIUS                = 6371000.0;
-  constants.TOP_RADIUS                   = 6371000.0 + 100000.0;
+  constants.BOTTOM_RADIUS                = 6370900.0;
+  constants.TOP_RADIUS                   = 6451000.0;
   constants.TRANSMITTANCE_TEXTURE_WIDTH  = 256;
   constants.TRANSMITTANCE_TEXTURE_HEIGHT = 64;
   constants.SCATTERING_TEXTURE_MU_SIZE   = 128;
@@ -458,7 +510,7 @@ void computeAtmosphereShadow(float* shadowMap, ShadowSettings settings,
   constants.SCATTERING_TEXTURE_NU_SIZE   = 8;
   constants.MU_S_MIN                     = std::cos(2.094395160675049);
 
-  drawPlanet<<<gridSize, blockSize>>>(shadowMap, settings, limbDarkening, constants,
+  drawAtmoPano<<<gridSize, blockSize>>>(shadowMap, settings, limbDarkening, constants,
       multiscatteringTexture, singleScatteringTexture, thetaDeviationTexture, phaseTexture,
       transmittanceTexture);
 }
