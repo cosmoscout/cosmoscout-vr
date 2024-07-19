@@ -12,7 +12,9 @@
       "cacheVariables": {
         "CMAKE_UNITY_BUILD": "On",
         "COSMOSCOUT_USE_PRECOMPILED_HEADERS": "On",
-        "CMAKE_EXPORT_COMPILE_COMMANDS": "On"
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "On",
+        "COSMOSCOUT_UNIT_TESTS": "On",
+        "CMAKE_INSTALL_MESSAGE": "LAZY"
       }
     },
     {
