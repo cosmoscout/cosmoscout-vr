@@ -1,0 +1,206 @@
+{
+  "version": 3,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 22,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "base",
+      "hidden": true,
+      "cacheVariables": {
+        "CMAKE_UNITY_BUILD": "On",
+        "COSMOSCOUT_USE_PRECOMPILED_HEADERS": "On",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "On",
+        "COSMOSCOUT_UNIT_TESTS": "On",
+        "CMAKE_INSTALL_MESSAGE": "LAZY"
+      }
+    },
+    {
+      "name": "ninja",
+      "hidden": true,
+      "generator": "Ninja"
+    },
+    {
+      "name": "visual-studio",
+      "hidden": true
+    },
+    {
+      "name": "make",
+      "hidden": true,
+      "generator": "Unix Makefiles"
+    },
+    {
+      "name": "windows",
+      "hidden": true,
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      }
+    },
+    {
+      "name": "windows-release",
+      "hidden": true,
+      "inherits": "windows",
+      "binaryDir": "${sourceDir}/build/windows-Release",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_INSTALL_PREFIX": "${sourceDir}/install/windows-Release",
+        "COSMOSCOUT_EXTERNALS_DIR": "${sourceDir}/install/windows-externals-Release"
+      }
+    },
+    {
+      "name": "windows-debug",
+      "hidden": true,
+      "inherits": "windows",
+      "binaryDir": "${sourceDir}/build/windows-Debug",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_INSTALL_PREFIX": "${sourceDir}/install/windows-Debug",
+        "COSMOSCOUT_EXTERNALS_DIR": "${sourceDir}/install/windows-externals-Debug"
+      }
+    },
+    {
+      "name": "linux",
+      "hidden": true,
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Linux"
+      }
+    },
+    {
+      "name": "linux-release",
+      "hidden": true,
+      "inherits": "linux",
+      "binaryDir": "${sourceDir}/build/linux-Release",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_INSTALL_PREFIX": "${sourceDir}/install/linux-Release",
+        "COSMOSCOUT_EXTERNALS_DIR": "${sourceDir}/install/linux-externals-Release"
+      }
+    },
+    {
+      "name": "linux-debug",
+      "hidden": true,
+      "inherits": "linux",
+      "binaryDir": "${sourceDir}/build/linux-Debug",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_INSTALL_PREFIX": "${sourceDir}/install/linux-Debug",
+        "COSMOSCOUT_EXTERNALS_DIR": "${sourceDir}/install/linux-externals-Debug"
+      }
+    },
+    {
+      "name": "windows-ninja-release-config",
+      "inherits": ["base", "ninja", "windows-release"],
+      "toolchainFile": "${sourceDir}/cmake/Windows.MSVC.toolchain.cmake"
+    },
+    {
+      "name": "windows-ninja-debug-config",
+      "inherits": ["base", "ninja", "windows-debug"],
+      "toolchainFile": "${sourceDir}/cmake/Windows.MSVC.toolchain.cmake"
+    },
+    {
+      "name": "windows-vs-release-config",
+      "inherits": ["base", "visual-studio", "windows-release"]
+    },
+    {
+      "name": "windows-vs-debug-config",
+      "inherits": ["base", "visual-studio", "windows-debug"]
+    },
+    {
+      "name": "linux-ninja-release-config",
+      "inherits": ["base", "ninja", "linux-release"]
+    },
+    {
+      "name": "linux-ninja-debug-config",
+      "inherits": ["base", "ninja", "linux-debug"]
+    },
+    {
+      "name": "linux-make-release-config",
+      "inherits": ["base", "make", "linux-release"]
+    },
+    {
+      "name": "linux-make-debug-config",
+      "inherits": ["base", "make", "linux-debug"]
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "build-base",
+      "hidden": true,
+      "targets": "install"
+    },
+    {
+      "name": "build-windows",
+      "hidden": true,
+      "inherits": "build-base",
+      "environment": {
+        "CMAKE_BUILD_PARALLEL_LEVEL": "$env{NUMBER_OF_PROCESSORS}"
+      },
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      }
+    },
+    {
+      "name": "build-linux",
+      "hidden": true,
+      "inherits": "build-base",
+      "jobs": 0,
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Linux"
+      }
+    },
+    {
+      "name": "windows-ninja-release-build",
+      "inherits": "build-windows",
+      "configurePreset": "windows-ninja-release-config",
+      "configuration": "Release"
+    },
+    {
+      "name": "windows-ninja-debug-build",
+      "inherits": "build-windows",
+      "configurePreset": "windows-ninja-debug-config",
+      "configuration": "Debug"
+    },
+    {
+      "name": "windows-vs-release-build",
+      "inherits": "build-windows",
+      "configurePreset": "windows-vs-release-config",
+      "configuration": "Release"
+    },
+    {
+      "name": "windows-vs-debug-build",
+      "inherits": "build-windows",
+      "configurePreset": "windows-vs-debug-config",
+      "configuration": "Debug"
+    },
+    {
+      "name": "linux-ninja-release-build",
+      "inherits": "build-linux",
+      "configurePreset": "linux-ninja-release-config"
+    },
+    {
+      "name": "linux-ninja-debug-build",
+      "inherits": "build-linux",
+      "configurePreset": "linux-ninja-debug-config"
+    },
+    {
+      "name": "linux-make-release-build",
+      "inherits": "build-linux",
+      "configurePreset": "linux-make-release-config"
+    },
+    {
+      "name": "linux-make-debug-build",
+      "inherits": "build-linux",
+      "configurePreset": "linux-make-debug-config"
+    }
+  ]
+}
