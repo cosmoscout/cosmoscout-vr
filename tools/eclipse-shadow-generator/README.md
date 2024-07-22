@@ -49,7 +49,7 @@ To learn about the usage of `eclipse-shadow-generator`, you can now issue this c
 ./eclipse-shadow-generator --help
 ```
 
-Here are some other examples to get you started:
+Here are some simple examples to get you started:
 
 ```bash
 # This simple command creates the default eclipse shadow map of CosmoScout VR
@@ -59,4 +59,18 @@ Here are some other examples to get you started:
 ./eclipse-shadow-generator circles --output "circles.hdr"
 ./eclipse-shadow-generator smoothstep --output "smoothstep.hdr"
 ./eclipse-shadow-generator linear --with-umbra --mapping-exponent 5 --output "linear_with_umbra.hdr"
+./eclipse-shadow-generator planet-view --atmosphere-settings ../share/resources/atmosphere-data/earth/ --output "shadow.hdr" --exposure 0.00005 --delta 0.1 --size 1024
+```
+
+For visualization purposes, you can use the following to create an animation of 250 frames where the Sun gradually sets behind the Earth:
+
+```bash
+mkdir output
+
+for i in {0..250}; do
+  delta=$(echo "scale=4; 0.03 * (250 - $i) / 250" | bc)
+  echo "Generating frame $i with delta $delta"
+  ./eclipse-shadow-generator atmo-view --atmosphere-settings ../share/resources/atmosphere-data/earth/ --output "output/shadow_$i.hdr" --exposure 0.00005 --delta $delta --size 1024
+done
+
 ```
