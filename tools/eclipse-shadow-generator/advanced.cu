@@ -26,6 +26,16 @@ enum class Mode { ePlanetView, eAtmoView };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+struct GeometrySettings {
+  double phiSun     = 0.0082 / 2.0;
+  double phiOcc     = 0.02;
+  double radiusOcc  = 6370900.0;
+  double radiusAtmo = 6451000.0;
+  double delta      = 0.02;
+};
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 struct Constants {
   double TOP_RADIUS;
   double BOTTOM_RADIUS;
@@ -361,10 +371,10 @@ __device__ glm::vec3 getRadiance(Constants const& constants, LimbDarkening limbD
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 __global__ void drawPlanet(float* shadowMap, common::ShadowSettings settings,
-    common::OutputSettings output, LimbDarkening limbDarkening, Constants constants,
-    cudaTextureObject_t multiscatteringTexture, cudaTextureObject_t singleScatteringTexture,
-    cudaTextureObject_t thetaDeviationTexture, cudaTextureObject_t phaseTexture,
-    cudaTextureObject_t transmittanceTexture) {
+    GeometrySettings geometrySettings, float exposure, common::OutputSettings output,
+    LimbDarkening limbDarkening, Constants constants, cudaTextureObject_t multiscatteringTexture,
+    cudaTextureObject_t singleScatteringTexture, cudaTextureObject_t thetaDeviationTexture,
+    cudaTextureObject_t phaseTexture, cudaTextureObject_t transmittanceTexture) {
 
   uint32_t x = blockIdx.x * blockDim.x + threadIdx.x;
   uint32_t y = blockIdx.y * blockDim.y + threadIdx.y;
@@ -374,36 +384,12 @@ __global__ void drawPlanet(float* shadowMap, common::ShadowSettings settings,
     return;
   }
 
-  // Horizon close up from quite close to the Earth.
-  // glm::dvec3 camera       = glm::dvec3(0.0, constants.BOTTOM_RADIUS, 2000000.0);
-  // double     fieldOfView  = 0.01 * M_PI;
-  // glm::dvec3 sunDirection = glm::normalize(glm::vec3(0.0, -0.03, -1.0));
-  // float      exposure     = 0.0001;
-
-  // Horizon close up from Moon.
-  // glm::dvec3 camera       = glm::dvec3(0.0, constants.BOTTOM_RADIUS, 380000000.0);
-  // double     fieldOfView  = 0.005 * M_PI;
-  // glm::dvec3 sunDirection = glm::normalize(glm::vec3(0.0, 0.0, -1.0));
-  // float      exposure     = 0.0001;
-  // float exposure = 0.0000000001;
-
-  // Total eclipse from Moon.
-  // glm::dvec3 camera       = glm::dvec3(0.0, 0.0, 300000000.0);
-  // double     fieldOfView  = 0.018 * M_PI;
-  // glm::dvec3 sunDirection = glm::normalize(glm::vec3(0.0, 0.0, -1.0));
-  // float      exposure     = 0.00001;
-
-  // Total eclipse from Moon, horizon.
-  // glm::dvec3 camera       = glm::dvec3(0.0, constants.BOTTOM_RADIUS, 380000000.0);
-  // double     fieldOfView  = 0.005 * M_PI;
-  // glm::dvec3 sunDirection = glm::normalize(glm::vec3(0.0, -0.005, -1.0));
-  // float      exposure     = 0.000000005;
-
   // Total eclipse from Moon, horizon close up.
-  glm::dvec3 camera       = glm::dvec3(0.0, constants.BOTTOM_RADIUS, 380000000.0);
-  double     fieldOfView  = 0.0005 * M_PI;
-  glm::dvec3 sunDirection = glm::normalize(glm::vec3(0.0, -0.02, -1.0));
-  float      exposure     = 0.0005;
+  double     occDist     = geometrySettings.radiusOcc / glm::sin(geometrySettings.phiOcc);
+  glm::dvec3 camera      = glm::dvec3(0.0, 0.0, occDist);
+  double     fieldOfView = 0.02 * M_PI;
+  glm::dvec3 sunDirection =
+      glm::dvec3(0.0, glm::sin(geometrySettings.delta), -glm::cos(geometrySettings.delta));
 
   // Compute the direction of the ray.
   double theta = (x / (double)output.size - 0.5) * fieldOfView;
@@ -426,10 +412,10 @@ __global__ void drawPlanet(float* shadowMap, common::ShadowSettings settings,
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 __global__ void drawAtmoPano(float* shadowMap, common::ShadowSettings settings,
-    common::OutputSettings output, LimbDarkening limbDarkening, Constants constants,
-    cudaTextureObject_t multiscatteringTexture, cudaTextureObject_t singleScatteringTexture,
-    cudaTextureObject_t thetaDeviationTexture, cudaTextureObject_t phaseTexture,
-    cudaTextureObject_t transmittanceTexture) {
+    GeometrySettings geometrySettings, float exposure, common::OutputSettings output,
+    LimbDarkening limbDarkening, Constants constants, cudaTextureObject_t multiscatteringTexture,
+    cudaTextureObject_t singleScatteringTexture, cudaTextureObject_t thetaDeviationTexture,
+    cudaTextureObject_t phaseTexture, cudaTextureObject_t transmittanceTexture) {
 
   uint32_t x = blockIdx.x * blockDim.x + threadIdx.x;
   uint32_t y = blockIdx.y * blockDim.y + threadIdx.y;
@@ -443,25 +429,19 @@ __global__ void drawAtmoPano(float* shadowMap, common::ShadowSettings settings,
   shadowMap[i * 3 + 1] = 1;
   shadowMap[i * 3 + 2] = 1;
 
-  float  exposure = 0.0001;
-  double phiSun   = 0.0082 / 2.0; // Angular radius of the sun.
-  double phiOcc   = 0.02;         // Angular radius of the occluding body.
-  double delta    = 0.00; // Angular distance between the centers of the sun and the occluding body.
-
-  double occRadius = 6370900.0;
-  double occDist   = occRadius / glm::sin(phiOcc);
-
-  double atmoRadius = 6451000.0;
+  double occDist    = geometrySettings.radiusOcc / glm::sin(geometrySettings.phiOcc);
+  double atmoRadius = geometrySettings.radiusAtmo;
   double phiAtmo    = glm::asin(atmoRadius / occDist);
 
-  glm::dvec3 camera       = glm::dvec3(0.0, 0.0, occDist);
-  glm::dvec3 sunDirection = glm::dvec3(0.0, glm::sin(delta), -glm::cos(delta));
+  glm::dvec3 camera = glm::dvec3(0.0, 0.0, occDist);
+  glm::dvec3 sunDirection =
+      glm::dvec3(0.0, glm::sin(geometrySettings.delta), -glm::cos(geometrySettings.delta));
 
   // Compute the direction of the ray.
   double theta    = (x / (double)output.size) * M_PI;
   double altitude = (y / (double)output.size);
 
-  double     phiRay = phiOcc + altitude * (phiAtmo - phiOcc);
+  double     phiRay = geometrySettings.phiOcc + altitude * (phiAtmo - geometrySettings.phiOcc);
   glm::dvec3 rayDir = glm::dvec3(0.0, glm::sin(phiRay), -glm::cos(phiRay));
   rayDir = glm::normalize(rotateVector(rayDir, glm::dvec3(0.0, 0.0, -1.0), glm::cos(theta)));
 
@@ -485,11 +465,29 @@ void addAtmosphereSettingsFlags(cs::utils::CommandLine& commandLine, std::string
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void addGeometrySettingsFlags(cs::utils::CommandLine& commandLine, GeometrySettings& settings) {
+  commandLine.addArgument({"--phi-sun"}, &settings.phiSun,
+      "The angular radius of the sun. Default is " + std::to_string(settings.phiSun));
+  commandLine.addArgument({"--phi-occ"}, &settings.phiOcc,
+      "The angular radius of the occluding body. Default is " + std::to_string(settings.phiOcc));
+  commandLine.addArgument({"--delta"}, &settings.delta,
+      "The angular distance between the centers of the sun and the occluding body. Default is " +
+          std::to_string(settings.delta));
+  commandLine.addArgument({"--radius-occ"}, &settings.radiusOcc,
+      "The radius of the occluding body. Default is " + std::to_string(settings.radiusOcc));
+  commandLine.addArgument({"--radius-atmo"}, &settings.radiusAtmo,
+      "The radius of the atmosphere. Default is " + std::to_string(settings.radiusAtmo));
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 int runViewMode(Mode mode, std::vector<std::string> const& arguments) {
 
   common::ShadowSettings shadow;
   common::OutputSettings output;
   std::string            atmosphereSettings;
+  float                  exposure = 0.0001;
+  GeometrySettings       geometrySettings;
   bool                   cPrintHelp = false;
 
   // First configure all possible command line options.
@@ -497,6 +495,9 @@ int runViewMode(Mode mode, std::vector<std::string> const& arguments) {
   common::addShadowSettingsFlags(args, shadow);
   common::addOutputSettingsFlags(args, output);
   addAtmosphereSettingsFlags(args, atmosphereSettings);
+  addGeometrySettingsFlags(args, geometrySettings);
+  args.addArgument({"--exposure"}, &exposure,
+      "The exposure of the image. Default is " + std::to_string(exposure));
   args.addArgument({"-h", "--help"}, &cPrintHelp, "Show this help message.");
 
   // Then do the actual parsing.
@@ -559,8 +560,8 @@ int runViewMode(Mode mode, std::vector<std::string> const& arguments) {
   cudaTextureObject_t transmittanceTexture    = createCudaTexture(transmittance);
 
   Constants constants;
-  constants.BOTTOM_RADIUS                = 6370900.0;
-  constants.TOP_RADIUS                   = 6451000.0;
+  constants.BOTTOM_RADIUS                = geometrySettings.radiusOcc;
+  constants.TOP_RADIUS                   = geometrySettings.radiusAtmo;
   constants.TRANSMITTANCE_TEXTURE_WIDTH  = 256;
   constants.TRANSMITTANCE_TEXTURE_HEIGHT = 64;
   constants.SCATTERING_TEXTURE_MU_SIZE   = 128;
@@ -574,13 +575,13 @@ int runViewMode(Mode mode, std::vector<std::string> const& arguments) {
       &shadowMap, static_cast<size_t>(output.size * output.size) * 3 * sizeof(float)));
 
   if (mode == Mode::ePlanetView) {
-    drawPlanet<<<gridSize, blockSize>>>(shadowMap, shadow, output, limbDarkening, constants,
-        multiscatteringTexture, singleScatteringTexture, thetaDeviationTexture, phaseTexture,
-        transmittanceTexture);
+    drawPlanet<<<gridSize, blockSize>>>(shadowMap, shadow, geometrySettings, exposure, output,
+        limbDarkening, constants, multiscatteringTexture, singleScatteringTexture,
+        thetaDeviationTexture, phaseTexture, transmittanceTexture);
   } else if (mode == Mode::eAtmoView) {
-    drawAtmoPano<<<gridSize, blockSize>>>(shadowMap, shadow, output, limbDarkening, constants,
-        multiscatteringTexture, singleScatteringTexture, thetaDeviationTexture, phaseTexture,
-        transmittanceTexture);
+    drawAtmoPano<<<gridSize, blockSize>>>(shadowMap, shadow, geometrySettings, exposure, output,
+        limbDarkening, constants, multiscatteringTexture, singleScatteringTexture,
+        thetaDeviationTexture, phaseTexture, transmittanceTexture);
   }
 
   gpuErrchk(cudaPeekAtLastError());
