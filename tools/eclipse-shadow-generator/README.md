@@ -1,9 +1,9 @@
-<!-- 
+<!--
 SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
 SPDX-License-Identifier: CC-BY-4.0
  -->
- 
- # Eclipse Shadow Map Generator
+
+# Eclipse Shadow Map Generator
 
 This tool can be used to generate the eclipse shadow maps used by CosmoScout VR.
 
@@ -45,7 +45,6 @@ export LD_LIBRARY_PATH=../lib:$LD_LIBRARY_PATH
 
 To learn about the usage of `eclipse-shadow-generator`, you can now issue this command:
 
-
 ```bash
 ./eclipse-shadow-generator --help
 ```
@@ -54,10 +53,10 @@ Here are some other examples to get you started:
 
 ```bash
 # This simple command creates the default eclipse shadow map of CosmoScout VR
-./eclipse-shadow-generator
+./eclipse-shadow-generator limb-darkening
 
 # Here are some other examples
-./eclipse-shadow-generator --mode circles --output "circles.hdr"
-./eclipse-shadow-generator --mode smoothstep --output "smoothstep.hdr"
-./eclipse-shadow-generator --mode linear --with-umbra --mapping-exponent 5 --output "linear_with_umbra.hdr"
+./eclipse-shadow-generator circles --output "circles.hdr"
+./eclipse-shadow-generator smoothstep --output "smoothstep.hdr"
+./eclipse-shadow-generator linear --with-umbra --mapping-exponent 5 --output "linear_with_umbra.hdr"
 ```

@@ -5,13 +5,24 @@
 // SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
 // SPDX-License-Identifier: MIT
 
+#include "advanced.cuh"
+#include "common.hpp"
 #include "gpuErrCheck.hpp"
 #include "math.cuh"
 #include "tiff_utils.hpp"
-#include "with_atmosphere.cuh"
+
+#include <stb_image_write.h>
 
 #include <cstdint>
 #include <iostream>
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+namespace {
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+enum class Mode { ePlanetView, eAtmoView };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -349,16 +360,17 @@ __device__ glm::vec3 getRadiance(Constants const& constants, LimbDarkening limbD
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-__global__ void drawPlanet(float* shadowMap, ShadowSettings settings, LimbDarkening limbDarkening,
-    Constants constants, cudaTextureObject_t multiscatteringTexture,
-    cudaTextureObject_t singleScatteringTexture, cudaTextureObject_t thetaDeviationTexture,
-    cudaTextureObject_t phaseTexture, cudaTextureObject_t transmittanceTexture) {
+__global__ void drawPlanet(float* shadowMap, common::ShadowSettings settings,
+    common::OutputSettings output, LimbDarkening limbDarkening, Constants constants,
+    cudaTextureObject_t multiscatteringTexture, cudaTextureObject_t singleScatteringTexture,
+    cudaTextureObject_t thetaDeviationTexture, cudaTextureObject_t phaseTexture,
+    cudaTextureObject_t transmittanceTexture) {
 
   uint32_t x = blockIdx.x * blockDim.x + threadIdx.x;
   uint32_t y = blockIdx.y * blockDim.y + threadIdx.y;
-  uint32_t i = y * settings.size + x;
+  uint32_t i = y * output.size + x;
 
-  if ((x >= settings.size) || (y >= settings.size)) {
+  if ((x >= output.size) || (y >= output.size)) {
     return;
   }
 
@@ -394,8 +406,8 @@ __global__ void drawPlanet(float* shadowMap, ShadowSettings settings, LimbDarken
   float      exposure     = 0.0005;
 
   // Compute the direction of the ray.
-  double theta = (x / (double)settings.size - 0.5) * fieldOfView;
-  double phi   = (y / (double)settings.size - 0.5) * fieldOfView;
+  double theta = (x / (double)output.size - 0.5) * fieldOfView;
+  double phi   = (y / (double)output.size - 0.5) * fieldOfView;
 
   glm::dvec3 rayDir =
       glm::dvec3(glm::sin(theta) * glm::cos(phi), glm::sin(phi), -glm::cos(theta) * glm::cos(phi));
@@ -413,16 +425,17 @@ __global__ void drawPlanet(float* shadowMap, ShadowSettings settings, LimbDarken
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-__global__ void drawAtmoPano(float* shadowMap, ShadowSettings settings, LimbDarkening limbDarkening,
-    Constants constants, cudaTextureObject_t multiscatteringTexture,
-    cudaTextureObject_t singleScatteringTexture, cudaTextureObject_t thetaDeviationTexture,
-    cudaTextureObject_t phaseTexture, cudaTextureObject_t transmittanceTexture) {
+__global__ void drawAtmoPano(float* shadowMap, common::ShadowSettings settings,
+    common::OutputSettings output, LimbDarkening limbDarkening, Constants constants,
+    cudaTextureObject_t multiscatteringTexture, cudaTextureObject_t singleScatteringTexture,
+    cudaTextureObject_t thetaDeviationTexture, cudaTextureObject_t phaseTexture,
+    cudaTextureObject_t transmittanceTexture) {
 
   uint32_t x = blockIdx.x * blockDim.x + threadIdx.x;
   uint32_t y = blockIdx.y * blockDim.y + threadIdx.y;
-  uint32_t i = y * settings.size + x;
+  uint32_t i = y * output.size + x;
 
-  if ((x >= settings.size) || (y >= settings.size)) {
+  if ((x >= output.size) || (y >= output.size)) {
     return;
   }
 
@@ -445,8 +458,8 @@ __global__ void drawAtmoPano(float* shadowMap, ShadowSettings settings, LimbDark
   glm::dvec3 sunDirection = glm::dvec3(0.0, glm::sin(delta), -glm::cos(delta));
 
   // Compute the direction of the ray.
-  double theta    = (x / (double)settings.size) * M_PI;
-  double altitude = (y / (double)settings.size);
+  double theta    = (x / (double)output.size) * M_PI;
+  double altitude = (y / (double)output.size);
 
   double     phiRay = phiOcc + altitude * (phiAtmo - phiOcc);
   glm::dvec3 rayDir = glm::dvec3(0.0, glm::sin(phiRay), -glm::cos(phiRay));
@@ -465,12 +478,57 @@ __global__ void drawAtmoPano(float* shadowMap, ShadowSettings settings, LimbDark
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void computeAtmosphereShadow(float* shadowMap, ShadowSettings settings,
-    std::string const& atmosphereSettings, LimbDarkening limbDarkening) {
+void addAtmosphereSettingsFlags(cs::utils::CommandLine& commandLine, std::string& settings) {
+  commandLine.addArgument(
+      {"--atmosphere-settings"}, &settings, "The path to the atmosphere settings directory.");
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+int runViewMode(Mode mode, std::vector<std::string> const& arguments) {
+
+  common::ShadowSettings shadow;
+  common::OutputSettings output;
+  std::string            atmosphereSettings;
+  bool                   cPrintHelp = false;
+
+  // First configure all possible command line options.
+  cs::utils::CommandLine args("Here are the available options:");
+  common::addShadowSettingsFlags(args, shadow);
+  common::addOutputSettingsFlags(args, output);
+  addAtmosphereSettingsFlags(args, atmosphereSettings);
+  args.addArgument({"-h", "--help"}, &cPrintHelp, "Show this help message.");
+
+  // Then do the actual parsing.
+  try {
+    args.parse(arguments);
+  } catch (std::runtime_error const& e) {
+    std::cerr << "Failed to parse command line arguments: " << e.what() << std::endl;
+    return 1;
+  }
+
+  // When cPrintHelp was set to true, we print a help message and exit.
+  if (cPrintHelp) {
+    args.printHelp();
+    return 0;
+  }
+
+  // If we are in atmosphere mode, we need also the atmosphere settings.
+  if (atmosphereSettings.empty()) {
+    std::cerr << "When using the 'with-atmosphere' mode, you must provide the path to the "
+                 "atmosphere settings directory using --atmosphere-settings!"
+              << std::endl;
+    return 1;
+  }
+
+  // Initialize the limb darkening model.
+  LimbDarkening limbDarkening;
+  limbDarkening.init();
+
   // Compute the 2D kernel size.
   dim3     blockSize(16, 16);
-  uint32_t numBlocksX = (settings.size + blockSize.x - 1) / blockSize.x;
-  uint32_t numBlocksY = (settings.size + blockSize.y - 1) / blockSize.y;
+  uint32_t numBlocksX = (output.size + blockSize.x - 1) / blockSize.x;
+  uint32_t numBlocksY = (output.size + blockSize.y - 1) / blockSize.y;
   dim3     gridSize   = dim3(numBlocksX, numBlocksY);
 
   tiff_utils::RGBATexture multiscattering =
@@ -510,9 +568,56 @@ void computeAtmosphereShadow(float* shadowMap, ShadowSettings settings,
   constants.SCATTERING_TEXTURE_NU_SIZE   = 8;
   constants.MU_S_MIN                     = std::cos(2.094395160675049);
 
-  drawAtmoPano<<<gridSize, blockSize>>>(shadowMap, settings, limbDarkening, constants,
-      multiscatteringTexture, singleScatteringTexture, thetaDeviationTexture, phaseTexture,
-      transmittanceTexture);
+  // Allocate the shared memory for the shadow map.
+  float* shadowMap = nullptr;
+  gpuErrchk(cudaMallocManaged(
+      &shadowMap, static_cast<size_t>(output.size * output.size) * 3 * sizeof(float)));
+
+  if (mode == Mode::ePlanetView) {
+    drawPlanet<<<gridSize, blockSize>>>(shadowMap, shadow, output, limbDarkening, constants,
+        multiscatteringTexture, singleScatteringTexture, thetaDeviationTexture, phaseTexture,
+        transmittanceTexture);
+  } else if (mode == Mode::eAtmoView) {
+    drawAtmoPano<<<gridSize, blockSize>>>(shadowMap, shadow, output, limbDarkening, constants,
+        multiscatteringTexture, singleScatteringTexture, thetaDeviationTexture, phaseTexture,
+        transmittanceTexture);
+  }
+
+  gpuErrchk(cudaPeekAtLastError());
+  gpuErrchk(cudaDeviceSynchronize());
+
+  // Finally write the output texture!
+  stbi_write_hdr(output.output.c_str(), static_cast<int>(output.size),
+      static_cast<int>(output.size), 3, shadowMap);
+
+  // Free the shared memory.
+  gpuErrchk(cudaFree(shadowMap));
+
+  return 0;
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+} // namespace
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+namespace advanced {
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+int planetViewMode(std::vector<std::string> const& arguments) {
+  return runViewMode(Mode::ePlanetView, arguments);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+int atmoViewMode(std::vector<std::string> const& arguments) {
+  return runViewMode(Mode::eAtmoView, arguments);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+} // namespace advanced
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
