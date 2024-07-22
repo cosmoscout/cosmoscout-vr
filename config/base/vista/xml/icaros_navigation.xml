@@ -56,8 +56,6 @@ This data flow net graph defines the interaction configuration for the ICAROS de
         <node name="rotation_dif" type="Multiply[VistaQuaternion]" />       <!-- hier kommt rein das original und das inverte  -->
 
 
-        <node name="roll_calibrtaion" type="Multiply[float]" />
-
 
         <!-- yaw rotation -->
         <node name="orientation_invert" type="Invert[VistaQuaternion]"/>
@@ -78,6 +76,8 @@ This data flow net graph defines the interaction configuration for the ICAROS de
         <node name="roll_sign" type="Substract[float]"/>  
 
         <node name="roll" type="Multiply[float]"/>      
+        <node name="roll_calibration" type="Multiply[float]"/>      
+
         <!-- pitch rotaion  -->
         <node name="pitch_calibrate" type="Multiply[float]"/>      
         <node name="pitch" type="AxisRotate"/>
@@ -133,6 +133,10 @@ This data flow net graph defines the interaction configuration for the ICAROS de
         </node>
 
   
+
+        <node name="last_speed_level" type="ConstantValue[float]">
+            <param name="value" value="0.0" />
+        </node>
 
          <node name="threshhold_value" type="ConstantValue[float]">
             <param name="value" value="0.0" />
@@ -199,7 +203,7 @@ This data flow net graph defines the interaction configuration for the ICAROS de
         <edge fromnode="roll_sign" tonode="roll" fromport="out" toport="second" />
 
         <edge fromnode="roll" tonode="roll_calibration" fromport="out" toport="first" />
-        <edge fromnode="roll_calibration_value" tonode="roll_calibration" fromport="out" toport="second" />
+        <edge fromnode="roll_calibration_value" tonode="roll_calibration" fromport="value" toport="second" />
         <edge fromnode="roll_calibration" tonode="yaw_angle" fromport="out" toport="first" />
 
 
@@ -233,6 +237,8 @@ This data flow net graph defines the interaction configuration for the ICAROS de
         <edge fromnode="speed_level" tonode="clamp_low" fromport="out"  toport="second" />
         <edge fromnode="clamp_low" tonode="clamp_high" fromport="out"  toport="second" />
         <edge fromnode="clamp_high" tonode="speed_level" fromport="out"  toport="first" />
+        <edge fromnode="speed_level" tonode="updated_speed" fromport="out" toport="second" />
+
        <!-- debug text speedlevel /> -->
         <edge fromnode="speed_level" tonode="debug_text" fromport="out" toport="speed_level" />
 
