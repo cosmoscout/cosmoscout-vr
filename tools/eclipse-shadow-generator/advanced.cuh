@@ -13,6 +13,10 @@
 
 namespace advanced {
 
+// Computes the shadow map evaluating the Bruneton precomputed atmospheric scattering model for each
+// position in the shadow map.
+int brunetonMode(std::vector<std::string> const& arguments);
+
 // Draws the atmosphere of a planet into a texture as seen through a pinhole camera. The atmospheric
 // scattering data, the position of the observer relative to the planet and the sun's direction are
 // given via command line arguments.

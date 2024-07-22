@@ -22,7 +22,7 @@ namespace {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-enum class Mode { ePlanetView, eAtmoView };
+enum class Mode { eBruneton, ePlanetView, eAtmoView };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -313,11 +313,11 @@ __device__ void getCombinedScattering(Constants const& constants,
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-__device__ glm::vec3 getRadiance(Constants const& constants, LimbDarkening limbDarkening,
+__device__ glm::vec3 getLuminance(Constants const& constants, LimbDarkening limbDarkening,
     cudaTextureObject_t phaseTexture, cudaTextureObject_t thetaDeviationTexture,
     cudaTextureObject_t transmittanceTexture, cudaTextureObject_t multipleScatteringTexture,
     cudaTextureObject_t singleAerosolsScatteringTexture, glm::dvec3 camera, glm::dvec3 viewRay,
-    glm::dvec3 sunDirection) {
+    glm::dvec3 sunDirection, double phiSun) {
   // Compute the distance to the top atmosphere boundary along the view ray, assuming the viewer is
   // in space (or NaN if the view ray does not intersect the atmosphere).
   double r   = length(camera);
@@ -325,12 +325,12 @@ __device__ glm::vec3 getRadiance(Constants const& constants, LimbDarkening limbD
   double distanceToTopAtmosphereBoundary =
       -rmu - sqrt(rmu * rmu - r * r + constants.TOP_RADIUS * constants.TOP_RADIUS);
 
-  glm::vec3  skyRadiance   = glm::vec3(0.0);
+  glm::vec3  skyLuminance  = glm::vec3(0.0);
   glm::vec3  transmittance = glm::vec3(1.0);
   glm::dvec3 viewRayR, viewRayG, viewRayB;
   viewRayR = viewRayG = viewRayB = viewRay;
 
-  // We only need to compute the radiance if the view ray intersects the atmosphere.
+  // We only need to compute the luminance if the view ray intersects the atmosphere.
   if (distanceToTopAtmosphereBoundary > 0.0) {
 
     camera += viewRay * distanceToTopAtmosphereBoundary;
@@ -346,8 +346,8 @@ __device__ glm::vec3 getRadiance(Constants const& constants, LimbDarkening limbD
     getCombinedScattering(constants, multipleScatteringTexture, singleAerosolsScatteringTexture, mu,
         muS, nu, rayRMuIntersectsGround, multipleScattering, singleAerosolsScattering);
 
-    skyRadiance = multipleScattering * moleculePhaseFunction(phaseTexture, nu) +
-                  singleAerosolsScattering * aerosolPhaseFunction(phaseTexture, nu);
+    skyLuminance = multipleScattering * moleculePhaseFunction(phaseTexture, nu) +
+                   singleAerosolsScattering * aerosolPhaseFunction(phaseTexture, nu);
 
     getRefractedViewRays(
         constants, thetaDeviationTexture, camera, viewRay, viewRayR, viewRayG, viewRayB);
@@ -357,15 +357,123 @@ __device__ glm::vec3 getRadiance(Constants const& constants, LimbDarkening limbD
                                                  constants, transmittanceTexture, mu);
   }
 
-  float sunAngularRadius = 0.0082 / 2.0;
+  float sunR = limbDarkening.get(angleBetweenVectors(viewRayR, sunDirection) / phiSun);
+  float sunG = limbDarkening.get(angleBetweenVectors(viewRayG, sunDirection) / phiSun);
+  float sunB = limbDarkening.get(angleBetweenVectors(viewRayB, sunDirection) / phiSun);
 
-  float sunR = limbDarkening.get(angleBetweenVectors(viewRayR, sunDirection) / sunAngularRadius);
-  float sunG = limbDarkening.get(angleBetweenVectors(viewRayG, sunDirection) / sunAngularRadius);
-  float sunB = limbDarkening.get(angleBetweenVectors(viewRayB, sunDirection) / sunAngularRadius);
+  glm::vec3 sunLuminance = transmittance * 1.1e9f * glm::vec3(sunR, sunG, sunB);
 
-  glm::vec3 sunRadiance = transmittance * 1.1e9f * glm::vec3(sunR, sunG, sunB);
+  return skyLuminance + sunLuminance;
+}
 
-  return skyRadiance + sunRadiance;
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+__global__ void computeShadowMap(float* shadowMap, common::ShadowSettings settings,
+    GeometrySettings geometrySettings, float exposure, common::OutputSettings output,
+    LimbDarkening limbDarkening, Constants constants, cudaTextureObject_t multiscatteringTexture,
+    cudaTextureObject_t singleScatteringTexture, cudaTextureObject_t thetaDeviationTexture,
+    cudaTextureObject_t phaseTexture, cudaTextureObject_t transmittanceTexture) {
+
+  uint32_t x = blockIdx.x * blockDim.x + threadIdx.x;
+  uint32_t y = blockIdx.y * blockDim.y + threadIdx.y;
+  uint32_t i = y * output.size + x;
+
+  if ((x >= output.size) || (y >= output.size)) {
+    return;
+  }
+
+  uint32_t  samplesX = 64;
+  uint32_t  samplesY = 64;
+  glm::vec3 illuminance(0.0);
+
+  glm::dvec2 angles = math::mapPixelToAngles(
+      glm::ivec2(x, y), output.size, settings.mappingExponent, settings.includeUmbra);
+
+  double phiOcc = angles.x;
+  double delta  = angles.y;
+
+  double occDist    = geometrySettings.radiusOcc / glm::sin(phiOcc);
+  double atmoRadius = geometrySettings.radiusAtmo;
+  double phiAtmo    = glm::asin(atmoRadius / occDist);
+
+  glm::dvec3 camera       = glm::dvec3(0.0, 0.0, occDist);
+  glm::dvec3 sunDirection = glm::dvec3(0.0, glm::sin(delta), -glm::cos(delta));
+
+  // Compute the direction of the ray.
+
+  for (uint32_t sampleY = 0; sampleY < samplesY; ++sampleY) {
+    double upperAltitude    = ((double)sampleY + 1.0) / samplesY;
+    double lowerAltitude    = ((double)sampleY) / samplesY;
+    double upperPhiRay      = phiOcc + upperAltitude * (phiAtmo - phiOcc);
+    double lowerPhiRay      = phiOcc + lowerAltitude * (phiAtmo - phiOcc);
+    double solidAnglePerRow = (math::getCapArea(upperPhiRay) - math::getCapArea(lowerPhiRay));
+
+    for (uint32_t sampleX = 0; sampleX < samplesX; ++sampleX) {
+
+      double theta    = (((double)sampleX + 0.5) / samplesX) * M_PI;
+      double altitude = (((double)sampleY + 0.5) / samplesY);
+
+      double     phiRay = phiOcc + altitude * (phiAtmo - phiOcc);
+      glm::dvec3 rayDir = glm::dvec3(0.0, glm::sin(phiRay), -glm::cos(phiRay));
+      rayDir = glm::normalize(rotateVector(rayDir, glm::dvec3(0.0, 0.0, -1.0), glm::cos(theta)));
+
+      glm::vec3 luminance = getLuminance(constants, limbDarkening, phaseTexture,
+          thetaDeviationTexture, transmittanceTexture, multiscatteringTexture,
+          singleScatteringTexture, camera, rayDir, sunDirection, 1.0);
+
+      illuminance += luminance * (float)solidAnglePerRow;
+    }
+  }
+
+  illuminance = illuminance / (float)samplesX;
+
+  illuminance = linearToSRGB(tonemap(illuminance * exposure));
+
+  shadowMap[i * 3 + 0] = illuminance.r;
+  shadowMap[i * 3 + 1] = illuminance.g;
+  shadowMap[i * 3 + 2] = illuminance.b;
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+__global__ void drawAtmoView(float* shadowMap, common::ShadowSettings settings,
+    GeometrySettings geometrySettings, float exposure, common::OutputSettings output,
+    LimbDarkening limbDarkening, Constants constants, cudaTextureObject_t multiscatteringTexture,
+    cudaTextureObject_t singleScatteringTexture, cudaTextureObject_t thetaDeviationTexture,
+    cudaTextureObject_t phaseTexture, cudaTextureObject_t transmittanceTexture) {
+
+  uint32_t x = blockIdx.x * blockDim.x + threadIdx.x;
+  uint32_t y = blockIdx.y * blockDim.y + threadIdx.y;
+  uint32_t i = y * output.size + x;
+
+  if ((x >= output.size) || (y >= output.size)) {
+    return;
+  }
+
+  double occDist    = geometrySettings.radiusOcc / glm::sin(geometrySettings.phiOcc);
+  double atmoRadius = geometrySettings.radiusAtmo;
+  double phiAtmo    = glm::asin(atmoRadius / occDist);
+
+  glm::dvec3 camera = glm::dvec3(0.0, 0.0, occDist);
+  glm::dvec3 sunDirection =
+      glm::dvec3(0.0, glm::sin(geometrySettings.delta), -glm::cos(geometrySettings.delta));
+
+  // Compute the direction of the ray.
+  double theta    = (x / (double)output.size) * M_PI;
+  double altitude = (y / (double)output.size);
+
+  double     phiRay = geometrySettings.phiOcc + altitude * (phiAtmo - geometrySettings.phiOcc);
+  glm::dvec3 rayDir = glm::dvec3(0.0, glm::sin(phiRay), -glm::cos(phiRay));
+  rayDir = glm::normalize(rotateVector(rayDir, glm::dvec3(0.0, 0.0, -1.0), glm::cos(theta)));
+
+  glm::vec3 luminance = getLuminance(constants, limbDarkening, phaseTexture, thetaDeviationTexture,
+      transmittanceTexture, multiscatteringTexture, singleScatteringTexture, camera, rayDir,
+      sunDirection, geometrySettings.phiSun);
+
+  luminance = linearToSRGB(tonemap(luminance * exposure));
+
+  shadowMap[i * 3 + 0] = luminance.r;
+  shadowMap[i * 3 + 1] = luminance.g;
+  shadowMap[i * 3 + 2] = luminance.b;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -398,62 +506,15 @@ __global__ void drawPlanet(float* shadowMap, common::ShadowSettings settings,
   glm::dvec3 rayDir =
       glm::dvec3(glm::sin(theta) * glm::cos(phi), glm::sin(phi), -glm::cos(theta) * glm::cos(phi));
 
-  glm::vec3 radiance = getRadiance(constants, limbDarkening, phaseTexture, thetaDeviationTexture,
+  glm::vec3 luminance = getLuminance(constants, limbDarkening, phaseTexture, thetaDeviationTexture,
       transmittanceTexture, multiscatteringTexture, singleScatteringTexture, camera, rayDir,
-      sunDirection);
+      sunDirection, geometrySettings.phiSun);
 
-  radiance = linearToSRGB(tonemap(radiance * exposure));
+  luminance = linearToSRGB(tonemap(luminance * exposure));
 
-  shadowMap[i * 3 + 0] = radiance.r;
-  shadowMap[i * 3 + 1] = radiance.g;
-  shadowMap[i * 3 + 2] = radiance.b;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-__global__ void drawAtmoPano(float* shadowMap, common::ShadowSettings settings,
-    GeometrySettings geometrySettings, float exposure, common::OutputSettings output,
-    LimbDarkening limbDarkening, Constants constants, cudaTextureObject_t multiscatteringTexture,
-    cudaTextureObject_t singleScatteringTexture, cudaTextureObject_t thetaDeviationTexture,
-    cudaTextureObject_t phaseTexture, cudaTextureObject_t transmittanceTexture) {
-
-  uint32_t x = blockIdx.x * blockDim.x + threadIdx.x;
-  uint32_t y = blockIdx.y * blockDim.y + threadIdx.y;
-  uint32_t i = y * output.size + x;
-
-  if ((x >= output.size) || (y >= output.size)) {
-    return;
-  }
-
-  shadowMap[i * 3 + 0] = 1;
-  shadowMap[i * 3 + 1] = 1;
-  shadowMap[i * 3 + 2] = 1;
-
-  double occDist    = geometrySettings.radiusOcc / glm::sin(geometrySettings.phiOcc);
-  double atmoRadius = geometrySettings.radiusAtmo;
-  double phiAtmo    = glm::asin(atmoRadius / occDist);
-
-  glm::dvec3 camera = glm::dvec3(0.0, 0.0, occDist);
-  glm::dvec3 sunDirection =
-      glm::dvec3(0.0, glm::sin(geometrySettings.delta), -glm::cos(geometrySettings.delta));
-
-  // Compute the direction of the ray.
-  double theta    = (x / (double)output.size) * M_PI;
-  double altitude = (y / (double)output.size);
-
-  double     phiRay = geometrySettings.phiOcc + altitude * (phiAtmo - geometrySettings.phiOcc);
-  glm::dvec3 rayDir = glm::dvec3(0.0, glm::sin(phiRay), -glm::cos(phiRay));
-  rayDir = glm::normalize(rotateVector(rayDir, glm::dvec3(0.0, 0.0, -1.0), glm::cos(theta)));
-
-  glm::vec3 radiance = getRadiance(constants, limbDarkening, phaseTexture, thetaDeviationTexture,
-      transmittanceTexture, multiscatteringTexture, singleScatteringTexture, camera, rayDir,
-      sunDirection);
-
-  radiance = linearToSRGB(tonemap(radiance * exposure));
-
-  shadowMap[i * 3 + 0] = radiance.r;
-  shadowMap[i * 3 + 1] = radiance.g;
-  shadowMap[i * 3 + 2] = radiance.b;
+  shadowMap[i * 3 + 0] = luminance.r;
+  shadowMap[i * 3 + 1] = luminance.g;
+  shadowMap[i * 3 + 2] = luminance.b;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -481,7 +542,7 @@ void addGeometrySettingsFlags(cs::utils::CommandLine& commandLine, GeometrySetti
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-int runViewMode(Mode mode, std::vector<std::string> const& arguments) {
+int run(Mode mode, std::vector<std::string> const& arguments) {
 
   common::ShadowSettings shadow;
   common::OutputSettings output;
@@ -574,12 +635,16 @@ int runViewMode(Mode mode, std::vector<std::string> const& arguments) {
   gpuErrchk(cudaMallocManaged(
       &shadowMap, static_cast<size_t>(output.size * output.size) * 3 * sizeof(float)));
 
-  if (mode == Mode::ePlanetView) {
+  if (mode == Mode::eBruneton) {
+    computeShadowMap<<<gridSize, blockSize>>>(shadowMap, shadow, geometrySettings, exposure, output,
+        limbDarkening, constants, multiscatteringTexture, singleScatteringTexture,
+        thetaDeviationTexture, phaseTexture, transmittanceTexture);
+  } else if (mode == Mode::ePlanetView) {
     drawPlanet<<<gridSize, blockSize>>>(shadowMap, shadow, geometrySettings, exposure, output,
         limbDarkening, constants, multiscatteringTexture, singleScatteringTexture,
         thetaDeviationTexture, phaseTexture, transmittanceTexture);
   } else if (mode == Mode::eAtmoView) {
-    drawAtmoPano<<<gridSize, blockSize>>>(shadowMap, shadow, geometrySettings, exposure, output,
+    drawAtmoView<<<gridSize, blockSize>>>(shadowMap, shadow, geometrySettings, exposure, output,
         limbDarkening, constants, multiscatteringTexture, singleScatteringTexture,
         thetaDeviationTexture, phaseTexture, transmittanceTexture);
   }
@@ -607,14 +672,20 @@ namespace advanced {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+int brunetonMode(std::vector<std::string> const& arguments) {
+  return run(Mode::eBruneton, arguments);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 int planetViewMode(std::vector<std::string> const& arguments) {
-  return runViewMode(Mode::ePlanetView, arguments);
+  return run(Mode::ePlanetView, arguments);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 int atmoViewMode(std::vector<std::string> const& arguments) {
-  return runViewMode(Mode::eAtmoView, arguments);
+  return run(Mode::eAtmoView, arguments);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

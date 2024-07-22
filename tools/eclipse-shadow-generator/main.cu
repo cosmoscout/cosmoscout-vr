@@ -28,6 +28,7 @@ void printHelp() {
   std::cout << "Type './eclipse-shadow-generator <mode> --help' to learn more about a specific mode." << std::endl;
   std::cout << std::endl;
   std::cout << "These modes are available:" << std::endl;
+  std::cout << "bruneton       Computes an eclipse shadow with atmospheric effects based on the Bruneton atmospheric model." << std::endl;
   std::cout << "limp-darkening Computes an eclipse shadow without atmospheric effects using sampling of a limb-darkening function." << std::endl;
   std::cout << "circles        Computes an eclipse shadow without atmospheric effects based on circle intersections." << std::endl;
   std::cout << "smoothstep     Computes an eclipse shadow without atmospheric effects using a smoothstep function in the penumbra on circle intersections." << std::endl;
@@ -69,6 +70,10 @@ int main(int argc, char** argv) {
 
   if (cMode == "linear") {
     return simple::linearMode(arguments);
+  }
+
+  if (cMode == "bruneton") {
+    return advanced::brunetonMode(arguments);
   }
 
   if (cMode == "planet-view") {
