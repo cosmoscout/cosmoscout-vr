@@ -31,6 +31,7 @@ struct GeometrySettings {
   double phiOcc     = 0.02;
   double radiusOcc  = 6370900.0;
   double radiusAtmo = 6451000.0;
+  double radiusSun  = 695700000.0;
   double delta      = 0.02;
 };
 
@@ -46,6 +47,18 @@ struct Constants {
   int    SCATTERING_TEXTURE_NU_SIZE;
   double MU_S_MIN;
 };
+
+double __device__ getSunIlluminance(double sunDistance) {
+  const double sunLuminousPower = 3.75e28;
+  return sunLuminousPower / (4.0 * glm::pi<double>() * sunDistance * sunDistance);
+}
+
+double __device__ getSunLuminance(double sunRadius) {
+  const double sunLuminousPower = 3.75e28;
+  const double sunLuminousExitance =
+      sunLuminousPower / (sunRadius * sunRadius * 4.0 * glm::pi<double>());
+  return sunLuminousExitance / glm::pi<double>();
+}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -317,7 +330,7 @@ __device__ glm::vec3 getLuminance(Constants const& constants, LimbDarkening limb
     cudaTextureObject_t phaseTexture, cudaTextureObject_t thetaDeviationTexture,
     cudaTextureObject_t transmittanceTexture, cudaTextureObject_t multipleScatteringTexture,
     cudaTextureObject_t singleAerosolsScatteringTexture, glm::dvec3 camera, glm::dvec3 viewRay,
-    glm::dvec3 sunDirection, double phiSun) {
+    glm::dvec3 sunDirection, double phiSun, double rSun) {
   // Compute the distance to the top atmosphere boundary along the view ray, assuming the viewer is
   // in space (or NaN if the view ray does not intersect the atmosphere).
   double r   = length(camera);
@@ -361,7 +374,8 @@ __device__ glm::vec3 getLuminance(Constants const& constants, LimbDarkening limb
   float sunG = limbDarkening.get(angleBetweenVectors(viewRayG, sunDirection) / phiSun);
   float sunB = limbDarkening.get(angleBetweenVectors(viewRayB, sunDirection) / phiSun);
 
-  glm::vec3 sunLuminance = transmittance * 1.1e9f * glm::vec3(sunR, sunG, sunB);
+  glm::vec3 sunLuminance =
+      transmittance * (float)getSunLuminance(rSun) * glm::vec3(sunR, sunG, sunB);
 
   return skyLuminance + sunLuminance;
 }
@@ -382,17 +396,19 @@ __global__ void computeShadowMap(float* shadowMap, common::ShadowSettings settin
     return;
   }
 
-  uint32_t  samplesX = 64;
-  uint32_t  samplesY = 64;
-  glm::vec3 illuminance(0.0);
+  uint32_t  samplesX = 256;
+  uint32_t  samplesY = 256;
+  glm::vec3 indirectIlluminance(0.0);
 
   glm::dvec2 angles = math::mapPixelToAngles(
       glm::ivec2(x, y), output.size, settings.mappingExponent, settings.includeUmbra);
 
-  double phiOcc = angles.x;
-  double delta  = angles.y;
+  double phiSun = geometrySettings.phiSun;
+  double phiOcc = angles.x * phiSun;
+  double delta  = angles.y * phiSun;
 
   double occDist    = geometrySettings.radiusOcc / glm::sin(phiOcc);
+  double sunDist    = geometrySettings.radiusSun / glm::sin(phiSun);
   double atmoRadius = geometrySettings.radiusAtmo;
   double phiAtmo    = glm::asin(atmoRadius / occDist);
 
@@ -402,36 +418,40 @@ __global__ void computeShadowMap(float* shadowMap, common::ShadowSettings settin
   // Compute the direction of the ray.
 
   for (uint32_t sampleY = 0; sampleY < samplesY; ++sampleY) {
+    double altitude         = ((double)sampleY + 0.5) / samplesY;
     double upperAltitude    = ((double)sampleY + 1.0) / samplesY;
     double lowerAltitude    = ((double)sampleY) / samplesY;
     double upperPhiRay      = phiOcc + upperAltitude * (phiAtmo - phiOcc);
     double lowerPhiRay      = phiOcc + lowerAltitude * (phiAtmo - phiOcc);
-    double solidAnglePerRow = (math::getCapArea(upperPhiRay) - math::getCapArea(lowerPhiRay));
+    double rowSolidAngle    = 0.5 * (math::getCapArea(upperPhiRay) - math::getCapArea(lowerPhiRay));
+    double sampleSolidAngle = rowSolidAngle / samplesX;
 
     for (uint32_t sampleX = 0; sampleX < samplesX; ++sampleX) {
 
-      double theta    = (((double)sampleX + 0.5) / samplesX) * M_PI;
-      double altitude = (((double)sampleY + 0.5) / samplesY);
+      double theta = (((double)sampleX + 0.5) / samplesX) * M_PI;
 
       double     phiRay = phiOcc + altitude * (phiAtmo - phiOcc);
       glm::dvec3 rayDir = glm::dvec3(0.0, glm::sin(phiRay), -glm::cos(phiRay));
       rayDir = glm::normalize(rotateVector(rayDir, glm::dvec3(0.0, 0.0, -1.0), glm::cos(theta)));
 
-      glm::vec3 luminance = getLuminance(constants, limbDarkening, phaseTexture,
-          thetaDeviationTexture, transmittanceTexture, multiscatteringTexture,
-          singleScatteringTexture, camera, rayDir, sunDirection, 1.0);
+      glm::vec3 luminance =
+          getLuminance(constants, limbDarkening, phaseTexture, thetaDeviationTexture,
+              transmittanceTexture, multiscatteringTexture, singleScatteringTexture, camera, rayDir,
+              sunDirection, phiSun, geometrySettings.radiusSun);
 
-      illuminance += luminance * (float)solidAnglePerRow;
+      indirectIlluminance += luminance * (float)(sampleSolidAngle / getSunIlluminance(sunDist));
     }
   }
 
-  illuminance = illuminance / (float)samplesX;
+  double sunArea = math::getCircleArea(1.0);
+  double directIlluminance =
+      1.0 - math::sampleCircleIntersection(
+                1.0, angles.x * atmoRadius / geometrySettings.radiusOcc, angles.y, limbDarkening) /
+                sunArea;
 
-  illuminance = linearToSRGB(tonemap(illuminance * exposure));
-
-  shadowMap[i * 3 + 0] = illuminance.r;
-  shadowMap[i * 3 + 1] = illuminance.g;
-  shadowMap[i * 3 + 2] = illuminance.b;
+  shadowMap[i * 3 + 0] = indirectIlluminance.r + directIlluminance;
+  shadowMap[i * 3 + 1] = indirectIlluminance.g + directIlluminance;
+  shadowMap[i * 3 + 2] = indirectIlluminance.b + directIlluminance;
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -467,7 +487,7 @@ __global__ void drawAtmoView(float* shadowMap, common::ShadowSettings settings,
 
   glm::vec3 luminance = getLuminance(constants, limbDarkening, phaseTexture, thetaDeviationTexture,
       transmittanceTexture, multiscatteringTexture, singleScatteringTexture, camera, rayDir,
-      sunDirection, geometrySettings.phiSun);
+      sunDirection, geometrySettings.phiSun, geometrySettings.radiusSun);
 
   luminance = linearToSRGB(tonemap(luminance * exposure));
 
@@ -508,7 +528,7 @@ __global__ void drawPlanet(float* shadowMap, common::ShadowSettings settings,
 
   glm::vec3 luminance = getLuminance(constants, limbDarkening, phaseTexture, thetaDeviationTexture,
       transmittanceTexture, multiscatteringTexture, singleScatteringTexture, camera, rayDir,
-      sunDirection, geometrySettings.phiSun);
+      sunDirection, geometrySettings.phiSun, geometrySettings.radiusSun);
 
   luminance = linearToSRGB(tonemap(luminance * exposure));
 
