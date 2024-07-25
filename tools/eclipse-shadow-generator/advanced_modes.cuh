@@ -17,6 +17,13 @@
 // csp-atmospheres plugin. The "planetView" and "atmoView" modes render the atmosphere of a planet
 // from the perspective of a given location in the shadow map for debugging and visualization
 // purposes.
+//
+// Similar to the simple modes, the shadow map contains values between 0 and 1, where 0 means that
+// that no light reaches that point in space and 1 means that no sunlight is blocked. To compute
+// this, the illuminance at the point is computed by integrating the luminance of the Sun and the
+// atmosphere over all directions around the point. This value is then divided by the illuminance at
+// the point if there were no atmosphere and no planet. The result is the RGB color of the shadow
+// map.
 
 namespace advanced {
 

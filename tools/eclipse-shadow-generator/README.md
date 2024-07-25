@@ -59,7 +59,8 @@ Here are some simple examples to get you started:
 ./eclipse-shadow-generator circles --output "circles.hdr"
 ./eclipse-shadow-generator smoothstep --output "smoothstep.hdr"
 ./eclipse-shadow-generator linear --with-umbra --mapping-exponent 5 --output "linear_with_umbra.hdr"
-./eclipse-shadow-generator bruneton --with-umbra --input ../share/resources/atmosphere-data/earth/ --output "with_atmosphere.hdr"
+./eclipse-shadow-generator bruneton --with-umbra --input ../share/resources/atmosphere-data/earth/ --radius-occ 6370900 --radius-atmo 6451000 --sun-occ-dist 149600000000 --output "with_atmosphere_earth.hdr"
+./eclipse-shadow-generator bruneton --with-umbra --input ../share/resources/atmosphere-data/mars/ --radius-occ 3389500 --radius-atmo 3469500 --sun-occ-dist 227900000000 --output "with_atmosphere_mars.hdr"
 ./eclipse-shadow-generator planet-view --input ../share/resources/atmosphere-data/earth/ --exposure 0.00005 --x 0.5 --y 0.5 --fov 1 --size 1024
 ./eclipse-shadow-generator atmo-view --input ../share/resources/atmosphere-data/earth/ --with-umbra --exposure 0.00005 --x 0.2 --y 0.3 --size 1024
 ```

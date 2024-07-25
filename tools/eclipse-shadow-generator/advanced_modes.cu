@@ -78,10 +78,26 @@ __global__ void computeShadowMap(common::Output output, common::Mapping mapping,
     return;
   }
 
-  uint32_t  samplesX = 64;
-  uint32_t  samplesY = 64;
-  glm::vec3 indirectIlluminance(0.0);
+  // For integrating the luminance over all directions, we render an image of the atmosphere from
+  // the perspective of the point in space. We use a parametrization of the texture space which
+  // contains exactly on half of the atmosphere as seen from the point. The individual sample points
+  // are weighted by the solid angle they cover on the sphere around the point.
+  //
+  //     ┌---..
+  //   y │      '
+  //     └--.     \
+  //       x \     │
+  //          │    │
+  //         /     │
+  //     ┌--'     /
+  //     │      .
+  //     └---''
+  //
+  // We use this resolution for the integration:
+  uint32_t samplesX = 128;
+  uint32_t samplesY = 128;
 
+  // First, compute the angular radii of Sun and occluder as well as the angle between the two.
   double phiOcc, phiSun, delta;
   math::mapPixelToAngles(glm::ivec2(x, y), output.mSize, mapping, geometry, phiOcc, phiSun, delta);
 
@@ -93,14 +109,14 @@ __global__ void computeShadowMap(common::Output output, common::Mapping mapping,
   glm::dvec3 camera       = glm::dvec3(0.0, 0.0, occDist);
   glm::dvec3 sunDirection = glm::dvec3(0.0, glm::sin(delta), -glm::cos(delta));
 
-  // Compute the direction of the ray.
+  glm::vec3 indirectIlluminance(0.0);
 
   for (uint32_t sampleY = 0; sampleY < samplesY; ++sampleY) {
-    double altitude         = ((double)sampleY + 0.5) / samplesY;
-    double upperAltitude    = ((double)sampleY + 1.0) / samplesY;
-    double lowerAltitude    = ((double)sampleY) / samplesY;
-    double upperPhiRay      = phiOcc + upperAltitude * (phiAtmo - phiOcc);
-    double lowerPhiRay      = phiOcc + lowerAltitude * (phiAtmo - phiOcc);
+    double relativeY        = ((double)sampleY + 0.5) / samplesY;
+    double upperBound       = ((double)sampleY + 1.0) / samplesY;
+    double lowerBound       = ((double)sampleY) / samplesY;
+    double upperPhiRay      = phiOcc + upperBound * (phiAtmo - phiOcc);
+    double lowerPhiRay      = phiOcc + lowerBound * (phiAtmo - phiOcc);
     double rowSolidAngle    = 0.5 * (math::getCapArea(upperPhiRay) - math::getCapArea(lowerPhiRay));
     double sampleSolidAngle = rowSolidAngle / samplesX;
 
@@ -108,7 +124,8 @@ __global__ void computeShadowMap(common::Output output, common::Mapping mapping,
 
       double theta = (((double)sampleX + 0.5) / samplesX) * M_PI;
 
-      double     phiRay = phiOcc + altitude * (phiAtmo - phiOcc);
+      // Compute the direction of the ray.
+      double     phiRay = phiOcc + relativeY * (phiAtmo - phiOcc);
       glm::dvec3 rayDir = glm::dvec3(0.0, glm::sin(phiRay), -glm::cos(phiRay));
       rayDir =
           glm::normalize(math::rotateVector(rayDir, glm::dvec3(0.0, 0.0, -1.0), glm::cos(theta)));
@@ -116,21 +133,37 @@ __global__ void computeShadowMap(common::Output output, common::Mapping mapping,
       glm::vec3 luminance = advanced::getLuminance(
           camera, rayDir, sunDirection, geometry, limbDarkening, textures, phiSun);
 
-      indirectIlluminance += luminance * (float)(sampleSolidAngle / getSunIlluminance(sunDist));
+      indirectIlluminance += luminance * (float)(sampleSolidAngle);
     }
   }
+
+  // We only computed half of the atmosphere, so we multiply the result by two.
+  indirectIlluminance *= 2.0;
+
+  // We now have the light which reaches our point through the atmosphere. However, there is also a
+  // certain amount of direct sunlight which reaches the point from paths which do not intersect the
+  // atmosphere. We use the formula from the simple mode to compute the visible fraction of the Sun
+  // above the upper atmosphere boundary.
 
   double sunArea = math::getCircleArea(1.0);
   double radiusOcc, distance;
   math::mapPixelToRadii(glm::ivec2(x, y), output.mSize, mapping, radiusOcc, distance);
-  double directIlluminance =
-      1.0 - math::sampleCircleIntersection(1.0,
-                radiusOcc * geometry.mRadiusAtmo / geometry.mRadiusOcc, distance, limbDarkening) /
-                sunArea;
+  double radiusAtmo = radiusOcc * geometry.mRadiusAtmo / geometry.mRadiusOcc;
+  double visibleFraction =
+      1.0 - math::sampleCircleIntersection(1.0, radiusAtmo, distance, limbDarkening) / sunArea;
 
-  output.mBuffer[i * 3 + 0] = indirectIlluminance.r + directIlluminance;
-  output.mBuffer[i * 3 + 1] = indirectIlluminance.g + directIlluminance;
-  output.mBuffer[i * 3 + 2] = indirectIlluminance.b + directIlluminance;
+  // We multiply this fraction with the illuminance of the Sun to get the direct
+  // illuminance.
+  double fullIlluminance   = getSunIlluminance(sunDist);
+  double directIlluminance = fullIlluminance * visibleFraction;
+
+  // We add the direct and indirect illuminance to get the total illuminance.
+  glm::dvec3 totalIlluminance = indirectIlluminance + glm::vec3(directIlluminance);
+
+  // And divide by the illuminance at the point if there were no atmosphere and no planet.
+  output.mBuffer[i * 3 + 0] = totalIlluminance.r / fullIlluminance;
+  output.mBuffer[i * 3 + 1] = totalIlluminance.g / fullIlluminance;
+  output.mBuffer[i * 3 + 2] = totalIlluminance.b / fullIlluminance;
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -154,10 +187,10 @@ __global__ void drawAtmoView(common::Mapping mapping, common::Geometry geometry,
   glm::dvec3 sunDirection = glm::dvec3(0.0, glm::sin(delta), -glm::cos(delta));
 
   // Compute the direction of the ray.
-  double theta    = (x / (double)output.mSize) * M_PI;
-  double altitude = (y / (double)output.mSize);
+  double theta     = (x / (double)output.mSize) * M_PI;
+  double relativeY = (y / (double)output.mSize);
 
-  double     phiRay = phiOcc + altitude * (phiAtmo - phiOcc);
+  double     phiRay = phiOcc + relativeY * (phiAtmo - phiOcc);
   glm::dvec3 rayDir = glm::dvec3(0.0, glm::sin(phiRay), -glm::cos(phiRay));
   rayDir = glm::normalize(math::rotateVector(rayDir, glm::dvec3(0.0, 0.0, -1.0), glm::cos(theta)));
 
