@@ -5,11 +5,12 @@
 // SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
 // SPDX-License-Identifier: MIT
 
+#include "simple_modes.cuh"
+
 #include "LimbDarkening.cuh"
 #include "common.hpp"
 #include "gpuErrCheck.hpp"
 #include "math.cuh"
-#include "simple.cuh"
 
 #include <stb_image_write.h>
 
@@ -25,127 +26,121 @@ enum class Mode { eLimbDarkening, eCircleIntersection, eLinear, eSmoothstep };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-__device__ void writeAsRGBValue(float value, float* shadowMap, uint32_t index) {
-  shadowMap[index * 3 + 0] = value;
-  shadowMap[index * 3 + 1] = value;
-  shadowMap[index * 3 + 2] = value;
+__device__ void writeAsRGBValue(float value, float* buffer, uint32_t index) {
+  buffer[index * 3 + 0] = value;
+  buffer[index * 3 + 1] = value;
+  buffer[index * 3 + 2] = value;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-__global__ void computeLimbDarkeningShadow(float* shadowMap, common::ShadowSettings shadow,
-    common::OutputSettings output, LimbDarkening limbDarkening) {
+__global__ void computeLimbDarkeningShadow(common::MappingSettings mapping,
+    common::OutputSettings output, common::LimbDarkening limbDarkening) {
   uint32_t x = blockIdx.x * blockDim.x + threadIdx.x;
   uint32_t y = blockIdx.y * blockDim.y + threadIdx.y;
-  uint32_t i = y * output.size + x;
+  uint32_t i = y * output.mSize + x;
 
-  if ((x >= output.size) || (y >= output.size)) {
+  if ((x >= output.mSize) || (y >= output.mSize)) {
     return;
   }
 
-  auto angles = math::mapPixelToAngles(
-      glm::ivec2(x, y), output.size, shadow.mappingExponent, shadow.includeUmbra);
+  double radiusOcc, distance;
+  math::mapPixelToRadii(glm::ivec2(x, y), output.mSize, mapping, radiusOcc, distance);
 
   double sunArea = math::getCircleArea(1.0);
 
   float intensity = static_cast<float>(
-      1 - math::sampleCircleIntersection(1.0, angles.x, angles.y, limbDarkening) / sunArea);
+      1 - math::sampleCircleIntersection(1.0, radiusOcc, distance, limbDarkening) / sunArea);
 
-  writeAsRGBValue(intensity, shadowMap, i);
+  writeAsRGBValue(intensity, output.mBuffer, i);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 __global__ void computeCircleIntersectionShadow(
-    float* shadowMap, common::ShadowSettings shadow, common::OutputSettings output) {
+    common::MappingSettings mapping, common::OutputSettings output) {
   uint32_t x = blockIdx.x * blockDim.x + threadIdx.x;
   uint32_t y = blockIdx.y * blockDim.y + threadIdx.y;
-  uint32_t i = y * output.size + x;
+  uint32_t i = y * output.mSize + x;
 
-  if ((x >= output.size) || (y >= output.size)) {
+  if ((x >= output.mSize) || (y >= output.mSize)) {
     return;
   }
 
-  auto angles = math::mapPixelToAngles(
-      glm::ivec2(x, y), output.size, shadow.mappingExponent, shadow.includeUmbra);
+  double radiusOcc, distance;
+  math::mapPixelToRadii(glm::ivec2(x, y), output.mSize, mapping, radiusOcc, distance);
 
   double sunArea = math::getCircleArea(1.0);
 
   float intensity =
-      static_cast<float>(1.0 - math::getCircleIntersection(1.0, angles.x, angles.y) / sunArea);
+      static_cast<float>(1.0 - math::getCircleIntersection(1.0, radiusOcc, distance) / sunArea);
 
-  writeAsRGBValue(intensity, shadowMap, i);
+  writeAsRGBValue(intensity, output.mBuffer, i);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 __global__ void computeLinearShadow(
-    float* shadowMap, common::ShadowSettings shadow, common::OutputSettings output) {
+    common::MappingSettings mapping, common::OutputSettings output) {
   uint32_t x = blockIdx.x * blockDim.x + threadIdx.x;
   uint32_t y = blockIdx.y * blockDim.y + threadIdx.y;
-  uint32_t i = y * output.size + x;
+  uint32_t i = y * output.mSize + x;
 
-  if ((x >= output.size) || (y >= output.size)) {
+  if ((x >= output.mSize) || (y >= output.mSize)) {
     return;
   }
 
-  auto angles = math::mapPixelToAngles(
-      glm::ivec2(x, y), output.size, shadow.mappingExponent, shadow.includeUmbra);
+  double radiusSun = 1.0;
+  double radiusOcc, distance;
+  math::mapPixelToRadii(glm::ivec2(x, y), output.mSize, mapping, radiusOcc, distance);
 
-  double phiSun = 1.0;
-  double phiOcc = angles[0];
-  double delta  = angles[1];
+  double visiblePortion = (distance - glm::abs(radiusSun - radiusOcc)) /
+                          (radiusSun + radiusOcc - glm::abs(radiusSun - radiusOcc));
 
-  double visiblePortion =
-      (delta - glm::abs(phiSun - phiOcc)) / (phiSun + phiOcc - glm::abs(phiSun - phiOcc));
-
-  double maxDepth = glm::min(1.0, glm::pow(phiOcc / phiSun, 2.0));
+  double maxDepth = glm::min(1.0, glm::pow(radiusOcc / radiusSun, 2.0));
 
   float intensity = static_cast<float>(1.0 - maxDepth * glm::clamp(1.0 - visiblePortion, 0.0, 1.0));
 
-  writeAsRGBValue(intensity, shadowMap, i);
+  writeAsRGBValue(intensity, output.mBuffer, i);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 __global__ void computeSmoothstepShadow(
-    float* shadowMap, common::ShadowSettings shadow, common::OutputSettings output) {
+    common::MappingSettings mapping, common::OutputSettings output) {
   uint32_t x = blockIdx.x * blockDim.x + threadIdx.x;
   uint32_t y = blockIdx.y * blockDim.y + threadIdx.y;
-  uint32_t i = y * output.size + x;
+  uint32_t i = y * output.mSize + x;
 
-  if ((x >= output.size) || (y >= output.size)) {
+  if ((x >= output.mSize) || (y >= output.mSize)) {
     return;
   }
 
-  auto angles = math::mapPixelToAngles(
-      glm::ivec2(x, y), output.size, shadow.mappingExponent, shadow.includeUmbra);
+  double radiusSun = 1.0;
+  double radiusOcc, distance;
+  math::mapPixelToRadii(glm::ivec2(x, y), output.mSize, mapping, radiusOcc, distance);
 
-  double phiSun = 1.0;
-  double phiOcc = angles[0];
-  double delta  = angles[1];
+  double visiblePortion = (distance - glm::abs(radiusSun - radiusOcc)) /
+                          (radiusSun + radiusOcc - glm::abs(radiusSun - radiusOcc));
 
-  double visiblePortion =
-      (delta - glm::abs(phiSun - phiOcc)) / (phiSun + phiOcc - glm::abs(phiSun - phiOcc));
-
-  double maxDepth = glm::min(1.0, glm::pow(phiOcc / phiSun, 2.0));
+  double maxDepth = glm::min(1.0, glm::pow(radiusOcc / radiusSun, 2.0));
 
   float intensity = static_cast<float>(
       1.0 - maxDepth * glm::clamp(1.0 - glm::smoothstep(0.0, 1.0, visiblePortion), 0.0, 1.0));
 
-  writeAsRGBValue(intensity, shadowMap, i);
+  writeAsRGBValue(intensity, output.mBuffer, i);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 int run(Mode mode, std::vector<std::string> const& arguments) {
-  common::ShadowSettings shadow;
-  common::OutputSettings output;
-  bool                   cPrintHelp = false;
+  common::MappingSettings mapping;
+  common::OutputSettings  output;
+  bool                    cPrintHelp = false;
 
   // First configure all possible command line options.
   cs::utils::CommandLine args("Here are the available options:");
-  common::addShadowSettingsFlags(args, shadow);
+  common::addMappingSettingsFlags(args, mapping);
   common::addOutputSettingsFlags(args, output);
   args.addArgument({"-h", "--help"}, &cPrintHelp, "Show this help message.");
 
@@ -164,39 +159,38 @@ int run(Mode mode, std::vector<std::string> const& arguments) {
   }
 
   // Initialize the limb darkening model.
-  LimbDarkening limbDarkening;
+  common::LimbDarkening limbDarkening;
   limbDarkening.init();
 
   // Compute the 2D kernel size.
   dim3     blockSize(16, 16);
-  uint32_t numBlocksX = (output.size + blockSize.x - 1) / blockSize.x;
-  uint32_t numBlocksY = (output.size + blockSize.y - 1) / blockSize.y;
+  uint32_t numBlocksX = (output.mSize + blockSize.x - 1) / blockSize.x;
+  uint32_t numBlocksY = (output.mSize + blockSize.y - 1) / blockSize.y;
   dim3     gridSize   = dim3(numBlocksX, numBlocksY);
 
   // Allocate the shared memory for the shadow map.
-  float* shadowMap = nullptr;
   gpuErrchk(cudaMallocManaged(
-      &shadowMap, static_cast<size_t>(output.size * output.size) * 3 * sizeof(float)));
+      &output.mBuffer, static_cast<size_t>(output.mSize * output.mSize) * 3 * sizeof(float)));
 
   if (mode == Mode::eLimbDarkening) {
-    computeLimbDarkeningShadow<<<gridSize, blockSize>>>(shadowMap, shadow, output, limbDarkening);
+    computeLimbDarkeningShadow<<<gridSize, blockSize>>>(mapping, output, limbDarkening);
   } else if (mode == Mode::eCircleIntersection) {
-    computeCircleIntersectionShadow<<<gridSize, blockSize>>>(shadowMap, shadow, output);
+    computeCircleIntersectionShadow<<<gridSize, blockSize>>>(mapping, output);
   } else if (mode == Mode::eLinear) {
-    computeLinearShadow<<<gridSize, blockSize>>>(shadowMap, shadow, output);
+    computeLinearShadow<<<gridSize, blockSize>>>(mapping, output);
   } else if (mode == Mode::eSmoothstep) {
-    computeSmoothstepShadow<<<gridSize, blockSize>>>(shadowMap, shadow, output);
+    computeSmoothstepShadow<<<gridSize, blockSize>>>(mapping, output);
   }
 
   gpuErrchk(cudaPeekAtLastError());
   gpuErrchk(cudaDeviceSynchronize());
 
   // Finally write the output texture!
-  stbi_write_hdr(output.output.c_str(), static_cast<int>(output.size),
-      static_cast<int>(output.size), 3, shadowMap);
+  stbi_write_hdr(output.mFile.c_str(), static_cast<int>(output.mSize),
+      static_cast<int>(output.mSize), 3, output.mBuffer);
 
   // Free the shared memory.
-  gpuErrchk(cudaFree(shadowMap));
+  gpuErrchk(cudaFree(output.mBuffer));
 
   return 0;
 }

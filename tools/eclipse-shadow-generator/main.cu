@@ -7,9 +7,9 @@
 
 #include "../../src/cs-utils/CommandLine.hpp"
 
-#include "advanced.cuh"
+#include "advanced_modes.cuh"
 #include "gpuErrCheck.hpp"
-#include "simple.cuh"
+#include "simple_modes.cuh"
 
 #define STB_IMAGE_IMPLEMENTATION
 #define STB_IMAGE_WRITE_IMPLEMENTATION

@@ -5,8 +5,8 @@
 // SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
 // SPDX-License-Identifier: MIT
 
-#ifndef ADVANCED_HPP
-#define ADVANCED_HPP
+#ifndef ADVANCED_MODES_HPP
+#define ADVANCED_MODES_HPP
 
 #include <string>
 #include <vector>
@@ -28,4 +28,4 @@ int atmoViewMode(std::vector<std::string> const& arguments);
 
 } // namespace advanced
 
-#endif // ADVANCED_HPP
+#endif // ADVANCED_MODES_HPP

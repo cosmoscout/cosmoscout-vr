@@ -10,6 +10,8 @@
 
 #include <cuda_runtime.h>
 
+namespace common {
+
 /// This struct implements a simple wavelength-independent limb darkening model.
 class LimbDarkening {
 
@@ -26,5 +28,7 @@ class LimbDarkening {
  private:
   double mAverage = 1.0;
 };
+
+} // namespace common
 
 #endif // LIMB_DARKENING_HPP

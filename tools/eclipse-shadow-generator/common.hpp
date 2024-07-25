@@ -18,19 +18,27 @@
 
 namespace common {
 
-struct ShadowSettings {
-  bool   includeUmbra    = false;
-  double mappingExponent = 1.0;
+struct MappingSettings {
+  bool   mIncludeUmbra = false;
+  double mExponent     = 1.0;
 };
 
 struct OutputSettings {
-  std::string output = "shadow.hdr";
-  uint32_t    size   = 512;
+  std::string mFile = "shadow.hdr";
+  uint32_t    mSize = 512;
+  float*      mBuffer;
 };
 
-void addShadowSettingsFlags(cs::utils::CommandLine& commandLine, ShadowSettings& settings);
+struct GeometrySettings {
+  double mRadiusOcc  = 6370900.0;
+  double mRadiusAtmo = 6451000.0;
+  double mRadiusSun  = 696340000.0;
+  double mSunOccDist = 149597870700.0;
+};
 
+void addMappingSettingsFlags(cs::utils::CommandLine& commandLine, MappingSettings& settings);
 void addOutputSettingsFlags(cs::utils::CommandLine& commandLine, OutputSettings& settings);
+void addGeometrySettingsFlags(cs::utils::CommandLine& commandLine, GeometrySettings& settings);
 
 } // namespace common
 
