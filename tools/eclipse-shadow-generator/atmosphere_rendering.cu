@@ -9,6 +9,9 @@
 
 #include "tiff_utils.hpp"
 
+#include <fstream>
+#include <nlohmann/json.hpp>
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 namespace {
@@ -88,12 +91,15 @@ __device__ float distanceToTopAtmosphereBoundary(
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// As we are always in outer space, this function does not need the r parameter.
+// As we are always in outer space, this function does not need the r parameter when compared to the
+// original version.
 __device__ glm::vec2 getTransmittanceTextureUvFromRMu(
     advanced::Textures const& textures, common::Geometry const& geometry, double mu) {
+
   // Distance to top atmosphere boundary for a horizontal ray at ground level.
   double H =
       sqrt(geometry.mRadiusAtmo * geometry.mRadiusAtmo - geometry.mRadiusOcc * geometry.mRadiusOcc);
+
   // Distance to the top atmosphere boundary for the ray (r,mu), and its minimum
   // and maximum values over all mu - obtained for (r,1) and (r,mu_horizon).
   double d    = distanceToTopAtmosphereBoundary(geometry, geometry.mRadiusAtmo, mu);
@@ -105,7 +111,8 @@ __device__ glm::vec2 getTransmittanceTextureUvFromRMu(
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// As we are always in outer space, this function does not need the r parameter.
+// As we are always in outer space, this function does not need the r parameter when compared to the
+// original version.
 __device__ glm::vec3 getScatteringTextureUvwFromRMuMuSNu(advanced::Textures const& textures,
     common::Geometry const& geometry, double mu, double muS, double nu,
     bool rayRMuIntersectsGround) {
@@ -231,25 +238,16 @@ namespace advanced {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 __host__ Textures loadTextures(std::string const& path) {
+  uint32_t scatteringTextureRSize = tiff_utils::getNumLayers(path + "/multiple_scattering.tif");
+
   tiff_utils::RGBATexture multiscattering =
-      tiff_utils::read2DTexture(path + "/multiple_scattering.tif", 31);
-  tiff_utils::RGBATexture singleScattering =
-      tiff_utils::read2DTexture(path + "/single_aerosols_scattering.tif", 31);
+      tiff_utils::read2DTexture(path + "/multiple_scattering.tif", scatteringTextureRSize - 1);
+  tiff_utils::RGBATexture singleScattering = tiff_utils::read2DTexture(
+      path + "/single_aerosols_scattering.tif", scatteringTextureRSize - 1);
   tiff_utils::RGBATexture theta_deviation =
       tiff_utils::read2DTexture(path + "/theta_deviation.tif");
   tiff_utils::RGBATexture phase         = tiff_utils::read2DTexture(path + "/phase.tif");
   tiff_utils::RGBATexture transmittance = tiff_utils::read2DTexture(path + "/transmittance.tif");
-
-  std::cout << "Computing shadow map with atmosphere..." << std::endl;
-  std::cout << "  - Mutli-scattering texture dimensions: " << multiscattering.width << "x"
-            << multiscattering.height << std::endl;
-  std::cout << "  - Single-scattering texture dimensions: " << singleScattering.width << "x"
-            << singleScattering.height << std::endl;
-  std::cout << "  - Theta deviation texture dimensions: " << theta_deviation.width << "x"
-            << theta_deviation.height << std::endl;
-  std::cout << "  - Phase texture dimensions: " << phase.width << "x" << phase.height << std::endl;
-  std::cout << "  - Transmittance texture dimensions: " << transmittance.width << "x"
-            << transmittance.height << std::endl;
 
   Textures textures;
   textures.mMultipleScattering       = createCudaTexture(multiscattering);
@@ -258,12 +256,19 @@ __host__ Textures loadTextures(std::string const& path) {
   textures.mPhase                    = createCudaTexture(phase);
   textures.mTransmittance            = createCudaTexture(transmittance);
 
-  textures.mTransmittanceTextureWidth  = 256;
-  textures.mTransmittanceTextureHeight = 64;
-  textures.mScatteringTextureMuSize    = 128;
-  textures.mScatteringTextureMuSSize   = 256 / 8;
-  textures.mScatteringTextureNuSize    = 8;
-  textures.mMuSMin                     = std::cos(2.094395160675049);
+  std::ifstream  metaFile(path + "/metadata.json");
+  nlohmann::json meta;
+  metaFile >> meta;
+
+  uint32_t scatteringTextureNuSize = meta.at("scatteringTextureNuSize");
+  double   maxSunZenithAngle       = meta.at("maxSunZenithAngle");
+
+  textures.mTransmittanceTextureWidth  = transmittance.width;
+  textures.mTransmittanceTextureHeight = transmittance.height;
+  textures.mScatteringTextureMuSize    = multiscattering.height;
+  textures.mScatteringTextureMuSSize   = multiscattering.width / scatteringTextureNuSize;
+  textures.mScatteringTextureNuSize    = scatteringTextureNuSize;
+  textures.mMuSMin                     = std::cos(maxSunZenithAngle);
 
   return textures;
 }
