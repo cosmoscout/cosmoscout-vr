@@ -81,7 +81,7 @@ __device__ float getTextureCoordFromUnitRange(float x, int textureSize) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 __device__ float distanceToTopAtmosphereBoundary(
-    common::GeometrySettings const& geometry, float r, float mu) {
+    common::Geometry const& geometry, float r, float mu) {
   float discriminant = r * r * (mu * mu - 1.0) + geometry.mRadiusAtmo * geometry.mRadiusAtmo;
   return clampDistance(-r * mu + safeSqrt(discriminant));
 }
@@ -90,7 +90,7 @@ __device__ float distanceToTopAtmosphereBoundary(
 
 // As we are always in outer space, this function does not need the r parameter.
 __device__ glm::vec2 getTransmittanceTextureUvFromRMu(
-    advanced::Textures const& textures, common::GeometrySettings const& geometry, double mu) {
+    advanced::Textures const& textures, common::Geometry const& geometry, double mu) {
   // Distance to top atmosphere boundary for a horizontal ray at ground level.
   double H =
       sqrt(geometry.mRadiusAtmo * geometry.mRadiusAtmo - geometry.mRadiusOcc * geometry.mRadiusOcc);
@@ -107,7 +107,7 @@ __device__ glm::vec2 getTransmittanceTextureUvFromRMu(
 
 // As we are always in outer space, this function does not need the r parameter.
 __device__ glm::vec3 getScatteringTextureUvwFromRMuMuSNu(advanced::Textures const& textures,
-    common::GeometrySettings const& geometry, double mu, double muS, double nu,
+    common::Geometry const& geometry, double mu, double muS, double nu,
     bool rayRMuIntersectsGround) {
 
   // Distance to top atmosphere boundary for a horizontal ray at ground level.
@@ -155,8 +155,8 @@ __device__ glm::vec3 getScatteringTextureUvwFromRMuMuSNu(advanced::Textures cons
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 __device__ void getRefractedViewRays(advanced::Textures const& textures,
-    common::GeometrySettings const& geometry, glm::dvec3 camera, glm::dvec3 viewRay,
-    glm::dvec3& viewRayR, glm::dvec3& viewRayG, glm::dvec3& viewRayB) {
+    common::Geometry const& geometry, glm::dvec3 camera, glm::dvec3 viewRay, glm::dvec3& viewRayR,
+    glm::dvec3& viewRayG, glm::dvec3& viewRayB) {
 
   double    mu = dot(camera, viewRay) / geometry.mRadiusAtmo;
   glm::vec2 uv = getTransmittanceTextureUvFromRMu(textures, geometry, mu);
@@ -173,14 +173,14 @@ __device__ void getRefractedViewRays(advanced::Textures const& textures,
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 __device__ glm::vec3 getTransmittanceToTopAtmosphereBoundary(
-    advanced::Textures const& textures, common::GeometrySettings const& geometry, double mu) {
+    advanced::Textures const& textures, common::Geometry const& geometry, double mu) {
   glm::vec2 uv = getTransmittanceTextureUvFromRMu(textures, geometry, mu);
   return glm::vec3(texture2D(textures.mTransmittance, uv));
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-__device__ bool rayIntersectsGround(common::GeometrySettings const& geometry, double mu) {
+__device__ bool rayIntersectsGround(common::Geometry const& geometry, double mu) {
   return mu < 0.0 && geometry.mRadiusAtmo * geometry.mRadiusAtmo * (mu * mu - 1.0) +
                              geometry.mRadiusOcc * geometry.mRadiusOcc >=
                          0.0;
@@ -203,9 +203,8 @@ __device__ glm::vec3 aerosolPhaseFunction(cudaTextureObject_t phaseTexture, floa
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 __device__ void getCombinedScattering(advanced::Textures const& textures,
-    common::GeometrySettings const& geometry, float mu, float muS, float nu,
-    bool rayRMuIntersectsGround, glm::vec3& multipleScattering,
-    glm::vec3& singleAerosolsScattering) {
+    common::Geometry const& geometry, float mu, float muS, float nu, bool rayRMuIntersectsGround,
+    glm::vec3& multipleScattering, glm::vec3& singleAerosolsScattering) {
   glm::vec3 uvw =
       getScatteringTextureUvwFromRMuMuSNu(textures, geometry, mu, muS, nu, rayRMuIntersectsGround);
   float     texCoordX = uvw.x * float(textures.mScatteringTextureNuSize - 1);
@@ -272,7 +271,7 @@ __host__ Textures loadTextures(std::string const& path) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 __device__ glm::vec3 getLuminance(glm::dvec3 camera, glm::dvec3 viewRay, glm::dvec3 sunDirection,
-    common::GeometrySettings const& geometry, common::LimbDarkening const& limbDarkening,
+    common::Geometry const& geometry, common::LimbDarkening const& limbDarkening,
     Textures const& textures, double phiSun) {
 
   // Compute the distance to the top atmosphere boundary along the view ray, assuming the viewer is

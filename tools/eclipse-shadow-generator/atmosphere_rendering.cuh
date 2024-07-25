@@ -32,7 +32,7 @@ struct Textures {
 __host__ Textures loadTextures(std::string const& path);
 
 __device__ glm::vec3 getLuminance(glm::dvec3 camera, glm::dvec3 viewRay, glm::dvec3 sunDirection,
-    common::GeometrySettings const& geometry, common::LimbDarkening const& limbDarkening,
+    common::Geometry const& geometry, common::LimbDarkening const& limbDarkening,
     Textures const& textures, double phiSun);
 
 } // namespace advanced

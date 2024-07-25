@@ -151,7 +151,7 @@ double __host__ __device__ sampleCircleIntersection(
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void __host__ __device__ mapPixelToRadii(glm::ivec2 const& pixel, uint32_t resolution,
-    common::MappingSettings const& mapping, double& radiusOcc, double& distance) {
+    common::Mapping const& mapping, double& radiusOcc, double& distance) {
 
   double x = glm::pow((1.0 * pixel.x + 0.5) / resolution, mapping.mExponent);
   double y = 1.0 - glm::pow(1.0 - (1.0 * pixel.y + 0.5) / resolution, mapping.mExponent);
@@ -168,8 +168,8 @@ void __host__ __device__ mapPixelToRadii(glm::ivec2 const& pixel, uint32_t resol
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 uint32_t __host__ __device__ mapPixelToAngles(glm::ivec2 const& pixel, uint32_t resolution,
-    common::MappingSettings const& mapping, common::GeometrySettings const& geometry,
-    double& phiOcc, double& phiSun, double& delta) {
+    common::Mapping const& mapping, common::Geometry const& geometry, double& phiOcc,
+    double& phiSun, double& delta) {
 
   double radiusOcc, distance;
   mapPixelToRadii(pixel, resolution, mapping, radiusOcc, distance);

@@ -67,9 +67,8 @@ double __device__ getSunIlluminance(double sunDistance) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-__global__ void computeShadowMap(common::OutputSettings output, common::MappingSettings mapping,
-    common::GeometrySettings geometry, common::LimbDarkening limbDarkening,
-    advanced::Textures textures) {
+__global__ void computeShadowMap(common::Output output, common::Mapping mapping,
+    common::Geometry geometry, common::LimbDarkening limbDarkening, advanced::Textures textures) {
 
   uint32_t x = blockIdx.x * blockDim.x + threadIdx.x;
   uint32_t y = blockIdx.y * blockDim.y + threadIdx.y;
@@ -143,8 +142,8 @@ __global__ void computeShadowMap(common::OutputSettings output, common::MappingS
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-__global__ void drawAtmoView(common::MappingSettings mapping, common::GeometrySettings geometry,
-    float exposure, double phiOcc, double phiSun, double delta, common::OutputSettings output,
+__global__ void drawAtmoView(common::Mapping mapping, common::Geometry geometry, float exposure,
+    double phiOcc, double phiSun, double delta, common::Output output,
     common::LimbDarkening limbDarkening, advanced::Textures textures) {
 
   uint32_t x = blockIdx.x * blockDim.x + threadIdx.x;
@@ -182,10 +181,9 @@ __global__ void drawAtmoView(common::MappingSettings mapping, common::GeometrySe
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-__global__ void drawPlanet(common::MappingSettings mapping, common::GeometrySettings geometry,
-    float exposure, double phiOcc, double phiSun, double delta, float fov,
-    common::OutputSettings output, common::LimbDarkening limbDarkening,
-    advanced::Textures textures) {
+__global__ void drawPlanet(common::Mapping mapping, common::Geometry geometry, float exposure,
+    double phiOcc, double phiSun, double delta, float fov, common::Output output,
+    common::LimbDarkening limbDarkening, advanced::Textures textures) {
 
   uint32_t x = blockIdx.x * blockDim.x + threadIdx.x;
   uint32_t y = blockIdx.y * blockDim.y + threadIdx.y;
@@ -222,11 +220,11 @@ __global__ void drawPlanet(common::MappingSettings mapping, common::GeometrySett
 
 int run(Mode mode, std::vector<std::string> const& arguments) {
 
-  std::string              input;
-  common::MappingSettings  mapping;
-  common::OutputSettings   output;
-  common::GeometrySettings geometry;
-  bool                     printHelp = false;
+  std::string      input;
+  common::Mapping  mapping;
+  common::Output   output;
+  common::Geometry geometry;
+  bool             printHelp = false;
 
   // These are only required for the planet or atmosphere view modes.
   float exposure = 0.0001; // The exposure of the image used during tonemapping.
@@ -238,9 +236,9 @@ int run(Mode mode, std::vector<std::string> const& arguments) {
 
   // First configure all possible command line options.
   cs::utils::CommandLine args("Here are the available options:");
-  common::addMappingSettingsFlags(args, mapping);
-  common::addOutputSettingsFlags(args, output);
-  common::addGeometrySettingsFlags(args, geometry);
+  common::addMappingFlags(args, mapping);
+  common::addOutputFlags(args, output);
+  common::addGeometryFlags(args, geometry);
 
   args.addArgument({"--input"}, &input, "The path to the atmosphere settings directory.");
 

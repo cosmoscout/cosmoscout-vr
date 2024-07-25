@@ -34,8 +34,8 @@ __device__ void writeAsRGBValue(float value, float* buffer, uint32_t index) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-__global__ void computeLimbDarkeningShadow(common::MappingSettings mapping,
-    common::OutputSettings output, common::LimbDarkening limbDarkening) {
+__global__ void computeLimbDarkeningShadow(
+    common::Mapping mapping, common::Output output, common::LimbDarkening limbDarkening) {
   uint32_t x = blockIdx.x * blockDim.x + threadIdx.x;
   uint32_t y = blockIdx.y * blockDim.y + threadIdx.y;
   uint32_t i = y * output.mSize + x;
@@ -57,8 +57,7 @@ __global__ void computeLimbDarkeningShadow(common::MappingSettings mapping,
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-__global__ void computeCircleIntersectionShadow(
-    common::MappingSettings mapping, common::OutputSettings output) {
+__global__ void computeCircleIntersectionShadow(common::Mapping mapping, common::Output output) {
   uint32_t x = blockIdx.x * blockDim.x + threadIdx.x;
   uint32_t y = blockIdx.y * blockDim.y + threadIdx.y;
   uint32_t i = y * output.mSize + x;
@@ -80,8 +79,7 @@ __global__ void computeCircleIntersectionShadow(
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-__global__ void computeLinearShadow(
-    common::MappingSettings mapping, common::OutputSettings output) {
+__global__ void computeLinearShadow(common::Mapping mapping, common::Output output) {
   uint32_t x = blockIdx.x * blockDim.x + threadIdx.x;
   uint32_t y = blockIdx.y * blockDim.y + threadIdx.y;
   uint32_t i = y * output.mSize + x;
@@ -106,8 +104,7 @@ __global__ void computeLinearShadow(
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-__global__ void computeSmoothstepShadow(
-    common::MappingSettings mapping, common::OutputSettings output) {
+__global__ void computeSmoothstepShadow(common::Mapping mapping, common::Output output) {
   uint32_t x = blockIdx.x * blockDim.x + threadIdx.x;
   uint32_t y = blockIdx.y * blockDim.y + threadIdx.y;
   uint32_t i = y * output.mSize + x;
@@ -134,14 +131,14 @@ __global__ void computeSmoothstepShadow(
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 int run(Mode mode, std::vector<std::string> const& arguments) {
-  common::MappingSettings mapping;
-  common::OutputSettings  output;
-  bool                    cPrintHelp = false;
+  common::Mapping mapping;
+  common::Output  output;
+  bool            cPrintHelp = false;
 
   // First configure all possible command line options.
   cs::utils::CommandLine args("Here are the available options:");
-  common::addMappingSettingsFlags(args, mapping);
-  common::addOutputSettingsFlags(args, output);
+  common::addMappingFlags(args, mapping);
+  common::addOutputFlags(args, output);
   args.addArgument({"-h", "--help"}, &cPrintHelp, "Show this help message.");
 
   // Then do the actual parsing.

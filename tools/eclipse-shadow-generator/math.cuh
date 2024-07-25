@@ -53,7 +53,7 @@ double __host__ __device__ sampleCircleIntersection(
 // To get the actual angular radii and angular distances, more information on the involved geometry
 // is needed. For this, use the function below.
 void __host__ __device__ mapPixelToRadii(glm::ivec2 const& pixel, uint32_t resolution,
-    common::MappingSettings const& mapping, double& radiusOcc, double& distance);
+    common::Mapping const& mapping, double& radiusOcc, double& distance);
 
 // To reconstruct the actual geometry of the involved bodies for a given location in the shadow map,
 // we need additional information like the real-world radii of the Sun and the occluder, as well as
@@ -79,8 +79,8 @@ void __host__ __device__ mapPixelToRadii(glm::ivec2 const& pixel, uint32_t resol
 //
 // The method returns the number of iterations needed to converge.
 uint32_t __host__ __device__ mapPixelToAngles(glm::ivec2 const& pixel, uint32_t resolution,
-    common::MappingSettings const& mapping, common::GeometrySettings const& geometry,
-    double& phiOcc, double& phiSun, double& delta);
+    common::Mapping const& mapping, common::Geometry const& geometry, double& phiOcc,
+    double& phiSun, double& delta);
 
 } // namespace math
 

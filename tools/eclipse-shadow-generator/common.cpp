@@ -11,7 +11,7 @@ namespace common {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void addMappingSettingsFlags(cs::utils::CommandLine& commandLine, MappingSettings& settings) {
+void addMappingFlags(cs::utils::CommandLine& commandLine, Mapping& settings) {
   commandLine.addArgument({"--with-umbra"}, &settings.mIncludeUmbra,
       "Add the umbra region to the shadow map (default: " + std::to_string(settings.mIncludeUmbra) +
           ").");
@@ -24,7 +24,7 @@ void addMappingSettingsFlags(cs::utils::CommandLine& commandLine, MappingSetting
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void addOutputSettingsFlags(cs::utils::CommandLine& commandLine, OutputSettings& settings) {
+void addOutputFlags(cs::utils::CommandLine& commandLine, Output& settings) {
   commandLine.addArgument({"-o", "--output"}, &settings.mFile,
       "The image will be written to this file (default: \"" + settings.mFile + "\").");
   commandLine.addArgument({"-s", "--size"}, &settings.mSize,
@@ -33,7 +33,7 @@ void addOutputSettingsFlags(cs::utils::CommandLine& commandLine, OutputSettings&
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void addGeometrySettingsFlags(cs::utils::CommandLine& commandLine, GeometrySettings& settings) {
+void addGeometryFlags(cs::utils::CommandLine& commandLine, Geometry& settings) {
   commandLine.addArgument({"--radius-occ"}, &settings.mRadiusOcc,
       "The radius of the occulting body in meters (default: " +
           std::to_string(settings.mRadiusOcc) + ").");
