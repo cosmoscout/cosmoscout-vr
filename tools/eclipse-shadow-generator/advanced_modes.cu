@@ -82,16 +82,8 @@ __global__ void computeShadowMap(common::Output output, common::Mapping mapping,
   uint32_t  samplesY = 64;
   glm::vec3 indirectIlluminance(0.0);
 
-  double   phiOcc, phiSun, delta;
-  uint32_t iterations = math::mapPixelToAngles(
-      glm::ivec2(x, y), output.mSize, mapping, geometry, phiOcc, phiSun, delta);
-
-  if (i == 100) {
-    printf("phiSun: %f\n", phiSun);
-    printf("phiOcc: %f\n", phiOcc);
-    printf("delta: %f\n", delta);
-    printf("iterations: %d\n", iterations);
-  }
+  double phiOcc, phiSun, delta;
+  math::mapPixelToAngles(glm::ivec2(x, y), output.mSize, mapping, geometry, phiOcc, phiSun, delta);
 
   double occDist    = geometry.mRadiusOcc / glm::sin(phiOcc);
   double sunDist    = geometry.mRadiusSun / glm::sin(phiSun);

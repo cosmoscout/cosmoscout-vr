@@ -10,7 +10,6 @@
 
 #include <cstdint>
 #include <string>
-#include <tuple>
 #include <vector>
 
 namespace tiff_utils {
@@ -20,6 +19,13 @@ struct RGBATexture {
   std::vector<float> data;
 };
 
+// This helper function returns the number of layers in the given tiff file.
+uint32_t getNumLayers(std::string const& path);
+
+// This helper function reads a 2D RGB tiff image from the given path and returns the data as a
+// vector of floats. The data is stored in the order R, G, B, A, R, G, B, A, ... The alpha channel
+// is always 1.0 but is still included in the returned vector for easier upload to the CUDA device.
+// The optional layer parameter can be used to read a specific layer from a multi-layer tiff file.
 RGBATexture read2DTexture(std::string const& path, uint32_t layer = 0);
 
 } // namespace tiff_utils

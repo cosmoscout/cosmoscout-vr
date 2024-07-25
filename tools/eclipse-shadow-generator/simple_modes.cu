@@ -14,8 +14,6 @@
 
 #include <stb_image_write.h>
 
-#include <cstdint>
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 namespace {
@@ -47,9 +45,8 @@ __global__ void computeLimbDarkeningShadow(
   double radiusOcc, distance;
   math::mapPixelToRadii(glm::ivec2(x, y), output.mSize, mapping, radiusOcc, distance);
 
-  double sunArea = math::getCircleArea(1.0);
-
-  float intensity = static_cast<float>(
+  double sunArea   = math::getCircleArea(1.0);
+  float  intensity = static_cast<float>(
       1 - math::sampleCircleIntersection(1.0, radiusOcc, distance, limbDarkening) / sunArea);
 
   writeAsRGBValue(intensity, output.mBuffer, i);
@@ -70,8 +67,7 @@ __global__ void computeCircleIntersectionShadow(common::Mapping mapping, common:
   math::mapPixelToRadii(glm::ivec2(x, y), output.mSize, mapping, radiusOcc, distance);
 
   double sunArea = math::getCircleArea(1.0);
-
-  float intensity =
+  float  intensity =
       static_cast<float>(1.0 - math::getCircleIntersection(1.0, radiusOcc, distance) / sunArea);
 
   writeAsRGBValue(intensity, output.mBuffer, i);

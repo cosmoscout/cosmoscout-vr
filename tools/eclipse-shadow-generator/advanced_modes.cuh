@@ -11,6 +11,13 @@
 #include <string>
 #include <vector>
 
+// The "advanced" modes compute eclipse shadows for spherical bodies which have an atmosphere. The
+// "bruneton" mode uses the Bruneton precomputed atmospheric scattering model to compute the shadow
+// map. The required input data is precomputed using the "bruneton-preprocessor" tool of the
+// csp-atmospheres plugin. The "planetView" and "atmoView" modes render the atmosphere of a planet
+// from the perspective of a given location in the shadow map for debugging and visualization
+// purposes.
+
 namespace advanced {
 
 // Computes the shadow map evaluating the Bruneton precomputed atmospheric scattering model for each
@@ -18,8 +25,8 @@ namespace advanced {
 int brunetonMode(std::vector<std::string> const& arguments);
 
 // Draws the atmosphere of a planet into a texture as seen through a pinhole camera. The atmospheric
-// scattering data, the position of the observer relative to the planet and the sun's direction are
-// given via command line arguments.
+// scattering data and the position of the observer in shadow map coordinates are given via the
+// command line arguments.
 int planetViewMode(std::vector<std::string> const& arguments);
 
 // Same as planetMode, but an angular parametrization is used so that the atmosphere fills the
