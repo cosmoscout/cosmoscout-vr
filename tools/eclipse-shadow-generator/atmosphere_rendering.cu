@@ -3,7 +3,13 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
-// SPDX-License-Identifier: MIT
+// SPDX-FileCopyrightText: 2017 Eric Bruneton
+// SPDX-FileCopyrightText: 2008 INRIA
+// SPDX-License-Identifier: BSD-3-Clause
+
+// Computing the sky luminance based on the precomputed atmospheric scattering textures is based on
+// the original implementation by Eric Bruneton:
+// https://github.com/ebruneton/precomputed_atmospheric_scattering/blob/master/atmosphere/functions.glsl
 
 #include "atmosphere_rendering.cuh"
 
