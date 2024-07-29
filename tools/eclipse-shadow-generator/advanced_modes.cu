@@ -336,6 +336,11 @@ int run(Mode mode, std::vector<std::string> const& arguments) {
 
     std::cout << "Required " << iterations << " iterations to find the correct angles."
               << std::endl;
+    std::cout << " - Observer Angular Radius: " << glm::degrees(phiOcc) << "°" << std::endl;
+    std::cout << " - Observer Distance: " << geometry.mRadiusOcc / glm::sin(phiOcc) * 0.001 << " km"
+              << std::endl;
+    std::cout << " - Sun Angular Radius: " << glm::degrees(phiSun) << "°" << std::endl;
+    std::cout << " - Sun Elevation: " << glm::degrees(delta) << "°" << std::endl;
 
     if (mode == Mode::ePlanetView) {
       drawPlanet<<<gridSize, blockSize>>>(
