@@ -47,6 +47,8 @@ class ObserverNavigationNode : public IVdfnNode {
   TVdfnPort<VistaVector3D>*   mTranslation;
   TVdfnPort<VistaQuaternion>* mRotation;
   TVdfnPort<VistaVector3D>*   mOffset;
+  TVdfnPort<VistaQuaternion>* mRotationOffset;
+
 
   const bool          mPreventNavigationWhenHoveredGui;
   const bool          mFixedHorizon;

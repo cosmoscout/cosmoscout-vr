@@ -1,0 +1,108 @@
+<!-- 
+SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
+SPDX-License-Identifier: MIT
+This data flow net graph defines the interaction configuration for the ICAROS device. 
+-->
+
+<?xml version="1.0" encoding="utf-8"?>
+<module>
+    <nodespace></nodespace>
+    <graph>
+
+     	<!-- time input -->
+        <node name="timer" type="Timer" />
+
+    	<!-- icaros device input -->
+        <node name="icaros" type="DriverSensor">
+            <param name="sensor_index" value="0" />
+            <param name="driver" value="ICAROS" />
+        </node>
+
+        <node name="history" type="HistoryProject">
+            <param name="project">ORIENTATION, BUTTON_1, BUTTON_2, BUTTON_3, BUTTON_4</param>
+        </node>
+
+        <node name="sampling_mode" type="ConstantValue[int]">
+            <param name="value" value="0" />
+        </node>
+
+        <!-- observer output -->
+        <node name="observer" type="ObserverNavigationNode">
+            <param name="max_linear_speed" value="10, 10, 10" />
+            <param name="max_angular_speed" value="2" />
+            <param name="angular_deceleration" value="1" />
+            <param name="linear_acceleration" value="3" />
+            <param name="linear_deceleration" value="1" />
+            <param name="prevent_navigation_when_hovered_gui" value="false" />
+        </node>
+
+         <node name="zero" type="ConstantValue[float]">
+            <param name="value" value="0"/>
+        </node>
+
+         <!-- button pressed -->
+        <node name="nav_button_invert" type="Invert[bool]"/>
+        <node name="true" type="ConstantValue[bool]">
+            <param name="value" value="true"/>
+        </node>
+        <node name="nav_button_change" type="LatestUpdate[bool]"/>
+        <node name="nav_rotation_start" type="ConditionalRoute"/>
+
+        <!-- output rotation when button pressed -->
+        <node name="orientation_invert" type="Invert[VistaQuaternion]"/>
+        <node name="orientation_dist" type="Multiply[VistaQuaternion]"/>
+
+
+        <!-- speed button pressed -->
+        <node name="key_forwards_la"   type="LatestUpdate[bool]"/>
+        <node name="key_backwards_la"  type="LatestUpdate[bool]"/>
+
+        <!-- bool to float -->
+        <node name="convert_forwards"   type="TypeConvert[bool,float]" />
+        <node name="convert_backwards"  type="TypeConvert[bool,float]" />
+       
+        <node name="forward_movement"  type="Substract[float]" />
+
+        <node name="movement" type="Compose3DVector" />
+
+        <node name="debug_text" type="SimpleText"/>
+
+    </graph>
+    <edges>
+
+        <edge fromnode="icaros" tonode="history" fromport="history" toport="history" />
+        <edge fromnode="sampling_mode" tonode="history" fromport="value" toport="sampling_mode" />
+        <edge fromnode="speed"                tonode="debug_text" fromport="out"  toport="Speed" />
+  
+  
+        
+        <edge fromnode="history" tonode="orientation_invert" fromport="ORIENTATION" toport="in" />
+        <edge fromnode="true" tonode="nav_button_invert" fromport="value" toport="in"/>
+        <edge fromnode="nav_button_invert" tonode="nav_button_change" fromport="out" toport="in_1"/>
+        <edge fromnode="true" tonode="nav_button_change" fromport="value" toport="in_0"/>
+
+        <edge fromnode="nav_button_change" tonode="nav_rotation_start" fromport="out" toport="trigger"/>
+        <edge fromnode="history" tonode="nav_rotation_start" fromport="ORIENTATION" toport="coords" />
+        
+        <edge fromnode="nav_rotation_start"  tonode="orientation_dist" fromport="coords" toport="first" />
+        <edge fromnode="orientation_invert"  tonode="orientation_dist" fromport="out" toport="second" />
+ 
+        <edge fromnode="orientation_dist" tonode="observer" fromport="out" toport="rotation" />
+        <edge fromnode="timer" tonode="observer" fromport="time" toport="time" />
+
+        <edge fromnode="true"     tonode="key_forwards_la"  fromport="value"    toport="in_1"/>
+        <edge fromnode="history"  tonode="key_backwards_la" fromport="BUTTON_3" toport="in_1" />
+
+        <edge fromnode="key_forwards_la"  tonode="convert_forwards" fromport="out" toport="in" />
+        <edge fromnode="key_backwards_la" tonode="convert_backwards" fromport="out" toport="in" />
+
+        <edge fromnode="convert_backwards" tonode="forward_movement" fromport="out" toport="first" />
+        <edge fromnode="convert_forwards" tonode="forward_movement" fromport="out" toport="second" />
+
+        <edge fromnode="zero" tonode="movement" fromport="value" toport="x" />
+        <edge fromnode="zero" tonode="movement" fromport="value" toport="y" />
+        <edge fromnode="forward_movement" tonode="movement" fromport="out" toport="z" />
+        <edge fromnode="movement" tonode="observer" fromport="out" toport="translation" />
+        
+    </edges>
+</module>

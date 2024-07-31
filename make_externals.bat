@@ -81,6 +81,7 @@ cmake -E make_directory "%INSTALL_DIR%/share"
 cmake -E make_directory "%INSTALL_DIR%/bin"
 cmake -E make_directory "%INSTALL_DIR%/include"
 
+
 rem glew -------------------------------------------------------------------------------------------
 :glew
 
@@ -327,7 +328,9 @@ cmake %CMAKE_FLAGS% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%" -DVISTADEMO_ENABLED=O
       -DVISTACORELIBS_USE_INFINITE_REVERSE_PROJECTION=On -DOPENSG_ROOT_DIR=%INSTALL_DIR%^
       -DOPENVR_ROOT_DIR="%INSTALL_DIR%" -DVISTACORELIBS_USE_GLUT_WINDOWIMP=Off^
       -DVISTACORELIBS_USE_SDL2_WINDOWIMP=On -DSDL2_ROOT_DIR=%INSTALL_DIR%^
+      -DVISTADRIVERS_BUILD_ICAROS=On -DFTDI_ROOT_DIR=D:/icarosTreiber^
       -DSDL2_TTF_ROOT_DIR=%INSTALL_DIR% -DCMAKE_UNITY_BUILD=%UNITY_BUILD%^
+      -DVISTADRIVERS_BUILD_3DCSPACENAVIGATOR=On^
       -DVISTA_USE_PRECOMPILED_HEADERS=%PRECOMPILED_HEADERS% "%EXTERNALS_DIR%/vista" || goto :error
 cmake --build . --config %BUILD_TYPE% --target install --parallel %NUMBER_OF_PROCESSORS% || goto :error
 
