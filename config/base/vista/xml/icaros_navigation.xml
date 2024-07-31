@@ -45,7 +45,7 @@ This data flow net graph defines the interaction configuration for the ICAROS de
             <param name="linear_acceleration" value="3" />
             <param name="linear_deceleration" value="1" />
             <param name="prevent_navigation_when_hovered_gui" value="false" />
-            <param name="fixed_horizon" value="true" />
+            <param name="fixed_horizon" value="true" />  
         </node>
 
         <!-- rotation -->
@@ -63,7 +63,6 @@ This data flow net graph defines the interaction configuration for the ICAROS de
         <node name="deconstruct" type="Decompose3DVector"/>
 
         <node name="yaw" type="AxisRotate"/>
-        <node name="yaw_angle" type="Multiply[float]"/>
 
 
         <node name="roll_absolute" type="Absolute[float]"/>
@@ -104,7 +103,10 @@ This data flow net graph defines the interaction configuration for the ICAROS de
 
         <node name="updated_speed" type="Multiply[float]"/>      
 
-
+        <node name="pitch_orientation" type="Add[float]"/>      
+        <node name="pitch_orientation_value" type="ConstantValue[float]">          <!-- Nicken ausrichtung -->
+            <param name="value" value="0.0" />
+        </node>
         <!-- constant float values -->
          <node name="zero" type="ConstantValue[float]">
             <param name="value" value="0"/>
@@ -120,20 +122,12 @@ This data flow net graph defines the interaction configuration for the ICAROS de
 
         <!-- setting values -->
         <node name="pitch_calibrate_value" type="ConstantValue[float]">          <!-- Pitch stärke einstellen welche winkel sind möglich -->
-            <param name="value" value="0.2" />
+            <param name="value" value="0.8" />
         </node>
 
         <node name="roll_calibration_value" type="ConstantValue[float]">          <!-- Rollen einstellen -->
-            <param name="value" value="0.2" />
+            <param name="value" value="0.5" />
         </node>
-
-
-        <node name="yaw_angles_value" type="ConstantValue[float]">
-            <param name="value" value="1.0" />
-        </node>
-
-  
-
         <node name="last_speed_level" type="ConstantValue[float]">
             <param name="value" value="0.0" />
         </node>
@@ -141,7 +135,6 @@ This data flow net graph defines the interaction configuration for the ICAROS de
          <node name="threshhold_value" type="ConstantValue[float]">
             <param name="value" value="0.0" />
         </node>
-
 
         <node name="yaw_axis" type="ConstantValue[VistaVector3D]">
             <param name="value" value="0,1,0,0" />
@@ -176,14 +169,17 @@ This data flow net graph defines the interaction configuration for the ICAROS de
         <edge fromnode="calibration" tonode="deconstruct" fromport="out" toport="in" />
         <!-- debug text calibartion -->
 
-        <edge fromnode="deconstruct" tonode="pitch_calibrate" fromport="x"  toport="first" />
+        <edge fromnode="deconstruct" tonode="pitch_orientation" fromport="x"  toport="first" />
+        <edge fromnode="pitch_orientation_value" tonode="pitch_orientation" fromport="value"  toport="second" />
+        <edge fromnode="pitch_orientation" tonode="pitch_calibrate" fromport="out"  toport="first" />
+        <edge fromnode="deconstruct" tonode="debug_text" fromport="x"  toport="deconstruct_" />
+
+
         <edge fromnode="pitch_calibrate_value" tonode="pitch_calibrate" fromport="value"  toport="second" />
         <edge fromnode="pitch_calibrate" tonode="pitch" fromport="out"  toport="angle" />
         <edge fromnode="pitch_axis" tonode="pitch" fromport="value"  toport="axis" />
         <!-- debug text movement -->
         <edge fromnode="pitch_calibrate" tonode="debug_text" fromport="out"  toport="pitch_calibrate" />
-
-
 
         <edge fromnode="deconstruct" tonode="roll_absolute" fromport="y" toport="in" />
         <edge fromnode="deconstruct" tonode="roll_bool" fromport="y" toport="first" />
@@ -204,15 +200,9 @@ This data flow net graph defines the interaction configuration for the ICAROS de
 
         <edge fromnode="roll" tonode="roll_calibration" fromport="out" toport="first" />
         <edge fromnode="roll_calibration_value" tonode="roll_calibration" fromport="value" toport="second" />
-        <edge fromnode="roll_calibration" tonode="yaw_angle" fromport="out" toport="first" />
-
-
-
-        <edge fromnode="yaw_angles_value" tonode="yaw_angle" fromport="value" toport="second" />
-         <edge fromnode="yaw_angle" tonode="yaw" fromport="out" toport="angle" />
+        <edge fromnode="roll_calibration" tonode="yaw" fromport="out" toport="angle" />
         <edge fromnode="yaw_axis" tonode="yaw" fromport="value" toport="axis" />
        <!-- debug text rolling to yaw -->
-        <edge fromnode="yaw_angle" tonode="debug_text" fromport="out" toport="yaw_angle_value" />
         
         <edge fromnode="deconstruct" tonode="debug_text" fromport="y" toport="y" />
         <edge fromnode="roll_bool" tonode="debug_text" fromport="out" toport="roll_bool" />
@@ -220,9 +210,6 @@ This data flow net graph defines the interaction configuration for the ICAROS de
         <edge fromnode="roll_sign_null_one" tonode="debug_text" fromport="out" toport="roll_sign_null_one" />
         <edge fromnode="roll_sign_multiply" tonode="debug_text" fromport="out" toport="roll_sign_multiply" />
         <edge fromnode="roll_sign" tonode="debug_text" fromport="out" toport="roll_sign" />
-
-
-
 
         <edge fromnode="history" tonode="key_speed_up" fromport="BUTTON_2" toport="in_1" />
         <edge fromnode="history" tonode="key_speed_down" fromport="BUTTON_3" toport="in_1" />
