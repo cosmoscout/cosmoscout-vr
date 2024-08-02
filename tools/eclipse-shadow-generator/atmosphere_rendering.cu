@@ -167,7 +167,7 @@ __device__ glm::vec3 getScatteringTextureUvwFromRMuMuSNu(advanced::Textures cons
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-__device__ void getRefractedViewRays(advanced::Textures const& textures,
+__device__ glm::bvec3 getRefractedViewRays(advanced::Textures const& textures,
     common::Geometry const& geometry, glm::dvec3 camera, glm::dvec3 viewRay, glm::dvec3& viewRayR,
     glm::dvec3& viewRayG, glm::dvec3& viewRayB) {
 
@@ -175,12 +175,16 @@ __device__ void getRefractedViewRays(advanced::Textures const& textures,
   glm::vec2 uv = getTransmittanceTextureUvFromRMu(textures, geometry, mu);
 
   // Cosine of the angular deviation of the ray due to refraction.
-  glm::dvec3 muRGB = glm::cos(glm::dvec3(texture2D(textures.mThetaDeviation, uv)));
-  glm::dvec3 axis  = glm::normalize(glm::cross(camera, viewRay));
+  glm::dvec3 thetaDeviations = glm::vec3(texture2D(textures.mThetaDeviation, uv));
+  glm::bvec3 hitsGround      = glm::lessThan(thetaDeviations, glm::dvec3(0.0));
+  glm::dvec3 muRGB           = glm::cos(thetaDeviations);
+  glm::dvec3 axis            = glm::normalize(glm::cross(camera, viewRay));
 
   viewRayR = normalize(math::rotateVector(viewRay, axis, muRGB.r));
   viewRayG = normalize(math::rotateVector(viewRay, axis, muRGB.g));
   viewRayB = normalize(math::rotateVector(viewRay, axis, muRGB.b));
+
+  return hitsGround;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -316,11 +320,22 @@ __device__ glm::vec3 getLuminance(glm::dvec3 camera, glm::dvec3 viewRay, glm::dv
     skyLuminance = multipleScattering * moleculePhaseFunction(textures.mPhase, nu) +
                    singleAerosolsScattering * aerosolPhaseFunction(textures.mPhase, nu);
 
-    getRefractedViewRays(textures, geometry, camera, viewRay, viewRayR, viewRayG, viewRayB);
+    glm::bvec3 hitsGround =
+        getRefractedViewRays(textures, geometry, camera, viewRay, viewRayR, viewRayG, viewRayB);
 
     transmittance = rayRMuIntersectsGround
                         ? glm::vec3(0.0)
                         : getTransmittanceToTopAtmosphereBoundary(textures, geometry, mu);
+
+    if (hitsGround.r) {
+      transmittance.r = 0.0;
+    }
+    if (hitsGround.g) {
+      transmittance.g = 0.0;
+    }
+    if (hitsGround.b) {
+      transmittance.b = 0.0;
+    }
   }
 
   float sunR = limbDarkening.get(math::angleBetweenVectors(viewRayR, sunDirection) / phiSun);

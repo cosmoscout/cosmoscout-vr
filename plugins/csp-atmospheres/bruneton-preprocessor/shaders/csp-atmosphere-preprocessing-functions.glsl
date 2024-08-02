@@ -85,15 +85,25 @@ RayInfo computeOpticalLengthToTopAtmosphereBoundary(float densityTextureV, float
     dvec2  samplePos  = vec2(0.0, r);
     double currentR   = r;
     dvec2  currentDir = startRayDir;
+    bool   hitSurface = false;
 
     while (currentR <= TOP_RADIUS && ++samples < SAMPLE_COUNT_OPTICAL_DEPTH) {
-      result.opticalDepth[c] += getDensity(densityTextureV, float(currentR) - BOTTOM_RADIUS);
 
       samplePos += currentDir * dx;
+      currentR = length(samplePos);
 
-      // Make sure that we do not sample inside the planet. There we do not have a density
-      // gradient and the refraction would be wrong.
-      currentR = max(BOTTOM_RADIUS + 100, length(samplePos));
+      // If the ray intersects the ground, we have a problem: We do not have density information
+      // in the underground, so the ray traversal will become undefined. Hence we clamp the ray
+      // to the surface of the planet.
+      float minR = BOTTOM_RADIUS + dx * 0.01;
+
+      if (currentR < minR) {
+        samplePos  = samplePos / currentR * minR;
+        currentR   = minR;
+        hitSurface = true;
+      }
+
+      result.opticalDepth[c] += getDensity(densityTextureV, float(currentR) - BOTTOM_RADIUS);
 
       double refractiveIndex = getRefractiveIndex(float(currentR) - BOTTOM_RADIUS)[c];
       float  gradientLength =
@@ -103,6 +113,20 @@ RayInfo computeOpticalLengthToTopAtmosphereBoundary(float densityTextureV, float
     }
 
     result.thetaDeviation[c] = angleBetweenVectors(vec2(startRayDir), vec2(currentDir));
+
+    // If our ray hit the surface of the planet, the optical depth should be infinite. However,
+    // returning a very high optical depth is not a good solution, because the transmittance
+    // computation in getTransmittance() in common.glsl relies on the fact that the ray does not
+    // intersect the planet in either the forward or backward direction.
+    // As a solution, we simply compute the optical depth as if the ray would have continued close
+    // to the surface of the planet. This means, that there will be a very small region above the
+    // horizon where the Sun should not be visible but will be visible.
+    // We accept this small error during real-time rendering, however for the eclipse-shadow
+    // computation, we will require the information about the ground intersection. This is why we
+    // make the theta deviation negative in this case.
+    if (hitSurface) {
+      result.thetaDeviation[c] *= -1.0;
+    }
   }
 
   result.opticalDepth *= dx;
