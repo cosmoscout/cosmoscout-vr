@@ -45,13 +45,18 @@ float getDensity(float densityTextureV, float altitude) {
 
 #if COMPUTE_REFRACTION
 
+dvec3 getRefractiveIndexMinusOne(float altitude) {
+  return dvec3(INDEX_OF_REFRACTION * getDensity(ATMOSPHERE.molecules.densityTextureV, altitude));
+}
+
 dvec3 getRefractiveIndex(float altitude) {
-  return dvec3(1.0lf) +
-         dvec3(INDEX_OF_REFRACTION * getDensity(ATMOSPHERE.molecules.densityTextureV, altitude));
+  return dvec3(1.0lf) + getRefractiveIndexMinusOne(altitude);
 }
 
 vec3 getRefractiveIndexGradientLength(float height, float dh) {
-  return vec3(getRefractiveIndex(height + dh * 0.5) - getRefractiveIndex(height - dh * 0.5)) / dh;
+  return vec3(getRefractiveIndexMinusOne(height + dh * 0.5) -
+              getRefractiveIndexMinusOne(height - dh * 0.5)) /
+         dh;
 }
 
 struct RayInfo {
