@@ -164,7 +164,13 @@ __global__ void computeShadowMap(common::Output output, common::Mapping mapping,
   output.mBuffer[i * 3 + 0] = totalIlluminance.r / fullIlluminance;
   output.mBuffer[i * 3 + 1] = totalIlluminance.g / fullIlluminance;
   output.mBuffer[i * 3 + 2] = totalIlluminance.b / fullIlluminance;
+
+  // Print a rough progress estimate.
+  if (i % 1000 == 0) {
+    printf("Progress: %f%%\n", (i / (float)(output.mSize * output.mSize)) * 100.0);
+  }
 }
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 __global__ void drawAtmoView(common::Mapping mapping, common::Geometry geometry, float exposure,
