@@ -167,24 +167,21 @@ __device__ glm::vec3 getScatteringTextureUvwFromRMuMuSNu(advanced::Textures cons
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-__device__ glm::bvec3 getRefractedViewRays(advanced::Textures const& textures,
-    common::Geometry const& geometry, glm::dvec3 camera, glm::dvec3 viewRay, glm::dvec3& viewRayR,
-    glm::dvec3& viewRayG, glm::dvec3& viewRayB) {
+__device__ bool getRefractedViewRay(advanced::Textures const& textures,
+    common::Geometry const& geometry, glm::dvec3 camera, glm::dvec3 viewRay,
+    glm::dvec3& refractedViewRay) {
 
   double    mu = dot(camera, viewRay) / geometry.mRadiusAtmo;
   glm::vec2 uv = getTransmittanceTextureUvFromRMu(textures, geometry, mu);
 
   // Cosine of the angular deviation of the ray due to refraction.
-  glm::dvec3 thetaDeviations = glm::vec3(texture2D(textures.mThetaDeviation, uv));
-  glm::bvec3 hitsGround      = glm::lessThan(thetaDeviations, glm::dvec3(0.0));
-  glm::dvec3 muRGB           = glm::cos(thetaDeviations);
-  glm::dvec3 axis            = glm::normalize(glm::cross(camera, viewRay));
+  glm::vec2  thetaDeviationHitsGround = glm::vec2(texture2D(textures.mThetaDeviation, uv));
+  double     muDeviation              = glm::cos(double(thetaDeviationHitsGround.x));
+  glm::dvec3 axis                     = glm::normalize(glm::cross(camera, viewRay));
 
-  viewRayR = normalize(math::rotateVector(viewRay, axis, muRGB.r));
-  viewRayG = normalize(math::rotateVector(viewRay, axis, muRGB.g));
-  viewRayB = normalize(math::rotateVector(viewRay, axis, muRGB.b));
+  refractedViewRay = normalize(math::rotateVector(viewRay, axis, muDeviation));
 
-  return hitsGround;
+  return thetaDeviationHitsGround.y > 0.0;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -296,10 +293,9 @@ __device__ glm::vec3 getLuminance(glm::dvec3 camera, glm::dvec3 viewRay, glm::dv
   double distanceToTopAtmosphereBoundary =
       -rmu - sqrt(rmu * rmu - r * r + geometry.mRadiusAtmo * geometry.mRadiusAtmo);
 
-  glm::vec3  skyLuminance  = glm::vec3(0.0);
-  glm::vec3  transmittance = glm::vec3(1.0);
-  glm::dvec3 viewRayR, viewRayG, viewRayB;
-  viewRayR = viewRayG = viewRayB = viewRay;
+  glm::vec3  skyLuminance     = glm::vec3(0.0);
+  glm::vec3  transmittance    = glm::vec3(1.0);
+  glm::dvec3 refractedViewRay = viewRay;
 
   // We only need to compute the luminance if the view ray intersects the atmosphere.
   if (distanceToTopAtmosphereBoundary > 0.0) {
@@ -320,30 +316,20 @@ __device__ glm::vec3 getLuminance(glm::dvec3 camera, glm::dvec3 viewRay, glm::dv
     skyLuminance = multipleScattering * moleculePhaseFunction(textures.mPhase, nu) +
                    singleAerosolsScattering * aerosolPhaseFunction(textures.mPhase, nu);
 
-    glm::bvec3 hitsGround =
-        getRefractedViewRays(textures, geometry, camera, viewRay, viewRayR, viewRayG, viewRayB);
+    bool hitsGround = getRefractedViewRay(textures, geometry, camera, viewRay, refractedViewRay);
 
     transmittance = rayRMuIntersectsGround
                         ? glm::vec3(0.0)
                         : getTransmittanceToTopAtmosphereBoundary(textures, geometry, mu);
 
-    if (hitsGround.r) {
-      transmittance.r = 0.0;
-    }
-    if (hitsGround.g) {
-      transmittance.g = 0.0;
-    }
-    if (hitsGround.b) {
-      transmittance.b = 0.0;
+    if (hitsGround) {
+      transmittance = glm::vec3(0.0);
     }
   }
 
-  float sunR = limbDarkening.get(math::angleBetweenVectors(viewRayR, sunDirection) / phiSun);
-  float sunG = limbDarkening.get(math::angleBetweenVectors(viewRayG, sunDirection) / phiSun);
-  float sunB = limbDarkening.get(math::angleBetweenVectors(viewRayB, sunDirection) / phiSun);
+  float sun = limbDarkening.get(math::angleBetweenVectors(refractedViewRay, sunDirection) / phiSun);
 
-  glm::vec3 sunLuminance =
-      transmittance * (float)getSunLuminance(geometry.mRadiusSun) * glm::vec3(sunR, sunG, sunB);
+  glm::vec3 sunLuminance = transmittance * (float)getSunLuminance(geometry.mRadiusSun) * sun;
 
   return skyLuminance + sunLuminance;
 }

@@ -228,12 +228,16 @@ const char kComputeTransmittanceShader[] = R"(
   layout(location = 0) out vec3 oTransmittance;
 
 #if COMPUTE_REFRACTION
-  layout(location = 1) out vec3 oThetaDeviation;
+  layout(location = 1) out vec3 oThetaDeviationHitsGround;
 #endif
 
   void main() {
     #if COMPUTE_REFRACTION
-      oTransmittance = computeTransmittanceToTopAtmosphereBoundaryTexture(ATMOSPHERE, gl_FragCoord.xy, oThetaDeviation);
+      bool hitsGround;
+      float thetaDeviation;
+      oTransmittance = computeTransmittanceToTopAtmosphereBoundaryTexture(ATMOSPHERE, gl_FragCoord.xy, thetaDeviation, hitsGround);
+      oThetaDeviationHitsGround = vec3(thetaDeviation, hitsGround ? 1.0 : 0.0, 0.0);
+
     #else
       oTransmittance = computeTransmittanceToTopAtmosphereBoundaryTexture(ATMOSPHERE, gl_FragCoord.xy);
     #endif
@@ -716,7 +720,7 @@ Preprocessor::Preprocessor(Params params)
       "const int SAMPLE_COUNT_INDIRECT_IRRADIANCE = " + cs::utils::toString(mParams.mSampleCountIndirectIrradiance) + ";\n" +
       "const vec3 SOLAR_IRRADIANCE = "                + extractVec3(WAVELENGTHS, SOLAR_IRRADIANCE, lambdas) + ";\n" +
       "const vec3 GROUND_ALBEDO = vec3("              + cs::utils::toString(mParams.mGroundAlbedo) + ");\n" +
-      "const vec3 INDEX_OF_REFRACTION = "             + extractVec3(mParams.mWavelengths, mParams.mRefractiveIndex, lambdas) + ";\n" +
+      "const float INDEX_OF_REFRACTION = "            + cs::utils::toString(mParams.mRefractiveIndex) + ";\n" +
       "const float SUN_ANGULAR_RADIUS = "             + cs::utils::toString(mMetadata.mSunAngularRadius) + ";\n" +
       "const float BOTTOM_RADIUS = "                  + cs::utils::toString(mParams.mMinAltitude) + ";\n" +
       "const float TOP_RADIUS = "                     + cs::utils::toString(mParams.mMaxAltitude) + ";\n" +

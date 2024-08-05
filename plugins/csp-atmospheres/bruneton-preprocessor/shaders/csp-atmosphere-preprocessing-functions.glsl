@@ -45,23 +45,33 @@ float getDensity(float densityTextureV, float altitude) {
 
 #if COMPUTE_REFRACTION
 
-dvec3 getRefractiveIndexMinusOne(float altitude) {
-  return dvec3(INDEX_OF_REFRACTION * getDensity(ATMOSPHERE.molecules.densityTextureV, altitude));
+float getRefractiveIndexMinusOne(float altitude) {
+  return INDEX_OF_REFRACTION * getDensity(ATMOSPHERE.molecules.densityTextureV, altitude);
 }
 
-dvec3 getRefractiveIndex(float altitude) {
-  return dvec3(1.0lf) + getRefractiveIndexMinusOne(altitude);
+double getRefractiveIndex(float altitude) {
+  return 1.0lf + double(getRefractiveIndexMinusOne(altitude));
 }
 
-vec3 getRefractiveIndexGradientLength(float height, float dh) {
-  return vec3(getRefractiveIndexMinusOne(height + dh * 0.5) -
-              getRefractiveIndexMinusOne(height - dh * 0.5)) /
+float getRefractiveIndexGradientLength(float height, float dh) {
+  return (getRefractiveIndexMinusOne(height + dh * 0.5) -
+             getRefractiveIndexMinusOne(height - dh * 0.5)) /
          dh;
 }
 
+// If our ray hit the surface of the planet, the optical depth should be infinite. However,
+// returning a very high optical depth is not a good solution, because the transmittance
+// computation in getTransmittance() in common.glsl relies on the fact that the ray does not
+// intersect the planet in either the forward or backward direction.
+// As a solution, we simply compute the optical depth as if the ray would have continued close
+// to the surface of the planet. This means, that there will be a very small region above the
+// horizon where the Sun should not be visible but will be visible.
+// We accept this small error during real-time rendering, however for the eclipse-shadow
+// computation, we will require the information about the ground intersection.
 struct RayInfo {
-  vec3 opticalDepth;
-  vec3 thetaDeviation;
+  vec3  opticalDepth;
+  float thetaDeviation;
+  bool  hitsGround;
 };
 
 // Using acos is not very stable for small angles. This function is used to compute the angle
@@ -77,57 +87,41 @@ RayInfo computeOpticalLengthToTopAtmosphereBoundary(float densityTextureV, float
 
   RayInfo result;
   result.opticalDepth   = vec3(0.0);
-  result.thetaDeviation = vec3(0.0);
+  result.thetaDeviation = 0.0;
+  result.hitsGround     = false;
 
-  for (int c = 0; c < 3; ++c) {
-    int samples = 0;
+  int samples = 0;
 
-    dvec2  samplePos  = vec2(0.0, r);
-    double currentR   = r;
-    dvec2  currentDir = startRayDir;
-    bool   hitSurface = false;
+  dvec2  samplePos  = vec2(0.0, r);
+  double currentR   = r;
+  dvec2  currentDir = startRayDir;
 
-    while (currentR <= TOP_RADIUS && ++samples < SAMPLE_COUNT_OPTICAL_DEPTH) {
+  while (currentR <= TOP_RADIUS && ++samples < SAMPLE_COUNT_OPTICAL_DEPTH) {
 
-      samplePos += currentDir * dx;
-      currentR = length(samplePos);
+    samplePos += currentDir * dx;
+    currentR = length(samplePos);
 
-      // If the ray intersects the ground, we have a problem: We do not have density information
-      // in the underground, so the ray traversal will become undefined. Hence we clamp the ray
-      // to the surface of the planet.
-      float minR = BOTTOM_RADIUS + dx * 0.01;
+    // If the ray intersects the ground, we have a problem: We do not have density information
+    // in the underground, so the ray traversal will become undefined. Hence we clamp the ray
+    // to the surface of the planet.
+    float minR = BOTTOM_RADIUS + dx * 0.01;
 
-      if (currentR < minR) {
-        samplePos  = samplePos / currentR * minR;
-        currentR   = minR;
-        hitSurface = true;
-      }
-
-      result.opticalDepth[c] += getDensity(densityTextureV, float(currentR) - BOTTOM_RADIUS);
-
-      double refractiveIndex = getRefractiveIndex(float(currentR) - BOTTOM_RADIUS)[c];
-      float  gradientLength =
-          getRefractiveIndexGradientLength(float(currentR) - BOTTOM_RADIUS, dx * 0.01)[c];
-      dvec2 dn   = samplePos / currentR * gradientLength;
-      currentDir = normalize(refractiveIndex * currentDir + dn * dx);
+    if (currentR < minR) {
+      samplePos         = samplePos / currentR * minR;
+      currentR          = minR;
+      result.hitsGround = true;
     }
 
-    result.thetaDeviation[c] = angleBetweenVectors(vec2(startRayDir), vec2(currentDir));
+    result.opticalDepth += getDensity(densityTextureV, float(currentR) - BOTTOM_RADIUS);
 
-    // If our ray hit the surface of the planet, the optical depth should be infinite. However,
-    // returning a very high optical depth is not a good solution, because the transmittance
-    // computation in getTransmittance() in common.glsl relies on the fact that the ray does not
-    // intersect the planet in either the forward or backward direction.
-    // As a solution, we simply compute the optical depth as if the ray would have continued close
-    // to the surface of the planet. This means, that there will be a very small region above the
-    // horizon where the Sun should not be visible but will be visible.
-    // We accept this small error during real-time rendering, however for the eclipse-shadow
-    // computation, we will require the information about the ground intersection. This is why we
-    // make the theta deviation negative in this case.
-    if (hitSurface) {
-      result.thetaDeviation[c] *= -1.0;
-    }
+    double refractiveIndex = getRefractiveIndex(float(currentR) - BOTTOM_RADIUS);
+    float  gradientLength =
+        getRefractiveIndexGradientLength(float(currentR) - BOTTOM_RADIUS, dx * 0.01);
+    dvec2 dn   = samplePos / currentR * gradientLength;
+    currentDir = normalize(refractiveIndex * currentDir + dn * dx);
   }
+
+  result.thetaDeviation = angleBetweenVectors(vec2(startRayDir), vec2(currentDir));
 
   result.opticalDepth *= dx;
 
@@ -168,8 +162,8 @@ RayInfo computeOpticalLengthToTopAtmosphereBoundary(float densityTextureV, float
 
 #if COMPUTE_REFRACTION
 
-vec3 computeTransmittanceToTopAtmosphereBoundaryTexture(
-    AtmosphereComponents atmosphere, vec2 fragCoord, out vec3 thetaDeviation) {
+vec3 computeTransmittanceToTopAtmosphereBoundaryTexture(AtmosphereComponents atmosphere,
+    vec2 fragCoord, out float thetaDeviation, out bool hitsGround) {
 
 #else
 
@@ -196,6 +190,7 @@ vec3 computeTransmittanceToTopAtmosphereBoundaryTexture(
 
 #if COMPUTE_REFRACTION
   thetaDeviation = molecules.thetaDeviation;
+  hitsGround     = molecules.hitsGround;
 #endif
 
   return transmittance;

@@ -54,9 +54,8 @@ layout(location = 0) out vec3 oColor;
 bool RefractionSupported();
 
 // This will return the view ray after refraction by the atmosphere. This is only called if
-// RefractionSupported() returns true. Also, refraction is wavelength-dependent. The view ray is
-// split into three rays (red, green, blue) which are refracted separately.
-void GetRefractedViewRay(vec3 camera, vec3 viewRay, out vec3 viewR, out vec3 viewG, out vec3 viewB);
+// RefractionSupported() returns true.
+void GetRefractedViewRay(vec3 camera, vec3 viewRay, out vec3 refractedViewRay);
 
 // Returns the sky luminance (in cd/m^2) along the segment from 'camera' to the nearest
 // atmosphere boundary in direction 'viewRay', as well as the transmittance along this segment.
@@ -300,36 +299,31 @@ float angleBetweenVectors(vec3 u, vec3 v) {
 
 vec3 getRefractedFramebufferColor(vec3 rayOrigin, vec3 rayDir) {
 
-  vec3 refractedViewRays[3];
-  GetRefractedViewRay(
-      rayOrigin, rayDir, refractedViewRays[0], refractedViewRays[1], refractedViewRays[2]);
+  vec3 refractedViewRay;
+  GetRefractedViewRay(rayOrigin, rayDir, refractedViewRay);
+
+  vec4 texcoords = uMatMVP * vec4(rayOrigin + refractedViewRay * 1e8, 1.0);
+  texcoords.xy   = texcoords.xy / texcoords.w * 0.5 + 0.5;
+
+  // We can only sample the color buffer if the point is inside the screen.
+  bool inside = all(lessThan(texcoords.xy, vec2(1.0))) && all(greaterThan(texcoords.xy, vec2(0.0)));
+
+  // Also, we check the depth buffer to see if the point is occluded. If it is, we do not sample
+  // the color buffer.
+  bool occluded = getFramebufferDepth(texcoords.xy) > 0.000001;
 
   vec3 color;
+  if (inside && !occluded) {
+    color = getFramebufferColor(texcoords.xy);
+  } else {
 
-  for (int i = 0; i < 3; i++) {
-    vec4 texcoords = uMatMVP * vec4(rayOrigin + refractedViewRays[i] * 1e8, 1.0);
-    texcoords.xy   = texcoords.xy / texcoords.w * 0.5 + 0.5;
+    float sunAngularRadius = 0.0082 / 2.0;
 
-    // We can only sample the color buffer if the point is inside the screen.
-    bool inside =
-        all(lessThan(texcoords.xy, vec2(1.0))) && all(greaterThan(texcoords.xy, vec2(0.0)));
+    // Smooth edge for the Sun.
+    float sunEdge = smoothstep(sunAngularRadius - 0.0005, sunAngularRadius + 0.0005,
+        angleBetweenVectors(normalize(refractedViewRay), normalize(uSunDir)));
 
-    // Also, we check the depth buffer to see if the point is occluded. If it is, we do not sample
-    // the color buffer.
-    bool occluded = getFramebufferDepth(texcoords.xy) > 0.000001;
-
-    if (inside && !occluded) {
-      color[i] = getFramebufferColor(texcoords.xy)[i];
-    } else {
-
-      float sunAngularRadius = 0.0082 / 2.0;
-
-      // Smooth edge for the Sun.
-      float sunEdge = smoothstep(sunAngularRadius - 0.0005, sunAngularRadius + 0.0005,
-          angleBetweenVectors(normalize(refractedViewRays[i]), normalize(uSunDir)));
-
-      color[i] = mix(1.1e9, 0.0, sunEdge);
-    }
+    color = vec3(mix(1.1e9, 0.0, sunEdge));
   }
 
   return color;
@@ -647,8 +641,8 @@ void main() {
     // Looking down onto the ocean.
     if (oceanIntersections.x > 0) {
 
-      vec3        oceanSurface      = vsIn.rayOrigin + rayDir * oceanIntersections.x;
-      vec3        idealNormal       = normalize(oceanSurface);
+      vec3 oceanSurface = vsIn.rayOrigin + rayDir * oceanIntersections.x;
+      vec3 idealNormal  = normalize(oceanSurface);
 
 #if ENABLE_WAVES
       const float WAVE_SPEED        = 0.2;

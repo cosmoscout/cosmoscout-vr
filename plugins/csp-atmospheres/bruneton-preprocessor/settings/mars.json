@@ -16,5 +16,5 @@
     "betaAbs": "plugins/csp-atmospheres/scattering-table-generator/output/mars_cosmoscout_aerosols_cinematic_absorption.csv",
     "density": "plugins/csp-atmospheres/scattering-table-generator/output/mars_cosmoscout_aerosols_cinematic_density.csv"
   },
-  "ior": "plugins/csp-atmospheres/scattering-table-generator/output/mars_cosmoscout_ior_cinematic.csv"
+  "ior": 3.383e-6
 }

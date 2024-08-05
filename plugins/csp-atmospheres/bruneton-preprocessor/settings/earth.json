@@ -23,5 +23,5 @@
     "betaAbs": "plugins/csp-atmospheres/scattering-table-generator/output/earth_cosmoscout_ozone_absorption.csv",
     "density": "plugins/csp-atmospheres/scattering-table-generator/output/earth_cosmoscout_ozone_density.csv"
   },
-  "ior": "plugins/csp-atmospheres/scattering-table-generator/output/earth_cosmoscout_ior.csv"
+  "ior": 0.000273
 }
