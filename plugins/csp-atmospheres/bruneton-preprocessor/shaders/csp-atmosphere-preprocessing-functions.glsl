@@ -75,11 +75,14 @@ struct RayInfo {
 };
 
 // Using acos is not very stable for small angles. This function is used to compute the angle
-// between two vectors in a more stable way.
+// between two normalized vectors in a more stable way.
 float angleBetweenVectors(vec2 u, vec2 v) {
   return 2.0 * asin(0.5 * length(u - v));
 }
 
+// If refraction is incorporated, the ray is bent according to the refractive index of the air
+// molecules. The optical depth is then computed by integrating the density along the refracted
+// ray.
 RayInfo computeOpticalLengthToTopAtmosphereBoundary(float densityTextureV, float r, float mu) {
 
   float dx          = TOP_RADIUS / SAMPLE_COUNT_OPTICAL_DEPTH;
@@ -104,7 +107,7 @@ RayInfo computeOpticalLengthToTopAtmosphereBoundary(float densityTextureV, float
     // If the ray intersects the ground, we have a problem: We do not have density information
     // in the underground, so the ray traversal will become undefined. Hence we clamp the ray
     // to the surface of the planet.
-    float minR = BOTTOM_RADIUS + dx * 0.01;
+    float minR = BOTTOM_RADIUS + dx * 0.1;
 
     if (currentR < minR) {
       samplePos         = samplePos / currentR * minR;
@@ -116,7 +119,7 @@ RayInfo computeOpticalLengthToTopAtmosphereBoundary(float densityTextureV, float
 
     double refractiveIndex = getRefractiveIndex(float(currentR) - BOTTOM_RADIUS);
     float  gradientLength =
-        getRefractiveIndexGradientLength(float(currentR) - BOTTOM_RADIUS, dx * 0.01);
+        getRefractiveIndexGradientLength(float(currentR) - BOTTOM_RADIUS, dx * 0.1);
     dvec2 dn   = samplePos / currentR * gradientLength;
     currentDir = normalize(refractiveIndex * currentDir + dn * dx);
   }
@@ -134,6 +137,9 @@ struct RayInfo {
   float opticalDepth;
 };
 
+// If no refraction is computed, the optical depth is simply the integral of the density along the
+// ray. We use the original implementation by Eric Bruneton with evenly spaced samples along the
+// ray.
 RayInfo computeOpticalLengthToTopAtmosphereBoundary(float densityTextureV, float r, float mu) {
   float   dx = distanceToTopAtmosphereBoundary(r, mu) / float(SAMPLE_COUNT_OPTICAL_DEPTH);
   RayInfo result;
@@ -208,6 +214,87 @@ vec3 computeTransmittanceToTopAtmosphereBoundaryTexture(
 // only difference is that the RayleighPhaseFunction() and MiePhaseFunction() have been removed and
 // replaced by a generic phaseFunction() which samples the phase function from a texture.
 
+float distanceToNearestAtmosphereBoundary(float r, float mu, bool rayRMuIntersectsGround) {
+  if (rayRMuIntersectsGround) {
+    return distanceToBottomAtmosphereBoundary(r, mu);
+  } else {
+    return distanceToTopAtmosphereBoundary(r, mu);
+  }
+}
+
+#if COMPUTE_REFRACTION
+
+// As for the transmittance, the single-scattering computation is different if refraction is
+// incorporated. The ray is bent, so we cannot simply accumulate the scattering along a straight
+// line.
+void computeSingleScattering(AtmosphereComponents atmosphere, sampler2D transmittanceTexture,
+    float r, float mu, float muS, float nu, bool rayRMuIntersectsGround, out vec3 molecules,
+    out vec3 aerosols) {
+
+  // The integration step, i.e. the length of each integration interval.
+  float dx         = TOP_RADIUS / SAMPLE_COUNT_SINGLE_SCATTERING;
+  dvec2 currentDir = vec2(sqrt(1 - mu * mu), mu);
+  vec2  sunDir     = vec2(sqrt(1 - muS * muS), muS);
+
+  // Integration loop.
+  vec3  moleculesSum     = vec3(0.0);
+  vec3  aerosolsSum      = vec3(0.0);
+  dvec3 transmittanceRay = dvec3(1.0);
+  int   samples          = 0;
+
+  dvec2  currentSamplePos = vec2(0.0, r);
+  double currentR         = r;
+
+#line 249
+
+  while (currentR <= TOP_RADIUS && ++samples < SAMPLE_COUNT_SINGLE_SCATTERING) {
+
+    currentR = length(currentSamplePos);
+
+    dvec2  nextSamplePos = currentSamplePos + currentDir * dx;
+    double nextR         = length(nextSamplePos);
+
+    // If the ray intersects the ground, we have a problem: We do not have density information
+    // in the underground, so the ray traversal will become undefined. Hence we clamp the ray
+    // to the surface of the planet.
+    // float minR = BOTTOM_RADIUS + dx * 0.1;
+
+    // if (currentR < minR) {
+    //   currentSamplePos              = currentSamplePos / currentR * minR;
+    //   currentR               = minR;
+    //   rayRMuIntersectsGround = true;
+    // }
+
+    // The Rayleigh and Mie single scattering at the current sample point.
+    float currentMu  = mu;  // float(currentDir.y);
+    float currentMuS = muS; // clampCosine(dot(sunDir, vec2(currentSamplePos / currentR)));
+    float currentNu  = nu;  // clampCosine(dot(sunDir, vec2(currentDir)));
+    float nextMuSD   = clampCosine(dot(sunDir, vec2(nextSamplePos / nextR)));
+
+    vec3 transmittanceSun = getTransmittanceToSun(transmittanceTexture, float(nextR), nextMuSD);
+    transmittanceRay *= dvec3(getTransmittance(
+        transmittanceTexture, float(currentR), currentMu, dx, rayRMuIntersectsGround));
+
+    moleculesSum += transmittanceSun * vec3(transmittanceRay) *
+                    getDensity(atmosphere.molecules.densityTextureV, float(nextR) - BOTTOM_RADIUS);
+    aerosolsSum += transmittanceSun * vec3(transmittanceRay) *
+                   getDensity(atmosphere.aerosols.densityTextureV, float(nextR) - BOTTOM_RADIUS);
+
+    // double refractiveIndex = getRefractiveIndex(float(currentR) - BOTTOM_RADIUS);
+    // float  gradientLength =
+    //     getRefractiveIndexGradientLength(float(currentR) - BOTTOM_RADIUS, dx * 0.1);
+    // dvec2 dn = currentSamplePos / currentR * gradientLength;
+    // currentDir = normalize(refractiveIndex * currentDir + dn * dx);
+
+    currentSamplePos = nextSamplePos;
+  }
+
+  molecules = moleculesSum * dx * SOLAR_IRRADIANCE * atmosphere.molecules.scattering;
+  aerosols  = aerosolsSum * dx * SOLAR_IRRADIANCE * atmosphere.aerosols.scattering;
+}
+
+#else
+
 void computeSingleScatteringIntegrand(AtmosphereComponents atmosphere,
     sampler2D transmittanceTexture, float r, float mu, float muS, float nu, float d,
     bool rayRMuIntersectsGround, out vec3 molecules, out vec3 aerosols) {
@@ -217,14 +304,6 @@ void computeSingleScatteringIntegrand(AtmosphereComponents atmosphere,
                        getTransmittanceToSun(transmittanceTexture, rD, muSD);
   molecules = transmittance * getDensity(atmosphere.molecules.densityTextureV, rD - BOTTOM_RADIUS);
   aerosols  = transmittance * getDensity(atmosphere.aerosols.densityTextureV, rD - BOTTOM_RADIUS);
-}
-
-float distanceToNearestAtmosphereBoundary(float r, float mu, bool rayRMuIntersectsGround) {
-  if (rayRMuIntersectsGround) {
-    return distanceToBottomAtmosphereBoundary(r, mu);
-  } else {
-    return distanceToTopAtmosphereBoundary(r, mu);
-  }
 }
 
 void computeSingleScattering(AtmosphereComponents atmosphere, sampler2D transmittanceTexture,
@@ -252,6 +331,8 @@ void computeSingleScattering(AtmosphereComponents atmosphere, sampler2D transmit
   molecules = moleculesSum * dx * SOLAR_IRRADIANCE * atmosphere.molecules.scattering;
   aerosols  = aerosolsSum * dx * SOLAR_IRRADIANCE * atmosphere.aerosols.scattering;
 }
+
+#endif
 
 vec3 phaseFunction(ScatteringComponent component, float nu) {
   float theta = acos(nu) / PI; // 0<->1
