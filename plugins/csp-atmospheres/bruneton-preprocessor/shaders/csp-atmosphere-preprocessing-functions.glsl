@@ -59,6 +59,15 @@ float getRefractiveIndexGradientLength(float height, float dh) {
          dh;
 }
 
+#line 62
+
+dvec2 refractRay(dvec2 rayOrigin, dvec2 rayDir, double altitude, double stepLength) {
+  double refractiveIndex = getRefractiveIndex(float(altitude) - BOTTOM_RADIUS);
+  float  gradientLength  = getRefractiveIndexGradientLength(float(altitude) - BOTTOM_RADIUS, 10);
+  dvec2  dn              = rayOrigin / altitude * gradientLength;
+  return normalize(refractiveIndex * rayDir + dn * stepLength);
+}
+
 // If our ray hit the surface of the planet, the optical depth should be infinite. However,
 // returning a very high optical depth is not a good solution, because the transmittance
 // computation in getTransmittance() in common.glsl relies on the fact that the ray does not
@@ -85,8 +94,8 @@ float angleBetweenVectors(vec2 u, vec2 v) {
 // ray.
 RayInfo computeOpticalLengthToTopAtmosphereBoundary(float densityTextureV, float r, float mu) {
 
-  float dx          = TOP_RADIUS / SAMPLE_COUNT_OPTICAL_DEPTH;
-  dvec2 startRayDir = vec2(sqrt(1 - mu * mu), mu);
+  double dx          = TOP_RADIUS / SAMPLE_COUNT_OPTICAL_DEPTH;
+  dvec2  startRayDir = vec2(sqrt(1 - mu * mu), mu);
 
   RayInfo result;
   result.opticalDepth   = vec3(0.0);
@@ -109,21 +118,17 @@ RayInfo computeOpticalLengthToTopAtmosphereBoundary(float densityTextureV, float
     // If the ray intersects the ground, we have a problem: We do not have density information
     // in the underground, so the ray traversal will become undefined. Hence we clamp the ray
     // to the surface of the planet.
-    float minR = BOTTOM_RADIUS + dx * 0.1;
+    double minR = BOTTOM_RADIUS + dx * 0.1;
     if (currentR < minR) {
       result.hitsGround = true;
     } else {
-      double refractiveIndex = getRefractiveIndex(float(currentR) - BOTTOM_RADIUS);
-      float  gradientLength =
-          getRefractiveIndexGradientLength(float(currentR) - BOTTOM_RADIUS, dx * 0.1);
-      dvec2 dn   = samplePos / currentR * gradientLength;
-      currentDir = normalize(refractiveIndex * currentDir + dn * dx);
+      currentDir = refractRay(samplePos, currentDir, currentR, dx);
     }
   }
 
   result.thetaDeviation = angleBetweenVectors(vec2(startRayDir), vec2(currentDir));
 
-  result.opticalDepth *= dx;
+  result.opticalDepth *= float(dx);
 
   return result;
 }
@@ -275,11 +280,7 @@ void computeSingleScattering(AtmosphereComponents atmosphere, sampler2D transmit
     if (currentR < minR) {
       rayRMuIntersectsGround = true;
     } else {
-      double refractiveIndex = getRefractiveIndex(float(currentR) - BOTTOM_RADIUS);
-      float  gradientLength =
-          getRefractiveIndexGradientLength(float(currentR) - BOTTOM_RADIUS, dx * 0.1);
-      dvec2 dn   = currentSamplePos / currentR * gradientLength;
-      currentDir = normalize(refractiveIndex * currentDir + dn * dx);
+      currentDir = refractRay(currentSamplePos, currentDir, currentR, dx);
     }
 
     currentSamplePos = nextSamplePos;
