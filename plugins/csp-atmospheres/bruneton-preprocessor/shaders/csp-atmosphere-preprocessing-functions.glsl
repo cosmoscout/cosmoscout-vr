@@ -104,24 +104,21 @@ RayInfo computeOpticalLengthToTopAtmosphereBoundary(float densityTextureV, float
     samplePos += currentDir * dx;
     currentR = length(samplePos);
 
+    result.opticalDepth += getDensity(densityTextureV, float(currentR) - BOTTOM_RADIUS);
+
     // If the ray intersects the ground, we have a problem: We do not have density information
     // in the underground, so the ray traversal will become undefined. Hence we clamp the ray
     // to the surface of the planet.
     float minR = BOTTOM_RADIUS + dx * 0.1;
-
     if (currentR < minR) {
-      samplePos         = samplePos / currentR * minR;
-      currentR          = minR;
       result.hitsGround = true;
+    } else {
+      double refractiveIndex = getRefractiveIndex(float(currentR) - BOTTOM_RADIUS);
+      float  gradientLength =
+          getRefractiveIndexGradientLength(float(currentR) - BOTTOM_RADIUS, dx * 0.1);
+      dvec2 dn   = samplePos / currentR * gradientLength;
+      currentDir = normalize(refractiveIndex * currentDir + dn * dx);
     }
-
-    result.opticalDepth += getDensity(densityTextureV, float(currentR) - BOTTOM_RADIUS);
-
-    double refractiveIndex = getRefractiveIndex(float(currentR) - BOTTOM_RADIUS);
-    float  gradientLength =
-        getRefractiveIndexGradientLength(float(currentR) - BOTTOM_RADIUS, dx * 0.1);
-    dvec2 dn   = samplePos / currentR * gradientLength;
-    currentDir = normalize(refractiveIndex * currentDir + dn * dx);
   }
 
   result.thetaDeviation = angleBetweenVectors(vec2(startRayDir), vec2(currentDir));
@@ -256,26 +253,8 @@ void computeSingleScattering(AtmosphereComponents atmosphere, sampler2D transmit
     vec2 nextSamplePosF    = vec2(nextSamplePos);
     vec2 currentDirF       = vec2(currentDir);
 
-    currentR    = length(currentSamplePosF);
-    float nextR = length(nextSamplePosF);
-
-    // If the ray intersects the ground, we have a problem: We do not have density information
-    // in the underground, so the ray traversal will become undefined. Hence we clamp the ray
-    // to the surface of the planet.
-    float minR = BOTTOM_RADIUS + dx * 0.1;
-
-    if (currentR < minR) {
-      currentSamplePos       = currentSamplePos / currentR * minR;
-      currentR               = minR;
-      rayRMuIntersectsGround = true;
-    }
-
-    if (nextR < minR) {
-      nextSamplePos          = nextSamplePos / nextR * minR;
-      nextR                  = minR;
-      rayRMuIntersectsGround = true;
-    }
-
+    currentR        = length(currentSamplePosF);
+    float nextR     = length(nextSamplePosF);
     float currentMu = clampCosine(dot(currentDirF, currentSamplePosF / currentR));
     float nextMuSD  = clampCosine(dot(sunDir, nextSamplePosF / nextR));
 
@@ -288,11 +267,20 @@ void computeSingleScattering(AtmosphereComponents atmosphere, sampler2D transmit
     aerosolsSum += transmittanceSun * vec3(transmittanceRay) *
                    getDensity(atmosphere.aerosols.densityTextureV, nextR - BOTTOM_RADIUS);
 
-    double refractiveIndex = getRefractiveIndex(float(currentR) - BOTTOM_RADIUS);
-    float  gradientLength =
-        getRefractiveIndexGradientLength(float(currentR) - BOTTOM_RADIUS, dx * 0.1);
-    dvec2 dn   = currentSamplePos / currentR * gradientLength;
-    currentDir = normalize(refractiveIndex * currentDir + dn * dx);
+    // If the ray intersects the ground, we have a problem: We do not have density information
+    // in the underground, so the ray traversal will become undefined. Hence we clamp the ray
+    // to the surface of the planet.
+    float minR = BOTTOM_RADIUS + dx * 0.1;
+
+    if (currentR < minR) {
+      rayRMuIntersectsGround = true;
+    } else {
+      double refractiveIndex = getRefractiveIndex(float(currentR) - BOTTOM_RADIUS);
+      float  gradientLength =
+          getRefractiveIndexGradientLength(float(currentR) - BOTTOM_RADIUS, dx * 0.1);
+      dvec2 dn   = currentSamplePos / currentR * gradientLength;
+      currentDir = normalize(refractiveIndex * currentDir + dn * dx);
+    }
 
     currentSamplePos = nextSamplePos;
   }
