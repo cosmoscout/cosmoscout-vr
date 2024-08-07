@@ -232,7 +232,10 @@ void computeSingleScattering(AtmosphereComponents atmosphere, sampler2D transmit
     out vec3 aerosols) {
 
   // The integration step, i.e. the length of each integration interval.
-  float dx         = TOP_RADIUS / SAMPLE_COUNT_SINGLE_SCATTERING;
+  // float dx         = TOP_RADIUS / SAMPLE_COUNT_SINGLE_SCATTERING;
+  float dx = distanceToNearestAtmosphereBoundary(r, mu, rayRMuIntersectsGround) /
+             float(SAMPLE_COUNT_SINGLE_SCATTERING);
+
   dvec2 currentDir = vec2(sqrt(1 - mu * mu), mu);
   vec2  sunDir     = vec2(sqrt(1 - muS * muS), muS);
 
@@ -242,49 +245,54 @@ void computeSingleScattering(AtmosphereComponents atmosphere, sampler2D transmit
   dvec3 transmittanceRay = dvec3(1.0);
   int   samples          = 0;
 
-  dvec2  currentSamplePos = vec2(0.0, r);
-  double currentR         = r;
+  dvec2 currentSamplePos = vec2(0.0, r);
+  float currentR         = r;
 
-#line 249
+  // while (currentR <= TOP_RADIUS && ++samples < SAMPLE_COUNT_SINGLE_SCATTERING) {
+  for (int i = 0; i <= SAMPLE_COUNT_SINGLE_SCATTERING; ++i) {
+    dvec2 nextSamplePos = currentSamplePos + currentDir * dx;
 
-  while (currentR <= TOP_RADIUS && ++samples < SAMPLE_COUNT_SINGLE_SCATTERING) {
+    vec2 currentSamplePosF = vec2(currentSamplePos);
+    vec2 nextSamplePosF    = vec2(nextSamplePos);
+    vec2 currentDirF       = vec2(currentDir);
 
-    currentR = length(currentSamplePos);
-
-    dvec2  nextSamplePos = currentSamplePos + currentDir * dx;
-    double nextR         = length(nextSamplePos);
+    currentR    = length(currentSamplePosF);
+    float nextR = length(nextSamplePosF);
 
     // If the ray intersects the ground, we have a problem: We do not have density information
     // in the underground, so the ray traversal will become undefined. Hence we clamp the ray
     // to the surface of the planet.
-    // float minR = BOTTOM_RADIUS + dx * 0.1;
+    float minR = BOTTOM_RADIUS + dx * 0.1;
 
-    // if (currentR < minR) {
-    //   currentSamplePos              = currentSamplePos / currentR * minR;
-    //   currentR               = minR;
-    //   rayRMuIntersectsGround = true;
-    // }
+    if (currentR < minR) {
+      currentSamplePos       = currentSamplePos / currentR * minR;
+      currentR               = minR;
+      rayRMuIntersectsGround = true;
+    }
 
-    // The Rayleigh and Mie single scattering at the current sample point.
-    float currentMu  = mu;  // float(currentDir.y);
-    float currentMuS = muS; // clampCosine(dot(sunDir, vec2(currentSamplePos / currentR)));
-    float currentNu  = nu;  // clampCosine(dot(sunDir, vec2(currentDir)));
-    float nextMuSD   = clampCosine(dot(sunDir, vec2(nextSamplePos / nextR)));
+    if (nextR < minR) {
+      nextSamplePos          = nextSamplePos / nextR * minR;
+      nextR                  = minR;
+      rayRMuIntersectsGround = true;
+    }
 
-    vec3 transmittanceSun = getTransmittanceToSun(transmittanceTexture, float(nextR), nextMuSD);
-    transmittanceRay *= dvec3(getTransmittance(
-        transmittanceTexture, float(currentR), currentMu, dx, rayRMuIntersectsGround));
+    float currentMu = clampCosine(dot(currentDirF, currentSamplePosF / currentR));
+    float nextMuSD  = clampCosine(dot(sunDir, nextSamplePosF / nextR));
+
+    vec3 transmittanceSun = getTransmittanceToSun(transmittanceTexture, nextR, nextMuSD);
+    transmittanceRay *= dvec3(
+        getTransmittance(transmittanceTexture, currentR, currentMu, dx, rayRMuIntersectsGround));
 
     moleculesSum += transmittanceSun * vec3(transmittanceRay) *
-                    getDensity(atmosphere.molecules.densityTextureV, float(nextR) - BOTTOM_RADIUS);
+                    getDensity(atmosphere.molecules.densityTextureV, nextR - BOTTOM_RADIUS);
     aerosolsSum += transmittanceSun * vec3(transmittanceRay) *
-                   getDensity(atmosphere.aerosols.densityTextureV, float(nextR) - BOTTOM_RADIUS);
+                   getDensity(atmosphere.aerosols.densityTextureV, nextR - BOTTOM_RADIUS);
 
-    // double refractiveIndex = getRefractiveIndex(float(currentR) - BOTTOM_RADIUS);
-    // float  gradientLength =
-    //     getRefractiveIndexGradientLength(float(currentR) - BOTTOM_RADIUS, dx * 0.1);
-    // dvec2 dn = currentSamplePos / currentR * gradientLength;
-    // currentDir = normalize(refractiveIndex * currentDir + dn * dx);
+    double refractiveIndex = getRefractiveIndex(float(currentR) - BOTTOM_RADIUS);
+    float  gradientLength =
+        getRefractiveIndexGradientLength(float(currentR) - BOTTOM_RADIUS, dx * 0.1);
+    dvec2 dn   = currentSamplePos / currentR * gradientLength;
+    currentDir = normalize(refractiveIndex * currentDir + dn * dx);
 
     currentSamplePos = nextSamplePos;
   }
