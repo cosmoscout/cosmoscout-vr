@@ -94,8 +94,8 @@ __global__ void computeShadowMap(common::Output output, common::Mapping mapping,
   //     └---''
   //
   // We use this resolution for the integration:
-  uint32_t samplesX = 512;
-  uint32_t samplesY = 32;
+  uint32_t samplesX = 256;
+  uint32_t samplesY = 128;
 
   // First, compute the angular radii of Sun and occluder as well as the angle between the two.
   double phiOcc, phiSun, delta;
