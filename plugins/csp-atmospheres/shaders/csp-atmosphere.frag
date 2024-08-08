@@ -53,9 +53,9 @@ layout(location = 0) out vec3 oColor;
 // This will return true or false depending on whether the atmosphere model supports refraction.
 bool RefractionSupported();
 
-// This will return the view ray after refraction by the atmosphere. This is only called if
-// RefractionSupported() returns true.
-void GetRefractedViewRay(vec3 camera, vec3 viewRay, out vec3 refractedViewRay);
+// This will return the view ray after refraction by the atmosphere after it travelled all the way
+// to the end of the atmosphere.
+vec3 GetRefractedRay(vec3 camera, vec3 ray, out bool hitsGround);
 
 // Returns the sky luminance (in cd/m^2) along the segment from 'camera' to the nearest
 // atmosphere boundary in direction 'viewRay', as well as the transmittance along this segment.
@@ -297,12 +297,22 @@ float angleBetweenVectors(vec3 u, vec3 v) {
   return 2.0 * asin(0.5 * length(u - v));
 }
 
-vec3 getRefractedFramebufferColor(vec3 rayOrigin, vec3 rayDir) {
+// This methods returns a color from the framebuffer which most likely represents what an observer
+// would see if looking in the direction of the given ray. If the ray hits the ground, black is
+// returned. If the ray is refracted around the planet, we cannot sample the framebuffer but draw
+// an artificial Sun.
+vec3 getRefractedSkyColor(vec3 rayOrigin, vec3 rayDir) {
 
-  vec3 refractedViewRay;
-  GetRefractedViewRay(rayOrigin, rayDir, refractedViewRay);
+  // First, we assume that the refracted ray will leave the atmosphere unblocked. We compute the
+  // texture coordinates where the ray would hit the framebuffer.
+  bool hitsGround;
+  vec3 refractedRay = GetRefractedRay(rayOrigin, rayDir, hitsGround);
 
-  vec4 texcoords = uMatMVP * vec4(rayOrigin + refractedViewRay * 1e8, 1.0);
+  if (hitsGround) {
+    return vec3(0, 0, 0);
+  }
+
+  vec4 texcoords = uMatMVP * vec4(rayOrigin + refractedRay * 1e8, 1.0);
   texcoords.xy   = texcoords.xy / texcoords.w * 0.5 + 0.5;
 
   // We can only sample the color buffer if the point is inside the screen.
@@ -321,7 +331,7 @@ vec3 getRefractedFramebufferColor(vec3 rayOrigin, vec3 rayDir) {
 
     // Smooth edge for the Sun.
     float sunEdge = smoothstep(sunAngularRadius - 0.0005, sunAngularRadius + 0.0005,
-        angleBetweenVectors(normalize(refractedViewRay), normalize(uSunDir)));
+        angleBetweenVectors(normalize(refractedRay), normalize(uSunDir)));
 
     color = vec3(mix(1.1e9, 0.0, sunEdge));
   }
@@ -595,18 +605,17 @@ void main() {
     return;
   }
 
+  vec3 entryPoint =
+      vsIn.rayOrigin + rayDir * (atmosphereIntersections.x > 0.0 ? atmosphereIntersections.x : 0.0);
+  vec3 exitPoint =
+      vsIn.rayOrigin + rayDir * (atmosphereIntersections.x > 0.0 ? atmosphereIntersections.x
+                                                                 : atmosphereIntersections.y);
+
   // The ray hits an object if the distance to the depth buffer is smaller than the ray exit.
   bool hitsSurface = surfaceDistance < atmosphereIntersections.y;
 
   if (RefractionSupported() && !hitsSurface) {
-    vec3 rayOrigin = vsIn.rayOrigin;
-
-    // Advance the ray start to the atmosphere boundary.
-    if (atmosphereIntersections.x > 0) {
-      rayOrigin += rayDir * atmosphereIntersections.x;
-    }
-
-    oColor = getRefractedFramebufferColor(rayOrigin, rayDir);
+    oColor = getRefractedSkyColor(entryPoint, rayDir);
   } else {
     oColor = getFramebufferColor(vsIn.texcoords);
   }
@@ -762,9 +771,6 @@ void main() {
 
     // We also incorporate eclipse shadows. However, we only evaluate at the ray exit point. There
     // is no actual shadow volume in the atmosphere.
-    vec3 exitPoint =
-        vsIn.rayOrigin + rayDir * (atmosphereIntersections.x > 0.0 ? atmosphereIntersections.x
-                                                                   : atmosphereIntersections.y);
     eclipseShadow = getEclipseShadow((uMatM * vec4(exitPoint, 1.0)).xyz);
   }
 

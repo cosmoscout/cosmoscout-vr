@@ -167,19 +167,18 @@ __device__ glm::vec3 getScatteringTextureUvwFromRMuMuSNu(advanced::Textures cons
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-__device__ bool getRefractedViewRay(advanced::Textures const& textures,
-    common::Geometry const& geometry, glm::dvec3 camera, glm::dvec3 viewRay,
-    glm::dvec3& refractedViewRay) {
+__device__ bool getRefractedRay(advanced::Textures const& textures,
+    common::Geometry const& geometry, glm::dvec3 camera, glm::dvec3 ray, glm::dvec3& refractedRay) {
 
-  double    mu = dot(camera, viewRay) / geometry.mRadiusAtmo;
+  double    mu = dot(camera, ray) / geometry.mRadiusAtmo;
   glm::vec2 uv = getTransmittanceTextureUvFromRMu(textures, geometry, mu);
 
   // Cosine of the angular deviation of the ray due to refraction.
   glm::vec2  thetaDeviationHitsGround = glm::vec2(texture2D(textures.mThetaDeviation, uv));
   double     muDeviation              = glm::cos(double(thetaDeviationHitsGround.x));
-  glm::dvec3 axis                     = glm::normalize(glm::cross(camera, viewRay));
+  glm::dvec3 axis                     = glm::normalize(glm::cross(camera, ray));
 
-  refractedViewRay = normalize(math::rotateVector(viewRay, axis, muDeviation));
+  refractedRay = normalize(math::rotateVector(ray, axis, muDeviation));
 
   return thetaDeviationHitsGround.y > 0.0;
 }
@@ -293,9 +292,9 @@ __device__ glm::vec3 getLuminance(glm::dvec3 camera, glm::dvec3 viewRay, glm::dv
   double distanceToTopAtmosphereBoundary =
       -rmu - sqrt(rmu * rmu - r * r + geometry.mRadiusAtmo * geometry.mRadiusAtmo);
 
-  glm::vec3  skyLuminance     = glm::vec3(0.0);
-  glm::vec3  transmittance    = glm::vec3(1.0);
-  glm::dvec3 refractedViewRay = viewRay;
+  glm::vec3  skyLuminance  = glm::vec3(0.0);
+  glm::vec3  transmittance = glm::vec3(1.0);
+  glm::dvec3 refractedRay  = viewRay;
 
   // We only need to compute the luminance if the view ray intersects the atmosphere.
   if (distanceToTopAtmosphereBoundary > 0.0) {
@@ -316,7 +315,7 @@ __device__ glm::vec3 getLuminance(glm::dvec3 camera, glm::dvec3 viewRay, glm::dv
     skyLuminance = multipleScattering * moleculePhaseFunction(textures.mPhase, nu) +
                    singleAerosolsScattering * aerosolPhaseFunction(textures.mPhase, nu);
 
-    bool hitsGround = getRefractedViewRay(textures, geometry, camera, viewRay, refractedViewRay);
+    bool hitsGround = getRefractedRay(textures, geometry, camera, viewRay, refractedRay);
 
     transmittance = rayRMuIntersectsGround
                         ? glm::vec3(0.0)
@@ -327,7 +326,7 @@ __device__ glm::vec3 getLuminance(glm::dvec3 camera, glm::dvec3 viewRay, glm::dv
     }
   }
 
-  float sun = limbDarkening.get(math::angleBetweenVectors(refractedViewRay, sunDirection) / phiSun);
+  float sun = limbDarkening.get(math::angleBetweenVectors(refractedRay, sunDirection) / phiSun);
 
   glm::vec3 sunLuminance = transmittance * (float)getSunLuminance(geometry.mRadiusSun) * sun;
 

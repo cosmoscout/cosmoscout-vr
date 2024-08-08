@@ -160,8 +160,9 @@ bool RefractionSupported() {
   return false;
 }
 
-void GetRefractedViewRay(vec3 camera, vec3 viewRay, out vec3 refractedViewRay) {
-  refractedViewRay = viewRay;
+vec3 GetRefractedRay(vec3 camera, vec3 ray, out bool hitsGround) {
+  hitsGround = false;
+  return ray;
 }
 
 // Returns the sky luminance (in cd/m^2) along the segment from 'camera' to the nearest

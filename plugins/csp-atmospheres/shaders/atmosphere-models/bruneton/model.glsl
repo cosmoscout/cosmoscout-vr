@@ -229,21 +229,24 @@ vec3 rotateVector(vec3 v, vec3 a, float cosMu) {
   return v * cosMu + cross(a, v) * sinMu + a * dot(a, v) * (1.0 - cosMu);
 }
 
-void GetRefractedViewRay(vec3 camera, vec3 viewRay, out vec3 refractedViewRay) {
+vec3 GetRefractedRay(vec3 camera, vec3 ray, out bool hitsGround) {
 #if USE_REFRACTION
   float r  = length(camera);
-  float mu = dot(camera / r, viewRay);
+  float mu = dot(camera / r, ray);
   vec2  uv = getTransmittanceTextureUvFromRMu(r, mu);
 
   // Cosine of the angular deviation of the ray due to refraction.
-  float muRGB = cos(texture(uThetaDeviationTexture, uv).r);
-  vec3  axis  = normalize(cross(camera, viewRay));
+  vec2  deviationHitsGround = texture(uThetaDeviationTexture, uv).rg;
+  float muRGB               = cos(deviationHitsGround.r);
+  vec3  axis                = normalize(cross(camera, ray));
 
-  // Rotate viewRay around axis by acos(muRGB.x) to get viewR.
-  refractedViewRay = rotateVector(viewRay, axis, muRGB);
+  hitsGround = deviationHitsGround.g > 0.0;
+
+  return rotateVector(ray, axis, muRGB);
 
 #else
-  refractedViewRay = viewRay;
+  hitsGround = false;
+  return ray;
 #endif
 }
 
