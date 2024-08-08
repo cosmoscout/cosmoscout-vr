@@ -94,7 +94,8 @@ float angleBetweenVectors(vec2 u, vec2 v) {
 // ray.
 RayInfo computeOpticalLengthToTopAtmosphereBoundary(float densityTextureV, float r, float mu) {
 
-  double dx          = TOP_RADIUS / SAMPLE_COUNT_OPTICAL_DEPTH;
+  // double dx          = TOP_RADIUS / SAMPLE_COUNT_OPTICAL_DEPTH;
+  double dx          = distanceToTopAtmosphereBoundary(r, mu) / SAMPLE_COUNT_OPTICAL_DEPTH;
   dvec2  startRayDir = vec2(sqrt(1 - mu * mu), mu);
 
   RayInfo result;
@@ -108,7 +109,8 @@ RayInfo computeOpticalLengthToTopAtmosphereBoundary(float densityTextureV, float
   double currentR   = r;
   dvec2  currentDir = startRayDir;
 
-  while (currentR <= TOP_RADIUS && ++samples < SAMPLE_COUNT_OPTICAL_DEPTH) {
+  // while (currentR <= TOP_RADIUS && ++samples < SAMPLE_COUNT_OPTICAL_DEPTH) {
+  for (int i = 0; i <= SAMPLE_COUNT_OPTICAL_DEPTH; ++i) {
 
     samplePos += currentDir * dx;
     currentR = length(samplePos);
@@ -234,9 +236,9 @@ void computeSingleScattering(AtmosphereComponents atmosphere, sampler2D transmit
     out vec3 aerosols) {
 
   // The integration step, i.e. the length of each integration interval.
-  // float dx         = TOP_RADIUS / SAMPLE_COUNT_SINGLE_SCATTERING;
-  float dx = distanceToNearestAtmosphereBoundary(r, mu, rayRMuIntersectsGround) /
-             float(SAMPLE_COUNT_SINGLE_SCATTERING);
+  // double dx = double(TOP_RADIUS) / SAMPLE_COUNT_SINGLE_SCATTERING;
+  double dx = distanceToNearestAtmosphereBoundary(r, mu, rayRMuIntersectsGround) /
+              SAMPLE_COUNT_SINGLE_SCATTERING;
 
   dvec2 currentDir = vec2(sqrt(1 - mu * mu), mu);
   vec2  sunDir     = vec2(sqrt(1 - muS * muS), muS);
@@ -250,8 +252,8 @@ void computeSingleScattering(AtmosphereComponents atmosphere, sampler2D transmit
   dvec2 currentSamplePos = vec2(0.0, r);
   float currentR         = r;
 
-  // while (currentR <= TOP_RADIUS && ++samples < SAMPLE_COUNT_SINGLE_SCATTERING) {
   for (int i = 0; i <= SAMPLE_COUNT_SINGLE_SCATTERING; ++i) {
+    // while (currentR <= TOP_RADIUS && ++samples < SAMPLE_COUNT_SINGLE_SCATTERING) {
     dvec2 nextSamplePos = currentSamplePos + currentDir * dx;
 
     vec2 currentSamplePosF = vec2(currentSamplePos);
@@ -264,8 +266,22 @@ void computeSingleScattering(AtmosphereComponents atmosphere, sampler2D transmit
     float nextMuSD  = clampCosine(dot(sunDir, nextSamplePosF / nextR));
 
     vec3 transmittanceSun = getTransmittanceToSun(transmittanceTexture, nextR, nextMuSD);
-    transmittanceRay *= dvec3(
-        getTransmittance(transmittanceTexture, currentR, currentMu, dx, rayRMuIntersectsGround));
+    // vec3 transmittanceSun =
+    //     getTransmittanceToTopAtmosphereBoundary(transmittanceTexture, nextR, nextMuSD);
+
+    float moleculesOpticalDepth = float(dx) * getDensity(atmosphere.molecules.densityTextureV,
+                                                  float(currentR) - BOTTOM_RADIUS);
+    float aerosolsOpticalDepth  = float(dx) * getDensity(atmosphere.aerosols.densityTextureV,
+                                                  float(currentR) - BOTTOM_RADIUS);
+    float ozoneOpticalDepth =
+        float(dx) * getDensity(atmosphere.ozone.densityTextureV, float(currentR) - BOTTOM_RADIUS);
+
+    transmittanceRay *= exp(-(atmosphere.molecules.extinction * moleculesOpticalDepth +
+                              atmosphere.aerosols.extinction * aerosolsOpticalDepth +
+                              atmosphere.ozone.extinction * ozoneOpticalDepth));
+
+    // transmittanceRay *= dvec3(getTransmittance(
+    //     transmittanceTexture, currentR, currentMu, float(dx), rayRMuIntersectsGround));
 
     moleculesSum += transmittanceSun * vec3(transmittanceRay) *
                     getDensity(atmosphere.molecules.densityTextureV, nextR - BOTTOM_RADIUS);
@@ -275,7 +291,7 @@ void computeSingleScattering(AtmosphereComponents atmosphere, sampler2D transmit
     // If the ray intersects the ground, we have a problem: We do not have density information
     // in the underground, so the ray traversal will become undefined. Hence we clamp the ray
     // to the surface of the planet.
-    float minR = BOTTOM_RADIUS + dx * 0.1;
+    double minR = BOTTOM_RADIUS + dx * 0.1;
 
     if (currentR < minR) {
       rayRMuIntersectsGround = true;
@@ -286,8 +302,8 @@ void computeSingleScattering(AtmosphereComponents atmosphere, sampler2D transmit
     currentSamplePos = nextSamplePos;
   }
 
-  molecules = moleculesSum * dx * SOLAR_IRRADIANCE * atmosphere.molecules.scattering;
-  aerosols  = aerosolsSum * dx * SOLAR_IRRADIANCE * atmosphere.aerosols.scattering;
+  molecules = moleculesSum * float(dx) * SOLAR_IRRADIANCE * atmosphere.molecules.scattering;
+  aerosols  = aerosolsSum * float(dx) * SOLAR_IRRADIANCE * atmosphere.aerosols.scattering;
 }
 
 #else
