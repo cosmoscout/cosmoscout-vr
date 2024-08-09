@@ -224,8 +224,8 @@ bool RefractionSupported() {
 }
 
 // Rodrigues' rotation formula
-vec3 rotateVector(vec3 v, vec3 a, float cosMu) {
-  float sinMu = sqrt(1.0 - cosMu * cosMu);
+vec3 rotateVector(vec3 v, vec3 a, float sinMu) {
+  float cosMu = sqrt(1.0 - sinMu * sinMu);
   return v * cosMu + cross(a, v) * sinMu + a * dot(a, v) * (1.0 - cosMu);
 }
 
@@ -235,14 +235,13 @@ vec3 GetRefractedRay(vec3 camera, vec3 ray, out bool hitsGround) {
   float mu = dot(camera / r, ray);
   vec2  uv = getTransmittanceTextureUvFromRMu(r, mu);
 
-  // Cosine of the angular deviation of the ray due to refraction.
   vec2  deviationHitsGround = texture(uThetaDeviationTexture, uv).rg;
-  float muRGB               = cos(deviationHitsGround.r);
+  float sinMu               = sin(deviationHitsGround.r);
   vec3  axis                = normalize(cross(camera, ray));
 
   hitsGround = deviationHitsGround.g > 0.0;
 
-  return rotateVector(ray, axis, muRGB);
+  return rotateVector(ray, axis, sinMu);
 
 #else
   hitsGround = false;
