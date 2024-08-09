@@ -55,7 +55,7 @@ bool RefractionSupported();
 
 // This will return the view ray after refraction by the atmosphere after it travelled all the way
 // to the end of the atmosphere.
-vec3 GetRefractedRay(vec3 camera, vec3 ray, out bool hitsGround);
+vec3 GetRefractedRay(vec3 camera, vec3 ray, float jitter, out bool hitsGround);
 
 // Returns the sky luminance (in cd/m^2) along the segment from 'camera' to the nearest
 // atmosphere boundary in direction 'viewRay', as well as the transmittance along this segment.
@@ -306,7 +306,7 @@ vec3 getRefractedSkyColor(vec3 rayOrigin, vec3 rayDir) {
   // First, we assume that the refracted ray will leave the atmosphere unblocked. We compute the
   // texture coordinates where the ray would hit the framebuffer.
   bool hitsGround;
-  vec3 refractedRay = GetRefractedRay(rayOrigin, rayDir, hitsGround);
+  vec3 refractedRay = GetRefractedRay(rayOrigin, rayDir, 0.0, hitsGround);
 
   if (hitsGround) {
     return vec3(0, 0, 0);
@@ -320,23 +320,29 @@ vec3 getRefractedSkyColor(vec3 rayOrigin, vec3 rayDir) {
 
   // Also, we check the depth buffer to see if the point is occluded. If it is, we do not sample
   // the color buffer.
-  bool occluded = getFramebufferDepth(texcoords.xy) > 0.000001;
+  bool occluded = getFramebufferDepth(texcoords.xy) > 0.0001;
 
-  vec3 color;
   if (inside && !occluded) {
-    color = getFramebufferColor(texcoords.xy);
-  } else {
-
-    float sunAngularRadius = 0.0082 / 2.0;
-
-    // Smooth edge for the Sun.
-    float sunEdge = smoothstep(sunAngularRadius - 0.0005, sunAngularRadius + 0.0005,
-        angleBetweenVectors(normalize(refractedRay), normalize(uSunDir)));
-
-    color = vec3(mix(1.1e9, 0.0, sunEdge));
+    return getFramebufferColor(texcoords.xy);
   }
 
-  return color;
+  float sunAngularRadius = 0.0092 / 2.0;
+  float sunColor         = 0.0;
+
+  float SAMPLES = 50;
+  for (float i = 0.0; i < SAMPLES; ++i) {
+    float jitter       = mix(-1.0, 1.0, i / (SAMPLES - 1));
+    vec3  refractedRay = GetRefractedRay(rayOrigin, rayDir, jitter, hitsGround);
+    if (angleBetweenVectors(normalize(refractedRay), normalize(uSunDir)) < sunAngularRadius) {
+      sunColor += 2.0e9 / SAMPLES;
+    }
+  }
+
+  // if (angleBetweenVectors(refractedRay, uSunDir) < sunAngularRadius) {
+  //   sunColor = 2.0e9;
+  // }
+
+  return vec3(sunColor);
 }
 
 // Returns the distance to the surface of the depth buffer at the current pixel. If the depth of the
@@ -649,9 +655,8 @@ void main() {
 
     // Looking down onto the ocean.
     if (oceanIntersections.x > 0) {
-
-      vec3 oceanSurface = vsIn.rayOrigin + rayDir * oceanIntersections.x;
-      vec3 idealNormal  = normalize(oceanSurface);
+      vec3        oceanSurface      = vsIn.rayOrigin + rayDir * oceanIntersections.x;
+      vec3        idealNormal       = normalize(oceanSurface);
 
 #if ENABLE_WAVES
       const float WAVE_SPEED        = 0.2;

@@ -229,15 +229,18 @@ vec3 rotateVector(vec3 v, vec3 a, float sinMu) {
   return v * cosMu + cross(a, v) * sinMu + a * dot(a, v) * (1.0 - cosMu);
 }
 
-vec3 GetRefractedRay(vec3 camera, vec3 ray, out bool hitsGround) {
+vec3 GetRefractedRay(vec3 camera, vec3 ray, float jitter, out bool hitsGround) {
 #if USE_REFRACTION
   float r  = length(camera);
   float mu = dot(camera / r, ray);
   vec2  uv = getTransmittanceTextureUvFromRMu(r, mu);
 
-  vec2  deviationHitsGround = texture(uThetaDeviationTexture, uv).rg;
-  float sinMu               = sin(deviationHitsGround.r);
-  vec3  axis                = normalize(cross(camera, ray));
+  vec2 deviationHitsGround = texture(uThetaDeviationTexture, uv).rg;
+
+  // deviationHitsGround.r += 20.0 * jitter * fwidth(deviationHitsGround.r);
+
+  float sinMu = sin(deviationHitsGround.r);
+  vec3  axis  = normalize(cross(camera, ray));
 
   hitsGround = deviationHitsGround.g > 0.0;
 
