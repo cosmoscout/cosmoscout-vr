@@ -312,7 +312,7 @@ vec3 getRefractedSkyColor(vec3 rayOrigin, vec3 rayDir) {
     return vec3(0, 0, 0);
   }
 
-  vec4 texcoords = uMatMVP * vec4(rayOrigin + refractedRay * 1e8, 1.0);
+  vec4 texcoords = uMatMVP * vec4(refractedRay, 0.0);
   texcoords.xy   = texcoords.xy / texcoords.w * 0.5 + 0.5;
 
   // We can only sample the color buffer if the point is inside the screen.
