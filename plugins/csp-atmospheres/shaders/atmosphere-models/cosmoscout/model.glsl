@@ -160,7 +160,7 @@ bool RefractionSupported() {
   return false;
 }
 
-vec3 GetRefractedRay(vec3 camera, vec3 ray, float jitter, out bool hitsGround) {
+vec3 GetRefractedRay(vec3 camera, vec3 ray, out bool hitsGround) {
   hitsGround = false;
   return ray;
 }

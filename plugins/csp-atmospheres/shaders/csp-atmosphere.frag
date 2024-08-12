@@ -55,7 +55,7 @@ bool RefractionSupported();
 
 // This will return the view ray after refraction by the atmosphere after it travelled all the way
 // to the end of the atmosphere.
-vec3 GetRefractedRay(vec3 camera, vec3 ray, float jitter, out bool hitsGround);
+vec3 GetRefractedRay(vec3 camera, vec3 ray, out bool hitsGround);
 
 // Returns the sky luminance (in cd/m^2) along the segment from 'camera' to the nearest
 // atmosphere boundary in direction 'viewRay', as well as the transmittance along this segment.
@@ -306,7 +306,7 @@ vec3 getRefractedSkyColor(vec3 rayOrigin, vec3 rayDir) {
   // First, we assume that the refracted ray will leave the atmosphere unblocked. We compute the
   // texture coordinates where the ray would hit the framebuffer.
   bool hitsGround;
-  vec3 refractedRay = GetRefractedRay(rayOrigin, rayDir, 0.0, hitsGround);
+  vec3 refractedRay = GetRefractedRay(rayOrigin, rayDir, hitsGround);
 
   if (hitsGround) {
     return vec3(0, 0, 0);
@@ -329,18 +329,9 @@ vec3 getRefractedSkyColor(vec3 rayOrigin, vec3 rayDir) {
   float sunAngularRadius = 0.0092 / 2.0;
   float sunColor         = 0.0;
 
-  float SAMPLES = 50;
-  for (float i = 0.0; i < SAMPLES; ++i) {
-    float jitter       = mix(-1.0, 1.0, i / (SAMPLES - 1));
-    vec3  refractedRay = GetRefractedRay(rayOrigin, rayDir, jitter, hitsGround);
-    if (angleBetweenVectors(normalize(refractedRay), normalize(uSunDir)) < sunAngularRadius) {
-      sunColor += 2.0e9 / SAMPLES;
-    }
+  if (angleBetweenVectors(refractedRay, uSunDir) < sunAngularRadius) {
+    sunColor = 2.0e9;
   }
-
-  // if (angleBetweenVectors(refractedRay, uSunDir) < sunAngularRadius) {
-  //   sunColor = 2.0e9;
-  // }
 
   return vec3(sunColor);
 }
