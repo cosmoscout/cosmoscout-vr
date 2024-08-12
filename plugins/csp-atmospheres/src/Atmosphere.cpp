@@ -165,15 +165,16 @@ void Atmosphere::configure(Plugin::Settings::Atmosphere const& settings) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Atmosphere::updateShader() {
-  mAtmoShader = VistaGLSLShader();
+void Atmosphere::createShader(ShaderType type, VistaGLSLShader& shader, Uniforms& uniforms) const {
+  shader = VistaGLSLShader();
 
   auto sVert =
       cs::utils::filesystem::loadToString("../share/resources/shaders/csp-atmosphere.vert");
   auto sFrag =
       cs::utils::filesystem::loadToString("../share/resources/shaders/csp-atmosphere.frag");
 
-  cs::utils::replaceString(sFrag, "SKYDOME_MODE", "0");
+  cs::utils::replaceString(sFrag, "SKYDOME_MODE", type == ShaderType::eSkyDome ? "1" : "0");
+  cs::utils::replaceString(sFrag, "ATMOPANO_MODE", type == ShaderType::ePanorama ? "1" : "0");
   cs::utils::replaceString(
       sFrag, "PLANET_RADIUS", std::to_string(mRadii[0] + mSettings.mBottomAltitude.get()));
   cs::utils::replaceString(
@@ -188,32 +189,43 @@ void Atmosphere::updateShader() {
   cs::utils::replaceString(
       sFrag, "ECLIPSE_SHADER_SNIPPET", mEclipseShadowReceiver->getShaderSnippet());
 
-  mAtmoShader.InitVertexShaderFromString(sVert);
-  mAtmoShader.InitFragmentShaderFromString(sFrag);
+  shader.InitVertexShaderFromString(sVert);
+  shader.InitFragmentShaderFromString(sFrag);
 
   // Add the fragment shader from the atmospheric model.
-  glAttachShader(mAtmoShader.GetProgram(), mModel->getShader());
+  glAttachShader(shader.GetProgram(), mModel->getShader());
 
-  mAtmoShader.Link();
+  shader.Link();
 
-  mUniforms.sunDir                    = mAtmoShader.GetUniformLocation("uSunDir");
-  mUniforms.sunIlluminance            = mAtmoShader.GetUniformLocation("uSunIlluminance");
-  mUniforms.sunLuminance              = mAtmoShader.GetUniformLocation("uSunLuminance");
-  mUniforms.time                      = mAtmoShader.GetUniformLocation("uTime");
-  mUniforms.depthBuffer               = mAtmoShader.GetUniformLocation("uDepthBuffer");
-  mUniforms.colorBuffer               = mAtmoShader.GetUniformLocation("uColorBuffer");
-  mUniforms.waterLevel                = mAtmoShader.GetUniformLocation("uWaterLevel");
-  mUniforms.cloudTexture              = mAtmoShader.GetUniformLocation("uCloudTexture");
-  mUniforms.cloudAltitude             = mAtmoShader.GetUniformLocation("uCloudAltitude");
-  mUniforms.inverseModelViewMatrix    = mAtmoShader.GetUniformLocation("uMatInvMV");
-  mUniforms.inverseProjectionMatrix   = mAtmoShader.GetUniformLocation("uMatInvP");
-  mUniforms.scaleMatrix               = mAtmoShader.GetUniformLocation("uMatScale");
-  mUniforms.modelMatrix               = mAtmoShader.GetUniformLocation("uMatM");
-  mUniforms.modelViewProjectionMatrix = mAtmoShader.GetUniformLocation("uMatMVP");
+  uniforms.sunDir                    = shader.GetUniformLocation("uSunDir");
+  uniforms.sunIlluminance            = shader.GetUniformLocation("uSunIlluminance");
+  uniforms.sunLuminance              = shader.GetUniformLocation("uSunLuminance");
+  uniforms.time                      = shader.GetUniformLocation("uTime");
+  uniforms.depthBuffer               = shader.GetUniformLocation("uDepthBuffer");
+  uniforms.colorBuffer               = shader.GetUniformLocation("uColorBuffer");
+  uniforms.waterLevel                = shader.GetUniformLocation("uWaterLevel");
+  uniforms.cloudTexture              = shader.GetUniformLocation("uCloudTexture");
+  uniforms.cloudAltitude             = shader.GetUniformLocation("uCloudAltitude");
+  uniforms.inverseModelViewMatrix    = shader.GetUniformLocation("uMatInvMV");
+  uniforms.inverseProjectionMatrix   = shader.GetUniformLocation("uMatInvP");
+  uniforms.scaleMatrix               = shader.GetUniformLocation("uMatScale");
+  uniforms.modelMatrix               = shader.GetUniformLocation("uMatM");
+  uniforms.modelViewProjectionMatrix = shader.GetUniformLocation("uMatMVP");
+  uniforms.atmoPanoUniforms          = shader.GetUniformLocation("uAtmoPanoUniforms");
+  uniforms.sunElevation              = shader.GetUniformLocation("sunElevation");
 
   // We bind the eclipse shadow map to texture unit 3. The color and depth buffer are bound to 0 and
   // 1, 2 is used for the cloud map.
-  mEclipseShadowReceiver->init(&mAtmoShader, 3);
+  if (type == ShaderType::eAtmosphere) {
+    mEclipseShadowReceiver->init(&shader, 3);
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Atmosphere::updateShaders() {
+  createShader(ShaderType::eAtmosphere, mAtmoShader, mAtmoUniforms);
+  createShader(ShaderType::ePanorama, mPanoShader, mPanoUniforms);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -269,7 +281,7 @@ bool Atmosphere::Do() {
   cs::utils::FrameStats::ScopedSamplesCounter samplesCounter("Atmosphere of " + mObjectName);
 
   if (mShaderDirty || mEclipseShadowReceiver->needsRecompilation()) {
-    updateShader();
+    updateShaders();
     mShaderDirty = false;
   }
 
@@ -335,12 +347,23 @@ bool Atmosphere::Do() {
   // set uniforms ------------------------------------------------------------
   mAtmoShader.Bind();
 
-  mAtmoShader.SetUniform(mUniforms.sunIlluminance, static_cast<float>(mSunIlluminance));
-  mAtmoShader.SetUniform(mUniforms.sunLuminance, static_cast<float>(mSunLuminance));
-  mAtmoShader.SetUniform(mUniforms.sunDir, sunDir[0], sunDir[1], sunDir[2]);
+  // glm::vec3 occDir       = glm::vec3(matInvMV[3]);
+  // float     delta        = std::acos(glm::dot(glm::normalize(occDir), glm::normalize(-sunDir)));
+  // float     occDist      = glm::length(occDir);
+  // float     planetRadius = mRadii[0] + mSettings.mBottomAltitude.get();
+  // float     atmoRadius   = mRadii[0] + mSettings.mTopAltitude;
+  // float     phiOcc       = std::asin(planetRadius / occDist);
+  // float     phiAtmo      = std::asin(atmoRadius / occDist);
+
+  // mAtmoShader.SetUniform(mAtmoUniforms.sunDir, 0.0, std::sin(delta), -std::cos(delta));
+  // mAtmoShader.SetUniform(mAtmoUniforms.atmoPanoUniforms, occDist, phiOcc, phiAtmo);
+
+  mAtmoShader.SetUniform(mAtmoUniforms.sunIlluminance, static_cast<float>(mSunIlluminance));
+  mAtmoShader.SetUniform(mAtmoUniforms.sunLuminance, static_cast<float>(mSunLuminance));
+  mAtmoShader.SetUniform(mAtmoUniforms.sunDir, sunDir[0], sunDir[1], sunDir[2]);
 
   // The noise shader does not like huge numbers. So we rather loop the time.
-  mAtmoShader.SetUniform(mUniforms.time, static_cast<float>(std::fmod(mTime, 1.0e4)));
+  mAtmoShader.SetUniform(mAtmoUniforms.time, static_cast<float>(std::fmod(mTime, 1.0e4)));
 
   if (mHDRBuffer) {
     mHDRBuffer->doPingPong();
@@ -354,28 +377,28 @@ bool Atmosphere::Do() {
     data.mColorBuffer->Bind(GL_TEXTURE1);
   }
 
-  mAtmoShader.SetUniform(mUniforms.depthBuffer, 0);
-  mAtmoShader.SetUniform(mUniforms.colorBuffer, 1);
+  mAtmoShader.SetUniform(mAtmoUniforms.depthBuffer, 0);
+  mAtmoShader.SetUniform(mAtmoUniforms.colorBuffer, 1);
 
   if (mSettings.mEnableWater.get()) {
-    mAtmoShader.SetUniform(mUniforms.waterLevel,
+    mAtmoShader.SetUniform(mAtmoUniforms.waterLevel,
         mSettings.mWaterLevel.get() * mAllSettings->mGraphics.pHeightScale.get() -
             static_cast<float>(mSettings.mBottomAltitude.get()));
   }
 
   if (mSettings.mEnableClouds.get() && mCloudTexture) {
     mCloudTexture->Bind(GL_TEXTURE2);
-    mAtmoShader.SetUniform(mUniforms.cloudTexture, 2);
-    mAtmoShader.SetUniform(mUniforms.cloudAltitude, mSettings.mCloudAltitude.get());
+    mAtmoShader.SetUniform(mAtmoUniforms.cloudTexture, 2);
+    mAtmoShader.SetUniform(mAtmoUniforms.cloudAltitude, mSettings.mCloudAltitude.get());
   }
 
   glUniformMatrix4fv(
-      mUniforms.inverseModelViewMatrix, 1, GL_FALSE, glm::value_ptr(glm::mat4(matInvMV)));
-  glUniformMatrix4fv(mUniforms.scaleMatrix, 1, GL_FALSE, glm::value_ptr(glm::mat4(matScale)));
-  glUniformMatrix4fv(mUniforms.inverseProjectionMatrix, 1, GL_FALSE, glm::value_ptr(matInvP));
-  glUniformMatrix4fv(mUniforms.modelMatrix, 1, GL_FALSE, glm::value_ptr(glm::mat4(matM)));
+      mAtmoUniforms.inverseModelViewMatrix, 1, GL_FALSE, glm::value_ptr(glm::mat4(matInvMV)));
+  glUniformMatrix4fv(mAtmoUniforms.scaleMatrix, 1, GL_FALSE, glm::value_ptr(glm::mat4(matScale)));
+  glUniformMatrix4fv(mAtmoUniforms.inverseProjectionMatrix, 1, GL_FALSE, glm::value_ptr(matInvP));
+  glUniformMatrix4fv(mAtmoUniforms.modelMatrix, 1, GL_FALSE, glm::value_ptr(glm::mat4(matM)));
   glUniformMatrix4fv(
-      mUniforms.modelViewProjectionMatrix, 1, GL_FALSE, glm::value_ptr(glm::mat4(matMVP)));
+      mAtmoUniforms.modelViewProjectionMatrix, 1, GL_FALSE, glm::value_ptr(glm::mat4(matMVP)));
 
   // Initialize eclipse shadow-related uniforms and textures.
   mEclipseShadowReceiver->preRender();
@@ -433,32 +456,8 @@ void Atmosphere::renderSkyDome(std::string const& name) const {
   const int SIZE = 512;
 
   VistaGLSLShader shader;
-
-  auto sVert = cs::utils::filesystem::loadToString(
-      "../share/resources/shaders/csp-atmospheres/atmosphere.vert");
-  auto sFrag = cs::utils::filesystem::loadToString(
-      "../share/resources/shaders/csp-atmospheres/atmosphere.frag");
-
-  cs::utils::replaceString(sFrag, "SKYDOME_MODE", "1");
-  cs::utils::replaceString(
-      sFrag, "PLANET_RADIUS", std::to_string(mRadii[0] + mSettings.mBottomAltitude.get()));
-  cs::utils::replaceString(
-      sFrag, "ATMOSPHERE_RADIUS", std::to_string(mRadii[0] + mSettings.mTopAltitude));
-  cs::utils::replaceString(sFrag, "ENABLE_CLOUDS", "0");
-  cs::utils::replaceString(sFrag, "ENABLE_WATER", "0");
-  cs::utils::replaceString(sFrag, "ENABLE_WAVES", "0");
-  cs::utils::replaceString(sFrag, "ENABLE_HDR", "0");
-  cs::utils::replaceString(sFrag, "HDR_SAMPLES", "0");
-  cs::utils::replaceString(
-      sFrag, "ECLIPSE_SHADER_SNIPPET", mEclipseShadowReceiver->getShaderSnippet());
-
-  shader.InitVertexShaderFromString(sVert);
-  shader.InitFragmentShaderFromString(sFrag);
-
-  // Add the fragment shader from the atmospheric model.
-  glAttachShader(shader.GetProgram(), mModel->getShader());
-
-  shader.Link();
+  Uniforms        uniforms;
+  createShader(ShaderType::eSkyDome, shader, uniforms);
 
   GLuint texture;
   glGenTextures(1, &texture);
@@ -491,16 +490,14 @@ void Atmosphere::renderSkyDome(std::string const& name) const {
   double       sunDist          = 149597870700;
   double       sunIlluminance   = sunLuminousPower / (sunDist * sunDist * 4.0 * glm::pi<double>());
 
-  shader.SetUniform(
-      shader.GetUniformLocation("uSunIlluminance"), static_cast<float>(sunIlluminance));
+  shader.SetUniform(uniforms.sunLuminance, static_cast<float>(sunIlluminance));
 
   std::vector<float> pixels(SIZE * SIZE * 4);
 
   std::vector<float> elevation = {0.0, 45.0, 75.0, 90.0};
 
   for (float e : elevation) {
-    shader.SetUniform(shader.GetUniformLocation("uSunElevation"), e);
-
+    shader.SetUniform(uniforms.sunElevation, e);
     mModel->setUniforms(shader.GetProgram(), 4);
 
     // draw --------------------------------------------------------------------

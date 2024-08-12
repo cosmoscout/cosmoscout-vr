@@ -50,7 +50,33 @@ class Atmosphere : public IVistaOpenGLDraw {
   bool GetBoundingBox(VistaBoundingBox& bb) override;
 
  private:
-  void updateShader();
+  struct Uniforms {
+    uint32_t sunDir                    = 0;
+    uint32_t sunIlluminance            = 0;
+    uint32_t sunLuminance              = 0;
+    uint32_t time                      = 0;
+    uint32_t depthBuffer               = 0;
+    uint32_t colorBuffer               = 0;
+    uint32_t waterLevel                = 0;
+    uint32_t cloudTexture              = 0;
+    uint32_t cloudAltitude             = 0;
+    uint32_t inverseModelViewMatrix    = 0;
+    uint32_t inverseProjectionMatrix   = 0;
+    uint32_t scaleMatrix               = 0;
+    uint32_t modelMatrix               = 0;
+    uint32_t modelViewProjectionMatrix = 0;
+
+    // Only used by the panorama shader.
+    uint32_t atmoPanoUniforms = 0;
+
+    // Only used by the skydome shader.
+    uint32_t sunElevation = 0;
+  };
+
+  enum class ShaderType { eAtmosphere, ePanorama, eSkyDome };
+
+  void createShader(ShaderType type, VistaGLSLShader& shader, Uniforms& uniforms) const;
+  void updateShaders();
 
   void renderSkyDome(std::string const& name) const;
 
@@ -71,8 +97,6 @@ class Atmosphere : public IVistaOpenGLDraw {
 
   int mEnableHDRConnection = -1;
 
-  VistaGLSLShader mAtmoShader;
-
   struct GBufferData {
     std::unique_ptr<VistaTexture> mDepthBuffer;
     std::unique_ptr<VistaTexture> mColorBuffer;
@@ -86,22 +110,11 @@ class Atmosphere : public IVistaOpenGLDraw {
   glm::dvec3 mSunDirection   = glm::dvec3(1.0, 0.0, 0.0);
   double     mTime           = 0.0;
 
-  struct Uniforms {
-    uint32_t sunDir                    = 0;
-    uint32_t sunIlluminance            = 0;
-    uint32_t sunLuminance              = 0;
-    uint32_t time                      = 0;
-    uint32_t depthBuffer               = 0;
-    uint32_t colorBuffer               = 0;
-    uint32_t waterLevel                = 0;
-    uint32_t cloudTexture              = 0;
-    uint32_t cloudAltitude             = 0;
-    uint32_t inverseModelViewMatrix    = 0;
-    uint32_t inverseProjectionMatrix   = 0;
-    uint32_t scaleMatrix               = 0;
-    uint32_t modelMatrix               = 0;
-    uint32_t modelViewProjectionMatrix = 0;
-  } mUniforms;
+  VistaGLSLShader mAtmoShader;
+  Uniforms        mAtmoUniforms;
+
+  VistaGLSLShader mPanoShader;
+  Uniforms        mPanoUniforms;
 
   std::unique_ptr<ModelBase> mModel;
 };

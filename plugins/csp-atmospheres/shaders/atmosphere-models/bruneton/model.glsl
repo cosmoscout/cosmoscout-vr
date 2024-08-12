@@ -213,6 +213,12 @@ vec3 getSunAndSkyIrradiance(sampler2D transmittanceTexture, sampler2D irradiance
   return SOLAR_ILLUMINANCE * getTransmittanceToSun(transmittanceTexture, r, muS);
 }
 
+// Rodrigues' rotation formula
+vec3 rotateVector2(vec3 v, vec3 a, float sinMu) {
+  float cosMu = sqrt(1.0 - sinMu * sinMu);
+  return v * cosMu + cross(a, v) * sinMu + a * dot(a, v) * (1.0 - cosMu);
+}
+
 // Public API --------------------------------------------------------------------------------------
 
 bool RefractionSupported() {
@@ -221,12 +227,6 @@ bool RefractionSupported() {
 #else
   return false;
 #endif
-}
-
-// Rodrigues' rotation formula
-vec3 rotateVector(vec3 v, vec3 a, float sinMu) {
-  float cosMu = sqrt(1.0 - sinMu * sinMu);
-  return v * cosMu + cross(a, v) * sinMu + a * dot(a, v) * (1.0 - cosMu);
 }
 
 vec3 GetRefractedRay(vec3 camera, vec3 ray, out bool hitsGround) {
@@ -241,7 +241,7 @@ vec3 GetRefractedRay(vec3 camera, vec3 ray, out bool hitsGround) {
 
   hitsGround = deviationHitsGround.g > 0.0;
 
-  return rotateVector(ray, axis, sinMu);
+  return rotateVector2(ray, axis, sinMu);
 
 #else
   hitsGround = false;

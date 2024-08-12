@@ -40,7 +40,6 @@ uniform mat4      uMatInvP;
 uniform float     uWaterLevel;
 uniform sampler2D uCloudTexture;
 uniform float     uCloudAltitude;
-uniform float     uSunElevation;
 
 // outputs
 layout(location = 0) out vec3 oColor;
@@ -508,6 +507,8 @@ float getCloudShadow(vec3 rayOrigin, vec3 rayDir) {
 
 #if SKYDOME_MODE
 
+uniform float uSunElevation;
+
 // In this special mode, the atmosphere shader will draw a fish-eye view of the entire sky. This is
 // meant for testing and debugging purposes.
 void main() {
@@ -576,6 +577,50 @@ void main() {
   }
 
   oColor = transmittance * oColor + inScatter;
+}
+
+#elif ATMOPANO_MODE
+
+uniform vec3 uAtmoPanoUniforms;
+
+// Rodrigues' rotation formula
+vec3 rotateVector(vec3 v, vec3 a, float cosMu) {
+  float sinMu = sqrt(1.0 - cosMu * cosMu);
+  return v * cosMu + cross(a, v) * sinMu + a * dot(a, v) * (1.0 - cosMu);
+}
+
+// In this special mode, the atmosphere shader will draw a fish-eye view of the entire sky. This
+// is meant for testing and debugging purposes.
+void main() {
+  float occDist = uAtmoPanoUniforms.x;
+  float phiOcc  = uAtmoPanoUniforms.y;
+  float phiAtmo = uAtmoPanoUniforms.z;
+
+  vec3 rayOrigin = vec3(0.0, 0.0, occDist);
+
+  float theta   = vsIn.texcoords.x * PI;
+  float phi     = phiOcc + vsIn.texcoords.y * (phiAtmo - phiOcc);
+  vec3  rayDirD = vec3(0.0, sin(phi), -cos(phi));
+  vec3  rayDir  = vec3(normalize(rotateVector(rayDirD, vec3(0.0, 0.0, -1.0), cos(theta))));
+
+  vec3 transmittance;
+  vec3 inScatter = GetSkyLuminance(rayOrigin, rayDir, uSunDir, transmittance);
+
+  vec2 atmosphereIntersections = intersectAtmosphere(rayOrigin, rayDir);
+  vec3 entryPoint =
+      rayOrigin + rayDir * (atmosphereIntersections.x > 0.0 ? atmosphereIntersections.x : 0.0);
+
+  float sunAngularRadius = 0.0092 / 2.0;
+  float sunColor         = 0.0;
+
+  bool hitsGround   = false;
+  vec3 refractedRay = GetRefractedRay(entryPoint, rayDir, hitsGround);
+
+  if (!hitsGround && angleBetweenVectors(refractedRay, uSunDir) < sunAngularRadius) {
+    sunColor = 2.0e9;
+  }
+
+  oColor = transmittance * sunColor + inScatter;
 }
 
 #else
