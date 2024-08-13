@@ -40,6 +40,12 @@ int planetViewMode(std::vector<std::string> const& arguments);
 // entire texture regardless of the observer's position.
 int atmoViewMode(std::vector<std::string> const& arguments);
 
+// Computes the average luminance of the atmosphere for each position in the shadow map in a
+// direction-dependent manner. The result is a 3D texture: The x and y coordinates are the usual
+// shadow map coordinates, and the z coordinate maps to a trip around the planet from the direction
+// towards the Sun to the direction opposite to the Sun.
+int limbLuminanceMode(std::vector<std::string> const& arguments);
+
 } // namespace advanced
 
 #endif // ADVANCED_MODES_HPP

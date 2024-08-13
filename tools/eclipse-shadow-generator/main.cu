@@ -30,6 +30,7 @@ void printHelp() {
   std::cout << "linear         Computes an eclipse shadow without atmospheric effects with a linear brightness gradient." << std::endl;
   std::cout << "planet-view    Computes a view of a planet as seen from space." << std::endl;
   std::cout << "atmo-view      Computes a view of the entire atmosphere from a given position in space." << std::endl;
+  std::cout << "limb-luminance Computes the average luminance of atmosphere for each position in the shadow map in a direction-dependent manner." << std::endl;
 }
 // clang-format on
 
@@ -67,6 +68,10 @@ int main(int argc, char** argv) {
 
   if (cMode == "bruneton") {
     return advanced::brunetonMode(arguments);
+  }
+
+  if (cMode == "limb-luminance") {
+    return advanced::limbLuminanceMode(arguments);
   }
 
   if (cMode == "planet-view") {

@@ -53,16 +53,21 @@ Here are some simple examples to get you started:
 
 ```bash
 # This simple command creates the default eclipse shadow map of CosmoScout VR
-./eclipse-shadow-generator limb-darkening
+./eclipse-shadow-generator limb-darkening --with-umbra --output "fallbackShadow.tif"
 
-# Here are some other examples
+./eclipse-shadow-generator bruneton --with-umbra --input ../share/resources/atmosphere-data/earth/ --radius-occ 6370900 --radius-atmo 6451000 --sun-occ-dist 149600000000 --output "earth.tif" --size 512
+./eclipse-shadow-generator bruneton --with-umbra --input ../share/resources/atmosphere-data/mars/ --radius-occ 3389500 --radius-atmo 3469500 --sun-occ-dist 227900000000 --output "mars.tif" --size 512
+./eclipse-shadow-generator limb-luminance --with-umbra --input ../share/resources/atmosphere-data/earth/ --radius-occ 6370900 --radius-atmo 6451000 --sun-occ-dist 149600000000 --output "limb_luminance_earth.tif" --size 64
+./eclipse-shadow-generator limb-luminance --with-umbra --input ../share/resources/atmosphere-data/mars/ --radius-occ 3389500 --radius-atmo 3469500 --sun-occ-dist 227900000000 --output "limb_luminance_mars.tif" --size 64
+
+# These are used for debugging purposes and can be used to visualize the results of the atmosphere rendering.
+./eclipse-shadow-generator planet-view --input ../share/resources/atmosphere-data/earth/ --exposure 0.00005 --x 0.5 --y 0.5 --fov 1 --size 1024
+./eclipse-shadow-generator atmo-view --input ../share/resources/atmosphere-data/earth/ --with-umbra --exposure 0.00005 --x 0.2 --y 0.3 --size 1024
+
+# Here are some other examples related to the paper "Real-Time Rendering of Eclipses without Incorporation of Atmospheric Effects"
 ./eclipse-shadow-generator circles --output "circles.tif"
 ./eclipse-shadow-generator smoothstep --output "smoothstep.tif"
 ./eclipse-shadow-generator linear --with-umbra --mapping-exponent 5 --output "linear_with_umbra.tif"
-./eclipse-shadow-generator bruneton --with-umbra --input ../share/resources/atmosphere-data/earth/ --radius-occ 6370900 --radius-atmo 6451000 --sun-occ-dist 149600000000 --output "with_atmosphere_earth.tif" --size 512
-./eclipse-shadow-generator bruneton --with-umbra --input ../share/resources/atmosphere-data/mars/ --radius-occ 3389500 --radius-atmo 3469500 --sun-occ-dist 227900000000 --output "with_atmosphere_mars.tif" --size 512
-./eclipse-shadow-generator planet-view --input ../share/resources/atmosphere-data/earth/ --exposure 0.00005 --x 0.5 --y 0.5 --fov 1 --size 1024
-./eclipse-shadow-generator atmo-view --input ../share/resources/atmosphere-data/earth/ --with-umbra --exposure 0.00005 --x 0.2 --y 0.3 --size 1024
 ```
 
 For visualization purposes, you can use the following to create an animation of 250 frames where the Sun gradually sets behind the Earth:

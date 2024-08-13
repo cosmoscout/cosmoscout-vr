@@ -22,7 +22,7 @@ namespace {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-enum class Mode { eBruneton, ePlanetView, eAtmoView };
+enum class Mode { eBruneton, ePlanetView, eAtmoView, eLimbLuminance };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -167,6 +167,79 @@ __global__ void computeShadowMap(common::Output output, common::Mapping mapping,
   // Print a rough progress estimate.
   if (i % 1000 == 0) {
     printf("Progress: %f%%\n", (i / (float)(output.mSize * output.mSize)) * 100.0);
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+__global__ void computeLimbLuminance(common::Output output, common::Mapping mapping,
+    common::Geometry geometry, common::LimbDarkening limbDarkening, advanced::Textures textures) {
+
+  uint32_t x = blockIdx.x * blockDim.x + threadIdx.x;
+  uint32_t y = blockIdx.y * blockDim.y + threadIdx.y;
+  uint32_t z = blockIdx.z * blockDim.z + threadIdx.z;
+  uint32_t i = z * output.mSize * output.mSize + y * output.mSize + x;
+
+  if ((x >= output.mSize) || (y >= output.mSize) || (z >= output.mSize)) {
+    return;
+  }
+
+  // For integrating the luminance over all directions, we render an image of the atmosphere from
+  // the perspective of the point in space. We use a parametrization of the texture space which
+  // contains exactly on half of the atmosphere as seen from the point. The individual sample points
+  // are weighted by the solid angle they cover on the sphere around the point.
+  //
+  //     ┌---..
+  //   y │      '
+  //     └--.     \
+  //       x \     │
+  //          │    │
+  //         /     │
+  //     ┌--'     /
+  //     │      .
+  //     └---''
+  //
+  // We use this resolution for the integration:
+  uint32_t samplesX = output.mSize;
+  uint32_t samplesY = 128;
+
+  // First, compute the angular radii of Sun and occluder as well as the angle between the two.
+  double phiOcc, phiSun, delta;
+  math::mapPixelToAngles(glm::ivec2(x, y), output.mSize, mapping, geometry, phiOcc, phiSun, delta);
+
+  double occDist    = geometry.mRadiusOcc / glm::sin(phiOcc);
+  double sunDist    = geometry.mRadiusSun / glm::sin(phiSun);
+  double atmoRadius = geometry.mRadiusAtmo;
+  double phiAtmo    = glm::asin(atmoRadius / occDist);
+
+  glm::dvec3 camera       = glm::dvec3(0.0, 0.0, occDist);
+  glm::dvec3 sunDirection = glm::dvec3(0.0, glm::sin(delta), -glm::cos(delta));
+
+  glm::vec3 luminance(0.0);
+
+  for (uint32_t sampleY = 0; sampleY < samplesY; ++sampleY) {
+    double relativeY = ((double)sampleY + 0.5) / samplesY;
+    double theta     = (((double)z + 0.5) / samplesX) * M_PI;
+
+    // Compute the direction of the ray.
+    double     phiRay = phiOcc + relativeY * (phiAtmo - phiOcc);
+    glm::dvec3 rayDir = glm::dvec3(0.0, glm::sin(phiRay), -glm::cos(phiRay));
+    rayDir =
+        glm::normalize(math::rotateVector(rayDir, glm::dvec3(0.0, 0.0, -1.0), glm::cos(theta)));
+
+    luminance += advanced::getLuminance(
+                     camera, rayDir, sunDirection, geometry, limbDarkening, textures, phiSun) /
+                 static_cast<float>(samplesY);
+  }
+
+  // And divide by the illuminance at the point if there were no atmosphere and no planet.
+  output.mBuffer[i * 3 + 0] = luminance.r;
+  output.mBuffer[i * 3 + 1] = luminance.g;
+  output.mBuffer[i * 3 + 2] = luminance.b;
+
+  // Print a rough progress estimate.
+  if (i % 1000 == 0) {
+    printf("Progress: %f%%\n", (i / (float)(output.mSize * output.mSize * output.mSize)) * 100.0);
   }
 }
 
@@ -322,17 +395,27 @@ int run(Mode mode, std::vector<std::string> const& arguments) {
   limbDarkening.init();
 
   // Compute the 2D kernel size.
-  dim3     blockSize(16, 16);
+  dim3     blockSize(8, 8, mode == Mode::eLimbLuminance ? 8 : 1);
   uint32_t numBlocksX = (output.mSize + blockSize.x - 1) / blockSize.x;
   uint32_t numBlocksY = (output.mSize + blockSize.y - 1) / blockSize.y;
-  dim3     gridSize   = dim3(numBlocksX, numBlocksY);
+  uint32_t numBlocksZ =
+      mode == Mode::eLimbLuminance ? (output.mSize + blockSize.z - 1) / blockSize.z : 1;
+  dim3 gridSize = dim3(numBlocksX, numBlocksY, numBlocksZ);
 
   // Allocate the shared memory for the shadow map.
-  gpuErrchk(cudaMallocManaged(
-      &output.mBuffer, static_cast<size_t>(output.mSize * output.mSize) * 3 * sizeof(float)));
+  if (mode == Mode::eLimbLuminance) {
+    gpuErrchk(cudaMallocManaged(&output.mBuffer,
+        static_cast<size_t>(output.mSize * output.mSize * output.mSize) * 3 * sizeof(float)));
+  } else {
+    gpuErrchk(cudaMallocManaged(
+        &output.mBuffer, static_cast<size_t>(output.mSize * output.mSize) * 3 * sizeof(float)));
+  }
 
   if (mode == Mode::eBruneton) {
     computeShadowMap<<<gridSize, blockSize>>>(output, mapping, geometry, limbDarkening, textures);
+  } else if (mode == Mode::eLimbLuminance) {
+    computeLimbLuminance<<<gridSize, blockSize>>>(
+        output, mapping, geometry, limbDarkening, textures);
   } else {
 
     double   phiOcc, phiSun, delta;
@@ -360,8 +443,13 @@ int run(Mode mode, std::vector<std::string> const& arguments) {
   gpuErrchk(cudaDeviceSynchronize());
 
   // Finally write the output texture!
-  tiff_utils::write2D(output.mFile, output.mBuffer, static_cast<int>(output.mSize),
-      static_cast<int>(output.mSize), 3);
+  if (mode == Mode::eLimbLuminance) {
+    tiff_utils::write3D(output.mFile, output.mBuffer, static_cast<int>(output.mSize),
+        static_cast<int>(output.mSize), static_cast<int>(output.mSize), 3);
+  } else {
+    tiff_utils::write2D(output.mFile, output.mBuffer, static_cast<int>(output.mSize),
+        static_cast<int>(output.mSize), 3);
+  }
 
   // Free the shared memory.
   gpuErrchk(cudaFree(output.mBuffer));
@@ -393,6 +481,12 @@ int planetViewMode(std::vector<std::string> const& arguments) {
 
 int atmoViewMode(std::vector<std::string> const& arguments) {
   return run(Mode::eAtmoView, arguments);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+int limbLuminanceMode(std::vector<std::string> const& arguments) {
+  return run(Mode::eLimbLuminance, arguments);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
