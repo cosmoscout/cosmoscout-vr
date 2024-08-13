@@ -11,6 +11,7 @@
 #include "logger.hpp"
 #include "models/bruneton/Model.hpp"
 #include "models/cosmoscout/Model.hpp"
+#include "utils.hpp"
 
 #include "../../../src/cs-core/GraphicsEngine.hpp"
 #include "../../../src/cs-core/SolarSystem.hpp"
@@ -99,6 +100,10 @@ Atmosphere::~Atmosphere() {
   pSG->GetRoot()->DisconnectChild(mAtmosphereNode.get());
 
   mAllSettings->mGraphics.pEnableHDR.disconnect(mEnableHDRConnection);
+
+  if (mLimbLuminanceTexture != 0) {
+    glDeleteTextures(1, &mLimbLuminanceTexture);
+  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -141,6 +146,18 @@ void Atmosphere::configure(Plugin::Settings::Atmosphere const& settings) {
       mShaderDirty = true;
     }
 
+    // Reload the limb luminance texture if required.
+    if (mSettings.mLimbLuminanceTexture != settings.mLimbLuminanceTexture) {
+      if (settings.mLimbLuminanceTexture.has_value() &&
+          !settings.mLimbLuminanceTexture.value().empty()) {
+        mLimbLuminanceTexture =
+            std::get<0>(utils::read3DTexture(settings.mLimbLuminanceTexture.value()));
+      } else {
+        mLimbLuminanceTexture = 0;
+      }
+      mShaderDirty = true;
+    }
+
     // Recreate the shader if required.
     if (mRadii != radii) {
       mRadii       = radii;
@@ -151,7 +168,8 @@ void Atmosphere::configure(Plugin::Settings::Atmosphere const& settings) {
         mSettings.mBottomAltitude != settings.mBottomAltitude ||
         mSettings.mEnableWater != settings.mEnableWater ||
         mSettings.mEnableWaves != settings.mEnableWaves ||
-        mSettings.mEnableClouds != settings.mEnableClouds) {
+        mSettings.mEnableClouds != settings.mEnableClouds ||
+        mSettings.mEnableLimbLuminance != settings.mEnableLimbLuminance) {
       mShaderDirty = true;
     }
 
@@ -181,6 +199,8 @@ void Atmosphere::createShader(ShaderType type, VistaGLSLShader& shader, Uniforms
       sFrag, "ATMOSPHERE_RADIUS", std::to_string(mRadii[0] + mSettings.mTopAltitude));
   cs::utils::replaceString(
       sFrag, "ENABLE_CLOUDS", std::to_string(mSettings.mEnableClouds.get() && mCloudTexture));
+  cs::utils::replaceString(sFrag, "ENABLE_LIMB_LUMINANCE",
+      std::to_string(mSettings.mEnableLimbLuminance.get() && mLimbLuminanceTexture));
   cs::utils::replaceString(sFrag, "ENABLE_WATER", std::to_string(mSettings.mEnableWater.get()));
   cs::utils::replaceString(sFrag, "ENABLE_WAVES", std::to_string(mSettings.mEnableWaves.get()));
   cs::utils::replaceString(sFrag, "ENABLE_HDR", std::to_string(mHDRBuffer != nullptr));
@@ -206,6 +226,7 @@ void Atmosphere::createShader(ShaderType type, VistaGLSLShader& shader, Uniforms
   uniforms.waterLevel                = shader.GetUniformLocation("uWaterLevel");
   uniforms.cloudTexture              = shader.GetUniformLocation("uCloudTexture");
   uniforms.cloudAltitude             = shader.GetUniformLocation("uCloudAltitude");
+  uniforms.limbLuminanceTexture      = shader.GetUniformLocation("uLimbLuminanceTexture");
   uniforms.inverseModelViewMatrix    = shader.GetUniformLocation("uMatInvMV");
   uniforms.inverseProjectionMatrix   = shader.GetUniformLocation("uMatInvP");
   uniforms.scaleMatrix               = shader.GetUniformLocation("uMatScale");
@@ -213,11 +234,12 @@ void Atmosphere::createShader(ShaderType type, VistaGLSLShader& shader, Uniforms
   uniforms.modelViewProjectionMatrix = shader.GetUniformLocation("uMatMVP");
   uniforms.atmoPanoUniforms          = shader.GetUniformLocation("uAtmoPanoUniforms");
   uniforms.sunElevation              = shader.GetUniformLocation("sunElevation");
+  uniforms.shadowCoordinates         = shader.GetUniformLocation("uShadowCoordinates");
 
   // We bind the eclipse shadow map to texture unit 3. The color and depth buffer are bound to 0 and
-  // 1, 2 is used for the cloud map.
+  // 1, 2 is used for the cloud map, 3 is used for the limb luminance texture.
   if (type == ShaderType::eAtmosphere) {
-    mEclipseShadowReceiver->init(&shader, 3);
+    mEclipseShadowReceiver->init(&shader, 4);
   }
 }
 
@@ -347,16 +369,21 @@ bool Atmosphere::Do() {
   // set uniforms ------------------------------------------------------------
   mAtmoShader.Bind();
 
-  // glm::vec3 occDir       = glm::vec3(matInvMV[3]);
-  // float     delta        = std::acos(glm::dot(glm::normalize(occDir), glm::normalize(-sunDir)));
-  // float     occDist      = glm::length(occDir);
-  // float     planetRadius = mRadii[0] + mSettings.mBottomAltitude.get();
+  glm::vec3 occDir       = glm::vec3(matInvMV[3]);
+  float     delta        = std::acos(glm::dot(glm::normalize(occDir), glm::normalize(-sunDir)));
+  float     occDist      = glm::length(occDir);
+  float     planetRadius = mRadii[0] + mSettings.mBottomAltitude.get();
+  float     sunRadius    = mSolarSystem->getSun()->getRadii()[0];
+  float     sunDist      = glm::length(mSolarSystem->pSunPosition.get()) * mSceneScale;
+  float     phiOcc       = std::asin(planetRadius / occDist);
+  float     phiSun       = std::asin(sunRadius / sunDist);
   // float     atmoRadius   = mRadii[0] + mSettings.mTopAltitude;
-  // float     phiOcc       = std::asin(planetRadius / occDist);
   // float     phiAtmo      = std::asin(atmoRadius / occDist);
 
   // mAtmoShader.SetUniform(mAtmoUniforms.sunDir, 0.0, std::sin(delta), -std::cos(delta));
   // mAtmoShader.SetUniform(mAtmoUniforms.atmoPanoUniforms, occDist, phiOcc, phiAtmo);
+
+  mAtmoShader.SetUniform(mAtmoUniforms.shadowCoordinates, phiOcc, phiSun, delta);
 
   mAtmoShader.SetUniform(mAtmoUniforms.sunIlluminance, static_cast<float>(mSunIlluminance));
   mAtmoShader.SetUniform(mAtmoUniforms.sunLuminance, static_cast<float>(mSunLuminance));
@@ -392,6 +419,12 @@ bool Atmosphere::Do() {
     mAtmoShader.SetUniform(mAtmoUniforms.cloudAltitude, mSettings.mCloudAltitude.get());
   }
 
+  if (mSettings.mEnableLimbLuminance.get() && mLimbLuminanceTexture) {
+    glActiveTexture(GL_TEXTURE3);
+    glBindTexture(GL_TEXTURE_3D, mLimbLuminanceTexture);
+    mAtmoShader.SetUniform(mAtmoUniforms.limbLuminanceTexture, 3);
+  }
+
   glUniformMatrix4fv(
       mAtmoUniforms.inverseModelViewMatrix, 1, GL_FALSE, glm::value_ptr(glm::mat4(matInvMV)));
   glUniformMatrix4fv(mAtmoUniforms.scaleMatrix, 1, GL_FALSE, glm::value_ptr(glm::mat4(matScale)));
@@ -403,7 +436,10 @@ bool Atmosphere::Do() {
   // Initialize eclipse shadow-related uniforms and textures.
   mEclipseShadowReceiver->preRender();
 
-  mModel->setUniforms(mAtmoShader.GetProgram(), 4);
+  // We bind the eclipse shadow map to texture unit 3. The color and depth buffer are bound to 0 and
+  // 1, 2 is used for the cloud map, 3 is used for the limb luminance texture, then there are four
+  // for the eclipse shadow receiver.
+  mModel->setUniforms(mAtmoShader.GetProgram(), 8);
 
   // draw --------------------------------------------------------------------
   glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
@@ -424,7 +460,12 @@ bool Atmosphere::Do() {
   }
 
   if (mSettings.mEnableClouds.get() && mCloudTexture) {
-    mCloudTexture->Unbind(GL_TEXTURE3);
+    mCloudTexture->Unbind(GL_TEXTURE2);
+  }
+
+  if (mSettings.mEnableClouds.get() && mLimbLuminanceTexture) {
+    glActiveTexture(GL_TEXTURE3);
+    glBindTexture(GL_TEXTURE_3D, 0);
   }
 
   mAtmoShader.Release();

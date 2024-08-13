@@ -69,6 +69,8 @@ void from_json(nlohmann::json const& j, Plugin::Settings::Atmosphere& o) {
   cs::core::Settings::deserialize(j, "enableClouds", o.mEnableClouds);
   cs::core::Settings::deserialize(j, "cloudTexture", o.mCloudTexture);
   cs::core::Settings::deserialize(j, "cloudAltitude", o.mCloudAltitude);
+  cs::core::Settings::deserialize(j, "enableLimbLuminance", o.mEnableLimbLuminance);
+  cs::core::Settings::deserialize(j, "limbLuminanceTexture", o.mLimbLuminanceTexture);
   cs::core::Settings::deserialize(j, "renderSkydome", o.mRenderSkydome);
 }
 
@@ -83,6 +85,8 @@ void to_json(nlohmann::json& j, Plugin::Settings::Atmosphere const& o) {
   cs::core::Settings::serialize(j, "enableClouds", o.mEnableClouds);
   cs::core::Settings::serialize(j, "cloudTexture", o.mCloudTexture);
   cs::core::Settings::serialize(j, "cloudAltitude", o.mCloudAltitude);
+  cs::core::Settings::serialize(j, "enableLimbLuminance", o.mEnableLimbLuminance);
+  cs::core::Settings::serialize(j, "limbLuminanceTexture", o.mLimbLuminanceTexture);
   cs::core::Settings::serialize(j, "renderSkydome", o.mRenderSkydome);
 }
 
@@ -127,6 +131,8 @@ void Plugin::init() {
             mGuiManager->setSliderValue("atmosphere.setWaterLevel", settings.mWaterLevel.get());
             mGuiManager->setCheckboxValue(
                 "atmosphere.setEnableClouds", settings.mEnableClouds.get());
+            mGuiManager->setCheckboxValue(
+                "atmosphere.setEnableLimbLuminance", settings.mEnableLimbLuminance.get());
             mGuiManager->setSliderValue(
                 "atmosphere.setCloudAltitude", settings.mCloudAltitude.get());
           }
@@ -179,6 +185,16 @@ void Plugin::init() {
         }
       }));
 
+  mGuiManager->getGui()->registerCallback("atmosphere.setEnableLimbLuminance",
+      "Enables or disables rendering of a precomputed luminance when inside the shadow.",
+      std::function([this](bool enable) {
+        if (!mActiveAtmosphere.empty()) {
+          auto& settings                = mPluginSettings->mAtmospheres.at(mActiveAtmosphere);
+          settings.mEnableLimbLuminance = enable;
+          mAtmospheres.at(mActiveAtmosphere)->configure(settings);
+        }
+      }));
+
   mGuiManager->getGui()->registerCallback("atmosphere.setEnable",
       "Enables or disables rendering of atmospheres.",
       std::function([this](bool enable) { mPluginSettings->mEnable = enable; }));
@@ -207,6 +223,7 @@ void Plugin::deInit() {
   mGuiManager->getGui()->unregisterCallback("atmosphere.setWaterLevel");
   mGuiManager->getGui()->unregisterCallback("atmosphere.setEnableClouds");
   mGuiManager->getGui()->unregisterCallback("atmosphere.setCloudAltitude");
+  mGuiManager->getGui()->unregisterCallback("atmosphere.setEnableLimbLuminance");
 
   mSolarSystem->pActiveObject.disconnect(mActiveObjectConnection);
   mAllSettings->onLoad().disconnect(mOnLoadConnection);

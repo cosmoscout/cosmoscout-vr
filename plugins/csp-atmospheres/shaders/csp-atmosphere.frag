@@ -40,6 +40,8 @@ uniform mat4      uMatInvP;
 uniform float     uWaterLevel;
 uniform sampler2D uCloudTexture;
 uniform float     uCloudAltitude;
+uniform sampler3D uLimbLuminanceTexture;
+uniform vec3      uShadowCoordinates;
 
 // outputs
 layout(location = 0) out vec3 oColor;
@@ -300,7 +302,7 @@ float angleBetweenVectors(vec3 u, vec3 v) {
 // would see if looking in the direction of the given ray. If the ray hits the ground, black is
 // returned. If the ray is refracted around the planet, we cannot sample the framebuffer but draw
 // an artificial Sun.
-vec3 getRefractedSkyColor(vec3 rayOrigin, vec3 rayDir) {
+vec3 getRefractedFramebufferColor(vec3 rayOrigin, vec3 rayDir) {
 
   // First, we assume that the refracted ray will leave the atmosphere unblocked. We compute the
   // texture coordinates where the ray would hit the framebuffer.
@@ -647,6 +649,30 @@ void main() {
     return;
   }
 
+#if ENABLE_LIMB_LUMINANCE
+  float phiOcc = uShadowCoordinates.x;
+  float phiSun = uShadowCoordinates.y;
+  float delta  = uShadowCoordinates.z;
+
+  if (delta < phiOcc + phiSun) {
+
+    vec2 planetIntersections = intersectPlanetsphere(vsIn.rayOrigin, rayDir);
+    if (planetIntersections.x > planetIntersections.y) {
+      float dist     = length(vsIn.rayOrigin);
+      vec3  toCenter = vsIn.rayOrigin / dist;
+      vec3  projSun  = dot(uSunDir, toCenter) * toCenter - uSunDir;
+      vec3  projAtmo = dot(rayDir, toCenter) * toCenter - rayDir;
+
+      float x = 1.0 / (phiOcc / phiSun + 1.0);
+      float y = delta / (phiOcc + phiSun);
+      float z = acos(dot(normalize(projSun), normalize(projAtmo))) / PI;
+
+      oColor = texture(uLimbLuminanceTexture, vec3(x, 1 - y, z)).rgb;
+      return;
+    }
+  }
+#endif
+
   vec3 entryPoint =
       vsIn.rayOrigin + rayDir * (atmosphereIntersections.x > 0.0 ? atmosphereIntersections.x : 0.0);
   vec3 exitPoint =
@@ -657,7 +683,7 @@ void main() {
   bool hitsSurface = surfaceDistance < atmosphereIntersections.y;
 
   if (RefractionSupported() && !hitsSurface) {
-    oColor = getRefractedSkyColor(entryPoint, rayDir);
+    oColor = getRefractedFramebufferColor(entryPoint, rayDir);
   } else {
     oColor = getFramebufferColor(vsIn.texcoords);
   }
@@ -691,8 +717,8 @@ void main() {
 
     // Looking down onto the ocean.
     if (oceanIntersections.x > 0) {
-      vec3        oceanSurface      = vsIn.rayOrigin + rayDir * oceanIntersections.x;
-      vec3        idealNormal       = normalize(oceanSurface);
+      vec3 oceanSurface = vsIn.rayOrigin + rayDir * oceanIntersections.x;
+      vec3 idealNormal  = normalize(oceanSurface);
 
 #if ENABLE_WAVES
       const float WAVE_SPEED        = 0.2;

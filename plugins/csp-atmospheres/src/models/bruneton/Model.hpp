@@ -47,9 +47,6 @@ class Model : public ModelBase {
   GLuint setUniforms(GLuint program, GLuint startTextureUnit) const override;
 
  private:
-  std::tuple<GLuint, int32_t, int32_t>          read2DTexture(std::string const& path) const;
-  std::tuple<GLuint, int32_t, int32_t, int32_t> read3DTexture(std::string const& path) const;
-
   int32_t mTransmittanceTextureWidth{};
   int32_t mTransmittanceTextureHeight{};
   int32_t mIrradianceTextureWidth{};
