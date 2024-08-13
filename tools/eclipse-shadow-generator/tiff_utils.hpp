@@ -28,6 +28,10 @@ uint32_t getNumLayers(std::string const& path);
 // The optional layer parameter can be used to read a specific layer from a multi-layer tiff file.
 RGBATexture read2DTexture(std::string const& path, uint32_t layer = 0);
 
+void write2D(std::string const& path, float* texture, int width, int height, int components);
+void write3D(
+    std::string const& path, float* texture, int width, int height, int depth, int components);
+
 } // namespace tiff_utils
 
 #endif // TIFF_HPP

@@ -11,11 +11,6 @@
 #include "gpuErrCheck.hpp"
 #include "simple_modes.cuh"
 
-#define STB_IMAGE_IMPLEMENTATION
-#define STB_IMAGE_WRITE_IMPLEMENTATION
-#include <stb_image.h>
-#include <stb_image_write.h>
-
 // -------------------------------------------------------------------------------------------------
 
 // clang-format off
@@ -44,8 +39,6 @@ void printHelp() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 int main(int argc, char** argv) {
-
-  stbi_flip_vertically_on_write(1);
 
   if (argc <= 1) {
     printHelp();

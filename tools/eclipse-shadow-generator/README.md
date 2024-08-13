@@ -56,11 +56,11 @@ Here are some simple examples to get you started:
 ./eclipse-shadow-generator limb-darkening
 
 # Here are some other examples
-./eclipse-shadow-generator circles --output "circles.hdr"
-./eclipse-shadow-generator smoothstep --output "smoothstep.hdr"
-./eclipse-shadow-generator linear --with-umbra --mapping-exponent 5 --output "linear_with_umbra.hdr"
-./eclipse-shadow-generator bruneton --with-umbra --input ../share/resources/atmosphere-data/earth/ --radius-occ 6370900 --radius-atmo 6451000 --sun-occ-dist 149600000000 --output "with_atmosphere_earth.hdr" --size 512
-./eclipse-shadow-generator bruneton --with-umbra --input ../share/resources/atmosphere-data/mars/ --radius-occ 3389500 --radius-atmo 3469500 --sun-occ-dist 227900000000 --output "with_atmosphere_mars.hdr" --size 512
+./eclipse-shadow-generator circles --output "circles.tif"
+./eclipse-shadow-generator smoothstep --output "smoothstep.tif"
+./eclipse-shadow-generator linear --with-umbra --mapping-exponent 5 --output "linear_with_umbra.tif"
+./eclipse-shadow-generator bruneton --with-umbra --input ../share/resources/atmosphere-data/earth/ --radius-occ 6370900 --radius-atmo 6451000 --sun-occ-dist 149600000000 --output "with_atmosphere_earth.tif" --size 512
+./eclipse-shadow-generator bruneton --with-umbra --input ../share/resources/atmosphere-data/mars/ --radius-occ 3389500 --radius-atmo 3469500 --sun-occ-dist 227900000000 --output "with_atmosphere_mars.tif" --size 512
 ./eclipse-shadow-generator planet-view --input ../share/resources/atmosphere-data/earth/ --exposure 0.00005 --x 0.5 --y 0.5 --fov 1 --size 1024
 ./eclipse-shadow-generator atmo-view --input ../share/resources/atmosphere-data/earth/ --with-umbra --exposure 0.00005 --x 0.2 --y 0.3 --size 1024
 ```
@@ -73,7 +73,7 @@ mkdir output
 for i in {0..150}; do
   y=$(echo "scale=4; (150 - $i) / 150" | bc)
   echo "Generating frame $i with delta $delta"
-  ./eclipse-shadow-generator atmo-view --input ../share/resources/atmosphere-data/earth/ --output "output/shadow_$i.hdr" --exposure 0.00005 --x 0.3 --y $y --with-umbra --size 1024
+  ./eclipse-shadow-generator atmo-view --input ../share/resources/atmosphere-data/earth/ --output "output/shadow_$i.tif" --exposure 0.00005 --x 0.3 --y $y --with-umbra --size 1024
 done
 
 ```

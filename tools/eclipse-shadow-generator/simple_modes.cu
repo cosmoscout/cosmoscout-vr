@@ -11,8 +11,7 @@
 #include "common.hpp"
 #include "gpuErrCheck.hpp"
 #include "math.cuh"
-
-#include <stb_image_write.h>
+#include "tiff_utils.hpp"
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -179,8 +178,8 @@ int run(Mode mode, std::vector<std::string> const& arguments) {
   gpuErrchk(cudaDeviceSynchronize());
 
   // Finally write the output texture!
-  stbi_write_hdr(output.mFile.c_str(), static_cast<int>(output.mSize),
-      static_cast<int>(output.mSize), 3, output.mBuffer);
+  tiff_utils::write2D(output.mFile, output.mBuffer, static_cast<int>(output.mSize),
+      static_cast<int>(output.mSize), 3);
 
   // Free the shared memory.
   gpuErrchk(cudaFree(output.mBuffer));

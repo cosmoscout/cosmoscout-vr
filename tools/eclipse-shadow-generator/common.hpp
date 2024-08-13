@@ -25,7 +25,7 @@ struct Mapping {
 // This is used to describe the output file and resolution. The values can be set via command line
 // arguments. The buffer is allocated and filled by the shadow-map generator.
 struct Output {
-  std::string mFile = "shadow.hdr";
+  std::string mFile = "shadow.tif";
   uint32_t    mSize = 512;
   float*      mBuffer;
 };

@@ -87,4 +87,48 @@ RGBATexture read2DTexture(std::string const& path, uint32_t layer) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void write2D(std::string const& path, float* texture, int width, int height, int components) {
+  auto* tiff = TIFFOpen(path.c_str(), "w");
+  TIFFSetField(tiff, TIFFTAG_IMAGEWIDTH, width);
+  TIFFSetField(tiff, TIFFTAG_IMAGELENGTH, height);
+  TIFFSetField(tiff, TIFFTAG_SAMPLESPERPIXEL, components);
+  TIFFSetField(tiff, TIFFTAG_BITSPERSAMPLE, 32);
+  TIFFSetField(tiff, TIFFTAG_SAMPLEFORMAT, SAMPLEFORMAT_IEEEFP);
+  TIFFSetField(tiff, TIFFTAG_PHOTOMETRIC, PHOTOMETRIC_RGB);
+  TIFFSetField(tiff, TIFFTAG_PLANARCONFIG, PLANARCONFIG_CONTIG);
+  TIFFSetField(tiff, TIFFTAG_ROWSPERSTRIP, 1);
+  for (int y = 0; y < height; ++y) {
+    TIFFWriteScanline(tiff, texture + y * width * components, height - y - 1);
+  }
+  TIFFClose(tiff);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void write3D(
+    std::string const& path, float* texture, int width, int height, int depth, int components) {
+  auto* tiff = TIFFOpen(path.c_str(), "w");
+
+  for (int z = 0; z < depth; ++z) {
+    TIFFSetField(tiff, TIFFTAG_PAGENUMBER, z, z);
+    TIFFSetField(tiff, TIFFTAG_SUBFILETYPE, FILETYPE_PAGE);
+    TIFFSetField(tiff, TIFFTAG_IMAGEWIDTH, width);
+    TIFFSetField(tiff, TIFFTAG_IMAGELENGTH, height);
+    TIFFSetField(tiff, TIFFTAG_SAMPLESPERPIXEL, components);
+    TIFFSetField(tiff, TIFFTAG_BITSPERSAMPLE, 32);
+    TIFFSetField(tiff, TIFFTAG_SAMPLEFORMAT, SAMPLEFORMAT_IEEEFP);
+    TIFFSetField(tiff, TIFFTAG_PHOTOMETRIC, PHOTOMETRIC_RGB);
+    TIFFSetField(tiff, TIFFTAG_PLANARCONFIG, PLANARCONFIG_CONTIG);
+    TIFFSetField(tiff, TIFFTAG_ROWSPERSTRIP, 1);
+    for (int y = 0; y < height; ++y) {
+      TIFFWriteScanline(
+          tiff, texture + z * width * height * components + y * width * components, height - y - 1);
+    }
+    TIFFWriteDirectory(tiff);
+  }
+  TIFFClose(tiff);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 } // namespace tiff_utils
