@@ -5,15 +5,15 @@
 // SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
 // SPDX-License-Identifier: MIT
 
-#ifndef CSP_LOD_BODIES_FRUSTUM_HPP
-#define CSP_LOD_BODIES_FRUSTUM_HPP
+#ifndef CS_UTILS_FRUSTUM_HPP
+#define CS_UTILS_FRUSTUM_HPP
 
 #include <glm/glm.hpp>
 
 #include <array>
 #include <ostream>
 
-namespace csp::lodbodies {
+namespace cs::utils {
 
 enum class FrustumPlaneIdx { eLeft = 0, eRight = 1, eBottom = 2, eTop = 3 };
 
@@ -48,6 +48,6 @@ class Frustum {
 
 std::ostream& operator<<(std::ostream& os, Frustum const& frustum);
 
-} // namespace csp::lodbodies
+} // namespace cs::utils
 
-#endif // CSP_LOD_BODIES_FRUSTUM_HPP
+#endif // CS_UTILS_FRUSTUM_HPP
