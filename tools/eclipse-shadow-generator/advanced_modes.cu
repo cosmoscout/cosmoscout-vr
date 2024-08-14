@@ -418,12 +418,13 @@ int run(Mode mode, std::vector<std::string> const& arguments) {
         output, mapping, geometry, limbDarkening, textures);
   } else {
 
-    double   phiOcc, phiSun, delta;
-    uint32_t iterations = math::mapPixelToAngles(glm::ivec2(x * output.mSize, y * output.mSize),
-        output.mSize, mapping, geometry, phiOcc, phiSun, delta);
+    double     phiOcc, phiSun, delta;
+    glm::ivec2 pixel(x * output.mSize, y * output.mSize);
+    uint32_t   iterations =
+        math::mapPixelToAngles(pixel, output.mSize, mapping, geometry, phiOcc, phiSun, delta);
 
-    std::cout << "Required " << iterations << " iterations to find the correct angles."
-              << std::endl;
+    std::cout << "Required " << iterations << " iterations to find the correct angles for pixel ("
+              << pixel.x << ", " << pixel.y << ")." << std::endl;
     std::cout << " - Observer Angular Radius: " << glm::degrees(phiOcc) << "°" << std::endl;
     std::cout << " - Observer Distance: " << geometry.mRadiusOcc / glm::sin(phiOcc) * 0.001 << " km"
               << std::endl;

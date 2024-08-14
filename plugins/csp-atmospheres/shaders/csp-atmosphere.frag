@@ -665,9 +665,15 @@ void main() {
 
       float x = 1.0 / (phiOcc / phiSun + 1.0);
       float y = delta / (phiOcc + phiSun);
-      float z = acos(dot(normalize(projSun), normalize(projAtmo))) / PI;
+      float z = acos(clamp(dot(normalize(projSun), normalize(projAtmo)), 0.0, 1.0)) / PI;
 
       oColor = texture(uLimbLuminanceTexture, vec3(x, 1 - y, z)).rgb;
+
+#if !ENABLE_HDR
+      oColor = tonemap(oColor / uSunIlluminance);
+      oColor = linearToSRGB(oColor);
+#endif
+
       return;
     }
   }
@@ -717,8 +723,8 @@ void main() {
 
     // Looking down onto the ocean.
     if (oceanIntersections.x > 0) {
-      vec3 oceanSurface = vsIn.rayOrigin + rayDir * oceanIntersections.x;
-      vec3 idealNormal  = normalize(oceanSurface);
+      vec3        oceanSurface      = vsIn.rayOrigin + rayDir * oceanIntersections.x;
+      vec3        idealNormal       = normalize(oceanSurface);
 
 #if ENABLE_WAVES
       const float WAVE_SPEED        = 0.2;

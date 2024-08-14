@@ -369,19 +369,14 @@ bool Atmosphere::Do() {
   // set uniforms ------------------------------------------------------------
   mAtmoShader.Bind();
 
-  glm::vec3 occDir       = glm::vec3(matInvMV[3]);
-  float     delta        = std::acos(glm::dot(glm::normalize(occDir), glm::normalize(-sunDir)));
-  float     occDist      = glm::length(occDir);
-  float     planetRadius = mRadii[0] + mSettings.mBottomAltitude.get();
-  float     sunRadius    = mSolarSystem->getSun()->getRadii()[0];
-  float     sunDist      = glm::length(mSolarSystem->pSunPosition.get()) * mSceneScale;
-  float     phiOcc       = std::asin(planetRadius / occDist);
-  float     phiSun       = std::asin(sunRadius / sunDist);
-  // float     atmoRadius   = mRadii[0] + mSettings.mTopAltitude;
-  // float     phiAtmo      = std::asin(atmoRadius / occDist);
-
-  // mAtmoShader.SetUniform(mAtmoUniforms.sunDir, 0.0, std::sin(delta), -std::cos(delta));
-  // mAtmoShader.SetUniform(mAtmoUniforms.atmoPanoUniforms, occDist, phiOcc, phiAtmo);
+  glm::vec3 occDir = glm::vec3(matInvMV[3]);
+  float delta = std::acos(std::min(1.F, glm::dot(glm::normalize(occDir), glm::normalize(-sunDir))));
+  float occDist      = glm::length(occDir);
+  float planetRadius = mRadii[0] + mSettings.mBottomAltitude.get();
+  float sunRadius    = mSolarSystem->getSun()->getRadii()[0];
+  float sunDist      = glm::length(mSolarSystem->pSunPosition.get()) * mSceneScale;
+  float phiOcc       = std::asin(planetRadius / occDist);
+  float phiSun       = std::asin(sunRadius / sunDist);
 
   mAtmoShader.SetUniform(mAtmoUniforms.shadowCoordinates, phiOcc, phiSun, delta);
 
