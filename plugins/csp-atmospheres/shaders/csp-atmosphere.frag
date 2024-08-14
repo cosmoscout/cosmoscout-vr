@@ -650,11 +650,10 @@ void main() {
   }
 
 #if ENABLE_LIMB_LUMINANCE
-  float phiOcc = uShadowCoordinates.x;
-  float phiSun = uShadowCoordinates.y;
-  float delta  = uShadowCoordinates.z;
+  float x = uShadowCoordinates.x;
+  float y = uShadowCoordinates.y;
 
-  if (delta < phiOcc + phiSun) {
+  if (y > 0.0) {
 
     vec2 planetIntersections = intersectPlanetsphere(vsIn.rayOrigin, rayDir);
     if (planetIntersections.x > planetIntersections.y) {
@@ -663,11 +662,9 @@ void main() {
       vec3  projSun  = dot(uSunDir, toCenter) * toCenter - uSunDir;
       vec3  projAtmo = dot(rayDir, toCenter) * toCenter - rayDir;
 
-      float x = 1.0 / (phiOcc / phiSun + 1.0);
-      float y = delta / (phiOcc + phiSun);
       float z = acos(clamp(dot(normalize(projSun), normalize(projAtmo)), 0.0, 1.0)) / PI;
 
-      oColor = texture(uLimbLuminanceTexture, vec3(x, 1 - y, z)).rgb;
+      oColor = texture(uLimbLuminanceTexture, vec3(x, y, z)).rgb;
 
 #if !ENABLE_HDR
       oColor = tonemap(oColor / uSunIlluminance);

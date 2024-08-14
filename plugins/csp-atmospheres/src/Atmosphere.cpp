@@ -17,6 +17,7 @@
 #include "../../../src/cs-core/SolarSystem.hpp"
 #include "../../../src/cs-graphics/TextureLoader.hpp"
 #include "../../../src/cs-utils/FrameStats.hpp"
+#include "../../../src/cs-utils/Frustum.hpp"
 #include "../../../src/cs-utils/filesystem.hpp"
 
 #include <VistaKernel/DisplayManager/VistaDisplayManager.h>
@@ -316,10 +317,10 @@ bool Atmosphere::Do() {
   glDepthMask(GL_FALSE);
 
   // copy depth buffer -------------------------------------------------------
-  if (!mHDRBuffer) {
-    std::array<GLint, 4> iViewport{};
-    glGetIntegerv(GL_VIEWPORT, iViewport.data());
+  std::array<GLint, 4> iViewport{};
+  glGetIntegerv(GL_VIEWPORT, iViewport.data());
 
+  if (!mHDRBuffer) {
     auto* viewport   = GetVistaSystem()->GetDisplayManager()->GetCurrentRenderInfo()->m_pViewport;
     auto const& data = mGBufferData[viewport];
 
@@ -373,12 +374,24 @@ bool Atmosphere::Do() {
   float delta = std::acos(std::min(1.F, glm::dot(glm::normalize(occDir), glm::normalize(-sunDir))));
   float occDist      = glm::length(occDir);
   float planetRadius = mRadii[0] + mSettings.mBottomAltitude.get();
+  float atmoRadius   = mRadii[0] + mSettings.mTopAltitude;
   float sunRadius    = mSolarSystem->getSun()->getRadii()[0];
   float sunDist      = glm::length(mSolarSystem->pSunPosition.get()) * mSceneScale;
   float phiOcc       = std::asin(planetRadius / occDist);
   float phiSun       = std::asin(sunRadius / sunDist);
+  float phiAtmo      = std::asin(atmoRadius / occDist);
+  float x            = 1.0 / (phiOcc / phiSun + 1.0);
+  float y            = 1.0 - delta / (phiOcc + phiSun);
 
-  mAtmoShader.SetUniform(mAtmoUniforms.shadowCoordinates, phiOcc, phiSun, delta);
+  cs::utils::Frustum frustum;
+  frustum.setFromMatrix(matP);
+  float approxPixelSize = frustum.getHorizontalFOV() / iViewport[2];
+  float minPixelWidth   = 10.f;
+  if (phiAtmo - phiOcc > minPixelWidth * approxPixelSize) {
+    y = 0.0;
+  }
+
+  mAtmoShader.SetUniform(mAtmoUniforms.shadowCoordinates, x, y, 0.0);
 
   mAtmoShader.SetUniform(mAtmoUniforms.sunIlluminance, static_cast<float>(mSunIlluminance));
   mAtmoShader.SetUniform(mAtmoUniforms.sunLuminance, static_cast<float>(mSunLuminance));
