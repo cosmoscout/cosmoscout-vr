@@ -943,8 +943,29 @@ void Preprocessor::run(unsigned int numScatteringOrders) {
 void Preprocessor::save(std::string const& directory) {
   std::cout << "Saving precomputed atmosphere to disk..." << std::endl;
 
-  // Save the precomputed textures to disk. We need to store mMultipleScatteringTexture,
-  // mSingleAerosolsScatteringTexture, mPhaseTexture, mTransmittanceTexture, and mIrradianceTexture.
+  // For debugging purposes, we print the maximum ray deviation in degrees.
+  std::vector<float> pixels(
+      mParams.mTransmittanceTextureWidth.get() * mParams.mTransmittanceTextureHeight.get() * 3);
+  glBindTexture(GL_TEXTURE_2D, mThetaDeviationTexture);
+  glGetTexImage(GL_TEXTURE_2D, 0, GL_RGB, GL_FLOAT, pixels.data());
+  glBindTexture(GL_TEXTURE_2D, 0);
+
+  float maxThetaDeviation = 0.F;
+  for (int x = 0; x < mParams.mTransmittanceTextureWidth.get(); ++x) {
+    for (int y = 0; y < mParams.mTransmittanceTextureHeight.get(); ++y) {
+      int i = 3 * (y * mParams.mTransmittanceTextureWidth.get() + x);
+
+      float thetaDeviation = pixels[i];
+      bool  hitsGround     = pixels[i + 1] > 0.F;
+
+      if (!hitsGround) {
+        maxThetaDeviation = std::max(maxThetaDeviation, thetaDeviation);
+      }
+    }
+  }
+
+  std::cout << "Maximum ray deviation: " << maxThetaDeviation * 180.F / glm::pi<float>()
+            << " degrees." << std::endl;
 
   auto write2D = [](std::string const& path, GLuint texture, int width, int height) {
     std::vector<float> data(width * height * 3);
