@@ -22,7 +22,7 @@ int ozoneMode(std::vector<std::string> const& arguments) {
 
   bool        cPrintHelp     = false;
   std::string cOutput        = "ozone";
-  double      cNumberDensity = 5.374e18;
+  double      cNumberDensity = 4e18; // See https://amt.copernicus.org/articles/14/6057/2021/
   std::string cLambdas       = "";
   double      cMinLambda     = 0.36e-6;
   double      cMaxLambda     = 0.83e-6;
@@ -66,7 +66,8 @@ int ozoneMode(std::vector<std::string> const& arguments) {
   // Values from
   // http://www.iup.uni-bremen.de/gruppen/molspec/databases/referencespectra/o3spectra2011/index.html
   // for 233K, summed and averaged in each bin (e.g. the value for 360nm is the average of the
-  // original values for all wavelengths between 360 and 370nm). Values in m².
+  // original values for all wavelengths between 360 and 370nm). Values in m². The data has been
+  // updated as newer data became available on the website.
   const double              minLambda   = 0.36e-6;
   const double              maxLambda   = 0.83e-6;
   const std::vector<double> absorptions = {1.18006e-27, 2.18205e-28, 2.81764e-28, 6.63629e-28,
