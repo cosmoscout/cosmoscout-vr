@@ -36,38 +36,40 @@ Once compiled, you'll need to set the library search path to contain the `instal
 This depends on where the `eclipse-shadow-generator` is installed to, but this may be something like this:
 
 ```powershell
-# For powershell
-$env:Path += ";..\lib"
+# For Windows (powershell)
+cd cosmoscout-vr
+$env:Path += ";install\windows-Release\lib"
 
-# For bash
-export LD_LIBRARY_PATH=../lib:$LD_LIBRARY_PATH
+# For Linux (bash)
+cd cosmoscout-vr
+export LD_LIBRARY_PATH=install/linux-Release/lib:$LD_LIBRARY_PATH
 ```
 
 To learn about the usage of `eclipse-shadow-generator`, you can now issue this command:
 
 ```bash
-./eclipse-shadow-generator --help
+install/linux-Release/bin/eclipse-shadow-generator --help
 ```
 
 Here are some simple examples to get you started:
 
 ```bash
 # This simple command creates the default eclipse shadow map of CosmoScout VR
-./eclipse-shadow-generator limb-darkening --with-umbra --output "fallbackShadow.tif"
+install/linux-Release/bin/eclipse-shadow-generator limb-darkening --with-umbra --output "resources/textures/fallbackShadow.tif"
 
-./eclipse-shadow-generator bruneton --with-umbra --input ../share/resources/atmosphere-data/earth/ --radius-occ 6370900 --radius-atmo 6451000 --sun-occ-dist 149600000000 --output "earthShadow.tif" --size 512
-./eclipse-shadow-generator bruneton --with-umbra --input ../share/resources/atmosphere-data/mars/ --radius-occ 3389500 --radius-atmo 3469500 --sun-occ-dist 227900000000 --output "marsShadow.tif" --size 512
-./eclipse-shadow-generator limb-luminance --with-umbra --input ../share/resources/atmosphere-data/earth/ --radius-occ 6370900 --radius-atmo 6451000 --sun-occ-dist 149600000000 --output "earthLimbLuminance.tif" --size 64
-./eclipse-shadow-generator limb-luminance --with-umbra --input ../share/resources/atmosphere-data/mars/ --radius-occ 3389500 --radius-atmo 3469500 --sun-occ-dist 227900000000 --output "marsLimbLuminance.tif" --size 64
+install/linux-Release/bin/eclipse-shadow-generator bruneton --with-umbra --input plugins/csp-atmospheres/bruneton-preprocessor/output/earth/ --radius-occ 6370900 --radius-atmo 6451000 --sun-occ-dist 149600000000 --output "resources/textures/earthShadow.tif" --size 512
+install/linux-Release/bin/eclipse-shadow-generator bruneton --with-umbra --input plugins/csp-atmospheres/bruneton-preprocessor/output/mars/ --radius-occ 3389500 --radius-atmo 3469500 --sun-occ-dist 227900000000 --output "resources/textures/marsShadow.tif" --size 512
+install/linux-Release/bin/eclipse-shadow-generator limb-luminance --with-umbra --input plugins/csp-atmospheres/bruneton-preprocessor/output/earth/ --radius-occ 6370900 --radius-atmo 6451000 --sun-occ-dist 149600000000 --output "resources/textures/earthLimbLuminance.tif" --size 64
+install/linux-Release/bin/eclipse-shadow-generator limb-luminance --with-umbra --input plugins/csp-atmospheres/bruneton-preprocessor/output/mars/ --radius-occ 3389500 --radius-atmo 3469500 --sun-occ-dist 227900000000 --output "resources/textures/marsLimbLuminance.tif" --size 64
 
 # These are used for debugging purposes and can be used to visualize the results of the atmosphere rendering.
-./eclipse-shadow-generator planet-view --input ../share/resources/atmosphere-data/earth/ --exposure 0.00005 --x 0.5 --y 0.5 --fov 1 --size 1024
-./eclipse-shadow-generator atmo-view --input ../share/resources/atmosphere-data/earth/ --with-umbra --exposure 0.00005 --x 0.2 --y 0.3 --size 1024
+install/linux-Release/bin/eclipse-shadow-generator planet-view --input plugins/csp-atmospheres/bruneton-preprocessor/output/earth/ --exposure 0.00005 --x 0.5 --y 0.5 --fov 1 --size 1024
+install/linux-Release/bin/eclipse-shadow-generator atmo-view --input plugins/csp-atmospheres/bruneton-preprocessor/output/earth/ --with-umbra --exposure 0.00005 --x 0.2 --y 0.3 --size 1024
 
 # Here are some other examples related to the paper "Real-Time Rendering of Eclipses without Incorporation of Atmospheric Effects"
-./eclipse-shadow-generator circles --output "circles.tif"
-./eclipse-shadow-generator smoothstep --output "smoothstep.tif"
-./eclipse-shadow-generator linear --with-umbra --mapping-exponent 5 --output "linear_with_umbra.tif"
+install/linux-Release/bin/eclipse-shadow-generator circles --output "circles.tif"
+install/linux-Release/bin/eclipse-shadow-generator smoothstep --output "smoothstep.tif"
+install/linux-Release/bin/eclipse-shadow-generator linear --with-umbra --mapping-exponent 5 --output "linear_with_umbra.tif"
 ```
 
 For visualization purposes, you can use the following to create an animation of 250 frames where the Sun gradually sets behind the Earth:
@@ -78,7 +80,7 @@ mkdir output
 for i in {0..150}; do
   y=$(echo "scale=4; (150 - $i) / 150" | bc)
   echo "Generating frame $i with delta $delta"
-  ./eclipse-shadow-generator atmo-view --input ../share/resources/atmosphere-data/earth/ --output "output/shadow_$i.tif" --exposure 0.00005 --x 0.3 --y $y --with-umbra --size 1024
+  install/linux-Release/bin/eclipse-shadow-generator atmo-view --input ../share/resources/atmosphere-data/earth/ --output "output/shadow_$i.tif" --exposure 0.00005 --x 0.3 --y $y --with-umbra --size 1024
 done
 
 ```
