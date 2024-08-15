@@ -26,12 +26,12 @@ This depends on where the `scattering-table-generator` is installed to, but this
 
 ```bash
 # For Windows (powershell)
-cd install\windows-Release\bin
-$env:Path += ";..\lib"
+cd cosmoscout-vr
+$env:Path += ";install\windows-Release\lib"
 
 # For Linux (bash)
-cd install/linux-Release/bin
-export LD_LIBRARY_PATH=../lib:$LD_LIBRARY_PATH
+cd cosmoscout-vr
+export LD_LIBRARY_PATH=install/linux-Release/lib:$LD_LIBRARY_PATH
 ```
 
 ### The Preprocessing Modes
@@ -41,23 +41,23 @@ This tool provides means to compute them physically-based using Mie Theory as we
 To learn about the different operation modes, you can issue this command:
 
 ```bash
-./scattering-table-generator --help
+install/linux-Release/bin/scattering-table-generator --help
 ```
 
 > [!TIP]
 > Unless stated otherwise, length units must always be given in [m]. For instance, this is true for altitudes, wavelengths, and for particle radii.
 
-| Mode                          | Description                                                                                                                                                                                                                                                                                                                                                                                                  |
-| ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `mie`                         | This mode computes phase functions as well as scattering- and absorption coefficients for a given particle mixture using Mie Theory. The particle mixture follows a specified multi-modal size distribution and can have a complex, wavelength-dependent refractive index. Use `./scattering-table-generator mie --help` to learn about all the options. Also, below a multiple examples to get you started. |
-| `rayleigh`                    | This mode writes the phase function and scattering coefficients of Rayleigh molecules for the specified wavelengths. Use `./scattering-table-generator rayleigh --help` to learn about all the options.                                                                                                                                                                                                      |
-| `angstrom`                    | This mode writes scattering, and absorption coefficients based on Ångström's turbidity formula and a single-scattering albedo value. Use `./scattering-table-generator angstrom --help` to learn about all the options.                                                                                                                                                                                      |
-| `hulst`                       | This mode writes scattering, and absorption coefficients based on van de Hulst's Anomalous Diffraction Approximation and the turbidity approximation used in the [Costa Paper](https://arxiv.org/abs/2010.03534). Use `./scattering-table-generator hulst --help` to learn about all the options.                                                                                                            |
-| `manual`                      | This mode writes some user-specified scattering coefficients or absorption coefficients for the specified wavelengths. Use `./scattering-table-generator manual --help` to learn about all the options.                                                                                                                                                                                                      |
-| `cornette` `henyey` `dhenyey` | These modes write either the Cornette-Shanks, the Henyey-Greenstein, or the Double-Henyey-Greenstein parametric phase function for the specified wavelengths. Use `./scattering-table-generator <mode> --help` to learn about all the options.                                                                                                                                                               |
-| `ozone`                       | This mode writes the absorption coefficients of ozone molecules for the specified wavelengths. Use `./scattering-table-generator ozone --help` to learn about all the options.                                                                                                                                                                                                                               |
-| `density`                     | This mode samples a given multi-modal density function at evenly spaced altitudes and writes the resulting data. Use `./scattering-table-generator density --help` to learn about all the options.                                                                                                                                                                                                           |
-| `ior`                         | This mode approximates the refractive index of a mixture of gases. For increased precision, `n-1` is written to the output. Use `./scattering-table-generator ior --help` to learn about all the options.                                                                                                                                                                                                    |
+| Mode                          | Description                                                                                                                                                                                                                                                                                                                                                                                                |
+| ----------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `mie`                         | This mode computes phase functions as well as scattering- and absorption coefficients for a given particle mixture using Mie Theory. The particle mixture follows a specified multi-modal size distribution and can have a complex, wavelength-dependent refractive index. Use `scattering-table-generator mie --help` to learn about all the options. Also, below a multiple examples to get you started. |
+| `rayleigh`                    | This mode writes the phase function and scattering coefficients of Rayleigh molecules for the specified wavelengths. Use `scattering-table-generator rayleigh --help` to learn about all the options.                                                                                                                                                                                                      |
+| `angstrom`                    | This mode writes scattering, and absorption coefficients based on Ångström's turbidity formula and a single-scattering albedo value. Use `scattering-table-generator angstrom --help` to learn about all the options.                                                                                                                                                                                      |
+| `hulst`                       | This mode writes scattering, and absorption coefficients based on van de Hulst's Anomalous Diffraction Approximation and the turbidity approximation used in the [Costa Paper](https://arxiv.org/abs/2010.03534). Use `scattering-table-generator hulst --help` to learn about all the options.                                                                                                            |
+| `manual`                      | This mode writes some user-specified scattering coefficients or absorption coefficients for the specified wavelengths. Use `scattering-table-generator manual --help` to learn about all the options.                                                                                                                                                                                                      |
+| `cornette` `henyey` `dhenyey` | These modes write either the Cornette-Shanks, the Henyey-Greenstein, or the Double-Henyey-Greenstein parametric phase function for the specified wavelengths. Use `scattering-table-generator <mode> --help` to learn about all the options.                                                                                                                                                               |
+| `ozone`                       | This mode writes the absorption coefficients of ozone molecules for the specified wavelengths. Use `scattering-table-generator ozone --help` to learn about all the options.                                                                                                                                                                                                                               |
+| `density`                     | This mode samples a given multi-modal density function at evenly spaced altitudes and writes the resulting data. Use `scattering-table-generator density --help` to learn about all the options.                                                                                                                                                                                                           |
+| `ior`                         | This mode approximates the refractive index of a mixture of gases. For increased precision, `n-1` is written to the output. Use `scattering-table-generator ior --help` to learn about all the options.                                                                                                                                                                                                    |
 
 ## The CSV Files
 
@@ -127,19 +127,19 @@ Below are the input values which we currently use for Earth's atmosphere in Cosm
 
 ```bash
 # Molecules
-./scattering-table-generator density -i ../../../plugins/csp-atmospheres/scattering-table-generator/density-settings/earth_bruneton_molecules.json -o earth_cosmoscout_molecules
-./scattering-table-generator rayleigh --scattering-depolarization 0.0279 --phase-depolarization 0.0279 --penndorf-ior --theta-samples 91 -o earth_cosmoscout_molecules
+install/linux-Release/bin/scattering-table-generator density -i plugins/csp-atmospheres/scattering-table-generator/density-settings/earth_bruneton_molecules.json -o plugins/csp-atmospheres/scattering-table-generator/output/earth_cosmoscout_molecules
+install/linux-Release/bin/scattering-table-generator rayleigh --scattering-depolarization 0.0279 --phase-depolarization 0.0279 --penndorf-ior --theta-samples 91 -o plugins/csp-atmospheres/scattering-table-generator/output/earth_cosmoscout_molecules
 
 # Aerosols
-./scattering-table-generator density -i ../../../plugins/csp-atmospheres/scattering-table-generator/density-settings/earth_bruneton_aerosols.json -o earth_cosmoscout_aerosols
-./scattering-table-generator mie -i ../../../plugins/csp-atmospheres/scattering-table-generator/mie-settings/earth_haze.json --theta-samples 91 --number-density 5e8 --radius-samples 10000 -o earth_cosmoscout_aerosols
+install/linux-Release/bin/scattering-table-generator density -i plugins/csp-atmospheres/scattering-table-generator/density-settings/earth_bruneton_aerosols.json -o plugins/csp-atmospheres/scattering-table-generator/output/earth_cosmoscout_aerosols
+install/linux-Release/bin/scattering-table-generator mie -i plugins/csp-atmospheres/scattering-table-generator/mie-settings/earth_haze.json --theta-samples 91 --number-density 5e8 --radius-samples 10000 -o plugins/csp-atmospheres/scattering-table-generator/output/earth_cosmoscout_aerosols
 
 # Ozone
-./scattering-table-generator density -i ../../../plugins/csp-atmospheres/scattering-table-generator/density-settings/earth_bruneton_ozone.json -o earth_cosmoscout_ozone
-./scattering-table-generator ozone -o earth_cosmoscout_ozone
+install/linux-Release/bin/scattering-table-generator density -i plugins/csp-atmospheres/scattering-table-generator/density-settings/earth_bruneton_ozone.json -o plugins/csp-atmospheres/scattering-table-generator/output/earth_cosmoscout_ozone
+install/linux-Release/bin/scattering-table-generator ozone -o plugins/csp-atmospheres/scattering-table-generator/output/earth_cosmoscout_ozone
 
 # IoR Information for Light Refraction
-./scattering-table-generator ior -i ../../../plugins/csp-atmospheres/scattering-table-generator/ior-settings/earth.json -o earth_cosmoscout_ior --temperature 288 --pressure 101325
+install/linux-Release/bin/scattering-table-generator ior -i plugins/csp-atmospheres/scattering-table-generator/ior-settings/earth.json -o plugins/csp-atmospheres/scattering-table-generator/output/earth_cosmoscout_ior --temperature 288 --pressure 101325
 
 ```
 
@@ -162,15 +162,15 @@ The molecules are identical in both versions; they only differ in the number of 
 
 ```bash
 # Molecules
-./scattering-table-generator density -i ../../../plugins/csp-atmospheres/scattering-table-generator/density-settings/mars_cosmoscout_molecules.json -o mars_cosmoscout_molecules_realistic
-./scattering-table-generator rayleigh --ior 1.00000337 --scattering-depolarization 0.09 --phase-depolarization 0.09 --number-density 2.05e23 --theta-samples 91 -o mars_cosmoscout_molecules_realistic
+install/linux-Release/bin/scattering-table-generator density -i plugins/csp-atmospheres/scattering-table-generator/density-settings/mars_cosmoscout_molecules.json -o plugins/csp-atmospheres/scattering-table-generator/output/mars_cosmoscout_molecules_realistic
+install/linux-Release/bin/scattering-table-generator rayleigh --ior 1.00000337 --scattering-depolarization 0.09 --phase-depolarization 0.09 --number-density 2.05e23 --theta-samples 91 -o plugins/csp-atmospheres/scattering-table-generator/output/mars_cosmoscout_molecules_realistic
 
 # Aerosols
-./scattering-table-generator density -i ../../../plugins/csp-atmospheres/scattering-table-generator/density-settings/mars_cosmoscout_aerosols_realistic.json -o mars_cosmoscout_aerosols_realistic
-./scattering-table-generator mie -i ../../../plugins/csp-atmospheres/scattering-table-generator/mie-settings/mars_realistic.json --theta-samples 91 --number-density 5e9 --radius-samples 10000 -o mars_cosmoscout_aerosols_realistic
+install/linux-Release/bin/scattering-table-generator density -i plugins/csp-atmospheres/scattering-table-generator/density-settings/mars_cosmoscout_aerosols_realistic.json -o plugins/csp-atmospheres/scattering-table-generator/output/mars_cosmoscout_aerosols_realistic
+install/linux-Release/bin/scattering-table-generator mie -i plugins/csp-atmospheres/scattering-table-generator/mie-settings/mars_realistic.json --theta-samples 91 --number-density 5e9 --radius-samples 10000 -o plugins/csp-atmospheres/scattering-table-generator/output/mars_cosmoscout_aerosols_realistic
 
 # IoR Information for Light Refraction
-./scattering-table-generator ior -i ../../../plugins/csp-atmospheres/scattering-table-generator/ior-settings/mars.json -o mars_cosmoscout_ior_realistic --temperature 215 --pressure 610
+install/linux-Release/bin/scattering-table-generator ior -i plugins/csp-atmospheres/scattering-table-generator/ior-settings/mars.json -o plugins/csp-atmospheres/scattering-table-generator/output/mars_cosmoscout_ior_realistic --temperature 215 --pressure 610
 ```
 
 </details>
@@ -180,15 +180,15 @@ The molecules are identical in both versions; they only differ in the number of 
 
 ```bash
 # Molecules
-./scattering-table-generator density -i ../../../plugins/csp-atmospheres/scattering-table-generator/density-settings/mars_cosmoscout_molecules.json -o mars_cosmoscout_molecules_cinematic
-./scattering-table-generator rayleigh --lambdas 440e-9,550e-9,680e-9 --ior 1.00000337 --scattering-depolarization 0.09 --phase-depolarization 0.09 --number-density 2.05e23 --theta-samples 91 -o mars_cosmoscout_molecules_cinematic
+install/linux-Release/bin/scattering-table-generator density -i plugins/csp-atmospheres/scattering-table-generator/density-settings/mars_cosmoscout_molecules.json -o plugins/csp-atmospheres/scattering-table-generator/output/mars_cosmoscout_molecules_cinematic
+install/linux-Release/bin/scattering-table-generator rayleigh --lambdas 440e-9,550e-9,680e-9 --ior 1.00000337 --scattering-depolarization 0.09 --phase-depolarization 0.09 --number-density 2.05e23 --theta-samples 91 -o plugins/csp-atmospheres/scattering-table-generator/output/mars_cosmoscout_molecules_cinematic
 
 # Aerosols
-./scattering-table-generator density -i ../../../plugins/csp-atmospheres/scattering-table-generator/density-settings/mars_cosmoscout_aerosols_cinematic.json -o mars_cosmoscout_aerosols_cinematic
-./scattering-table-generator mie --lambdas 440e-9,550e-9,680e-9 -i ../../../plugins/csp-atmospheres/scattering-table-generator/mie-settings/mars_cinematic.json --phase-flattening 0.8 --theta-samples 91 --number-density 5e9 --radius-samples 10000 -o mars_cosmoscout_aerosols_cinematic
+install/linux-Release/bin/scattering-table-generator density -i plugins/csp-atmospheres/scattering-table-generator/density-settings/mars_cosmoscout_aerosols_cinematic.json -o plugins/csp-atmospheres/scattering-table-generator/output/mars_cosmoscout_aerosols_cinematic
+install/linux-Release/bin/scattering-table-generator mie --lambdas 440e-9,550e-9,680e-9 -i plugins/csp-atmospheres/scattering-table-generator/mie-settings/mars_cinematic.json --phase-flattening 0.8 --theta-samples 91 --number-density 5e9 --radius-samples 10000 -o plugins/csp-atmospheres/scattering-table-generator/output/mars_cosmoscout_aerosols_cinematic
 
 # IoR Information for Light Refraction
-./scattering-table-generator ior --lambdas 440e-9,550e-9,680e-9 -i ../../../plugins/csp-atmospheres/scattering-table-generator/ior-settings/mars.json -o mars_cosmoscout_ior_cinematic --temperature 215 --pressure 610
+install/linux-Release/bin/scattering-table-generator ior --lambdas 440e-9,550e-9,680e-9 -i plugins/csp-atmospheres/scattering-table-generator/ior-settings/mars.json -o plugins/csp-atmospheres/scattering-table-generator/output/mars_cosmoscout_ior_cinematic --temperature 215 --pressure 610
 ```
 
 </details>
@@ -211,15 +211,15 @@ If we divide it by 100, we get plausible results.
 
 ```bash
 # Molecules
-./scattering-table-generator density -i ../../../plugins/csp-atmospheres/scattering-table-generator/density-settings/earth_bruneton_molecules.json -o earth_bruneton2008_molecules
-./scattering-table-generator rayleigh --lambdas 440e-9,550e-9,680e-9 -o earth_bruneton2008_molecules
-./scattering-table-generator manual --lambdas 440e-9,550e-9,680e-9 --quantity beta_sca --values 33.1e-6,15.5e-6,5.8e-6 -o earth_bruneton2008_molecules_scattering
+install/linux-Release/bin/scattering-table-generator density -i plugins/csp-atmospheres/scattering-table-generator/density-settings/earth_bruneton_molecules.json -o plugins/csp-atmospheres/scattering-table-generator/output/earth_bruneton2008_molecules
+install/linux-Release/bin/scattering-table-generator rayleigh --lambdas 440e-9,550e-9,680e-9 -o plugins/csp-atmospheres/scattering-table-generator/output/earth_bruneton2008_molecules
+install/linux-Release/bin/scattering-table-generator manual --lambdas 440e-9,550e-9,680e-9 --quantity beta_sca --values 33.1e-6,15.5e-6,5.8e-6 -o plugins/csp-atmospheres/scattering-table-generator/output/earth_bruneton2008_molecules_scattering
 
 # Aerosols
-./scattering-table-generator density -i ../../../plugins/csp-atmospheres/scattering-table-generator/density-settings/earth_bruneton_aerosols.json -o earth_bruneton2008_aerosols
-./scattering-table-generator cornette --lambdas 440e-9,550e-9,680e-9 --g 0.76 -o earth_bruneton2008_aerosols
-./scattering-table-generator manual --lambdas 440e-9,550e-9,680e-9 --quantity beta_sca --values 2.1e-5 -o earth_bruneton2008_aerosols_scattering
-./scattering-table-generator manual --lambdas 440e-9,550e-9,680e-9 --quantity beta_abs --values 2.1e-6 -o earth_bruneton2008_aerosols_absorption
+install/linux-Release/bin/scattering-table-generator density -i plugins/csp-atmospheres/scattering-table-generator/density-settings/earth_bruneton_aerosols.json -o plugins/csp-atmospheres/scattering-table-generator/output/earth_bruneton2008_aerosols
+install/linux-Release/bin/scattering-table-generator cornette --lambdas 440e-9,550e-9,680e-9 --g 0.76 -o plugins/csp-atmospheres/scattering-table-generator/output/earth_bruneton2008_aerosols
+install/linux-Release/bin/scattering-table-generator manual --lambdas 440e-9,550e-9,680e-9 --quantity beta_sca --values 2.1e-5 -o plugins/csp-atmospheres/scattering-table-generator/output/earth_bruneton2008_aerosols_scattering
+install/linux-Release/bin/scattering-table-generator manual --lambdas 440e-9,550e-9,680e-9 --quantity beta_abs --values 2.1e-6 -o plugins/csp-atmospheres/scattering-table-generator/output/earth_bruneton2008_aerosols_absorption
 ```
 
 </details>
@@ -236,17 +236,17 @@ In this paper, Eric Bruneton also included **Ozone**.
 
 ```bash
 # Molecules
-./scattering-table-generator density -i ../../../plugins/csp-atmospheres/scattering-table-generator/density-settings/earth_bruneton_molecules.json -o earth_bruneton2016_molecules
-./scattering-table-generator rayleigh --lambda-samples 40 --penndorf-extinction -o earth_bruneton2016_molecules
+install/linux-Release/bin/scattering-table-generator density -i plugins/csp-atmospheres/scattering-table-generator/density-settings/earth_bruneton_molecules.json -o plugins/csp-atmospheres/scattering-table-generator/output/earth_bruneton2016_molecules
+install/linux-Release/bin/scattering-table-generator rayleigh --lambda-samples 40 --penndorf-extinction -o plugins/csp-atmospheres/scattering-table-generator/output/earth_bruneton2016_molecules
 
 # Aerosols
-./scattering-table-generator density -i ../../../plugins/csp-atmospheres/scattering-table-generator/density-settings/earth_bruneton_aerosols.json -o earth_bruneton2016_aerosols
-./scattering-table-generator cornette --lambda-samples 40 --g 0.7 -o earth_bruneton2016_aerosols
-./scattering-table-generator angstrom --lambda-samples 40 --alpha 0.8 --beta 0.04 --single-scattering-albedo 0.8 --scale-height 1200 -o earth_bruneton2016_aerosols
+install/linux-Release/bin/scattering-table-generator density -i plugins/csp-atmospheres/scattering-table-generator/density-settings/earth_bruneton_aerosols.json -o plugins/csp-atmospheres/scattering-table-generator/output/earth_bruneton2016_aerosols
+install/linux-Release/bin/scattering-table-generator cornette --lambda-samples 40 --g 0.7 -o plugins/csp-atmospheres/scattering-table-generator/output/earth_bruneton2016_aerosols
+install/linux-Release/bin/scattering-table-generator angstrom --lambda-samples 40 --alpha 0.8 --beta 0.04 --single-scattering-albedo 0.8 --scale-height 1200 -o plugins/csp-atmospheres/scattering-table-generator/output/earth_bruneton2016_aerosols
 
 # Ozone
-./scattering-table-generator density -i ../../../plugins/csp-atmospheres/scattering-table-generator/density-settings/earth_bruneton_ozone.json -o earth_bruneton2016_ozone
-./scattering-table-generator ozone --lambda-samples 40 -o earth_bruneton2016_ozone
+install/linux-Release/bin/scattering-table-generator density -i plugins/csp-atmospheres/scattering-table-generator/density-settings/earth_bruneton_ozone.json -o plugins/csp-atmospheres/scattering-table-generator/output/earth_bruneton2016_ozone
+install/linux-Release/bin/scattering-table-generator ozone --lambda-samples 40 -o plugins/csp-atmospheres/scattering-table-generator/output/earth_bruneton2016_ozone
 ```
 
 </details>
@@ -267,18 +267,18 @@ They actually use a different **ozone** density profile than Bruneton, but the r
 
 ```bash
 # Molecules
-./scattering-table-generator density -i ../../../plugins/csp-atmospheres/scattering-table-generator/density-settings/earth_bruneton_molecules.json -o earth_costa_molecules
-./scattering-table-generator rayleigh --lambdas 440e-9,550e-9,680e-9 --penndorf-ior --penndorf-phase --scattering-depolarization 0.0279 --number-density 2.68731e25 -o earth_costa_molecules
+install/linux-Release/bin/scattering-table-generator density -i plugins/csp-atmospheres/scattering-table-generator/density-settings/earth_bruneton_molecules.json -o plugins/csp-atmospheres/scattering-table-generator/output/earth_costa_molecules
+install/linux-Release/bin/scattering-table-generator rayleigh --lambdas 440e-9,550e-9,680e-9 --penndorf-ior --penndorf-phase --scattering-depolarization 0.0279 --number-density 2.68731e25 -o plugins/csp-atmospheres/scattering-table-generator/output/earth_costa_molecules
 
 # Aerosols
-./scattering-table-generator density -i ../../../plugins/csp-atmospheres/scattering-table-generator/density-settings/earth_bruneton_aerosols.json -o earth_costa_aerosols
-./scattering-table-generator henyey --lambdas 440e-9,550e-9,680e-9 --g 0.85 -o earth_costa_aerosols
-./scattering-table-generator manual --lambdas 440e-9,550e-9,680e-9 --quantity beta_sca --values 4e-5 -o earth_costa_aerosols_scattering
-./scattering-table-generator manual --lambdas 440e-9,550e-9,680e-9 --quantity beta_abs --values 4e-6 -o earth_costa_aerosols_absorption
+install/linux-Release/bin/scattering-table-generator density -i plugins/csp-atmospheres/scattering-table-generator/density-settings/earth_bruneton_aerosols.json -o plugins/csp-atmospheres/scattering-table-generator/output/earth_costa_aerosols
+install/linux-Release/bin/scattering-table-generator henyey --lambdas 440e-9,550e-9,680e-9 --g 0.85 -o plugins/csp-atmospheres/scattering-table-generator/output/earth_costa_aerosols
+install/linux-Release/bin/scattering-table-generator manual --lambdas 440e-9,550e-9,680e-9 --quantity beta_sca --values 4e-5 -o plugins/csp-atmospheres/scattering-table-generator/output/earth_costa_aerosols_scattering
+install/linux-Release/bin/scattering-table-generator manual --lambdas 440e-9,550e-9,680e-9 --quantity beta_abs --values 4e-6 -o plugins/csp-atmospheres/scattering-table-generator/output/earth_costa_aerosols_absorption
 
 # Ozone
-./scattering-table-generator density -i ../../../plugins/csp-atmospheres/scattering-table-generator/density-settings/earth_bruneton_ozone.json -o earth_costa_ozone
-./scattering-table-generator ozone --lambdas 440e-9,550e-9,680e-9 -o earth_costa_ozone
+install/linux-Release/bin/scattering-table-generator density -i plugins/csp-atmospheres/scattering-table-generator/density-settings/earth_bruneton_ozone.json -o plugins/csp-atmospheres/scattering-table-generator/output/earth_costa_ozone
+install/linux-Release/bin/scattering-table-generator ozone --lambdas 440e-9,550e-9,680e-9 -o plugins/csp-atmospheres/scattering-table-generator/output/earth_costa_ozone
 ```
 
 </details>
@@ -293,15 +293,15 @@ In this paper, **molecules** are modelled using a manual parametrization of Rayl
 
 ```bash
 # Molecules
-./scattering-table-generator density -i ../../../plugins/csp-atmospheres/scattering-table-generator/density-settings/mars_collienne_molecules.json -o mars_collienne_molecules
-./scattering-table-generator rayleigh --lambdas 440e-9,550e-9,680e-9 -o mars_collienne_molecules
-./scattering-table-generator manual --lambdas 440e-9,550e-9,680e-9 --quantity beta_sca --values 5.75e-6,13.57e-6,19.918e-6 -o mars_collienne_molecules_scattering
+install/linux-Release/bin/scattering-table-generator density -i plugins/csp-atmospheres/scattering-table-generator/density-settings/mars_collienne_molecules.json -o plugins/csp-atmospheres/scattering-table-generator/output/mars_collienne_molecules
+install/linux-Release/bin/scattering-table-generator rayleigh --lambdas 440e-9,550e-9,680e-9 -o plugins/csp-atmospheres/scattering-table-generator/output/mars_collienne_molecules
+install/linux-Release/bin/scattering-table-generator manual --lambdas 440e-9,550e-9,680e-9 --quantity beta_sca --values 5.75e-6,13.57e-6,19.918e-6 -o plugins/csp-atmospheres/scattering-table-generator/output/mars_collienne_molecules_scattering
 
 # Aerosols
-./scattering-table-generator density -i ../../../plugins/csp-atmospheres/scattering-table-generator/density-settings/mars_collienne_aerosols.json -o mars_collienne_aerosols
-./scattering-table-generator cornette --lambdas 440e-9,550e-9,680e-9 --g 0.76 -o mars_collienne_aerosols
-./scattering-table-generator manual --lambdas 440e-9,550e-9,680e-9 --quantity beta_sca --values 3e-6 -o mars_collienne_aerosols_scattering
-./scattering-table-generator manual --lambdas 440e-9,550e-9,680e-9 --quantity beta_abs --values 0 -o mars_collienne_aerosols_absorption
+install/linux-Release/bin/scattering-table-generator density -i plugins/csp-atmospheres/scattering-table-generator/density-settings/mars_collienne_aerosols.json -o plugins/csp-atmospheres/scattering-table-generator/output/mars_collienne_aerosols
+install/linux-Release/bin/scattering-table-generator cornette --lambdas 440e-9,550e-9,680e-9 --g 0.76 -o plugins/csp-atmospheres/scattering-table-generator/output/mars_collienne_aerosols
+install/linux-Release/bin/scattering-table-generator manual --lambdas 440e-9,550e-9,680e-9 --quantity beta_sca --values 3e-6 -o plugins/csp-atmospheres/scattering-table-generator/output/mars_collienne_aerosols_scattering
+install/linux-Release/bin/scattering-table-generator manual --lambdas 440e-9,550e-9,680e-9 --quantity beta_abs --values 0 -o plugins/csp-atmospheres/scattering-table-generator/output/mars_collienne_aerosols_absorption
 ```
 
 </details>
@@ -336,16 +336,16 @@ The values below generate a plausible atmosphere, however most of the values are
 
 ```bash
 # Molecules
-./scattering-table-generator density -i ../../../plugins/csp-atmospheres/scattering-table-generator/density-settings/mars_costa_molecules.json -o mars_costa_molecules
-./scattering-table-generator rayleigh --lambdas 440e-9,550e-9,680e-9 --ior 1.00000337 --penndorf-phase --scattering-depolarization 0.09 --number-density 2.05e23 -o mars_costa_molecules
+install/linux-Release/bin/scattering-table-generator density -i plugins/csp-atmospheres/scattering-table-generator/density-settings/mars_costa_molecules.json -o plugins/csp-atmospheres/scattering-table-generator/output/mars_costa_molecules
+install/linux-Release/bin/scattering-table-generator rayleigh --lambdas 440e-9,550e-9,680e-9 --ior 1.00000337 --penndorf-phase --scattering-depolarization 0.09 --number-density 2.05e23 -o plugins/csp-atmospheres/scattering-table-generator/output/mars_costa_molecules
 
 # Aerosols
-./scattering-table-generator density -i ../../../plugins/csp-atmospheres/scattering-table-generator/density-settings/mars_costa_aerosols.json -o mars_costa_aerosols
-./scattering-table-generator hulst --lambdas 440e-9,550e-9,680e-9 --junge 4 --number-density 0.02e8 --kappa 0.07,0.16,0.31 --turbidity 1.01 --radius 1.6e-6 -n 1.52 -k 0.013,0.006,0.001 -o mars_costa_aerosols
-./scattering-table-generator dhenyey --lambdas 440e-9,550e-9,680e-9 --g1 0.67,0.4,0.03 --g2 0.094,0.094,0.094 --alpha 0.743,0.743,0.743 -o mars_costa_aerosols
+install/linux-Release/bin/scattering-table-generator density -i plugins/csp-atmospheres/scattering-table-generator/density-settings/mars_costa_aerosols.json -o plugins/csp-atmospheres/scattering-table-generator/output/mars_costa_aerosols
+install/linux-Release/bin/scattering-table-generator hulst --lambdas 440e-9,550e-9,680e-9 --junge 4 --number-density 0.02e8 --kappa 0.07,0.16,0.31 --turbidity 1.01 --radius 1.6e-6 -n 1.52 -k 0.013,0.006,0.001 -o plugins/csp-atmospheres/scattering-table-generator/output/mars_costa_aerosols
+install/linux-Release/bin/scattering-table-generator dhenyey --lambdas 440e-9,550e-9,680e-9 --g1 0.67,0.4,0.03 --g2 0.094,0.094,0.094 --alpha 0.743,0.743,0.743 -o plugins/csp-atmospheres/scattering-table-generator/output/mars_costa_aerosols
 
 # Paper values:
-#./scattering-table-generator dhenyey --lambdas 440e-9,550e-9,680e-9 --g1 0.67,0.4,0.03 --g2 0.099,0.89,0.094 --alpha 0.01,0.04,0.743 -o mars_costa_aerosols
+#./scattering-table-generator dhenyey --lambdas 440e-9,550e-9,680e-9 --g1 0.67,0.4,0.03 --g2 0.099,0.89,0.094 --alpha 0.01,0.04,0.743 -o plugins/csp-atmospheres/scattering-table-generator/output/mars_costa_aerosols
 ```
 
 </details>
