@@ -662,13 +662,12 @@ void main() {
       vec3  projSun  = dot(uSunDir, toCenter) * toCenter - uSunDir;
       vec3  projAtmo = dot(rayDir, toCenter) * toCenter - rayDir;
 
-      float z = acos(clamp(dot(normalize(projSun), normalize(projAtmo)), 0.0, 1.0)) / PI;
-
-      oColor = texture(uLimbLuminanceTexture, vec3(x, y, z)).rgb;
+      float z = acos(clamp(dot(normalize(projSun), normalize(projAtmo)), -1.0, 1.0)) / PI;
+      oColor  = texture(uLimbLuminanceTexture, vec3(x, y, z)).rgb;
 
 #if !ENABLE_HDR
-      oColor = tonemap(oColor / uSunIlluminance);
-      oColor = linearToSRGB(oColor);
+      oColor  = tonemap(oColor / uSunIlluminance);
+      oColor  = linearToSRGB(oColor);
 #endif
 
       return;
