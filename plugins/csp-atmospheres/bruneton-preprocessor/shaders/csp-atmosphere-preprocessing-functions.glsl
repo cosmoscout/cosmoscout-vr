@@ -54,18 +54,34 @@ double getRefractiveIndex(float altitude) {
 }
 
 float getRefractiveIndexGradientLength(float height, float dh) {
-  return (getRefractiveIndexMinusOne(height + dh * 0.5) -
-             getRefractiveIndexMinusOne(height - dh * 0.5)) /
-         dh;
+  return (getRefractiveIndexMinusOne(height + dh) - getRefractiveIndexMinusOne(height)) / dh;
 }
 
-#line 62
+#line 61
 
-dvec2 refractRay(dvec2 rayOrigin, dvec2 rayDir, double altitude, double stepLength) {
+dvec2 rayGradient(dvec2 rayOrigin, dvec2 rayDir) {
+  double altitude        = length(rayOrigin);
   double refractiveIndex = getRefractiveIndex(float(altitude) - BOTTOM_RADIUS);
-  float  gradientLength  = getRefractiveIndexGradientLength(float(altitude) - BOTTOM_RADIUS, 10);
+  double gradientLength  = getRefractiveIndexGradientLength(float(altitude) - BOTTOM_RADIUS, 10);
+  return rayOrigin / altitude * gradientLength;
+}
+
+dvec2 refractRay(dvec2 rayOrigin, dvec2 rayDir, double stepLength) {
+  double altitude        = length(rayOrigin);
+  double refractiveIndex = getRefractiveIndex(float(altitude) - BOTTOM_RADIUS);
+  double gradientLength  = getRefractiveIndexGradientLength(float(altitude) - BOTTOM_RADIUS, 10);
   dvec2  dn              = rayOrigin / altitude * gradientLength;
   return normalize(refractiveIndex * rayDir + dn * stepLength);
+}
+
+dvec2 refractRayRungeKutta(dvec2 rayOrigin, dvec2 rayDir, double stepLength) {
+  dvec2 k1 = stepLength * rayGradient(rayOrigin, rayDir);
+  dvec2 k2 = stepLength * rayGradient(rayOrigin + 0.5 * stepLength * rayDir, rayDir + 0.5 * k1);
+  dvec2 k3 =
+      stepLength * rayGradient(rayOrigin + 0.5 * stepLength * rayDir + 0.5 * k2, rayDir + 0.5 * k2);
+  dvec2 k4 = stepLength * rayGradient(rayOrigin + stepLength * rayDir, rayDir + k3);
+
+  return rayDir + (k1 + 2.0 * k2 + 2.0 * k3 + k4) / 6.0;
 }
 
 // If our ray hit the surface of the planet, the optical depth should be infinite. However,
@@ -95,7 +111,8 @@ float angleBetweenVectors(vec2 u, vec2 v) {
 RayInfo computeOpticalLengthToTopAtmosphereBoundary(float densityTextureV, float r, float mu) {
 
   // double dx          = TOP_RADIUS / SAMPLE_COUNT_OPTICAL_DEPTH;
-  double dx          = distanceToTopAtmosphereBoundary(r, mu) / SAMPLE_COUNT_OPTICAL_DEPTH;
+  // double dx          = distanceToTopAtmosphereBoundary(r, mu) / SAMPLE_COUNT_OPTICAL_DEPTH;
+  double dx          = 1000.0;
   dvec2  startRayDir = vec2(sqrt(1 - mu * mu), mu);
 
   RayInfo result;
@@ -109,8 +126,8 @@ RayInfo computeOpticalLengthToTopAtmosphereBoundary(float densityTextureV, float
   double currentR   = r;
   dvec2  currentDir = startRayDir;
 
-  // while (currentR <= TOP_RADIUS && ++samples < SAMPLE_COUNT_OPTICAL_DEPTH) {
-  for (int i = 0; i <= SAMPLE_COUNT_OPTICAL_DEPTH; ++i) {
+  while (currentR <= TOP_RADIUS && ++samples < SAMPLE_COUNT_OPTICAL_DEPTH) {
+    // for (int i = 0; i <= SAMPLE_COUNT_OPTICAL_DEPTH; ++i) {
 
     samplePos += currentDir * dx;
     currentR = length(samplePos);
@@ -120,11 +137,10 @@ RayInfo computeOpticalLengthToTopAtmosphereBoundary(float densityTextureV, float
     // If the ray intersects the ground, we have a problem: We do not have density information
     // in the underground, so the ray traversal will become undefined. Hence we clamp the ray
     // to the surface of the planet.
-    double minR = BOTTOM_RADIUS + dx * 0.1;
-    if (currentR < minR) {
+    if (currentR < BOTTOM_RADIUS) {
       result.hitsGround = true;
     } else {
-      currentDir = refractRay(samplePos, currentDir, currentR, dx);
+      currentDir = refractRayRungeKutta(samplePos, currentDir, dx);
     }
   }
 
@@ -291,12 +307,10 @@ void computeSingleScattering(AtmosphereComponents atmosphere, sampler2D transmit
     // If the ray intersects the ground, we have a problem: We do not have density information
     // in the underground, so the ray traversal will become undefined. Hence we clamp the ray
     // to the surface of the planet.
-    double minR = BOTTOM_RADIUS + dx * 0.1;
-
-    if (currentR < minR) {
+    if (currentR < BOTTOM_RADIUS) {
       rayRMuIntersectsGround = true;
     } else {
-      currentDir = refractRay(currentSamplePos, currentDir, currentR, dx);
+      currentDir = refractRay(currentSamplePos, currentDir, dx);
     }
 
     currentSamplePos = nextSamplePos;
