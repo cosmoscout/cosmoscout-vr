@@ -122,7 +122,7 @@ RayInfo computeOpticalLengthToTopAtmosphereBoundary(float densityTextureV, float
   double sampleRadius = r;
   dvec2  currentDir   = startRayDir;
 
-  while (sampleRadius <= TOP_RADIUS) {
+  while (sampleRadius <= TOP_RADIUS + 10) {
 
     samplePos += currentDir * dx;
     sampleRadius = length(samplePos);
@@ -252,16 +252,16 @@ void computeSingleScattering(AtmosphereComponents atmosphere, sampler2D transmit
   vec2  sunDir     = vec2(sqrt(1 - muS * muS), muS);
 
   // Integration loop.
-  vec3   moleculesSum     = vec3(0.0);
-  vec3   aerosolsSum      = vec3(0.0);
-  dvec3  transmittanceRay = dvec3(1.0);
-  dvec2  currentSamplePos = vec2(0.0, r);
-  double sampleRadius     = r;
+  vec3  moleculesSum     = vec3(0.0);
+  vec3  aerosolsSum      = vec3(0.0);
+  dvec3 transmittanceRay = dvec3(1.0);
 
-  while (sampleRadius <= TOP_RADIUS && sampleRadius >= BOTTOM_RADIUS) {
-    dvec2 nextSamplePos = currentSamplePos + currentDir * dx;
+  dvec2  samplePos    = vec2(0.0, r);
+  double sampleRadius = r;
 
-    sampleRadius    = length(currentSamplePos);
+  while (sampleRadius <= TOP_RADIUS + 10 && sampleRadius >= BOTTOM_RADIUS) {
+    dvec2 nextSamplePos = samplePos + currentDir * dx;
+
     double nextR    = length(nextSamplePos);
     double nextMuSD = clamp(dot(sunDir, nextSamplePos / nextR), -1.0, 1.0);
 
@@ -273,16 +273,17 @@ void computeSingleScattering(AtmosphereComponents atmosphere, sampler2D transmit
     float aerosolsDensity  = getDensity(atmosphere.aerosols.densityTextureV, altitude);
     float ozoneDensity     = getDensity(atmosphere.ozone.densityTextureV, altitude);
 
-    transmittanceRay *= exp(-(atmosphere.molecules.extinction * moleculesDensity * float(dx) +
-                              atmosphere.aerosols.extinction * aerosolsDensity * float(dx) +
-                              atmosphere.ozone.extinction * ozoneDensity * float(dx)));
+    transmittanceRay *= exp(-float(dx) * (atmosphere.molecules.extinction * moleculesDensity +
+                                             atmosphere.aerosols.extinction * aerosolsDensity +
+                                             atmosphere.ozone.extinction * ozoneDensity));
 
     moleculesSum += transmittanceSun * vec3(transmittanceRay) * moleculesDensity;
     aerosolsSum += transmittanceSun * vec3(transmittanceRay) * aerosolsDensity;
 
-    currentDir = refractRayRungeKutta(currentSamplePos, currentDir, dx);
+    currentDir = refractRay(samplePos, currentDir, dx);
 
-    currentSamplePos = nextSamplePos;
+    samplePos    = nextSamplePos;
+    sampleRadius = length(samplePos);
   }
 
   molecules = moleculesSum * float(dx) * SOLAR_IRRADIANCE * atmosphere.molecules.scattering;
