@@ -246,66 +246,41 @@ void computeSingleScattering(AtmosphereComponents atmosphere, sampler2D transmit
     out vec3 aerosols) {
 
   // The integration step, i.e. the length of each integration interval.
-  // double dx = double(TOP_RADIUS) / SAMPLE_COUNT_SINGLE_SCATTERING;
-  double dx = distanceToNearestAtmosphereBoundary(r, mu, rayRMuIntersectsGround) /
-              SAMPLE_COUNT_SINGLE_SCATTERING;
+  double dx = STEP_SIZE_SINGLE_SCATTERING;
 
   dvec2 currentDir = vec2(sqrt(1 - mu * mu), mu);
   vec2  sunDir     = vec2(sqrt(1 - muS * muS), muS);
 
   // Integration loop.
-  vec3  moleculesSum     = vec3(0.0);
-  vec3  aerosolsSum      = vec3(0.0);
-  dvec3 transmittanceRay = dvec3(1.0);
-  int   samples          = 0;
+  vec3   moleculesSum     = vec3(0.0);
+  vec3   aerosolsSum      = vec3(0.0);
+  dvec3  transmittanceRay = dvec3(1.0);
+  dvec2  currentSamplePos = vec2(0.0, r);
+  double sampleRadius     = r;
 
-  dvec2 currentSamplePos = vec2(0.0, r);
-  float currentR         = r;
-
-  for (int i = 0; i <= SAMPLE_COUNT_SINGLE_SCATTERING; ++i) {
-    // while (currentR <= TOP_RADIUS && ++samples < SAMPLE_COUNT_SINGLE_SCATTERING) {
+  while (sampleRadius <= TOP_RADIUS && sampleRadius >= BOTTOM_RADIUS) {
     dvec2 nextSamplePos = currentSamplePos + currentDir * dx;
 
-    vec2 currentSamplePosF = vec2(currentSamplePos);
-    vec2 nextSamplePosF    = vec2(nextSamplePos);
-    vec2 currentDirF       = vec2(currentDir);
+    sampleRadius    = length(currentSamplePos);
+    double nextR    = length(nextSamplePos);
+    double nextMuSD = clamp(dot(sunDir, nextSamplePos / nextR), -1.0, 1.0);
 
-    currentR        = length(currentSamplePosF);
-    float nextR     = length(nextSamplePosF);
-    float currentMu = clampCosine(dot(currentDirF, currentSamplePosF / currentR));
-    float nextMuSD  = clampCosine(dot(sunDir, nextSamplePosF / nextR));
+    vec3 transmittanceSun =
+        getTransmittanceToSun(transmittanceTexture, float(nextR), float(nextMuSD));
 
-    vec3 transmittanceSun = getTransmittanceToSun(transmittanceTexture, nextR, nextMuSD);
-    // vec3 transmittanceSun =
-    //     getTransmittanceToTopAtmosphereBoundary(transmittanceTexture, nextR, nextMuSD);
+    float altitude         = float(sampleRadius) - BOTTOM_RADIUS;
+    float moleculesDensity = getDensity(atmosphere.molecules.densityTextureV, altitude);
+    float aerosolsDensity  = getDensity(atmosphere.aerosols.densityTextureV, altitude);
+    float ozoneDensity     = getDensity(atmosphere.ozone.densityTextureV, altitude);
 
-    float moleculesOpticalDepth = float(dx) * getDensity(atmosphere.molecules.densityTextureV,
-                                                  float(currentR) - BOTTOM_RADIUS);
-    float aerosolsOpticalDepth  = float(dx) * getDensity(atmosphere.aerosols.densityTextureV,
-                                                  float(currentR) - BOTTOM_RADIUS);
-    float ozoneOpticalDepth =
-        float(dx) * getDensity(atmosphere.ozone.densityTextureV, float(currentR) - BOTTOM_RADIUS);
+    transmittanceRay *= exp(-(atmosphere.molecules.extinction * moleculesDensity * float(dx) +
+                              atmosphere.aerosols.extinction * aerosolsDensity * float(dx) +
+                              atmosphere.ozone.extinction * ozoneDensity * float(dx)));
 
-    transmittanceRay *= exp(-(atmosphere.molecules.extinction * moleculesOpticalDepth +
-                              atmosphere.aerosols.extinction * aerosolsOpticalDepth +
-                              atmosphere.ozone.extinction * ozoneOpticalDepth));
+    moleculesSum += transmittanceSun * vec3(transmittanceRay) * moleculesDensity;
+    aerosolsSum += transmittanceSun * vec3(transmittanceRay) * aerosolsDensity;
 
-    // transmittanceRay *= dvec3(getTransmittance(
-    //     transmittanceTexture, currentR, currentMu, float(dx), rayRMuIntersectsGround));
-
-    moleculesSum += transmittanceSun * vec3(transmittanceRay) *
-                    getDensity(atmosphere.molecules.densityTextureV, nextR - BOTTOM_RADIUS);
-    aerosolsSum += transmittanceSun * vec3(transmittanceRay) *
-                   getDensity(atmosphere.aerosols.densityTextureV, nextR - BOTTOM_RADIUS);
-
-    // If the ray intersects the ground, we have a problem: We do not have density information
-    // in the underground, so the ray traversal will become undefined. Hence we clamp the ray
-    // to the surface of the planet.
-    if (currentR < BOTTOM_RADIUS) {
-      rayRMuIntersectsGround = true;
-    } else {
-      currentDir = refractRay(currentSamplePos, currentDir, dx);
-    }
+    currentDir = refractRayRungeKutta(currentSamplePos, currentDir, dx);
 
     currentSamplePos = nextSamplePos;
   }
