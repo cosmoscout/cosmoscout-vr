@@ -322,10 +322,16 @@ __device__ glm::vec3 getLuminance(glm::dvec3 camera, glm::dvec3 viewRay, glm::dv
                         ? glm::vec3(0.0)
                         : getTransmittanceToTopAtmosphereBoundary(textures, geometry, mu);
 
-    // We consider all rays which passed closer than the average land elevation to the ground as
-    // shadowed.
-    if (contactRadius < 840 * 0.29) {
+    // To account for terrain height, we apply a very simple model. We assume that all rays passing
+    // above two times the mean elevation of the terrain are not affected by the terrain. All rays
+    // passing below zero elevation are completely blocked by the terrain. In between, the
+    // transmittance is linearly interpolated.
+    double meanLandElevation = 840 * 0.29;
+    if (contactRadius < 0.0) {
       transmittance = glm::vec3(0.0);
+    } else if (contactRadius < 2.F * meanLandElevation) {
+      float t       = (2.F * meanLandElevation - contactRadius) / (2.f * meanLandElevation);
+      transmittance = glm::mix(transmittance, glm::vec3(0.0), t);
     }
   }
 
