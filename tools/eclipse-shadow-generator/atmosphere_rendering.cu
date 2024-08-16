@@ -167,20 +167,20 @@ __device__ glm::vec3 getScatteringTextureUvwFromRMuMuSNu(advanced::Textures cons
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-__device__ bool getRefractedRay(advanced::Textures const& textures,
-    common::Geometry const& geometry, glm::dvec3 camera, glm::dvec3 ray, glm::dvec3& refractedRay) {
+__device__ glm::dvec3 getRefractedRay(advanced::Textures const& textures,
+    common::Geometry const& geometry, glm::dvec3 camera, glm::dvec3 ray, double& contactRadius) {
 
   double    mu = dot(camera, ray) / geometry.mRadiusAtmo;
   glm::vec2 uv = getTransmittanceTextureUvFromRMu(textures, geometry, mu);
 
   // Cosine of the angular deviation of the ray due to refraction.
-  glm::vec2  thetaDeviationHitsGround = glm::vec2(texture2D(textures.mThetaDeviation, uv));
-  double     muDeviation              = glm::cos(double(thetaDeviationHitsGround.x));
-  glm::dvec3 axis                     = glm::normalize(glm::cross(camera, ray));
+  glm::vec2  thetaDeviationContactRadius = glm::vec2(texture2D(textures.mThetaDeviation, uv));
+  double     muDeviation                 = glm::cos(double(thetaDeviationContactRadius.x));
+  glm::dvec3 axis                        = glm::normalize(glm::cross(camera, ray));
 
-  refractedRay = normalize(math::rotateVector(ray, axis, muDeviation));
+  contactRadius = thetaDeviationContactRadius.y;
 
-  return thetaDeviationHitsGround.y > 0.0;
+  return normalize(math::rotateVector(ray, axis, muDeviation));
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -315,13 +315,16 @@ __device__ glm::vec3 getLuminance(glm::dvec3 camera, glm::dvec3 viewRay, glm::dv
     skyLuminance = multipleScattering * moleculePhaseFunction(textures.mPhase, nu) +
                    singleAerosolsScattering * aerosolPhaseFunction(textures.mPhase, nu);
 
-    bool hitsGround = getRefractedRay(textures, geometry, camera, viewRay, refractedRay);
+    double contactRadius;
+    refractedRay = getRefractedRay(textures, geometry, camera, viewRay, contactRadius);
 
     transmittance = rayRMuIntersectsGround
                         ? glm::vec3(0.0)
                         : getTransmittanceToTopAtmosphereBoundary(textures, geometry, mu);
 
-    if (hitsGround) {
+    // We consider all rays which passed closer than the average land elevation to the ground as
+    // shadowed.
+    if (contactRadius < 840 * 0.29) {
       transmittance = glm::vec3(0.0);
     }
   }

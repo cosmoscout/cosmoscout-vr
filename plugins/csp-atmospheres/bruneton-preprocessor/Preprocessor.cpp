@@ -228,15 +228,15 @@ const char kComputeTransmittanceShader[] = R"(
   layout(location = 0) out vec3 oTransmittance;
 
 #if COMPUTE_REFRACTION
-  layout(location = 1) out vec3 oThetaDeviationHitsGround;
+  layout(location = 1) out vec3 oThetaDeviationContactRadius;
 #endif
 
   void main() {
     #if COMPUTE_REFRACTION
-      bool hitsGround;
+      float contactRadius;
       float thetaDeviation;
-      oTransmittance = computeTransmittanceToTopAtmosphereBoundaryTexture(ATMOSPHERE, gl_FragCoord.xy, thetaDeviation, hitsGround);
-      oThetaDeviationHitsGround = vec3(thetaDeviation, hitsGround ? 1.0 : 0.0, 0.0);
+      oTransmittance = computeTransmittanceToTopAtmosphereBoundaryTexture(ATMOSPHERE, gl_FragCoord.xy, thetaDeviation, contactRadius);
+      oThetaDeviationContactRadius = vec3(thetaDeviation, contactRadius, 0.0);
 
     #else
       oTransmittance = computeTransmittanceToTopAtmosphereBoundaryTexture(ATMOSPHERE, gl_FragCoord.xy);
@@ -714,7 +714,9 @@ Preprocessor::Preprocessor(Params params)
       "const int IRRADIANCE_TEXTURE_WIDTH = "         + cs::utils::toString(mParams.mIrradianceTextureWidth) + ";\n" +
       "const int IRRADIANCE_TEXTURE_HEIGHT = "        + cs::utils::toString(mParams.mIrradianceTextureHeight) + ";\n" +
       "const int SAMPLE_COUNT_OPTICAL_DEPTH = "       + cs::utils::toString(mParams.mSampleCountOpticalDepth) + ";\n" +
+      "const int STEP_SIZE_OPTICAL_DEPTH = "          + cs::utils::toString(mParams.mStepSizeOpticalDepth) + ";\n" +
       "const int SAMPLE_COUNT_SINGLE_SCATTERING = "   + cs::utils::toString(mParams.mSampleCountSingleScattering) + ";\n" +
+      "const int STEP_SIZE_SINGLE_SCATTERING = "      + cs::utils::toString(mParams.mStepSizeSingleScattering) + ";\n" +
       "const int SAMPLE_COUNT_SCATTERING_DENSITY = "  + cs::utils::toString(mParams.mSampleCountScatteringDensity) + ";\n" +
       "const int SAMPLE_COUNT_MULTI_SCATTERING = "    + cs::utils::toString(mParams.mSampleCountMultiScattering) + ";\n" +
       "const int SAMPLE_COUNT_INDIRECT_IRRADIANCE = " + cs::utils::toString(mParams.mSampleCountIndirectIrradiance) + ";\n" +
@@ -956,9 +958,9 @@ void Preprocessor::save(std::string const& directory) {
       int i = 3 * (y * mParams.mTransmittanceTextureWidth.get() + x);
 
       float thetaDeviation = pixels[i];
-      bool  hitsGround     = pixels[i + 1] > 0.F;
+      float contactRadius  = pixels[i + 1];
 
-      if (!hitsGround) {
+      if (contactRadius > 0.F) {
         maxThetaDeviation = std::max(maxThetaDeviation, thetaDeviation);
       }
     }

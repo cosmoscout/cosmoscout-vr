@@ -62,14 +62,14 @@ float getRefractiveIndexGradientLength(float height, float dh) {
 dvec2 rayGradient(dvec2 rayOrigin, dvec2 rayDir) {
   double altitude        = length(rayOrigin);
   double refractiveIndex = getRefractiveIndex(float(altitude) - BOTTOM_RADIUS);
-  double gradientLength  = getRefractiveIndexGradientLength(float(altitude) - BOTTOM_RADIUS, 10);
+  double gradientLength  = getRefractiveIndexGradientLength(float(altitude) - BOTTOM_RADIUS, 100);
   return rayOrigin / altitude * gradientLength;
 }
 
 dvec2 refractRay(dvec2 rayOrigin, dvec2 rayDir, double stepLength) {
   double altitude        = length(rayOrigin);
   double refractiveIndex = getRefractiveIndex(float(altitude) - BOTTOM_RADIUS);
-  double gradientLength  = getRefractiveIndexGradientLength(float(altitude) - BOTTOM_RADIUS, 10);
+  double gradientLength  = getRefractiveIndexGradientLength(float(altitude) - BOTTOM_RADIUS, 100);
   dvec2  dn              = rayOrigin / altitude * gradientLength;
   return normalize(refractiveIndex * rayDir + dn * stepLength);
 }
@@ -81,7 +81,7 @@ dvec2 refractRayRungeKutta(dvec2 rayOrigin, dvec2 rayDir, double stepLength) {
       stepLength * rayGradient(rayOrigin + 0.5 * stepLength * rayDir + 0.5 * k2, rayDir + 0.5 * k2);
   dvec2 k4 = stepLength * rayGradient(rayOrigin + stepLength * rayDir, rayDir + k3);
 
-  return rayDir + (k1 + 2.0 * k2 + 2.0 * k3 + k4) / 6.0;
+  return normalize(rayDir + (k1 + 2.0 * k2 + 2.0 * k3 + k4) / 6.0);
 }
 
 // If our ray hit the surface of the planet, the optical depth should be infinite. However,
@@ -96,7 +96,7 @@ dvec2 refractRayRungeKutta(dvec2 rayOrigin, dvec2 rayDir, double stepLength) {
 struct RayInfo {
   vec3  opticalDepth;
   float thetaDeviation;
-  bool  hitsGround;
+  float contactRadius;
 };
 
 // Using acos is not very stable for small angles. This function is used to compute the angle
@@ -110,42 +110,36 @@ float angleBetweenVectors(vec2 u, vec2 v) {
 // ray.
 RayInfo computeOpticalLengthToTopAtmosphereBoundary(float densityTextureV, float r, float mu) {
 
-  // double dx          = TOP_RADIUS / SAMPLE_COUNT_OPTICAL_DEPTH;
-  // double dx          = distanceToTopAtmosphereBoundary(r, mu) / SAMPLE_COUNT_OPTICAL_DEPTH;
-  double dx          = 1000.0;
+  double dx          = STEP_SIZE_OPTICAL_DEPTH;
   dvec2  startRayDir = vec2(sqrt(1 - mu * mu), mu);
 
   RayInfo result;
   result.opticalDepth   = vec3(0.0);
   result.thetaDeviation = 0.0;
-  result.hitsGround     = false;
+  result.contactRadius  = r - BOTTOM_RADIUS;
 
-  int samples = 0;
+  dvec2  samplePos    = vec2(0.0, r);
+  double sampleRadius = r;
+  dvec2  currentDir   = startRayDir;
 
-  dvec2  samplePos  = vec2(0.0, r);
-  double currentR   = r;
-  dvec2  currentDir = startRayDir;
-
-  while (currentR <= TOP_RADIUS && ++samples < SAMPLE_COUNT_OPTICAL_DEPTH) {
-    // for (int i = 0; i <= SAMPLE_COUNT_OPTICAL_DEPTH; ++i) {
+  while (sampleRadius <= TOP_RADIUS) {
 
     samplePos += currentDir * dx;
-    currentR = length(samplePos);
+    sampleRadius = length(samplePos);
 
-    result.opticalDepth += getDensity(densityTextureV, float(currentR) - BOTTOM_RADIUS);
+    float altitude = float(sampleRadius) - BOTTOM_RADIUS;
+    result.opticalDepth += getDensity(densityTextureV, altitude);
+    result.contactRadius = min(result.contactRadius, altitude);
 
     // If the ray intersects the ground, we have a problem: We do not have density information
     // in the underground, so the ray traversal will become undefined. Hence we clamp the ray
     // to the surface of the planet.
-    if (currentR < BOTTOM_RADIUS) {
-      result.hitsGround = true;
-    } else {
+    if (sampleRadius > BOTTOM_RADIUS) {
       currentDir = refractRayRungeKutta(samplePos, currentDir, dx);
     }
   }
 
   result.thetaDeviation = angleBetweenVectors(vec2(startRayDir), vec2(currentDir));
-
   result.opticalDepth *= float(dx);
 
   return result;
@@ -189,7 +183,7 @@ RayInfo computeOpticalLengthToTopAtmosphereBoundary(float densityTextureV, float
 #if COMPUTE_REFRACTION
 
 vec3 computeTransmittanceToTopAtmosphereBoundaryTexture(AtmosphereComponents atmosphere,
-    vec2 fragCoord, out float thetaDeviation, out bool hitsGround) {
+    vec2 fragCoord, out float thetaDeviation, out float contactRadius) {
 
 #else
 
@@ -216,7 +210,7 @@ vec3 computeTransmittanceToTopAtmosphereBoundaryTexture(
 
 #if COMPUTE_REFRACTION
   thetaDeviation = molecules.thetaDeviation;
-  hitsGround     = molecules.hitsGround;
+  contactRadius  = molecules.contactRadius;
 #endif
 
   return transmittance;

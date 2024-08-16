@@ -84,12 +84,18 @@ struct Params {
   /// The number of multiple scattering events to precompute. Use zero for single-scattering only.
   cs::utils::DefaultProperty<int32_t> mMultiScatteringOrder{4};
 
-  /// The number of samples to evaluate when precomputing the optical depth.
+  /// The number of samples to evaluate when precomputing the optical depth. If refraction is used,
+  /// the algorithm uses a fixed step size instead of a fixed number of samples. So if mRefraction
+  /// is true, mStepSizeOpticalDepth (in meters) will be used instead of mSampleCountOpticalDepth.
   cs::utils::DefaultProperty<int32_t> mSampleCountOpticalDepth{500};
+  cs::utils::DefaultProperty<int32_t> mStepSizeOpticalDepth{10000};
 
   /// The number of samples to evaluate when precomputing the single scattering. Larger values
-  /// improve the sampling of thin atmospheric layers.
+  /// improve the sampling of thin atmospheric layers. If refraction is used, the algorithm uses a
+  /// fixed step size instead of a fixed number of samples. So if mRefraction is true,
+  /// mStepSizeSingleScattering (in meters) will be used instead of mSampleCountSingleScattering.
   cs::utils::DefaultProperty<int32_t> mSampleCountSingleScattering{50};
+  cs::utils::DefaultProperty<int32_t> mStepSizeSingleScattering{10000};
 
   /// The number of samples to evaluate when precomputing the multiple scattering. Larger values
   /// tend to darken the horizon for thick atmospheres.

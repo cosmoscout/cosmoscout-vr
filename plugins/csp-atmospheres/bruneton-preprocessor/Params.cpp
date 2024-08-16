@@ -38,7 +38,9 @@ void from_json(nlohmann::json const& j, Params& o) {
   cs::core::Settings::deserialize(j, "groundAlbedo", o.mGroundAlbedo);
   cs::core::Settings::deserialize(j, "multiScatteringOrder", o.mMultiScatteringOrder);
   cs::core::Settings::deserialize(j, "sampleCountOpticalDepth", o.mSampleCountOpticalDepth);
+  cs::core::Settings::deserialize(j, "stepSizeOpticalDepth", o.mStepSizeOpticalDepth);
   cs::core::Settings::deserialize(j, "sampleCountSingleScattering", o.mSampleCountSingleScattering);
+  cs::core::Settings::deserialize(j, "stepSizeSingleScattering", o.mStepSizeSingleScattering);
   cs::core::Settings::deserialize(j, "sampleCountMultiScattering", o.mSampleCountMultiScattering);
   cs::core::Settings::deserialize(
       j, "sampleCountScatteringDensity", o.mSampleCountScatteringDensity);
