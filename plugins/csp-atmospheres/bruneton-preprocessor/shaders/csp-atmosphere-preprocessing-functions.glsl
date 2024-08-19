@@ -96,7 +96,7 @@ dvec2 refractRayRungeKutta(dvec2 rayOrigin, dvec2 rayDir, double stepLength) {
 // We accept this small error during real-time rendering, however for the eclipse-shadow
 // computation, we will require the information about the ground intersection.
 struct RayInfo {
-  vec3  opticalDepth;
+  float opticalDepth;
   float thetaDeviation;
   float contactRadius;
 };
@@ -116,7 +116,7 @@ RayInfo computeOpticalLengthToTopAtmosphereBoundary(float densityTextureV, float
   dvec2  startRayDir = vec2(sqrt(1 - mu * mu), mu);
 
   RayInfo result;
-  result.opticalDepth   = vec3(0.0);
+  result.opticalDepth   = 0.0;
   result.thetaDeviation = 0.0;
   result.contactRadius  = r - BOTTOM_RADIUS;
 
