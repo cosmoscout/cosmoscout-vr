@@ -98,8 +98,11 @@ struct Params {
   cs::utils::DefaultProperty<int32_t> mStepSizeSingleScattering{10000};
 
   /// The number of samples to evaluate when precomputing the multiple scattering. Larger values
-  /// tend to darken the horizon for thick atmospheres.
+  /// tend to darken the horizon for thick atmospheres. If refraction is used, the algorithm uses a
+  /// fixed step size instead of a fixed number of samples. So if mRefraction is true,
+  /// mStepSizeMultiScattering (in meters) will be used instead of mSampleCountMultiScattering.
   cs::utils::DefaultProperty<int32_t> mSampleCountMultiScattering{50};
+  cs::utils::DefaultProperty<int32_t> mStepSizeMultiScattering{10000};
 
   /// The number of samples to evaluate when precomputing the scattering density. Larger values
   /// spread out colors in the sky.

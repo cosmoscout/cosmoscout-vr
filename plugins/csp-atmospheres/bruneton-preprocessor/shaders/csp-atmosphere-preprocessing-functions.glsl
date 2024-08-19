@@ -7,6 +7,8 @@
 // SPDX-FileCopyrightText: 2008 INRIA
 // SPDX-License-Identifier: BSD-3-Clause
 
+#line 11
+
 // This file is based on the original implementation by Eric Bruneton:
 // https://github.com/ebruneton/precomputed_atmospheric_scattering/blob/master/atmosphere/functions.glsl
 
@@ -57,8 +59,6 @@ float getRefractiveIndexGradientLength(float height, float dh) {
   return (getRefractiveIndexMinusOne(height + dh) - getRefractiveIndexMinusOne(height)) / dh;
 }
 
-#line 61
-
 dvec2 rayGradient(dvec2 rayOrigin, dvec2 rayDir) {
   double altitude        = length(rayOrigin);
   double refractiveIndex = getRefractiveIndex(float(altitude) - BOTTOM_RADIUS);
@@ -75,13 +75,15 @@ dvec2 refractRay(dvec2 rayOrigin, dvec2 rayDir, double stepLength) {
 }
 
 dvec2 refractRayRungeKutta(dvec2 rayOrigin, dvec2 rayDir, double stepLength) {
-  dvec2 k1 = stepLength * rayGradient(rayOrigin, rayDir);
-  dvec2 k2 = stepLength * rayGradient(rayOrigin + 0.5 * stepLength * rayDir, rayDir + 0.5 * k1);
-  dvec2 k3 =
+  double altitude        = length(rayOrigin);
+  double refractiveIndex = getRefractiveIndex(float(altitude) - BOTTOM_RADIUS);
+  dvec2  k1              = stepLength * rayGradient(rayOrigin, rayDir);
+  dvec2  k2 = stepLength * rayGradient(rayOrigin + 0.5 * stepLength * rayDir, rayDir + 0.5 * k1);
+  dvec2  k3 =
       stepLength * rayGradient(rayOrigin + 0.5 * stepLength * rayDir + 0.5 * k2, rayDir + 0.5 * k2);
   dvec2 k4 = stepLength * rayGradient(rayOrigin + stepLength * rayDir, rayDir + k3);
 
-  return normalize(rayDir + (k1 + 2.0 * k2 + 2.0 * k3 + k4) / 6.0);
+  return normalize(refractiveIndex * rayDir + (k1 + 2.0 * k2 + 2.0 * k3 + k4) / 6.0);
 }
 
 // If our ray hit the surface of the planet, the optical depth should be infinite. However,
@@ -238,6 +240,21 @@ float distanceToNearestAtmosphereBoundary(float r, float mu, bool rayRMuIntersec
 
 #if COMPUTE_REFRACTION
 
+double clampCosine(double mu) {
+  return clamp(mu, -1.0, 1.0);
+}
+
+vec3 getTransmittanceForRaySegment(AtmosphereComponents atmosphere, float r, float dx) {
+  float altitude         = r - BOTTOM_RADIUS;
+  float moleculesDensity = getDensity(atmosphere.molecules.densityTextureV, altitude);
+  float aerosolsDensity  = getDensity(atmosphere.aerosols.densityTextureV, altitude);
+  float ozoneDensity     = getDensity(atmosphere.ozone.densityTextureV, altitude);
+
+  return exp(-dx * (atmosphere.molecules.extinction * moleculesDensity +
+                       atmosphere.aerosols.extinction * aerosolsDensity +
+                       atmosphere.ozone.extinction * ozoneDensity));
+}
+
 // As for the transmittance, the single-scattering computation is different if refraction is
 // incorporated. The ray is bent, so we cannot simply accumulate the scattering along a straight
 // line.
@@ -246,7 +263,6 @@ void computeSingleScattering(AtmosphereComponents atmosphere, sampler2D transmit
     out vec3 aerosols) {
 
   // The integration step, i.e. the length of each integration interval.
-  double dx = STEP_SIZE_SINGLE_SCATTERING;
 
   dvec2 currentDir = vec2(sqrt(1 - mu * mu), mu);
   vec2  sunDir     = vec2(sqrt(1 - muS * muS), muS);
@@ -260,34 +276,38 @@ void computeSingleScattering(AtmosphereComponents atmosphere, sampler2D transmit
   double sampleRadius = r;
 
   while (sampleRadius <= TOP_RADIUS + 10 && sampleRadius >= BOTTOM_RADIUS) {
-    dvec2 nextSamplePos = samplePos + currentDir * dx;
+    double dx            = STEP_SIZE_SINGLE_SCATTERING;
+    dvec2  nextSamplePos = samplePos + currentDir * dx;
+    double nextR         = length(nextSamplePos);
 
-    double nextR    = length(nextSamplePos);
-    double nextMuSD = clamp(dot(sunDir, nextSamplePos / nextR), -1.0, 1.0);
+    // If the segment intersects the ground, we shorten the segment to the intersection point.
+    if (nextR < BOTTOM_RADIUS) {
+      dx            = dx * (sampleRadius - BOTTOM_RADIUS) / (sampleRadius - nextR);
+      nextSamplePos = samplePos + currentDir * dx;
+      nextR         = BOTTOM_RADIUS;
+    }
+
+    double nextMuSD = clampCosine(dot(sunDir, nextSamplePos / nextR));
 
     vec3 transmittanceSun =
         getTransmittanceToSun(transmittanceTexture, float(nextR), float(nextMuSD));
 
-    float altitude         = float(sampleRadius) - BOTTOM_RADIUS;
-    float moleculesDensity = getDensity(atmosphere.molecules.densityTextureV, altitude);
-    float aerosolsDensity  = getDensity(atmosphere.aerosols.densityTextureV, altitude);
-    float ozoneDensity     = getDensity(atmosphere.ozone.densityTextureV, altitude);
+    transmittanceRay *= getTransmittanceForRaySegment(atmosphere, float(sampleRadius), float(dx));
 
-    transmittanceRay *= exp(-float(dx) * (atmosphere.molecules.extinction * moleculesDensity +
-                                             atmosphere.aerosols.extinction * aerosolsDensity +
-                                             atmosphere.ozone.extinction * ozoneDensity));
+    float nextAltitude     = float(nextR) - BOTTOM_RADIUS;
+    float moleculesDensity = getDensity(atmosphere.molecules.densityTextureV, nextAltitude);
+    float aerosolsDensity  = getDensity(atmosphere.aerosols.densityTextureV, nextAltitude);
+    moleculesSum += transmittanceSun * vec3(transmittanceRay) * moleculesDensity * float(dx);
+    aerosolsSum += transmittanceSun * vec3(transmittanceRay) * aerosolsDensity * float(dx);
 
-    moleculesSum += transmittanceSun * vec3(transmittanceRay) * moleculesDensity;
-    aerosolsSum += transmittanceSun * vec3(transmittanceRay) * aerosolsDensity;
+    currentDir = refractRayRungeKutta(samplePos, currentDir, dx);
 
-    currentDir = refractRay(samplePos, currentDir, dx);
-
-    samplePos    = nextSamplePos;
+    samplePos    = samplePos + currentDir * STEP_SIZE_SINGLE_SCATTERING;
     sampleRadius = length(samplePos);
   }
 
-  molecules = moleculesSum * float(dx) * SOLAR_IRRADIANCE * atmosphere.molecules.scattering;
-  aerosols  = aerosolsSum * float(dx) * SOLAR_IRRADIANCE * atmosphere.aerosols.scattering;
+  molecules = moleculesSum * SOLAR_IRRADIANCE * atmosphere.molecules.scattering;
+  aerosols  = aerosolsSum * SOLAR_IRRADIANCE * atmosphere.aerosols.scattering;
 }
 
 #else
@@ -495,8 +515,48 @@ vec3 computeScatteringDensity(AtmosphereComponents atmosphere, sampler2D transmi
   return moleculesAerosols;
 }
 
-vec3 computeMultipleScattering(sampler2D transmittanceTexture, sampler3D scatteringDensityTexture,
-    float r, float mu, float muS, float nu, bool rayRMuIntersectsGround) {
+#if COMPUTE_REFRACTION
+
+vec3 computeMultipleScattering(AtmosphereComponents atmosphere, sampler2D transmittanceTexture,
+    sampler3D scatteringDensityTexture, float r, float mu, float muS, float nu,
+    bool rayRMuIntersectsGround) {
+
+  double dx = STEP_SIZE_MULTI_SCATTERING;
+
+  vec2   sunDir           = vec2(sqrt(1 - muS * muS), muS);
+  dvec2  currentDir       = vec2(sqrt(1 - mu * mu), mu);
+  dvec2  samplePos        = vec2(0.0, r);
+  dvec3  transmittanceRay = dvec3(1.0);
+  double sampleRadius     = r;
+
+  // Integration loop.
+  vec3 moleculesAerosolsSum = vec3(0.0);
+
+  while (sampleRadius <= TOP_RADIUS + 10 && sampleRadius >= BOTTOM_RADIUS) {
+    double currentMu  = clampCosine(dot(samplePos / sampleRadius, currentDir));
+    double currentMuS = clampCosine(dot(samplePos / sampleRadius, sunDir));
+    double currentNu  = clampCosine(dot(currentDir, sunDir));
+
+    transmittanceRay *= getTransmittanceForRaySegment(atmosphere, float(sampleRadius), float(dx));
+
+    moleculesAerosolsSum +=
+        getScattering(scatteringDensityTexture, float(sampleRadius), float(currentMu),
+            float(currentMuS), float(currentNu), rayRMuIntersectsGround) *
+        vec3(transmittanceRay) * float(dx);
+
+    currentDir = refractRayRungeKutta(samplePos, currentDir, dx);
+    samplePos += currentDir * dx;
+    sampleRadius = length(samplePos);
+  }
+
+  return moleculesAerosolsSum;
+}
+
+#else
+
+vec3 computeMultipleScattering(AtmosphereComponents atmosphere, sampler2D transmittanceTexture,
+    sampler3D scatteringDensityTexture, float r, float mu, float muS, float nu,
+    bool rayRMuIntersectsGround) {
 
   // The integration step, i.e. the length of each integration interval.
   float dx = distanceToNearestAtmosphereBoundary(r, mu, rayRMuIntersectsGround) /
@@ -523,6 +583,8 @@ vec3 computeMultipleScattering(sampler2D transmittanceTexture, sampler3D scatter
   return moleculesAerosolsSum;
 }
 
+#endif
+
 // Multiple-Scattering Texture Precomputation ------------------------------------------------------
 
 // The code below is used to store the multiple scattering (with the phase function applied) in a
@@ -548,15 +610,16 @@ vec3 computeScatteringDensityTexture(AtmosphereComponents atmosphere,
       irradianceTexture, r, mu, muS, nu, scatteringOrder);
 }
 
-vec3 computeMultipleScatteringTexture(sampler2D transmittanceTexture,
-    sampler3D scatteringDensityTexture, vec3 fragCoord, out float nu) {
+vec3 computeMultipleScatteringTexture(AtmosphereComponents atmosphere,
+    sampler2D transmittanceTexture, sampler3D scatteringDensityTexture, vec3 fragCoord,
+    out float nu) {
   float r;
   float mu;
   float muS;
   bool  rayRMuIntersectsGround;
   getRMuMuSNuFromScatteringTextureFragCoord(fragCoord, r, mu, muS, nu, rayRMuIntersectsGround);
-  return computeMultipleScattering(
-      transmittanceTexture, scatteringDensityTexture, r, mu, muS, nu, rayRMuIntersectsGround);
+  return computeMultipleScattering(atmosphere, transmittanceTexture, scatteringDensityTexture, r,
+      mu, muS, nu, rayRMuIntersectsGround);
 }
 
 // Compute Irradiance ------------------------------------------------------------------------------

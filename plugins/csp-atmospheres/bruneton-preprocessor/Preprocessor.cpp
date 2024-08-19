@@ -325,7 +325,7 @@ const char kComputeMultipleScatteringShader[] = R"(
   
   void main() {
     float nu;
-    oDeltaMultipleScattering = computeMultipleScatteringTexture(uTransmittanceTexture,
+    oDeltaMultipleScattering = computeMultipleScatteringTexture(ATMOSPHERE, uTransmittanceTexture,
                                                                 uScatteringDensityTexture,
                                                                 vec3(gl_FragCoord.xy, uLayer + 0.5),
                                                                 nu);
@@ -719,6 +719,7 @@ Preprocessor::Preprocessor(Params params)
       "const int STEP_SIZE_SINGLE_SCATTERING = "      + cs::utils::toString(mParams.mStepSizeSingleScattering) + ";\n" +
       "const int SAMPLE_COUNT_SCATTERING_DENSITY = "  + cs::utils::toString(mParams.mSampleCountScatteringDensity) + ";\n" +
       "const int SAMPLE_COUNT_MULTI_SCATTERING = "    + cs::utils::toString(mParams.mSampleCountMultiScattering) + ";\n" +
+      "const int STEP_SIZE_MULTI_SCATTERING = "       + cs::utils::toString(mParams.mStepSizeMultiScattering) + ";\n" +
       "const int SAMPLE_COUNT_INDIRECT_IRRADIANCE = " + cs::utils::toString(mParams.mSampleCountIndirectIrradiance) + ";\n" +
       "const vec3 SOLAR_IRRADIANCE = "                + extractVec3(WAVELENGTHS, SOLAR_IRRADIANCE, lambdas) + ";\n" +
       "const vec3 GROUND_ALBEDO = vec3("              + cs::utils::toString(mParams.mGroundAlbedo) + ");\n" +

@@ -387,7 +387,7 @@ bool Atmosphere::Do() {
   frustum.setFromMatrix(matP);
   float approxPixelSize = frustum.getHorizontalFOV() / iViewport[2];
   float minPixelWidth   = 10.f;
-  if (phiAtmo - phiOcc > minPixelWidth * approxPixelSize) {
+  if (occDist < atmoRadius || phiAtmo - phiOcc > minPixelWidth * approxPixelSize) {
     y = 0.0;
   }
 

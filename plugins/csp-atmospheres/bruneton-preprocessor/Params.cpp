@@ -42,6 +42,7 @@ void from_json(nlohmann::json const& j, Params& o) {
   cs::core::Settings::deserialize(j, "sampleCountSingleScattering", o.mSampleCountSingleScattering);
   cs::core::Settings::deserialize(j, "stepSizeSingleScattering", o.mStepSizeSingleScattering);
   cs::core::Settings::deserialize(j, "sampleCountMultiScattering", o.mSampleCountMultiScattering);
+  cs::core::Settings::deserialize(j, "stepSizeMultiScattering", o.mStepSizeMultiScattering);
   cs::core::Settings::deserialize(
       j, "sampleCountScatteringDensity", o.mSampleCountScatteringDensity);
   cs::core::Settings::deserialize(
