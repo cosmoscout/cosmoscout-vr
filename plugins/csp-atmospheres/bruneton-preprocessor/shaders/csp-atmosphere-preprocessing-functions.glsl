@@ -278,12 +278,10 @@ void computeSingleScattering(AtmosphereComponents atmosphere, sampler2D transmit
   dvec2 currentDir = vec2(sqrt(1 - mu * mu), mu);
   vec3  sunDir     = getSunDirection(mu, muS, nu);
 
-  // Integration loop.
   vec3  moleculesSum     = vec3(0.0);
   vec3  aerosolsSum      = vec3(0.0);
   dvec3 transmittanceRay = dvec3(1.0);
 
-  dvec2  origin       = vec2(0.0, r);
   dvec2  samplePos    = vec2(0.0, r);
   double sampleRadius = r;
 
@@ -299,12 +297,9 @@ void computeSingleScattering(AtmosphereComponents atmosphere, sampler2D transmit
       nextR         = BOTTOM_RADIUS;
     }
 
-    float muSD =
-        clampCosine(dot(sunDir, vec3(nextSamplePos.x, nextSamplePos.y, 0.0)) / float(nextR));
+    float muSD = clampCosine(dot(sunDir, vec3(nextSamplePos, 0.0)) / float(nextR));
 
-    vec3 transmittanceSun =
-        getTransmittanceToTopAtmosphereBoundary(transmittanceTexture, float(nextR), muSD);
-
+    vec3 transmittanceSun = getTransmittanceToSun(transmittanceTexture, float(nextR), muSD);
     transmittanceRay *= getTransmittanceForRaySegment(atmosphere, float(sampleRadius), float(dx));
 
     float nextAltitude     = float(nextR) - BOTTOM_RADIUS;
@@ -315,7 +310,7 @@ void computeSingleScattering(AtmosphereComponents atmosphere, sampler2D transmit
 
     currentDir = refractRayRungeKutta(samplePos, currentDir, dx);
 
-    samplePos    = samplePos + currentDir * STEP_SIZE_SINGLE_SCATTERING;
+    samplePos += currentDir * STEP_SIZE_SINGLE_SCATTERING;
     sampleRadius = length(samplePos);
   }
 
