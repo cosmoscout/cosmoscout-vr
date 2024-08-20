@@ -258,12 +258,12 @@ vec3 getTransmittanceForRaySegment(AtmosphereComponents atmosphere, float r, flo
 // The direction to the sun is encoded using the cosines of the zenith angle muS and the cosine to
 // the ray direction nu. We reconstruct the 3D direction vector from these two values.
 vec3 getSunDirection(float mu, float muS, float nu) {
-  float rayDirX = sqrt(1 - mu * mu);
+  float rayDirX = safeSqrt(1 - mu * mu);
   float rayDirY = mu;
 
-  float sunDirX = (nu - rayDirY * muS) / rayDirX;
+  float sunDirX = (nu - rayDirY * muS) / (rayDirX + 1e-20);
   float sunDirY = muS;
-  float sunDirZ = sqrt(1 - sunDirX * sunDirX - sunDirY * sunDirY);
+  float sunDirZ = safeSqrt(1 - sunDirX * sunDirX - sunDirY * sunDirY);
 
   return vec3(sunDirX, sunDirY, sunDirZ);
 }
@@ -529,21 +529,20 @@ vec3 computeMultipleScattering(AtmosphereComponents atmosphere, sampler2D transm
     sampler3D scatteringDensityTexture, float r, float mu, float muS, float nu,
     bool rayRMuIntersectsGround) {
 
-  double dx = STEP_SIZE_MULTI_SCATTERING;
+  double dx         = STEP_SIZE_MULTI_SCATTERING;
+  dvec2  currentDir = vec2(sqrt(1 - mu * mu), mu);
+  vec3   sunDir     = getSunDirection(mu, muS, nu);
 
-  vec2   sunDir           = vec2(sqrt(1 - muS * muS), muS);
-  dvec2  currentDir       = vec2(sqrt(1 - mu * mu), mu);
-  dvec2  samplePos        = vec2(0.0, r);
-  dvec3  transmittanceRay = dvec3(1.0);
-  double sampleRadius     = r;
+  vec3  moleculesAerosolsSum = vec3(0.0);
+  dvec3 transmittanceRay     = dvec3(1.0);
 
-  // Integration loop.
-  vec3 moleculesAerosolsSum = vec3(0.0);
+  dvec2  samplePos    = vec2(0.0, r);
+  double sampleRadius = r;
 
   while (sampleRadius <= TOP_RADIUS + 10 && sampleRadius >= BOTTOM_RADIUS) {
     double currentMu  = clampCosine(dot(samplePos / sampleRadius, currentDir));
-    double currentMuS = clampCosine(dot(samplePos / sampleRadius, sunDir));
-    double currentNu  = clampCosine(dot(currentDir, sunDir));
+    double currentMuS = clampCosine(dot(dvec3(samplePos, 0.0) / sampleRadius, sunDir));
+    double currentNu  = clampCosine(dot(dvec3(currentDir, 0.0), sunDir));
 
     transmittanceRay *= getTransmittanceForRaySegment(atmosphere, float(sampleRadius), float(dx));
 
