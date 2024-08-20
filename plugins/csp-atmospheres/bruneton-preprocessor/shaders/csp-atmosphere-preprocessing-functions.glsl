@@ -255,6 +255,19 @@ vec3 getTransmittanceForRaySegment(AtmosphereComponents atmosphere, float r, flo
                        atmosphere.ozone.extinction * ozoneDensity));
 }
 
+// The direction to the sun is encoded using the cosines of the zenith angle muS and the cosine to
+// the ray direction nu. We reconstruct the 3D direction vector from these two values.
+vec3 getSunDirection(float mu, float muS, float nu) {
+  float rayDirX = sqrt(1 - mu * mu);
+  float rayDirY = mu;
+
+  float sunDirX = (nu - rayDirY * muS) / rayDirX;
+  float sunDirY = muS;
+  float sunDirZ = sqrt(1 - sunDirX * sunDirX - sunDirY * sunDirY);
+
+  return vec3(sunDirX, sunDirY, sunDirZ);
+}
+
 // As for the transmittance, the single-scattering computation is different if refraction is
 // incorporated. The ray is bent, so we cannot simply accumulate the scattering along a straight
 // line.
@@ -262,16 +275,15 @@ void computeSingleScattering(AtmosphereComponents atmosphere, sampler2D transmit
     float r, float mu, float muS, float nu, bool rayRMuIntersectsGround, out vec3 molecules,
     out vec3 aerosols) {
 
-  // The integration step, i.e. the length of each integration interval.
-
   dvec2 currentDir = vec2(sqrt(1 - mu * mu), mu);
-  vec2  sunDir     = vec2(sqrt(1 - muS * muS), muS);
+  vec3  sunDir     = getSunDirection(mu, muS, nu);
 
   // Integration loop.
   vec3  moleculesSum     = vec3(0.0);
   vec3  aerosolsSum      = vec3(0.0);
   dvec3 transmittanceRay = dvec3(1.0);
 
+  dvec2  origin       = vec2(0.0, r);
   dvec2  samplePos    = vec2(0.0, r);
   double sampleRadius = r;
 
@@ -287,10 +299,11 @@ void computeSingleScattering(AtmosphereComponents atmosphere, sampler2D transmit
       nextR         = BOTTOM_RADIUS;
     }
 
-    double nextMuSD = clampCosine(dot(sunDir, nextSamplePos / nextR));
+    float muSD =
+        clampCosine(dot(sunDir, vec3(nextSamplePos.x, nextSamplePos.y, 0.0)) / float(nextR));
 
     vec3 transmittanceSun =
-        getTransmittanceToSun(transmittanceTexture, float(nextR), float(nextMuSD));
+        getTransmittanceToTopAtmosphereBoundary(transmittanceTexture, float(nextR), muSD);
 
     transmittanceRay *= getTransmittanceForRaySegment(atmosphere, float(sampleRadius), float(dx));
 
