@@ -1,12 +1,17 @@
 {
   "multiScatteringOrder": 10,
   "sunDistance": 149600000000,
-  "minAltitude": 6370900,
+  "minAltitude": 6371000,
   "maxAltitude": 6451000,
-  "sampleCountOpticalDepth": 10000,
-  "sampleCountSingleScattering": 150,
+  "stepSizeOpticalDepth": 10000,
+  "stepSizeSingleScattering": 5000,
+  "stepSizeMultiScattering": 10000,
   "transmittanceTextureWidth": 256,
   "transmittanceTextureHeight": 128,
+  "scatteringTextureRSize": 32,
+  "scatteringTextureMuSize": 128,
+  "scatteringTextureMuSSize": 32,
+  "scatteringTextureNuSize": 8,
   "refraction": true,
   "molecules": {
     "phase": "plugins/csp-atmospheres/scattering-table-generator/output/earth_cosmoscout_molecules_phase.csv",
@@ -24,5 +29,5 @@
     "betaAbs": "plugins/csp-atmospheres/scattering-table-generator/output/earth_cosmoscout_ozone_absorption.csv",
     "density": "plugins/csp-atmospheres/scattering-table-generator/output/earth_cosmoscout_ozone_density.csv"
   },
-  "ior": 0.000273
+  "ior": 0.000277
 }
