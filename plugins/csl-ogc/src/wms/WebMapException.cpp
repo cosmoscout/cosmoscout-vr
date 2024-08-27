@@ -21,7 +21,7 @@ WebMapException::WebMapException(VistaXML::TiXmlElement* element)
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 WebMapExceptionReport::WebMapExceptionReport(VistaXML::TiXmlDocument const& doc)
-    : OGCExceptionReport(std::move(parseExceptions(doc))) {
+    : OGCExceptionReport(parseExceptions(doc)) {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -41,8 +41,8 @@ std::vector<std::unique_ptr<OGCException>> WebMapExceptionReport::parseException
 
   std::vector<std::unique_ptr<OGCException>> exceptions{};
   for (VistaXML::TiXmlElement* exceptionElement = root->FirstChildElement("ServiceException");
-       exceptionElement != nullptr;
-       exceptionElement = exceptionElement->NextSiblingElement("ServiceException")) {
+      exceptionElement != nullptr;
+      exceptionElement = exceptionElement->NextSiblingElement("ServiceException")) {
     exceptions.push_back(std::make_unique<WebMapException>(exceptionElement));
   }
 

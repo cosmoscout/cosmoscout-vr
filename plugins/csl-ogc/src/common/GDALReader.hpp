@@ -64,25 +64,20 @@ class CSL_OGC_EXPORT GDALReader {
   static void InitGDAL();
 
   /**
-   * Reads a GDAL supported gray scale image into the texture passed as reference
+   * Reads a GDAL supported image into the texture passed as reference.
    */
-  static void ReadGrayScaleTexture(Texture& texture, std::string filename, int layer = 1);
+  static void ReadTexture(Texture& texture, std::string filename);
 
   /**
-   * Reads a GDAL supported gray scale image from a stream into the texture passed as reference
+   * Reads a GDAL supported gray scale image from a stream into the texture passed as reference.
    */
-  static void ReadGrayScaleTexture(Texture& texture, std::stringstream const& data,
-      const std::string& filename, int layer = 1);
+  static void ReadTexture(
+      Texture& texture, std::stringstream const& data, const std::string& filename);
 
   /**
-   * Get the number of layers in the texture
+   * Adds a texture with unique key to the cache
    */
-  static int ReadNumberOfLayers(std::string filename);
-
-  /**
-   * Adds a texture with unique path to the cache
-   */
-  static void AddTextureToCache(const std::string& path, Texture& texture);
+  static void AddTextureToCache(std::string const& key, Texture const& texture);
 
   /**
    * Clear cache
@@ -91,10 +86,9 @@ class CSL_OGC_EXPORT GDALReader {
 
  private:
   /**
-   * Warps the given dataset to WGS84, writes the data to "texture" and caches it
+   * Warps the given dataset to WGS84, writes the data to "texture" and caches it.
    */
-  static void BuildTexture(GDALDataset* poDatasetSrc, Texture& texture,
-      std::string const& filename, int layer = 1);
+  static void BuildTexture(GDALDataset* dataset, Texture& texture, std::string const& filename);
 
   /**
    * Mapping of (virtual) filesystem path to calculated greyscale texture
@@ -104,9 +98,8 @@ class CSL_OGC_EXPORT GDALReader {
   /**
    * Mapping of (virtual) filesystem path to number of bands in a texture
    */
-  static std::map<std::string, int> mBandsCache;
-  static std::mutex                 mMutex;
-  static bool                       mIsInitialized;
+  static std::mutex mMutex;
+  static bool       mIsInitialized;
 };
 
 } // namespace csl::ogc

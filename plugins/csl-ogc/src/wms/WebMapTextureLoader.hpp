@@ -36,7 +36,7 @@ class CSL_OGC_EXPORT WebMapTextureLoader {
   struct Request {
     int                        mMaxSize{};
     std::string                mStyle;
-    Bounds2D                     mBounds;
+    Bounds2D                   mBounds;
     std::optional<std::string> mTime;
   };
 

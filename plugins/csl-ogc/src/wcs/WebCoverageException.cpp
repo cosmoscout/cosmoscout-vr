@@ -22,7 +22,7 @@ WebCoverageException::WebCoverageException(VistaXML::TiXmlElement* element)
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 WebCoverageExceptionReport::WebCoverageExceptionReport(VistaXML::TiXmlDocument const& doc)
-    : OGCExceptionReport(std::move(parseExceptions(doc))) {
+    : OGCExceptionReport(parseExceptions(doc)) {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -42,8 +42,8 @@ std::vector<std::unique_ptr<OGCException>> WebCoverageExceptionReport::parseExce
 
   std::vector<std::unique_ptr<OGCException>> exceptions{};
   for (VistaXML::TiXmlElement* exceptionElement = root->FirstChildElement("ows:Exception");
-       exceptionElement != nullptr;
-       exceptionElement = exceptionElement->NextSiblingElement("ows:Exception")) {
+      exceptionElement != nullptr;
+      exceptionElement = exceptionElement->NextSiblingElement("ows:Exception")) {
     exceptions.push_back(std::make_unique<WebCoverageException>(exceptionElement));
   }
 

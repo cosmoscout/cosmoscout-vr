@@ -30,13 +30,12 @@ class CSL_OGC_EXPORT WebCoverageTextureLoader {
  public:
   /// Struct for defining parameters for a request to a WCS.
   struct Request {
-    int                        mMaxSize{};
-    Bounds2D                     mBounds;
-    std::optional<std::string> mTime;
-    std::optional<std::string> mFormat;
+    int32_t  mMaxSize{};
+    Bounds2D mBounds;
 
-    // Not used in actual requests, only internally
-    std::optional<int> layer;
+    std::optional<std::string>         mTime;
+    std::optional<std::string>         mFormat;
+    std::optional<std::pair<int, int>> mLayerRange;
   };
 
   /// Creates a new ThreadPool with the specified amount of threads.
@@ -44,13 +43,13 @@ class CSL_OGC_EXPORT WebCoverageTextureLoader {
 
   /// Async WCS texture loader.
   /// Returns an empty optional if loading the texture failed.
-  std::future<std::optional<GDALReader::GreyScaleTexture>> loadTextureAsync(
-      WebCoverageService const& wcs, WebCoverage const& coverage, Request const& request,
-      std::string const& coverageCache, bool saveToCache);
+  std::future<std::optional<GDALReader::Texture>> loadTextureAsync(WebCoverageService const& wcs,
+      WebCoverage const& coverage, Request const& request, std::string const& coverageCache,
+      bool saveToCache);
 
   /// WCS texture loader.
   /// Returns an empty optional if loading the texture failed.
-  std::optional<GDALReader::GreyScaleTexture> loadTexture(WebCoverageService const& wcs,
+  std::optional<GDALReader::Texture> loadTexture(WebCoverageService const& wcs,
       WebCoverage const& coverage, Request const& request, std::string const& coverageCache,
       bool saveToCache);
 
@@ -59,7 +58,7 @@ class CSL_OGC_EXPORT WebCoverageTextureLoader {
   /// Returns a binary stream of the texture file if the request succeeds.
   /// Returns an empty optional if the request fails.
   std::optional<std::stringstream> requestTexture(
-      WebCoverageService const& wcs, WebCoverage const& layer, Request const& request);
+      WebCoverageService const& wcs, WebCoverage const& coverage, Request const& request);
 
   /// Saves a binary stream of a texture file to the given path.
   void saveTextureToFile(boost::filesystem::path const& file, std::stringstream const& data);

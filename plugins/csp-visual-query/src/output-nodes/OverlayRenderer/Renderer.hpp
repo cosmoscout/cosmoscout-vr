@@ -39,8 +39,10 @@ class Renderer final : public IVistaOpenGLDraw {
   bool GetBoundingBox(VistaBoundingBox& bb) override;
 
   void        setData(std::shared_ptr<Image2D> const& image);
-  void        setCenter(std::string center);
-  std::string getCenter() const;
+  void        setLUT(std::vector<glm::vec4> const& lut);
+  void        setMinMax(glm::vec2 const& minMax);
+  void        setObject(std::string objectName);
+  std::string getObject() const;
 
  private:
   std::string                            mObjectName;
@@ -55,6 +57,11 @@ class Renderer final : public IVistaOpenGLDraw {
   VistaTexture mTexture;
   bool         mHasTexture;
 
+  VistaTexture mLUT;
+  bool         mHasLUT;
+
+  glm::vec2 mMinMax = glm::vec2(0, 1);
+
   /// Store one buffer per viewport
   std::map<VistaViewport*, VistaTexture> mDepthBufferData;
 
@@ -65,9 +72,6 @@ class Renderer final : public IVistaOpenGLDraw {
   glm::vec3 mMaxBounds;
 
   csl::ogc::Bounds2D mBounds;
-
-  float mMinValue;
-  float mMaxValue;
 
   bool mShaderDirty = true;
 

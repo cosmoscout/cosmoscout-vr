@@ -65,7 +65,7 @@ uniform vec3          uRadii;
 
 uniform vec3          uSunDirection;
 
-uniform float         uDataTypeSize;
+uniform float         uDataMaxValue;
 
 in vec2 texcoord;
 
@@ -115,7 +115,7 @@ void main() {
         discard;
       }
 
-      value = value * uDataTypeSize;
+      value = value * uDataMaxValue;
 
       // Texture lookup and color mapping
       float normSimValue  = (value - uRange.x) / (uRange.y - uRange.x);

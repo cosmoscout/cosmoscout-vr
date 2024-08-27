@@ -88,21 +88,21 @@ class StatusDisplay extends Rete.Control {
       elem.innerHTML = ''
       value.error.forEach((err) => {
         switch (err) {
-        case 'DimensionMismatch':
-          elem.innerHTML += 'Input dimensions do not match';
-          break;
-        case 'BoundsMismatch':
-          elem.innerHTML += 'Input bounds do not match';
-          break;
-        case 'NumScalarsMismatch':
-          elem.innerHTML += 'Input scalar sizes do not match';
-          break;
-        case 'PointsTypeMismatch':
-          elem.innerHTML += 'Input scalar types do not match';
-          break;
-        default:
-          elem.innerHTML += value.status;
-          break;
+          case 'DimensionMismatch':
+            elem.innerHTML += 'Input dimensions do not match';
+            break;
+          case 'BoundsMismatch':
+            elem.innerHTML += 'Input bounds do not match';
+            break;
+          case 'NumScalarsMismatch':
+            elem.innerHTML += 'Input scalar sizes do not match';
+            break;
+          case 'PointsTypeMismatch':
+            elem.innerHTML += 'Input scalar types do not match';
+            break;
+          default:
+            elem.innerHTML += value.status;
+            break;
         }
         elem.innerHTML += '<br>'
       })

@@ -281,7 +281,7 @@ std::string WebMapTextureLoader::getRequestUrl(
   url.precision(std::numeric_limits<double>::max_digits10);
 
   url << wms.getUrl();
-  url << "?SERVICE=WMS";
+  url << "&SERVICE=WMS";
   url << "&VERSION=1.3.0";
   url << "&REQUEST=GetMap";
   url << "&FORMAT=" << getMimeType(wms, layer);

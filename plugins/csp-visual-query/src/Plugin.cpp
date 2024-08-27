@@ -24,15 +24,9 @@
 #include "input-nodes/TransferFunction/TransferFunction.hpp"
 #include "input-nodes/WCSCoverage/WCSCoverage.hpp"
 #include "operation-nodes/DifferenceImage2D/DifferenceImage2D.hpp"
-#include "operation-nodes/TransferFunction/TransferFunction.hpp"
+#include "output-nodes/CoverageInfo/CoverageInfo.hpp"
 #include "output-nodes/OverlayRenderer/OverlayRender.hpp"
 #include "output-nodes/VolumeRenderer/VolumeRenderer.hpp"
-#include "output-nodes/CoverageViewer/CoverageViewer.hpp"
-#include "source-nodes/JsonVolumeFileLoader/JsonVolumeFileLoader.hpp"
-#include "source-nodes/RandomDataSource2D/RandomDataSource2D.hpp"
-#include "source-nodes/RandomDataSource3D/RandomDataSource3D.hpp"
-#include "source-nodes/WCSCoverage/WCSCoverage.hpp"
-#include "source-nodes/WCSCoverageImage/WCSCoverageImage.hpp"
 
 #include <vector>
 
@@ -72,18 +66,10 @@ void Plugin::init() {
   mOnLoadConnection = mAllSettings->onLoad().connect([this]() { onLoad(); });
   mOnSaveConnection = mAllSettings->onSave().connect([this]() { onSave(); });
 
-  // Restart the node editor if the port changes.
-  mPluginSettings.mPort.connect([this](uint16_t port) { setupNodeEditor(port); });
-
   onLoad();
 
-  // load WCS
-  for (std::string const& url : mPluginSettings.mWcsUrl) {
-    mPluginSettings.mWebCoverages.emplace_back(url, csl::ogc::WebServiceBase::CacheMode::eAlways,
-        "../../install/windows-Release/share/csp-visual-query/wcs-cache"
-
-    );
-  }
+  // Restart the node editor if the port changes.
+  mPluginSettings.mPort.connectAndTouch([this](uint16_t port) { setupNodeEditor(port); });
 
   logger().info("Loading done.");
 }
@@ -123,6 +109,13 @@ void Plugin::onLoad() {
     try {
       mNodeEditor->fromJSON(mPluginSettings.mGraph.value());
     } catch (std::exception const& e) { logger().warn("Failed to load node graph: {}", e.what()); }
+  }
+
+  // load WCS
+  mPluginSettings.mWebCoverages.clear();
+  for (std::string const& url : mPluginSettings.mWcsUrl) {
+    mPluginSettings.mWebCoverages.emplace_back(
+        url, csl::ogc::WebServiceBase::CacheMode::eAlways, "wcs-cache");
   }
 }
 
@@ -181,7 +174,8 @@ void Plugin::setupNodeEditor(uint16_t port) {
   // Now, we register our custom node types. Any parameter given to this method, will later be
   // passed to the constructor of the node instances. For more information, see the documentation of
   // NodeFactory::registerNodeType().
-  // Commons
+
+  // Constants
   factory.registerNodeType<Int>();
   factory.registerNodeType<Real>();
   factory.registerNodeType<RealVec2>();
@@ -194,19 +188,18 @@ void Plugin::setupNodeEditor(uint16_t port) {
 
   // Operations
   factory.registerNodeType<DifferenceImage2D>();
-  factory.registerNodeType<TransferFunction>();
-  // Outputs
-  factory.registerNodeType<WCSCoverage>(
-      std::shared_ptr<std::vector<csl::ogc::WebCoverageService>>(&mPluginSettings.mWebCoverages));
-  factory.registerNodeType<CoverageViewer>();
-  // Sources
-  factory.registerNodeType<RandomDataSource2D>();
-  factory.registerNodeType<RandomDataSource3D>();
-  factory.registerNodeType<WCSCoverageImage>();
-  factory.registerNodeType<JsonVolumeFileLoader>();
 
+  // Outputs
+  factory.registerNodeType<CoverageInfo>();
   factory.registerNodeType<OverlayRender>(mSolarSystem, mAllSettings);
   factory.registerNodeType<VolumeRenderer>(mSolarSystem, mAllSettings);
+
+  // Inputs
+  factory.registerNodeType<WCSCoverage>(mPluginSettings.mWebCoverages);
+  factory.registerNodeType<JsonVolumeFileLoader>();
+  factory.registerNodeType<RandomDataSource2D>();
+  factory.registerNodeType<RandomDataSource3D>();
+  factory.registerNodeType<TransferFunction>();
 
   // Finally, create the node editor. It will start the server so that we can now open a web browser
   // and navigate to localhost:<port>.

@@ -28,7 +28,7 @@ WebCoverageTextureLoader::WebCoverageTextureLoader()
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::future<std::optional<GDALReader::GreyScaleTexture>> WebCoverageTextureLoader::loadTextureAsync(
+std::future<std::optional<GDALReader::Texture>> WebCoverageTextureLoader::loadTextureAsync(
     WebCoverageService const& wcs, WebCoverage const& coverage, Request const& request,
     std::string const& coverageCache, bool saveToCache) {
   return mThreadPool.enqueue(
@@ -37,25 +37,24 @@ std::future<std::optional<GDALReader::GreyScaleTexture>> WebCoverageTextureLoade
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::optional<GDALReader::GreyScaleTexture> WebCoverageTextureLoader::loadTexture(
+std::optional<GDALReader::Texture> WebCoverageTextureLoader::loadTexture(
     WebCoverageService const& wcs, WebCoverage const& coverage, Request const& request,
     std::string const& coverageCache, bool saveToCache) {
   boost::filesystem::path cachePath = getCachePath(wcs, coverage, request, coverageCache);
 
   std::optional<std::stringstream> textureStream;
-  GDALReader::GreyScaleTexture     texture;
+  GDALReader::Texture              texture;
 
   if (saveToCache && boost::filesystem::exists(cachePath) &&
       boost::filesystem::file_size(cachePath) > 0) {
-    GDALReader::ReadGrayScaleTexture(texture, cachePath.string(), request.layer.value_or(1));
+    GDALReader::ReadTexture(texture, cachePath.string());
   } else {
     textureStream = requestTexture(wcs, coverage, request);
     if (!textureStream.has_value()) {
       return {};
     }
 
-    GDALReader::ReadGrayScaleTexture(
-        texture, textureStream.value(), cachePath.string(), request.layer.value_or(1));
+    GDALReader::ReadTexture(texture, textureStream.value(), cachePath.string());
 
     if (saveToCache) {
       textureStream.value().rdbuf()->pubseekpos(0);
@@ -63,7 +62,7 @@ std::optional<GDALReader::GreyScaleTexture> WebCoverageTextureLoader::loadTextur
     }
   }
 
-  if (!texture.buffer) {
+  if (!texture.mBuffer) {
     return {};
   }
 
@@ -73,9 +72,9 @@ std::optional<GDALReader::GreyScaleTexture> WebCoverageTextureLoader::loadTextur
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 std::optional<std::stringstream> WebCoverageTextureLoader::requestTexture(
-    WebCoverageService const& wcs, WebCoverage const& layer, Request const& wcsrequest) {
+    WebCoverageService const& wcs, WebCoverage const& coverage, Request const& request) {
 
-  std::string url = getRequestUrl(wcs, layer, wcsrequest);
+  std::string url = getRequestUrl(wcs, coverage, request);
 
   logger().debug("Performing WCS request '{}'.", url);
 
@@ -87,21 +86,21 @@ std::optional<std::stringstream> WebCoverageTextureLoader::requestTexture(
 
     std::stringstream out(std::ios_base::out | std::ios_base::in | std::ios_base::binary);
 
-    curlpp::Easy request;
-    request.setOpt(curlpp::options::Url(url));
-    request.setOpt(curlpp::options::WriteStream(&out));
-    request.setOpt(curlpp::options::NoSignal(true));
-    request.setOpt(curlpp::options::SslVerifyPeer(false));
-    request.setOpt(curlpp::options::FollowLocation(true));
+    curlpp::Easy curlRequest;
+    curlRequest.setOpt(curlpp::options::Url(url));
+    curlRequest.setOpt(curlpp::options::WriteStream(&out));
+    curlRequest.setOpt(curlpp::options::NoSignal(true));
+    curlRequest.setOpt(curlpp::options::SslVerifyPeer(false));
+    curlRequest.setOpt(curlpp::options::FollowLocation(true));
 
     try {
-      request.perform();
+      curlRequest.perform();
     } catch (std::exception& e) {
       logger().warn("Failed to perform WCS request '{}': '{}'!", url, e.what());
       continue;
     }
 
-    std::string contentType = curlpp::Info<CURLINFO_CONTENT_TYPE, std::string>::get(request);
+    std::string contentType = curlpp::Info<CURLINFO_CONTENT_TYPE, std::string>::get(curlRequest);
     // Remove suffix and parameter from content type
     size_t suffixPos    = contentType.find('+');
     size_t parameterPos = contentType.find(';');
@@ -131,12 +130,13 @@ std::optional<std::stringstream> WebCoverageTextureLoader::requestTexture(
         logger().debug("Could not create WebCoverageExceptionReport: '{}'.", e.what());
         continue;
       }
-    } else if (contentType != wcsrequest.mFormat.value_or("image/tiff")) {
+    } else if (contentType != request.mFormat.value_or("image/tiff")) {
       logger().debug("Received response of invalid MIME type '{}'.", contentType);
       continue;
     }
     return std::move(out);
   }
+
   logger().warn("Could not get a valid response for WCS request '{}'!", url);
   return {};
 }
@@ -189,15 +189,15 @@ boost::filesystem::path WebCoverageTextureLoader::getCachePath(WebCoverageServic
     WebCoverage const& coverage, Request const& request, std::string const& coverageCache) {
 
   // Replace forbidden characters in coverage string before creating cache dir.
-  std::string layerFixed;
+  std::string coverageFixed;
   boost::replace_copy_if(
-      coverage.getId(), std::back_inserter(layerFixed), boost::is_any_of("*.,:[|]\""), '_');
+      coverage.getId(), std::back_inserter(coverageFixed), boost::is_any_of("*.,:[|]\""), '_');
 
   // Set file format to three characters.
   std::string fileFormat = mMimeToExtension.at(request.mFormat.value_or("image/tiff"));
 
   std::stringstream cacheDir;
-  cacheDir << coverageCache << "/" << layerFixed << "/";
+  cacheDir << coverageCache << "/" << coverageFixed << "/";
   cacheDir << request.mMaxSize << "px/";
 
   if (request.mTime.has_value()) {
@@ -209,18 +209,23 @@ boost::filesystem::path WebCoverageTextureLoader::getCachePath(WebCoverageServic
     cacheDir << year << "/";
   }
 
-  std::stringstream cacheFile(cacheDir.str());
+  std::stringstream cacheFile;
+  cacheFile << cacheDir.str() << coverageFixed;
 
-  std::stringstream layer;
-  layer << "_Layer_" << std::to_string(request.layer.value_or(1));
+  if (request.mTime.has_value()) {
+    cacheFile << "_" << request.mTime.value();
+  }
+
+  if (request.mLayerRange.has_value()) {
+    cacheFile << "_" << std::to_string(request.mLayerRange.value().first) << "_"
+              << std::to_string(request.mLayerRange.value().second);
+  }
 
   // Add Bound string to cache file name
-  std::stringstream bound;
-  bound << "_Bounds_"
-    << utils::toStringWithoutTrailing(request.mBounds.mMinLon) << "_"
-    << utils::toStringWithoutTrailing(request.mBounds.mMaxLon) << "_"
-    << utils::toStringWithoutTrailing(request.mBounds.mMinLat) << "_"
-    << utils::toStringWithoutTrailing(request.mBounds.mMaxLat);
+  cacheFile << "_" << utils::toStringWithoutTrailing(request.mBounds.mMinLon) << "_"
+            << utils::toStringWithoutTrailing(request.mBounds.mMaxLon) << "_"
+            << utils::toStringWithoutTrailing(request.mBounds.mMinLat) << "_"
+            << utils::toStringWithoutTrailing(request.mBounds.mMaxLat);
 
   // Add time string to cache file name if time is specified
   if (request.mTime.has_value()) {
@@ -228,10 +233,10 @@ boost::filesystem::path WebCoverageTextureLoader::getCachePath(WebCoverageServic
     std::replace(timeForFile.begin(), timeForFile.end(), '/', '-');
     std::replace(timeForFile.begin(), timeForFile.end(), ':', '-');
 
-    cacheFile << cacheDir.str() << timeForFile << bound.str() << layer.str() << "." << fileFormat;
-  } else {
-    cacheFile << cacheDir.str() << layerFixed << bound.str() << layer.str() << "." << fileFormat;
+    cacheFile << timeForFile;
   }
+
+  cacheFile << "." << fileFormat;
 
   return boost::filesystem::path(cacheFile.str());
 }
@@ -245,7 +250,7 @@ std::string WebCoverageTextureLoader::getRequestUrl(
   url.precision(std::numeric_limits<double>::max_digits10);
 
   url << wcs.getUrl();
-  url << "?SERVICE=WCS";
+  url << "&SERVICE=WCS";
   url << "&VERSION=2.0.1";
   url << "&REQUEST=GetCoverage";
   url << "&COVERAGEID=" << coverage.getId();
@@ -272,9 +277,8 @@ std::string WebCoverageTextureLoader::getRequestUrl(
     height = std::max(1, height); // Ensure height is at least 1
 
     // &SCALESIZE=i(...),j(...)
-    url << "&SCALESIZE=" << coverage.getSettings().mAxisLabels[0] << "%28" << request.mMaxSize
-        << "%29";
-    url << "," << coverage.getSettings().mAxisLabels[1] << "%28" << request.mMaxSize << "%29";
+    url << "&SCALESIZE=" << coverage.getSettings().mAxisLabels[0] << "%28" << width << "%29";
+    url << "," << coverage.getSettings().mAxisLabels[1] << "%28" << height << "%29";
   }
 
   // Add time string to map server request if time is specified

@@ -31,6 +31,7 @@ Renderer::Renderer(std::shared_ptr<cs::core::SolarSystem> solarSystem,
     , mSettings(std::move(settings))
     , mTexture(GL_TEXTURE_2D)
     , mHasTexture(false)
+    , mLUT(GL_TEXTURE_1D)
     , mMinBounds(0)
     , mMaxBounds(0) {
 
@@ -53,6 +54,11 @@ Renderer::Renderer(std::shared_ptr<cs::core::SolarSystem> solarSystem,
   mTexture.SetWrapS(GL_CLAMP_TO_EDGE);
   mTexture.SetWrapT(GL_CLAMP_TO_EDGE);
   mTexture.Unbind();
+
+  mLUT.Bind();
+  mLUT.SetWrapS(GL_CLAMP_TO_EDGE);
+  mLUT.SetWrapT(GL_CLAMP_TO_EDGE);
+  mLUT.Unbind();
 
   // Add to scenegraph.
   VistaSceneGraph* pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
@@ -80,25 +86,18 @@ GLenum getPixelFormat(size_t numComponents) {
 }
 
 template <typename T>
-std::tuple<std::vector<T>, T, T> copyToTextureBuffer(
+std::vector<T> copyToTextureBuffer(
     std::vector<std::vector<T>> const& imageData, size_t numScalars) {
   std::vector<T> data{};
   data.reserve(imageData.size() * std::min(numScalars, static_cast<size_t>(4)));
 
-  T min = std::numeric_limits<T>::max();
-  T max = std::numeric_limits<T>::min();
-
   for (auto const& point : imageData) {
     for (size_t i = 0; i < 4 && i < point.size(); i++) {
       data.emplace_back(point[i]);
-      min = std::min(min, point[i]);
-      if (point[i] < 9.9e36) {
-        max = std::max(max, point[i]);
-      }
     }
   }
 
-  return {data, min, max};
+  return data;
 }
 
 void Renderer::setData(std::shared_ptr<Image2D> const& image) {
@@ -112,68 +111,65 @@ void Renderer::setData(std::shared_ptr<Image2D> const& image) {
   GLenum imageFormat = getPixelFormat(image->mNumScalars);
 
   if (std::holds_alternative<U8ValueVector>(image->mPoints)) {
-    auto imageData        = std::get<U8ValueVector>(image->mPoints);
-    auto [data, min, max] = copyToTextureBuffer(imageData, image->mNumScalars);
+    auto                 imageData = std::get<U8ValueVector>(image->mPoints);
+    std::vector<uint8_t> data      = copyToTextureBuffer(imageData, image->mNumScalars);
     mTexture.UploadTexture(image->mDimension.x, image->mDimension.y, data.data(), false,
         imageFormat, GL_UNSIGNED_BYTE);
 
-    mMinValue = static_cast<float>(min);
-    mMaxValue = static_cast<float>(max);
   } else if (std::holds_alternative<U16ValueVector>(image->mPoints)) {
-    auto imageData        = std::get<U16ValueVector>(image->mPoints);
-    auto [data, min, max] = copyToTextureBuffer(imageData, image->mNumScalars);
+    auto                  imageData = std::get<U16ValueVector>(image->mPoints);
+    std::vector<uint16_t> data      = copyToTextureBuffer(imageData, image->mNumScalars);
     mTexture.UploadTexture(image->mDimension.x, image->mDimension.y, data.data(), false,
         imageFormat, GL_UNSIGNED_SHORT);
 
-    mMinValue = static_cast<float>(min);
-    mMaxValue = static_cast<float>(max);
   } else if (std::holds_alternative<U32ValueVector>(image->mPoints)) {
-    auto imageData        = std::get<U32ValueVector>(image->mPoints);
-    auto [data, min, max] = copyToTextureBuffer(imageData, image->mNumScalars);
+    auto                  imageData = std::get<U32ValueVector>(image->mPoints);
+    std::vector<uint32_t> data      = copyToTextureBuffer(imageData, image->mNumScalars);
     mTexture.UploadTexture(
         image->mDimension.x, image->mDimension.y, data.data(), false, imageFormat, GL_UNSIGNED_INT);
 
-    mMinValue = static_cast<float>(min);
-    mMaxValue = static_cast<float>(max);
   } else if (std::holds_alternative<I16ValueVector>(image->mPoints)) {
-    auto imageData        = std::get<I16ValueVector>(image->mPoints);
-    auto [data, min, max] = copyToTextureBuffer(imageData, image->mNumScalars);
+    auto                 imageData = std::get<I16ValueVector>(image->mPoints);
+    std::vector<int16_t> data      = copyToTextureBuffer(imageData, image->mNumScalars);
     mTexture.UploadTexture(
         image->mDimension.x, image->mDimension.y, data.data(), false, imageFormat, GL_SHORT);
 
-    mMinValue = static_cast<float>(min);
-    mMaxValue = static_cast<float>(max);
   } else if (std::holds_alternative<I32ValueVector>(image->mPoints)) {
-    auto imageData        = std::get<I32ValueVector>(image->mPoints);
-    auto [data, min, max] = copyToTextureBuffer(imageData, image->mNumScalars);
+    auto                 imageData = std::get<I32ValueVector>(image->mPoints);
+    std::vector<int32_t> data      = copyToTextureBuffer(imageData, image->mNumScalars);
     mTexture.UploadTexture(
         image->mDimension.x, image->mDimension.y, data.data(), false, imageFormat, GL_INT);
 
-    mMinValue = static_cast<float>(min);
-    mMaxValue = static_cast<float>(max);
   } else if (std::holds_alternative<F32ValueVector>(image->mPoints)) {
-    auto imageData        = std::get<F32ValueVector>(image->mPoints);
-    auto [data, min, max] = copyToTextureBuffer(imageData, image->mNumScalars);
+    auto               imageData = std::get<F32ValueVector>(image->mPoints);
+    std::vector<float> data      = copyToTextureBuffer(imageData, image->mNumScalars);
     mTexture.UploadTexture(
         image->mDimension.x, image->mDimension.y, data.data(), false, imageFormat, GL_FLOAT);
 
-    mMinValue = min;
-    mMaxValue = max;
   } else {
     logger().error("Unknown type!");
   }
-
-  logger().info("Min: {}", mMinValue);
-  logger().info("Max: {}", mMaxValue);
 }
 
-void Renderer::setCenter(std::string center) {
-  mObjectName = std::move(center);
+void Renderer::setLUT(std::vector<glm::vec4> const& lut) {
+  mLUT.Bind();
+  glTexImage1D(GL_TEXTURE_1D, 0, GL_RGBA32F, static_cast<int32_t>(lut.size()), 0, GL_RGBA, GL_FLOAT,
+      lut.data());
+  glTexParameteri(mLUT.GetTarget(), GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+  mLUT.Unbind();
+}
+
+void Renderer::setMinMax(glm::vec2 const& minMax) {
+  mMinMax = minMax;
+}
+
+void Renderer::setObject(std::string objectName) {
+  mObjectName = std::move(objectName);
   if (mObjectName == "None" || mObjectName.empty()) {
     return;
   }
 
-  auto object = mSolarSystem->getObjectByCenterName(mObjectName);
+  auto object = mSolarSystem->getObject(mObjectName);
   if (!object) {
     return;
   }
@@ -182,7 +178,7 @@ void Renderer::setCenter(std::string center) {
   mMaxBounds = object->getRadii();
 }
 
-std::string Renderer::getCenter() const {
+std::string Renderer::getObject() const {
   return mObjectName;
 }
 
@@ -191,7 +187,7 @@ bool Renderer::Do() {
     return false;
   }
 
-  auto object   = mSolarSystem->getObjectByCenterName(mObjectName);
+  auto object   = mSolarSystem->getObject(mObjectName);
   auto observer = mSolarSystem->getObserver();
   if (!object || object->getCenterName() != observer.getCenterName()) {
     return false;
@@ -247,9 +243,12 @@ bool Renderer::Do() {
   // Only bind the enabled textures.
   depthBuffer.Bind(GL_TEXTURE0);
   mTexture.Bind(GL_TEXTURE1);
+  mLUT.Bind(GL_TEXTURE3);
 
   mShader.SetUniform(mShader.GetUniformLocation("uDepthBuffer"), 0);
   mShader.SetUniform(mShader.GetUniformLocation("uTexture"), 1);
+  mShader.SetUniform(mShader.GetUniformLocation("uLUT"), 3);
+  mShader.SetUniform(mShader.GetUniformLocation("uLUTRange"), mMinMax.x, mMinMax.y);
 
   GLint loc = mShader.GetUniformLocation("uMatInvMVP");
   glUniformMatrix4dv(loc, 1, GL_FALSE, glm::value_ptr(matInvMVP));
@@ -261,9 +260,6 @@ bool Renderer::Do() {
   loc = mShader.GetUniformLocation("uLonRange");
   glUniform2dv(loc, 1,
       glm::value_ptr(cs::utils::convert::toRadians(glm::dvec2(mBounds.mMinLon, mBounds.mMaxLon))));
-
-  mShader.SetUniform(mShader.GetUniformLocation("uMin"), mMinValue);
-  mShader.SetUniform(mShader.GetUniformLocation("uMax"), mMaxValue);
 
   glm::vec3 sunDirection(1, 0, 0);
   float     sunIlluminance(1.F);
@@ -305,6 +301,7 @@ bool Renderer::Do() {
   // Dummy draw
   glDrawArrays(GL_POINTS, 0, 1);
 
+  mLUT.Unbind(GL_TEXTURE3);
   depthBuffer.Unbind(GL_TEXTURE0);
   mTexture.Unbind(GL_TEXTURE1);
 

@@ -297,7 +297,7 @@ SPDX-License-Identifier: MIT
 
         // Do not interpret pointer-up events as click events after a node was dragged around. Else,
         // if you drag a node by clicking on its title, it will be collapsed when you stop dragging
-        // the node. 
+        // the node.
         title.addEventListener("pointerdown", () => {
           el._wasDragged = false;
         });

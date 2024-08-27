@@ -20,7 +20,7 @@ WebCoverage::WebCoverage(VistaXML::TiXmlElement* element, Settings settings, std
     : mUrl(std::move(mUrl))
     , mSettings(std::move(settings)) {
   auto title = utils::getElementValue<std::string>(element, {"ows:Title"});
-  auto id    = utils::getElementValue<std::string>(element, {"wcs:CoverageId"});
+  auto id    = utils::getElementValue<std::string>(element, {"Identifier"});
 
   mId    = id.value_or("");
   mTitle = title.has_value() ? title.value() : "No Title";
@@ -31,7 +31,7 @@ WebCoverage::WebCoverage(VistaXML::TiXmlElement* element, Settings settings, std
 
   if (keywordList) {
     for (auto* keyword = keywordList->FirstChild("ows:Keyword"); keyword;
-         keyword       = keyword->NextSibling()) {
+        keyword       = keyword->NextSibling()) {
 
       auto content = utils::getElementValue<std::string>(keyword->ToElement());
       if (content.has_value() && !content.value().empty()) {
@@ -118,7 +118,7 @@ bool WebCoverage::isRequestable() const {
 void WebCoverage::loadCoverageDetails() {
   std::stringstream urlStream;
   urlStream << mUrl;
-  urlStream << "?SERVICE=WCS";
+  urlStream << "&SERVICE=WCS";
   urlStream << "&VERSION=2.0.1";
   urlStream << "&REQUEST=DescribeCoverage";
   urlStream << "&COVERAGEID=" << mId;
@@ -129,6 +129,8 @@ void WebCoverage::loadCoverageDetails() {
   request.setOpt(curlpp::options::WriteStream(&xmlStream));
   request.setOpt(curlpp::options::NoSignal(true));
   request.setOpt(curlpp::options::SslVerifyPeer(false));
+
+  logger().debug("Requesting WCS describe coverage via '{}'", urlStream.str());
 
   try {
     request.perform();
@@ -165,12 +167,9 @@ void WebCoverage::loadCoverageDetails() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void WebCoverage::parseTime() {
-  auto* time = mDoc.value()
-                   .FirstChildElement("wcs:CoverageDescriptions")
-                   ->FirstChildElement("wcs:CoverageDescription")
-                   ->FirstChildElement("gmlcov:metadata")
-                   ->FirstChildElement("gmlcov:Extension")
-                   ->FirstChildElement("wcsgs:TimeDomain");
+  auto time = csl::ogc::utils::getElement(
+      &mDoc.value(), {"wcs:CoverageDescriptions", "wcs:CoverageDescription", "gmlcov:metadata",
+                         "gmlcov:Extension", "wcsgs:TimeDomain"});
 
   if (time && time->FirstChildElement("gml:TimePeriod")) {
     time        = time->FirstChildElement("gml:TimePeriod");
@@ -244,23 +243,40 @@ void WebCoverage::update() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void WebCoverage::parseDetails() {
-  if (mSettings.mAxisLabels.size() == 2) {
-    return;
-  }
-
-  auto* labels = mDoc.value()
-                     .FirstChildElement("wcs:CoverageDescriptions")
-                     ->FirstChildElement("wcs:CoverageDescription")
-                     ->FirstChildElement("gml:domainSet")
-                     ->FirstChildElement("gml:RectifiedGrid")
-                     ->FirstChildElement("gml:axisLabels");
-
-  auto labelsValue = utils::getElementValue<std::string>(labels);
+  auto labelsValue = utils::getElementValue<std::string>(
+      &mDoc.value(), {"wcs:CoverageDescriptions", "wcs:CoverageDescription", "gml:domainSet",
+                         "gml:RectifiedGrid", "gml:axisLabels"});
 
   if (labelsValue.has_value()) {
     std::vector<std::string> labelsSplit = utils::split(labelsValue.value(), ' ');
     if (labelsSplit.size() == 2) {
-      mSettings.mAxisLabels = labelsSplit;
+      mSettings.mAxisLabels[0] = labelsSplit[0];
+      mSettings.mAxisLabels[1] = labelsSplit[1];
+    }
+  }
+
+  auto resolutionValue = utils::getElementValue<std::string>(
+      &mDoc.value(), {"wcs:CoverageDescriptions", "wcs:CoverageDescription", "gml:domainSet",
+                         "gml:RectifiedGrid", "gml:limits", "gml:GridEnvelope", "gml:high"});
+
+  if (resolutionValue.has_value()) {
+    std::vector<std::string> resolutionSplit = utils::split(resolutionValue.value(), ' ');
+    if (resolutionSplit.size() == 2) {
+      mSettings.mAxisResolution[0] = std::stoi(resolutionSplit[0]);
+      mSettings.mAxisResolution[1] = std::stoi(resolutionSplit[1]);
+    }
+  }
+
+  auto dataRecord =
+      utils::getElement(&mDoc.value(), {"wcs:CoverageDescriptions", "wcs:CoverageDescription",
+                                           "gmlcov:rangeType", "swe:DataRecord"});
+  if (dataRecord) {
+    mSettings.mNumLayers = 0;
+    auto child           = dataRecord->FirstChildElement();
+
+    while (child) {
+      mSettings.mNumLayers++;
+      child = child->NextSiblingElement();
     }
   }
 }

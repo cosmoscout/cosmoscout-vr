@@ -35,14 +35,14 @@ file(GLOB SOURCE_FILES src/*.cpp src/*/*.cpp)
 file(GLOB HEADER_FILES src/*.hpp src/*/*.hpp)
 
 add_library(csl-ogc SHARED
-  ${SOURCE_FILES}
-  ${HEADER_FILES}
+        ${SOURCE_FILES}
+        ${HEADER_FILES}
 )
 
 target_link_libraries(csl-ogc
-  PUBLIC
-    cs-core
-    GDAL::GDAL
+        PUBLIC
+        cs-core
+        GDAL::GDAL
 )
 
 # Add this plugin library to a "plugins" folder in your IDE.
@@ -50,11 +50,11 @@ set_property(TARGET csl-ogc PROPERTY FOLDER "plugins")
 
 # Make directory structure available in your IDE.
 source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}" FILES
-  ${SOURCE_FILES} ${HEADER_FILES}
+        ${SOURCE_FILES} ${HEADER_FILES}
 )
 
 target_include_directories(csl-ogc PUBLIC
-  ${CMAKE_BINARY_DIR}/plugins/csl-ogc
+        ${CMAKE_BINARY_DIR}/plugins/csl-ogc
 )
 
 # install plugin -----------------------------------------------------------------------------------
@@ -70,5 +70,5 @@ endif()
 # export header ------------------------------------------------------------------------------------
 
 generate_export_header(csl-ogc
-    EXPORT_FILE_NAME csl_ogc_export.hpp
+        EXPORT_FILE_NAME csl_ogc_export.hpp
 )

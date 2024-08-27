@@ -1,3 +1,4 @@
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //                               This file is part of CosmoScout VR                               //
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -27,7 +28,7 @@ class WCSPointSampleComponent extends Rete.Component {
     // before. It is required that the class is called <NAME>Component.
 
     let coverageInput =
-        new Rete.Input('coverageIn', "Coverage", CosmoScout.socketTypes['Coverage']);
+      new Rete.Input('coverageIn', "Coverage", CosmoScout.socketTypes['Coverage']);
     node.addInput(coverageInput);
 
     let coords = new Rete.Input('coords', "Long/Lat", CosmoScout.socketTypes['RVec2']);
@@ -40,11 +41,11 @@ class WCSPointSampleComponent extends Rete.Component {
     node.addOutput(imageOutput);
 
     node.onInit =
-        (nodeDiv) => {
-          node.onMessageFromCPP = (message) => {
+      (nodeDiv) => {
+        node.onMessageFromCPP = (message) => {
 
-          };
-        }
+        };
+      }
 
     return node;
   }

@@ -73,8 +73,8 @@ class TextureOverlayRenderer : public IVistaOpenGLDraw {
   /// Set the transfer function used in the shader
   void setTransferFunction(const std::string& json);
 
-  /// For multi-layer textures, set the texture layer to be rendered
-  void setLayer(int layer);
+  /// For multi-band textures, set the texture band to be rendered
+  void setBand(int band);
 
   /// The current map bounds of this overlay.
   /// This may be used for setting the bounds.
@@ -91,8 +91,8 @@ class TextureOverlayRenderer : public IVistaOpenGLDraw {
   /// Updates the longitude and latitude ranges according to the current viewport.
   void updateLonLatRange();
 
-  /// Returns the manually set bounds if subsets are allowed by the active layer.
-  /// Otherwise returns the default bounds of the layer.
+  /// Returns the manually set bounds if subsets are allowed by the active coverage.
+  /// Otherwise returns the default bounds of the coverage.
   csl::ogc::Bounds2D getBounds() const;
 
   /// Gets an appropriate Request object for the current state.
@@ -127,18 +127,16 @@ class TextureOverlayRenderer : public IVistaOpenGLDraw {
 
   std::unordered_map<VistaViewport*, GBufferData> mGBufferData; //! Store one buffer per viewport
 
-  csl::ogc::GDALReader::GreyScaleTexture
-       mTexture;               //! The textured passed from outside via SetOverlayTexture
-  int  mActiveLayer   = 1;     //! Active layer of the coverage (if the texture has more than one)
+  csl::ogc::GDALReader::Texture mTexture; //! The textured passed from outside via SetOverlayTexture
+  int  mActiveBand    = 1;     //! Active band of the coverage (if the texture has more than one)
   bool mUpdateTexture = false; //! Flag if a texture upload is required
 
   std::unique_ptr<cs::graphics::ColorMap> mTransferFunction; //! Transfer function used in shader
 
   /// Stores all textures, for which the request ist still pending.
-  std::map<std::string, std::future<std::optional<csl::ogc::GDALReader::GreyScaleTexture>>>
-      mTexturesBuffer;
+  std::map<std::string, std::future<std::optional<csl::ogc::GDALReader::Texture>>> mTexturesBuffer;
   /// Stores all successfully loaded textures.
-  std::map<std::string, csl::ogc::GDALReader::GreyScaleTexture> mTextures;
+  std::map<std::string, csl::ogc::GDALReader::Texture> mTextures;
   /// Stores textures, for which loading failed.
   std::vector<std::string> mWrongTextures;
 
@@ -147,7 +145,7 @@ class TextureOverlayRenderer : public IVistaOpenGLDraw {
 
   /// The active WCS.
   std::optional<csl::ogc::WebCoverageService> mActiveWCS;
-  /// The active WCS layer.
+  /// The active WCS coverage.
   std::optional<csl::ogc::WebCoverage> mActiveWCSCoverage;
 
   /// Timestep of the current WCS texture.

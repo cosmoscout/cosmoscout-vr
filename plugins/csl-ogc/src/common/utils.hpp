@@ -74,7 +74,7 @@ struct CSL_OGC_EXPORT Bounds3D : public Bounds2D {
 };
 
 void CSL_OGC_EXPORT from_json(nlohmann::json const& j, Bounds2D& o);
-void CSL_OGC_EXPORT to_json(nlohmann::json& j, Bounds2D const& o);;
+void CSL_OGC_EXPORT to_json(nlohmann::json& j, Bounds2D const& o);
 
 void CSL_OGC_EXPORT from_json(nlohmann::json const& j, Bounds3D& o);
 void CSL_OGC_EXPORT to_json(nlohmann::json& j, Bounds3D const& o);
@@ -155,17 +155,19 @@ bool CSL_OGC_EXPORT timeInIntervals(boost::posix_time::ptime& time,
 boost::posix_time::ptime CSL_OGC_EXPORT addDurationToTime(
     boost::posix_time::ptime time, Duration const& duration, int multiplier = 1);
 
+/// Tries to get a nested element.
+/// Starts at baseElement and then descends into the children given as childPath.
+/// The return value is nullptr if the requested element is not present.
+VistaXML::TiXmlNode* getElement(
+    VistaXML::TiXmlNode* baseElement, std::vector<std::string> const& childPath);
+
 /// Tries to get the value contained in a XML element.
 /// Starts at baseElement and then descends into the children given as childPath.
 /// The return value is empty if the requested element is not present.
 template <typename T>
 std::optional<T> getElementValue(
-    VistaXML::TiXmlElement* baseElement, std::vector<std::string> const& childPath = {}) {
-  VistaXML::TiXmlHandle elementHandle(baseElement);
-  for (std::string const& child : childPath) {
-    elementHandle = elementHandle.FirstChildElement(child);
-  }
-  VistaXML::TiXmlElement* element = elementHandle.ToElement();
+    VistaXML::TiXmlNode* baseElement, std::vector<std::string> const& childPath = {}) {
+  VistaXML::TiXmlNode* element = getElement(baseElement, childPath);
   if (element != nullptr && element->FirstChild() != nullptr) {
     if constexpr (std::is_same_v<T, std::string>) {
       return element->FirstChild()->ValueStr();

@@ -13,8 +13,8 @@
 #include "../../../src/cs-core/Settings.hpp"
 #include "../../../src/cs-core/SolarSystem.hpp"
 #include "../../../src/cs-core/TimeControl.hpp"
-#include "../../../src/cs-scene/IntersectableObject.hpp"
 #include "../../../src/cs-graphics/TextureLoader.hpp"
+#include "../../../src/cs-scene/IntersectableObject.hpp"
 #include "../../../src/cs-utils/utils.hpp"
 
 // VISTA includes
@@ -177,13 +177,13 @@ void TextureOverlayRenderer::clearActiveWCS() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void TextureOverlayRenderer::clearTextures() {
-  mTexture.buffer = nullptr;
+  mTexture.mBuffer = nullptr;
   mTextures.clear();
   mTexturesBuffer.clear();
   mWrongTextures.clear();
 
   mCurrentTexture = "";
-  mActiveLayer    = 1;
+  mActiveBand     = 1;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -208,19 +208,23 @@ void TextureOverlayRenderer::updateLonLatRange() {
   // Get the intersections of the camera rays at the corners of the screen with the body.
   std::array<std::pair<bool, glm::dvec3>, 4> intersections;
   intersections[0].first =
-      mSolarSystem->getObjectByCenterName(mCenterName)->getIntersectableObject()
+      mSolarSystem->getObjectByCenterName(mCenterName)
+          ->getIntersectableObject()
           ->getIntersection(glm::dvec3(0, 0, 0), glm::normalize(glm::dvec3(left, top, posZ)),
               intersections[0].second);
   intersections[1].first =
-      mSolarSystem->getObjectByCenterName(mCenterName)->getIntersectableObject()
+      mSolarSystem->getObjectByCenterName(mCenterName)
+          ->getIntersectableObject()
           ->getIntersection(glm::dvec3(0, 0, 0), glm::normalize(glm::dvec3(left, bottom, posZ)),
               intersections[1].second);
   intersections[2].first =
-      mSolarSystem->getObjectByCenterName(mCenterName)->getIntersectableObject()
+      mSolarSystem->getObjectByCenterName(mCenterName)
+          ->getIntersectableObject()
           ->getIntersection(glm::dvec3(0, 0, 0), glm::normalize(glm::dvec3(right, bottom, posZ)),
               intersections[2].second);
   intersections[3].first =
-      mSolarSystem->getObjectByCenterName(mCenterName)->getIntersectableObject()
+      mSolarSystem->getObjectByCenterName(mCenterName)
+          ->getIntersectableObject()
           ->getIntersection(glm::dvec3(0, 0, 0), glm::normalize(glm::dvec3(right, top, posZ)),
               intersections[3].second);
 
@@ -336,7 +340,6 @@ csl::ogc::WebCoverageTextureLoader::Request TextureOverlayRenderer::getRequest()
   csl::ogc::WebCoverageTextureLoader::Request request;
   request.mMaxSize = mPluginSettings->mMaxTextureSize.get();
   request.mBounds  = getBounds();
-  request.layer    = mActiveLayer;
   request.mFormat  = mPluginSettings->mWcsRequestFormat.get();
   return request;
 }
@@ -349,14 +352,14 @@ void TextureOverlayRenderer::getTimeIndependentTexture(
     std::thread(std::function([this, request]() {
       mGuiManager->getGui()->callJavascript(
           "CosmoScout.wcsOverlays.setCoverageSelectDisabled", true);
-      std::optional<csl::ogc::GDALReader::GreyScaleTexture> texture = mTextureLoader.loadTexture(*mActiveWCS,
+      std::optional<csl::ogc::GDALReader::Texture> texture = mTextureLoader.loadTexture(*mActiveWCS,
           *mActiveWCSCoverage, request, mPluginSettings->mCoverageCache.get(),
           request.mBounds == mActiveWCSCoverage->getSettings().mBounds);
       if (texture.has_value()) {
         mUpdateTexture = true;
         mTexture       = texture.value();
         mGuiManager->getGui()->callJavascript(
-            "CosmoScout.wcsOverlays.setNumberOfLayers", mTexture.layers, request.layer.value_or(1));
+            "CosmoScout.wcsOverlays.setNumberOfBands", mTexture.mBands, 1);
       }
       mGuiManager->getGui()->callJavascript(
           "CosmoScout.wcsOverlays.setCoverageSelectDisabled", false);
@@ -378,7 +381,7 @@ bool TextureOverlayRenderer::Do() {
     mUpdateLonLatRange = false;
   }
 
-  if (!mTexture.buffer) {
+  if (!mTexture.mBuffer) {
     return false;
   }
 
@@ -395,7 +398,7 @@ bool TextureOverlayRenderer::Do() {
     // Select WCS textures to be downloaded. If no pre-fetch is set, only select the texture for
     // the current timestep.
     for (int preFetch = -mPluginSettings->mPrefetchCount.get();
-         preFetch <= mPluginSettings->mPrefetchCount.get(); preFetch++) {
+        preFetch <= mPluginSettings->mPrefetchCount.get(); preFetch++) {
       // Get the start time of the WCS sample.
       auto sampleStartTime =
           csl::ogc::utils::addDurationToTime(time, mCurrentInterval.mSampleDuration, preFetch);
@@ -420,10 +423,9 @@ bool TextureOverlayRenderer::Do() {
         request.mTime    = timeString;
         request.mBounds  = getBounds();
         request.mMaxSize = mPluginSettings->mMaxTextureSize.get();
-        request.layer    = mActiveLayer;
 
         mTexturesBuffer.insert(
-            std::pair<std::string, std::future<std::optional<csl::ogc::GDALReader::GreyScaleTexture>>>(
+            std::pair<std::string, std::future<std::optional<csl::ogc::GDALReader::Texture>>>(
                 timeString, mTextureLoader.loadTextureAsync(*mActiveWCS, *mActiveWCSCoverage,
                                 request, mPluginSettings->mCoverageCache.get(),
                                 request.mBounds == mActiveWCSCoverage->getSettings().mBounds)));
@@ -434,11 +436,11 @@ bool TextureOverlayRenderer::Do() {
     auto texIt = mTexturesBuffer.begin();
     while (texIt != mTexturesBuffer.end()) {
       if (texIt->second.wait_for(std::chrono::seconds(0)) == std::future_status::ready) {
-        std::optional<csl::ogc::GDALReader::GreyScaleTexture> texture = texIt->second.get();
+        std::optional<csl::ogc::GDALReader::Texture> texture = texIt->second.get();
 
         if (texture.has_value()) {
           mTextures.insert(
-              std::pair<std::string, csl::ogc::GDALReader::GreyScaleTexture>(texIt->first, texture.value()));
+              std::pair<std::string, csl::ogc::GDALReader::Texture>(texIt->first, texture.value()));
         } else {
           mWrongTextures.emplace_back(texIt->first);
         }
@@ -503,13 +505,13 @@ bool TextureOverlayRenderer::Do() {
 
     nlohmann::json sampleJson;
     GLenum         textureType{};
-    auto           textureSize = mTexture.x * mTexture.y;
+    auto           textureSize = mTexture.mWidth * mTexture.mHeight;
 
-    switch (mTexture.type) {
+    switch (mTexture.mDataType) {
     case 1: // UInt8
     {
-      std::vector<uint8_t> textureData(static_cast<uint8_t*>(mTexture.buffer),
-          static_cast<uint8_t*>(mTexture.buffer) + textureSize);
+      std::vector<uint8_t> textureData(static_cast<uint8_t*>(mTexture.mBuffer),
+          static_cast<uint8_t*>(mTexture.mBuffer) + textureSize);
       sampleJson  = textureData;
       textureType = GL_UNSIGNED_BYTE;
       break;
@@ -517,8 +519,8 @@ bool TextureOverlayRenderer::Do() {
 
     case 2: // UInt16
     {
-      std::vector<uint16_t> textureData(static_cast<uint16_t*>(mTexture.buffer),
-          static_cast<uint16_t*>(mTexture.buffer) + textureSize);
+      std::vector<uint16_t> textureData(static_cast<uint16_t*>(mTexture.mBuffer),
+          static_cast<uint16_t*>(mTexture.mBuffer) + textureSize);
       sampleJson  = textureData;
       textureType = GL_UNSIGNED_SHORT;
       break;
@@ -526,8 +528,8 @@ bool TextureOverlayRenderer::Do() {
 
     case 3: // Int16
     {
-      std::vector<int16_t> textureData(static_cast<int16_t*>(mTexture.buffer),
-          static_cast<int16_t*>(mTexture.buffer) + textureSize);
+      std::vector<int16_t> textureData(static_cast<int16_t*>(mTexture.mBuffer),
+          static_cast<int16_t*>(mTexture.mBuffer) + textureSize);
       sampleJson  = textureData;
       textureType = GL_SHORT;
       break;
@@ -535,8 +537,8 @@ bool TextureOverlayRenderer::Do() {
 
     case 4: // UInt32
     {
-      std::vector<uint32_t> textureData(static_cast<uint32_t*>(mTexture.buffer),
-          static_cast<uint32_t*>(mTexture.buffer) + textureSize);
+      std::vector<uint32_t> textureData(static_cast<uint32_t*>(mTexture.mBuffer),
+          static_cast<uint32_t*>(mTexture.mBuffer) + textureSize);
       sampleJson  = textureData;
       textureType = GL_UNSIGNED_INT;
       break;
@@ -544,8 +546,8 @@ bool TextureOverlayRenderer::Do() {
 
     case 5: // Int32
     {
-      std::vector<int32_t> textureData(static_cast<int32_t*>(mTexture.buffer),
-          static_cast<int32_t*>(mTexture.buffer) + textureSize);
+      std::vector<int32_t> textureData(static_cast<int32_t*>(mTexture.mBuffer),
+          static_cast<int32_t*>(mTexture.mBuffer) + textureSize);
       sampleJson  = textureData;
       textureType = GL_INT;
       break;
@@ -553,8 +555,8 @@ bool TextureOverlayRenderer::Do() {
 
     case 6: // Float32
     case 7: {
-      std::vector<float> textureData(
-          static_cast<float*>(mTexture.buffer), static_cast<float*>(mTexture.buffer) + textureSize);
+      std::vector<float> textureData(static_cast<float*>(mTexture.mBuffer),
+          static_cast<float*>(mTexture.mBuffer) + textureSize);
       sampleJson  = textureData;
       textureType = GL_FLOAT;
       break;
@@ -565,8 +567,8 @@ bool TextureOverlayRenderer::Do() {
     }
 
     if (textureType) {
-      glTexImage2D(GL_TEXTURE_2D, 0, GL_R32F, mTexture.x, mTexture.y, 0, GL_RED, textureType,
-          mTexture.buffer);
+      glTexImage2D(GL_TEXTURE_2D, 0, GL_R32F, mTexture.mWidth, mTexture.mHeight, 0, GL_RED,
+          textureType, mTexture.mBuffer);
 
       // Texture encoded as json. Used to generate the histogram
       mGuiManager->getGui()->callJavascript(
@@ -602,7 +604,7 @@ bool TextureOverlayRenderer::Do() {
   mTransferFunction->bind(GL_TEXTURE2);
 
   m_pSurfaceShader->SetUniform(
-      m_pSurfaceShader->GetUniformLocation("uDataTypeSize"), mTexture.typeSize);
+      m_pSurfaceShader->GetUniformLocation("uDataMaxValue"), mTexture.mDataMaxValue);
 
   m_pSurfaceShader->SetUniform(m_pSurfaceShader->GetUniformLocation("uDepthBuffer"), 0);
   m_pSurfaceShader->SetUniform(m_pSurfaceShader->GetUniformLocation("uSimBuffer"), 1);
@@ -623,7 +625,7 @@ bool TextureOverlayRenderer::Do() {
           cs::utils::convert::toRadians(glm::dvec2(getBounds().mMinLon, getBounds().mMaxLon))));
 
   m_pSurfaceShader->SetUniform(m_pSurfaceShader->GetUniformLocation("uRange"),
-      static_cast<float>(mTexture.dataRange[0]), static_cast<float>(mTexture.dataRange[1]));
+      static_cast<float>(mTexture.mDataRange[0]), static_cast<float>(mTexture.mDataRange[1]));
 
   // From Application.cpp
   auto*               pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
@@ -633,9 +635,9 @@ bool TextureOverlayRenderer::Do() {
   auto vWorldPos = glm::vec4(1);
   pTrans->GetWorldPosition(vWorldPos.x, vWorldPos.y, vWorldPos.z);
 
-  auto sunDirection =
-      glm::normalize(glm::inverse(matWorldTransform) *
-                     (mSolarSystem->getSun()->getObserverRelativeTransform()[3] - matWorldTransform[3]));
+  auto sunDirection = glm::normalize(
+      glm::inverse(matWorldTransform) *
+      (mSolarSystem->getSun()->getObserverRelativeTransform()[3] - matWorldTransform[3]));
   m_pSurfaceShader->SetUniform(m_pSurfaceShader->GetUniformLocation("uSunDirection"),
       static_cast<float>(sunDirection[0]), static_cast<float>(sunDirection[1]),
       static_cast<float>(sunDirection[2]));
@@ -680,8 +682,8 @@ void TextureOverlayRenderer::setTransferFunction(const std::string& json) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void TextureOverlayRenderer::setLayer(int layer) {
-  mActiveLayer = layer;
+void TextureOverlayRenderer::setBand(int band) {
+  mActiveBand = band;
   getTimeIndependentTexture(getRequest());
 }
 
