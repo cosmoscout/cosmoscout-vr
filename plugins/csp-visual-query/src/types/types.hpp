@@ -32,6 +32,32 @@ using F32ValueVector = std::vector<PointValues<float>>;
 using PointsType = std::variant<U8ValueVector, U16ValueVector, U32ValueVector, I16ValueVector,
     I32ValueVector, F32ValueVector>;
 
+struct Image1D {
+  Image1D() = default;
+
+  Image1D(PointsType points, size_t numScalars, uint32_t dimension, glm::dvec2 longLat,
+      std::optional<csl::ogc::TimeInterval> timeStamp = std::nullopt)
+      : mPoints(std::move(points))
+      , mNumScalars(numScalars)
+      , mDimension(dimension)
+      , mLongLat(longLat)
+      , mTimeStamp(std::move(timeStamp)) {
+  }
+
+  PointsType mPoints;
+  size_t     mNumScalars{};
+
+  uint32_t   mDimension{};
+  glm::dvec2 mLongLat;
+
+  std::optional<csl::ogc::TimeInterval> mTimeStamp;
+
+  template <typename T>
+  T at(uint32_t x) {
+    return std::get<T>(mPoints).at(x);
+  }
+};
+
 struct Image2D {
   Image2D() = default;
 

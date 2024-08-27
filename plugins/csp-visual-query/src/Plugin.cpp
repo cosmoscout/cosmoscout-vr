@@ -11,9 +11,18 @@
 #include "logger.hpp"
 
 #include "../../../src/cs-utils/filesystem.hpp"
-#include "common-nodes/Real/Real.hpp"
-#include "common-nodes/Int/Int.hpp"
-#include "common-nodes/TimeInterval/TimeInterval.hpp"
+#include "constant-nodes/Int/Int.hpp"
+#include "constant-nodes/Real/Real.hpp"
+#include "constant-nodes/RealVec2/RealVec2.hpp"
+#include "constant-nodes/RealVec4/RealVec4.hpp"
+#include "extract-nodes/TimeInterval/TimeInterval.hpp"
+#include "extract-nodes/WCSImage2D/WCSImage2D.hpp"
+#include "extract-nodes/WCSPointSample/WCSPointSample.hpp"
+#include "input-nodes/JsonVolumeFileLoader/JsonVolumeFileLoader.hpp"
+#include "input-nodes/RandomDataSource2D/RandomDataSource2D.hpp"
+#include "input-nodes/RandomDataSource3D/RandomDataSource3D.hpp"
+#include "input-nodes/TransferFunction/TransferFunction.hpp"
+#include "input-nodes/WCSCoverage/WCSCoverage.hpp"
 #include "operation-nodes/DifferenceImage2D/DifferenceImage2D.hpp"
 #include "operation-nodes/TransferFunction/TransferFunction.hpp"
 #include "output-nodes/OverlayRenderer/OverlayRender.hpp"
@@ -141,6 +150,7 @@ void Plugin::setupNodeEditor(uint16_t port) {
   // factory.registerSocketType("Number Value", "#b08ab3");
 
   factory.registerSocketType("Coverage", "#8e38ff");
+  factory.registerSocketType("Image1D", "#33ff33");
   factory.registerSocketType("Image2D", "#3333ff");
   factory.registerSocketType("Volume3D", "#ff3333");
   factory.registerSocketType("WCSTime", "#b08ab3");
@@ -156,9 +166,6 @@ void Plugin::setupNodeEditor(uint16_t port) {
   factory.registerSocketType("IVec3", "#f03b20");
   factory.registerSocketType("IVec4", "#bd0026");
 
-  factory.registerSocketType("Coverage", "#8e38ff");
-  factory.registerSocketType("Image2D", "#3333ff");
-  factory.registerSocketType("Volume3D", "#ff3333");
   factory.registerSocketType("WCSTimeIntervals", "#FFB319");
   factory.registerSocketType("WCSTime", "#b08ab3");
   factory.registerSocketType("WCSBounds", "#b08ab3");
@@ -175,9 +182,16 @@ void Plugin::setupNodeEditor(uint16_t port) {
   // passed to the constructor of the node instances. For more information, see the documentation of
   // NodeFactory::registerNodeType().
   // Commons
-  factory.registerNodeType<Real>();
   factory.registerNodeType<Int>();
-  factory.registerNodeType<TimeInterval>();
+  factory.registerNodeType<Real>();
+  factory.registerNodeType<RealVec2>();
+  factory.registerNodeType<RealVec4>();
+
+  // Data Extraction
+  factory.registerNodeType<TimeInterval>(mTimeControl);
+  factory.registerNodeType<WCSPointSample>();
+  factory.registerNodeType<WCSImage2D>();
+
   // Operations
   factory.registerNodeType<DifferenceImage2D>();
   factory.registerNodeType<TransferFunction>();

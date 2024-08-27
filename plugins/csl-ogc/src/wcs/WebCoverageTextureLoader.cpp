@@ -216,10 +216,10 @@ boost::filesystem::path WebCoverageTextureLoader::getCachePath(WebCoverageServic
 
   // Add Bound string to cache file name
   std::stringstream bound;
-  bound << "_Bounds_" 
-    << utils::toStringWithoutTrailing(request.mBounds.mMinLon) << "_" 
-    << utils::toStringWithoutTrailing(request.mBounds.mMaxLon) << "_" 
-    << utils::toStringWithoutTrailing(request.mBounds.mMinLat) << "_" 
+  bound << "_Bounds_"
+    << utils::toStringWithoutTrailing(request.mBounds.mMinLon) << "_"
+    << utils::toStringWithoutTrailing(request.mBounds.mMaxLon) << "_"
+    << utils::toStringWithoutTrailing(request.mBounds.mMinLat) << "_"
     << utils::toStringWithoutTrailing(request.mBounds.mMaxLat);
 
   // Add time string to cache file name if time is specified
@@ -254,13 +254,23 @@ std::string WebCoverageTextureLoader::getRequestUrl(
   /// This is only really an issue with tomcat servers
 
   if (request.mBounds != coverage.getSettings().mBounds && request.mBounds != Bounds2D()) {
-    // &SUBSET=Lat(...,...)
-    url << "&SUBSET=Lat%28" << request.mBounds.mMinLat << "," << request.mBounds.mMaxLat << "%29";
-    // &SUBSET=Long(...,...)
-    url << "&SUBSET=Long%28" << request.mBounds.mMinLon << "," << request.mBounds.mMaxLon << "%29";
+    // &SUBSET=y(...,...)
+    url << "&SUBSET=y%28" << request.mBounds.mMinLat << "," << request.mBounds.mMaxLat << "%29";
+    // &SUBSET=x(...,...)
+    url << "&SUBSET=x%28" << request.mBounds.mMinLon << "," << request.mBounds.mMaxLon << "%29";
   }
 
-  if (request.mMaxSize > 0 && coverage.getSettings().mAxisLabels.size() == 2) {
+  int32_t width  = coverage.getSettings().mAxisResolution[0];
+  int32_t height = coverage.getSettings().mAxisResolution[1];
+
+  if (request.mMaxSize > 0 && (width > request.mMaxSize || height > request.mMaxSize)) {
+    double aspect = static_cast<double>(width) / static_cast<double>(height);
+    width         = aspect > 1 ? request.mMaxSize : static_cast<int32_t>(request.mMaxSize * aspect);
+    height        = aspect > 1 ? static_cast<int32_t>(request.mMaxSize / aspect) : request.mMaxSize;
+
+    width  = std::max(1, width);  // Ensure width is at least 1
+    height = std::max(1, height); // Ensure height is at least 1
+
     // &SCALESIZE=i(...),j(...)
     url << "&SCALESIZE=" << coverage.getSettings().mAxisLabels[0] << "%28" << request.mMaxSize
         << "%29";
@@ -277,6 +287,17 @@ std::string WebCoverageTextureLoader::getRequestUrl(
   url << "&SUBSETTINGCRS=http%3A%2F%2Fwww.opengis.net%2Fdef%2Fcrs%2FEPSG%2F0%2F4326";
 
   url << "&FORMAT=" << request.mFormat.value_or("image%2Ftiff");
+
+  if (request.mLayerRange.has_value()) {
+    int minLayer = std::max(1, request.mLayerRange.value().first);
+    int maxLayer = std::min(coverage.getSettings().mNumLayers, request.mLayerRange.value().second);
+
+    if (minLayer == maxLayer) {
+      url << "&RANGESUBSET=" << minLayer;
+    } else {
+      url << "&RANGESUBSET=" << minLayer << "%3A" << maxLayer;
+    }
+  }
 
   return url.str();
 }

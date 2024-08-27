@@ -200,23 +200,34 @@ void GDALReader::BuildTexture(GDALDataset* poDatasetSrc, GDALReader::GreyScaleTe
     return;
   }
 
-  if (poDatasetSrc->GetProjectionRef() == nullptr) {
-    csl::ogc::logger().error(
-        "[GDALReader::ReadGrayScaleTexture] No projection defined for {}", filename);
-    return;
-  }
+  // Get band ranges -------------------------------------------------------------------------------
 
-  // Read geotransform from src image
-  poDatasetSrc->GetGeoTransform(adfSrcGeoTransform);
+  texture.mBandDataRanges.clear();
 
-  int   bGotMin = 0;
-  int   bGotMax = 0; // like bool if it was successful
-  auto* poBand  = poDatasetSrc->GetRasterBand(layer);
+  // Get the global min and max values of all bands.
+  texture.mDataRange[0] = std::numeric_limits<double>::max();
+  texture.mDataRange[1] = std::numeric_limits<double>::lowest();
 
-  d_dataRange[0] = poBand->GetMinimum(&bGotMin);
-  d_dataRange[1] = poBand->GetMaximum(&bGotMax);
-  if (!(bGotMin && bGotMax)) {
-    GDALComputeRasterMinMax(static_cast<GDALRasterBandH>(poBand), TRUE, d_dataRange.data());
+  uint32_t bandCount = dataset->GetRasterCount();
+
+  std::array<double, 2> bandRange{
+      std::numeric_limits<double>::max(), std::numeric_limits<double>::lowest()};
+
+  for (uint32_t b = 1; b <= bandCount; b++) {
+    int   bGotMin = 0;
+    int   bGotMax = 0; // like bool if it was successful
+    auto* poBand  = dataset->GetRasterBand(b);
+
+    bandRange[0] = poBand->GetMinimum(&bGotMin);
+    bandRange[1] = poBand->GetMaximum(&bGotMax);
+    if (!bGotMin || !bGotMax) {
+      GDALComputeRasterMinMax(static_cast<GDALRasterBandH>(poBand), TRUE, bandRange.data());
+    }
+
+    texture.mBandDataRanges.push_back(bandRange);
+
+    texture.mDataRange[0] = std::min(texture.mDataRange[0], bandRange[0]);
+    texture.mDataRange[1] = std::max(texture.mDataRange[1], bandRange[1]);
   }
 
   /////////////////////// Reprojection /////////////////////

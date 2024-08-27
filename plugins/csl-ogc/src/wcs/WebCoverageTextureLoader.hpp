@@ -25,13 +25,6 @@ namespace csl::ogc {
 
 class GDALReader;
 
-/// Struct for storing texture data along with some metadata.
-struct CSL_OGC_EXPORT WebCoverageTexture {
-  std::unique_ptr<unsigned char> mData;
-  int                            mWidth;
-  int                            mHeight;
-};
-
 /// Class for requesting map textures from a Web Coverage Services.
 class CSL_OGC_EXPORT WebCoverageTextureLoader {
  public:
