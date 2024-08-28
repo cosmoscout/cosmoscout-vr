@@ -8,6 +8,8 @@
 #ifndef CS_UTILS_FRUSTUM_HPP
 #define CS_UTILS_FRUSTUM_HPP
 
+#include "cs_utils_export.hpp"
+
 #include <glm/glm.hpp>
 
 #include <array>
@@ -22,7 +24,7 @@ std::ostream& operator<<(std::ostream& os, FrustumPlaneIdx fpi);
 /// Stores a (view) frustum as the intersection of six planes. The planes' normals point inside the
 /// frustum. A plane is represented as a `glm::fvec4` where the `xyz` components contain the (unit
 /// length) normal and the `w` component contains the distance from the origin.
-class Frustum {
+class CS_UTILS_EXPORT Frustum {
  public:
   static const size_t NUM_PLANES = 4;
 

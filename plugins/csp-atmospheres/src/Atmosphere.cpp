@@ -373,19 +373,19 @@ bool Atmosphere::Do() {
   glm::vec3 occDir = glm::vec3(matInvMV[3]);
   float delta = std::acos(std::min(1.F, glm::dot(glm::normalize(occDir), glm::normalize(-sunDir))));
   float occDist      = glm::length(occDir);
-  float planetRadius = mRadii[0] + mSettings.mBottomAltitude.get();
-  float atmoRadius   = mRadii[0] + mSettings.mTopAltitude;
-  float sunRadius    = mSolarSystem->getSun()->getRadii()[0];
-  float sunDist      = glm::length(mSolarSystem->pSunPosition.get()) * mSceneScale;
+  float planetRadius = float(mRadii[0] + mSettings.mBottomAltitude.get());
+  float atmoRadius   = float(mRadii[0] + mSettings.mTopAltitude);
+  float sunRadius    = float(mSolarSystem->getSun()->getRadii()[0]);
+  float sunDist      = float(glm::length(mSolarSystem->pSunPosition.get()) * mSceneScale);
   float phiOcc       = std::asin(planetRadius / occDist);
   float phiSun       = std::asin(sunRadius / sunDist);
   float phiAtmo      = std::asin(atmoRadius / occDist);
-  float x            = 1.0 / (phiOcc / phiSun + 1.0);
-  float y            = 1.0 - delta / (phiOcc + phiSun);
+  float x            = 1.0F / (phiOcc / phiSun + 1.0F);
+  float y            = 1.0F - delta / (phiOcc + phiSun);
 
   cs::utils::Frustum frustum;
   frustum.setFromMatrix(matP);
-  float approxPixelSize = frustum.getHorizontalFOV() / iViewport[2];
+  float approxPixelSize = float(frustum.getHorizontalFOV() / iViewport[2]);
   float minPixelWidth   = 10.f;
   if (occDist < atmoRadius || phiAtmo - phiOcc > minPixelWidth * approxPixelSize) {
     y = 0.0;
