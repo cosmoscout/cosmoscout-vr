@@ -739,7 +739,7 @@
       "atmospheres": {
         "Earth": {
           "cloudTexture": "../share/resources/textures/earth-clouds.jpg",
-          "limbLuminanceTexture": "../share/resources/textures/limb_luminance_earth.tif",
+          "limbLuminanceTexture": "../share/resources/textures/earthLimbLuminance.tif",
           "topAltitude": 80000,
           "bottomAltitude": 0,
           "model": "Bruneton",
@@ -749,7 +749,7 @@
         },
         "Mars": {
           "topAltitude": 80000,
-          "limbLuminanceTexture": "../share/resources/textures/limb_luminance_mars.tif",
+          "limbLuminanceTexture": "../share/resources/textures/marsLimbLuminance.tif",
           "bottomAltitude": 0,
           "model": "Bruneton",
           "modelSettings": {
