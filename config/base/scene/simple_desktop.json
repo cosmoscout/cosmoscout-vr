@@ -282,9 +282,13 @@
   "graphics": {
     "enableHDR": true,
     "eclipseShadowMaps": {
-      "Earth": {},
+      "Earth": {
+        "texture":"../share/resources/textures/earthShadow.tif"
+      },
       "Moon": {},
-      "Mars": {},
+      "Mars": {
+        "texture":"../share/resources/textures/marsShadow.tif"
+      },
       "Phobos": {},
       "Deimos": {},
       "Jupiter": {},
