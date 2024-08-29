@@ -55,21 +55,21 @@ double getRefractiveIndex(float altitude) {
   return 1.0lf + double(getRefractiveIndexMinusOne(altitude));
 }
 
-float getRefractiveIndexGradientLength(float height, float dh) {
-  return (getRefractiveIndexMinusOne(height + dh) - getRefractiveIndexMinusOne(height)) / dh;
+float getRefractiveIndexGradient(float altitude, float dh) {
+  return (getRefractiveIndexMinusOne(altitude + dh) - getRefractiveIndexMinusOne(altitude)) / dh;
 }
 
 dvec2 rayGradient(dvec2 rayOrigin, dvec2 rayDir) {
-  double altitude        = length(rayOrigin);
-  double refractiveIndex = getRefractiveIndex(float(altitude) - BOTTOM_RADIUS);
-  double gradientLength  = getRefractiveIndexGradientLength(float(altitude) - BOTTOM_RADIUS, 100);
-  return rayOrigin / altitude * gradientLength;
+  double sampleRadius    = length(rayOrigin);
+  double refractiveIndex = getRefractiveIndex(float(sampleRadius) - BOTTOM_RADIUS);
+  double gradientLength  = getRefractiveIndexGradient(float(sampleRadius) - BOTTOM_RADIUS, 100);
+  return rayOrigin / sampleRadius * gradientLength;
 }
 
 dvec2 refractRay(dvec2 rayOrigin, dvec2 rayDir, double stepLength) {
   double altitude        = length(rayOrigin);
   double refractiveIndex = getRefractiveIndex(float(altitude) - BOTTOM_RADIUS);
-  double gradientLength  = getRefractiveIndexGradientLength(float(altitude) - BOTTOM_RADIUS, 100);
+  double gradientLength  = getRefractiveIndexGradient(float(altitude) - BOTTOM_RADIUS, 100);
   dvec2  dn              = rayOrigin / altitude * gradientLength;
   return normalize(refractiveIndex * rayDir + dn * stepLength);
 }
@@ -121,8 +121,10 @@ RayInfo computeOpticalLengthToTopAtmosphereBoundary(float densityTextureV, float
   result.contactRadius  = r - BOTTOM_RADIUS;
 
   dvec2  samplePos    = vec2(0.0, r);
+  dvec2  entryPos     = samplePos;
   double sampleRadius = r;
-  dvec2  currentDir   = startRayDir;
+  double currentMu    = mu;
+  dvec2  currentDir   = dvec2(sqrt(1 - currentMu * currentMu), currentMu);
 
   while (sampleRadius <= TOP_RADIUS + 10) {
 
@@ -138,8 +140,16 @@ RayInfo computeOpticalLengthToTopAtmosphereBoundary(float densityTextureV, float
     // to the surface of the planet.
     if (sampleRadius > BOTTOM_RADIUS) {
       currentDir = refractRayRungeKutta(samplePos, currentDir, dx);
+
+      // float  altitude = float(sampleRadius) - BOTTOM_RADIUS;
+      // double n        = getRefractiveIndex(altitude);
+      // double dn       = getRefractiveIndexGradient(altitude, 100);
+      // double curvature = sqrt(1 - currentMu * currentMu) / n * dn;
+      // currentMu += curvature * dx;
     }
   }
+
+  // vec2 currentDir = vec2(sqrt(1 - currentMu * currentMu), currentMu);
 
   result.thetaDeviation = angleBetweenVectors(vec2(startRayDir), vec2(currentDir));
   result.opticalDepth *= float(dx);
