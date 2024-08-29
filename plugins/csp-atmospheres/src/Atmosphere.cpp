@@ -386,12 +386,12 @@ bool Atmosphere::Do() {
   cs::utils::Frustum frustum;
   frustum.setFromMatrix(matP);
   float approxPixelSize = float(frustum.getHorizontalFOV() / iViewport[2]);
-  float minPixelWidth   = 10.f;
-  if (occDist < atmoRadius || phiAtmo - phiOcc > minPixelWidth * approxPixelSize) {
-    y = 0.0;
+  float pixelWidth      = (phiAtmo - phiOcc) / approxPixelSize;
+  if (occDist < atmoRadius) {
+    x = -1.0;
   }
 
-  mAtmoShader.SetUniform(mAtmoUniforms.shadowCoordinates, x, y, 0.0);
+  mAtmoShader.SetUniform(mAtmoUniforms.shadowCoordinates, x, y, pixelWidth);
 
   mAtmoShader.SetUniform(mAtmoUniforms.sunIlluminance, static_cast<float>(mSunIlluminance));
   mAtmoShader.SetUniform(mAtmoUniforms.sunLuminance, static_cast<float>(mSunLuminance));

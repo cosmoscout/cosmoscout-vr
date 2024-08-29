@@ -505,6 +505,25 @@ float getCloudShadow(vec3 rayOrigin, vec3 rayDir) {
   return 1.0 - getCloudDensity(rayOrigin, rayDir, intersections.y) * fac;
 }
 
+vec3 getApproximateLimbLuminance(vec3 rayOrigin, vec3 rayDir) {
+  float dist     = length(rayOrigin);
+  vec3  toCenter = rayOrigin / dist;
+  vec3  projSun  = dot(uSunDir, toCenter) * toCenter - uSunDir;
+  vec3  projAtmo = dot(rayDir, toCenter) * toCenter - rayDir;
+
+  float x         = uShadowCoordinates.x;
+  float y         = uShadowCoordinates.y;
+  float z         = acos(clamp(dot(normalize(projSun), normalize(projAtmo)), -1.0, 1.0)) / PI;
+  vec3  luminance = texture(uLimbLuminanceTexture, vec3(x, y, z)).rgb;
+
+#if !ENABLE_HDR
+  luminance = tonemap(luminance / uSunIlluminance);
+  luminance = linearToSRGB(luminance);
+#endif
+
+  return luminance;
+}
+
 // -------------------------------------------------------------------------------------------------
 
 #if SKYDOME_MODE
@@ -650,26 +669,13 @@ void main() {
   }
 
 #if ENABLE_LIMB_LUMINANCE
-  float x = uShadowCoordinates.x;
-  float y = uShadowCoordinates.y;
+  float pixelWidth = uShadowCoordinates.z;
 
-  if (y > 0.0) {
+  if (uShadowCoordinates.x > 0.05 && uShadowCoordinates.y > 0.0 && pixelWidth < 5.0) {
 
     vec2 planetIntersections = intersectPlanetsphere(vsIn.rayOrigin, rayDir);
     if (planetIntersections.x > planetIntersections.y) {
-      float dist     = length(vsIn.rayOrigin);
-      vec3  toCenter = vsIn.rayOrigin / dist;
-      vec3  projSun  = dot(uSunDir, toCenter) * toCenter - uSunDir;
-      vec3  projAtmo = dot(rayDir, toCenter) * toCenter - rayDir;
-
-      float z = acos(clamp(dot(normalize(projSun), normalize(projAtmo)), -1.0, 1.0)) / PI;
-      oColor  = texture(uLimbLuminanceTexture, vec3(x, y, z)).rgb;
-
-#if !ENABLE_HDR
-      oColor  = tonemap(oColor / uSunIlluminance);
-      oColor  = linearToSRGB(oColor);
-#endif
-
+      oColor = getApproximateLimbLuminance(vsIn.rayOrigin, rayDir);
       return;
     }
   }
@@ -719,8 +725,8 @@ void main() {
 
     // Looking down onto the ocean.
     if (oceanIntersections.x > 0) {
-      vec3        oceanSurface      = vsIn.rayOrigin + rayDir * oceanIntersections.x;
-      vec3        idealNormal       = normalize(oceanSurface);
+      vec3 oceanSurface = vsIn.rayOrigin + rayDir * oceanIntersections.x;
+      vec3 idealNormal  = normalize(oceanSurface);
 
 #if ENABLE_WAVES
       const float WAVE_SPEED        = 0.2;
