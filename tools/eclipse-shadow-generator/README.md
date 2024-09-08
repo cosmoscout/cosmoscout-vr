@@ -57,9 +57,9 @@ Here are some simple examples to get you started:
 # This simple command creates the default eclipse shadow map of CosmoScout VR
 install/linux-Release/bin/eclipse-shadow-generator limb-darkening --with-umbra --output "resources/textures/fallbackShadow.tif"
 
-install/linux-Release/bin/eclipse-shadow-generator bruneton --with-umbra --input plugins/csp-atmospheres/bruneton-preprocessor/output/earth/ --radius-occ 6370900 --radius-atmo 6451000 --sun-occ-dist 149600000000 --output "resources/textures/earthShadow.tif" --size 512
+install/linux-Release/bin/eclipse-shadow-generator bruneton --with-umbra --input plugins/csp-atmospheres/bruneton-preprocessor/output/earth/ --radius-occ 6371000 --radius-atmo 6451000 --sun-occ-dist 149600000000 --output "resources/textures/earthShadow.tif" --size 512
 install/linux-Release/bin/eclipse-shadow-generator bruneton --with-umbra --input plugins/csp-atmospheres/bruneton-preprocessor/output/mars/ --radius-occ 3389500 --radius-atmo 3469500 --sun-occ-dist 227900000000 --output "resources/textures/marsShadow.tif" --size 512
-install/linux-Release/bin/eclipse-shadow-generator limb-luminance --with-umbra --input plugins/csp-atmospheres/bruneton-preprocessor/output/earth/ --radius-occ 6370900 --radius-atmo 6451000 --sun-occ-dist 149600000000 --output "resources/textures/earthLimbLuminance.tif" --size 64
+install/linux-Release/bin/eclipse-shadow-generator limb-luminance --with-umbra --input plugins/csp-atmospheres/bruneton-preprocessor/output/earth/ --radius-occ 6371000 --radius-atmo 6451000 --sun-occ-dist 149600000000 --output "resources/textures/earthLimbLuminance.tif" --size 64
 install/linux-Release/bin/eclipse-shadow-generator limb-luminance --with-umbra --input plugins/csp-atmospheres/bruneton-preprocessor/output/mars/ --radius-occ 3389500 --radius-atmo 3469500 --sun-occ-dist 227900000000 --output "resources/textures/marsLimbLuminance.tif" --size 64
 
 # These are used for debugging purposes and can be used to visualize the results of the atmosphere rendering.

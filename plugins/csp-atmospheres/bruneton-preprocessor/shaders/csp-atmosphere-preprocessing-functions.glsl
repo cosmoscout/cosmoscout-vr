@@ -59,31 +59,29 @@ float getRefractiveIndexGradient(float altitude, float dh) {
   return (getRefractiveIndexMinusOne(altitude + dh) - getRefractiveIndexMinusOne(altitude)) / dh;
 }
 
-dvec2 rayGradient(dvec2 rayOrigin, dvec2 rayDir) {
-  double sampleRadius    = length(rayOrigin);
-  double refractiveIndex = getRefractiveIndex(float(sampleRadius) - BOTTOM_RADIUS);
-  double gradientLength  = getRefractiveIndexGradient(float(sampleRadius) - BOTTOM_RADIUS, 100);
-  return rayOrigin / sampleRadius * gradientLength;
+dvec2 rayGradient(float altitude, dvec2 origin, dvec2 dir) {
+  double refractiveIndex = getRefractiveIndex(altitude);
+  double gradientLength  = getRefractiveIndexGradient(altitude, 100);
+  return normalize(origin) * gradientLength;
 }
 
-dvec2 refractRay(dvec2 rayOrigin, dvec2 rayDir, double stepLength) {
-  double altitude        = length(rayOrigin);
-  double refractiveIndex = getRefractiveIndex(float(altitude) - BOTTOM_RADIUS);
-  double gradientLength  = getRefractiveIndexGradient(float(altitude) - BOTTOM_RADIUS, 100);
-  dvec2  dn              = rayOrigin / altitude * gradientLength;
-  return normalize(refractiveIndex * rayDir + dn * stepLength);
+dvec2 refractRay(dvec2 origin, dvec2 dir, double dx) {
+  float  altitude        = max(0, float(length(origin) - BOTTOM_RADIUS));
+  double refractiveIndex = getRefractiveIndex(altitude);
+  double gradientLength  = getRefractiveIndexGradient(altitude, 100);
+  dvec2  dn              = normalize(origin) * gradientLength;
+  return normalize(refractiveIndex * dir + dn * dx);
 }
 
-dvec2 refractRayRungeKutta(dvec2 rayOrigin, dvec2 rayDir, double stepLength) {
-  double altitude        = length(rayOrigin);
-  double refractiveIndex = getRefractiveIndex(float(altitude) - BOTTOM_RADIUS);
-  dvec2  k1              = stepLength * rayGradient(rayOrigin, rayDir);
-  dvec2  k2 = stepLength * rayGradient(rayOrigin + 0.5 * stepLength * rayDir, rayDir + 0.5 * k1);
-  dvec2  k3 =
-      stepLength * rayGradient(rayOrigin + 0.5 * stepLength * rayDir + 0.5 * k2, rayDir + 0.5 * k2);
-  dvec2 k4 = stepLength * rayGradient(rayOrigin + stepLength * rayDir, rayDir + k3);
+dvec2 refractRayRungeKutta(dvec2 origin, dvec2 dir, double dx) {
+  float  altitude        = max(0, float(length(origin) - BOTTOM_RADIUS));
+  double refractiveIndex = getRefractiveIndex(altitude);
+  dvec2  k1              = dx * rayGradient(altitude, origin, dir);
+  dvec2  k2              = dx * rayGradient(altitude, origin + 0.5 * dx * dir, dir + 0.5 * k1);
+  dvec2  k3 = dx * rayGradient(altitude, origin + 0.5 * dx * dir + 0.5 * k2, dir + 0.5 * k2);
+  dvec2  k4 = dx * rayGradient(altitude, origin + dx * dir, dir + k3);
 
-  return normalize(refractiveIndex * rayDir + (k1 + 2.0 * k2 + 2.0 * k3 + k4) / 6.0);
+  return normalize(refractiveIndex * dir + (k1 + 2.0 * k2 + 2.0 * k3 + k4) / 6.0);
 }
 
 // If our ray hit the surface of the planet, the optical depth should be infinite. However,
@@ -135,18 +133,13 @@ RayInfo computeOpticalLengthToTopAtmosphereBoundary(float densityTextureV, float
     result.opticalDepth += getDensity(densityTextureV, altitude);
     result.contactRadius = min(result.contactRadius, altitude);
 
-    // If the ray intersects the ground, we have a problem: We do not have density information
-    // in the underground, so the ray traversal will become undefined. Hence we clamp the ray
-    // to the surface of the planet.
-    if (sampleRadius > BOTTOM_RADIUS) {
-      currentDir = refractRayRungeKutta(samplePos, currentDir, dx);
+    currentDir = refractRayRungeKutta(samplePos, currentDir, dx);
 
-      // float  altitude = float(sampleRadius) - BOTTOM_RADIUS;
-      // double n        = getRefractiveIndex(altitude);
-      // double dn       = getRefractiveIndexGradient(altitude, 100);
-      // double curvature = sqrt(1 - currentMu * currentMu) / n * dn;
-      // currentMu += curvature * dx;
-    }
+    // float  altitude = float(sampleRadius) - BOTTOM_RADIUS;
+    // double n        = getRefractiveIndex(altitude);
+    // double dn       = getRefractiveIndexGradient(altitude, 100);
+    // double curvature = sqrt(1 - currentMu * currentMu) / n * dn;
+    // currentMu += curvature * dx;
   }
 
   // vec2 currentDir = vec2(sqrt(1 - currentMu * currentMu), currentMu);

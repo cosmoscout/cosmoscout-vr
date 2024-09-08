@@ -33,10 +33,11 @@ struct Output {
 // When computing an eclipse shadow involving atmospheric effects, the geometry of the Sun,
 // occluding body, and its atmosphere are needed. The values can be set via command line arguments.
 struct Geometry {
-  double mRadiusOcc  = 6370900.0;
-  double mRadiusAtmo = 6451000.0;
-  double mRadiusSun  = 696340000.0;
-  double mSunOccDist = 149597870700.0;
+  double mRadiusOcc            = 6370900.0;
+  double mRadiusAtmo           = 6451000.0;
+  double mRadiusSun            = 696340000.0;
+  double mSunOccDist           = 149597870700.0;
+  double mAverageTerrainHeight = 0.0;
 };
 
 // This adds the command line arguments for the shadow-map parameterization to the given

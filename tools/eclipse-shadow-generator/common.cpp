@@ -45,6 +45,9 @@ void addGeometryFlags(cs::utils::CommandLine& commandLine, Geometry& settings) {
   commandLine.addArgument({"--sun-occ-dist"}, &settings.mSunOccDist,
       "The distance between the sun and the occluding body in meters (default: " +
           std::to_string(settings.mSunOccDist) + ").");
+  commandLine.addArgument({"--average-terrain-height"}, &settings.mAverageTerrainHeight,
+      "The average height of opaque geometry blocking light, in meters (default: " +
+          std::to_string(settings.mAverageTerrainHeight) + ").");
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
