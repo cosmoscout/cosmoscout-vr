@@ -38,6 +38,7 @@ struct Geometry {
   double mRadiusSun            = 696340000.0;
   double mSunOccDist           = 149597870700.0;
   double mAverageTerrainHeight = 0.0;
+  double mCloudAltitude        = 0.0;
 };
 
 // This adds the command line arguments for the shadow-map parameterization to the given

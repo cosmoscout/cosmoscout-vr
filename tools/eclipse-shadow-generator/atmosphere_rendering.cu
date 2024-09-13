@@ -326,7 +326,7 @@ __device__ glm::vec3 getLuminance(glm::dvec3 camera, glm::dvec3 viewRay, glm::dv
     // above two times the mean elevation of the terrain are not affected by the terrain. All rays
     // passing below zero elevation are completely blocked by the terrain. In between, the
     // transmittance is linearly interpolated.
-    if (contactRadius < 0.0) {
+    if (contactRadius < geometry.mCloudAltitude) {
       transmittance = glm::vec3(0.0);
     } else if (contactRadius < 2.F * geometry.mAverageTerrainHeight) {
       float t = (2.F * geometry.mAverageTerrainHeight - contactRadius) /

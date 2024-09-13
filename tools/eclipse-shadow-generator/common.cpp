@@ -48,6 +48,9 @@ void addGeometryFlags(cs::utils::CommandLine& commandLine, Geometry& settings) {
   commandLine.addArgument({"--average-terrain-height"}, &settings.mAverageTerrainHeight,
       "The average height of opaque geometry blocking light, in meters (default: " +
           std::to_string(settings.mAverageTerrainHeight) + ").");
+  commandLine.addArgument({"--cloud-altitude"}, &settings.mCloudAltitude,
+      "No light will pass below this altitude, in meters (default: " +
+          std::to_string(settings.mCloudAltitude) + ").");
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
