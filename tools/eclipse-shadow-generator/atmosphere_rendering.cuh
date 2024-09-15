@@ -17,11 +17,11 @@ namespace advanced {
 // These input textures are required for the Bruneton precomputed atmospheric scattering model.
 // They have to be precomputed using the "bruneton-preprocessor" tool of the csp-atmospheres plugin.
 struct Textures {
-  cudaTextureObject_t mPhase;
-  cudaTextureObject_t mThetaDeviation;
-  cudaTextureObject_t mTransmittance;
-  cudaTextureObject_t mMultipleScattering;
-  cudaTextureObject_t mSingleAerosolsScattering;
+  cudaTextureObject_t mPhase = 0;
+  cudaTextureObject_t mThetaDeviation = 0;
+  cudaTextureObject_t mTransmittance = 0;
+  cudaTextureObject_t mMultipleScattering = 0;
+  cudaTextureObject_t mSingleAerosolsScattering = 0;
 
   int    mTransmittanceTextureWidth;
   int    mTransmittanceTextureHeight;

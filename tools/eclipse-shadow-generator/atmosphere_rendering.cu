@@ -170,6 +170,15 @@ __device__ glm::vec3 getScatteringTextureUvwFromRMuMuSNu(advanced::Textures cons
 __device__ glm::dvec3 getRefractedRay(advanced::Textures const& textures,
     common::Geometry const& geometry, glm::dvec3 camera, glm::dvec3 ray, double& contactRadius) {
 
+  if (!textures.mThetaDeviation) {
+    double dist       = glm::length(camera);
+    auto   toOccluder = -camera / dist;
+    double angle      = math::angleBetweenVectors(ray, toOccluder);
+    contactRadius     = glm::acos(angle) * dist - geometry.mRadiusOcc;
+
+    return ray;
+  }
+
   double    mu = dot(camera, ray) / geometry.mRadiusAtmo;
   glm::vec2 uv = getTransmittanceTextureUvFromRMu(textures, geometry, mu);
 
@@ -250,17 +259,16 @@ __host__ Textures loadTextures(std::string const& path) {
       tiff_utils::read2DTexture(path + "/multiple_scattering.tif", scatteringTextureRSize - 1);
   tiff_utils::RGBATexture singleScattering = tiff_utils::read2DTexture(
       path + "/single_aerosols_scattering.tif", scatteringTextureRSize - 1);
-  tiff_utils::RGBATexture theta_deviation =
-      tiff_utils::read2DTexture(path + "/theta_deviation.tif");
+
   tiff_utils::RGBATexture phase         = tiff_utils::read2DTexture(path + "/phase.tif");
   tiff_utils::RGBATexture transmittance = tiff_utils::read2DTexture(path + "/transmittance.tif");
 
   Textures textures;
   textures.mMultipleScattering       = createCudaTexture(multiscattering);
   textures.mSingleAerosolsScattering = createCudaTexture(singleScattering);
-  textures.mThetaDeviation           = createCudaTexture(theta_deviation);
-  textures.mPhase                    = createCudaTexture(phase);
-  textures.mTransmittance            = createCudaTexture(transmittance);
+
+  textures.mPhase         = createCudaTexture(phase);
+  textures.mTransmittance = createCudaTexture(transmittance);
 
   std::ifstream  metaFile(path + "/metadata.json");
   nlohmann::json meta;
@@ -275,6 +283,13 @@ __host__ Textures loadTextures(std::string const& path) {
   textures.mScatteringTextureMuSSize   = multiscattering.width / scatteringTextureNuSize;
   textures.mScatteringTextureNuSize    = scatteringTextureNuSize;
   textures.mMuSMin                     = std::cos(maxSunZenithAngle);
+
+  bool enableRefraction = meta.at("refraction");
+  if (enableRefraction) {
+    tiff_utils::RGBATexture theta_deviation =
+        tiff_utils::read2DTexture(path + "/theta_deviation.tif");
+    textures.mThetaDeviation = createCudaTexture(theta_deviation);
+  }
 
   return textures;
 }
