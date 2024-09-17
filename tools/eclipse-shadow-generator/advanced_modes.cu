@@ -201,7 +201,7 @@ __global__ void computeLimbLuminance(common::Output output, common::Mapping mapp
   //
   // We use this resolution for the integration:
   uint32_t samplesX = output.mSize;
-  uint32_t samplesY = 128;
+  uint32_t samplesY = 256;
 
   // First, compute the angular radii of Sun and occluder as well as the angle between the two.
   double phiOcc, phiSun, delta;
