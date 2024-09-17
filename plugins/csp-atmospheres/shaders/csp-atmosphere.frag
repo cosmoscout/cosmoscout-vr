@@ -669,14 +669,16 @@ void main() {
   }
 
 #if ENABLE_LIMB_LUMINANCE
-  float pixelWidth = uShadowCoordinates.z;
+  if (RefractionSupported()) {
+    float pixelWidth = uShadowCoordinates.z;
 
-  if (uShadowCoordinates.x > 0.05 && uShadowCoordinates.y > 0.0 && pixelWidth < 5.0) {
+    if (uShadowCoordinates.x > 0.05 && uShadowCoordinates.y > 0.0 && pixelWidth < 50.0) {
 
-    vec2 planetIntersections = intersectPlanetsphere(vsIn.rayOrigin, rayDir);
-    if (planetIntersections.x > planetIntersections.y) {
-      oColor = getApproximateLimbLuminance(vsIn.rayOrigin, rayDir);
-      return;
+      vec2 planetIntersections = intersectPlanetsphere(vsIn.rayOrigin, rayDir);
+      if (planetIntersections.x > planetIntersections.y) {
+        oColor = getApproximateLimbLuminance(vsIn.rayOrigin, rayDir);
+        return;
+      }
     }
   }
 #endif
