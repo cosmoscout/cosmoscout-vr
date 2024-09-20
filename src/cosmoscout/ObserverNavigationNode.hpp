@@ -49,6 +49,7 @@ class ObserverNavigationNode : public IVdfnNode {
   TVdfnPort<VistaVector3D>*   mOffset;
 
   const bool          mPreventNavigationWhenHoveredGui;
+  const bool          mFixedHorizon;
   const double        mMaxAngularSpeed;
   const VistaVector3D mMaxLinearSpeed;
 
