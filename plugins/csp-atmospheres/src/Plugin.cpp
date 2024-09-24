@@ -131,8 +131,6 @@ void Plugin::init() {
             mGuiManager->setSliderValue("atmosphere.setWaterLevel", settings.mWaterLevel.get());
             mGuiManager->setCheckboxValue(
                 "atmosphere.setEnableClouds", settings.mEnableClouds.get());
-            mGuiManager->setCheckboxValue(
-                "atmosphere.setEnableLimbLuminance", settings.mEnableLimbLuminance.get());
             mGuiManager->setSliderValue(
                 "atmosphere.setCloudAltitude", settings.mCloudAltitude.get());
           }
@@ -188,10 +186,9 @@ void Plugin::init() {
   mGuiManager->getGui()->registerCallback("atmosphere.setEnableLimbLuminance",
       "Enables or disables rendering of a precomputed luminance when inside the shadow.",
       std::function([this](bool enable) {
-        if (!mActiveAtmosphere.empty()) {
-          auto& settings                = mPluginSettings->mAtmospheres.at(mActiveAtmosphere);
-          settings.mEnableLimbLuminance = enable;
-          mAtmospheres.at(mActiveAtmosphere)->configure(settings);
+        for (auto& settings : mPluginSettings->mAtmospheres) {
+          settings.second.mEnableLimbLuminance = enable;
+          mAtmospheres.at(settings.first)->configure(settings.second);
         }
       }));
 
