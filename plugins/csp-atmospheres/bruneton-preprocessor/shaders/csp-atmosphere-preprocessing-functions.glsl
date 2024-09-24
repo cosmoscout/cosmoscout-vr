@@ -287,8 +287,9 @@ void computeSingleScattering(AtmosphereComponents atmosphere, sampler2D transmit
 
   dvec2  samplePos    = vec2(0.0, r);
   double sampleRadius = r;
+  bool   hitGround    = false;
 
-  while (sampleRadius <= TOP_RADIUS + 10 && sampleRadius >= BOTTOM_RADIUS) {
+  while (sampleRadius <= TOP_RADIUS + 10 && !hitGround) {
     double dx            = STEP_SIZE_SINGLE_SCATTERING;
     dvec2  nextSamplePos = samplePos + currentDir * dx;
     double nextR         = length(nextSamplePos);
@@ -298,6 +299,7 @@ void computeSingleScattering(AtmosphereComponents atmosphere, sampler2D transmit
       dx            = dx * (sampleRadius - BOTTOM_RADIUS) / (sampleRadius - nextR);
       nextSamplePos = samplePos + currentDir * dx;
       nextR         = BOTTOM_RADIUS;
+      hitGround     = true;
     }
 
     float muSD = clampCosine(dot(sunDir, vec3(nextSamplePos, 0.0)) / float(nextR));
@@ -311,10 +313,11 @@ void computeSingleScattering(AtmosphereComponents atmosphere, sampler2D transmit
     moleculesSum += transmittanceSun * vec3(transmittanceRay) * moleculesDensity * float(dx);
     aerosolsSum += transmittanceSun * vec3(transmittanceRay) * aerosolsDensity * float(dx);
 
-    currentDir = refractRayRungeKutta(samplePos, currentDir, dx);
-
-    samplePos += currentDir * STEP_SIZE_SINGLE_SCATTERING;
-    sampleRadius = length(samplePos);
+    if (!hitGround) {
+      currentDir = refractRayRungeKutta(samplePos, currentDir, dx);
+      samplePos += currentDir * STEP_SIZE_SINGLE_SCATTERING;
+      sampleRadius = length(samplePos);
+    }
   }
 
   molecules = moleculesSum * SOLAR_IRRADIANCE * atmosphere.molecules.scattering;
@@ -532,31 +535,44 @@ vec3 computeMultipleScattering(AtmosphereComponents atmosphere, sampler2D transm
     sampler3D scatteringDensityTexture, float r, float mu, float muS, float nu,
     bool rayRMuIntersectsGround) {
 
-  double dx         = STEP_SIZE_MULTI_SCATTERING;
-  dvec2  currentDir = vec2(sqrt(1 - mu * mu), mu);
-  vec3   sunDir     = getSunDirection(mu, muS, nu);
+  dvec2 currentDir = vec2(sqrt(1 - mu * mu), mu);
+  vec3  sunDir     = getSunDirection(mu, muS, nu);
 
   vec3  moleculesAerosolsSum = vec3(0.0);
   dvec3 transmittanceRay     = dvec3(1.0);
 
   dvec2  samplePos    = vec2(0.0, r);
   double sampleRadius = r;
+  bool   hitGround    = false;
 
-  while (sampleRadius <= TOP_RADIUS + 10 && sampleRadius >= BOTTOM_RADIUS) {
-    double currentMu  = clampCosine(dot(samplePos / sampleRadius, currentDir));
-    double currentMuS = clampCosine(dot(dvec3(samplePos, 0.0) / sampleRadius, sunDir));
+  while (sampleRadius <= TOP_RADIUS + 10 && !hitGround) {
+    double dx            = STEP_SIZE_MULTI_SCATTERING;
+    dvec2  nextSamplePos = samplePos + currentDir * dx;
+    double nextR         = length(nextSamplePos);
+
+    // If the segment intersects the ground, we shorten the segment to the intersection point.
+    if (nextR < BOTTOM_RADIUS) {
+      dx            = dx * (sampleRadius - BOTTOM_RADIUS) / (sampleRadius - nextR);
+      nextSamplePos = samplePos + currentDir * dx;
+      nextR         = BOTTOM_RADIUS;
+      hitGround     = true;
+    }
+
+    double currentMu  = clampCosine(dot(nextSamplePos / nextR, currentDir));
+    double currentMuS = clampCosine(dot(dvec3(nextSamplePos, 0.0) / nextR, sunDir));
     double currentNu  = clampCosine(dot(dvec3(currentDir, 0.0), sunDir));
 
-    transmittanceRay *= getTransmittanceForRaySegment(atmosphere, float(sampleRadius), float(dx));
+    transmittanceRay *= getTransmittanceForRaySegment(atmosphere, float(nextR), float(dx));
 
-    moleculesAerosolsSum +=
-        getScattering(scatteringDensityTexture, float(sampleRadius), float(currentMu),
-            float(currentMuS), float(currentNu), rayRMuIntersectsGround) *
-        vec3(transmittanceRay) * float(dx);
+    moleculesAerosolsSum += getScattering(scatteringDensityTexture, float(nextR), float(currentMu),
+                                float(currentMuS), float(currentNu), rayRMuIntersectsGround) *
+                            vec3(transmittanceRay) * float(dx);
 
-    currentDir = refractRayRungeKutta(samplePos, currentDir, dx);
-    samplePos += currentDir * dx;
-    sampleRadius = length(samplePos);
+    if (!hitGround) {
+      currentDir = refractRayRungeKutta(samplePos, currentDir, dx);
+      samplePos += currentDir * dx;
+      sampleRadius = length(samplePos);
+    }
   }
 
   return moleculesAerosolsSum;
