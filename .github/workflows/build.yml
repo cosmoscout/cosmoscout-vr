@@ -120,7 +120,7 @@ jobs:
         run: |
           ./install/linux-Release/bin/run_graphical_tests.sh
       - name: Upload Results of Failed Test
-        uses: actions/upload-artifact@v1
+        uses: actions/upload-artifact@v4
         if: failure()
         with:
           name: graphical-test-results-gcc
@@ -176,7 +176,7 @@ jobs:
         run: |
           ./install/linux-Release/bin/run_graphical_tests.sh
       - name: Upload Results of Failed Test
-        uses: actions/upload-artifact@v1
+        uses: actions/upload-artifact@v4
         if: failure()
         with:
           name: graphical-test-results-clang
