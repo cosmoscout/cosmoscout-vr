@@ -109,10 +109,9 @@ jobs:
           ./make_externals.sh -G "Unix Makefiles"
           -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache
       - name: Build CosmoScout VR
-        run: >
-          ./make.sh -G "Unix Makefiles"
-          -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache
-          -DCOSMOSCOUT_COVERAGE_INFO=On -DCOSMOSCOUT_UNIT_TESTS=On
+        run: |
+          cmake --preset linux-make-release-config -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCOSMOSCOUT_COVERAGE_INFO=On
+          cmake --build --preset linux-make-release-build
       - name: Run Tests
         run: |
           ./install/linux-Release/bin/run_tests.sh
@@ -165,9 +164,8 @@ jobs:
           ./make_externals.sh -G "Unix Makefiles"
           -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache
       - name: Build CosmoScout VR
-        run: >
-          cmake --preset linux-make-release-config
-          -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache
+        run: |
+          cmake --preset linux-make-release-config -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache
           cmake --build --preset linux-make-release-build
       - name: Run Tests
         run: |
@@ -221,10 +219,8 @@ jobs:
           -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache
       - name: Build CosmoScout VR
         shell: cmd
-        run: >
-          cmake --preset windows-ninja-release-config
-          -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache
-          -DBOOST_ROOT=%BOOST_ROOT_1_72_0%
+        run: |
+          cmake --preset windows-ninja-release-config -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache -DBOOST_ROOT=%BOOST_ROOT_1_72_0%
           cmake --build --preset windows-ninja-release-build
       - name: Run Tests
         shell: cmd
