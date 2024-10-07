@@ -171,7 +171,7 @@ We will discuss these files in the following.
     {
       "label": "Make (Release)",
       "type": "shell",
-      "command": "./make.sh -DCOSMOSCOUT_UNIT_TESTS=On",
+      "command": "cmake --preset linux-make-release-config && cmake --build --preset linux-make-release-build",
       "options": {
         "cwd": "${workspaceFolder}"
       },
@@ -179,7 +179,7 @@ We will discuss these files in the following.
         "$gcc"
       ],
       "windows": {
-        "command": ".\\make.bat -DCOSMOSCOUT_UNIT_TESTS=On",
+        "command": "cmake --preset windows-vs-release-config && cmake --build --preset windows-vs-release-build",
         "options": {
           "env": {
             "BOOST_ROOT": "C:\\local\\boost_1_69_0"
@@ -190,7 +190,7 @@ We will discuss these files in the following.
     {
       "label": "Make (Debug)",
       "type": "shell",
-      "command": "./make.sh -DCOSMOSCOUT_UNIT_TESTS=On",
+      "command": "cmake --preset linux-make-debug-config && cmake --build --preset linux-make-debug-build",
       "options": {
         "cwd": "${workspaceFolder}",
         "env": {
@@ -201,7 +201,7 @@ We will discuss these files in the following.
         "$gcc"
       ],
       "windows": {
-        "command": ".\\make.bat -DCOSMOSCOUT_UNIT_TESTS=On",
+        "command": "cmake --preset windows-make-debug-config && cmake --build --preset windows-make-debug-build",
         "options": {
           "env": {
             "BOOST_ROOT": "C:\\local\\boost_1_69_0"
@@ -298,11 +298,11 @@ With this file in place, you can press `Ctrl+Shift+P` and select `Tasks: Run Tas
 
 > [!TIP]
 > 
-> **(Linux only):** You can use [ccache](https://ccache.dev/) to considerably speed up build times. You just need to replace the commands with `./make_externals.sh -G "Unix Makefiles" -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache` and `./make.sh -G "Unix Makefiles" -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache` respectively._
+> **(Linux only):** You can use [ccache](https://ccache.dev/) to considerably speed up build times. You just need to replace the commands with `./make_externals.sh -G "Unix Makefiles" -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache` and `cmake --preset linux-make-release-config -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache` respectively._
 
 > [!TIP]
 >
-> **(Windows only):** You can use [clcache](https://github.com/frerich/clcache) to considerably speed up build times. You just need to call `make_externals.bat -G "Visual Studio 15 Win64" -DCMAKE_VS_GLOBALS=CLToolExe="clcache.exe;TrackFileAccess=false"` and `make.bat -G "Visual Studio 15 Win64" -DCMAKE_VS_GLOBALS="CLToolExe=clcache.exe;TrackFileAccess=false"` respectively._
+> **(Windows only):** You can use [clcache](https://github.com/frerich/clcache) to considerably speed up build times. You just need to call `make_externals.bat -G "Visual Studio 15 Win64" -DCMAKE_VS_GLOBALS=CLToolExe="clcache.exe;TrackFileAccess=false"` and `cmake --preset windows-vs-release-config -DCMAKE_VS_GLOBALS="CLToolExe=clcache.exe;TrackFileAccess=false"` respectively._
 
 ### `.vscode/c_cpp_properties.json`
 

@@ -37,11 +37,11 @@ cd cosmoscout-vr
 Per default, all dependencies are built in release mode using precompiled headers and unity builds where possible.
 This behavior can be adjusted using some environment variables:
 
-Variable | Default | Description
----------|---------|------------
-`COSMOSCOUT_DEBUG_BUILD` | `false` | Set to `true` to build all dependencies and CosmoScout VR in debug mode.
-`COSMOSCOUT_USE_UNITY_BUILD` | `true` | Set to `false` to disable unity builds.
-`COSMOSCOUT_USE_PCH` | `true` | Set to `false` to prevent generation of precompiled headers.
+| Variable                     | Default | Description                                                              |
+|------------------------------|---------|--------------------------------------------------------------------------|
+| `COSMOSCOUT_DEBUG_BUILD`     | `false` | Set to `true` to build all dependencies and CosmoScout VR in debug mode. |
+| `COSMOSCOUT_USE_UNITY_BUILD` | `true`  | Set to `false` to disable unity builds.                                  |
+| `COSMOSCOUT_USE_PCH`         | `true`  | Set to `false` to prevent generation of precompiled headers.             |
 
 You should set these as required before executing the scripts below.
 This step only has to be done once.
@@ -56,27 +56,37 @@ All parameters given to `make_externals.bat` will be forwarded to CMake. For exa
 
 ### Compiling CosmoScout VR
 
-On Linux, one can either use the provided shell script ([make.sh](../make.sh)) or build the software manually using CMake. 
-**Using the provided script** is easy and definitely the recommended way.
+One can either use [CMake Presets](https://cmake.org/cmake/help/v3.22/manual/cmake-presets.7.html) or build the software manually using CMake. 
+**Using CMake Presets** is easy and definitely the recommended way.
 
-Per default, CosmoScout VR is built in release mode without precompiled headers and unity builds on linux, since it doesn't gain any time.
-This behavior can be adjusted using some environment variables:
-
-Variable | Default | Description
----------|---------|------------
-`COSMOSCOUT_DEBUG_BUILD` | `false` | Set to `true` to build all dependencies and CosmoScout VR in debug mode.
-`COSMOSCOUT_USE_UNITY_BUILD` | `false` | Set to `true` to enable unity builds.
-`COSMOSCOUT_USE_PCH` | `false` | Set to `true` to enable generation of precompiled headers.
-
-You should set these as required before executing the scripts below.
-
-This script will configure and build CosmoScout VR in `cosmoscout-vr/build/linux-Release` and will install it to `cosmoscout-vr/install/linux-Release`.
-Again, all parameters given to `make.sh` will be forwarded to CMake:
+You can get a list of available configuration presets using the following command:
 
 ```shell
-./make.sh -G "Unix Makefiles" -DCOSMOSCOUT_UNIT_TESTS=On
+cmake --list-presets
 ```
 
+The results will be structured the following way: linux-<build-tool>-<build-type>-config.
+After you decided for a preset you can configure with the following command:
+
+```shell
+cmake --preset <preset-name>
+```
+
+The next step is to build CosmoScout VR. You can also list build presets:
+
+```shell
+cmake --build --list-presets
+```
+
+The results will be structured the following way: linux-<build-tool>-<build-type>-build.
+After you decided for a preset you can build with the following command:
+
+```shell
+cmake --build --preset <preset-name>
+```
+
+> [!IMPORTANT]
+> Be aware that the configure and build presets need to match!
 
 The application can be executed with:
 
@@ -95,15 +105,26 @@ Since you specified `-DCOSMOSCOUT_UNIT_TESTS=On` at build time, you can now exec
 ./install/linux-Release/bin/run_graphical_tests.sh
 ```
 
-:information_source: _**Tip:** If you wish, you can delete the directories `build` and `install` at any time in order to force a complete reconfiguration or re-installation._
+> [!TIP]
+> If you wish, you can delete the directories `build` and `install` at any time in order to force a complete reconfiguration or re-installation.
 
-For **manual compilation** follow the steps outlined in [make.sh](../make.sh).
+> [!TIP]
+> You can create your own presets by creating `CMakeUserPresets.json` and inherit from a global preset or define your completely own preset.
 
-:information_source: _**Tip:** You can use [ccache](https://ccache.dev/) to considerably speed up build times. You just need to call `./make_externals.sh -G "Unix Makefiles" -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache` and `./make.sh -G "Unix Makefiles" -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache` respectively._
+> [!TIP]
+> You can override preset variables by simply setting them in the command line after the preset name e.g.:
+> ```bash
+> cmake --preset <preset-name> -DCOSMOSCOUT_UNIT_TESTS=Off
+> cmake --build --preset <preset-name> --parallel 2
+> ```
+
+> [!TIP]
+> You can use [ccache](https://ccache.dev/) to considerably speed up build times. You just need to call `./make_externals.sh -G "Unix Makefiles" -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache` and `cmake --preset <preset-name> -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache` respectively.
 
 ## Windows
 
-:warning: _**Warning:** During compilation of the externals, files with pretty long names are generated. Since Windows does not support paths longer 260 letters, you have to compile CosmoScout VR quite close to your file system root (`e.g. C:\cosmoscout-vr`). If you are on Windows 10, [you can disable this limit](https://www.howtogeek.com/266621/how-to-make-windows-10-accept-file-paths-over-260-characters/)._
+> [!WARNING]
+> During compilation of the externals, files with pretty long names are generated. Since Windows does not support paths longer 260 letters, you have to compile CosmoScout VR quite close to your file system root (`e.g. C:\cosmoscout-vr`). If you are on Windows 10, [you can disable this limit](https://www.howtogeek.com/266621/how-to-make-windows-10-accept-file-paths-over-260-characters/).
 
 ### Cloning the repository
 
@@ -118,24 +139,25 @@ Getting a precompiled version of boost suitable for CosmoScout VR which will be 
 
 So using version 1.70.0 may work in most cases. You can get it from from https://sourceforge.net/projects/boost/files/boost-binaries/1.70.0
 
-MSVC | Visual Studio | File | Link
---- | --- | --- | ---
-14.2 | 2019 | `boost_1_70_0-unsupported-msvc-14.2-64.exe` | [download](https://sourceforge.net/projects/boost/files/boost-binaries/1.70.0/boost_1_70_0-unsupported-msvc-14.2-64.exe/download)
-14.1 | 2017 | `boost_1_70_0-msvc-14.1-64.exe` | [download](https://sourceforge.net/projects/boost/files/boost-binaries/1.70.0/boost_1_70_0-msvc-14.1-64.exe/download)
-14.0 | 2015 | `boost_1_70_0-msvc-14.0-64.exe` | [download](https://sourceforge.net/projects/boost/files/boost-binaries/1.70.0/boost_1_70_0-msvc-14.0-64.exe/download)
+| MSVC | Visual Studio | File                                        | Link                                                                                                                              |
+|------|---------------|---------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------|
+| 14.2 | 2019          | `boost_1_70_0-unsupported-msvc-14.2-64.exe` | [download](https://sourceforge.net/projects/boost/files/boost-binaries/1.70.0/boost_1_70_0-unsupported-msvc-14.2-64.exe/download) |
+| 14.1 | 2017          | `boost_1_70_0-msvc-14.1-64.exe`             | [download](https://sourceforge.net/projects/boost/files/boost-binaries/1.70.0/boost_1_70_0-msvc-14.1-64.exe/download)             |
+| 14.0 | 2015          | `boost_1_70_0-msvc-14.0-64.exe`             | [download](https://sourceforge.net/projects/boost/files/boost-binaries/1.70.0/boost_1_70_0-msvc-14.0-64.exe/download)             |
 
-:information_source: _**Tip:** If you want that CosmoScout VR detects your 3DConnexion Space Navigator, you have to [download](https://3dconnexion.com/de/software-developer-program/) and install the 3DConnexion SDK. Then you need to add one line to the `make_externals.bat` but file as [described here](https://github.com/cosmoscout/cosmoscout-vr/blob/main/make_externals.bat#L313)._
+> [!TIP]
+> If you want that CosmoScout VR detects your 3DConnexion Space Navigator, you have to [download](https://3dconnexion.com/de/software-developer-program/) and install the 3DConnexion SDK. Then you need to add one line to the `make_externals.bat` but file as [described here](https://github.com/cosmoscout/cosmoscout-vr/blob/main/make_externals.bat#L313).
 
 
 Then you have to compile the dependencies.
 Per default, all dependencies are built in release mode using precompiled headers and unity builds where possible.
 This behavior can be adjusted using some environment variables:
 
-Variable | Default | Description
----------|---------|------------
-`COSMOSCOUT_DEBUG_BUILD` | `false` | Set to `true` to build all dependencies and CosmoScout VR in debug mode.
-`COSMOSCOUT_USE_UNITY_BUILD` | `true` | Set to `false` to disable unity builds.
-`COSMOSCOUT_USE_PCH` | `true` | Set to `false` to prevent generation of precompiled headers.
+| Variable                     | Default | Description                                                              |
+|------------------------------|---------|--------------------------------------------------------------------------|
+| `COSMOSCOUT_DEBUG_BUILD`     | `false` | Set to `true` to build all dependencies and CosmoScout VR in debug mode. |
+| `COSMOSCOUT_USE_UNITY_BUILD` | `true`  | Set to `false` to disable unity builds.                                  |
+| `COSMOSCOUT_USE_PCH`         | `true`  | Set to `false` to prevent generation of precompiled headers.             |
 
 You should set these as required before executing the scripts below.
 This step only has to be done once.
@@ -151,34 +173,49 @@ All parameters given to `make_externals.bat` will be forwarded to CMake. For exa
 
 ### Compiling CosmoScout VR
 
-For Windows, there is a batch script ([make.bat](../make.bat)) which can be used in the same way as the script for Linux.
-
-Per default, CosmoScout VR is built in release mode using precompiled headers and unity builds.
-This behavior can be adjusted using some environment variables:
-
-Variable | Default | Description
----------|---------|------------
-`COSMOSCOUT_DEBUG_BUILD` | `false` | Set to `true` to build all dependencies and CosmoScout VR in debug mode.
-`COSMOSCOUT_USE_UNITY_BUILD` | `true` | Set to `false` to disable unity builds.
-`COSMOSCOUT_USE_PCH` | `true` | Set to `false` to prevent generation of precompiled headers.
-
-You should set these as required before executing the scripts below.
+One can either use [CMake Presets](https://cmake.org/cmake/help/v3.22/manual/cmake-presets.7.html) or build the software manually using CMake.
+**Using CMake Presets** is easy and definitely the recommended way.
 
 On Linux, boost is usually found automatically by CMake, on Windows you have to provide the `BOOST_ROOT` path.
-**Replace the path in the command below to match your setup!**
-Again, if you are using Visual Studio 2017, you have to replace `-G "Visual Studio 16 2019" -A x64` with `-G "Visual Studio 15 Win64"`.
+**Replace the path in the commands below to match your setup or set `BOOST_ROOT` as an environment variable!**
+
+You can get a list of available configuration presets using the following command:
+
+```batch
+cmake --list-presets
+```
+
+The results will be structured the following way: windows-<build-tool>-<build-type>-config.
+After you decided for a preset you can configure with the following command:
 
 ```batch
 set BOOST_ROOT=C:\local\boost_1_70_0
-make.bat -G "Visual Studio 16 2019" -A x64 -DCOSMOSCOUT_UNIT_TESTS=On
+cmake --preset <preset-name>
 ```
+
+The next step is to build CosmoScout VR. You can also list build presets:
+
+```batch
+cmake --build --list-presets
+```
+
+The results will be structured the following way: windows-<build-tool>-<build-type>-build.
+After you decided for a preset you can build with the following command:
+
+```batch
+set BOOST_ROOT=C:\local\boost_1_70_0
+cmake --build --preset <preset-name>
+```
+
+> [!IMPORTANT]
+> Be aware that the configure and build presets need to match!
 
 This will configure and build CosmoScout VR in `cosmoscout-vr\build\windows-Release` and will install it to `cosmoscout-vr\install\windows-Release`.
 The application can be executed with:
 
 ```batch
 cd install\windows-Release\bin
-start.bat
+.\start.bat
 ```
 
 When started for the very first time, some example datasets will be downloaded from the internet.
@@ -191,13 +228,21 @@ Since you specified `-DCOSMOSCOUT_UNIT_TESTS=On` at build time, you can now exec
 install\linux-Release\bin\run_tests.bat
 ```
 
-:information_source: _**Tip:** If you wish, you can delete the directories `build` and `install` at any time in order to force a complete reconfiguration or re-installation._
+> [!TIP]
+> If you wish, you can delete the directories `build` and `install` at any time in order to force a complete reconfiguration or re-installation.
 
-:information_source: _**Tip:** You can use [clcache](https://github.com/frerich/clcache) to considerably speed up build times. You just need to call `make_externals.bat -G "Visual Studio 15 Win64" -DCMAKE_VS_GLOBALS="CLToolExe=clcache.exe;TrackFileAccess=false"` and `make.bat -G "Visual Studio 15 Win64" -DCMAKE_VS_GLOBALS=CLToolExe"=clcache.exe;TrackFileAccess=false"` respectively._
+> [!TIP]
+> You can create your own presets by creating `CMakeUserPresets.json` and inherit from a global preset or define your completely own preset.
 
-:information_source: _**Tip:** You can use Ninja as a generator. You need to run the following commands from the `x64 Native Tools Command Prompt for VS 20XX`:
-`.\make_externals.bat -GNinja -DCMAKE_C_COMPILER=cl.exe -DCMAKE_CXX_COMPILER=cl.exe` and `.\make.bat -GNinja -DCMAKE_C_COMPILER=cl.exe -DCMAKE_CXX_COMPILER=cl.exe`.
-This can reduce the compile times by a lot._
+> [!TIP]
+> You can override preset variables by simply setting them in the command line after the preset name e.g.:
+> ```batch
+> cmake --preset <preset-name> -DCOSMOSCOUT_UNIT_TESTS=Off
+> cmake --build --preset <preset-name> --parallel 2
+> ```
+
+> [!TIP]
+> You can use [clcache](https://github.com/frerich/clcache) to considerably speed up build times. You just need to call `make_externals.bat -G "Visual Studio 15 Win64" -DCMAKE_VS_GLOBALS="CLToolExe=clcache.exe;TrackFileAccess=false"` and `cmake --preset <preset-name> -DCMAKE_VS_GLOBALS=CLToolExe"=clcache.exe;TrackFileAccess=false"` respectively.
 
 
 <p align="center"><img src ="img/hr.svg"/></p>
