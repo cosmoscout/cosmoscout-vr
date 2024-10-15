@@ -84,7 +84,6 @@ body {
 
 .node {
     position: relative;
-    min-width: 150px;
     background-color: var(--cs-color-background-dark);
     border-radius: var(--cs-border-radius-medium);
     border-bottom: 2px solid var(--cs-color-primary);
@@ -202,6 +201,7 @@ body {
     background-color: var(--cs-color-background-dark) !important;
     padding: 0 !important;
     border-radius: 5px;
+    width: max-content !important;
 }
 
 .context-menu .search,

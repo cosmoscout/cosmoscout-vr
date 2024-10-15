@@ -8,8 +8,8 @@
 #ifndef CSP_WMS_OVERLAYS_PLUGIN_HPP
 #define CSP_WMS_OVERLAYS_PLUGIN_HPP
 
-#include "WebMapService.hpp"
-#include "utils.hpp"
+#include "../../csl-ogc/src/common/utils.hpp"
+#include "../../csl-ogc/src/wms/WebMapService.hpp"
 
 #include "../../../src/cs-core/PluginBase.hpp"
 #include "../../../src/cs-utils/DefaultProperty.hpp"
@@ -48,8 +48,8 @@ class Plugin : public cs::core::PluginBase {
         "../share/cache/csp-wms-overlays/wms-capability-cache"};
 
     /// Specifies whether cached capabilitiy files should be used instead of requesting new ones.
-    cs::utils::DefaultProperty<WebMapService::CacheMode> mUseCapabilityCache{
-        WebMapService::CacheMode::eNever};
+    cs::utils::DefaultProperty<csl::ogc::WebMapService::CacheMode> mUseCapabilityCache{
+        csl::ogc::WebMapService::CacheMode::eNever};
 
     /// The amount of textures that gets pre-fetched in every time direction.
     cs::utils::DefaultProperty<int> mPrefetchCount{0};
@@ -71,7 +71,7 @@ class Plugin : public cs::core::PluginBase {
       /// The name of the style for the currently active WMS layer.
       cs::utils::DefaultProperty<std::string> mActiveStyle{""};
       /// The bounds for the currently active WMS layer.
-      cs::utils::DefaultProperty<Bounds> mActiveBounds{{-180., 180., -90., 90.}};
+      cs::utils::DefaultProperty<csl::ogc::Bounds2D> mActiveBounds{{-180., 180., -90., 90.}};
       ///	URLs of WMS servers.
       std::vector<std::string> mWms;
     };
@@ -111,26 +111,28 @@ class Plugin : public cs::core::PluginBase {
   /// Adds the given layer and all of its sublayers to the layer dropdown.
   /// Returns whether any layer's name matched the given activeLayer.
   bool addLayerToSelect(std::shared_ptr<TextureOverlayRenderer> const& wmsOverlay,
-      WebMapLayer const& layer, std::string const& activeLayer, int depth = 0);
+      csl::ogc::WebMapLayer const& layer, std::string const& activeLayer, int depth = 0);
 
   /// Move the observer so that the given bounds are visible.
-  void goToBounds(Bounds const& bounds);
+  void goToBounds(csl::ogc::Bounds2D const& bounds);
   /// Calculate the map scale for the given bounds and texture resolution. If it is outside the
   /// appropriate range specified in the layer capabilities, a warning will be displayed.
-  void checkScale(Bounds const& bounds, WebMapLayer const& layer, int maxTextureSize);
+  void checkScale(
+      csl::ogc::Bounds2D const& bounds, csl::ogc::WebMapLayer const& layer, int maxTextureSize);
 
   std::shared_ptr<Settings>                    mPluginSettings = std::make_shared<Settings>();
   std::mutex                                   mWmsInsertMutex;
   std::map<std::string, cs::utils::ThreadPool> mWmsCreationThreads;
   std::map<std::string, int>                   mWmsCreationProgress;
   std::map<std::string, std::shared_ptr<TextureOverlayRenderer>> mWMSOverlays;
-  std::map<std::string, std::vector<WebMapService>>              mWms;
+  std::map<std::string, std::vector<csl::ogc::WebMapService>>    mWms;
 
   std::shared_ptr<TextureOverlayRenderer> mActiveOverlay;
+
   /// The currently active WebMapService for each center name.
-  std::map<std::string, std::optional<WebMapService>> mActiveServers;
+  std::map<std::string, std::optional<csl::ogc::WebMapService>> mActiveServers;
   /// The currently active WebMapLayer for each center name.
-  std::map<std::string, std::optional<WebMapLayer>> mActiveLayers;
+  std::map<std::string, std::optional<csl::ogc::WebMapLayer>> mActiveLayers;
 
   /// True when the observer is not moving.
   bool mNoMovement{};

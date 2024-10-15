@@ -11,6 +11,11 @@ if (NOT CSP_WMS_OVERLAYS)
   return()
 endif()
 
+if (NOT CSL_OGC)
+  message(WARNING "The OGC plugin library wasn't found! Skipping csp-wms-overlays.")
+  return()
+endif()
+
 # build plugin -------------------------------------------------------------------------------------
 
 file(GLOB SOURCE_FILES src/*.cpp)
@@ -28,6 +33,7 @@ add_library(csp-wms-overlays SHARED
 target_link_libraries(csp-wms-overlays
   PUBLIC
     cs-core
+    csl-ogc
 )
 
 # Add this Plugin to a "plugins" folder in your IDE.

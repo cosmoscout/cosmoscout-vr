@@ -9,9 +9,10 @@
 #define CSP_WMS_OVERLAYS_TEXTURE_OVERLAY_RENDERER_HPP
 
 #include "Plugin.hpp"
-#include "WebMapLayer.hpp"
-#include "WebMapService.hpp"
-#include "WebMapTextureLoader.hpp"
+
+#include "../../csl-ogc/src/wms/WebMapLayer.hpp"
+#include "../../csl-ogc/src/wms/WebMapService.hpp"
+#include "../../csl-ogc/src/wms/WebMapTextureLoader.hpp"
 
 #include <VistaKernel/GraphicsManager/VistaOpenGLDraw.h>
 #include <VistaMath/VistaBoundingBox.h>
@@ -56,7 +57,7 @@ class TextureOverlayRenderer : public IVistaOpenGLDraw {
   void configure(Plugin::Settings::Body settings);
 
   /// Set the active WMS data set.
-  void setActiveWMS(WebMapService const& wms, WebMapLayer const& layer);
+  void setActiveWMS(csl::ogc::WebMapService const& wms, csl::ogc::WebMapLayer const& layer);
 
   /// Clears the active WMS data set.
   void clearActiveWMS();
@@ -70,7 +71,7 @@ class TextureOverlayRenderer : public IVistaOpenGLDraw {
 
   /// The current map bounds of this overlay.
   /// This may be used for setting the bounds.
-  cs::utils::Property<Bounds> pBounds;
+  cs::utils::Property<csl::ogc::Bounds2D> pBounds;
 
   /// Interface implementation of IVistaOpenGLDraw
   bool Do() override;
@@ -85,13 +86,13 @@ class TextureOverlayRenderer : public IVistaOpenGLDraw {
 
   /// Returns the manually set bounds if subsets are allowed by the active layer.
   /// Otherwise returns the default bounds of the layer.
-  Bounds getBounds();
+  csl::ogc::Bounds2D getBounds();
 
   /// Gets an appropriate Request object for the current state.
-  WebMapTextureLoader::Request getRequest();
+  csl::ogc::WebMapTextureLoader::Request getRequest();
 
   /// Synchronously loads a texture for a time-independent map.
-  void getTimeIndependentTexture(WebMapTextureLoader::Request const& request);
+  void getTimeIndependentTexture(csl::ogc::WebMapTextureLoader::Request const& request);
 
   std::shared_ptr<cs::core::Settings> mSettings;
   std::shared_ptr<Plugin::Settings>   mPluginSettings;
@@ -114,9 +115,9 @@ class TextureOverlayRenderer : public IVistaOpenGLDraw {
   std::unordered_map<VistaViewport*, VistaTexture> mDepthBufferData;
 
   /// Stores all textures, for which the request ist still pending.
-  std::map<std::string, std::future<std::optional<WebMapTexture>>> mTexturesBuffer;
+  std::map<std::string, std::future<std::optional<csl::ogc::WebMapTexture>>> mTexturesBuffer;
   /// Stores all successfully loaded textures.
-  std::map<std::string, WebMapTexture> mTextures;
+  std::map<std::string, csl::ogc::WebMapTexture> mTextures;
   /// Stores textures, for which loading failed.
   std::vector<std::string> mWrongTextures;
 
@@ -127,9 +128,9 @@ class TextureOverlayRenderer : public IVistaOpenGLDraw {
   bool mUpdateLonLatRange = false;
 
   /// The active WMS.
-  std::optional<WebMapService> mActiveWMS;
+  std::optional<csl::ogc::WebMapService> mActiveWMS;
   /// The active WMS layer.
-  std::optional<WebMapLayer> mActiveWMSLayer;
+  std::optional<csl::ogc::WebMapLayer> mActiveWMSLayer;
 
   /// The WMS texture.
   VistaTexture mWMSTexture;
@@ -146,10 +147,10 @@ class TextureOverlayRenderer : public IVistaOpenGLDraw {
   /// Fading value between WMS textures.
   float mFade{};
   /// Used to save the current time format style and sample duration;
-  TimeInterval mCurrentInterval;
+  csl::ogc::TimeInterval mCurrentInterval;
 
   /// Loader used to request map textures.
-  WebMapTextureLoader mTextureLoader;
+  csl::ogc::WebMapTextureLoader mTextureLoader;
 
   std::shared_ptr<cs::core::SolarSystem> mSolarSystem;
   std::shared_ptr<cs::core::TimeControl> mTimeControl;

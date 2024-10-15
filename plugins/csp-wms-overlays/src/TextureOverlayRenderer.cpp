@@ -1,4 +1,4 @@
-////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////
 //                               This file is part of CosmoScout VR                               //
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -89,11 +89,11 @@ TextureOverlayRenderer::TextureOverlayRenderer(std::string objectName,
   VistaOpenSGMaterialTools::SetSortKeyOnSubtree(
       mGLNode.get(), static_cast<int>(cs::utils::DrawOrder::ePlanets) + 10);
 
-  pBounds.connect([this](Bounds const& value) {
+  pBounds.connect([this](csl::ogc::Bounds2D const& value) {
     clearTextures();
     if (mActiveWMSLayer->getSettings().mTimeIntervals.empty()) {
-      WebMapTextureLoader::Request request = getRequest();
-      request.mBounds                      = value;
+      csl::ogc::WebMapTextureLoader::Request request = getRequest();
+      request.mBounds                                = value;
       getTimeIndependentTexture(request);
     }
   });
@@ -101,8 +101,8 @@ TextureOverlayRenderer::TextureOverlayRenderer(std::string objectName,
   mPluginSettings->mMaxTextureSize.connect([this](int value) {
     clearTextures();
     if (mActiveWMSLayer->getSettings().mTimeIntervals.empty()) {
-      WebMapTextureLoader::Request request = getRequest();
-      request.mMaxSize                     = value;
+      csl::ogc::WebMapTextureLoader::Request request = getRequest();
+      request.mMaxSize                               = value;
       getTimeIndependentTexture(request);
     }
   });
@@ -141,7 +141,8 @@ void TextureOverlayRenderer::configure(Plugin::Settings::Body settings) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void TextureOverlayRenderer::setActiveWMS(WebMapService const& wms, WebMapLayer const& layer) {
+void TextureOverlayRenderer::setActiveWMS(
+    csl::ogc::WebMapService const& wms, csl::ogc::WebMapLayer const& layer) {
   clearActiveWMS();
 
   mActiveWMS.emplace(wms);
@@ -238,7 +239,7 @@ void TextureOverlayRenderer::updateLonLatRange() {
   } else {
     // All four corners of the screen show the body.
     // The intersection points can be converted to longitude and latitude.
-    Bounds currentBounds;
+    csl::ogc::Bounds2D currentBounds;
 
     glm::dvec3                radii = object->getRadii();
     std::array<glm::dvec2, 4> screenBounds{};
@@ -332,7 +333,7 @@ void TextureOverlayRenderer::updateLonLatRange() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-Bounds TextureOverlayRenderer::getBounds() {
+csl::ogc::Bounds2D TextureOverlayRenderer::getBounds() {
   if (mActiveWMSLayer && mActiveWMSLayer->getSettings().mNoSubsets) {
     return mActiveWMSLayer->getSettings().mBounds;
   }
@@ -341,8 +342,8 @@ Bounds TextureOverlayRenderer::getBounds() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-WebMapTextureLoader::Request TextureOverlayRenderer::getRequest() {
-  WebMapTextureLoader::Request request;
+csl::ogc::WebMapTextureLoader::Request TextureOverlayRenderer::getRequest() {
+  csl::ogc::WebMapTextureLoader::Request request;
   request.mMaxSize = mPluginSettings->mMaxTextureSize.get();
   request.mStyle   = mStyle;
   request.mBounds  = getBounds();
@@ -352,10 +353,10 @@ WebMapTextureLoader::Request TextureOverlayRenderer::getRequest() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void TextureOverlayRenderer::getTimeIndependentTexture(
-    WebMapTextureLoader::Request const& request) {
+    csl::ogc::WebMapTextureLoader::Request const& request) {
   if (mActiveWMSLayer && mActiveWMSLayer->isRequestable()) {
-    std::optional<WebMapTexture> texture = mTextureLoader.loadTexture(*mActiveWMS, *mActiveWMSLayer,
-        request, mPluginSettings->mMapCache.get(),
+    std::optional<csl::ogc::WebMapTexture> texture = mTextureLoader.loadTexture(*mActiveWMS,
+        *mActiveWMSLayer, request, mPluginSettings->mMapCache.get(),
         request.mBounds == mActiveWMSLayer->getSettings().mBounds);
     if (texture.has_value()) {
       mWMSTexture.UploadTexture(texture->mWidth, texture->mHeight, texture->mData.get(), false);
@@ -419,13 +420,14 @@ bool TextureOverlayRenderer::Do() {
 
       // Get the start time of the WMS sample.
       boost::posix_time::ptime sampleStartTime =
-          utils::addDurationToTime(time, mCurrentInterval.mSampleDuration, preFetch);
+          csl::ogc::utils::addDurationToTime(time, mCurrentInterval.mSampleDuration, preFetch);
       sampleStartTime -= boost::posix_time::microseconds(time.time_of_day().fractional_seconds());
-      bool inInterval = utils::timeInIntervals(
+      bool inInterval = csl::ogc::utils::timeInIntervals(
           sampleStartTime, mActiveWMSLayer->getSettings().mTimeIntervals, mCurrentInterval);
 
       // Create identifier for the sample start time.
-      std::string timeString = utils::timeToString(mCurrentInterval.mFormat, sampleStartTime);
+      std::string timeString =
+          csl::ogc::utils::timeToString(mCurrentInterval.mFormat, sampleStartTime);
 
       auto requestedTexture = mTexturesBuffer.find(timeString);
       auto loadedTexture    = mTextures.find(timeString);
@@ -435,16 +437,17 @@ bool TextureOverlayRenderer::Do() {
       if (requestedTexture == mTexturesBuffer.end() && loadedTexture == mTextures.end() &&
           wrongTexture == mWrongTextures.end() && inInterval) {
         // Load WMS texture.
-        WebMapTextureLoader::Request request;
+        csl::ogc::WebMapTextureLoader::Request request;
         request.mMaxSize = mPluginSettings->mMaxTextureSize.get();
         request.mStyle   = mStyle;
         request.mTime    = timeString;
         request.mBounds  = getBounds();
 
-        mTexturesBuffer.insert(std::pair<std::string, std::future<std::optional<WebMapTexture>>>(
-            timeString, mTextureLoader.loadTextureAsync(*mActiveWMS, *mActiveWMSLayer, request,
-                            mPluginSettings->mMapCache.get(),
-                            request.mBounds == mActiveWMSLayer->getSettings().mBounds)));
+        mTexturesBuffer.insert(
+            std::pair<std::string, std::future<std::optional<csl::ogc::WebMapTexture>>>(
+                timeString, mTextureLoader.loadTextureAsync(*mActiveWMS, *mActiveWMSLayer, request,
+                                mPluginSettings->mMapCache.get(),
+                                request.mBounds == mActiveWMSLayer->getSettings().mBounds)));
       }
     }
 
@@ -452,11 +455,11 @@ bool TextureOverlayRenderer::Do() {
     auto texIt = mTexturesBuffer.begin();
     while (texIt != mTexturesBuffer.end()) {
       if (texIt->second.wait_for(std::chrono::seconds(0)) == std::future_status::ready) {
-        std::optional<WebMapTexture> texture = texIt->second.get();
+        std::optional<csl::ogc::WebMapTexture> texture = texIt->second.get();
 
         if (texture.has_value()) {
-          mTextures.insert(
-              std::pair<std::string, WebMapTexture>(texIt->first, std::move(texture.value())));
+          mTextures.insert(std::pair<std::string, csl::ogc::WebMapTexture>(
+              texIt->first, std::move(texture.value())));
         } else {
           mWrongTextures.emplace_back(texIt->first);
         }
@@ -471,11 +474,12 @@ bool TextureOverlayRenderer::Do() {
     time = cs::utils::convert::time::toPosix(mTimeControl->pSimulationTime.get());
     boost::posix_time::ptime sampleStartTime =
         time - boost::posix_time::microseconds(time.time_of_day().fractional_seconds());
-    bool inInterval = utils::timeInIntervals(
+    bool inInterval = csl::ogc::utils::timeInIntervals(
         sampleStartTime, mActiveWMSLayer->getSettings().mTimeIntervals, mCurrentInterval);
 
     // Create identifier for the sample start time.
-    std::string timeString = utils::timeToString(mCurrentInterval.mFormat, sampleStartTime);
+    std::string timeString =
+        csl::ogc::utils::timeToString(mCurrentInterval.mFormat, sampleStartTime);
 
     // Find the current texture.
     auto tex = mTextures.find(timeString);
@@ -502,19 +506,21 @@ bool TextureOverlayRenderer::Do() {
     } // Create fading between Wms textures when interpolation is enabled.
     else {
       boost::posix_time::ptime sampleAfter =
-          utils::addDurationToTime(sampleStartTime, mCurrentInterval.mSampleDuration);
-      bool isAfterInInterval = utils::timeInIntervals(
+          csl::ogc::utils::addDurationToTime(sampleStartTime, mCurrentInterval.mSampleDuration);
+      bool isAfterInInterval = csl::ogc::utils::timeInIntervals(
           sampleAfter, mActiveWMSLayer->getSettings().mTimeIntervals, mCurrentInterval);
 
       // Find texture for the following sample.
-      tex = mTextures.find(utils::timeToString(mCurrentInterval.mFormat, sampleAfter));
+      tex = mTextures.find(csl::ogc::utils::timeToString(mCurrentInterval.mFormat, sampleAfter));
 
       if (isAfterInInterval && tex != mTextures.end()) {
         // Only update if we ha a new second texture.
-        if (mCurrentSecondTexture != utils::timeToString(mCurrentInterval.mFormat, sampleAfter)) {
+        if (mCurrentSecondTexture !=
+            csl::ogc::utils::timeToString(mCurrentInterval.mFormat, sampleAfter)) {
           mSecondWMSTexture.UploadTexture(
               tex->second.mWidth, tex->second.mHeight, tex->second.mData.get(), false);
-          mCurrentSecondTexture = utils::timeToString(mCurrentInterval.mFormat, sampleAfter);
+          mCurrentSecondTexture =
+              csl::ogc::utils::timeToString(mCurrentInterval.mFormat, sampleAfter);
           mSecondWMSTextureUsed = true;
         }
         // Interpolate fade value between the 2 WMS textures.
