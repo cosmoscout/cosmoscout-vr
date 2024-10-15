@@ -3,15 +3,13 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
-// SPDX-FileCopyrightText: 2017 Eric Bruneton
-// SPDX-License-Identifier: BSD-3-Clause
+// SPDX-License-Identifier: MIT
 
 #ifndef CSP_ATMOSPHERES_MODELS_BRUNETON_MODEL_HPP
 #define CSP_ATMOSPHERES_MODELS_BRUNETON_MODEL_HPP
 
 #include "../../../../src/cs-core/Settings.hpp"
 #include "../../ModelBase.hpp"
-#include "internal/Implementation.hpp"
 
 namespace csp::atmospheres::models::bruneton {
 
@@ -19,88 +17,21 @@ namespace csp::atmospheres::models::bruneton {
 /// The main difference to the original implementation is that this variant uses phase functions,
 /// extinction coefficients, and density distributions loaded from CSV files instead of analytic
 /// descriptions.
+/// Besides, we refactored out the precomputation step into a separate executable, which is
+/// responsible for generating the textures needed for rendering. This way, we can increase the
+/// fidelity of the preprocessing step without affecting the startup time of the application.
 /// More information on the original implementation can be found in the repo by Eric Bruneton:
 /// https://github.com/ebruneton/precomputed_atmospheric_scattering as well as in his paper
 /// "Precomputed Atmospheric Scattering" (https://hal.inria.fr/inria-00288758/en).
-/// The default values for the model parameters further down this file are based on the parameters
-/// from Eric Bruneton:
-/// https://github.com/ebruneton/precomputed_atmospheric_scattering/blob/master/atmosphere/constants.h
 class Model : public ModelBase {
  public:
+  /// The settings of this model are extremely simple. They only contain the path to the directory
+  /// where the precomputed textures are stored.
   struct Settings {
-
-    /// This stores file paths to the CSV files containing the respective data. See the README of
-    /// this plugin for a more detailed description.
-    struct ScatteringComponent {
-      std::string mBetaSca;
-      std::string mBetaAbs;
-      std::string mPhase;
-      std::string mDensity;
-    };
-
-    /// This stores file paths to the CSV files containing the respective data. See the README of
-    /// this plugin for a more detailed description.
-    struct AbsorbingComponent {
-      std::string mBetaAbs;
-      std::string mDensity;
-    };
-
-    /// In this model, an atmosphere can consist out of three particle types. Two of them can
-    /// scatter light, one can only absorb light. The former are usually used for small molecules
-    /// and larger aerosols respectively, while the latter is used for ozone.
-    ScatteringComponent               mMolecules;
-    ScatteringComponent               mAerosols;
-    std::optional<AbsorbingComponent> mOzone;
-
-    /// The angular radius of the Sun needs to be specified. As SPICE is not fully available when
-    /// the plugin is loaded, we cannot compute it. Also, this actually varies in reality.
-    float mSunAngularRadius = 0.004675F;
-
-    /// The average reflectance of the ground used during multiple scattering.
-    cs::utils::DefaultProperty<float> mGroundAlbedo{0.1F};
-
-    /// The number of multiple scattering events to precompute. Use zero for single-scattering only.
-    cs::utils::DefaultProperty<int32_t> mMultiScatteringOrder{4};
-
-    /// The number of samples to evaluate when precomputing the optical depth.
-    cs::utils::DefaultProperty<int32_t> mSampleCountOpticalDepth{500};
-
-    /// The number of samples to evaluate when precomputing the single scattering. Larger values
-    /// improve the sampling of thin atmospheric layers.
-    cs::utils::DefaultProperty<int32_t> mSampleCountSingleScattering{50};
-
-    /// The number of samples to evaluate when precomputing the multiple scattering. Larger values
-    /// tend to darken the horizon for thick atmospheres.
-    cs::utils::DefaultProperty<int32_t> mSampleCountMultiScattering{50};
-
-    /// The number of samples to evaluate when precomputing the scattering density. Larger values
-    /// spread out colors in the sky.
-    cs::utils::DefaultProperty<int32_t> mSampleCountScatteringDensity{16};
-
-    /// The number of samples to evaluate when precomputing the indirect irradiance.
-    cs::utils::DefaultProperty<int32_t> mSampleCountIndirectIrradiance{32};
-
-    /// The resolution of the transmittance texture. Larger values can improve the sampling of thin
-    /// atmospheric layers close to the horizon.
-    cs::utils::DefaultProperty<int32_t> mTransmittanceTextureWidth{256};
-    cs::utils::DefaultProperty<int32_t> mTransmittanceTextureHeight{64};
-
-    /// Larger values improve sampling of thick low-altitude layers.
-    cs::utils::DefaultProperty<int32_t> mScatteringTextureRSize{32};
-
-    /// Larger values reduce circular banding artifacts around zenith for thick atmospheres.
-    cs::utils::DefaultProperty<int32_t> mScatteringTextureMuSize{128};
-
-    /// Larger values reduce banding in the day-night transition when seen from space.
-    cs::utils::DefaultProperty<int32_t> mScatteringTextureMuSSize{32};
-
-    /// Larger values reduce circular banding artifacts around sun for thick atmospheres.
-    cs::utils::DefaultProperty<int32_t> mScatteringTextureNuSize{8};
-
-    /// The resolution of the irradiance texture.
-    cs::utils::DefaultProperty<int32_t> mIrradianceTextureWidth{64};
-    cs::utils::DefaultProperty<int32_t> mIrradianceTextureHeight{16};
+    std::string mDataDirectory;
   };
+
+  virtual ~Model();
 
   /// Whenever the model parameters are changed, this method needs to be called. It will return true
   /// if the shader needed to be recompiled. If that's the case, you can retrieve the new shader
@@ -116,7 +47,29 @@ class Model : public ModelBase {
   GLuint setUniforms(GLuint program, GLuint startTextureUnit) const override;
 
  private:
-  std::unique_ptr<internal::Implementation> mImpl;
+  std::tuple<GLuint, int32_t, int32_t>          read2DTexture(std::string const& path) const;
+  std::tuple<GLuint, int32_t, int32_t, int32_t> read3DTexture(std::string const& path) const;
+
+  int32_t mTransmittanceTextureWidth{};
+  int32_t mTransmittanceTextureHeight{};
+  int32_t mIrradianceTextureWidth{};
+  int32_t mIrradianceTextureHeight{};
+  int32_t mScatteringTextureRSize{};
+  int32_t mScatteringTextureMuSize{};
+  int32_t mScatteringTextureMuSSize{};
+  int32_t mScatteringTextureNuSize{};
+
+  // To optimize resource usage, this texture stores single molecule-scattering plus all
+  // multiple-scattering contributions. The single aerosols scattering is stored in an extra
+  // texture.
+  GLuint mMultipleScatteringTexture       = 0;
+  GLuint mSingleAerosolsScatteringTexture = 0;
+
+  GLuint mPhaseTexture         = 0;
+  GLuint mTransmittanceTexture = 0;
+  GLuint mIrradianceTexture    = 0;
+
+  GLuint mAtmosphereShader = 0;
 };
 
 } // namespace csp::atmospheres::models::bruneton
