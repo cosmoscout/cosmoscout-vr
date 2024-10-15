@@ -36,22 +36,22 @@ SPDX-License-Identifier: MIT
 
     function formatHeight(height) {
       if (height == 0) return "0";
-      else if (Math.abs(height) < 0.1) return d3.format("~r")(height * 1000) + ' mm';
-      else if (Math.abs(height) < 1) return d3.format("~r")(height * 100) + ' cm';
-      else if (Math.abs(height) < 1e4) return d3.format("~r")(height) + ' m';
-      else if (Math.abs(height) < 1e7) return d3.format("~r")(height / 1e3) + ' km';
+      else if (Math.abs(height) < 0.1) return d3.format(".3r")(height * 1000) + ' mm';
+      else if (Math.abs(height) < 1) return d3.format(".3r")(height * 100) + ' cm';
+      else if (Math.abs(height) < 1e4) return d3.format(".3r")(height) + ' m';
+      else if (Math.abs(height) < 1e7) return d3.format(".3r")(height / 1e3) + ' km';
 
-      return d3.format("~r")(height / 1e6) + ' Tsd km';
+      return d3.format(".3r")(height / 1e6) + ' Tsd km';
     }
 
     function formatLength(length) {
       if (length == 0) return "0";
-      else if (Math.abs(length) < 0.1) return d3.format("~r")(length * 1000) + ' mm';
-      else if (Math.abs(length) < 1) return d3.format("~r")(length * 100) + ' cm';
-      else if (Math.abs(length) < 1e3) return d3.format("~r")(length) + ' m';
-      else if (Math.abs(length) < 1e6) return d3.format("~r")(length / 1e3) + ' km';
+      else if (Math.abs(length) < 0.1) return d3.format(".3r")(length * 1000) + ' mm';
+      else if (Math.abs(length) < 1) return d3.format(".3r")(length * 100) + ' cm';
+      else if (Math.abs(length) < 1e3) return d3.format(".3r")(length) + ' m';
+      else if (Math.abs(length) < 1e6) return d3.format(".3r")(length / 1e3) + ' km';
 
-      return d3.format("~r")(length / 1e6) + ' Tsd km';
+      return d3.format(".3r")(length / 1e6) + ' Tsd km';
     }
 
     function initProfileLineGraph() {
@@ -74,14 +74,13 @@ SPDX-License-Identifier: MIT
         .attr("y", marginTop);
 
       // define the y scale (vertical) -----------------------------------
-      graph.yScalePrimary = d3.scale.linear()
+      graph.yScalePrimary = d3.scaleLinear()
         .domain([0, 1])
         .range([height, 0]);
 
       // define the y axis
-      graph.yAxisPrimary = d3.svg.axis()
+      graph.yAxisPrimary = d3.axisRight()
         .ticks(5)
-        .orient("right")
         .scale(graph.yScalePrimary)
         .tickFormat(function (d) {
           return formatHeight(d);
@@ -92,14 +91,13 @@ SPDX-License-Identifier: MIT
         .call(graph.yAxisPrimary);
 
       // define the secondary scale (vertical) ---------------------------
-      graph.yScaleSecondary = d3.scale.linear()
+      graph.yScaleSecondary = d3.scaleLinear()
         .domain([0, 1])
         .range([height, 0]);
 
       // define the y axis
-      graph.yAxisSecondary = d3.svg.axis()
+      graph.yAxisSecondary = d3.axisLeft()
         .ticks(5)
-        .orient("left")
         .scale(graph.yScaleSecondary)
         .tickFormat(function (d) {
           return formatHeight(d);
@@ -112,16 +110,15 @@ SPDX-License-Identifier: MIT
 
 
       // draw x axis -----------------------------------------------------
-      graph.xScale = d3.scale.linear()
+      graph.xScale = d3.scaleLinear()
         .domain([0, 255])
         .range([0, width]);
 
       // define the x axis
-      graph.xAxis = d3.svg.axis()
+      graph.xAxis = d3.axisBottom()
         .ticks(4)
-        .innerTickSize(-height)
+        .tickSizeInner(-height)
         .tickPadding(8)
-        .orient("bottom")
         .scale(graph.xScale)
         .tickFormat(function (d) {
           return formatLength(d);
@@ -170,21 +167,13 @@ SPDX-License-Identifier: MIT
       });
 
       graph.xScale.domain([minX, maxX]);
-      graph.select(".xaxis")
-        .transition().duration(400).ease("sin-in-out")
-        .call(graph.xAxis);
-
+      graph.select(".xaxis").call(graph.xAxis);
       graph.yScalePrimary.domain([minY, maxY]);
-      graph.select(".yaxis-primary")
-        .transition().duration(400).ease("sin-in-out")
-        .call(graph.yAxisPrimary);
-
+      graph.select(".yaxis-primary").call(graph.yAxisPrimary);
       graph.yScaleSecondary.domain([0, maxY - minY]);
-      graph.select(".yaxis-secondary")
-        .transition().duration(400).ease("sin-in-out")
-        .call(graph.yAxisSecondary);
+      graph.select(".yaxis-secondary").call(graph.yAxisSecondary);
 
-      var line_func = d3.svg.line()
+      var line_func = d3.line()
         .x(function (s) {
           return graph.xScale(s[0]);
         })
