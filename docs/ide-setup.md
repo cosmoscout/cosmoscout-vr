@@ -12,215 +12,149 @@ SPDX-License-Identifier: CC-BY-4.0
 Below you find some instructions on how to setup your preferred IDE for CosmoScout VR development. 
 
 * [CLion](#clion-linux--windows)
-* [Eclipse](#-eclipse-linux-only)
-* [Sublime Text](#-sublime-text-linux--windows)
 * [Visual Studio](#-visual-studio-windows-only)
 * [Visual Studio Code](#-visual-studio-code-linux--windows)
 
 
-## CLion (Linux & Windows)
+## <img src="https://simpleicons.org/icons/clion.svg" alt="Simple Icons" width=24 height=18> CLion (Linux & Windows)
 
-### Linux
+### Prerequisites
 
-- (_optional_) If you want a debug build run `export COSMOSCOUT_DEBUG_BUILD=true`
-- Run: `./make_externals.sh`
-- Go to: _Settings_ -> _Build, Execution, Deployment_ -> _CMake_
-- Release Profile
-  - **Build Type**: `Release`
-  - **Generation path**: `build/linux-Release`
-  - **Build options**: `--parallel <your core count>`
-  - **Environment**: If you haven't set `BOOST_ROOT` as a system wide environment variable you need to set it here!
-  - **CMake options**:
-    ```bash
-    -DCMAKE_INSTALL_PREFIX="<path to cosmoscout>/install/linux-Release"
-    -DCOSMOSCOUT_EXTERNALS_DIR="<path to cosmoscout>/install/linux-externals-Release"
-    -DCMAKE_EXPORT_COMPILE_COMMANDS=On
-    ```
-    
-- Debug Profile
-  - **Build Type**: `Debug`
-  - **Generation path**: `build/linux-Debug`
-  - **Build options**: `--parallel <your core count>`
-  - **Environment**: If you haven't set `BOOST_ROOT` as a system wide environment variable you need to set it here!
-  - **CMake options**:
-    ```
-    -DCMAKE_INSTALL_PREFIX="<path to cosmoscout>/install/linux-Debug"
-    -DCOSMOSCOUT_EXTERNALS_DIR="<path to cosmoscout>/install/linux-externals-Debug"
-    -DCMAKE_EXPORT_COMPILE_COMMANDS=On
-    ```
+- Be sure to build the externals, as specified in the [installation](install.md) guide.
+- On Windows ensure that `BOOST_ROOT` is registered as an environment variable. 
 
-- Wait for CMake to be configured.
-- Run the `Install` task. It can be found under `Build` in the menubar.
-- Go to: _Run/Debug Configuration_ -> _CMake Application_ -> _cosmoscout_
-- Release profile
-  - **Target**: `cosmoscout`
-  - **Executable** -> _Select other_ -> `<path to cosmoscout>/install/linux-Release/bin/cosmoscout`
-  - **Program arguments**: `--settings=../share/config/simple_desktop.json -vista vista.ini`
-  - **Environment variables**: `LD_LIBRARY_PATH=../lib:../lib/DriverPlugins:$LD_LIBRARY_PATH;VISTACORELIBS_DRIVER_PLUGIN_DIRS=../lib/DriverPlugins`
-  - **Before launch** -> __--__ -> _Build_
-  - **Before launch** -> __+__ -> _Install_
-- Debug profile
-  - **Target**: `cosmoscout`
-  - **Executable** -> _Select other_ -> `<path to cosmoscout>/install/linux-Debug/bin/cosmoscout`
-  - **Program arguments**: `--settings=../share/config/simple_desktop.json -vista vista.ini`
-  - **Environment variables**: `LD_LIBRARY_PATH=../lib:../lib/DriverPlugins:$LD_LIBRARY_PATH;VISTACORELIBS_DRIVER_PLUGIN_DIRS=../lib/DriverPlugins`
-  - **Before launch** -> __--__ -> _Build_
-  - **Before launch** -> __+__ -> _Install_
+### Configure CMake Profiles
 
-### Windows
+When opening the project you should be greeted with a CMake settings window. If you are not greeted with a CMake
+settings window go to: *Settings -> Build, Execution, Deployment -> CMake*
 
-You need to install Visual Studio beforehand. If you are not bound to a specific version use the latest Visual Studio.
+You can choose to enable CMake presets. From the following you can choose one release and one debug config:
 
-The following will use `-G "Visual Studio 16 2019" -A x64` as the compilation target, you can replace it with your 
-highest available (and supported) version.
+- Windows
+  - windows-ninja-release-config - windows-ninja-release-build `preset`
+  - windows-ninja-debug-config - windows-ninja-debug-build `preset`
+  - windows-vs-release-config - windows-vs-release-build `preset`
+  - windows-vs-debug-config - windows-vs-debug-build `preset`
+- Linux
+  - linux-ninja-release-config - linux-ninja-release-build `preset`
+  - linux-ninja-debug-config - linux-ninja-debug-build `preset`
+  - linux-make-release-config - linux-make-release-build `preset`
+  - linux-make-debug-config - linux-make-debug-build `preset`
 
-- (_optional_) If you want a debug build run `set COSMOSCOUT_DEBUG_BUILD=true`
-- Run: `.\make_externals.bat -G "Visual Studio 16 2019" -A x64`
-- Go to: _Settings_ -> _Build, Execution, Deployment_ -> _Toolchain_
-  - Add Visual Studio if it is not in the list yet. And make sure it is at the top.
-  - If Visual Studio is installed correctly everything else here should be set automagically.
-- Go to: _Settings_ -> _Build, Execution, Deployment_ -> _CMake_
-- Release Profile
-  - **Build Type**: `Release`
-  - **Generation path**: `build\windows-Release`
-  - **Build options**: `--parallel <your core count>`
-  - **Environment**: If you haven't set `BOOST_ROOT` as a system wide environment variable you need to set it here!
-  - **CMake options**:
-    ```
-    -G "Visual Studio 16 2019" -A x64
-    -DCMAKE_INSTALL_PREFIX="<path to cosmoscout>\install\windows-Release"
-    -DCOSMOSCOUT_EXTERNALS_DIR="<path to cosmoscout>\install\windows-externals-Release"
-    ```
+> [!IMPORTANT]
+> 
+> Be sure that you select presets that contain a config **AND** a build step.
 
-- Debug Profile
-  - **Build Type**: `Debug`
-  - **Generation path**: `build\windows-Debug`
-  - **Build options**: `--parallel <your core count>`
-  - **Environment**: If you haven't set `BOOST_ROOT` as a system wide environment variable you need to set it here!
-  - **CMake options**:
-    ```
-    -G "Visual Studio 16 2019" -A x64
-    -DCMAKE_INSTALL_PREFIX="<path to cosmoscout>\install\windows-Debug"
-    -DCOSMOSCOUT_EXTERNALS_DIR="<path to cosmoscout>\install\windows-externals-Debug"
-    ```
+> [!TIP]
+> 
+> By default CLion creates a profile called `Debug`. You can delete that.
 
-- Wait for CMake to be configured.
-- Run the `Install` task. It can be found under `Build` in the menubar.
-- Go to: _Run/Debug Configuration_ -> _CMake Application_ -> _cosmoscout_
-- Release profile
-  - **Target**: `cosmoscout`
-  - **Executable** -> _Select other_: `<path to cosmoscout>\install\windows-Release\bin\cosmoscout.exe`
-  - **Program arguments**: `--settings=../share/config/simple_desktop.json -vista vista.ini`
-  - **Environment variables**: `VISTACORELIBS_DRIVER_PLUGIN_DIRS=..\lib\DriverPlugins;PATH=..\lib\;%PATH%`
-  - **Before launch** -> __--__ -> _Build_
-  - **Before launch** -> __+__ -> _Install_
-- Debug profile
-  - **Target**: `cosmoscout`
-  - **Executable** -> _Select other_: `<path to cosmoscout>\install\windows-Debug\bin\cosmoscout.exe`
-  - **Program arguments**: `--settings=../share/config/simple_desktop.json -vista vista.ini`
-  - **Environment variables**: `VISTACORELIBS_DRIVER_PLUGIN_DIRS=..\lib\DriverPlugins;PATH=..\lib\;%PATH%`
-  - **Before launch** -> __--__ -> _Build_
-  - **Before launch** -> __+__ -> _Install_
+> [!TIP]
+> 
+> You can create a copy of one of the presets and modify it to your likings.
   
+### Configure Run and Test Profiles
+
+- Run the `Install` task. It can be found under `Build` in the menubar.
+- Go to: _Run/Debug Configuration_
+
+#### Windows
+- Run Release
+
+  | **Type**                  | CMake Application                                                           |
+  |---------------------------|-----------------------------------------------------------------------------|
+  | **Target**                | `cosmoscout`                                                                |
+  | **Executable**            | `$ProjectFileDir$\install\windows-Release\bin\cosmoscout.exe`               |
+  | **Program arguments**     | `--settings=../share/config/simple_desktop.json -vista vista.ini`           |
+  | **Environment variables** | `VISTACORELIBS_DRIVER_PLUGIN_DIRS=..\lib\DriverPlugins;PATH=..\lib\;$Path$` |
+  | **Before launch**         | `install`                                                                   |
+
+- Run Debug
+
+  | **Type**                  | CMake Application                                                           |
+  |---------------------------|-----------------------------------------------------------------------------|
+  | **Target**                | `cosmoscout`                                                                |
+  | **Executable**            | `$ProjectFileDir$\install\windows-Debug\bin\cosmoscout.exe`                 |
+  | **Program arguments**     | `--settings=../share/config/simple_desktop.json -vista vista.ini`           |
+  | **Environment variables** | `VISTACORELIBS_DRIVER_PLUGIN_DIRS=..\lib\DriverPlugins;PATH=..\lib\;$Path$` |
+  | **Before launch**         | `install`                                                                   |
+
+- Test Release
+
+  | **Type**                  | Doctest                                           |
+  |---------------------------|---------------------------------------------------|
+  | **Target**                | `cosmoscout`                                      |
+  | **Program arguments**     | `--run-tests --test-case-exclude="*[graphical]*"` |
+  | **Working directory**     | `$ProjectFileDir$\install\windows-Release\bin`    |
+  | **Environment variables** | `PATH=..\lib\;$Path$`                             |
+  | **Before launch**         | `install` + `Prepare test run`                    |
+ 
+- Test Debug
+
+  | **Type**                  | Doctest                                           |
+  |---------------------------|---------------------------------------------------|
+  | **Target**                | `cosmoscout`                                      |
+  | **Program arguments**     | `--run-tests --test-case-exclude="*[graphical]*"` |
+  | **Working directory**     | `$ProjectFileDir$\install\windows-Debug\bin`      |
+  | **Environment variables** | `PATH=..\lib\;$Path$`                             |
+  | **Before launch**         | `install` + `Prepare test run`                    |
+
+#### Linux
+- Run Release
+
+  | **Type**                  | CMake Application                                                                                                    |
+  |---------------------------|----------------------------------------------------------------------------------------------------------------------|
+  | **Target**                | `cosmoscout`                                                                                                         |
+  | **Executable**            | `$ProjectFileDir$/install/linux-Release/bin/cosmoscout`                                                              |
+  | **Program arguments**     | `--settings=../share/config/simple_desktop.json -vista vista.ini`                                                    |
+  | **Environment variables** | `LD_LIBRARY_PATH=../lib:../lib/DriverPlugins:$LD_LIBRARY_PATH;VISTACORELIBS_DRIVER_PLUGIN_DIRS=../lib/DriverPlugins` |
+  | **Before launch**         | `install`                                                                                                            |
+  
+- Run Debug
+
+  | **Type**                  | CMake Application                                                                                                    |
+  |---------------------------|----------------------------------------------------------------------------------------------------------------------|
+  | **Target**                | `cosmoscout`                                                                                                         |
+  | **Executable**            | `$ProjectFileDir$/install/linux-Debug/bin/cosmoscout`                                                                |
+  | **Program arguments**     | `--settings=../share/config/simple_desktop.json -vista vista.ini`                                                    |
+  | **Environment variables** | `LD_LIBRARY_PATH=../lib:../lib/DriverPlugins:$LD_LIBRARY_PATH;VISTACORELIBS_DRIVER_PLUGIN_DIRS=../lib/DriverPlugins` |
+  | **Before launch**         | `install`                                                                                                            |
+
+- Test Release
+
+  | **Type**                  | Doctest                                                        |
+  |---------------------------|----------------------------------------------------------------|
+  | **Target**                | `cosmoscout`                                                   |
+  | **Program arguments**     | `--run-tests --test-case-exclude="*[graphical]*"`              |
+  | **Working directory**     | `$ProjectFileDir$/install/linux-Release/bin`                   |
+  | **Environment variables** | `LD_LIBRARY_PATH=../lib:../lib/DriverPlugins:$LD_LIBRARY_PATH` |
+  | **Before launch**         | `install` + `Prepare test run`                                 |
+
+- Test Debug
+
+  | **Type**                  | Doctest                                                        |
+  |---------------------------|----------------------------------------------------------------|
+  | **Target**                | `cosmoscout`                                                   |
+  | **Program arguments**     | `--run-tests --test-case-exclude="*[graphical]*"`              |
+  | **Working directory**     | `$ProjectFileDir$/install/linux-Debug/bin`                     |
+  | **Environment variables** | `LD_LIBRARY_PATH=../lib:../lib/DriverPlugins:$LD_LIBRARY_PATH` |
+  | **Before launch**         | `install` + `Prepare test run`                                 |
+
 ### Plugins
-For CLion, we can recommended these plugins for the development of CosmoScout VR:
+For CLion, we can recommend these plugins for the development of CosmoScout VR:
 - [.gitignore](https://plugins.jetbrains.com/plugin/7495--ignore/)
-- [Awesome Console](https://plugins.jetbrains.com/plugin/7677-awesome-console/)
-- [CMake Simple Highlighter](https://plugins.jetbrains.com/plugin/10089-cmake-simple-highlighter)
-- [CodeGlance](https://plugins.jetbrains.com/plugin/7275-codeglance/)
-- [GitToolBox](https://plugins.jetbrains.com/plugin/7499-gittoolbox/)
-- [GLSL Support](https://plugins.jetbrains.com/plugin/6993-glsl-support/)
+- [CodeGlance Pro](https://plugins.jetbrains.com/plugin/18824-codeglance-pro)
+- [GLSL](https://plugins.jetbrains.com/plugin/18470-glsl)
 - [Rainbow Brackets](https://plugins.jetbrains.com/plugin/10080-rainbow-brackets)
 
-## <img src="https://simpleicons.org/icons/eclipseide.svg" alt="Simple Icons" width=24 height=18> Eclipse (Linux only)
 
-_TODO_ Currently nobody tried to use CosmoScout VR with Eclipse yet. If you do manage to set up CosmoScout with this IDE
-we would be glad if you could make a pull request with set up instructions.
-
-## <img src="https://simpleicons.org/icons/sublimetext.svg" alt="Simple Icons" width=24 height=18> Sublime Text (Linux & Windows)
-
-To get started with Sublime Text 3, you can create a project file in the root directory of CosmoScout VR:
-
-### `CosmoScout VR.sublime-project`
-
-```json
-{
-    "build_systems":
-    [
-        {
-            "name": "Make (Release)",
-            "file_regex": "^(..[^:]*):([0-9]+):?([0-9]+)?:? (.*)$",
-            "cmd": "./make.sh -DCOSMOSCOUT_UNIT_TESTS=On",
-            "working_dir": "$project_path",
-            "windows": {
-                "cmd": "make.bat -DCOSMOSCOUT_UNIT_TESTS=On"
-            },
-        },
-        {
-            "name": "Make (Debug)",
-            "file_regex": "^(..[^:]*):([0-9]+):?([0-9]+)?:? (.*)$",
-            "cmd": "./make.sh -DCOSMOSCOUT_UNIT_TESTS=On",
-            "working_dir": "$project_path",
-            "env": {
-                "COSMOSCOUT_DEBUG_BUILD": "true"
-            },
-            "windows": {
-                "cmd": "make.bat -DCOSMOSCOUT_UNIT_TESTS=On"
-            },
-        },
-        {
-            "name": "Make Externals (Release)",
-            "file_regex": "^(..[^:]*):([0-9]+):?([0-9]+)?:? (.*)$",
-            "cmd": "./make_externals.sh",
-            "working_dir": "$project_path",
-            "windows": {
-                "cmd": "make_externals.bat"
-            }
-        },
-        {
-            "name": "Make Externals (Debug)",
-            "file_regex": "^(..[^:]*):([0-9]+):?([0-9]+)?:? (.*)$",
-            "cmd": "./make_externals.sh",
-            "working_dir": "$project_path",
-            "windows": {
-                "cmd": "make_externals.bat"
-            },
-            "env": {
-                "COSMOSCOUT_DEBUG_BUILD": "true"
-            }
-        },
-        {
-            "name": "Run CosmoScout VR",
-            "cmd": "install/linux-Release/bin/start.sh",
-            "working_dir": "$project_path",
-            "windows": {
-                "cmd": "install\\windows-Release\\bin\\start.bat"
-            }
-        }
-    ],
-    "folders":
-    [
-        {
-            "path": "."
-        }
-    ]
-}
-```
-
-Now you can press `Ctrl-B` to bring up the build system selection.
-When you press this the next time, it will execute the build system selected previously.
-Press `Ctrl-Shift-B` to select another build system.
-You should first select `Make Externals (Release)`, then `Make (Release)` and later `Run CosmoScout VR`.
-
-While this will give you a basic build system, it will not allow for auto-completion or debugging.
-
-## <img src="https://simpleicons.org/icons/visualstudio.svg" alt="Simple Icons" width=24 height=18> Visual Studio (Windows only)
+## <img src="https://simpleicons.org/icons/cplusplus.svg" alt="Simple Icons" width=24 height=18> Visual Studio (Windows only)
 
 First, you should follow the [Generic Build Instructions](install.md) for Windows. Once CosmoScout VR has been compiled successfully, you can simply open the `cosmoscout-vr.sln` solution in either `build\windows-Debug` or `build\windows-Release`.
 
 Due to the build process of CosmoScout VR, this solution can only be used for Debug or Release mode respectively. Therefore you have to select the corresponding configuration type in Visual Studio.
 
-## <img src="https://simpleicons.org/icons/visualstudiocode.svg" alt="Simple Icons" width=24 height=18> Visual Studio Code (Linux & Windows)
+## <img src="https://simpleicons.org/icons/vscodium.svg" alt="Simple Icons" width=24 height=18> Visual Studio Code (Linux & Windows)
 
 For Visual Studio Code, only the [C/C++ Extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cpptools) is required.
 However, we can also recommend the following extensions: [CMake](https://marketplace.visualstudio.com/items?itemName=twxs.cmake), [Markdown Preview Github Styling](https://marketplace.visualstudio.com/items?itemName=bierner.markdown-preview-github-styles) and [Code Spell Checker](https://marketplace.visualstudio.com/items?itemName=streetsidesoftware.code-spell-checker).
@@ -237,7 +171,7 @@ We will discuss these files in the following.
     {
       "label": "Make (Release)",
       "type": "shell",
-      "command": "./make.sh -DCOSMOSCOUT_UNIT_TESTS=On",
+      "command": "cmake --preset linux-make-release-config && cmake --build --preset linux-make-release-build",
       "options": {
         "cwd": "${workspaceFolder}"
       },
@@ -245,7 +179,7 @@ We will discuss these files in the following.
         "$gcc"
       ],
       "windows": {
-        "command": ".\\make.bat -DCOSMOSCOUT_UNIT_TESTS=On",
+        "command": "cmake --preset windows-vs-release-config && cmake --build --preset windows-vs-release-build",
         "options": {
           "env": {
             "BOOST_ROOT": "C:\\local\\boost_1_69_0"
@@ -256,7 +190,7 @@ We will discuss these files in the following.
     {
       "label": "Make (Debug)",
       "type": "shell",
-      "command": "./make.sh -DCOSMOSCOUT_UNIT_TESTS=On",
+      "command": "cmake --preset linux-make-debug-config && cmake --build --preset linux-make-debug-build",
       "options": {
         "cwd": "${workspaceFolder}",
         "env": {
@@ -267,7 +201,7 @@ We will discuss these files in the following.
         "$gcc"
       ],
       "windows": {
-        "command": ".\\make.bat -DCOSMOSCOUT_UNIT_TESTS=On",
+        "command": "cmake --preset windows-make-debug-config && cmake --build --preset windows-make-debug-build",
         "options": {
           "env": {
             "BOOST_ROOT": "C:\\local\\boost_1_69_0"
@@ -362,9 +296,13 @@ If you are on Windows, you may have to replace the `"BOOST_ROOT"` environment va
 
 With this file in place, you can press `Ctrl+Shift+P` and select `Tasks: Run Task`. Now you can first select `Make Externals (Release)`, then `Make (Release)` and later `Run CosmoScout VR`.
 
-:information_source: _**Tip (Linux only):** You can use [ccache](https://ccache.dev/) to considerably speed up build times. You just need to replace the commands with `./make_externals.sh -G "Unix Makefiles" -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache` and `./make.sh -G "Unix Makefiles" -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache` respectively._
+> [!TIP]
+> 
+> **(Linux only):** You can use [ccache](https://ccache.dev/) to considerably speed up build times. You just need to replace the commands with `./make_externals.sh -G "Unix Makefiles" -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache` and `cmake --preset linux-make-release-config -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache` respectively._
 
-:information_source: _**Tip (Windows only):** You can use [clcache](https://github.com/frerich/clcache) to considerably speed up build times. You just need to call `make_externals.bat -G "Visual Studio 15 Win64" -DCMAKE_VS_GLOBALS=CLToolExe="clcache.exe;TrackFileAccess=false"` and `make.bat -G "Visual Studio 15 Win64" -DCMAKE_VS_GLOBALS="CLToolExe=clcache.exe;TrackFileAccess=false"` respectively._
+> [!TIP]
+>
+> **(Windows only):** You can use [clcache](https://github.com/frerich/clcache) to considerably speed up build times. You just need to call `make_externals.bat -G "Visual Studio 15 Win64" -DCMAKE_VS_GLOBALS=CLToolExe="clcache.exe;TrackFileAccess=false"` and `cmake --preset windows-vs-release-config -DCMAKE_VS_GLOBALS="CLToolExe=clcache.exe;TrackFileAccess=false"` respectively._
 
 ### `.vscode/c_cpp_properties.json`
 

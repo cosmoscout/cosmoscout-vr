@@ -42,5 +42,6 @@
 *.sublime*
 .vscode
 .idea
+.CMakeUserPresets.json
 
 *.nfs*
