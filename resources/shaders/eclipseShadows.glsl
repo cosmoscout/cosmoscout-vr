@@ -227,8 +227,8 @@ vec3 getEclipseShadow(vec3 position) {
     float x = 1.0 / (appOccluderRadius / appSunRadius + 1.0);
     float y = (delta - minOccDist) / (maxOccDist - minOccDist);
 
-    x = pow(x, textureMappingExponent);
-    y = 1.0 - pow(1.0 - y, textureMappingExponent);
+    x = pow(x, 1.0 / textureMappingExponent);
+    y = 1.0 - pow(1.0 - y, 1.0 / textureMappingExponent);
 
     if (!textureIncludesUmbra && y < 0) {
       light = vec3(0.0);
