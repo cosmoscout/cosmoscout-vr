@@ -1,14 +1,18 @@
 Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 
-Files: plugins/csp-atmospheres/data/csp-atmospheres/*
+Files: plugins/csp-atmospheres/bruneton-preprocessor/settings/*
 Copyright: German Aerospace Center (DLR) <cosmoscout@dlr.de>
 License: CC0-1.0
 
-Files: plugins/csp-atmospheres/preprocessor/density-settings/*
+Files: plugins/csp-atmospheres/scattering-table-generator/mie-settings/*
 Copyright: German Aerospace Center (DLR) <cosmoscout@dlr.de>
 License: CC0-1.0
 
-Files: plugins/csp-atmospheres/preprocessor/mie-settings/*
+Files: plugins/csp-atmospheres/scattering-table-generator/density-settings/*
+Copyright: German Aerospace Center (DLR) <cosmoscout@dlr.de>
+License: CC0-1.0
+
+Files: plugins/csp-atmospheres/scattering-table-generator/output/*
 Copyright: German Aerospace Center (DLR) <cosmoscout@dlr.de>
 License: CC0-1.0
 

@@ -168,10 +168,10 @@ void Atmosphere::configure(Plugin::Settings::Atmosphere const& settings) {
 void Atmosphere::updateShader() {
   mAtmoShader = VistaGLSLShader();
 
-  auto sVert = cs::utils::filesystem::loadToString(
-      "../share/resources/shaders/csp-atmospheres/atmosphere.vert");
-  auto sFrag = cs::utils::filesystem::loadToString(
-      "../share/resources/shaders/csp-atmospheres/atmosphere.frag");
+  auto sVert =
+      cs::utils::filesystem::loadToString("../share/resources/shaders/csp-atmosphere.vert");
+  auto sFrag =
+      cs::utils::filesystem::loadToString("../share/resources/shaders/csp-atmosphere.frag");
 
   cs::utils::replaceString(sFrag, "SKYDOME_MODE", "0");
   cs::utils::replaceString(

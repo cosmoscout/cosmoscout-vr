@@ -5,15 +5,13 @@
 // SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
 // SPDX-License-Identifier: MIT
 
-#ifndef CSP_ATMOSPHERES_MODELS_BRUNETON_INTERNAL_CSV_HPP
-#define CSP_ATMOSPHERES_MODELS_BRUNETON_INTERNAL_CSV_HPP
+#ifndef CSV_HPP
+#define CSV_HPP
 
 #include <cstdint>
 #include <functional>
 #include <string>
 #include <vector>
-
-namespace csp::atmospheres::models::bruneton::internal {
 
 /// This namespace is used to load the phase functions, scattering & absorption coefficients, as
 /// well as the density distributions of atmospheric particles from CSV files.
@@ -70,6 +68,4 @@ std::vector<std::vector<float>> readPhase(
 std::vector<float> readExtinction(std::string const& filename, std::vector<float>& wavelengths);
 } // namespace csv
 
-} // namespace csp::atmospheres::models::bruneton::internal
-
-#endif // CSP_ATMOSPHERES_MODELS_BRUNETON_INTERNAL_CSV_HPP
+#endif // CSV_HPP
