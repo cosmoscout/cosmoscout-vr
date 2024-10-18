@@ -17,7 +17,7 @@ SPDX-License-Identifier: CC-BY-4.0
 
 * It is now possible to use the vista debug text rendering again.
 * New callback `CosmoScout.callbacks.input.reloadDFNs()` to hot reload DFN xml files.
-* Replaced the custom make.sh and make.bat build scripts with [CMake-Presets verion 3](https://cmake.org/cmake/help/v3.22/manual/cmake-presets.7.html).
+* Replaced the custom make.sh and make.bat build scripts with [CMake-Presets version 3](https://cmake.org/cmake/help/v3.22/manual/cmake-presets.7.html).
   * The documentation on building CosmoScout VR were rewritten to reflect these changes.
   * The documentation on IDE support was updated to reflect these changes.
 
