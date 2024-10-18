@@ -24,6 +24,7 @@ SPDX-License-Identifier: CC-BY-4.0
 - Fixed invalid terrain height of LoD bodies after reloading of the scene settings.
 - Fixed a bug which caused red rings in the clouds deep in the shadow-side of a planet.
 - Fixed a bug that prevented the autocomplete to work in the js console.
+- Fixed harsh eclipse shadows on bodies which are very small when compared to the body casting the shadow.
 
 ## [v1.9.0](https://github.com/cosmoscout/cosmoscout-vr/releases)
 
