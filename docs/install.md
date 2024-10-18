@@ -12,7 +12,7 @@ SPDX-License-Identifier: CC-BY-4.0
 :information_source: _**Tip:** This page contains generic build instructions for CosmoScout VR. Alternatively, you can follow a [guide specific to your IDE](ide-setup.md)._
 
 **CosmoScout VR supports 64 bits only and can be build in debug and release mode on Linux and Windows.
-You will need a copy of [CMake](https://cmake.org/) (version 3.13 or greater), [Boost](https://www.boost.org/) (version 1.69 or greater) and a recent C++ compiler (gcc 7, clang 5 or msvc 19).
+You will need a copy of [CMake](https://cmake.org/) (version 3.22 or greater), [Boost](https://www.boost.org/) (version 1.69 or greater) and a recent C++ compiler (gcc 7, clang 5 or msvc 19).
 For the compilation of the externals [Python](https://www.python.org/) is also required.**
 
 ## Linux
