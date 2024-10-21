@@ -100,6 +100,20 @@ std::vector<T> copyToTextureBuffer(
   return data;
 }
 
+template <typename T>
+void uploadTextureData(VistaTexture& texture, std::vector<std::vector<T>> const& imageData,
+    std::shared_ptr<Image2D> const& image, GLenum internalFormat, GLenum format) {
+  std::vector<T> data = copyToTextureBuffer(imageData, image->mNumScalars);
+
+  GLenum imageFormat = getPixelFormat(image->mNumScalars);
+
+  texture.Bind();
+  glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, image->mDimension.x, image->mDimension.y, 0,
+      imageFormat, format, data.data());
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+  texture.Unbind();
+}
+
 void Renderer::setData(std::shared_ptr<Image2D> const& image) {
   mHasTexture = image != nullptr;
 
@@ -107,44 +121,31 @@ void Renderer::setData(std::shared_ptr<Image2D> const& image) {
     return;
   }
 
-  mBounds            = image->mBounds;
-  GLenum imageFormat = getPixelFormat(image->mNumScalars);
+  mBounds = image->mBounds;
 
   if (std::holds_alternative<U8ValueVector>(image->mPoints)) {
-    auto                 imageData = std::get<U8ValueVector>(image->mPoints);
-    std::vector<uint8_t> data      = copyToTextureBuffer(imageData, image->mNumScalars);
-    mTexture.UploadTexture(image->mDimension.x, image->mDimension.y, data.data(), false,
-        imageFormat, GL_UNSIGNED_BYTE);
+    auto imageData = std::get<U8ValueVector>(image->mPoints);
+    uploadTextureData<uint8_t>(mTexture, imageData, image, GL_R8, GL_UNSIGNED_BYTE);
 
   } else if (std::holds_alternative<U16ValueVector>(image->mPoints)) {
-    auto                  imageData = std::get<U16ValueVector>(image->mPoints);
-    std::vector<uint16_t> data      = copyToTextureBuffer(imageData, image->mNumScalars);
-    mTexture.UploadTexture(image->mDimension.x, image->mDimension.y, data.data(), false,
-        imageFormat, GL_UNSIGNED_SHORT);
+    auto imageData = std::get<U16ValueVector>(image->mPoints);
+    uploadTextureData<uint16_t>(mTexture, imageData, image, GL_R16, GL_UNSIGNED_SHORT);
 
   } else if (std::holds_alternative<U32ValueVector>(image->mPoints)) {
-    auto                  imageData = std::get<U32ValueVector>(image->mPoints);
-    std::vector<uint32_t> data      = copyToTextureBuffer(imageData, image->mNumScalars);
-    mTexture.UploadTexture(
-        image->mDimension.x, image->mDimension.y, data.data(), false, imageFormat, GL_UNSIGNED_INT);
+    auto imageData = std::get<U32ValueVector>(image->mPoints);
+    uploadTextureData<uint32_t>(mTexture, imageData, image, GL_R32UI, GL_UNSIGNED_INT);
 
   } else if (std::holds_alternative<I16ValueVector>(image->mPoints)) {
-    auto                 imageData = std::get<I16ValueVector>(image->mPoints);
-    std::vector<int16_t> data      = copyToTextureBuffer(imageData, image->mNumScalars);
-    mTexture.UploadTexture(
-        image->mDimension.x, image->mDimension.y, data.data(), false, imageFormat, GL_SHORT);
+    auto imageData = std::get<I16ValueVector>(image->mPoints);
+    uploadTextureData<int16_t>(mTexture, imageData, image, GL_R16, GL_SHORT);
 
   } else if (std::holds_alternative<I32ValueVector>(image->mPoints)) {
-    auto                 imageData = std::get<I32ValueVector>(image->mPoints);
-    std::vector<int32_t> data      = copyToTextureBuffer(imageData, image->mNumScalars);
-    mTexture.UploadTexture(
-        image->mDimension.x, image->mDimension.y, data.data(), false, imageFormat, GL_INT);
+    auto imageData = std::get<I32ValueVector>(image->mPoints);
+    uploadTextureData<int32_t>(mTexture, imageData, image, GL_R32I, GL_INT);
 
   } else if (std::holds_alternative<F32ValueVector>(image->mPoints)) {
-    auto               imageData = std::get<F32ValueVector>(image->mPoints);
-    std::vector<float> data      = copyToTextureBuffer(imageData, image->mNumScalars);
-    mTexture.UploadTexture(
-        image->mDimension.x, image->mDimension.y, data.data(), false, imageFormat, GL_FLOAT);
+    auto imageData = std::get<F32ValueVector>(image->mPoints);
+    uploadTextureData<float>(mTexture, imageData, image, GL_R32F, GL_FLOAT);
 
   } else {
     logger().error("Unknown type!");
