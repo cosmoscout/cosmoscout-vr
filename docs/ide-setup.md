@@ -179,7 +179,7 @@ We will discuss these files in the following.
         "$gcc"
       ],
       "windows": {
-        "command": "cmake --preset windows-vs-release-config && cmake --build --preset windows-vs-release-build",
+        "command": "cmake --preset windows-vs-release-config; cmake --build --preset windows-vs-release-build",
         "options": {
           "env": {
             "BOOST_ROOT": "C:\\local\\boost_1_69_0"
@@ -201,7 +201,7 @@ We will discuss these files in the following.
         "$gcc"
       ],
       "windows": {
-        "command": "cmake --preset windows-make-debug-config && cmake --build --preset windows-make-debug-build",
+        "command": "cmake --preset windows-make-debug-config; cmake --build --preset windows-make-debug-build",
         "options": {
           "env": {
             "BOOST_ROOT": "C:\\local\\boost_1_69_0"
