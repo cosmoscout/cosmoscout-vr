@@ -36,6 +36,9 @@ class CSL_OGC_EXPORT WebCoverageTextureLoader {
     std::optional<std::string>         mTime;
     std::optional<std::string>         mFormat;
     std::optional<std::pair<int, int>> mLayerRange;
+
+    // This will take precedence over mLayerRange
+    std::optional<std::vector<int>> mLayerList;
   };
 
   /// Creates a new ThreadPool with the specified amount of threads.
