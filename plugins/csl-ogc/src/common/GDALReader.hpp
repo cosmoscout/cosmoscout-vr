@@ -48,10 +48,6 @@ class CSL_OGC_EXPORT GDALReader {
     // The data ranges of the individual bands.
     std::vector<std::array<double, 2>> mBandDataRanges{};
 
-    // The typical maximum value of the data type, e.g. 255 for UInt8, 65535 for UInt16,
-    // 1.F for Float32 etc.
-    float mDataMaxValue = 1.F;
-
     // The buffer containing the texture data. If mBands > 1, the data for each band is
     // stored sequentially.
     void*  mBuffer     = nullptr;

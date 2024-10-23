@@ -268,27 +268,6 @@ void GDALReader::BuildTexture(
     std::memcpy(texture.mBuffer, &fData[0], elementCount * sizeof(float));
   }
 
-  switch (eDT) {
-  case 1: // UInt8
-    texture.mDataMaxValue = std::numeric_limits<uint8_t>::max();
-    break;
-  case 2: // UInt16
-    texture.mDataMaxValue = std::numeric_limits<uint16_t>::max();
-    break;
-  case 3: // Int16
-    texture.mDataMaxValue = std::numeric_limits<int16_t>::max();
-    break;
-  case 4: // UInt32
-    texture.mDataMaxValue = static_cast<float>(std::numeric_limits<uint32_t>::max());
-    break;
-  case 5: // Int32
-    texture.mDataMaxValue = static_cast<float>(std::numeric_limits<int32_t>::max());
-    break;
-
-  default: // Float
-    texture.mDataMaxValue = 1;
-  }
-
   GDALReader::AddTextureToCache(filename, texture);
 }
 

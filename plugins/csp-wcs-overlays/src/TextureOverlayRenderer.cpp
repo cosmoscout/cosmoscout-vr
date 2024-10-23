@@ -603,12 +603,32 @@ bool TextureOverlayRenderer::Do() {
 
   mTransferFunction->bind(GL_TEXTURE2);
 
-  m_pSurfaceShader->SetUniform(
-      m_pSurfaceShader->GetUniformLocation("uDataMaxValue"), mTexture.mDataMaxValue);
+  float dataMax = 1.f;
 
+  switch (mTexture.mDataType) {
+  case 1: // UInt8
+    dataMax = std::numeric_limits<uint8_t>::max();
+    break;
+  case 2: // UInt16
+    dataMax = std::numeric_limits<uint16_t>::max();
+    break;
+  case 3: // Int16
+    dataMax = std::numeric_limits<int16_t>::max();
+    break;
+  case 4: // UInt32
+    dataMax = static_cast<float>(std::numeric_limits<uint32_t>::max());
+    break;
+  case 5: // Int32
+    dataMax = static_cast<float>(std::numeric_limits<int32_t>::max());
+    break;
+
+  default: // Float
+    dataMax = 1;
+  }
+
+  m_pSurfaceShader->SetUniform(m_pSurfaceShader->GetUniformLocation("uDataMaxValue"), dataMax);
   m_pSurfaceShader->SetUniform(m_pSurfaceShader->GetUniformLocation("uDepthBuffer"), 0);
   m_pSurfaceShader->SetUniform(m_pSurfaceShader->GetUniformLocation("uSimBuffer"), 1);
-
   m_pSurfaceShader->SetUniform(m_pSurfaceShader->GetUniformLocation("uTransferFunction"), 2);
 
   GLint loc = m_pSurfaceShader->GetUniformLocation("uMatInvMVP");
