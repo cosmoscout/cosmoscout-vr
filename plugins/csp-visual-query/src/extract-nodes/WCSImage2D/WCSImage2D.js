@@ -46,12 +46,8 @@ class WCSImage2DComponent extends Rete.Component {
     let imageOutput = new Rete.Output('imageOut', 'Image 2D', CosmoScout.socketTypes['Image2D']);
     node.addOutput(imageOutput);
 
-    node.onInit =
-        (nodeDiv) => {
-          node.onMessageFromCPP = (message) => {
-
-          };
-        }
+    let minMaxOutput = new Rete.Output('minMaxOut', 'Min/Max', CosmoScout.socketTypes['RVec2']);
+    node.addOutput(minMaxOutput);
 
     return node;
   }

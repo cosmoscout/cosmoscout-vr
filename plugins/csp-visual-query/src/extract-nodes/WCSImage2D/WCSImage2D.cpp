@@ -35,41 +35,28 @@ std::unique_ptr<WCSImage2D> WCSImage2D::sCreate() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-WCSImage2D::WCSImage2D() {
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-WCSImage2D::~WCSImage2D() {
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
 std::string const& WCSImage2D::getName() const {
   return sName;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void WCSImage2D::onMessageFromJS(nlohmann::json const& message) {
+template <typename T>
+std::vector<std::vector<T>> convertImageData(csl::ogc::GDALReader::Texture const& texture) {
+  std::vector<std::vector<T>> pointData(texture.mWidth * texture.mHeight);
+  uint32_t                    bandStride = texture.mWidth * texture.mHeight;
 
-  logger().debug("WCSImage2D: Message form JS: {}", message.dump());
+  for (uint32_t y = 0; y < texture.mHeight; y++) {
+    for (uint32_t x = 0; x < texture.mWidth; x++) {
+      uint32_t index = (y * texture.mWidth + x);
+      for (uint32_t band = 0; band < texture.mBands; band++) {
+        pointData[index].push_back(*(static_cast<T*>(texture.mBuffer) + band * bandStride + index));
+      }
+    }
+  }
 
-  // process();
+  return pointData;
 }
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-nlohmann::json WCSImage2D::getData() const {
-  return nlohmann::json();
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void WCSImage2D::setData(nlohmann::json const& json) {
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void WCSImage2D::process() {
   auto coverage = readInput<std::shared_ptr<CoverageContainer>>("coverageIn", nullptr);
@@ -86,11 +73,10 @@ void WCSImage2D::process() {
       *coverage->mServer, *coverage->mImageChannel, request, "wcs-cache", true);
 
   if (textureOpt.has_value()) {
-    auto texture     = textureOpt.value();
-    auto textureSize = texture.mWidth * texture.mHeight;
+    auto texture = textureOpt.value();
 
     Image2D image;
-    image.mNumScalars = 1;
+    image.mNumScalars = texture.mBands;
     image.mDimension  = {texture.mWidth, texture.mHeight};
 
     // convert radians to degree
@@ -100,100 +86,36 @@ void WCSImage2D::process() {
 
     switch (texture.mDataType) {
     case 1: // UInt8
-    {
-      std::vector<uint8_t> textureData(static_cast<uint8_t*>(texture.mBuffer),
-          static_cast<uint8_t*>(texture.mBuffer) + textureSize);
-
-      U8ValueVector pointData{};
-
-      for (uint8_t scalar : textureData) {
-        pointData.emplace_back(std::vector{scalar});
-      }
-
-      image.mPoints = pointData;
+      image.mPoints.emplace<U8ValueVector>(convertImageData<uint8_t>(texture));
       break;
-    }
 
     case 2: // UInt16
-    {
-      std::vector<uint16_t> textureData(static_cast<uint16_t*>(texture.mBuffer),
-          static_cast<uint16_t*>(texture.mBuffer) + textureSize);
-
-      U16ValueVector pointData{};
-
-      for (uint16_t scalar : textureData) {
-        pointData.emplace_back(std::vector{scalar});
-      }
-
-      image.mPoints = pointData;
+      image.mPoints.emplace<U16ValueVector>(convertImageData<uint16_t>(texture));
       break;
-    }
 
     case 3: // Int16
-    {
-      std::vector<int16_t> textureData(static_cast<int16_t*>(texture.mBuffer),
-          static_cast<int16_t*>(texture.mBuffer) + textureSize);
-
-      I16ValueVector pointData{};
-
-      for (int16_t scalar : textureData) {
-        pointData.emplace_back(std::vector{scalar});
-      }
-
-      image.mPoints = pointData;
+      image.mPoints.emplace<I16ValueVector>(convertImageData<int16_t>(texture));
       break;
-    }
 
     case 4: // UInt32
-    {
-      std::vector<uint32_t> textureData(static_cast<uint32_t*>(texture.mBuffer),
-          static_cast<uint32_t*>(texture.mBuffer) + textureSize);
-
-      U32ValueVector pointData{};
-
-      for (uint32_t scalar : textureData) {
-        pointData.emplace_back(std::vector{scalar});
-      }
-
-      image.mPoints = pointData;
+      image.mPoints.emplace<U32ValueVector>(convertImageData<uint32_t>(texture));
       break;
-    }
 
     case 5: // Int32
-    {
-      std::vector<int32_t> textureData(static_cast<int32_t*>(texture.mBuffer),
-          static_cast<int32_t*>(texture.mBuffer) + textureSize);
-
-      I32ValueVector pointData{};
-
-      for (int32_t scalar : textureData) {
-        pointData.emplace_back(std::vector{scalar});
-      }
-
-      image.mPoints = pointData;
+      image.mPoints.emplace<I32ValueVector>(convertImageData<int32_t>(texture));
       break;
-    }
 
     case 6: // Float32
-    case 7: {
-      std::vector<float> textureData(
-          static_cast<float*>(texture.mBuffer), static_cast<float*>(texture.mBuffer) + textureSize);
-
-      F32ValueVector pointData{};
-
-      for (float scalar : textureData) {
-        pointData.emplace_back(std::vector{scalar});
-      }
-
-      image.mPoints = pointData;
+    case 7:
+      image.mPoints.emplace<F32ValueVector>(convertImageData<float>(texture));
       break;
-    }
 
     default:
       logger().error("Texture has no known data type.");
     }
 
     writeOutput("imageOut", std::make_shared<Image2D>(image));
+    writeOutput("minMaxOut", std::make_pair(texture.mDataRange[0], texture.mDataRange[1]));
   }
 }
 
@@ -213,8 +135,8 @@ csl::ogc::WebCoverageTextureLoader::Request WCSImage2D::getRequest() {
   request.mBounds.mMinLat = bounds[2];
   request.mBounds.mMaxLat = bounds[3];
 
-  request.mMaxSize    = readInput<int>("resolutionIn", 1024);
-  request.mLayerRange = std::make_pair(readInput<int>("layerIn", 1), readInput<int>("layerIn", 1));
+  request.mMaxSize   = readInput<int>("resolutionIn", 1024);
+  request.mLayerList = {readInput<int>("layerIn", 1)};
 
   request.mFormat = "image/tiff";
 
