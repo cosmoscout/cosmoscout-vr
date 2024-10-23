@@ -72,7 +72,7 @@ Renderer::~Renderer() {
   pSG->GetRoot()->DisconnectChild(mGLNode.get());
 }
 
-GLenum getPixelFormat(size_t numComponents) {
+GLenum getInputFormat(size_t numComponents) {
   switch (numComponents) {
   case 1:
     return GL_RED;
@@ -83,6 +83,52 @@ GLenum getPixelFormat(size_t numComponents) {
   default:
     return GL_RGBA;
   }
+}
+
+GLenum getDataType(int dataType) {
+  switch (dataType) {
+  case 1:
+    return GL_UNSIGNED_BYTE;
+  case 2:
+    return GL_UNSIGNED_SHORT;
+  case 3:
+    return GL_SHORT;
+  case 4:
+    return GL_UNSIGNED_INT;
+  case 5:
+    return GL_INT;
+  default:
+    return GL_FLOAT;
+  }
+}
+
+GLenum getInternalFormat(size_t numComponents, int dataType) {
+  // Allowed data types:
+  //  GDT_Byte = 1
+  //  GDT_UInt16 = 2
+  //  GDT_Int16 = 3
+  //  GDT_UInt32 = 4
+  //  GDT_Int32 = 5
+  //  GDT_Float32 = 6
+
+  if (numComponents > 4) {
+    logger().error("Unsupported number of components!");
+    return GL_RGBA32F;
+  }
+
+  if (dataType < 1 || dataType > 6) {
+    logger().error("Unsupported data type!");
+    return GL_RGBA32F;
+  }
+
+  std::array<std::array<GLenum, 6>, 4> internalFormats = {{
+      {GL_R8, GL_R16UI, GL_R16, GL_R32UI, GL_R32I, GL_R32F},
+      {GL_RG8, GL_RG16UI, GL_RG16, GL_RG32UI, GL_RG32I, GL_RG32F},
+      {GL_RGB8, GL_RGB16UI, GL_RGB16, GL_RGB32UI, GL_RGB32I, GL_RGB32F},
+      {GL_RGBA8, GL_RGBA16UI, GL_RGBA16, GL_RGBA32UI, GL_RGBA32I, GL_RGBA32F},
+  }};
+
+  return internalFormats[numComponents - 1][dataType - 1];
 }
 
 template <typename T>
@@ -102,14 +148,34 @@ std::vector<T> copyToTextureBuffer(
 
 template <typename T>
 void uploadTextureData(VistaTexture& texture, std::vector<std::vector<T>> const& imageData,
-    std::shared_ptr<Image2D> const& image, GLenum internalFormat, GLenum format) {
+    std::shared_ptr<Image2D> const& image) {
   std::vector<T> data = copyToTextureBuffer(imageData, image->mNumScalars);
 
-  GLenum imageFormat = getPixelFormat(image->mNumScalars);
+  int dataType = 0;
+
+  if (std::holds_alternative<U8ValueVector>(image->mPoints)) {
+    dataType = 1;
+  } else if (std::holds_alternative<U16ValueVector>(image->mPoints)) {
+    dataType = 2;
+  } else if (std::holds_alternative<I16ValueVector>(image->mPoints)) {
+    dataType = 4;
+  } else if (std::holds_alternative<U32ValueVector>(image->mPoints)) {
+    dataType = 3;
+  } else if (std::holds_alternative<I32ValueVector>(image->mPoints)) {
+    dataType = 5;
+  } else if (std::holds_alternative<F32ValueVector>(image->mPoints)) {
+    dataType = 6;
+  } else {
+    logger().error("Unknown type!");
+  }
+
+  GLenum inputFormat    = getInputFormat(image->mNumScalars);
+  GLenum inputType      = getDataType(dataType);
+  GLenum internalFormat = getInternalFormat(image->mNumScalars, dataType);
 
   texture.Bind();
   glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, image->mDimension.x, image->mDimension.y, 0,
-      imageFormat, format, data.data());
+      inputFormat, inputType, data.data());
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
   texture.Unbind();
 }
@@ -125,27 +191,27 @@ void Renderer::setData(std::shared_ptr<Image2D> const& image) {
 
   if (std::holds_alternative<U8ValueVector>(image->mPoints)) {
     auto imageData = std::get<U8ValueVector>(image->mPoints);
-    uploadTextureData<uint8_t>(mTexture, imageData, image, GL_R8, GL_UNSIGNED_BYTE);
+    uploadTextureData<uint8_t>(mTexture, imageData, image);
 
   } else if (std::holds_alternative<U16ValueVector>(image->mPoints)) {
     auto imageData = std::get<U16ValueVector>(image->mPoints);
-    uploadTextureData<uint16_t>(mTexture, imageData, image, GL_R16, GL_UNSIGNED_SHORT);
+    uploadTextureData<uint16_t>(mTexture, imageData, image);
 
   } else if (std::holds_alternative<U32ValueVector>(image->mPoints)) {
     auto imageData = std::get<U32ValueVector>(image->mPoints);
-    uploadTextureData<uint32_t>(mTexture, imageData, image, GL_R32UI, GL_UNSIGNED_INT);
+    uploadTextureData<uint32_t>(mTexture, imageData, image);
 
   } else if (std::holds_alternative<I16ValueVector>(image->mPoints)) {
     auto imageData = std::get<I16ValueVector>(image->mPoints);
-    uploadTextureData<int16_t>(mTexture, imageData, image, GL_R16, GL_SHORT);
+    uploadTextureData<int16_t>(mTexture, imageData, image);
 
   } else if (std::holds_alternative<I32ValueVector>(image->mPoints)) {
     auto imageData = std::get<I32ValueVector>(image->mPoints);
-    uploadTextureData<int32_t>(mTexture, imageData, image, GL_R32I, GL_INT);
+    uploadTextureData<int32_t>(mTexture, imageData, image);
 
   } else if (std::holds_alternative<F32ValueVector>(image->mPoints)) {
     auto imageData = std::get<F32ValueVector>(image->mPoints);
-    uploadTextureData<float>(mTexture, imageData, image, GL_R32F, GL_FLOAT);
+    uploadTextureData<float>(mTexture, imageData, image);
 
   } else {
     logger().error("Unknown type!");
