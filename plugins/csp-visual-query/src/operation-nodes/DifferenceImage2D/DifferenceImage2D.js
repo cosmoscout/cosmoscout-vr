@@ -97,7 +97,7 @@ class StatusDisplay extends Rete.Control {
         case 'NumScalarsMismatch':
           elem.innerHTML += 'Input scalar sizes do not match';
           break;
-        case 'PointsTypeMismatch':
+        case 'ValueVectorMismatch':
           elem.innerHTML += 'Input scalar types do not match';
           break;
         default:

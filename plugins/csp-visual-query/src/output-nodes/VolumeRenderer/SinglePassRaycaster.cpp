@@ -10,9 +10,9 @@
 #include "../../../../../src/cs-core/Settings.hpp"
 #include "../../../../../src/cs-core/SolarSystem.hpp"
 #include "../../../../../src/cs-utils/FrameStats.hpp"
+#include "../../../../../src/cs-utils/ThreadPool.hpp"
 #include "../../../../../src/cs-utils/filesystem.hpp"
 #include "../../../../../src/cs-utils/utils.hpp"
-#include "../../../../../src/cs-utils/ThreadPool.hpp"
 #include "../../logger.hpp"
 
 #include <VistaKernel/GraphicsManager/VistaGroupNode.h>
@@ -330,27 +330,27 @@ void SinglePassRaycaster::setData(std::shared_ptr<Volume3D> const& image) {
   mBounds = image->mBounds;
 
   switch (image->mPoints.index()) {
-  case cs::utils::variantIndex<PointsType, U8ValueVector>():
+  case cs::utils::variantIndex<ValueVector, U8ValueVector>():
     uploadVolume<U8ValueVector, GL_UNSIGNED_BYTE>(image);
     break;
 
-  case cs::utils::variantIndex<PointsType, U16ValueVector>():
+  case cs::utils::variantIndex<ValueVector, U16ValueVector>():
     uploadVolume<U16ValueVector, GL_UNSIGNED_SHORT>(image);
     break;
 
-  case cs::utils::variantIndex<PointsType, U32ValueVector>():
+  case cs::utils::variantIndex<ValueVector, U32ValueVector>():
     uploadVolume<U32ValueVector, GL_UNSIGNED_INT>(image);
     break;
 
-  case cs::utils::variantIndex<PointsType, I16ValueVector>():
+  case cs::utils::variantIndex<ValueVector, I16ValueVector>():
     uploadVolume<I16ValueVector, GL_SHORT>(image);
     break;
 
-  case cs::utils::variantIndex<PointsType, I32ValueVector>():
+  case cs::utils::variantIndex<ValueVector, I32ValueVector>():
     uploadVolume<I32ValueVector, GL_INT>(image);
     break;
 
-  case cs::utils::variantIndex<PointsType, F32ValueVector>():
+  case cs::utils::variantIndex<ValueVector, F32ValueVector>():
     uploadVolume<F32ValueVector, GL_FLOAT>(image);
     break;
 
@@ -363,7 +363,8 @@ void SinglePassRaycaster::setData(std::shared_ptr<Volume3D> const& image) {
 
 void SinglePassRaycaster::setLUT(std::vector<glm::vec4> const& lut) {
   mLUT.Bind();
-  glTexImage1D(GL_TEXTURE_1D, 0, GL_RGBA32F, static_cast<int32_t>(lut.size()), 0, GL_RGBA, GL_FLOAT, lut.data());
+  glTexImage1D(GL_TEXTURE_1D, 0, GL_RGBA32F, static_cast<int32_t>(lut.size()), 0, GL_RGBA, GL_FLOAT,
+      lut.data());
   glTexParameteri(mLUT.GetTarget(), GL_TEXTURE_MIN_FILTER, GL_LINEAR);
   mLUT.Unbind();
 }

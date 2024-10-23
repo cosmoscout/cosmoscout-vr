@@ -7,11 +7,11 @@
 
 // The TimeNode is pretty simple as it only has a single output socket. The component serves as
 // a kind of factory. Whenever a new node is created, the builder() method is called.
-class WCSImage2DComponent extends Rete.Component {
+class WCSBandComponent extends Rete.Component {
 
   constructor() {
     // This name must match the WCSSourceNode::sName defined in WCSSource.cpp.
-    super("WCSImage2D");
+    super("WCSBand");
 
     // This specifies the submenu from which this node can be created in the node editor.
     this.category = "Data Extraction";
@@ -40,18 +40,14 @@ class WCSImage2DComponent extends Rete.Component {
         new Rete.Input('resolutionIn', "Maximum Resolution", CosmoScout.socketTypes['Int']);
     node.addInput(resolutionInput);
 
-    let layerInput = new Rete.Input('layerIn', "Layer", CosmoScout.socketTypes['Int']);
+    let layerInput = new Rete.Input('bandIn', "Band", CosmoScout.socketTypes['Int']);
     node.addInput(layerInput);
 
     let imageOutput = new Rete.Output('imageOut', 'Image 2D', CosmoScout.socketTypes['Image2D']);
     node.addOutput(imageOutput);
 
-    node.onInit =
-        (nodeDiv) => {
-          node.onMessageFromCPP = (message) => {
-
-          };
-        }
+    let minMaxOutput = new Rete.Output('minMaxOut', 'Min/Max', CosmoScout.socketTypes['RVec2']);
+    node.addOutput(minMaxOutput);
 
     return node;
   }

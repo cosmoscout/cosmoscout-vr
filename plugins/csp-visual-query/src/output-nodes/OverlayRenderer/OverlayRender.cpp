@@ -118,22 +118,28 @@ void OverlayRender::onMessageFromJS(const nlohmann::json& message) {
 
 void OverlayRender::process() {
   auto input = readInput<std::shared_ptr<Image2D>>("Image2D", nullptr);
+  mRenderer->setData(input);
+
   if (input == nullptr) {
     return;
   }
-  mRenderer->setData(input);
 
-  auto minMax = readInput<std::pair<double, double>>("minMax", std::pair<double, double>(0.0, 1.0));
-  mRenderer->setMinMax(glm::vec2(minMax.first, minMax.second));
+  auto minMax = readInput<std::pair<double, double>>("minMax", std::make_pair(0.0, 0.0));
+
+  // If no minMax is set, we try to guess the correct range.
+  if (minMax.first == 0.0 && minMax.second == 0.0) {
+    if (input->mMinMax[1] <= 1.0) {
+      mRenderer->setMinMax(glm::vec2(0.0, 1.0));
+    } else if (input->mMinMax[1] <= 255.0) {
+      mRenderer->setMinMax(glm::vec2(0.0, 255.0));
+    } else {
+      mRenderer->setMinMax(input->mMinMax);
+    }
+  } else {
+    mRenderer->setMinMax(glm::vec2(minMax.first, minMax.second));
+  }
 
   auto lut = readInput<std::vector<glm::vec4>>("lut", {});
-  // use a grayscale transfer function if none is connected
-  if (lut.empty()) {
-    for (int i = 0; i < 256; i++) {
-      float value = static_cast<float>(i) / 255.0f;
-      lut.push_back(glm::vec4(value, value, value, 1.f));
-    }
-  }
   mRenderer->setLUT(lut);
 }
 

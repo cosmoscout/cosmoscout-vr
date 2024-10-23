@@ -1,0 +1,148 @@
+////////////////////////////////////////////////////////////////////////////////////////////////////
+//                               This file is part of CosmoScout VR                               //
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
+// SPDX-License-Identifier: MIT
+
+#include "WCSBand.hpp"
+
+#include "../../../../csl-ogc/src/wcs/WebCoverageService.hpp"
+#include "../../../../csl-ogc/src/wcs/WebCoverageTextureLoader.hpp"
+#include "../../../../src/cs-utils/filesystem.hpp"
+#include "../../logger.hpp"
+#include "../../types/CoverageContainer.hpp"
+#include "../../types/types.hpp"
+
+namespace csp::visualquery {
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+namespace {
+template <typename T>
+std::vector<std::vector<T>> convertBandData(csl::ogc::GDALReader::Texture const& texture) {
+  std::vector<std::vector<T>> pointData(texture.mWidth * texture.mHeight, std::vector<T>(1));
+
+  for (uint32_t y = 0; y < texture.mHeight; y++) {
+    for (uint32_t x = 0; x < texture.mWidth; x++) {
+      uint32_t index      = y * texture.mWidth + x;
+      pointData[index][0] = *(static_cast<T*>(texture.mBuffer) + index);
+    }
+  }
+
+  return pointData;
+}
+
+} // namespace
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+const std::string WCSBand::sName = "WCSBand";
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+std::string WCSBand::sSource() {
+  return cs::utils::filesystem::loadToString(
+      "../share/resources/nodes/csp-visual-query/WCSBand.js");
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+std::unique_ptr<WCSBand> WCSBand::sCreate() {
+  return std::make_unique<WCSBand>();
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+std::string const& WCSBand::getName() const {
+  return sName;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void WCSBand::process() {
+  auto coverage = readInput<std::shared_ptr<CoverageContainer>>("coverageIn", nullptr);
+  if (coverage == nullptr) {
+    return;
+  }
+
+  // create request for texture loading
+  csl::ogc::WebCoverageTextureLoader::Request request = getRequest();
+
+  // load texture
+  auto texLoader  = csl::ogc::WebCoverageTextureLoader();
+  auto textureOpt = texLoader.loadTexture(
+      *coverage->mServer, *coverage->mImageChannel, request, "wcs-cache", true);
+
+  if (textureOpt.has_value()) {
+    auto texture = textureOpt.value();
+
+    Image2D image;
+    image.mNumScalars = 1;
+    image.mDimension  = {texture.mWidth, texture.mHeight};
+    image.mMinMax     = {texture.mDataRange[0], texture.mDataRange[1]};
+
+    // convert radians to degree
+    image.mBounds = {texture.mLnglatBounds[0] * (180 / M_PI),
+        texture.mLnglatBounds[2] * (180 / M_PI), texture.mLnglatBounds[3] * (180 / M_PI),
+        texture.mLnglatBounds[1] * (180 / M_PI)};
+
+    switch (texture.mDataType) {
+    case 1: // UInt8
+      image.mPoints.emplace<U8ValueVector>(convertBandData<uint8_t>(texture));
+      break;
+
+    case 2: // UInt16
+      image.mPoints.emplace<U16ValueVector>(convertBandData<uint16_t>(texture));
+      break;
+
+    case 3: // Int16
+      image.mPoints.emplace<I16ValueVector>(convertBandData<int16_t>(texture));
+      break;
+
+    case 4: // UInt32
+      image.mPoints.emplace<U32ValueVector>(convertBandData<uint32_t>(texture));
+      break;
+
+    case 5: // Int32
+      image.mPoints.emplace<I32ValueVector>(convertBandData<int32_t>(texture));
+      break;
+
+    case 6: // Float32
+      image.mPoints.emplace<F32ValueVector>(convertBandData<float>(texture));
+      break;
+
+    default:
+      logger().error("Texture has no known data type.");
+    }
+
+    writeOutput("imageOut", std::make_shared<Image2D>(image));
+    writeOutput("minMaxOut", std::make_pair(texture.mDataRange[0], texture.mDataRange[1]));
+  }
+}
+
+csl::ogc::WebCoverageTextureLoader::Request WCSBand::getRequest() {
+  csl::ogc::WebCoverageTextureLoader::Request request;
+
+  request.mTime = readInput<std::string>("wcsTimeIn", "");
+  if (request.mTime.value() == "") {
+    request.mTime.reset();
+  }
+
+  auto bounds = readInput<std::array<double, 4>>("boundsIn", {-180., 180., -90., 90.});
+
+  csl::ogc::Bounds2D bound;
+  request.mBounds.mMinLon = bounds[0];
+  request.mBounds.mMaxLon = bounds[1];
+  request.mBounds.mMinLat = bounds[2];
+  request.mBounds.mMaxLat = bounds[3];
+
+  request.mMaxSize  = readInput<int>("resolutionIn", 1024);
+  request.mBandList = {readInput<int>("bandIn", 1)};
+
+  request.mFormat = "image/tiff";
+
+  return request;
+}
+
+} // namespace csp::visualquery
