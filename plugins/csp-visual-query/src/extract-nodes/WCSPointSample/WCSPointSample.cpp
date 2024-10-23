@@ -216,8 +216,8 @@ csl::ogc::WebCoverageTextureLoader::Request WCSPointSample::getRequest() {
   request.mBounds.mMinLat = coords.second;
   request.mBounds.mMaxLat = coords.second;
 
-  request.mMaxSize    = 1;
-  request.mLayerRange = std::make_pair(1, 255);
+  request.mMaxSize   = 1;
+  request.mBandRange = std::make_pair(1, 255);
 
   request.mFormat = "image/tiff";
 

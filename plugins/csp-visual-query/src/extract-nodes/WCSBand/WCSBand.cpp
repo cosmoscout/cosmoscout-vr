@@ -135,8 +135,8 @@ csl::ogc::WebCoverageTextureLoader::Request WCSBand::getRequest() {
   request.mBounds.mMinLat = bounds[2];
   request.mBounds.mMaxLat = bounds[3];
 
-  request.mMaxSize   = readInput<int>("resolutionIn", 1024);
-  request.mLayerList = {readInput<int>("bandIn", 1)};
+  request.mMaxSize  = readInput<int>("resolutionIn", 1024);
+  request.mBandList = {readInput<int>("bandIn", 1)};
 
   request.mFormat = "image/tiff";
 

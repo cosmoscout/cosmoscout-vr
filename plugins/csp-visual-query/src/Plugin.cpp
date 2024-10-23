@@ -1,4 +1,4 @@
-﻿////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////
 //                               This file is part of CosmoScout VR                               //
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -16,7 +16,7 @@
 #include "constant-nodes/RealVec2/RealVec2.hpp"
 #include "constant-nodes/RealVec4/RealVec4.hpp"
 #include "extract-nodes/TimeInterval/TimeInterval.hpp"
-#include "extract-nodes/WCSImage2D/WCSImage2D.hpp"
+#include "extract-nodes/WCSBand/WCSBand.hpp"
 #include "extract-nodes/WCSPointSample/WCSPointSample.hpp"
 #include "input-nodes/JsonVolumeFileLoader/JsonVolumeFileLoader.hpp"
 #include "input-nodes/RandomDataSource2D/RandomDataSource2D.hpp"
@@ -190,7 +190,7 @@ void Plugin::setupNodeEditor(uint16_t port) {
   // Data Extraction
   factory.registerNodeType<TimeInterval>(mTimeControl);
   factory.registerNodeType<WCSPointSample>();
-  factory.registerNodeType<WCSImage2D>();
+  factory.registerNodeType<WCSBand>();
 
   // Operations
   factory.registerNodeType<DifferenceImage2D>();
