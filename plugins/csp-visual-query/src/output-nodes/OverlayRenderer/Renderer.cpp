@@ -24,54 +24,7 @@
 
 namespace csp::visualquery {
 
-Renderer::Renderer(std::shared_ptr<cs::core::SolarSystem> solarSystem,
-    std::shared_ptr<cs::core::Settings>                   settings)
-    : mObjectName("None")
-    , mSolarSystem(std::move(solarSystem))
-    , mSettings(std::move(settings))
-    , mTexture(GL_TEXTURE_2D)
-    , mHasTexture(false)
-    , mLUT(GL_TEXTURE_1D)
-    , mMinBounds(0)
-    , mMaxBounds(0) {
-
-  // create textures ---------------------------------------------------------
-  for (auto const& viewport : GetVistaSystem()->GetDisplayManager()->GetViewports()) {
-    // Texture for previous renderer depth buffer
-    const auto [buffer, success] =
-        mDepthBufferData.try_emplace(viewport.second, GL_TEXTURE_RECTANGLE);
-    if (success) {
-      buffer->second.Bind();
-      buffer->second.SetWrapS(GL_CLAMP);
-      buffer->second.SetWrapT(GL_CLAMP);
-      buffer->second.SetMinFilter(GL_NEAREST);
-      buffer->second.SetMagFilter(GL_NEAREST);
-      buffer->second.Unbind();
-    }
-  }
-
-  mTexture.Bind();
-  mTexture.SetWrapS(GL_CLAMP_TO_EDGE);
-  mTexture.SetWrapT(GL_CLAMP_TO_EDGE);
-  mTexture.Unbind();
-
-  mLUT.Bind();
-  mLUT.SetWrapS(GL_CLAMP_TO_EDGE);
-  mLUT.SetWrapT(GL_CLAMP_TO_EDGE);
-  mLUT.Unbind();
-
-  // Add to scenegraph.
-  VistaSceneGraph* pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
-  mGLNode.reset(pSG->NewOpenGLNode(pSG->GetRoot(), this));
-  VistaOpenSGMaterialTools::SetSortKeyOnSubtree(
-      mGLNode.get(), static_cast<int>(cs::utils::DrawOrder::ePlanets) + 10);
-}
-
-Renderer::~Renderer() {
-  VistaSceneGraph* pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
-  pSG->GetRoot()->DisconnectChild(mGLNode.get());
-}
-
+namespace {
 GLenum getInputFormat(size_t numComponents) {
   switch (numComponents) {
   case 1:
@@ -180,6 +133,56 @@ void uploadTextureData(VistaTexture& texture, std::vector<std::vector<T>> const&
   texture.Unbind();
 }
 
+} // namespace
+
+Renderer::Renderer(std::shared_ptr<cs::core::SolarSystem> solarSystem,
+    std::shared_ptr<cs::core::Settings>                   settings)
+    : mObjectName("None")
+    , mSolarSystem(std::move(solarSystem))
+    , mSettings(std::move(settings))
+    , mTexture(GL_TEXTURE_2D)
+    , mHasTexture(false)
+    , mLUT(GL_TEXTURE_1D)
+    , mMinBounds(0)
+    , mMaxBounds(0) {
+
+  // create textures ---------------------------------------------------------
+  for (auto const& viewport : GetVistaSystem()->GetDisplayManager()->GetViewports()) {
+    // Texture for previous renderer depth buffer
+    const auto [buffer, success] =
+        mDepthBufferData.try_emplace(viewport.second, GL_TEXTURE_RECTANGLE);
+    if (success) {
+      buffer->second.Bind();
+      buffer->second.SetWrapS(GL_CLAMP);
+      buffer->second.SetWrapT(GL_CLAMP);
+      buffer->second.SetMinFilter(GL_NEAREST);
+      buffer->second.SetMagFilter(GL_NEAREST);
+      buffer->second.Unbind();
+    }
+  }
+
+  mTexture.Bind();
+  mTexture.SetWrapS(GL_CLAMP_TO_EDGE);
+  mTexture.SetWrapT(GL_CLAMP_TO_EDGE);
+  mTexture.Unbind();
+
+  mLUT.Bind();
+  mLUT.SetWrapS(GL_CLAMP_TO_EDGE);
+  mLUT.SetWrapT(GL_CLAMP_TO_EDGE);
+  mLUT.Unbind();
+
+  // Add to scenegraph.
+  VistaSceneGraph* pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
+  mGLNode.reset(pSG->NewOpenGLNode(pSG->GetRoot(), this));
+  VistaOpenSGMaterialTools::SetSortKeyOnSubtree(
+      mGLNode.get(), static_cast<int>(cs::utils::DrawOrder::ePlanets) + 10);
+}
+
+Renderer::~Renderer() {
+  VistaSceneGraph* pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
+  pSG->GetRoot()->DisconnectChild(mGLNode.get());
+}
+
 void Renderer::setData(std::shared_ptr<Image2D> const& image) {
   mHasTexture = image != nullptr;
 
@@ -187,7 +190,8 @@ void Renderer::setData(std::shared_ptr<Image2D> const& image) {
     return;
   }
 
-  mBounds = image->mBounds;
+  mBounds     = image->mBounds;
+  mNumScalars = image->mNumScalars;
 
   if (std::holds_alternative<U8ValueVector>(image->mPoints)) {
     auto imageData = std::get<U8ValueVector>(image->mPoints);
@@ -219,11 +223,15 @@ void Renderer::setData(std::shared_ptr<Image2D> const& image) {
 }
 
 void Renderer::setLUT(std::vector<glm::vec4> const& lut) {
-  mLUT.Bind();
-  glTexImage1D(GL_TEXTURE_1D, 0, GL_RGBA32F, static_cast<int32_t>(lut.size()), 0, GL_RGBA, GL_FLOAT,
-      lut.data());
-  glTexParameteri(mLUT.GetTarget(), GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-  mLUT.Unbind();
+  mHasLUT = !lut.empty();
+
+  if (mHasLUT) {
+    mLUT.Bind();
+    glTexImage1D(GL_TEXTURE_1D, 0, GL_RGBA32F, static_cast<int32_t>(lut.size()), 0, GL_RGBA,
+        GL_FLOAT, lut.data());
+    glTexParameteri(mLUT.GetTarget(), GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    mLUT.Unbind();
+  }
 }
 
 void Renderer::setMinMax(glm::vec2 const& minMax) {
@@ -310,12 +318,17 @@ bool Renderer::Do() {
   // Only bind the enabled textures.
   depthBuffer.Bind(GL_TEXTURE0);
   mTexture.Bind(GL_TEXTURE1);
-  mLUT.Bind(GL_TEXTURE3);
 
+  if (mHasLUT) {
+    mLUT.Bind(GL_TEXTURE3);
+    mShader.SetUniform(mShader.GetUniformLocation("uLUT"), 3);
+  }
+
+  mShader.SetUniform(mShader.GetUniformLocation("uHasLUT"), mHasLUT);
+  mShader.SetUniform(mShader.GetUniformLocation("uNumScalars"), static_cast<int>(mNumScalars));
   mShader.SetUniform(mShader.GetUniformLocation("uDepthBuffer"), 0);
   mShader.SetUniform(mShader.GetUniformLocation("uTexture"), 1);
-  mShader.SetUniform(mShader.GetUniformLocation("uLUT"), 3);
-  mShader.SetUniform(mShader.GetUniformLocation("uLUTRange"), mMinMax.x, mMinMax.y);
+  mShader.SetUniform(mShader.GetUniformLocation("uValueRange"), mMinMax.x, mMinMax.y);
 
   GLint loc = mShader.GetUniformLocation("uMatInvMVP");
   glUniformMatrix4dv(loc, 1, GL_FALSE, glm::value_ptr(matInvMVP));
@@ -368,7 +381,9 @@ bool Renderer::Do() {
   // Dummy draw
   glDrawArrays(GL_POINTS, 0, 1);
 
-  mLUT.Unbind(GL_TEXTURE3);
+  if (mHasLUT) {
+    mLUT.Unbind(GL_TEXTURE3);
+  }
   depthBuffer.Unbind(GL_TEXTURE0);
   mTexture.Unbind(GL_TEXTURE1);
 

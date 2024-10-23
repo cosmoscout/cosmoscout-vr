@@ -61,6 +61,7 @@ class Renderer final : public IVistaOpenGLDraw {
   bool         mHasLUT;
 
   glm::vec2 mMinMax = glm::vec2(0, 1);
+  size_t    mNumScalars;
 
   /// Store one buffer per viewport
   std::map<VistaViewport*, VistaTexture> mDepthBufferData;

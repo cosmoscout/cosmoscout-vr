@@ -80,6 +80,7 @@ void WCSBand::process() {
     Image2D image;
     image.mNumScalars = 1;
     image.mDimension  = {texture.mWidth, texture.mHeight};
+    image.mMinMax     = {texture.mDataRange[0], texture.mDataRange[1]};
 
     // convert radians to degree
     image.mBounds = {texture.mLnglatBounds[0] * (180 / M_PI),
