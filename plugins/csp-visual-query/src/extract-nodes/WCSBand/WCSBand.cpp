@@ -108,7 +108,6 @@ void WCSBand::process() {
       break;
 
     case 6: // Float32
-    case 7:
       image.mPoints.emplace<F32ValueVector>(convertBandData<float>(texture));
       break;
 

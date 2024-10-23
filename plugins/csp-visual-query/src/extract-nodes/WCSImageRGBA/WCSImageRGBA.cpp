@@ -114,7 +114,6 @@ void WCSImageRGBA::process() {
       break;
 
     case 6: // Float32
-    case 7:
       image.mPoints.emplace<F32ValueVector>(convertImageData<float>(texture));
       break;
 
