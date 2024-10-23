@@ -5,7 +5,7 @@
 // SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
 // SPDX-License-Identifier: MIT
 
-#include "WCSBand.hpp"
+#include "WCSImageRGBA.hpp"
 
 #include "../../../../csl-ogc/src/wcs/WebCoverageService.hpp"
 #include "../../../../csl-ogc/src/wcs/WebCoverageTextureLoader.hpp"
@@ -20,51 +20,57 @@ namespace csp::visualquery {
 
 namespace {
 template <typename T>
-std::vector<std::vector<T>> convertBandData(csl::ogc::GDALReader::Texture const& texture) {
-  std::vector<std::vector<T>> pointData(texture.mWidth * texture.mHeight, std::vector<T>(1));
+std::vector<std::vector<T>> convertImageData(csl::ogc::GDALReader::Texture const& texture) {
+  std::vector<std::vector<T>> pointData(texture.mWidth * texture.mHeight);
+  uint32_t                    bandStride = texture.mWidth * texture.mHeight;
+
+  logger().info("Texture has {} bands.", texture.mBands);
 
   for (uint32_t y = 0; y < texture.mHeight; y++) {
     for (uint32_t x = 0; x < texture.mWidth; x++) {
-      uint32_t index      = y * texture.mWidth + x;
-      pointData[index][0] = *(static_cast<T*>(texture.mBuffer) + index);
+      uint32_t index = (y * texture.mWidth + x);
+      for (uint32_t band = 0; band < texture.mBands; band++) {
+        pointData[index].push_back(*(static_cast<T*>(texture.mBuffer) + band * bandStride + index));
+      }
     }
   }
 
   return pointData;
 }
-
 } // namespace
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-const std::string WCSBand::sName = "WCSBand";
+const std::string WCSImageRGBA::sName = "WCSImageRGBA";
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::string WCSBand::sSource() {
+std::string WCSImageRGBA::sSource() {
   return cs::utils::filesystem::loadToString(
-      "../share/resources/nodes/csp-visual-query/WCSBand.js");
+      "../share/resources/nodes/csp-visual-query/WCSImageRGBA.js");
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::unique_ptr<WCSBand> WCSBand::sCreate() {
-  return std::make_unique<WCSBand>();
+std::unique_ptr<WCSImageRGBA> WCSImageRGBA::sCreate() {
+  return std::make_unique<WCSImageRGBA>();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::string const& WCSBand::getName() const {
+std::string const& WCSImageRGBA::getName() const {
   return sName;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void WCSBand::process() {
+void WCSImageRGBA::process() {
   auto coverage = readInput<std::shared_ptr<CoverageContainer>>("coverageIn", nullptr);
   if (coverage == nullptr) {
     return;
   }
+
+  logger().info("Processing WCSImageRGBA node.");
 
   // create request for texture loading
   csl::ogc::WebCoverageTextureLoader::Request request = getRequest();
@@ -78,7 +84,7 @@ void WCSBand::process() {
     auto texture = textureOpt.value();
 
     Image2D image;
-    image.mNumScalars = 1;
+    image.mNumScalars = texture.mBands;
     image.mDimension  = {texture.mWidth, texture.mHeight};
 
     // convert radians to degree
@@ -88,28 +94,28 @@ void WCSBand::process() {
 
     switch (texture.mDataType) {
     case 1: // UInt8
-      image.mPoints.emplace<U8ValueVector>(convertBandData<uint8_t>(texture));
+      image.mPoints.emplace<U8ValueVector>(convertImageData<uint8_t>(texture));
       break;
 
     case 2: // UInt16
-      image.mPoints.emplace<U16ValueVector>(convertBandData<uint16_t>(texture));
+      image.mPoints.emplace<U16ValueVector>(convertImageData<uint16_t>(texture));
       break;
 
     case 3: // Int16
-      image.mPoints.emplace<I16ValueVector>(convertBandData<int16_t>(texture));
+      image.mPoints.emplace<I16ValueVector>(convertImageData<int16_t>(texture));
       break;
 
     case 4: // UInt32
-      image.mPoints.emplace<U32ValueVector>(convertBandData<uint32_t>(texture));
+      image.mPoints.emplace<U32ValueVector>(convertImageData<uint32_t>(texture));
       break;
 
     case 5: // Int32
-      image.mPoints.emplace<I32ValueVector>(convertBandData<int32_t>(texture));
+      image.mPoints.emplace<I32ValueVector>(convertImageData<int32_t>(texture));
       break;
 
     case 6: // Float32
     case 7:
-      image.mPoints.emplace<F32ValueVector>(convertBandData<float>(texture));
+      image.mPoints.emplace<F32ValueVector>(convertImageData<float>(texture));
       break;
 
     default:
@@ -117,11 +123,10 @@ void WCSBand::process() {
     }
 
     writeOutput("imageOut", std::make_shared<Image2D>(image));
-    writeOutput("minMaxOut", std::make_pair(texture.mDataRange[0], texture.mDataRange[1]));
   }
 }
 
-csl::ogc::WebCoverageTextureLoader::Request WCSBand::getRequest() {
+csl::ogc::WebCoverageTextureLoader::Request WCSImageRGBA::getRequest() {
   csl::ogc::WebCoverageTextureLoader::Request request;
 
   request.mTime = readInput<std::string>("wcsTimeIn", "");
@@ -138,7 +143,7 @@ csl::ogc::WebCoverageTextureLoader::Request WCSBand::getRequest() {
   request.mBounds.mMaxLat = bounds[3];
 
   request.mMaxSize  = readInput<int>("resolutionIn", 1024);
-  request.mBandList = {readInput<int>("bandIn", 1)};
+  request.mBandList = {1, 2, 3, 4};
 
   request.mFormat = "image/tiff";
 

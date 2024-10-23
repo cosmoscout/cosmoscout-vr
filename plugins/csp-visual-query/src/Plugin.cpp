@@ -17,6 +17,7 @@
 #include "constant-nodes/RealVec4/RealVec4.hpp"
 #include "extract-nodes/TimeInterval/TimeInterval.hpp"
 #include "extract-nodes/WCSBand/WCSBand.hpp"
+#include "extract-nodes/WCSImageRGBA/WCSImageRGBA.hpp"
 #include "extract-nodes/WCSPointSample/WCSPointSample.hpp"
 #include "input-nodes/JsonVolumeFileLoader/JsonVolumeFileLoader.hpp"
 #include "input-nodes/RandomDataSource2D/RandomDataSource2D.hpp"
@@ -191,6 +192,7 @@ void Plugin::setupNodeEditor(uint16_t port) {
   factory.registerNodeType<TimeInterval>(mTimeControl);
   factory.registerNodeType<WCSPointSample>();
   factory.registerNodeType<WCSBand>();
+  factory.registerNodeType<WCSImageRGBA>();
 
   // Operations
   factory.registerNodeType<DifferenceImage2D>();
