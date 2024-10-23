@@ -5,8 +5,8 @@
 // SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
 // SPDX-License-Identifier: MIT
 
-#ifndef CSP_VISUAL_QUERY_WCS_IMAGE_2D_HPP
-#define CSP_VISUAL_QUERY_WCS_IMAGE_2D_HPP
+#ifndef CSP_VISUAL_QUERY_WCS_BAND_HPP
+#define CSP_VISUAL_QUERY_WCS_BAND_HPP
 
 #include "../../../../csl-node-editor/src/Node.hpp"
 #include "../../../../csl-ogc/src/wcs/WebCoverageService.hpp"
@@ -15,13 +15,13 @@
 
 namespace csp::visualquery {
 
-class WCSImage2D : public csl::nodeeditor::Node {
+class WCSBand : public csl::nodeeditor::Node {
  public:
   // static interface ------------------------------------------------------------------------------
 
-  static const std::string           sName;
-  static std::string                 sSource();
-  static std::unique_ptr<WCSImage2D> sCreate();
+  static const std::string        sName;
+  static std::string              sSource();
+  static std::unique_ptr<WCSBand> sCreate();
 
   // instance interface ----------------------------------------------------------------------------
 
@@ -40,4 +40,4 @@ class WCSImage2D : public csl::nodeeditor::Node {
 
 } // namespace csp::visualquery
 
-#endif // CSP_VISUAL_QUERY_WCS_IMAGE_2D_HPP
+#endif // CSP_VISUAL_QUERY_WCS_BAND_HPP

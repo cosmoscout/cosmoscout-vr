@@ -5,7 +5,7 @@
 // SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
 // SPDX-License-Identifier: MIT
 
-#include "WCSImage2D.hpp"
+#include "WCSBand.hpp"
 
 #include "../../../../csl-ogc/src/wcs/WebCoverageService.hpp"
 #include "../../../../csl-ogc/src/wcs/WebCoverageTextureLoader.hpp"
@@ -18,24 +18,24 @@ namespace csp::visualquery {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-const std::string WCSImage2D::sName = "WCSImage2D";
+const std::string WCSBand::sName = "WCSBand";
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::string WCSImage2D::sSource() {
+std::string WCSBand::sSource() {
   return cs::utils::filesystem::loadToString(
-      "../share/resources/nodes/csp-visual-query/WCSImage2D.js");
+      "../share/resources/nodes/csp-visual-query/WCSBand.js");
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::unique_ptr<WCSImage2D> WCSImage2D::sCreate() {
-  return std::make_unique<WCSImage2D>();
+std::unique_ptr<WCSBand> WCSBand::sCreate() {
+  return std::make_unique<WCSBand>();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::string const& WCSImage2D::getName() const {
+std::string const& WCSBand::getName() const {
   return sName;
 }
 
@@ -58,7 +58,7 @@ std::vector<std::vector<T>> convertImageData(csl::ogc::GDALReader::Texture const
   return pointData;
 }
 
-void WCSImage2D::process() {
+void WCSBand::process() {
   auto coverage = readInput<std::shared_ptr<CoverageContainer>>("coverageIn", nullptr);
   if (coverage == nullptr) {
     return;
@@ -119,7 +119,7 @@ void WCSImage2D::process() {
   }
 }
 
-csl::ogc::WebCoverageTextureLoader::Request WCSImage2D::getRequest() {
+csl::ogc::WebCoverageTextureLoader::Request WCSBand::getRequest() {
   csl::ogc::WebCoverageTextureLoader::Request request;
 
   request.mTime = readInput<std::string>("wcsTimeIn", "");
@@ -136,7 +136,7 @@ csl::ogc::WebCoverageTextureLoader::Request WCSImage2D::getRequest() {
   request.mBounds.mMaxLat = bounds[3];
 
   request.mMaxSize   = readInput<int>("resolutionIn", 1024);
-  request.mLayerList = {readInput<int>("layerIn", 1)};
+  request.mLayerList = {readInput<int>("bandIn", 1)};
 
   request.mFormat = "image/tiff";
 
