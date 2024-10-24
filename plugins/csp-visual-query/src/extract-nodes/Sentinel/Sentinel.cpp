@@ -105,10 +105,10 @@ void Sentinel::process() {
     image.mDimension = {texture.mWidth, texture.mHeight};
 
     if (mCurrentOperation == "Moisture Index") {
-      image.mMinMax     = {0.0, 1.0};
+      image.mMinMax     = {-0.8, 0.8};
       image.mNumScalars = 1;
     } else {
-      image.mMinMax     = {0.0, 8000.0};
+      image.mMinMax     = {0.0, 5000.0};
       image.mNumScalars = 3;
     }
 
