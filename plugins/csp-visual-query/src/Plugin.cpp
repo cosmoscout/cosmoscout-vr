@@ -59,6 +59,7 @@ void from_json(nlohmann::json const& j, Plugin::Settings& o) {
 void to_json(nlohmann::json& j, Plugin::Settings const& o) {
   cs::core::Settings::serialize(j, "port", o.mPort);
   cs::core::Settings::serialize(j, "graph", o.mGraph);
+  cs::core::Settings::serialize(j, "wcs", o.mWcsUrl);
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -71,7 +72,7 @@ void Plugin::init() {
   onLoad();
 
   // Restart the node editor if the port changes.
-  mPluginSettings.mPort.connectAndTouch([this](uint16_t port) { setupNodeEditor(port); });
+  mPluginSettings.mPort.connect([this](uint16_t port) { setupNodeEditor(port); });
 
   logger().info("Loading done.");
 }
@@ -105,19 +106,22 @@ void Plugin::update() {
 void Plugin::onLoad() {
   // Read settings from JSON.
   from_json(mAllSettings->mPlugins.at("csp-visual-query"), mPluginSettings);
-  // from_json(mAllSettings->mPlugins.at("csp-wcs-overlays"), mPluginSettings);
-  // If there is a graph defined in the settings, we give this to the node editor.
-  if (mPluginSettings.mGraph.has_value()) {
-    try {
-      mNodeEditor->fromJSON(mPluginSettings.mGraph.value());
-    } catch (std::exception const& e) { logger().warn("Failed to load node graph: {}", e.what()); }
-  }
 
   // load WCS
   mPluginSettings.mWebCoverages.clear();
   for (std::string const& url : mPluginSettings.mWcsUrl) {
     mPluginSettings.mWebCoverages.emplace_back(
         url, csl::ogc::WebServiceBase::CacheMode::eAlways, "wcs-cache");
+  }
+
+  setupNodeEditor(mPluginSettings.mPort.get());
+
+  // If there is a graph defined in the settings, we give this to the node editor.
+  if (mPluginSettings.mGraph.has_value()) {
+    try {
+      logger().info("Loading node graph...");
+      mNodeEditor->fromJSON(mPluginSettings.mGraph.value());
+    } catch (std::exception const& e) { logger().warn("Failed to load node graph: {}", e.what()); }
   }
 }
 
