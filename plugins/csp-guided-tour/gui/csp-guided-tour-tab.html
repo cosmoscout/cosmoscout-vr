@@ -1,0 +1,24 @@
+<div id="tour-buttons">
+
+</div>
+
+<button class='btn glass block px-3' style='width: 100%;' onclick='CosmoScout.callbacks.guidedTours.reset()'
+  data-original-title=''>Alle Touren zurücksetzen</button>
+
+  <template id="tour-button-template">
+    <div style="display: flex;">
+      <label style="flex: 60%;">
+        <input type="checkbox" name="guided-tour" class="radio-button guided-tour-button" 
+          onclick='CosmoScout.guidedTours.onTourButtonClick(this,"%TOURNAME%")' />
+        <span class="block btn glass guided-tour-label">
+          <br>
+          <span>%TOURNAME%</span>
+          <a class="guided-tour-status"></a>
+        </span>
+      </label>
+      <button class="btn glass guided-tour-reset-button" style="flex: 35%; margin-left: 5%;"
+        onclick='CosmoScout.callbacks.guidedTours.resetTour("%TOURNAME%")'> zurücksetzen
+      </button>
+    </div>
+  </template>
+  
