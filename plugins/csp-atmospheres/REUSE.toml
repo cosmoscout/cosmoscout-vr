@@ -1,0 +1,28 @@
+# SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
+# SPDX-License-Identifier: CC0-1.0
+
+version = 1
+
+[[annotations]]
+path = "bruneton-preprocessor/settings/**"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "German Aerospace Center (DLR) <cosmoscout@dlr.de>"
+SPDX-License-Identifier = "CC0-1.0"
+
+[[annotations]]
+path = "scattering-table-generator/mie-settings/**"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "German Aerospace Center (DLR) <cosmoscout@dlr.de>"
+SPDX-License-Identifier = "CC0-1.0"
+
+[[annotations]]
+path = "scattering-table-generator/density-settings/**"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "German Aerospace Center (DLR) <cosmoscout@dlr.de>"
+SPDX-License-Identifier = "CC0-1.0"
+
+[[annotations]]
+path = "scattering-table-generator/output/**"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "German Aerospace Center (DLR) <cosmoscout@dlr.de>"
+SPDX-License-Identifier = "CC0-1.0"

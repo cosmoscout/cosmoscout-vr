@@ -15,15 +15,19 @@ SPDX-License-Identifier: CC-BY-4.0
 
 #### Other Changes
 
-- The preprocessing of the Bruneton atmosphere model has been refactored to a standalone tool. This tool can now be used to generate the necessary data offline and thus improves the start-up time of CosmoScout VR significantly.
 - It is now possible to use the vista debug text rendering again.
 - New callback `CosmoScout.callbacks.input.reloadDFNs()` to hot reload DFN xml files.
+- The preprocessing of the Bruneton atmosphere model has been refactored to a standalone tool. This tool can now be used to generate the necessary data offline and thus improves the start-up time of CosmoScout VR significantly.
+- Replaced the custom make.sh and make.bat build scripts with [CMake-Presets version 3](https://cmake.org/cmake/help/v3.22/manual/cmake-presets.7.html).
+  - The documentation on building CosmoScout VR were rewritten to reflect these changes.
+  - The documentation on IDE support was updated to reflect these changes.
 
 #### Bug Fixes
 
 - Fixed invalid terrain height of LoD bodies after reloading of the scene settings.
 - Fixed a bug which caused red rings in the clouds deep in the shadow-side of a planet.
 - Fixed a bug that prevented the autocomplete to work in the js console.
+- Fixed harsh eclipse shadows on bodies which are very small when compared to the body casting the shadow.
 
 ## [v1.9.0](https://github.com/cosmoscout/cosmoscout-vr/releases)
 

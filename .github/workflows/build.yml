@@ -10,10 +10,10 @@ name: Build
 on:
   push:
     branches:
-      - '**'
+      - "**"
   pull_request:
     branches:
-      - '**'
+      - "**"
 
 jobs:
   clang_format:
@@ -21,7 +21,7 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Checkout Submodules
         run: git submodule update --init plugins
       - name: Download Clang-Format
@@ -39,9 +39,9 @@ jobs:
     name: Check Compliance with REUSE Specification
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
-    - name: REUSE Compliance Check
-      uses: fsfe/reuse-action@v1
+      - uses: actions/checkout@v4
+      - name: REUSE Compliance Check
+        uses: fsfe/reuse-action@v4
 
   comment_percentage:
     name: Check Comment Percentage
@@ -49,12 +49,12 @@ jobs:
     if: github.event_name == 'pull_request'
     steps:
       - name: Checkout Current Repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           path: current
           ref: ${{ github.ref }}
       - name: Checkout Base Repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           path: base
           ref: ${{ github.base_ref }}
@@ -92,7 +92,7 @@ jobs:
       COSMOSCOUT_USE_UNITY_BUILD: false
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Checkout Submodules
         run: git submodule update --init --recursive
       - name: Cache Object Files
@@ -109,10 +109,9 @@ jobs:
           ./make_externals.sh -G "Unix Makefiles"
           -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache
       - name: Build CosmoScout VR
-        run: >
-          ./make.sh -G "Unix Makefiles"
-          -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache
-          -DCOSMOSCOUT_COVERAGE_INFO=On -DCOSMOSCOUT_UNIT_TESTS=On
+        run: |
+          cmake --preset linux-make-release-config -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCOSMOSCOUT_COVERAGE_INFO=On
+          cmake --build --preset linux-make-release-build
       - name: Run Tests
         run: |
           ./install/linux-Release/bin/run_tests.sh
@@ -120,7 +119,7 @@ jobs:
         run: |
           ./install/linux-Release/bin/run_graphical_tests.sh
       - name: Upload Results of Failed Test
-        uses: actions/upload-artifact@v1
+        uses: actions/upload-artifact@v4
         if: failure()
         with:
           name: graphical-test-results-gcc
@@ -148,7 +147,7 @@ jobs:
       COSMOSCOUT_USE_UNITY_BUILD: false
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Checkout Submodules
         run: git submodule update --init --recursive
       - name: Cache Object Files
@@ -165,10 +164,9 @@ jobs:
           ./make_externals.sh -G "Unix Makefiles"
           -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache
       - name: Build CosmoScout VR
-        run: >
-          ./make.sh -G "Unix Makefiles"
-          -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache
-          -DCOSMOSCOUT_UNIT_TESTS=On
+        run: |
+          cmake --preset linux-make-release-config -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache
+          cmake --build --preset linux-make-release-build
       - name: Run Tests
         run: |
           ./install/linux-Release/bin/run_tests.sh
@@ -176,7 +174,7 @@ jobs:
         run: |
           ./install/linux-Release/bin/run_graphical_tests.sh
       - name: Upload Results of Failed Test
-        uses: actions/upload-artifact@v1
+        uses: actions/upload-artifact@v4
         if: failure()
         with:
           name: graphical-test-results-clang
@@ -195,7 +193,7 @@ jobs:
       COSMOSCOUT_USE_UNITY_BUILD: true
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Checkout Submodules
         run: git submodule update --init --recursive
       - name: Cache Object Files
@@ -221,10 +219,9 @@ jobs:
           -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache
       - name: Build CosmoScout VR
         shell: cmd
-        run: >
-          make.bat -GNinja -DCMAKE_C_COMPILER=cl.exe -DCMAKE_CXX_COMPILER=cl.exe
-          -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache
-          -DCOSMOSCOUT_UNIT_TESTS=On -DBOOST_ROOT=%BOOST_ROOT_1_72_0%
+        run: |
+          cmake --preset windows-ninja-release-config -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache -DBOOST_ROOT=%BOOST_ROOT_1_72_0%
+          cmake --build --preset windows-ninja-release-build
       - name: Run Tests
         shell: cmd
         run: |
