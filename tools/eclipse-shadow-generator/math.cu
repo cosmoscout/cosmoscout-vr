@@ -171,26 +171,48 @@ uint32_t __host__ __device__ mapPixelToAngles(glm::ivec2 const& pixel, uint32_t 
     common::Mapping const& mapping, common::Geometry const& geometry, double& phiOcc,
     double& phiSun, double& delta) {
 
+  // This methods computes two circles, one representing the Sun and the other the occluder, as well
+  // as the distance between their centers. All values are scaled in such a way/ that the radius of
+  // the Solar disc is 1.0.
   double radiusOcc, distance;
   mapPixelToRadii(pixel, resolution, mapping, radiusOcc, distance);
 
+  // To compute the actual geometry of the involved bodies, we need to find the position in space
+  // where the anguala radii and the anualar distance between the Sun and the occluder are as
+  // computed above, scaled by an unknown factor.
+
+  // As an initial guess, we assume that the Sun appears as large as it does from the occluder's
+  // position. So we scale all values to this.
   phiSun = glm::asin(geometry.mRadiusSun / geometry.mSunOccDist);
-  phiOcc = radiusOcc * phiSun;
-  delta  = distance * phiSun;
+  phiOcc = glm::min(glm::pi<double>() / 2.0, radiusOcc * phiSun);
+  delta  = glm::min(glm::pi<double>() / 2.0, distance * phiSun);
+
+  // If the occluder is larger than pi/2, an impossible situation is given.
+  if (phiOcc >= glm::pi<double>() / 2.0) {
+    return 0;
+  }
 
   double   error      = 1.0;
   uint32_t iterations = 0;
 
   while (error > 0.0001 && ++iterations < 100) {
+
+    // Compute how far we would be from the occluder if it appeared this large.
     double occDist = geometry.mRadiusOcc / glm::sin(phiOcc);
+
+    // Given the angular distance between the Sun and the occluder, we can compute the distance
+    // between the Sun and the searched point. This will be farther away than the initial guess.
     double sunDist = occDist * glm::cos(delta) +
                      glm::sqrt(occDist * occDist * glm::cos(delta) * glm::cos(delta) -
                                occDist * occDist + geometry.mSunOccDist * geometry.mSunOccDist);
 
+    // Using the real radius of the Sun, we can now compute again how large the Sun will appear from
+    // the searched point. We use this as a new guess.
     double newPhiSun = glm::asin(geometry.mRadiusSun / sunDist);
-    double newPhiOcc = radiusOcc * phiSun;
-    double newDelta  = distance * phiSun;
+    double newPhiOcc = radiusOcc * newPhiSun;
+    double newDelta  = distance * newPhiSun;
 
+    // Compute the maximum error in all three values.
     error = glm::max(glm::abs(phiSun - newPhiSun) / phiSun,
         glm::max(glm::abs(phiOcc - newPhiOcc) / phiOcc, glm::abs(delta - newDelta) / delta));
 

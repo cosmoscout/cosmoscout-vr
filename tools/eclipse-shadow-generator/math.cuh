@@ -63,6 +63,10 @@ void __host__ __device__ mapPixelToRadii(glm::ivec2 const& pixel, uint32_t resol
 // Even if there is only a single solution, it seems to be impossible to find it without numerical
 // methods.
 //
+// For pixels with a x-coordinate close to zero, it may be impossible to find a solution. As the
+// orbit radius is fixed, the Sun's maximum angular radius is fixed as well. Therefore, depending on
+// on the occluder's radius, there may be no solution. In this case, the function returns 0.
+//
 // Our approach is as follow:
 //  1. The largest possible angular radius of the Sun from any position in the occluder's shadow
 //     is its angular radius when observed from the occluder's position. Therefore, we scale all

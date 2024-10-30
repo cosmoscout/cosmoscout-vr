@@ -100,7 +100,8 @@ __global__ void computeShadowMap(common::Output output, common::Mapping mapping,
   double phiOcc, phiSun, delta;
   math::mapPixelToAngles(glm::ivec2(x, y), output.mSize, mapping, geometry, phiOcc, phiSun, delta);
 
-  double occDist    = geometry.mRadiusOcc / glm::sin(phiOcc);
+  // Make sure to stick to positions outside the atmosphere.
+  double occDist    = glm::max(geometry.mRadiusOcc / glm::sin(phiOcc), geometry.mRadiusAtmo);
   double sunDist    = geometry.mRadiusSun / glm::sin(phiSun);
   double atmoRadius = geometry.mRadiusAtmo;
   double phiAtmo    = glm::asin(atmoRadius / occDist);
@@ -207,7 +208,8 @@ __global__ void computeLimbLuminance(common::Output output, common::Mapping mapp
   double phiOcc, phiSun, delta;
   math::mapPixelToAngles(glm::ivec2(x, y), output.mSize, mapping, geometry, phiOcc, phiSun, delta);
 
-  double occDist    = geometry.mRadiusOcc / glm::sin(phiOcc);
+  // Make sure to stick to positions outside the atmosphere.
+  double occDist    = glm::max(geometry.mRadiusOcc / glm::sin(phiOcc), geometry.mRadiusAtmo);
   double sunDist    = geometry.mRadiusSun / glm::sin(phiSun);
   double atmoRadius = geometry.mRadiusAtmo;
   double phiAtmo    = glm::asin(atmoRadius / occDist);
@@ -422,6 +424,11 @@ int run(Mode mode, std::vector<std::string> const& arguments) {
     glm::ivec2 pixel(x * output.mSize, y * output.mSize);
     uint32_t   iterations =
         math::mapPixelToAngles(pixel, output.mSize, mapping, geometry, phiOcc, phiSun, delta);
+
+    if (iterations == 0) {
+      std::cerr << "The given pixel is in an impossible configuration." << std::endl;
+      return 1;
+    }
 
     std::cout << "Required " << iterations << " iterations to find the correct angles for pixel ("
               << pixel.x << ", " << pixel.y << ")." << std::endl;
