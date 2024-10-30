@@ -10,10 +10,10 @@ name: Build
 on:
   push:
     branches:
-      - '**'
+      - "**"
   pull_request:
     branches:
-      - '**'
+      - "**"
 
 jobs:
   clang_format:
@@ -21,7 +21,7 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Checkout Submodules
         run: git submodule update --init plugins
       - name: Download Clang-Format
@@ -39,9 +39,9 @@ jobs:
     name: Check Compliance with REUSE Specification
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
-    - name: REUSE Compliance Check
-      uses: fsfe/reuse-action@v1
+      - uses: actions/checkout@v4
+      - name: REUSE Compliance Check
+        uses: fsfe/reuse-action@v4
 
   comment_percentage:
     name: Check Comment Percentage
@@ -49,12 +49,12 @@ jobs:
     if: github.event_name == 'pull_request'
     steps:
       - name: Checkout Current Repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           path: current
           ref: ${{ github.ref }}
       - name: Checkout Base Repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           path: base
           ref: ${{ github.base_ref }}
@@ -92,7 +92,7 @@ jobs:
       COSMOSCOUT_USE_UNITY_BUILD: false
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Checkout Submodules
         run: git submodule update --init --recursive
       - name: Cache Object Files
@@ -147,7 +147,7 @@ jobs:
       COSMOSCOUT_USE_UNITY_BUILD: false
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Checkout Submodules
         run: git submodule update --init --recursive
       - name: Cache Object Files
@@ -193,7 +193,7 @@ jobs:
       COSMOSCOUT_USE_UNITY_BUILD: true
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Checkout Submodules
         run: git submodule update --init --recursive
       - name: Cache Object Files
