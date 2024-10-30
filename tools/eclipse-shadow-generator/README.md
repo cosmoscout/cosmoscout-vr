@@ -5,30 +5,19 @@ SPDX-License-Identifier: CC-BY-4.0
 
 # Eclipse Shadow Map Generator
 
-This tool can be used to generate the eclipse shadow maps used by CosmoScout VR.
+This tool can be used to generate the eclipse shadow maps used by CosmoScout VR as well as the precomputed limb luminance maps used for rendering the atmosphere around planets when the Sun is in opposition.
+
+There are two basic types of eclipse shadows: Those which do not consider an atmosphere around the occluder and those which do.
+The former are generated according to the paper ["Real-Time Rendering of Eclipses without Incorporation of Atmospheric Effects"](https://onlinelibrary.wiley.com/doi/full/10.1111/cgf.14676).
+The latter use an extended version of the Bruneton atmosphere model described in ["Physically Based Real-Time Rendering of Atmospheres using Mie Theory"](https://onlinelibrary.wiley.com/doi/full/10.1111/cgf.15010).
+
+The limb luminance maps are 3D textures which encode the luminance around the limb of a planet for every possible viewing position in the shadow of the planet.
 
 ## Building
 
-**Per default, the eclipse shadow map generator is not built.
-To build it, you need to pass `-DCS_ECLIPSE_SHADOW_GENERATOR=On` in the make script.**
-
-Cuda support in CMake is sometimes a bit wonky, so if you run into trouble, you can also try to build the eclipse shadow map generator manually.
-This small script may serve as an example on how to do this:
-
-```bash
-#!/bin/bash
-
-SRC_DIR="$( cd "$( dirname "$0" )" && pwd )"
-
-nvcc -ccbin g++-12 -allow-unsupported-compiler -arch=sm_75 -rdc=true \
-     -Xcompiler --std=c++17 -Xcompiler \"-Wl,-rpath-link,"$SRC_DIR/../../install/linux-Release/lib"\" \
-     -Xcompiler \"-Wl,--disable-new-dtags,-rpath,"$SRC_DIR/../../install/linux-Release/lib"\" "$SRC_DIR"/*.cu \
-     -I"$SRC_DIR/../../build/linux-Release/src/cs-utils" \
-     -I"$SRC_DIR/../../install/linux-externals-Release/include" \
-     -L"$SRC_DIR/../../install/linux-Release/lib" \
-     -lcs-utils \
-     -o eclipse-shadow-generator
-```
+Per default, the eclipse shadow map generator is not built.
+To build it, you need to add `"CS_ECLIPSE_SHADOW_GENERATOR": "On",` to the `"cacheVariables"` in [CMakePresets.json](../../CMakePresets.json).
+Then it will be built together with the rest of CosmoScout VR.
 
 ## Usage
 
@@ -37,11 +26,9 @@ This depends on where the `eclipse-shadow-generator` is installed to, but this m
 
 ```powershell
 # For Windows (powershell)
-cd cosmoscout-vr
 $env:Path += ";install\windows-Release\lib"
 
 # For Linux (bash)
-cd cosmoscout-vr
 export LD_LIBRARY_PATH=install/linux-Release/lib:$LD_LIBRARY_PATH
 ```
 
@@ -51,22 +38,38 @@ To learn about the usage of `eclipse-shadow-generator`, you can now issue this c
 install/linux-Release/bin/eclipse-shadow-generator --help
 ```
 
-Here are some simple examples to get you started:
+### Creating the Eclipse Shadow Maps used by CosmoScout VR
+
+The following commands were used to generate the eclipse shadow maps used by CosmoScout VR.
+The `fallbackShadow.tif` is used for all celestial bodies which do not have a specific shadow map.
+It includes the effect of limb darkening but no atmosphere.
+There are two specific shadow maps for Earth and Mars, which include the effect of limb darkening and the atmosphere of the respective planet.
 
 ```bash
-# This simple command creates the default eclipse shadow map of CosmoScout VR
-install/linux-Release/bin/eclipse-shadow-generator limb-darkening --with-umbra --output "resources/textures/fallbackShadow.tif"
+# Create the fallback shadow map.
+install/linux-Release/bin/eclipse-shadow-generator limb-darkening --with-umbra --output "resources/textures/fallbackShadow.tif" --size 256
 
-install/linux-Release/bin/eclipse-shadow-generator bruneton --with-umbra --input plugins/csp-atmospheres/bruneton-preprocessor/output/earth/ --radius-occ 6371000 --radius-atmo 6451000 --sun-occ-dist 149600000000 --output "resources/textures/earthShadow.tif" --size 512
-install/linux-Release/bin/eclipse-shadow-generator bruneton --with-umbra --input plugins/csp-atmospheres/bruneton-preprocessor/output/mars/ --radius-occ 3389500 --radius-atmo 3469500 --sun-occ-dist 227900000000 --output "resources/textures/marsShadow.tif" --size 512
+# Create the shadow maps for Earth and Mars.
+install/linux-Release/bin/eclipse-shadow-generator bruneton --with-umbra --input plugins/csp-atmospheres/bruneton-preprocessor/output/earth/ --radius-occ 6371000 --radius-atmo 6451000 --sun-occ-dist 149600000000 --output "resources/textures/earthShadow.tif" --size 256
+install/linux-Release/bin/eclipse-shadow-generator bruneton --with-umbra --input plugins/csp-atmospheres/bruneton-preprocessor/output/mars/ --radius-occ 3389500 --radius-atmo 3469500 --sun-occ-dist 227900000000 --output "resources/textures/marsShadow.tif" --size 256
+
+# Create the limb luminance maps for Earth and Mars.
 install/linux-Release/bin/eclipse-shadow-generator limb-luminance --with-umbra --input plugins/csp-atmospheres/bruneton-preprocessor/output/earth/ --radius-occ 6371000 --radius-atmo 6451000 --sun-occ-dist 149600000000 --output "resources/textures/earthLimbLuminance.tif" --size 64
 install/linux-Release/bin/eclipse-shadow-generator limb-luminance --with-umbra --input plugins/csp-atmospheres/bruneton-preprocessor/output/mars/ --radius-occ 3389500 --radius-atmo 3469500 --sun-occ-dist 227900000000 --output "resources/textures/marsLimbLuminance.tif" --size 64
+```
 
-# These are used for debugging purposes and can be used to visualize the results of the atmosphere rendering.
-install/linux-Release/bin/eclipse-shadow-generator planet-view --input plugins/csp-atmospheres/bruneton-preprocessor/output/earth/ --exposure 0.00005 --x 0.5 --y 0.5 --fov 1 --size 1024
-install/linux-Release/bin/eclipse-shadow-generator atmo-view --input plugins/csp-atmospheres/bruneton-preprocessor/output/earth/ --with-umbra --exposure 0.00005 --x 0.2 --y 0.3 --size 1024
+### Recreating Paper Figures and other Examples
 
-# Here are some other examples related to the paper "Real-Time Rendering of Eclipses without Incorporation of Atmospheric Effects"
+These are used for debugging purposes and can be used to visualize the results of the atmosphere rendering.
+
+```bash
+install/linux-Release/bin/eclipse-shadow-generator planet-view --input plugins/csp-atmospheres/bruneton-preprocessor/output/earth --with-umbra --exposure 0.0001 --x 0.099 --y 0.9 --size 1024 --fov 6 --output "planet-view.tif"
+install/linux-Release/bin/eclipse-shadow-generator atmo-view --input plugins/csp-atmospheres/bruneton-preprocessor/output/earth --with-umbra --exposure 0.0001 --x 0.099 --y 0.9 --size 1024 --output "atmo-view.tif"
+```
+
+Here are some examples related to the paper "Real-Time Rendering of Eclipses without Incorporation of Atmospheric Effects".
+
+```bash
 install/linux-Release/bin/eclipse-shadow-generator circles --output "circles.tif"
 install/linux-Release/bin/eclipse-shadow-generator smoothstep --output "smoothstep.tif"
 install/linux-Release/bin/eclipse-shadow-generator linear --with-umbra --mapping-exponent 5 --output "linear_with_umbra.tif"
