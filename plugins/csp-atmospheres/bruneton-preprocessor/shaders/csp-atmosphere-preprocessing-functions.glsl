@@ -9,19 +9,18 @@
 
 #line 11
 
-// This file is based on the original implementation by Eric Bruneton:
+// This file is roughly based on the original implementation by Eric Bruneton:
 // https://github.com/ebruneton/precomputed_atmospheric_scattering/blob/master/atmosphere/functions.glsl
 
-// While implementing the atmospheric model into CosmoScout VR, we have refactored some parts of the
-// code, however this is mostly related to how variables are named and how input parameters are
-// passed to the shader. The are only two fundamental changes:
+// While implementing the atmospheric model into CosmoScout VR, we have extended this model in
+// several ways. There are two fundamental changes:
 //   1. The phase functions for aerosols and molecules as well as their density distributions are
 //      now sampled from textures.
-//   2. The index of refraction of the atmosphere is now passed to the shader and rays are refracted
-//      accordingly.
+//   2. The index of refraction of the atmosphere is now passed to the shader and if
+//      COMPUTE_REFRACTION is set, rays are refracted accordingly.
 
 // Below, we will indicate for each group of function whether something important has been changed
-// and a link to the original explanations of the methods by Eric Bruneton.
+// with respect to the original implementation and add a link to the original explanation.
 
 // Refraction Computation --------------------------------------------------------------------------
 
@@ -29,9 +28,53 @@
 // to the Gladsstone-Dale relation, the refractive index is proportional to the density of the air
 // molecules. The density of the air molecules and aerosols is sampled from a texture.
 
+// This returns the relative density in  [0...1] of a component at a given altitude (in meters). The
+// density texture contains the density of the air molecules, aerosols, or ozone molecules at
+// different v coordinates, so this needs to be passed as an argument.
 float getDensity(float densityTextureV, float altitude) {
   float u = clamp(altitude / (TOP_RADIUS - BOTTOM_RADIUS), 0.0, 1.0);
   return texture(uDensityTexture, vec2(u, densityTextureV)).r;
+}
+
+#if COMPUTE_REFRACTION
+
+// Returns n-1 at the given altitude. Here, single floating point precision is sufficient.
+float getRefractiveIndexMinusOne(float altitude) {
+  return INDEX_OF_REFRACTION * getDensity(ATMOSPHERE.molecules.densityTextureV, altitude);
+}
+
+// Returns n at the given altitude. To properly represent very small changes in the refractive
+// index, we use double precision here.
+double getRefractiveIndex(float altitude) {
+  return 1.0lf + double(getRefractiveIndexMinusOne(altitude));
+}
+
+// Returns the gradient length of the refractive index at the given altitude.
+float getIoRGradientLength(float altitude, float dh) {
+  return (getRefractiveIndexMinusOne(altitude + dh) - getRefractiveIndexMinusOne(altitude)) / dh;
+}
+
+dvec2 getIoRGradient(float altitude, dvec2 origin) {
+  return normalize(origin) * getIoRGradientLength(altitude, 100);
+}
+
+dvec2 refractRay(dvec2 origin, dvec2 dir, double dx) {
+  float  altitude        = max(0, float(length(origin) - BOTTOM_RADIUS));
+  double refractiveIndex = getRefractiveIndex(altitude);
+  double gradientLength  = getIoRGradientLength(altitude, 100);
+  dvec2  dn              = normalize(origin) * gradientLength;
+  return normalize(refractiveIndex * dir + dn * dx);
+}
+
+dvec2 refractRayRungeKutta(dvec2 origin, dvec2 dir, double dx) {
+  float  altitude        = max(0, float(length(origin) - BOTTOM_RADIUS));
+  double refractiveIndex = getRefractiveIndex(altitude);
+  dvec2  k1              = dx * getIoRGradient(altitude, origin);
+  dvec2  k2              = dx * getIoRGradient(altitude, origin + 0.5 * dx * dir);
+  dvec2  k3              = dx * getIoRGradient(altitude, origin + 0.5 * dx * dir + 0.5 * k2);
+  dvec2  k4              = dx * getIoRGradient(altitude, origin + dx * dir);
+
+  return normalize(refractiveIndex * dir + (k1 + 2.0 * k2 + 2.0 * k3 + k4) / 6.0);
 }
 
 // Transmittance Computation -----------------------------------------------------------------------
@@ -44,45 +87,6 @@ float getDensity(float densityTextureV, float altitude) {
 
 // The only functional difference is that the density of the air molecules, aerosols, and ozone
 // molecules is now sampled from a texture (in getDensity()) instead of analytically computed.
-
-#if COMPUTE_REFRACTION
-
-float getRefractiveIndexMinusOne(float altitude) {
-  return INDEX_OF_REFRACTION * getDensity(ATMOSPHERE.molecules.densityTextureV, altitude);
-}
-
-double getRefractiveIndex(float altitude) {
-  return 1.0lf + double(getRefractiveIndexMinusOne(altitude));
-}
-
-float getRefractiveIndexGradient(float altitude, float dh) {
-  return (getRefractiveIndexMinusOne(altitude + dh) - getRefractiveIndexMinusOne(altitude)) / dh;
-}
-
-dvec2 rayGradient(float altitude, dvec2 origin, dvec2 dir) {
-  double refractiveIndex = getRefractiveIndex(altitude);
-  double gradientLength  = getRefractiveIndexGradient(altitude, 100);
-  return normalize(origin) * gradientLength;
-}
-
-dvec2 refractRay(dvec2 origin, dvec2 dir, double dx) {
-  float  altitude        = max(0, float(length(origin) - BOTTOM_RADIUS));
-  double refractiveIndex = getRefractiveIndex(altitude);
-  double gradientLength  = getRefractiveIndexGradient(altitude, 100);
-  dvec2  dn              = normalize(origin) * gradientLength;
-  return normalize(refractiveIndex * dir + dn * dx);
-}
-
-dvec2 refractRayRungeKutta(dvec2 origin, dvec2 dir, double dx) {
-  float  altitude        = max(0, float(length(origin) - BOTTOM_RADIUS));
-  double refractiveIndex = getRefractiveIndex(altitude);
-  dvec2  k1              = dx * rayGradient(altitude, origin, dir);
-  dvec2  k2              = dx * rayGradient(altitude, origin + 0.5 * dx * dir, dir + 0.5 * k1);
-  dvec2  k3 = dx * rayGradient(altitude, origin + 0.5 * dx * dir + 0.5 * k2, dir + 0.5 * k2);
-  dvec2  k4 = dx * rayGradient(altitude, origin + dx * dir, dir + k3);
-
-  return normalize(refractiveIndex * dir + (k1 + 2.0 * k2 + 2.0 * k3 + k4) / 6.0);
-}
 
 // If our ray hit the surface of the planet, the optical depth should be infinite. However,
 // returning a very high optical depth is not a good solution, because the transmittance
@@ -137,7 +141,7 @@ RayInfo computeOpticalLengthToTopAtmosphereBoundary(float densityTextureV, float
 
     // float  altitude = float(sampleRadius) - BOTTOM_RADIUS;
     // double n        = getRefractiveIndex(altitude);
-    // double dn       = getRefractiveIndexGradient(altitude, 100);
+    // double dn       = getIoRGradientLength(altitude, 100);
     // double curvature = sqrt(1 - currentMu * currentMu) / n * dn;
     // currentMu += curvature * dx;
   }
