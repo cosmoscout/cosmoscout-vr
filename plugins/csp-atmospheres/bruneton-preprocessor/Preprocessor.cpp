@@ -31,6 +31,13 @@
 // density distributions are now loaded from CSV files and then later sampled from textures. We also
 // store photometric values instead of radiometric values in the final textures.
 
+// Also, we added the possibility to compute the refraction of light rays through the atmosphere.
+// If enabled, an additional texture is generated which contains the angular deviation of the light
+// rays as well as their closest approach to the planet's surface (this can be negative if the light
+// ray intersects the planet's surface).
+// The texture uses the same parametrization as the transmittance texture. The values are computed
+// by the kComputeTransmittanceShader.
+
 // Below, we will indicate for each group of function whether something has been changed and a link
 // to the original explanations of the methods by Eric Bruneton.
 
@@ -185,9 +192,11 @@ constexpr float XYZ_TO_SRGB[9] = {
 // An explanation of the following shaders is available online:
 // https://ebruneton.github.io/precomputed_atmospheric_scattering/atmosphere/model.cc.html#shaders
 
-// The only functional difference is that the kAtmosphereShader does not provide the radiance API
+// The only functional differences are that the kAtmosphereShader does not provide the radiance API
 // anymore as it is not required by CosmoScout VR. Also, the shadow_length parameters have been
 // removed and the GetSunAndSkyIlluminance() does not require the surface normal anymore.
+// Lastly, the kComputeTransmittanceShader has been extended to compute the refraction of light rays
+// through the atmosphere.
 
 const char kVertexShader[] = R"(
   #version 330
