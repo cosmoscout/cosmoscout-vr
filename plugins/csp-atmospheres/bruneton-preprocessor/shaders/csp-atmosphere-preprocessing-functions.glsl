@@ -36,14 +36,20 @@ float getDensity(float densityTextureV, float altitude) {
   return texture(uDensityTexture, vec2(u, densityTextureV)).r;
 }
 
+// Using acos is not very stable for small angles. This function is used to compute small angles
+// between two normalized vectors in a more stable way.
+float angleBetweenVectors(vec2 u, vec2 v) {
+  return 2.0 * asin(0.5 * length(u - v));
+}
+
 #if COMPUTE_REFRACTION
 
-// Returns n-1 at the given altitude. Here, single floating point precision is sufficient.
+// Returns IoR - 1.0 at the given altitude. Here, single floating point precision is sufficient.
 float getRefractiveIndexMinusOne(float altitude) {
   return INDEX_OF_REFRACTION * getDensity(ATMOSPHERE.molecules.densityTextureV, altitude);
 }
 
-// Returns n at the given altitude. To properly represent very small changes in the refractive
+// Returns the IoR at the given altitude. To properly represent very small changes in the refractive
 // index, we use double precision here.
 double getRefractiveIndex(float altitude) {
   return 1.0lf + double(getRefractiveIndexMinusOne(altitude));
@@ -54,11 +60,9 @@ float getIoRGradientLength(float altitude, float dh) {
   return (getRefractiveIndexMinusOne(altitude + dh) - getRefractiveIndexMinusOne(altitude)) / dh;
 }
 
-dvec2 getIoRGradient(float altitude, dvec2 origin) {
-  return normalize(origin) * getIoRGradientLength(altitude, 100);
-}
-
-dvec2 refractRay(dvec2 origin, dvec2 dir, double dx) {
+// Refracts the ray according to "Visualizing sunsets through inhomogeneous atmospheres" by
+// Seron et al. (2004) using a fixed step size.
+dvec2 refractRaySeron(dvec2 origin, dvec2 dir, double dx) {
   float  altitude        = max(0, float(length(origin) - BOTTOM_RADIUS));
   double refractiveIndex = getRefractiveIndex(altitude);
   double gradientLength  = getIoRGradientLength(altitude, 100);
@@ -66,52 +70,79 @@ dvec2 refractRay(dvec2 origin, dvec2 dir, double dx) {
   return normalize(refractiveIndex * dir + dn * dx);
 }
 
-dvec2 refractRayRungeKutta(dvec2 origin, dvec2 dir, double dx) {
-  float  altitude        = max(0, float(length(origin) - BOTTOM_RADIUS));
-  double refractiveIndex = getRefractiveIndex(altitude);
-  dvec2  k1              = dx * getIoRGradient(altitude, origin);
-  dvec2  k2              = dx * getIoRGradient(altitude, origin + 0.5 * dx * dir);
-  dvec2  k3              = dx * getIoRGradient(altitude, origin + 0.5 * dx * dir + 0.5 * k2);
-  dvec2  k4              = dx * getIoRGradient(altitude, origin + dx * dir);
+// Refracts the ray according to "Comment on 'Improved ray tracing air mass numbers model' by van
+// der Werf (2008). Due to the involved trigonometry, have to use single precision in some places.
+dvec2 refractRayWerf(dvec2 origin, dvec2 dir, double dx) {
 
-  return normalize(refractiveIndex * dir + (k1 + 2.0 * k2 + 2.0 * k3 + k4) / 6.0);
+  double RplusH = length(origin);
+  float  h      = float(max(0, RplusH - BOTTOM_RADIUS));
+
+  // This could be computed using cos(PI / 2.0 - acos(dot(origin / RplusH, dir)), however it can
+  // be simplified to the following using trigonometric identities.
+  double cosBeta = sqrt(1.0 - pow(float(dot(origin / RplusH, dir)), 2.0));
+
+  double curvature = cosBeta / getRefractiveIndex(h) * getIoRGradientLength(h, 100);
+  double deltaBeta = dx * (cosBeta / RplusH + curvature);
+  double deltaPhi  = cosBeta * dx / RplusH;
+  float  diff      = float(deltaBeta - deltaPhi);
+
+  // Rotate dir by diff.
+  return dvec2(dir.x * cos(diff) - dir.y * sin(diff), dir.x * sin(diff) + dir.y * cos(diff));
 }
+
+// Use this to switch between the two refraction methods.
+#define refractRay refractRaySeron
+
+// The Euler method just advances the ray in the direction of the refracted ray.
+void rayStepEuler(inout dvec2 origin, inout dvec2 dir, double dx) {
+  dir = refractRay(origin, dir, dx);
+  origin += dir * dx;
+}
+
+// The Runge-Kutta 4 method is more accurate but also more expensive.
+void rayStepRK4(inout dvec2 origin, inout dvec2 dir, double dx) {
+  dvec2 k1 = refractRay(origin, dir, dx);
+  dvec2 k2 = refractRay(origin + k1 * dx / 2.0, dir, dx);
+  dvec2 k3 = refractRay(origin + k2 * dx / 2.0, dir, dx);
+  dvec2 k4 = refractRay(origin + k3 * dx, dir, dx);
+  dir      = (k1 + 2.0 * k2 + 2.0 * k3 + k4) / 6.0;
+  origin += dir * dx;
+}
+
+// Use this to switch between the two ray stepping methods.
+#define rayStep rayStepRK4
+
+#endif // COMPUTE_REFRACTION
 
 // Transmittance Computation -----------------------------------------------------------------------
 
 // The code below is used to comute the optical depth (or transmittance) from any point in the
 // atmosphere towards the top atmosphere boundary.
 
-// An explanation of the following methods is available online:
-// https://ebruneton.github.io/precomputed_atmospheric_scattering/atmosphere/functions.glsl.html#transmittance
-
-// The only functional difference is that the density of the air molecules, aerosols, and ozone
+// The first functional difference is that the density of the air molecules, aerosols, and ozone
 // molecules is now sampled from a texture (in getDensity()) instead of analytically computed.
+// In addition, we have two variants of the computeOpticalLengthToTopAtmosphereBoundary method.
+// If COMPUTE_REFRACTION is set, the ray is bent according to the refractive index of the air
+// molecules. If not, we use the original implementation by Eric Bruneton with evenly spaced samples
+// along the ray.
 
-// If our ray hit the surface of the planet, the optical depth should be infinite. However,
-// returning a very high optical depth is not a good solution, because the transmittance
+#if COMPUTE_REFRACTION
+
+// If our ray hit the surface of the planet due to refraction, the optical depth should be infinite.
+// However, returning a very high optical depth is not a good solution, because the transmittance
 // computation in getTransmittance() in common.glsl relies on the fact that the ray does not
 // intersect the planet in either the forward or backward direction.
-// As a solution, we simply compute the optical depth as if the ray would have continued close
-// to the surface of the planet. This means, that there will be a very small region above the
-// horizon where the Sun should not be visible but will be visible.
-// We accept this small error during real-time rendering, however for the eclipse-shadow
-// computation, we will require the information about the ground intersection.
+// As a solution, we store the contact radius (which is the altitude of the closest approach of the
+// ray to the planet and which is negative if the ray intersects the planet) in the RayInfo struct.
+// This value is then used to determine if the ray actually hit the planet.
+// The thetaDeviation is the angle between the original ray direction and the refracted ray
+// direction. This is used to displace astronomical bodies in the sky.
 struct RayInfo {
   float opticalDepth;
   float thetaDeviation;
   float contactRadius;
 };
 
-// Using acos is not very stable for small angles. This function is used to compute the angle
-// between two normalized vectors in a more stable way.
-float angleBetweenVectors(vec2 u, vec2 v) {
-  return 2.0 * asin(0.5 * length(u - v));
-}
-
-// If refraction is incorporated, the ray is bent according to the refractive index of the air
-// molecules. The optical depth is then computed by integrating the density along the refracted
-// ray.
 RayInfo computeOpticalLengthToTopAtmosphereBoundary(float densityTextureV, float r, float mu) {
 
   double dx          = STEP_SIZE_OPTICAL_DEPTH;
@@ -123,30 +154,18 @@ RayInfo computeOpticalLengthToTopAtmosphereBoundary(float densityTextureV, float
   result.contactRadius  = r - BOTTOM_RADIUS;
 
   dvec2  samplePos    = vec2(0.0, r);
-  dvec2  entryPos     = samplePos;
   double sampleRadius = r;
-  double currentMu    = mu;
-  dvec2  currentDir   = dvec2(sqrt(1 - currentMu * currentMu), currentMu);
+  dvec2  currentDir   = dvec2(sqrt(1 - mu * mu), mu);
 
   while (sampleRadius <= TOP_RADIUS + 10) {
-
-    samplePos += currentDir * dx;
     sampleRadius = length(samplePos);
 
     float altitude = float(sampleRadius) - BOTTOM_RADIUS;
     result.opticalDepth += getDensity(densityTextureV, altitude);
     result.contactRadius = min(result.contactRadius, altitude);
 
-    currentDir = refractRayRungeKutta(samplePos, currentDir, dx);
-
-    // float  altitude = float(sampleRadius) - BOTTOM_RADIUS;
-    // double n        = getRefractiveIndex(altitude);
-    // double dn       = getIoRGradientLength(altitude, 100);
-    // double curvature = sqrt(1 - currentMu * currentMu) / n * dn;
-    // currentMu += curvature * dx;
+    rayStep(samplePos, currentDir, dx);
   }
-
-  // vec2 currentDir = vec2(sqrt(1 - currentMu * currentMu), currentMu);
 
   result.thetaDeviation = angleBetweenVectors(vec2(startRayDir), vec2(currentDir));
   result.opticalDepth *= float(dx);
@@ -156,13 +175,14 @@ RayInfo computeOpticalLengthToTopAtmosphereBoundary(float densityTextureV, float
 
 #else
 
+// If no refraction is computed, the optical depth is simply the integral of the density along the
+// ray. We use the original implementation by Eric Bruneton with evenly spaced samples along the
+// ray. An explanation of this method is available online:
+// https://ebruneton.github.io/precomputed_atmospheric_scattering/atmosphere/functions.glsl.html#transmittance
 struct RayInfo {
   float opticalDepth;
 };
 
-// If no refraction is computed, the optical depth is simply the integral of the density along the
-// ray. We use the original implementation by Eric Bruneton with evenly spaced samples along the
-// ray.
 RayInfo computeOpticalLengthToTopAtmosphereBoundary(float densityTextureV, float r, float mu) {
   float   dx = distanceToTopAtmosphereBoundary(r, mu) / float(SAMPLE_COUNT_OPTICAL_DEPTH);
   RayInfo result;
@@ -318,8 +338,7 @@ void computeSingleScattering(AtmosphereComponents atmosphere, sampler2D transmit
     aerosolsSum += transmittanceSun * vec3(transmittanceRay) * aerosolsDensity * float(dx);
 
     if (!hitGround) {
-      currentDir = refractRayRungeKutta(samplePos, currentDir, dx);
-      samplePos += currentDir * STEP_SIZE_SINGLE_SCATTERING;
+      rayStep(samplePos, currentDir, dx);
       sampleRadius = length(samplePos);
     }
   }
@@ -573,8 +592,7 @@ vec3 computeMultipleScattering(AtmosphereComponents atmosphere, sampler2D transm
                             vec3(transmittanceRay) * float(dx);
 
     if (!hitGround) {
-      currentDir = refractRayRungeKutta(samplePos, currentDir, dx);
-      samplePos += currentDir * dx;
+      rayStep(samplePos, currentDir, dx);
       sampleRadius = length(samplePos);
     }
   }
