@@ -204,10 +204,11 @@ RayInfo computeOpticalLengthToTopAtmosphereBoundary(float densityTextureV, float
 
 // The code below is used to store the precomputed transmittance values in a 2D lookup table.
 
-// An explanation of the following methods is available online:
+// An explanation of the following method is available online:
 // https://ebruneton.github.io/precomputed_atmospheric_scattering/atmosphere/functions.glsl.html#transmittance_precomputation
 
-// There is no functional difference to the original code.
+// The only difference to the original implementation is that the method also returns the theta
+// deviation and the contact radius if COMPUTE_REFRACTION is set.
 
 #if COMPUTE_REFRACTION
 
@@ -249,28 +250,19 @@ vec3 computeTransmittanceToTopAtmosphereBoundaryTexture(
 
 // The code below is used to compute the amount of light scattered into a specific direction during
 // a single scattering event for air molecules and aerosols.
-
-// An explanation of the following methods is available online:
-// https://ebruneton.github.io/precomputed_atmospheric_scattering/atmosphere/functions.glsl.html#single_scattering
-
-// Most of the methods below are functionality-wise identical to the original implementation. The
-// only difference is that the RayleighPhaseFunction() and MiePhaseFunction() have been removed and
-// replaced by a generic phaseFunction() which samples the phase function from a texture.
-
-float distanceToNearestAtmosphereBoundary(float r, float mu, bool rayRMuIntersectsGround) {
-  if (rayRMuIntersectsGround) {
-    return distanceToBottomAtmosphereBoundary(r, mu);
-  } else {
-    return distanceToTopAtmosphereBoundary(r, mu);
-  }
-}
+// If refraction is enabled, we cannot use the original implementation by Eric Bruneton, because the
+// ray is bent.
 
 #if COMPUTE_REFRACTION
 
+// Double precision variant of the same method defined in common.glsl.
 double clampCosine(double mu) {
   return clamp(mu, -1.0, 1.0);
 }
 
+// Returns the transmittance of a ray segment of length dx. The transmittance is based on the
+// atmospheric density at the given planet-center distance and the extinction coefficients of the
+// air molecules, aerosols, and ozone.
 vec3 getTransmittanceForRaySegment(AtmosphereComponents atmosphere, float r, float dx) {
   float altitude         = r - BOTTOM_RADIUS;
   float moleculesDensity = getDensity(atmosphere.molecules.densityTextureV, altitude);
@@ -298,6 +290,11 @@ vec3 getSunDirection(float mu, float muS, float nu) {
 // As for the transmittance, the single-scattering computation is different if refraction is
 // incorporated. The ray is bent, so we cannot simply accumulate the scattering along a straight
 // line.
+// We want to keep the code as close to the original implementation as possible. Therefore, we
+// did not change the signature of the method. However, we now trace a 2D ray in the atmosphere and
+// therefore need the 3D direction to the sun. The method above is used to reconstruct this.
+// If we were to remove the code without refraction, we would trace the rays in 2D and could pass
+// the sun direction directly to the method.
 void computeSingleScattering(AtmosphereComponents atmosphere, sampler2D transmittanceTexture,
     float r, float mu, float muS, float nu, bool rayRMuIntersectsGround, out vec3 molecules,
     out vec3 aerosols) {
@@ -337,10 +334,8 @@ void computeSingleScattering(AtmosphereComponents atmosphere, sampler2D transmit
     moleculesSum += transmittanceSun * vec3(transmittanceRay) * moleculesDensity * float(dx);
     aerosolsSum += transmittanceSun * vec3(transmittanceRay) * aerosolsDensity * float(dx);
 
-    if (!hitGround) {
-      rayStep(samplePos, currentDir, dx);
-      sampleRadius = length(samplePos);
-    }
+    rayStep(samplePos, currentDir, dx);
+    sampleRadius = length(samplePos);
   }
 
   molecules = moleculesSum * SOLAR_IRRADIANCE * atmosphere.molecules.scattering;
@@ -348,6 +343,13 @@ void computeSingleScattering(AtmosphereComponents atmosphere, sampler2D transmit
 }
 
 #else
+
+// If no refraction is computed, the single-scattering computation is the same as in the original
+// implementation by Eric Bruneton. The ray is not bent, so we can accumulate the scattering along a
+// straight line.
+
+// An explanation of the following methods is available online:
+// https://ebruneton.github.io/precomputed_atmospheric_scattering/atmosphere/functions.glsl.html#single_scattering
 
 void computeSingleScatteringIntegrand(AtmosphereComponents atmosphere,
     sampler2D transmittanceTexture, float r, float mu, float muS, float nu, float d,
@@ -358,6 +360,14 @@ void computeSingleScatteringIntegrand(AtmosphereComponents atmosphere,
                        getTransmittanceToSun(transmittanceTexture, rD, muSD);
   molecules = transmittance * getDensity(atmosphere.molecules.densityTextureV, rD - BOTTOM_RADIUS);
   aerosols  = transmittance * getDensity(atmosphere.aerosols.densityTextureV, rD - BOTTOM_RADIUS);
+}
+
+float distanceToNearestAtmosphereBoundary(float r, float mu, bool rayRMuIntersectsGround) {
+  if (rayRMuIntersectsGround) {
+    return distanceToBottomAtmosphereBoundary(r, mu);
+  } else {
+    return distanceToTopAtmosphereBoundary(r, mu);
+  }
 }
 
 void computeSingleScattering(AtmosphereComponents atmosphere, sampler2D transmittanceTexture,
@@ -388,6 +398,8 @@ void computeSingleScattering(AtmosphereComponents atmosphere, sampler2D transmit
 
 #endif
 
+// The RayleighPhaseFunction() and MiePhaseFunction() have been removed and replaced by a generic
+// phaseFunction() which samples the phase function from a texture.
 vec3 phaseFunction(ScatteringComponent component, float nu) {
   float theta = acos(nu) / PI; // 0<->1
   return texture2D(uPhaseTexture, vec2(theta, component.phaseTextureV)).rgb;
@@ -470,9 +482,13 @@ vec3 getScattering(AtmosphereComponents atmosphere, sampler3D singleMoleculesSca
 // the atmosphere.
 
 // An explanation of the following methods is available online:
-// https://ebruneton.github.io/precomputed_atmospheric_scattering/atmosphere/functions.glsl.html#multipleScattering
+// https://ebruneton.github.io/precomputed_atmospheric_scattering/atmosphere/functions.glsl.html#multiple_scattering
 
-// There is no functional difference to the original code.
+// Similar to the single-scattering computation, the multiple-scattering computation is different if
+// refraction is incorporated. The ray is bent, so we cannot simply accumulate the scattering along
+// a straight line.
+
+// All other methods are basically the same as in the original implementation by Eric Bruneton.
 
 vec3 getIrradiance(sampler2D irradianceTexture, float r, float muS);
 
@@ -554,6 +570,10 @@ vec3 computeScatteringDensity(AtmosphereComponents atmosphere, sampler2D transmi
 
 #if COMPUTE_REFRACTION
 
+// As for the single-scattering computation, the multiple-scattering computation is different if
+// refraction is incorporated. We trace the rays in 2D and use a reconstructed 3D sun light
+// direction.
+
 vec3 computeMultipleScattering(AtmosphereComponents atmosphere, sampler2D transmittanceTexture,
     sampler3D scatteringDensityTexture, float r, float mu, float muS, float nu,
     bool rayRMuIntersectsGround) {
@@ -591,16 +611,17 @@ vec3 computeMultipleScattering(AtmosphereComponents atmosphere, sampler2D transm
                                 float(currentMuS), float(currentNu), rayRMuIntersectsGround) *
                             vec3(transmittanceRay) * float(dx);
 
-    if (!hitGround) {
-      rayStep(samplePos, currentDir, dx);
-      sampleRadius = length(samplePos);
-    }
+    rayStep(samplePos, currentDir, dx);
+    sampleRadius = length(samplePos);
   }
 
   return moleculesAerosolsSum;
 }
 
 #else
+
+// See the second step of
+// https://ebruneton.github.io/precomputed_atmospheric_scattering/atmosphere/functions.glsl.html#multiple_scattering
 
 vec3 computeMultipleScattering(AtmosphereComponents atmosphere, sampler2D transmittanceTexture,
     sampler3D scatteringDensityTexture, float r, float mu, float muS, float nu,
