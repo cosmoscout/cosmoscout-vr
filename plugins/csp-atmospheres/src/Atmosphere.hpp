@@ -52,8 +52,7 @@ class Atmosphere : public IVistaOpenGLDraw {
  private:
   struct Uniforms {
     uint32_t sunDir                    = 0;
-    uint32_t sunIlluminance            = 0;
-    uint32_t sunLuminance              = 0;
+    uint32_t sunInfo                   = 0;
     uint32_t time                      = 0;
     uint32_t depthBuffer               = 0;
     uint32_t colorBuffer               = 0;

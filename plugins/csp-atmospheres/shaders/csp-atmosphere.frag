@@ -30,8 +30,7 @@ uniform sampler2D uDepthBuffer;
 #endif
 
 uniform vec3      uSunDir;
-uniform float     uSunIlluminance;
-uniform float     uSunLuminance;
+uniform vec3      uSunInfo; // x: sun luminance, y: sun illuminance, z: sun angular radius
 uniform float     uTime;
 uniform mat4      uMatM;
 uniform mat4      uMatMVP;
@@ -327,11 +326,11 @@ vec3 getRefractedFramebufferColor(vec3 rayOrigin, vec3 rayDir) {
     return getFramebufferColor(texcoords.xy);
   }
 
-  float sunAngularRadius = 0.0092 / 2.0;
+  float sunAngularRadius = uSunInfo.z;
   float sunColor         = 0.0;
 
   if (angleBetweenVectors(refractedRay, uSunDir) < sunAngularRadius) {
-    sunColor = 2.0e9;
+    sunColor = uSunInfo.x;
   }
 
   return vec3(sunColor);
@@ -535,7 +534,7 @@ vec3 getApproximateLimbLuminance(vec3 rayOrigin, vec3 rayDir) {
   vec3  luminance = texture(uLimbLuminanceTexture, vec3(x, y, z)).rgb;
 
 #if !ENABLE_HDR
-  luminance = tonemap(luminance / uSunIlluminance);
+  luminance = tonemap(luminance / uSunInfo.y);
   luminance = linearToSRGB(luminance);
 #endif
 
@@ -811,13 +810,13 @@ void main() {
       float softSpecular      = pow(specularIntensity, 200) * 0.0001;
       float hardSpecular      = pow(specularIntensity, 2000) * 0.002;
       vec3  eclipseShadow     = getEclipseShadow((uMatM * vec4(oceanSurface, 1.0)).xyz);
-      oceanSurfaceColor.rgb += mix(softSpecular, hardSpecular, waveFade) * uSunLuminance *
+      oceanSurfaceColor.rgb += mix(softSpecular, hardSpecular, waveFade) * uSunInfo.x *
                                transmittance * eclipseShadow *
                                pow(smoothstep(0, 1, dot(uSunDir, idealNormal)), 0.2);
 
 #if !ENABLE_HDR
       // In non-HDR mode, we need to apply tone mapping to the ocean color.
-      oceanSurfaceColor.rgb = tonemap(oceanSurfaceColor.rgb / uSunIlluminance);
+      oceanSurfaceColor.rgb = tonemap(oceanSurfaceColor.rgb / uSunInfo.y);
 #endif
 
       // The atmosphere now actually ends at the ocean surface.
@@ -856,12 +855,12 @@ void main() {
     // no actual shadow volume in the atmosphere.
     eclipseShadow = getEclipseShadow((uMatM * vec4(surfacePoint, 1.0)).xyz);
 
-    // We have to divide by uSunIlluminance because the planet shader already multiplied the result
+    // We have to divide by uSunInfo.y because the planet shader already multiplied the result
     // of the BRDF with the Sun's illuminance. Since the planet shader does not know whether a
     // atmosphere will be drawn later, it only can assume that it is in direct sun light. However,
     // if there is an atmosphere, actually less light reaches the surface. So we have to divide by
     // the direct sun illuminance and multiply by the attenuated illuminance.
-    oColor = cloudShadow * oColor * illuminance / uSunIlluminance;
+    oColor = cloudShadow * oColor * illuminance / uSunInfo.y;
 
     oceanSurfaceColor.rgb *= cloudShadow;
 
@@ -878,7 +877,7 @@ void main() {
   inScatter *= eclipseShadow;
 
 #if !ENABLE_HDR
-  inScatter = tonemap(inScatter / uSunIlluminance);
+  inScatter = tonemap(inScatter / uSunInfo.y);
 #endif
 
 #if ENABLE_WATER
@@ -903,7 +902,7 @@ void main() {
     cloudColor.rgb *= eclipseShadow;
 
 #if !ENABLE_HDR
-    cloudColor.rgb = tonemap(cloudColor.rgb / uSunIlluminance);
+    cloudColor.rgb = tonemap(cloudColor.rgb / uSunInfo.y);
 #endif
 
     oColor = mix(oColor, cloudColor.rgb, cloudColor.a);

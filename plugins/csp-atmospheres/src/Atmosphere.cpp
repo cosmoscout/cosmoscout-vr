@@ -219,8 +219,7 @@ void Atmosphere::createShader(ShaderType type, VistaGLSLShader& shader, Uniforms
   shader.Link();
 
   uniforms.sunDir                    = shader.GetUniformLocation("uSunDir");
-  uniforms.sunIlluminance            = shader.GetUniformLocation("uSunIlluminance");
-  uniforms.sunLuminance              = shader.GetUniformLocation("uSunLuminance");
+  uniforms.sunInfo                   = shader.GetUniformLocation("uSunInfo");
   uniforms.time                      = shader.GetUniformLocation("uTime");
   uniforms.depthBuffer               = shader.GetUniformLocation("uDepthBuffer");
   uniforms.colorBuffer               = shader.GetUniformLocation("uColorBuffer");
@@ -368,6 +367,10 @@ bool Atmosphere::Do() {
   // set uniforms ----------------------------------------------------------------------------------
   mAtmoShader.Bind();
 
+  float sunRadius = float(mSolarSystem->getSun()->getRadii()[0]);
+  float sunDist   = float(glm::length(mSolarSystem->pSunPosition.get()) * mSceneScale);
+  float phiSun    = std::asin(sunRadius / sunDist);
+
   // If precomputed limb luminance is about to be used, we need to pass the eclipse-shadow map
   // coordinates to the shader as they are two of the three texture coordinates. We also need to
   // compute the approximate pixel width of the atmosphere ring as the precomputed limb luminance is
@@ -379,10 +382,7 @@ bool Atmosphere::Do() {
     float occDist      = glm::length(occDir);
     float planetRadius = float(mRadii[0] + mSettings.mBottomAltitude.get());
     float atmoRadius   = float(mRadii[0] + mSettings.mTopAltitude);
-    float sunRadius    = float(mSolarSystem->getSun()->getRadii()[0]);
-    float sunDist      = float(glm::length(mSolarSystem->pSunPosition.get()) * mSceneScale);
     float phiOcc       = std::asin(planetRadius / occDist);
-    float phiSun       = std::asin(sunRadius / sunDist);
     float phiAtmo      = std::asin(atmoRadius / occDist);
     float x            = 1.0F / (phiOcc / phiSun + 1.0F);
     float y            = 1.0F - delta / (phiOcc + phiSun);
@@ -398,8 +398,8 @@ bool Atmosphere::Do() {
     mAtmoShader.SetUniform(mAtmoUniforms.shadowCoordinates, x, y, pixelWidth);
   }
 
-  mAtmoShader.SetUniform(mAtmoUniforms.sunIlluminance, static_cast<float>(mSunIlluminance));
-  mAtmoShader.SetUniform(mAtmoUniforms.sunLuminance, static_cast<float>(mSunLuminance));
+  mAtmoShader.SetUniform(mAtmoUniforms.sunInfo, static_cast<float>(mSunLuminance),
+      static_cast<float>(mSunIlluminance), phiSun);
   mAtmoShader.SetUniform(mAtmoUniforms.sunDir, sunDir[0], sunDir[1], sunDir[2]);
 
   // The noise shader does not like huge numbers. So we rather loop the time.
@@ -542,7 +542,7 @@ void Atmosphere::renderSkyDome(std::string const& name) const {
   double       sunDist          = 149597870700;
   double       sunIlluminance   = sunLuminousPower / (sunDist * sunDist * 4.0 * glm::pi<double>());
 
-  shader.SetUniform(uniforms.sunLuminance, static_cast<float>(sunIlluminance));
+  shader.SetUniform(uniforms.sunInfo, 0.f, static_cast<float>(sunIlluminance), 0.f);
 
   std::vector<float> pixels(SIZE * SIZE * 4);
 
