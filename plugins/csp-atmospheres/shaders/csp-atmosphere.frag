@@ -301,12 +301,12 @@ float angleBetweenVectors(vec3 u, vec3 v) {
 // would see if looking in the direction of the given ray. If the ray hits the ground, black is
 // returned. If the ray is refracted around the planet, we cannot sample the framebuffer but draw
 // an artificial Sun.
-vec3 getRefractedFramebufferColor(vec3 rayOrigin, vec3 rayDir) {
+vec3 getRefractedFramebufferColor(vec3 rayOrigin, vec3 rayDir, out vec3 refractedRay) {
 
   // First, we assume that the refracted ray will leave the atmosphere unblocked. We compute the
   // texture coordinates where the ray would hit the framebuffer.
   bool hitsGround;
-  vec3 refractedRay = GetRefractedRay(rayOrigin, rayDir, hitsGround);
+  refractedRay = GetRefractedRay(rayOrigin, rayDir, hitsGround);
 
   if (hitsGround) {
     return vec3(0, 0, 0);
@@ -668,7 +668,8 @@ void main() {
 // resulting atmosphere color. Finally, we will compute the color of the clouds and overlay them as
 // well.
 void main() {
-  vec3 rayDir = normalize(vsIn.rayDir);
+  vec3 rayDir       = normalize(vsIn.rayDir);
+  vec3 refractedRay = rayDir;
 
   // If the ray does not actually hit the atmosphere or the exit is already behind camera, we do not
   // have to modify the color any further.
@@ -716,7 +717,7 @@ void main() {
   bool hitsSurface = surfaceDistance < atmosphereIntersections.y;
 
   if (RefractionSupported() && !hitsSurface) {
-    oColor = getRefractedFramebufferColor(entryPoint, rayDir);
+    oColor = getRefractedFramebufferColor(entryPoint, rayDir, refractedRay);
   } else {
     oColor = getFramebufferColor(vsIn.texcoords);
   }
@@ -868,6 +869,14 @@ void main() {
 
     // If the ray leaves the atmosphere unblocked, we only need to compute the luminance of the sky.
     inScatter = GetSkyLuminance(vsIn.rayOrigin, rayDir, uSunDir, transmittance);
+
+#if !ENABLE_HDR
+    // If HDR Mode is disabled, we draw an artificial Sun. Else the Sun would look very dim close to
+    // the horizon.
+    if (angleBetweenVectors(refractedRay, uSunDir) < uSunInfo.z) {
+      inScatter += uSunInfo.x;
+    }
+#endif
 
     // We also incorporate eclipse shadows. However, we only evaluate at the ray exit point. There
     // is no actual shadow volume in the atmosphere.
