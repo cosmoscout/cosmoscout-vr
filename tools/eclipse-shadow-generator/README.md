@@ -45,6 +45,54 @@ The `fallbackShadow.tif` is used for all celestial bodies which do not have a sp
 It includes the effect of limb darkening but no atmosphere.
 There are two specific shadow maps for Earth and Mars, which include the effect of limb darkening and the atmosphere of the respective planet.
 
+The shadow maps for Earth and Mars require the output of the [Bruneton atmosphere model preprocessor](../../plugins/csp-atmospheres/bruneton-preprocessor/README.md) which in turn requires the output of the [scattering-table-generator](../../plugins/csp-atmospheres/scattering-table-generator/README.md).
+
+You find more information on how to use these tools in the respective READMEs.
+For convenience, we provide the commands used to generate all necessary data below.
+
+<details>
+<summary>Scattering-Table Computation</summary>
+
+```bash
+# Earth Molecules
+install/linux-Release/bin/scattering-table-generator density -i plugins/csp-atmospheres/scattering-table-generator/density-settings/earth_bruneton_molecules.json -o plugins/csp-atmospheres/scattering-table-generator/output/earth_cosmoscout_molecules
+install/linux-Release/bin/scattering-table-generator rayleigh --scattering-depolarization 0.0279 --phase-depolarization 0.0279 --penndorf-ior --theta-samples 91 -o plugins/csp-atmospheres/scattering-table-generator/output/earth_cosmoscout_molecules
+
+# Earth Aerosols
+install/linux-Release/bin/scattering-table-generator density -i plugins/csp-atmospheres/scattering-table-generator/density-settings/earth_bruneton_aerosols.json -o plugins/csp-atmospheres/scattering-table-generator/output/earth_cosmoscout_aerosols
+install/linux-Release/bin/scattering-table-generator mie -i plugins/csp-atmospheres/scattering-table-generator/mie-settings/earth_haze.json --theta-samples 91 --number-density 5e8 --radius-samples 10000 -o plugins/csp-atmospheres/scattering-table-generator/output/earth_cosmoscout_aerosols
+
+# Earth Ozone
+install/linux-Release/bin/scattering-table-generator density -i plugins/csp-atmospheres/scattering-table-generator/density-settings/earth_bruneton_ozone.json -o plugins/csp-atmospheres/scattering-table-generator/output/earth_cosmoscout_ozone
+install/linux-Release/bin/scattering-table-generator ozone -o plugins/csp-atmospheres/scattering-table-generator/output/earth_cosmoscout_ozone
+
+# Mars Molecules
+install/linux-Release/bin/scattering-table-generator density -i plugins/csp-atmospheres/scattering-table-generator/density-settings/mars_cosmoscout_molecules.json -o plugins/csp-atmospheres/scattering-table-generator/output/mars_cosmoscout_molecules_cinematic
+install/linux-Release/bin/scattering-table-generator rayleigh --lambdas 440e-9,550e-9,680e-9 --ior 1.00000337 --scattering-depolarization 0.09 --phase-depolarization 0.09 --number-density 2.05e23 --theta-samples 91 -o plugins/csp-atmospheres/scattering-table-generator/output/mars_cosmoscout_molecules_cinematic
+
+# Mars Aerosols
+install/linux-Release/bin/scattering-table-generator density -i plugins/csp-atmospheres/scattering-table-generator/density-settings/mars_cosmoscout_aerosols_cinematic.json -o plugins/csp-atmospheres/scattering-table-generator/output/mars_cosmoscout_aerosols_cinematic
+install/linux-Release/bin/scattering-table-generator mie --lambdas 440e-9,550e-9,680e-9 -i plugins/csp-atmospheres/scattering-table-generator/mie-settings/mars_cinematic.json --phase-flattening 0.8 --theta-samples 91 --number-density 5e9 --radius-samples 10000 -o plugins/csp-atmospheres/scattering-table-generator/output/mars_cosmoscout_aerosols_cinematic
+```
+
+</details>
+
+<details>
+<summary>Atmospheric Scattering Computation</summary>
+
+```bash
+# Earth
+install/linux-Release/bin/bruneton-preprocessor plugins/csp-atmospheres/bruneton-preprocessor/settings/earth.json plugins/csp-atmospheres/bruneton-preprocessor/output/earth
+
+# Mars
+install/linux-Release/bin/bruneton-preprocessor plugins/csp-atmospheres/bruneton-preprocessor/settings/mars.json plugins/csp-atmospheres/bruneton-preprocessor/output/mars
+```
+
+</details>
+
+<details>
+<summary>Shadow-Map Computation</summary>
+
 ```bash
 # Create the fallback shadow map.
 install/linux-Release/bin/eclipse-shadow-generator limb-darkening --with-umbra --output "resources/textures/fallbackShadow.tif" --size 256
@@ -57,6 +105,8 @@ install/linux-Release/bin/eclipse-shadow-generator bruneton --with-umbra --input
 install/linux-Release/bin/eclipse-shadow-generator limb-luminance --with-umbra --input plugins/csp-atmospheres/bruneton-preprocessor/output/earth/ --radius-occ 6371000 --radius-atmo 6451000 --sun-occ-dist 149600000000 --output "resources/textures/earthLimbLuminance.tif" --size 64
 install/linux-Release/bin/eclipse-shadow-generator limb-luminance --with-umbra --input plugins/csp-atmospheres/bruneton-preprocessor/output/mars/ --radius-occ 3389500 --radius-atmo 3469500 --sun-occ-dist 227900000000 --output "resources/textures/marsLimbLuminance.tif" --size 64
 ```
+
+</details>
 
 ### Recreating Paper Figures and other Examples
 
