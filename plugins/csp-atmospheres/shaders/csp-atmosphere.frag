@@ -505,14 +505,32 @@ float getCloudShadow(vec3 rayOrigin, vec3 rayDir) {
   return 1.0 - getCloudDensity(rayOrigin, rayDir, intersections.y) * fac;
 }
 
+// Returns the vertically integrated luminance of the atmosphere ring around the occluder for the
+// observer position. This is retrieved by sampling the 3D limb luminance texture.
 vec3 getApproximateLimbLuminance(vec3 rayOrigin, vec3 rayDir) {
   float dist     = length(rayOrigin);
   vec3  toCenter = rayOrigin / dist;
   vec3  projSun  = dot(uSunDir, toCenter) * toCenter - uSunDir;
   vec3  projAtmo = dot(rayDir, toCenter) * toCenter - rayDir;
 
-  float x         = uShadowCoordinates.x;
-  float y         = uShadowCoordinates.y;
+  // The x and y coordinates of the texture are computed on the CPU and passed as a uniform.
+  float x = uShadowCoordinates.x;
+  float y = uShadowCoordinates.y;
+
+  // The third coordinate is the angle between the projected direction to the Sun and the projected
+  // direction to the position on the limb. Like this:
+  //
+  //  projSun
+  //     ┌---..   projAtmo
+  //     │     /'
+  //     └--./    \
+  //     │z/ \     │
+  //     o    │    │
+  //         /     │
+  //     ┌--'     /
+  //     │      .
+  //     └---''
+  //
   float z         = acos(clamp(dot(normalize(projSun), normalize(projAtmo)), -1.0, 1.0)) / PI;
   vec3  luminance = texture(uLimbLuminanceTexture, vec3(x, y, z)).rgb;
 
@@ -668,10 +686,16 @@ void main() {
     return;
   }
 
+  // If possible, use the precomputed limb luminance to get the color of the atmosphere ring around
+  // the occluder.
 #if ENABLE_LIMB_LUMINANCE
   if (RefractionSupported()) {
+    // The third coordinate of the shadow coordinates is the approximate width of the atmosphere
+    // ring around the occluder in pixels.
     float pixelWidth = uShadowCoordinates.z;
 
+    // Use the limb luminance only if the observer is not too close to the occluder and if the
+    // ring is thinner than 5 pixels.
     if (uShadowCoordinates.x > 0.05 && uShadowCoordinates.y > 0.0 && pixelWidth < 5.0) {
 
       vec2 planetIntersections = intersectPlanetsphere(vsIn.rayOrigin, rayDir);
@@ -727,8 +751,8 @@ void main() {
 
     // Looking down onto the ocean.
     if (oceanIntersections.x > 0) {
-      vec3 oceanSurface = vsIn.rayOrigin + rayDir * oceanIntersections.x;
-      vec3 idealNormal  = normalize(oceanSurface);
+      vec3        oceanSurface      = vsIn.rayOrigin + rayDir * oceanIntersections.x;
+      vec3        idealNormal       = normalize(oceanSurface);
 
 #if ENABLE_WAVES
       const float WAVE_SPEED        = 0.2;

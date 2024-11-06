@@ -265,12 +265,10 @@ void Atmosphere::update(double time) {
     mSceneScale                     = mSolarSystem->getObserver().getScale();
     mEclipseShadowReceiver->update(*object);
 
-    // update brightness value -------------------------------------------------
-    // This is a crude approximation of the overall scene brightness due to
-    // atmospheric scattering, camera position and the Sun's position.
-    // It may be used for fake HDR effects such as dimming stars.
+    // This is a crude approximation of the overall scene brightness due to atmospheric scattering,
+    // camera position and the Sun's position. It may be used for fake HDR effects such as dimming
+    // stars.
 
-    // some required positions and directions
     glm::dvec3 planet = object->getObserverRelativePosition() *
                         object->getRelativeScale(mSolarSystem->getObserver());
     double     dist     = glm::length(planet);
@@ -284,10 +282,10 @@ void Atmosphere::update(double time) {
     // [noon ... midnight] -> [1 ... -1]
     double daySide = glm::dot(-toPlanet, glm::dvec3(mSunDirection));
 
-    // limit brightness when on night side (also in dusk and dawn time)
+    // Limit brightness when on night side (also in dusk and dawn time).
     daySide = std::pow(std::min(1.0, std::max(0.0, daySide + 1.0)), 50.0);
 
-    // reduce brightness in outer space
+    // Reduce brightness in outer space.
     mGraphicsEngine->pApproximateSceneBrightness =
         static_cast<float>((1.0 - heightInAtmosphere) * daySide);
 
@@ -308,7 +306,7 @@ bool Atmosphere::Do() {
     mShaderDirty = false;
   }
 
-  // save current lighting and meterial state of the OpenGL state machine ----
+  // save current lighting and meterial state of the OpenGL state machine --------------------------
   glPushAttrib(GL_LIGHTING_BIT | GL_ENABLE_BIT);
   glDisable(GL_LIGHTING);
   glDisable(GL_DEPTH_TEST);
@@ -316,7 +314,7 @@ bool Atmosphere::Do() {
   glEnable(GL_TEXTURE_2D);
   glDepthMask(GL_FALSE);
 
-  // copy depth buffer -------------------------------------------------------
+  // copy depth buffer -----------------------------------------------------------------------------
   std::array<GLint, 4> iViewport{};
   glGetIntegerv(GL_VIEWPORT, iViewport.data());
 
@@ -332,7 +330,7 @@ bool Atmosphere::Do() {
         iViewport.at(3), 0);
   }
 
-  // get matrices and related values -----------------------------------------
+  // get matrices and related values ---------------------------------------------------------------
 
   std::array<GLfloat, 16> glMatV{};
   std::array<GLfloat, 16> glMatP{};
@@ -367,31 +365,38 @@ bool Atmosphere::Do() {
   glm::vec3 sunDir =
       glm::normalize(glm::vec3(matInverseEllipsoid * matInvWorld * glm::vec4(mSunDirection, 0)));
 
-  // set uniforms ------------------------------------------------------------
+  // set uniforms ----------------------------------------------------------------------------------
   mAtmoShader.Bind();
 
-  glm::vec3 occDir = glm::vec3(matInvMV[3]);
-  float delta = std::acos(std::min(1.F, glm::dot(glm::normalize(occDir), glm::normalize(-sunDir))));
-  float occDist      = glm::length(occDir);
-  float planetRadius = float(mRadii[0] + mSettings.mBottomAltitude.get());
-  float atmoRadius   = float(mRadii[0] + mSettings.mTopAltitude);
-  float sunRadius    = float(mSolarSystem->getSun()->getRadii()[0]);
-  float sunDist      = float(glm::length(mSolarSystem->pSunPosition.get()) * mSceneScale);
-  float phiOcc       = std::asin(planetRadius / occDist);
-  float phiSun       = std::asin(sunRadius / sunDist);
-  float phiAtmo      = std::asin(atmoRadius / occDist);
-  float x            = 1.0F / (phiOcc / phiSun + 1.0F);
-  float y            = 1.0F - delta / (phiOcc + phiSun);
+  // If precomputed limb luminance is about to be used, we need to pass the eclipse-shadow map
+  // coordinates to the shader as they are two of the three texture coordinates. We also need to
+  // compute the approximate pixel width of the atmosphere ring as the precomputed limb luminance is
+  // only used if the ring is pretty thin.
+  if (mSettings.mEnableLimbLuminance.get() && mLimbLuminanceTexture) {
+    glm::vec3 occDir = glm::vec3(matInvMV[3]);
+    float     delta =
+        std::acos(std::min(1.F, glm::dot(glm::normalize(occDir), glm::normalize(-sunDir))));
+    float occDist      = glm::length(occDir);
+    float planetRadius = float(mRadii[0] + mSettings.mBottomAltitude.get());
+    float atmoRadius   = float(mRadii[0] + mSettings.mTopAltitude);
+    float sunRadius    = float(mSolarSystem->getSun()->getRadii()[0]);
+    float sunDist      = float(glm::length(mSolarSystem->pSunPosition.get()) * mSceneScale);
+    float phiOcc       = std::asin(planetRadius / occDist);
+    float phiSun       = std::asin(sunRadius / sunDist);
+    float phiAtmo      = std::asin(atmoRadius / occDist);
+    float x            = 1.0F / (phiOcc / phiSun + 1.0F);
+    float y            = 1.0F - delta / (phiOcc + phiSun);
 
-  cs::utils::Frustum frustum;
-  frustum.setFromMatrix(matP);
-  float approxPixelSize = float(frustum.getHorizontalFOV() / iViewport[2]);
-  float pixelWidth      = (phiAtmo - phiOcc) / approxPixelSize;
-  if (occDist < atmoRadius) {
-    x = -1.0;
+    cs::utils::Frustum frustum;
+    frustum.setFromMatrix(matP);
+    float approxPixelSize = float(frustum.getHorizontalFOV() / iViewport[2]);
+    float pixelWidth      = (phiAtmo - phiOcc) / approxPixelSize;
+    if (occDist < atmoRadius) {
+      x = -1.0;
+    }
+
+    mAtmoShader.SetUniform(mAtmoUniforms.shadowCoordinates, x, y, pixelWidth);
   }
-
-  mAtmoShader.SetUniform(mAtmoUniforms.shadowCoordinates, x, y, pixelWidth);
 
   mAtmoShader.SetUniform(mAtmoUniforms.sunIlluminance, static_cast<float>(mSunIlluminance));
   mAtmoShader.SetUniform(mAtmoUniforms.sunLuminance, static_cast<float>(mSunLuminance));
@@ -449,10 +454,10 @@ bool Atmosphere::Do() {
   // for the eclipse shadow receiver.
   mModel->setUniforms(mAtmoShader.GetProgram(), 8);
 
-  // draw --------------------------------------------------------------------
+  // draw ------------------------------------------------------------------------------------------
   glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
-  // clean up ----------------------------------------------------------------
+  // clean up --------------------------------------------------------------------------------------
 
   // Reset eclipse shadow-related texture units.
   mEclipseShadowReceiver->postRender();
@@ -524,7 +529,6 @@ void Atmosphere::renderSkyDome(std::string const& name) const {
   glViewport(0, 0, SIZE, SIZE);
   glScissor(0, 0, SIZE, SIZE);
 
-  // save current lighting and meterial state of the OpenGL state machine ----
   glPushAttrib(GL_LIGHTING_BIT | GL_ENABLE_BIT);
   glDisable(GL_LIGHTING);
   glDisable(GL_DEPTH_TEST);
@@ -532,7 +536,6 @@ void Atmosphere::renderSkyDome(std::string const& name) const {
   glEnable(GL_TEXTURE_2D);
   glDepthMask(GL_FALSE);
 
-  // set uniforms ------------------------------------------------------------
   shader.Bind();
 
   double const sunLuminousPower = 3.75e28;
@@ -549,7 +552,6 @@ void Atmosphere::renderSkyDome(std::string const& name) const {
     shader.SetUniform(uniforms.sunElevation, e);
     mModel->setUniforms(shader.GetProgram(), 4);
 
-    // draw --------------------------------------------------------------------
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
     glReadPixels(0, 0, SIZE, SIZE, GL_RGBA, GL_FLOAT, &pixels[0]);
@@ -557,7 +559,6 @@ void Atmosphere::renderSkyDome(std::string const& name) const {
     stbi_write_hdr(fmt::format("{}_{}.hdr", name, e).c_str(), SIZE, SIZE, 4, pixels.data());
   }
 
-  // clean up ----------------------------------------------------------------
   glDepthMask(GL_TRUE);
 
   shader.Release();
