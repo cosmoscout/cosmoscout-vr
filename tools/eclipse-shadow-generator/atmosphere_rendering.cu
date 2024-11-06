@@ -7,9 +7,14 @@
 // SPDX-FileCopyrightText: 2008 INRIA
 // SPDX-License-Identifier: BSD-3-Clause
 
-// Computing the sky luminance based on the precomputed atmospheric scattering textures is based on
-// the original implementation by Eric Bruneton:
+// Parts of this file are based on the original implementation by Eric Bruneton:
 // https://github.com/ebruneton/precomputed_atmospheric_scattering/blob/master/atmosphere/functions.glsl
+
+// It has been ported to CUDA and in some cases it has been simplified as we are only interested in
+// vantage points from outer space.
+
+// All methods which are based on the original implementation by Eric Bruneton are marked with a
+// corresponding comment and a link to the original source code.
 
 #include "atmosphere_rendering.cuh"
 
@@ -24,6 +29,7 @@ namespace {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+// Returns the luminance of the Sun in candela per square meter.
 double __device__ getSunLuminance(double sunRadius) {
   const double sunLuminousPower = 3.75e28;
   const double sunLuminousExitance =
@@ -33,6 +39,7 @@ double __device__ getSunLuminance(double sunRadius) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+// Creates a CUDA texture object from the given RGBA texture.
 cudaTextureObject_t createCudaTexture(tiff_utils::RGBATexture const& texture) {
   cudaArray* cuArray;
   auto       channelDesc = cudaCreateChannelDesc<float4>();
@@ -41,7 +48,6 @@ cudaTextureObject_t createCudaTexture(tiff_utils::RGBATexture const& texture) {
   cudaMemcpy2DToArray(cuArray, 0, 0, texture.data.data(), texture.width * sizeof(float) * 4,
       texture.width * sizeof(float) * 4, texture.height, cudaMemcpyHostToDevice);
 
-  // Specify texture object parameters
   cudaResourceDesc resDesc = {};
   resDesc.resType          = cudaResourceTypeArray;
   resDesc.res.array.array  = cuArray;
@@ -53,7 +59,6 @@ cudaTextureObject_t createCudaTexture(tiff_utils::RGBATexture const& texture) {
   texDesc.readMode         = cudaReadModeElementType;
   texDesc.normalizedCoords = 1;
 
-  // Create texture object
   cudaTextureObject_t textureObject = 0;
   cudaCreateTextureObject(&textureObject, &resDesc, &texDesc, nullptr);
 
@@ -64,6 +69,8 @@ cudaTextureObject_t createCudaTexture(tiff_utils::RGBATexture const& texture) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+// Provides a similar API to the texture2D function in GLSL. Returns the RGBA value at the given
+// texture coordinates as a glm::vec4.
 __device__ glm::vec4 texture2D(cudaTextureObject_t tex, glm::vec2 uv) {
   auto data = tex2D<float4>(tex, uv.x, uv.y);
   return glm::vec4(data.x, data.y, data.z, data.w);
@@ -71,34 +78,33 @@ __device__ glm::vec4 texture2D(cudaTextureObject_t tex, glm::vec2 uv) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+// In case the input value is negative, this function returns 0.0. Otherwise it returns the square
+// root of the input value.
 __device__ float safeSqrt(float a) {
   return glm::sqrt(glm::max(a, 0.0f));
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-__device__ float clampDistance(float d) {
-  return glm::max(d, 0.0f);
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
+// https://github.com/ebruneton/precomputed_atmospheric_scattering/blob/master/atmosphere/functions.glsl#L342
 __device__ float getTextureCoordFromUnitRange(float x, int textureSize) {
   return 0.5 / float(textureSize) + x * (1.0 - 1.0 / float(textureSize));
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+// https://github.com/ebruneton/precomputed_atmospheric_scattering/blob/master/atmosphere/functions.glsl#L207
 __device__ float distanceToTopAtmosphereBoundary(
     common::Geometry const& geometry, float r, float mu) {
   float discriminant = r * r * (mu * mu - 1.0) + geometry.mRadiusAtmo * geometry.mRadiusAtmo;
-  return clampDistance(-r * mu + safeSqrt(discriminant));
+  return glm::max(0.f, -r * mu + safeSqrt(discriminant));
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // As we are always in outer space, this function does not need the r parameter when compared to the
-// original version.
+// original version:
+// https://github.com/ebruneton/precomputed_atmospheric_scattering/blob/master/atmosphere/functions.glsl#L402
 __device__ glm::vec2 getTransmittanceTextureUvFromRMu(
     advanced::Textures const& textures, common::Geometry const& geometry, double mu) {
 
@@ -118,7 +124,8 @@ __device__ glm::vec2 getTransmittanceTextureUvFromRMu(
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // As we are always in outer space, this function does not need the r parameter when compared to the
-// original version.
+// original version:
+// https://github.com/ebruneton/precomputed_atmospheric_scattering/blob/master/atmosphere/functions.glsl#L773
 __device__ glm::vec3 getScatteringTextureUvwFromRMuMuSNu(advanced::Textures const& textures,
     common::Geometry const& geometry, double mu, double muS, double nu,
     bool rayRMuIntersectsGround) {
@@ -167,33 +174,7 @@ __device__ glm::vec3 getScatteringTextureUvwFromRMuMuSNu(advanced::Textures cons
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-__device__ glm::dvec3 getRefractedRay(advanced::Textures const& textures,
-    common::Geometry const& geometry, glm::dvec3 camera, glm::dvec3 ray, double& contactRadius) {
-
-  if (!textures.mThetaDeviation) {
-    double dist       = glm::length(camera);
-    auto   toOccluder = -camera / dist;
-    double angle      = math::angleBetweenVectors(ray, toOccluder);
-    contactRadius     = glm::acos(angle) * dist - geometry.mRadiusOcc;
-
-    return ray;
-  }
-
-  double    mu = dot(camera, ray) / geometry.mRadiusAtmo;
-  glm::vec2 uv = getTransmittanceTextureUvFromRMu(textures, geometry, mu);
-
-  // Cosine of the angular deviation of the ray due to refraction.
-  glm::vec2  thetaDeviationContactRadius = glm::vec2(texture2D(textures.mThetaDeviation, uv));
-  double     muDeviation                 = glm::cos(double(thetaDeviationContactRadius.x));
-  glm::dvec3 axis                        = glm::normalize(glm::cross(camera, ray));
-
-  contactRadius = thetaDeviationContactRadius.y;
-
-  return normalize(math::rotateVector(ray, axis, muDeviation));
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
+// https://github.com/ebruneton/precomputed_atmospheric_scattering/blob/master/atmosphere/functions.glsl#L473
 __device__ glm::vec3 getTransmittanceToTopAtmosphereBoundary(
     advanced::Textures const& textures, common::Geometry const& geometry, double mu) {
   glm::vec2 uv = getTransmittanceTextureUvFromRMu(textures, geometry, mu);
@@ -202,6 +183,7 @@ __device__ glm::vec3 getTransmittanceToTopAtmosphereBoundary(
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+// https://github.com/ebruneton/precomputed_atmospheric_scattering/blob/master/atmosphere/functions.glsl#L240
 __device__ bool rayIntersectsGround(common::Geometry const& geometry, double mu) {
   return mu < 0.0 && geometry.mRadiusAtmo * geometry.mRadiusAtmo * (mu * mu - 1.0) +
                              geometry.mRadiusOcc * geometry.mRadiusOcc >=
@@ -210,6 +192,8 @@ __device__ bool rayIntersectsGround(common::Geometry const& geometry, double mu)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+// This is different. In the original implementation, the phase function is the Rayleigh phase
+// function. We load the phase function from a texture.
 __device__ glm::vec3 moleculePhaseFunction(cudaTextureObject_t phaseTexture, float nu) {
   float theta = glm::acos(nu) / M_PI; // 0<->1
   return glm::vec3(texture2D(phaseTexture, glm::vec2(theta, 0.0)));
@@ -217,6 +201,8 @@ __device__ glm::vec3 moleculePhaseFunction(cudaTextureObject_t phaseTexture, flo
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+// This is different. In the original implementation, the phase function is the Cornette-Shanks
+// phase function. We load the phase function from a texture.
 __device__ glm::vec3 aerosolPhaseFunction(cudaTextureObject_t phaseTexture, float nu) {
   float theta = glm::acos(nu) / M_PI; // 0<->1
   return glm::vec3(texture2D(phaseTexture, glm::vec2(theta, 1.0)));
@@ -224,6 +210,9 @@ __device__ glm::vec3 aerosolPhaseFunction(cudaTextureObject_t phaseTexture, floa
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+// As we are always in outer space, this function does not need the r parameter when compared to the
+// original version:
+// https://github.com/ebruneton/precomputed_atmospheric_scattering/blob/master/atmosphere/functions.glsl#L1658
 __device__ void getCombinedScattering(advanced::Textures const& textures,
     common::Geometry const& geometry, float mu, float muS, float nu, bool rayRMuIntersectsGround,
     glm::vec3& multipleScattering, glm::vec3& singleAerosolsScattering) {
@@ -244,6 +233,38 @@ __device__ void getCombinedScattering(advanced::Textures const& textures,
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+// Rotates the given ray towards the planet's surface by the angle given in the theta deviation
+// texture. Also returns the contact radius which is the distance of closest approach to the
+// planet's surface which the ray had when traveling through the atmosphere.
+__device__ glm::dvec3 getRefractedRay(advanced::Textures const& textures,
+    common::Geometry const& geometry, glm::dvec3 camera, glm::dvec3 ray, double& contactRadius) {
+
+  // If refraction is disabled, we can simply return the ray. However, we still need to compute the
+  // contact radius.
+  if (!textures.mThetaDeviation) {
+    double dist       = glm::length(camera);
+    auto   toOccluder = -camera / dist;
+    double angle      = math::angleBetweenVectors(ray, toOccluder);
+    contactRadius     = glm::acos(angle) * dist - geometry.mRadiusOcc;
+
+    return ray;
+  }
+
+  double    mu = dot(camera, ray) / geometry.mRadiusAtmo;
+  glm::vec2 uv = getTransmittanceTextureUvFromRMu(textures, geometry, mu);
+
+  // Cosine of the angular deviation of the ray due to refraction.
+  glm::vec2  thetaDeviationContactRadius = glm::vec2(texture2D(textures.mThetaDeviation, uv));
+  double     thetaDeviation              = glm::cos(double(thetaDeviationContactRadius.x));
+  glm::dvec3 axis                        = glm::normalize(glm::cross(camera, ray));
+
+  contactRadius = thetaDeviationContactRadius.y;
+
+  return normalize(math::rotateVector(ray, axis, thetaDeviation));
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 } // namespace
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -252,6 +273,7 @@ namespace advanced {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+// Loads all required textures from the given output directory from the Bruneton preprocessor tool.
 __host__ Textures loadTextures(std::string const& path) {
   uint32_t scatteringTextureRSize = tiff_utils::getNumLayers(path + "/multiple_scattering.tif");
 
@@ -296,6 +318,9 @@ __host__ Textures loadTextures(std::string const& path) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+// Computes the luminance of the atmosphere for the given geometry. All distances are in meters.
+// This is loosely based on the original implementation by Eric Bruneton:
+// https://github.com/ebruneton/precomputed_atmospheric_scattering/blob/master/atmosphere/functions.glsl#L1705
 __device__ glm::vec3 getLuminance(glm::dvec3 camera, glm::dvec3 viewRay, glm::dvec3 sunDirection,
     common::Geometry const& geometry, common::LimbDarkening const& limbDarkening,
     Textures const& textures, double phiSun) {
@@ -340,7 +365,8 @@ __device__ glm::vec3 getLuminance(glm::dvec3 camera, glm::dvec3 viewRay, glm::dv
     // To account for terrain height, we apply a very simple model. We assume that all rays passing
     // above two times the mean elevation of the terrain are not affected by the terrain. All rays
     // passing below zero elevation are completely blocked by the terrain. In between, the
-    // transmittance is linearly interpolated.
+    // transmittance is linearly interpolated. If a cloud elevation is set, all rays passing below
+    // the cloud elevation are completely blocked by the cloud.
     if (contactRadius < geometry.mCloudAltitude) {
       transmittance = glm::vec3(0.0);
     } else if (contactRadius < 2.F * geometry.mAverageTerrainHeight) {

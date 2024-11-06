@@ -12,11 +12,13 @@
 #include <vector>
 
 // The "advanced" modes compute eclipse shadows for spherical bodies which have an atmosphere. The
-// "bruneton" mode uses the Bruneton precomputed atmospheric scattering model to compute the shadow
-// map. The required input data is precomputed using the "bruneton-preprocessor" tool of the
-// csp-atmospheres plugin. The "planetView" and "atmoView" modes render the atmosphere of a planet
-// from the perspective of a given location in the shadow map for debugging and visualization
-// purposes.
+// "bruneton" mode uses CosmoScout VR's extended Bruneton atmospheric scattering model to compute
+// the shadow map. The required input data is precomputed using the "bruneton-preprocessor" tool of
+// the csp-atmospheres plugin. The "planetView" and "atmoView" modes render the atmosphere of a
+// planet from the perspective of a given location in the shadow map for debugging and visualization
+// purposes. The "limbLuminance" mode computes the vertically integrated luminance of the atmosphere
+// ring around the planet for each position in the shadow map. This is used to render the atmosphere
+// from within the planets shadow.
 //
 // Similar to the simple modes, the shadow map contains values between 0 and 1, where 0 means that
 // that no light reaches that point in space and 1 means that no sunlight is blocked. To compute
@@ -27,8 +29,8 @@
 
 namespace advanced {
 
-// Computes the shadow map evaluating the Bruneton precomputed atmospheric scattering model for each
-// position in the shadow map.
+// Computes the shadow map evaluating our extended Bruneton precomputed atmospheric scattering model
+// for each position in the shadow map.
 int brunetonMode(std::vector<std::string> const& arguments);
 
 // Draws the atmosphere of a planet into a texture as seen through a pinhole camera. The atmospheric
