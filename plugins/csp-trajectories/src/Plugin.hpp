@@ -15,9 +15,12 @@
 #include <VistaKernel/GraphicsManager/VistaOpenGLNode.h>
 #include <optional>
 
+namespace cs::core {
+class DeepSpaceDot;
+} // namespace cs::core
+
 namespace csp::trajectories {
 
-class DeepSpaceDot;
 class SunFlare;
 class Trajectory;
 
@@ -83,10 +86,10 @@ class Plugin : public cs::core::PluginBase {
   void onLoad();
   void onSave();
 
-  std::shared_ptr<Settings>                  mPluginSettings = std::make_shared<Settings>();
-  std::vector<std::unique_ptr<Trajectory>>   mTrajectories;
-  std::vector<std::unique_ptr<DeepSpaceDot>> mDeepSpaceDots;
-  std::vector<std::unique_ptr<SunFlare>>     mSunFlares;
+  std::shared_ptr<Settings>                mPluginSettings = std::make_shared<Settings>();
+  std::vector<std::unique_ptr<Trajectory>> mTrajectories;
+  std::vector<std::unique_ptr<cs::core::DeepSpaceDot>> mDeepSpaceDots;
+  std::vector<std::unique_ptr<SunFlare>>               mSunFlares;
 
   int mOnLoadConnection = -1;
   int mOnSaveConnection = -1;

@@ -7,7 +7,7 @@
 
 #include "Plugin.hpp"
 
-#include "DeepSpaceDot.hpp"
+#include "../../../src/cs-core/DeepSpaceDot.hpp"
 #include "SunFlare.hpp"
 #include "Trajectory.hpp"
 #include "logger.hpp"
@@ -200,12 +200,13 @@ void Plugin::onLoad() {
     // Add the DeepSpaceDot.
     if (settings.second.mDrawDot.value_or(false)) {
       if (!mDeepSpaceDots[dotIndex]) {
-        mDeepSpaceDots[dotIndex] = std::make_unique<DeepSpaceDot>(mPluginSettings, mSolarSystem);
+        mDeepSpaceDots[dotIndex] = std::make_unique<cs::core::DeepSpaceDot>(mSolarSystem);
       }
 
       mDeepSpaceDots[dotIndex]->setObjectName(settings.first);
       mDeepSpaceDots[dotIndex]->pColor =
           VistaColor(settings.second.mColor.r, settings.second.mColor.g, settings.second.mColor.b);
+      mDeepSpaceDots[dotIndex]->pVisible.connectFrom(mPluginSettings->mEnablePlanetMarks);
 
       ++dotIndex;
     }

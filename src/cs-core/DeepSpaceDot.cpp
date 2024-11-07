@@ -7,11 +7,11 @@
 
 #include "DeepSpaceDot.hpp"
 
-#include "../../../src/cs-core/SolarSystem.hpp"
-#include "../../../src/cs-utils/FrameStats.hpp"
-#include "../../../src/cs-utils/utils.hpp"
+#include "../cs-utils/FrameStats.hpp"
+#include "../cs-utils/utils.hpp"
 
 #include <VistaKernel/GraphicsManager/VistaGraphicsManager.h>
+#include <VistaKernel/GraphicsManager/VistaOpenGLNode.h>
 #include <VistaKernel/GraphicsManager/VistaSceneGraph.h>
 #include <VistaKernel/GraphicsManager/VistaTransformNode.h>
 #include <VistaKernel/VistaSystem.h>
@@ -20,7 +20,7 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <utility>
 
-namespace csp::trajectories {
+namespace cs::core {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -93,10 +93,8 @@ void main()
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-DeepSpaceDot::DeepSpaceDot(std::shared_ptr<Plugin::Settings> pluginSettings,
-    std::shared_ptr<cs::core::SolarSystem>                   solarSystem)
-    : mPluginSettings(std::move(pluginSettings))
-    , mSolarSystem(std::move(solarSystem)) {
+DeepSpaceDot::DeepSpaceDot(std::shared_ptr<cs::core::SolarSystem> solarSystem)
+    : mSolarSystem(std::move(solarSystem)) {
 
   mShader.InitVertexShaderFromString(QUAD_VERT);
   mShader.InitFragmentShaderFromString(QUAD_FRAG);
@@ -136,7 +134,7 @@ std::string const& DeepSpaceDot::getObjectName() const {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool DeepSpaceDot::Do() {
-  if (!mPluginSettings->mEnablePlanetMarks.get()) {
+  if (!pVisible.get()) {
     return true;
   }
 
@@ -185,4 +183,4 @@ bool DeepSpaceDot::GetBoundingBox(VistaBoundingBox& /*bb*/) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-} // namespace csp::trajectories
+} // namespace cs::core
