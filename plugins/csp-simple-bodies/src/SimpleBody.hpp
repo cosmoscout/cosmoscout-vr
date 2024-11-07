@@ -26,6 +26,7 @@
 
 namespace cs::core {
 class SolarSystem;
+class DeepSpaceDot;
 } // namespace cs::core
 
 namespace csp::simplebodies {
@@ -43,7 +44,7 @@ class SimpleBody : public cs::scene::CelestialSurface,
   SimpleBody(SimpleBody&& other)      = default;
 
   SimpleBody& operator=(SimpleBody const& other) = delete;
-  SimpleBody& operator=(SimpleBody&& other) = default;
+  SimpleBody& operator=(SimpleBody&& other)      = default;
 
   ~SimpleBody() override;
 
@@ -73,7 +74,8 @@ class SimpleBody : public cs::scene::CelestialSurface,
 
   std::string mObjectName;
 
-  std::unique_ptr<VistaOpenGLNode> mGLNode;
+  std::unique_ptr<VistaOpenGLNode>        mGLNode;
+  std::unique_ptr<cs::core::DeepSpaceDot> mHDRDot;
 
   Plugin::Settings::SimpleBody  mSimpleBodySettings;
   std::unique_ptr<VistaTexture> mTexture;

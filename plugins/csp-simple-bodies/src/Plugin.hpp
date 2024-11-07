@@ -11,6 +11,8 @@
 #include "../../../src/cs-core/PluginBase.hpp"
 #include "../../../src/cs-utils/DefaultProperty.hpp"
 
+#include <glm/glm.hpp>
+
 #include <map>
 #include <optional>
 #include <string>
@@ -26,8 +28,9 @@ class Plugin : public cs::core::PluginBase {
  public:
   struct Settings {
     struct SimpleBody {
-      std::string                      mTexture;
-      cs::utils::DefaultProperty<bool> mPrimeMeridianInCenter{true};
+      std::string                           mTexture;
+      cs::utils::DefaultProperty<bool>      mPrimeMeridianInCenter{true};
+      cs::utils::DefaultProperty<glm::vec3> mAlbedo{glm::vec3(1.F, 1.F, 1.F)};
 
       struct Ring {
         /// The path to the texture. The texture should represent a cross section of the ring.

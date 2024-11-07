@@ -49,12 +49,14 @@ void to_json(nlohmann::json& j, Plugin::Settings::SimpleBody::Ring const& o) {
 
 void from_json(nlohmann::json const& j, Plugin::Settings::SimpleBody& o) {
   cs::core::Settings::deserialize(j, "texture", o.mTexture);
+  cs::core::Settings::deserialize(j, "albedo", o.mAlbedo);
   cs::core::Settings::deserialize(j, "primeMeridianInCenter", o.mPrimeMeridianInCenter);
   cs::core::Settings::deserialize(j, "ring", o.mRing);
 }
 
 void to_json(nlohmann::json& j, Plugin::Settings::SimpleBody const& o) {
   cs::core::Settings::serialize(j, "texture", o.mTexture);
+  cs::core::Settings::serialize(j, "albedo", o.mAlbedo);
   cs::core::Settings::serialize(j, "primeMeridianInCenter", o.mPrimeMeridianInCenter);
   cs::core::Settings::serialize(j, "ring", o.mRing);
 }
