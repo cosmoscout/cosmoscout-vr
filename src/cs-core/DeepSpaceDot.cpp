@@ -25,8 +25,6 @@ namespace cs::core {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 const char* DeepSpaceDot::QUAD_VERT = R"(
-#version 330
-
 out vec2 vTexCoords;
 
 uniform float uSolidAngle;
@@ -63,8 +61,6 @@ void main()
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 const char* DeepSpaceDot::QUAD_FRAG = R"(
-#version 330
-
 uniform vec3 uColor;
 
 in vec2 vTexCoords;
@@ -74,8 +70,15 @@ layout(location = 0) out vec4 oColor;
 void main()
 {
     float dist = length(vTexCoords);
-    float blob = pow(dist, 10.0);
-    oColor  = mix(vec4(uColor, 1.0), vec4(0), blob);
+
+    // This is basically a cone from above. The average value is 1.0.
+    float blob = clamp(1-dist, 0, 1) * 3;
+
+  #ifdef ADDITIVE
+    oColor = vec4(uColor * blob, 1.0);
+  #else
+    oColor = vec4(uColor, blob);
+  #endif
 }
 )";
 
@@ -84,21 +87,14 @@ void main()
 DeepSpaceDot::DeepSpaceDot(std::shared_ptr<cs::core::SolarSystem> solarSystem)
     : mSolarSystem(std::move(solarSystem)) {
 
-  mShader.InitVertexShaderFromString(QUAD_VERT);
-  mShader.InitFragmentShaderFromString(QUAD_FRAG);
-  mShader.Link();
-
-  mUniforms.modelViewMatrix  = mShader.GetUniformLocation("uMatModelView");
-  mUniforms.projectionMatrix = mShader.GetUniformLocation("uMatProjection");
-  mUniforms.color            = mShader.GetUniformLocation("uColor");
-  mUniforms.solidAngle       = mShader.GetUniformLocation("uSolidAngle");
-
   // Add to scenegraph.
   VistaSceneGraph* pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
   mGLNode.reset(pSG->NewOpenGLNode(pSG->GetRoot(), this));
 
   pSortKey.connectAndTouch(
       [this](int value) { VistaOpenSGMaterialTools::SetSortKeyOnSubtree(mGLNode.get(), value); });
+
+  pAdditive.connectAndTouch([this](bool value) { mShaderDirty = true; });
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -132,6 +128,26 @@ bool DeepSpaceDot::Do() {
     return true;
   }
 
+  if (mShaderDirty) {
+    std::string defines = "#version 330\n";
+
+    if (pAdditive.get()) {
+      defines += "#define ADDITIVE\n";
+    }
+
+    mShader = VistaGLSLShader();
+    mShader.InitVertexShaderFromString(defines + QUAD_VERT);
+    mShader.InitFragmentShaderFromString(defines + QUAD_FRAG);
+    mShader.Link();
+
+    mUniforms.modelViewMatrix  = mShader.GetUniformLocation("uMatModelView");
+    mUniforms.projectionMatrix = mShader.GetUniformLocation("uMatProjection");
+    mUniforms.color            = mShader.GetUniformLocation("uColor");
+    mUniforms.solidAngle       = mShader.GetUniformLocation("uSolidAngle");
+
+    mShaderDirty = false;
+  }
+
   cs::utils::FrameStats::ScopedTimer timer("Dot of " + mObjectName);
 
   // get model view and projection matrices
@@ -143,7 +159,12 @@ bool DeepSpaceDot::Do() {
 
   glEnable(GL_BLEND);
   glDepthMask(GL_FALSE);
-  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+  if (pAdditive.get()) {
+    glBlendFunc(GL_ONE, GL_ONE);
+  } else {
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+  }
 
   // draw simple dot
   mShader.Bind();
