@@ -22,7 +22,9 @@ namespace cs::core {
 class DeepSpaceDot : public IVistaOpenGLDraw {
  public:
   cs::utils::Property<VistaColor> pColor   = VistaColor(1, 1, 1); ///< The color of the marker.
-  cs::utils::Property<bool>       pVisible = true; ///< Whether the marker is visible.
+  cs::utils::Property<bool>       pVisible = true;    ///< Whether the marker is visible.
+  cs::utils::Property<float> pSolidAngle   = 0.0001F; ///< The marker's solid angle in steradians.
+  cs::utils::Property<int> pSortKey = static_cast<int>(cs::utils::DrawOrder::eTransparentItems) - 1;
 
   DeepSpaceDot(std::shared_ptr<cs::core::SolarSystem> solarSystem);
 
@@ -51,7 +53,7 @@ class DeepSpaceDot : public IVistaOpenGLDraw {
     uint32_t modelViewMatrix  = 0;
     uint32_t projectionMatrix = 0;
     uint32_t color            = 0;
-    uint32_t aspect           = 0;
+    uint32_t solidAngle       = 0;
   } mUniforms;
 
   static const char* QUAD_VERT;

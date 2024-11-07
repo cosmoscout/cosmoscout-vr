@@ -29,46 +29,34 @@ const char* DeepSpaceDot::QUAD_VERT = R"(
 
 out vec2 vTexCoords;
 
-uniform float uAspect;
+uniform float uSolidAngle;
 uniform mat4 uMatModelView;
 uniform mat4 uMatProjection;
 
 void main()
 {
-    vec4 pos = uMatModelView * vec4(0, 0, 0, 1);
+    vec3 pos = (uMatModelView * vec4(0, 0, 0, 1)).xyz;
 
-    pos = uMatProjection * pos;
+    float dist = length(pos);
+    vec3 y = vec3(0, 1, 0);
+    vec3 z = pos / dist;
+    vec3 x = normalize(cross(z, y));
+    y = normalize(cross(z, x));
 
-    if (pos.w < 0) {
-        gl_Position = vec4(0);
-        return;
-    }
+    const float xy[2] = float[2](0.5, -0.5);
+    const float PI = 3.14159265359;
+  
+    int i = gl_VertexID % 2;
+    int j = gl_VertexID / 2;
 
-    pos /= pos.w;
+    vTexCoords = vec2(xy[i], xy[j])*2;
 
-    float h = 0.0075;
-    float w = h / uAspect;
+    float diameter = 2.0 * sqrt(1 - pow(1-uSolidAngle/(2*PI), 2.0));
+    float scale = dist * diameter;
 
-    switch (gl_VertexID) {
-        case 0:
-            pos.xy += vec2(-w, h);
-            vTexCoords = vec2(1, 1);
-            break;
-        case 1:
-            pos.xy += vec2(w, h);
-            vTexCoords = vec2(-1, 1);
-            break;
-        case 2:
-            pos.xy += vec2(-w, -h);
-            vTexCoords = vec2(1, -1);
-            break;
-        default:
-            pos.xy += vec2(w, -h);
-            vTexCoords = vec2(-1, -1);
-            break;
-    }
+    pos += (xy[i] * x + xy[j] * y) * scale;
 
-    gl_Position = pos;
+    gl_Position = uMatProjection * vec4(pos, 1);
 }
 )";
 
@@ -103,13 +91,14 @@ DeepSpaceDot::DeepSpaceDot(std::shared_ptr<cs::core::SolarSystem> solarSystem)
   mUniforms.modelViewMatrix  = mShader.GetUniformLocation("uMatModelView");
   mUniforms.projectionMatrix = mShader.GetUniformLocation("uMatProjection");
   mUniforms.color            = mShader.GetUniformLocation("uColor");
-  mUniforms.aspect           = mShader.GetUniformLocation("uAspect");
+  mUniforms.solidAngle       = mShader.GetUniformLocation("uSolidAngle");
 
   // Add to scenegraph.
   VistaSceneGraph* pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
   mGLNode.reset(pSG->NewOpenGLNode(pSG->GetRoot(), this));
-  VistaOpenSGMaterialTools::SetSortKeyOnSubtree(
-      mGLNode.get(), static_cast<int>(cs::utils::DrawOrder::eTransparentItems) - 1);
+
+  pSortKey.connectAndTouch(
+      [this](int value) { VistaOpenSGMaterialTools::SetSortKeyOnSubtree(mGLNode.get(), value); });
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -144,10 +133,6 @@ bool DeepSpaceDot::Do() {
   }
 
   cs::utils::FrameStats::ScopedTimer timer("Dot of " + mObjectName);
-  // get viewport to draw dot with correct aspect ration
-  std::array<GLint, 4> viewport{};
-  glGetIntegerv(GL_VIEWPORT, viewport.data());
-  float fAspect = 1.F * viewport.at(2) / viewport.at(3);
 
   // get model view and projection matrices
   std::array<GLfloat, 16> glMatMV{};
@@ -165,7 +150,7 @@ bool DeepSpaceDot::Do() {
   glUniformMatrix4fv(mUniforms.modelViewMatrix, 1, GL_FALSE, glm::value_ptr(matMV));
   glUniformMatrix4fv(mUniforms.projectionMatrix, 1, GL_FALSE, glMatP.data());
   mShader.SetUniform(mUniforms.color, pColor.get()[0], pColor.get()[1], pColor.get()[2]);
-  mShader.SetUniform(mUniforms.aspect, fAspect);
+  mShader.SetUniform(mUniforms.solidAngle, pSolidAngle.get());
   glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
   mShader.Release();
 
