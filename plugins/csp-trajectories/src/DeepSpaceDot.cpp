@@ -7,8 +7,8 @@
 
 #include "DeepSpaceDot.hpp"
 
-#include "../cs-utils/FrameStats.hpp"
-#include "../cs-utils/utils.hpp"
+#include "../../../src/cs-utils/FrameStats.hpp"
+#include "../../../src/cs-utils/utils.hpp"
 
 #include <VistaKernel/GraphicsManager/VistaGraphicsManager.h>
 #include <VistaKernel/GraphicsManager/VistaOpenGLNode.h>
@@ -20,7 +20,7 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <utility>
 
-namespace cs::core {
+namespace csp::trajectories {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -31,30 +31,32 @@ uniform float uSolidAngle;
 uniform mat4 uMatModelView;
 uniform mat4 uMatProjection;
 
-void main()
-{
-    vec3 pos = (uMatModelView * vec4(0, 0, 0, 1)).xyz;
+void main() {
+  vec3 pos = (uMatModelView * vec4(0, 0, 0, 1)).xyz;
 
-    float dist = length(pos);
-    vec3 y = vec3(0, 1, 0);
-    vec3 z = pos / dist;
-    vec3 x = normalize(cross(z, y));
-    y = normalize(cross(z, x));
+  float dist = length(pos);
+  vec3 y = vec3(0, 1, 0);
+  vec3 z = pos / dist;
+  vec3 x = normalize(cross(z, y));
+  y = normalize(cross(z, x));
 
-    const float xy[2] = float[2](0.5, -0.5);
-    const float PI = 3.14159265359;
-  
-    int i = gl_VertexID % 2;
-    int j = gl_VertexID / 2;
+  float drawDist = 0.9 * dist;
 
-    vTexCoords = vec2(xy[i], xy[j])*2;
+  const float xy[2] = float[2](0.5, -0.5);
+  const float PI = 3.14159265359;
 
-    float diameter = 2.0 * sqrt(1 - pow(1-uSolidAngle/(2*PI), 2.0));
-    float scale = dist * diameter;
+  int i = gl_VertexID % 2;
+  int j = gl_VertexID / 2;
 
-    pos += (xy[i] * x + xy[j] * y) * scale;
+  vTexCoords = vec2(xy[i], xy[j])*2;
 
-    gl_Position = uMatProjection * vec4(pos, 1);
+  // float diameter = 2.0 * sqrt(1 - pow(1-uSolidAngle/(2*PI), 2.0));
+  float diameter = sqrt(uSolidAngle / (4 * PI)) * 4.0;
+  float scale = drawDist * diameter;
+
+  pos += (xy[i] * x + xy[j] * y) * scale;
+
+  gl_Position = uMatProjection * vec4(pos / dist * drawDist, 1);
 }
 )";
 
@@ -67,18 +69,22 @@ in vec2 vTexCoords;
 
 layout(location = 0) out vec4 oColor;
 
-void main()
-{
-    float dist = length(vTexCoords);
+void main() {
+  float dist = length(vTexCoords);
 
-    // This is basically a cone from above. The average value is 1.0.
-    float blob = clamp(1-dist, 0, 1) * 3;
+  // This is basically a cone from above. The average value is 1.0.
+  float blob = clamp(1-dist, 0, 1) * 3;
 
-  #ifdef ADDITIVE
-    oColor = vec4(uColor * blob, 1.0);
-  #else
-    oColor = vec4(uColor, blob);
-  #endif
+#if defined(MARKER_MODE)
+  oColor = vec4(uColor, blob);
+
+#elif defined(HDR_FLARE_MODE)
+  oColor = vec4(uColor, blob);
+
+#elif defined(LDR_FLARE_MODE)
+  float glow = 1.0 - pow(min(1.0, dist), 0.05);
+  oColor += vec4(uColor * glow * 10, 1.0);
+#endif
 }
 )";
 
@@ -91,10 +97,29 @@ DeepSpaceDot::DeepSpaceDot(std::shared_ptr<cs::core::SolarSystem> solarSystem)
   VistaSceneGraph* pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
   mGLNode.reset(pSG->NewOpenGLNode(pSG->GetRoot(), this));
 
-  pSortKey.connectAndTouch(
-      [this](int value) { VistaOpenSGMaterialTools::SetSortKeyOnSubtree(mGLNode.get(), value); });
+  pMode.connectAndTouch([this](Mode mode) {
+    switch (mode) {
+    case Mode::eMarker:
+      VistaOpenSGMaterialTools::SetSortKeyOnSubtree(
+          mGLNode.get(), static_cast<int>(cs::utils::DrawOrder::eTransparentItems) - 1);
+      break;
 
-  pAdditive.connectAndTouch([this](bool value) { mShaderDirty = true; });
+    case Mode::eLDRFlare:
+      VistaOpenSGMaterialTools::SetSortKeyOnSubtree(
+          mGLNode.get(), static_cast<int>(cs::utils::DrawOrder::ePlanets) - 1);
+      break;
+
+    case Mode::eHDRFlare:
+      VistaOpenSGMaterialTools::SetSortKeyOnSubtree(
+          mGLNode.get(), static_cast<int>(cs::utils::DrawOrder::ePlanets) + 1);
+      break;
+
+    default:
+      break;
+    }
+
+    mShaderDirty = true;
+  });
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -124,15 +149,19 @@ bool DeepSpaceDot::Do() {
   }
 
   auto object = mSolarSystem->getObject(mObjectName);
-  if (!object || !object->getIsOrbitVisible()) {
+  if (!object) {
     return true;
   }
 
   if (mShaderDirty) {
     std::string defines = "#version 330\n";
 
-    if (pAdditive.get()) {
-      defines += "#define ADDITIVE\n";
+    if (pMode.get() == Mode::eHDRFlare) {
+      defines += "#define HDR_FLARE_MODE\n";
+    } else if (pMode.get() == Mode::eLDRFlare) {
+      defines += "#define LDR_FLARE_MODE\n";
+    } else {
+      defines += "#define MARKER_MODE\n";
     }
 
     mShader = VistaGLSLShader();
@@ -148,7 +177,7 @@ bool DeepSpaceDot::Do() {
     mShaderDirty = false;
   }
 
-  cs::utils::FrameStats::ScopedTimer timer("Dot of " + mObjectName);
+  cs::utils::FrameStats::ScopedTimer timer("DeepSpaceDot for " + mObjectName);
 
   // get model view and projection matrices
   std::array<GLfloat, 16> glMatMV{};
@@ -157,10 +186,12 @@ bool DeepSpaceDot::Do() {
   glGetFloatv(GL_PROJECTION_MATRIX, glMatP.data());
   auto matMV = glm::make_mat4x4(glMatMV.data()) * glm::mat4(object->getObserverRelativeTransform());
 
+  glPushAttrib(GL_ENABLE_BIT | GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
   glEnable(GL_BLEND);
   glDepthMask(GL_FALSE);
 
-  if (pAdditive.get()) {
+  if (pMode.get() == Mode::eLDRFlare) {
     glBlendFunc(GL_ONE, GL_ONE);
   } else {
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -170,13 +201,13 @@ bool DeepSpaceDot::Do() {
   mShader.Bind();
   glUniformMatrix4fv(mUniforms.modelViewMatrix, 1, GL_FALSE, glm::value_ptr(matMV));
   glUniformMatrix4fv(mUniforms.projectionMatrix, 1, GL_FALSE, glMatP.data());
-  mShader.SetUniform(mUniforms.color, pColor.get()[0], pColor.get()[1], pColor.get()[2]);
-  mShader.SetUniform(mUniforms.solidAngle, pSolidAngle.get());
+  mShader.SetUniform(mUniforms.color, pLuminance.get() * pColor.get()[0],
+      pLuminance.get() * pColor.get()[1], pLuminance.get() * pColor.get()[2]);
+  mShader.SetUniform(mUniforms.solidAngle, std::min(pSolidAngle.get(), 3.9F * glm::pi<float>()));
   glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
   mShader.Release();
 
-  glDisable(GL_BLEND);
-  glDepthMask(GL_TRUE);
+  glPopAttrib();
 
   return true;
 }
@@ -189,4 +220,4 @@ bool DeepSpaceDot::GetBoundingBox(VistaBoundingBox& /*bb*/) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-} // namespace cs::core
+} // namespace csp::trajectories

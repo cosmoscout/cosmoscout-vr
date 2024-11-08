@@ -26,7 +26,6 @@
 
 namespace cs::core {
 class SolarSystem;
-class DeepSpaceDot;
 } // namespace cs::core
 
 namespace csp::simplebodies {
@@ -74,8 +73,7 @@ class SimpleBody : public cs::scene::CelestialSurface,
 
   std::string mObjectName;
 
-  std::unique_ptr<VistaOpenGLNode>        mGLNode;
-  std::unique_ptr<cs::core::DeepSpaceDot> mHDRDot;
+  std::unique_ptr<VistaOpenGLNode> mGLNode;
 
   Plugin::Settings::SimpleBody  mSimpleBodySettings;
   std::unique_ptr<VistaTexture> mTexture;

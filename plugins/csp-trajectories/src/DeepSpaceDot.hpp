@@ -5,27 +5,34 @@
 // SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
 // SPDX-License-Identifier: MIT
 
-#ifndef CS_CORE_DEEP_SPACE_DOT_HPP
-#define CS_CORE_DEEP_SPACE_DOT_HPP
+#ifndef CSP_TRAJECTORIES_DEEP_SPACE_DOT_HPP
+#define CSP_TRAJECTORIES_DEEP_SPACE_DOT_HPP
 
-#include "SolarSystem.hpp"
+#include "../../../src/cs-core/SolarSystem.hpp"
+#include "../../../src/cs-utils/utils.hpp"
 
 #include <VistaBase/VistaColor.h>
 #include <VistaKernel/GraphicsManager/VistaOpenGLDraw.h>
 #include <VistaOGLExt/VistaGLSLShader.h>
 #include <glm/glm.hpp>
 
-namespace cs::core {
+namespace csp::trajectories {
 
 /// A deep space dot is a simple marker indicating the position of an object, when it is too
 /// small to see.
 class DeepSpaceDot : public IVistaOpenGLDraw {
  public:
-  cs::utils::Property<VistaColor> pColor    = VistaColor(1, 1, 1); ///< The color of the marker.
-  cs::utils::Property<bool>       pVisible  = true;    ///< Whether the marker is visible.
-  cs::utils::Property<bool>       pAdditive = false;   ///< Blend mode.
-  cs::utils::Property<float> pSolidAngle    = 0.0001F; ///< The marker's solid angle in steradians.
-  cs::utils::Property<int> pSortKey = static_cast<int>(cs::utils::DrawOrder::eTransparentItems) - 1;
+  enum class Mode {
+    eMarker,
+    eLDRFlare,
+    eHDRFlare,
+  };
+
+  cs::utils::Property<VistaColor> pColor     = VistaColor(1, 1, 1); ///< The color of the marker.
+  cs::utils::Property<bool>       pVisible   = true; ///< Whether the marker is visible.
+  cs::utils::Property<Mode>       pMode      = Mode::eMarker;
+  cs::utils::Property<float>      pLuminance = 1.F;
+  cs::utils::Property<float> pSolidAngle     = 0.0001F; ///< The marker's solid angle in steradians.
 
   DeepSpaceDot(std::shared_ptr<cs::core::SolarSystem> solarSystem);
 
@@ -63,6 +70,6 @@ class DeepSpaceDot : public IVistaOpenGLDraw {
   static const char* QUAD_FRAG;
 };
 
-} // namespace cs::core
+} // namespace csp::trajectories
 
 #endif // CSP_TRAJECTORIES_DEEP_SPACE_DOT_HPP

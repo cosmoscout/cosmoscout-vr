@@ -8,7 +8,6 @@
 #include "SimpleBody.hpp"
 #include "logger.hpp"
 
-#include "../../../src/cs-core/DeepSpaceDot.hpp"
 #include "../../../src/cs-core/Settings.hpp"
 #include "../../../src/cs-core/SolarSystem.hpp"
 #include "../../../src/cs-graphics/TextureLoader.hpp"
@@ -238,7 +237,6 @@ SimpleBody::SimpleBody(std::shared_ptr<cs::core::Settings> settings,
     std::shared_ptr<cs::core::SolarSystem>                 solarSystem)
     : mSettings(std::move(settings))
     , mSolarSystem(std::move(solarSystem))
-    , mHDRDot(std::make_unique<cs::core::DeepSpaceDot>(mSolarSystem))
     , mEclipseShadowReceiver(mSettings, mSolarSystem, false) {
 
   // For rendering the sphere, we create a 2D-grid which is warped into a sphere in the vertex
@@ -284,13 +282,8 @@ SimpleBody::SimpleBody(std::shared_ptr<cs::core::Settings> settings,
   // Recreate the shader if lighting or HDR rendering mode are toggled.
   mEnableLightingConnection = mSettings->mGraphics.pEnableLighting.connect(
       [this](bool /*enabled*/) { mShaderDirty = true; });
-  mEnableHDRConnection = mSettings->mGraphics.pEnableHDR.connectAndTouch([this](bool enabled) {
-    mShaderDirty      = true;
-    mHDRDot->pVisible = enabled;
-  });
-
-  mHDRDot->pSortKey  = static_cast<int>(cs::utils::DrawOrder::ePlanets) + 1;
-  mHDRDot->pAdditive = true;
+  mEnableHDRConnection = mSettings->mGraphics.pEnableHDR.connectAndTouch(
+      [this](bool enabled) { mShaderDirty = true; });
 
   // Add to scenegraph.
   VistaSceneGraph* pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
@@ -331,7 +324,6 @@ void SimpleBody::configure(Plugin::Settings::SimpleBody const& settings) {
 
 void SimpleBody::setObjectName(std::string objectName) {
   mObjectName = std::move(objectName);
-  mHDRDot->setObjectName(mObjectName);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -393,46 +385,6 @@ void SimpleBody::update() {
     cs::utils::FrameStats::ScopedTimer timer(
         "Update " + parent->getCenterName(), cs::utils::FrameStats::TimerMode::eCPU);
     mEclipseShadowReceiver.update(*parent);
-  }
-
-  // If HDR is enabled, we draw a small dot at the position of the body. This will be always the
-  // same size in screen space, no matter how far away the body is. This way we can always see the
-  // position of the body, even if it is too small to see. We compute the luminance of the dot based
-  // on the distance to the dot and the apparent phase angle of the body.
-  if (mSettings->mGraphics.pEnableHDR.get() && parent && parent->getIsOrbitVisible()) {
-
-    auto   toBody   = parent->getObserverRelativePosition();
-    double bodyDist = glm::length(toBody);
-    auto   toSun    = mSolarSystem->getSunDirection(parent->getObserverRelativePosition());
-    double sunDist  = glm::length(toSun);
-
-    double phaseAngle = 2.0 * glm::asin(0.5 * glm::length(toBody / bodyDist - toSun / sunDist));
-    double phase      = phaseAngle / glm::pi<double>();
-
-    double sceneScale = mSolarSystem->getObserver().getScale();
-
-    double bodyAngularSize = glm::asin(parent->getRadii()[0] / (bodyDist * sceneScale));
-    double bodySolidAngle  = 2.0 * glm::pi<double>() * (1.0 - glm::cos(bodyAngularSize));
-    double scaleFac        = bodySolidAngle / mHDRDot->pSolidAngle.get();
-
-    double luminance = 0.0;
-
-    if (mObjectName == "Sun") {
-      luminance = scaleFac * mSolarSystem->getSunLuminance();
-
-    } else {
-
-      double illuminance = mSolarSystem->getSunIlluminance(parent->getObserverRelativePosition());
-      luminance          = phase * scaleFac * illuminance / glm::pi<double>();
-
-      if (mObjectName == "Earth") {
-        // logger().info("Earth phase: {}", phase);
-      }
-    }
-
-    auto albedo = mSimpleBodySettings.mAlbedo.get();
-
-    mHDRDot->pColor = VistaColor(luminance * albedo.r, luminance * albedo.g, luminance * albedo.b);
   }
 }
 
