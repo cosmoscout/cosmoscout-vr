@@ -214,8 +214,19 @@ void Plugin::update() {
       double bodyAngularSize = std::asin(object->getRadii()[0] / (bodyDist * sceneScale));
       double bodySolidAngle =
           4.0 * glm::pi<double>() * std::pow(std::sin(bodyAngularSize * 0.5), 2.0);
-      flare->pSolidAngle = std::min(0.001, std::max(bodySolidAngle, 0.00001));
-      double scaleFac    = bodySolidAngle / flare->pSolidAngle.get();
+
+      double maxSolidAngle     = 0.001;
+      double fadeEndSolidAngle = 0.0001;
+      double minSolidAngle     = 0.00001;
+
+      double flareSolidAngle = glm::clamp(bodySolidAngle * 1.2, minSolidAngle, maxSolidAngle);
+
+      double alpha = glm::clamp(
+          1.0 - (flareSolidAngle - fadeEndSolidAngle) / (maxSolidAngle - fadeEndSolidAngle), 0.0,
+          1.0);
+      alpha = std::pow(alpha, 10.0);
+
+      double scaleFac = bodySolidAngle / flareSolidAngle;
 
       double luminance = 0.0;
 
@@ -228,7 +239,10 @@ void Plugin::update() {
         luminance          = phase * scaleFac * illuminance / glm::pi<double>();
       }
 
-      flare->pLuminance = luminance;
+      flare->pSolidAngle = flareSolidAngle;
+      flare->pLuminance  = luminance;
+      flare->pColor      = VistaColor(flare->pColor.get()[0], flare->pColor.get()[1],
+               flare->pColor.get()[2], static_cast<float>(alpha));
     }
   }
 

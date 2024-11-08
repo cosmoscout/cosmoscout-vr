@@ -63,7 +63,7 @@ void main() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 const char* DeepSpaceDot::QUAD_FRAG = R"(
-uniform vec3 uColor;
+uniform vec4 uColor;
 
 in vec2 vTexCoords;
 
@@ -76,14 +76,14 @@ void main() {
   float blob = clamp(1-dist, 0, 1) * 3;
 
 #if defined(MARKER_MODE)
-  oColor = vec4(uColor, blob);
+  oColor = vec4(uColor.rgb, blob * uColor.a);
 
 #elif defined(HDR_FLARE_MODE)
-  oColor = vec4(uColor, blob);
+  oColor = vec4(uColor.rgb, blob * uColor.a);
 
 #elif defined(LDR_FLARE_MODE)
   float glow = 1.0 - pow(min(1.0, dist), 0.05);
-  oColor += vec4(uColor * glow * 10, 1.0);
+  oColor += vec4(uColor.rgb * 10, glow * uColor.a);
 #endif
 }
 )";
@@ -111,7 +111,7 @@ DeepSpaceDot::DeepSpaceDot(std::shared_ptr<cs::core::SolarSystem> solarSystem)
 
     case Mode::eHDRFlare:
       VistaOpenSGMaterialTools::SetSortKeyOnSubtree(
-          mGLNode.get(), static_cast<int>(cs::utils::DrawOrder::ePlanets) + 1);
+          mGLNode.get(), static_cast<int>(cs::utils::DrawOrder::eAtmospheres) + 1);
       break;
 
     default:
@@ -191,18 +191,14 @@ bool DeepSpaceDot::Do() {
   glEnable(GL_BLEND);
   glDepthMask(GL_FALSE);
 
-  if (pMode.get() == Mode::eLDRFlare) {
-    glBlendFunc(GL_ONE, GL_ONE);
-  } else {
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-  }
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
   // draw simple dot
   mShader.Bind();
   glUniformMatrix4fv(mUniforms.modelViewMatrix, 1, GL_FALSE, glm::value_ptr(matMV));
   glUniformMatrix4fv(mUniforms.projectionMatrix, 1, GL_FALSE, glMatP.data());
   mShader.SetUniform(mUniforms.color, pLuminance.get() * pColor.get()[0],
-      pLuminance.get() * pColor.get()[1], pLuminance.get() * pColor.get()[2]);
+      pLuminance.get() * pColor.get()[1], pLuminance.get() * pColor.get()[2], pColor.get()[3]);
   mShader.SetUniform(mUniforms.solidAngle, std::min(pSolidAngle.get(), 3.9F * glm::pi<float>()));
   glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
   mShader.Release();

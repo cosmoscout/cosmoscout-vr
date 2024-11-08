@@ -28,7 +28,7 @@ class DeepSpaceDot : public IVistaOpenGLDraw {
     eHDRFlare,
   };
 
-  cs::utils::Property<VistaColor> pColor     = VistaColor(1, 1, 1); ///< The color of the marker.
+  cs::utils::Property<VistaColor> pColor     = VistaColor(1, 1, 1, 1); ///< The color of the marker.
   cs::utils::Property<bool>       pVisible   = true; ///< Whether the marker is visible.
   cs::utils::Property<Mode>       pMode      = Mode::eMarker;
   cs::utils::Property<float>      pLuminance = 1.F;
