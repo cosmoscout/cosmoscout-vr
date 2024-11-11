@@ -955,8 +955,7 @@
             1,
             1
           ],
-          "drawDot": true,
-          "drawFlare": true
+          "drawLDRFlare": true
         },
         "Mercury": {
           "color": [
@@ -964,12 +963,16 @@
             0.6,
             0.3
           ],
+          "flareColor": [
+            0.5,
+            0.5,
+            0.5
+          ],
           "trail": {
             "length": 87.9,
             "samples": 1000,
             "parent": "Barycenter"
-          },
-          "drawDot": true
+          }
         },
         "Venus": {
           "color": [
@@ -977,12 +980,16 @@
             0.8,
             0.6
           ],
+          "flareColor": [
+            0.7,
+            0.6,
+            0.3
+          ],
           "trail": {
             "length": 224.5,
             "samples": 1000,
             "parent": "Barycenter"
-          },
-          "drawDot": true
+          }
         },
         "Earth": {
           "color": [
@@ -990,12 +997,16 @@
             1.0,
             0.4
           ],
+          "flareColor": [
+            0.3,
+            0.3,
+            0.4
+          ],
           "trail": {
             "length": 365.0,
             "samples": 5000,
             "parent": "Barycenter"
-          },
-          "drawDot": true
+          }
         },
         "Moon": {
           "color": [
@@ -1003,12 +1014,16 @@
             0.8,
             0.8
           ],
+          "flareColor": [
+            0.5,
+            0.5,
+            0.5
+          ],
           "trail": {
             "length": 28.0,
             "samples": 1000,
             "parent": "EarthJ2000"
-          },
-          "drawDot": true
+          }
         },
         "Mars": {
           "color": [
@@ -1016,12 +1031,16 @@
             0.4,
             0.3
           ],
+          "flareColor": [
+            0.6,
+            0.3,
+            0.2
+          ],
           "trail": {
             "length": 686.0,
             "samples": 5000,
             "parent": "Barycenter"
-          },
-          "drawDot": true
+          }
         },
         "Phobos": {
           "color": [
@@ -1029,12 +1048,16 @@
             0.8,
             0.6
           ],
+          "flareColor": [
+            0.5,
+            0.5,
+            0.5
+          ],
           "trail": {
             "length": 0.31,
             "samples": 200,
             "parent": "MarsJ2000"
-          },
-          "drawDot": true
+          }
         },
         "Deimos": {
           "color": [
@@ -1042,12 +1065,16 @@
             0.61,
             0.56
           ],
+          "flareColor": [
+            0.5,
+            0.5,
+            0.5
+          ],
           "trail": {
             "length": 1.26,
             "samples": 200,
             "parent": "MarsJ2000"
-          },
-          "drawDot": true
+          }
         },
         "Ceres": {
           "color": [
@@ -1055,15 +1082,24 @@
             0.4,
             0.4
           ],
+          "flareColor": [
+            0.5,
+            0.5,
+            0.5
+          ],
           "trail": {
             "length": 1680,
             "samples": 1000,
             "parent": "Barycenter"
-          },
-          "drawDot": true
+          }
         },
         "Vesta": {
           "color": [
+            0.5,
+            0.5,
+            0.5
+          ],
+          "flareColor": [
             0.5,
             0.5,
             0.5
@@ -1072,8 +1108,7 @@
             "length": 1326,
             "samples": 1000,
             "parent": "Barycenter"
-          },
-          "drawDot": true
+          }
         },
         "Jupiter": {
           "color": [
@@ -1085,8 +1120,7 @@
             "length": 4330,
             "samples": 1000,
             "parent": "Barycenter"
-          },
-          "drawDot": true
+          }
         },
         "Io": {
           "color": [
@@ -1098,8 +1132,7 @@
             "length": 1.75,
             "samples": 200,
             "parent": "JupiterJ2000"
-          },
-          "drawDot": true
+          }
         },
         "Europa": {
           "color": [
@@ -1111,8 +1144,7 @@
             "length": 3.55,
             "samples": 200,
             "parent": "JupiterJ2000"
-          },
-          "drawDot": true
+          }
         },
         "Ganymede": {
           "color": [
@@ -1124,8 +1156,7 @@
             "length": 7.15,
             "samples": 200,
             "parent": "JupiterJ2000"
-          },
-          "drawDot": true
+          }
         },
         "Callisto": {
           "color": [
@@ -1137,8 +1168,7 @@
             "length": 16.69,
             "samples": 200,
             "parent": "JupiterJ2000"
-          },
-          "drawDot": true
+          }
         },
         "Saturn": {
           "color": [
@@ -1150,8 +1180,7 @@
             "length": 10749,
             "samples": 1000,
             "parent": "Barycenter"
-          },
-          "drawDot": true
+          }
         },
         "Mimas": {
           "color": [
@@ -1163,8 +1192,7 @@
             "length": 0.94,
             "samples": 200,
             "parent": "SaturnJ2000"
-          },
-          "drawDot": true
+          }
         },
         "Enceladus": {
           "color": [
@@ -1176,8 +1204,7 @@
             "length": 1.37,
             "samples": 200,
             "parent": "SaturnJ2000"
-          },
-          "drawDot": true
+          }
         },
         "Tethys": {
           "color": [
@@ -1189,8 +1216,7 @@
             "length": 1.9,
             "samples": 200,
             "parent": "SaturnJ2000"
-          },
-          "drawDot": true
+          }
         },
         "Dione": {
           "color": [
@@ -1202,8 +1228,7 @@
             "length": 2.74,
             "samples": 200,
             "parent": "SaturnJ2000"
-          },
-          "drawDot": true
+          }
         },
         "Rhea": {
           "color": [
@@ -1215,8 +1240,7 @@
             "length": 4.52,
             "samples": 200,
             "parent": "SaturnJ2000"
-          },
-          "drawDot": true
+          }
         },
         "Titan": {
           "color": [
@@ -1228,8 +1252,7 @@
             "length": 15.95,
             "samples": 200,
             "parent": "SaturnJ2000"
-          },
-          "drawDot": true
+          }
         },
         "Iapetus": {
           "color": [
@@ -1241,8 +1264,7 @@
             "length": 79.3,
             "samples": 200,
             "parent": "SaturnJ2000"
-          },
-          "drawDot": true
+          }
         },
         "Uranus": {
           "color": [
@@ -1254,8 +1276,7 @@
             "length": 17885,
             "samples": 1000,
             "parent": "Barycenter"
-          },
-          "drawDot": true
+          }
         },
         "Miranda": {
           "color": [
@@ -1267,8 +1288,7 @@
             "length": 1.41,
             "samples": 200,
             "parent": "UranusJ2000"
-          },
-          "drawDot": true
+          }
         },
         "Ariel": {
           "color": [
@@ -1280,8 +1300,7 @@
             "length": 2.52,
             "samples": 200,
             "parent": "UranusJ2000"
-          },
-          "drawDot": true
+          }
         },
         "Umbriel": {
           "color": [
@@ -1293,8 +1312,7 @@
             "length": 4.14,
             "samples": 200,
             "parent": "UranusJ2000"
-          },
-          "drawDot": true
+          }
         },
         "Titania": {
           "color": [
@@ -1306,8 +1324,7 @@
             "length": 8.71,
             "samples": 200,
             "parent": "UranusJ2000"
-          },
-          "drawDot": true
+          }
         },
         "Oberon": {
           "color": [
@@ -1319,8 +1336,7 @@
             "length": 13.5,
             "samples": 200,
             "parent": "UranusJ2000"
-          },
-          "drawDot": true
+          }
         },
         "Neptune": {
           "color": [
@@ -1332,8 +1348,7 @@
             "length": 17885,
             "samples": 1000,
             "parent": "Barycenter"
-          },
-          "drawDot": true
+          }
         },
         "Triton": {
           "color": [
@@ -1345,8 +1360,7 @@
             "length": 5.88,
             "samples": 200,
             "parent": "NeptuneJ2000"
-          },
-          "drawDot": true
+          }
         },
         "Pluto": {
           "color": [
@@ -1358,8 +1372,7 @@
             "length": 18250,
             "samples": 1000,
             "parent": "Barycenter"
-          },
-          "drawDot": true
+          }
         },
         "Charon": {
           "color": [
@@ -1371,8 +1384,7 @@
             "length": 6.39,
             "samples": 200,
             "parent": "PlutoJ2000"
-          },
-          "drawDot": true
+          }
         }
       }
     },
