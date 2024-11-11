@@ -19,20 +19,42 @@
 namespace csp::trajectories {
 
 /// A deep space dot is a simple marker indicating the position of an object, when it is too
-/// small to see.
+/// small to be seen. It can be used as a HUD element (a colorful circle which is drawn after tone
+/// mapping) or as a flare (a bright glowing circle which is drawn before tone mapping).
 class DeepSpaceDot : public IVistaOpenGLDraw {
  public:
+  /// The mode of the marker.
   enum class Mode {
+    /// In this mode, the marker is drawn after tone mapping.
     eMarker,
+
+    /// In this mode, the marker is drawn before the planets and moons. A exponential glow effect
+    /// is applied to the marker. This is useful to add an artificial glow to an object in non-HDR
+    /// mode.
     eLDRFlare,
+
+    /// In this mode, the marker is drawn after the planets. It is a simple circle with the given
+    /// luminance. Thanks to the HDR rendering and the camera glow effect, the luminance will spread
+    /// out and result in a realistic glowing effect.
     eHDRFlare,
   };
 
-  cs::utils::Property<VistaColor> pColor     = VistaColor(1, 1, 1, 1); ///< The color of the marker.
-  cs::utils::Property<bool>       pVisible   = true; ///< Whether the marker is visible.
-  cs::utils::Property<Mode>       pMode      = Mode::eMarker;
-  cs::utils::Property<float>      pLuminance = 1.F;
-  cs::utils::Property<float> pSolidAngle     = 0.0001F; ///< The marker's solid angle in steradians.
+  /// Shows or hides the marker.
+  cs::utils::Property<bool> pVisible = true;
+
+  /// The mode of the marker.
+  cs::utils::Property<Mode> pMode = Mode::eMarker;
+
+  /// The color of the marker. In eHDRFlare mode, this corresponds to the average albedo of the
+  /// object.
+  cs::utils::Property<VistaColor> pColor = VistaColor(1, 1, 1, 1);
+
+  /// This is used as a multiplier for the color. In eMarker and eLDRFlare mode, this should be
+  /// 1.0. In eHDRFlare mode, this should be the luminance of the object.
+  cs::utils::Property<float> pLuminance = 1.F;
+
+  /// The solid angle of the marker in steradians.
+  cs::utils::Property<float> pSolidAngle = 0.0001F;
 
   DeepSpaceDot(std::shared_ptr<cs::core::SolarSystem> solarSystem);
 

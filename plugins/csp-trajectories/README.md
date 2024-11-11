@@ -37,7 +37,6 @@ This plugin can be enabled with the following configuration in your `settings.js
           "drawLDRFlare": <boolean>,              // optional, default: false
           "drawHDRFlare": <boolean>,              // optional, default: true
           "flareColor": [<red>, <green>, <blue>], // optional, default: 1, 1, 1
-          "ldrFlareScale": <float>,               // optional, default: 10
           "trail": {                                // optional
             "length": <float>,                      // in days
             "samples": <int>,

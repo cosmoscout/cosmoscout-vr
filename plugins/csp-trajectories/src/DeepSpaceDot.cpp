@@ -42,19 +42,18 @@ void main() {
 
   float drawDist = 0.9 * dist;
 
-  const float xy[2] = float[2](0.5, -0.5);
+  const float offset[2] = float[2](0.5, -0.5);
   const float PI = 3.14159265359;
 
   int i = gl_VertexID % 2;
   int j = gl_VertexID / 2;
 
-  vTexCoords = vec2(xy[i], xy[j])*2;
+  vTexCoords = vec2(offset[i], offset[j]) * 2.0;
 
-  // float diameter = 2.0 * sqrt(1 - pow(1-uSolidAngle/(2*PI), 2.0));
   float diameter = sqrt(uSolidAngle / (4 * PI)) * 4.0;
   float scale = drawDist * diameter;
 
-  pos += (xy[i] * x + xy[j] * y) * scale;
+  pos += (offset[i] * x + offset[j] * y) * scale;
 
   gl_Position = uMatProjection * vec4(pos / dist * drawDist, 1);
 }
@@ -82,8 +81,10 @@ void main() {
   oColor = vec4(uColor.rgb, blob * uColor.a);
 
 #elif defined(LDR_FLARE_MODE)
-  float glow = 1.0 - pow(min(1.0, dist), 0.05);
-  oColor += vec4(uColor.rgb * 10, glow * uColor.a);
+  // The quad is drawn ten times larger than the object it represents. Hence we should make the
+  // glow function equal to one at a distance of 0.1.
+  float glow = 1.0 - pow(clamp((dist-0.1)/(1.0 - 0.1), 0.0, 1.0), 0.2);
+  oColor = vec4(uColor.rgb, glow * uColor.a);
 #endif
 }
 )";

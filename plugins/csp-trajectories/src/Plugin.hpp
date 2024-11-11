@@ -21,7 +21,9 @@ class DeepSpaceDot;
 class Trajectory;
 
 /// This plugin is providing HUD elements that display trajectories and markers for orbiting
-/// objects. The configuration of this plugin is done via the provided json config. See README.md
+/// objects. It also draws some flares around objects in HDR and non-HDR mode so that bodies
+/// are visible even if they are smaller than a pixel.
+/// The configuration of this plugin is done via the provided json config. See README.md
 /// for details.
 class Plugin : public cs::core::PluginBase {
  public:
@@ -62,9 +64,6 @@ class Plugin : public cs::core::PluginBase {
 
       /// Specifies the color of the flare.
       cs::utils::DefaultProperty<glm::vec3> mFlareColor{glm::vec3(1.F, 1.F, 1.F)};
-
-      /// The scale of the flare. This is multiplied with the apparent size of the object.
-      cs::utils::DefaultProperty<float> mLDRFlareScale{10.F};
 
       /// If available a trail will be drawn behind the object.
       std::optional<Trail> mTrail;

@@ -54,7 +54,6 @@ void from_json(nlohmann::json const& j, Plugin::Settings::Trajectory& o) {
   cs::core::Settings::deserialize(j, "drawLDRFlare", o.mDrawLDRFlare);
   cs::core::Settings::deserialize(j, "drawHDRFlare", o.mDrawHDRFlare);
   cs::core::Settings::deserialize(j, "flareColor", o.mFlareColor);
-  cs::core::Settings::deserialize(j, "ldrFlareScale", o.mLDRFlareScale);
   cs::core::Settings::deserialize(j, "trail", o.mTrail);
 }
 
@@ -62,10 +61,8 @@ void to_json(nlohmann::json& j, Plugin::Settings::Trajectory const& o) {
   cs::core::Settings::serialize(j, "color", o.mColor);
   cs::core::Settings::serialize(j, "drawDot", o.mDrawDot);
   cs::core::Settings::serialize(j, "drawLDRFlare", o.mDrawLDRFlare);
-  cs::core::Settings::serialize(j, "drawLDRFlare", o.mDrawLDRFlare);
   cs::core::Settings::serialize(j, "drawHDRFlare", o.mDrawHDRFlare);
   cs::core::Settings::serialize(j, "flareColor", o.mFlareColor);
-  cs::core::Settings::serialize(j, "ldrFlareScale", o.mLDRFlareScale);
   cs::core::Settings::serialize(j, "trail", o.mTrail);
 }
 
@@ -113,18 +110,18 @@ void Plugin::init() {
     mGuiManager->setCheckboxValue("trajectories.setEnableTrajectoryDots", enable);
   });
 
-  mGuiManager->getGui()->registerCallback("trajectories.setEnableLDRFlare",
+  mGuiManager->getGui()->registerCallback("trajectories.setEnableLDRFlares",
       "Enables or disables the rendering of a glare around objects in non-HDR mode.",
       std::function([this](bool value) { mPluginSettings->mEnableLDRFlares = value; }));
   mPluginSettings->mEnableLDRFlares.connectAndTouch([this](bool enable) {
-    mGuiManager->setCheckboxValue("trajectories.setEnableLDRFlare", enable);
+    mGuiManager->setCheckboxValue("trajectories.setEnableLDRFlares", enable);
   });
 
-  mGuiManager->getGui()->registerCallback("trajectories.setEnableHDRFlare",
+  mGuiManager->getGui()->registerCallback("trajectories.setEnableHDRFlares",
       "Enables or disables the rendering of a glare around objects in HDR mode.",
       std::function([this](bool value) { mPluginSettings->mEnableHDRFlares = value; }));
   mPluginSettings->mEnableHDRFlares.connectAndTouch([this](bool enable) {
-    mGuiManager->setCheckboxValue("trajectories.setEnableHDRFlare", enable);
+    mGuiManager->setCheckboxValue("trajectories.setEnableHDRFlares", enable);
   });
 
   // Load settings.
@@ -145,7 +142,8 @@ void Plugin::deInit() {
 
   mGuiManager->getGui()->unregisterCallback("trajectories.setEnableTrajectories");
   mGuiManager->getGui()->unregisterCallback("trajectories.setEnableTrajectoryDots");
-  mGuiManager->getGui()->unregisterCallback("trajectories.setEnableLDRFlare");
+  mGuiManager->getGui()->unregisterCallback("trajectories.setEnableLDRFlares");
+  mGuiManager->getGui()->unregisterCallback("trajectories.setEnableHDRFlares");
 
   mAllSettings->onLoad().disconnect(mOnLoadConnection);
   mAllSettings->onSave().disconnect(mOnSaveConnection);
@@ -160,19 +158,26 @@ void Plugin::update() {
     trajectory->update(mTimeControl->pSimulationTime.get());
   }
 
+  // Checks whether the given DeepSpaceDot should be visible or not. Depending on the mode of the
+  // dot, the visibility is determined by the settings and the visibility of the object it is
+  // attached to.
   auto updateVisibility = [this](std::unique_ptr<DeepSpaceDot> const& dot) {
     bool visible = false;
 
     switch (dot->pMode.get()) {
+
+    // Marker type dots are always visible if enabled in the settings.
     case DeepSpaceDot::Mode::eMarker:
       visible = mPluginSettings->mEnablePlanetMarks.get();
       break;
 
+    // LDR flare type dots are only visible if HDR is disabled.
     case DeepSpaceDot::Mode::eLDRFlare:
       visible =
           mPluginSettings->mEnableLDRFlares.get() && !mAllSettings->mGraphics.pEnableHDR.get();
       break;
 
+    // HDR flare type dots are only visible if HDR is enabled.
     case DeepSpaceDot::Mode::eHDRFlare:
       visible = mPluginSettings->mEnableHDRFlares.get() && mAllSettings->mGraphics.pEnableHDR.get();
       break;
@@ -181,6 +186,7 @@ void Plugin::update() {
       break;
     }
 
+    // Hide all dots if the orbit of the object they are attached to is not visible.
     if (visible) {
       auto objectName = dot->getObjectName();
       auto object     = mSolarSystem->getObject(objectName);
@@ -192,10 +198,39 @@ void Plugin::update() {
     return visible;
   };
 
-  // If HDR is enabled, we draw a small dot at the position of the body. This will be always the
-  // same size in screen space, no matter how far away the body is. This way we can always see the
-  // position of the body, even if it is too small to see. We compute the luminance of the dot based
-  // on the distance to the dot and the apparent phase angle of the body.
+  // First update all trajectory dots. We only have to show or hide them.
+  for (auto const& dot : mTrajectoryDots) {
+    updateVisibility(dot);
+  }
+
+  // Next update the visibility of the LDR flares. We compute their size to be be ten times the
+  // angular size of the body they are attached to.
+  for (auto const& flare : mLDRFlares) {
+    if (updateVisibility(flare)) {
+      auto objectName = flare->getObjectName();
+      auto object     = mSolarSystem->getObject(objectName);
+
+      double bodyDist   = glm::length(object->getObserverRelativePosition());
+      double sceneScale = mSolarSystem->getObserver().getScale();
+
+      double bodyAngularSize  = std::asin(object->getRadii()[0] / (bodyDist * sceneScale));
+      double flareAngularSize = bodyAngularSize * 10.0;
+
+      flare->pSolidAngle =
+          4.0 * glm::pi<double>() * std::pow(std::sin(flareAngularSize * 0.5), 2.0);
+    }
+  }
+
+  // Finally update all HDR flares. Usually, we scale them to be the same size as the body they are
+  // attached to. However, there is a hard-coded upper and lower limit: The flares do not get larger
+  // than 0.001 steradians and they do not get smaller than 0.00001 steradians. Between 0.0001 and
+  // 0.001 steradians the flares fade out. As the flare is drawn on top of the body, the flare
+  // starts covering the body at 0.001 steradians and completely hides it at 0.0001 steradians. This
+  // avoids severe flickering when the body gets very small in screen space. The lower limit of
+  // 0.00001 steradians ensures that the flare is always visible, even if the body is very far away.
+  // We scale the luminance of the flare so that it contributes the same amount of energy to the
+  // framebuffer as the body would if it was visible. We also incorporate the phase angle into this
+  // calculation. The phase angle is the angle between the observer, the body, and the sun.
   for (auto const& flare : mHDRFlares) {
     if (updateVisibility(flare)) {
       auto objectName = flare->getObjectName();
@@ -206,35 +241,39 @@ void Plugin::update() {
       auto   toSun    = mSolarSystem->getSunDirection(object->getObserverRelativePosition());
       double sunDist  = glm::length(toSun);
 
-      double phaseAngle = 2.0 * glm::asin(0.5 * glm::length(toBody / bodyDist - toSun / sunDist));
-      double phase      = phaseAngle / glm::pi<double>();
-
-      double sceneScale = mSolarSystem->getObserver().getScale();
-
+      double sceneScale      = mSolarSystem->getObserver().getScale();
       double bodyAngularSize = std::asin(object->getRadii()[0] / (bodyDist * sceneScale));
       double bodySolidAngle =
           4.0 * glm::pi<double>() * std::pow(std::sin(bodyAngularSize * 0.5), 2.0);
 
-      double maxSolidAngle     = 0.001;
-      double fadeEndSolidAngle = 0.0001;
-      double minSolidAngle     = 0.00001;
+      double maxSolidAngle     = 0.001;   // The flare is invisible above this solid angle.
+      double fadeEndSolidAngle = 0.0001;  // The flare is fully visible below this solid angle.
+      double minSolidAngle     = 0.00001; // The flare will not get smaller than this.
 
+      // We make the flare a bit larger than the body to ensure that it covers the body completely.
       double flareSolidAngle = glm::clamp(bodySolidAngle * 1.2, minSolidAngle, maxSolidAngle);
 
+      // Fade the flare out between fadeEndSolidAngle and maxSolidAngle.
       double alpha = glm::clamp(
           1.0 - (flareSolidAngle - fadeEndSolidAngle) / (maxSolidAngle - fadeEndSolidAngle), 0.0,
           1.0);
+
+      // Make the fade perceptually more linear.
       alpha = std::pow(alpha, 10.0);
 
+      // Scale the luminance of the flare so that it contributes the same amount of energy to the
+      // framebuffer as if it had the same solid angle as the body.
       double scaleFac = bodySolidAngle / flareSolidAngle;
 
       double luminance = 0.0;
 
+      // For the Sun, we use the actual luminance of the Sun. For all other objects, we compute the
+      // luminance based on the phase angle between the observer, the body, and the Sun.
       if (objectName == "Sun") {
         luminance = scaleFac * mSolarSystem->getSunLuminance();
-
       } else {
-
+        double phaseAngle = 2.0 * glm::asin(0.5 * glm::length(toBody / bodyDist - toSun / sunDist));
+        double phase      = phaseAngle / glm::pi<double>();
         double illuminance = mSolarSystem->getSunIlluminance(object->getObserverRelativePosition());
         luminance          = phase * scaleFac * illuminance / glm::pi<double>();
       }
@@ -244,31 +283,6 @@ void Plugin::update() {
       flare->pColor      = VistaColor(flare->pColor.get()[0], flare->pColor.get()[1],
                flare->pColor.get()[2], static_cast<float>(alpha));
     }
-  }
-
-  for (auto const& flare : mLDRFlares) {
-    if (updateVisibility(flare)) {
-      auto objectName = flare->getObjectName();
-      auto object     = mSolarSystem->getObject(objectName);
-
-      auto   toBody   = object->getObserverRelativePosition();
-      double bodyDist = glm::length(toBody);
-
-      double sceneScale = mSolarSystem->getObserver().getScale();
-
-      double bodyAngularSize  = std::asin(object->getRadii()[0] / (bodyDist * sceneScale));
-      double flareAngularSize = std::min(glm::pi<double>() * 0.5, bodyAngularSize * 10.0);
-
-      flare->pSolidAngle =
-          4.0 * glm::pi<double>() * std::pow(std::sin(flareAngularSize * 0.5), 2.0);
-
-      logger().info("Body angle: {} Flare angle: {} Flare solid angle: {}",
-          glm::degrees(bodyAngularSize), glm::degrees(flareAngularSize), flare->pSolidAngle.get());
-    }
-  }
-
-  for (auto const& dot : mTrajectoryDots) {
-    updateVisibility(dot);
   }
 }
 
@@ -311,11 +325,10 @@ void Plugin::onLoad() {
   size_t dotIndex        = 0;
   size_t trajectoryIndex = 0;
 
-  // Now we go through all configured trajectories and create all required SunFlares and
-  // DeepSpaceDots.
+  // Now we go through all configured trajectories and create all required dots, flares, and trails.
   for (auto const& settings : mPluginSettings->mTrajectories) {
 
-    // Add the non-HDR flare.
+    // Add the non-HDR flare. Their size is updated each frame in the update method above.
     if (settings.second.mDrawLDRFlare.get()) {
       if (!mLDRFlares[ldrFlareIndex]) {
         mLDRFlares[ldrFlareIndex] = std::make_unique<DeepSpaceDot>(mSolarSystem);
@@ -329,7 +342,7 @@ void Plugin::onLoad() {
       ++ldrFlareIndex;
     }
 
-    // Add the HDR flare.
+    // Add the HDR flare. Their size and luminance is updated each frame in the update method above.
     if (settings.second.mDrawHDRFlare.get()) {
       if (!mHDRFlares[hdrFlareIndex]) {
         mHDRFlares[hdrFlareIndex] = std::make_unique<DeepSpaceDot>(mSolarSystem);
@@ -343,7 +356,7 @@ void Plugin::onLoad() {
       ++hdrFlareIndex;
     }
 
-    // Add the DeepSpaceDot.
+    // Add the trajectory dot.
     if (settings.second.mDrawDot.get()) {
       if (!mTrajectoryDots[dotIndex]) {
         mTrajectoryDots[dotIndex] = std::make_unique<DeepSpaceDot>(mSolarSystem);
@@ -359,7 +372,7 @@ void Plugin::onLoad() {
       ++dotIndex;
     }
 
-    // Then create all new trajectories.
+    // Add the trajectory.
     if (settings.second.mTrail) {
       if (!mTrajectories[trajectoryIndex]) {
         mTrajectories[trajectoryIndex] =
