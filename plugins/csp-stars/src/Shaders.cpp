@@ -110,11 +110,9 @@ void main() {
     vec3 x = normalize(cross(z, y));
     y = normalize(cross(z, x));
 
-    const float yo[2] = float[2](0.5, -0.5);
-    const float xo[2] = float[2](0.5, -0.5);
-
+    const float offset[2] = float[2](0.5, -0.5);
     const float PI = 3.14159265359;
-    float diameter = 2 * sqrt(1 - pow(1-uSolidAngle/(2*PI), 2.0));
+    float diameter = sqrt(uSolidAngle / (4 * PI)) * 4.0;
     float scale = dist * diameter;
 
     #ifdef DRAWMODE_SCALED_DISC
@@ -135,8 +133,8 @@ void main() {
 
     for(int j=0; j!=2; ++j) {
         for(int i=0; i!=2; ++i) {
-            iTexcoords = vec2(xo[i], yo[j])*2;
-            vec3 pos = gl_in[0].gl_Position.xyz + (xo[i] * x + yo[j] * y) * scale;
+            iTexcoords = vec2(offset[i], offset[j])*2;
+            vec3 pos = gl_in[0].gl_Position.xyz + (offset[i] * x + offset[j] * y) * scale;
 
             gl_Position = uMatP * vec4(pos, 1);
 
