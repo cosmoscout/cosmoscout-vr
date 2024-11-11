@@ -911,8 +911,7 @@
             1,
             1
           ],
-          "drawLDRFlare": true,
-          "ldrFlareScale": 10.0
+          "drawLDRFlare": true
         },
         "Mercury": {
           "color": [
