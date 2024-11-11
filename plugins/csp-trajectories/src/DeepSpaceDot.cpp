@@ -71,14 +71,10 @@ layout(location = 0) out vec4 oColor;
 void main() {
   float dist = length(vTexCoords);
 
+#if defined(MARKER_MODE) || defined(HDR_FLARE_MODE)
   // This is basically a cone from above. The average value is 1.0.
-  float blob = clamp(1-dist, 0, 1) * 3;
-
-#if defined(MARKER_MODE)
-  oColor = vec4(uColor.rgb, blob * uColor.a);
-
-#elif defined(HDR_FLARE_MODE)
-  oColor = vec4(uColor.rgb, blob * uColor.a);
+  float cone = clamp(1.0 - dist, 0.0, 1.0) * 3.0;
+  oColor = vec4(uColor.rgb, cone * uColor.a);
 
 #elif defined(LDR_FLARE_MODE)
   // The quad is drawn ten times larger than the object it represents. Hence we should make the
