@@ -13,6 +13,10 @@ SPDX-License-Identifier: CC-BY-4.0
 
 **Release Date:** TBD
 
+#### New Features
+
+- The `csp-trajectories` now draws proxies for celestial objects when they are smaller than a few pixels in HDR mode. This makes them visible even if they are very small, such as when looking in the sky at night. This also drastically reduces flickering in HDR mode when the bodies are very small on the screen.
+
 #### Other Changes
 
 - It is now possible to use the vista debug text rendering again.
