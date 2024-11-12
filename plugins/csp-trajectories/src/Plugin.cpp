@@ -161,30 +161,8 @@ void Plugin::update() {
   // Checks whether the given DeepSpaceDot should be visible or not. Depending on the mode of the
   // dot, the visibility is determined by the settings and the visibility of the object it is
   // attached to.
-  auto updateVisibility = [this](std::unique_ptr<DeepSpaceDot> const& dot) {
-    bool visible = false;
-
-    switch (dot->pMode.get()) {
-
-    // Marker type dots are always visible if enabled in the settings.
-    case DeepSpaceDot::Mode::eMarker:
-      visible = mPluginSettings->mEnablePlanetMarks.get();
-      break;
-
-    // LDR flare type dots are only visible if HDR is disabled.
-    case DeepSpaceDot::Mode::eLDRFlare:
-      visible =
-          mPluginSettings->mEnableLDRFlares.get() && !mAllSettings->mGraphics.pEnableHDR.get();
-      break;
-
-    // HDR flare type dots are only visible if HDR is enabled.
-    case DeepSpaceDot::Mode::eHDRFlare:
-      visible = mPluginSettings->mEnableHDRFlares.get() && mAllSettings->mGraphics.pEnableHDR.get();
-      break;
-
-    default:
-      break;
-    }
+  auto updateVisibility = [this](std::unique_ptr<DeepSpaceDot> const& dot, bool enabled) {
+    bool visible = enabled;
 
     // Hide all dots if the orbit of the object they are attached to is not visible.
     if (visible) {
@@ -199,25 +177,25 @@ void Plugin::update() {
   };
 
   // First update all trajectory dots. We only have to show or hide them.
+  bool dotsEnabled = mPluginSettings->mEnablePlanetMarks.get();
   for (auto const& dot : mTrajectoryDots) {
-    updateVisibility(dot);
+    updateVisibility(dot, dotsEnabled);
   }
 
-  // Next update the visibility of the LDR flares. We compute their size to be be ten times the
-  // angular size of the body they are attached to.
+  // Next update the visibility of the LDR flares. We give them the current angular size of the body
+  // they are attached to.
+  bool ldrFlaresEnabled =
+      mPluginSettings->mEnableLDRFlares.get() && !mAllSettings->mGraphics.pEnableHDR.get();
   for (auto const& flare : mLDRFlares) {
-    if (updateVisibility(flare)) {
+    if (updateVisibility(flare, ldrFlaresEnabled)) {
       auto objectName = flare->getObjectName();
       auto object     = mSolarSystem->getObject(objectName);
 
-      double bodyDist   = glm::length(object->getObserverRelativePosition());
-      double sceneScale = mSolarSystem->getObserver().getScale();
+      double bodyDist        = glm::length(object->getObserverRelativePosition());
+      double sceneScale      = mSolarSystem->getObserver().getScale();
+      double bodyAngularSize = std::asin(object->getRadii()[0] / (bodyDist * sceneScale));
 
-      double bodyAngularSize  = std::asin(object->getRadii()[0] / (bodyDist * sceneScale));
-      double flareAngularSize = bodyAngularSize * 10.0;
-
-      flare->pSolidAngle =
-          4.0 * glm::pi<double>() * std::pow(std::sin(flareAngularSize * 0.5), 2.0);
+      flare->pSolidAngle = 4.0 * glm::pi<double>() * std::pow(std::sin(bodyAngularSize * 0.5), 2.0);
     }
   }
 
@@ -231,8 +209,10 @@ void Plugin::update() {
   // We scale the luminance of the flare so that it contributes the same amount of energy to the
   // framebuffer as the body would if it was visible. We also incorporate the phase angle into this
   // calculation. The phase angle is the angle between the observer, the body, and the sun.
+  bool hdrFlaresEnabled =
+      mPluginSettings->mEnableHDRFlares.get() && mAllSettings->mGraphics.pEnableHDR.get();
   for (auto const& flare : mHDRFlares) {
-    if (updateVisibility(flare)) {
+    if (updateVisibility(flare, hdrFlaresEnabled)) {
       auto objectName = flare->getObjectName();
       auto object     = mSolarSystem->getObject(objectName);
 
@@ -282,6 +262,12 @@ void Plugin::update() {
       flare->pLuminance  = luminance;
       flare->pColor      = VistaColor(flare->pColor.get()[0], flare->pColor.get()[1],
                flare->pColor.get()[2], static_cast<float>(alpha));
+
+      if (objectName != "Sun") {
+        flare->pDrawOrder = object->getIsBodyVisible()
+                                ? static_cast<int>(cs::utils::DrawOrder::eAtmospheres) + 1
+                                : static_cast<int>(cs::utils::DrawOrder::eAtmospheres) - 1;
+      }
     }
   }
 }
@@ -328,42 +314,49 @@ void Plugin::onLoad() {
   // Now we go through all configured trajectories and create all required dots, flares, and trails.
   for (auto const& settings : mPluginSettings->mTrajectories) {
 
-    // Add the non-HDR flare. Their size is updated each frame in the update method above.
+    // Add the non-HDR flare. Their size is updated each frame in the update method above. They are
+    // drawn before the planets.
     if (settings.second.mDrawLDRFlare.get()) {
       if (!mLDRFlares[ldrFlareIndex]) {
         mLDRFlares[ldrFlareIndex] = std::make_unique<DeepSpaceDot>(mSolarSystem);
       }
 
       mLDRFlares[ldrFlareIndex]->setObjectName(settings.first);
-      mLDRFlares[ldrFlareIndex]->pMode  = DeepSpaceDot::Mode::eLDRFlare;
-      mLDRFlares[ldrFlareIndex]->pColor = VistaColor(settings.second.mFlareColor.get().r,
-          settings.second.mFlareColor.get().g, settings.second.mFlareColor.get().b);
+      mLDRFlares[ldrFlareIndex]->pMode      = DeepSpaceDot::Mode::eFlare;
+      mLDRFlares[ldrFlareIndex]->pDrawOrder = static_cast<int>(cs::utils::DrawOrder::ePlanets) - 1;
+      mLDRFlares[ldrFlareIndex]->pColor     = VistaColor(settings.second.mFlareColor.get().r,
+              settings.second.mFlareColor.get().g, settings.second.mFlareColor.get().b);
 
       ++ldrFlareIndex;
     }
 
     // Add the HDR flare. Their size and luminance is updated each frame in the update method above.
+    // When they are drawn is also adjusted in the update method.
     if (settings.second.mDrawHDRFlare.get()) {
       if (!mHDRFlares[hdrFlareIndex]) {
         mHDRFlares[hdrFlareIndex] = std::make_unique<DeepSpaceDot>(mSolarSystem);
       }
 
       mHDRFlares[hdrFlareIndex]->setObjectName(settings.first);
-      mHDRFlares[hdrFlareIndex]->pMode  = DeepSpaceDot::Mode::eHDRFlare;
+      mHDRFlares[hdrFlareIndex]->pMode = DeepSpaceDot::Mode::eSmoothCircle;
+      mHDRFlares[hdrFlareIndex]->pDrawOrder =
+          static_cast<int>(cs::utils::DrawOrder::eAtmospheres) - 1;
       mHDRFlares[hdrFlareIndex]->pColor = VistaColor(settings.second.mFlareColor.get().r,
           settings.second.mFlareColor.get().g, settings.second.mFlareColor.get().b);
 
       ++hdrFlareIndex;
     }
 
-    // Add the trajectory dot.
+    // Add the trajectory dot. They are drawn before the transparent items.
     if (settings.second.mDrawDot.get()) {
       if (!mTrajectoryDots[dotIndex]) {
         mTrajectoryDots[dotIndex] = std::make_unique<DeepSpaceDot>(mSolarSystem);
       }
 
       mTrajectoryDots[dotIndex]->setObjectName(settings.first);
-      mTrajectoryDots[dotIndex]->pMode       = DeepSpaceDot::Mode::eMarker;
+      mTrajectoryDots[dotIndex]->pMode = DeepSpaceDot::Mode::eSmoothCircle;
+      mTrajectoryDots[dotIndex]->pDrawOrder =
+          static_cast<int>(cs::utils::DrawOrder::eTransparentItems) - 1;
       mTrajectoryDots[dotIndex]->pSolidAngle = 0.00005F;
       mTrajectoryDots[dotIndex]->pColor =
           VistaColor(settings.second.mColor.r, settings.second.mColor.g, settings.second.mColor.b);

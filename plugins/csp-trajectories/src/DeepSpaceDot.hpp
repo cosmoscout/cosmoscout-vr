@@ -25,25 +25,25 @@ class DeepSpaceDot : public IVistaOpenGLDraw {
  public:
   /// The mode of the marker.
   enum class Mode {
-    /// In this mode, the marker is drawn after tone mapping.
-    eMarker,
+    /// In this mode, the dot is drawn as a circle with an average brightness of the given
+    /// luminance.
+    eSmoothCircle,
 
-    /// In this mode, the marker is drawn before the planets and moons. A exponential glow effect
-    /// is applied to the marker. This is useful to add an artificial glow to an object in non-HDR
-    /// mode.
-    eLDRFlare,
-
-    /// In this mode, the marker is drawn after the planets. It is a simple circle with the given
-    /// luminance. Thanks to the HDR rendering and the camera glow effect, the luminance will spread
-    /// out and result in a realistic glowing effect.
-    eHDRFlare,
+    /// In this mode, the dot is drawn ten times larger than the given solid angle and an
+    /// exponential glow effect is applied to the dot. This is useful to add an artificial glow to
+    /// an object in non-HDR mode.
+    eFlare,
   };
 
   /// Shows or hides the marker.
   cs::utils::Property<bool> pVisible = true;
 
   /// The mode of the marker.
-  cs::utils::Property<Mode> pMode = Mode::eMarker;
+  cs::utils::Property<Mode> pMode = Mode::eSmoothCircle;
+
+  /// When to draw the dot.
+  cs::utils::Property<int> pDrawOrder =
+      static_cast<int>(cs::utils::DrawOrder::eTransparentItems) - 1;
 
   /// The color of the marker. In eHDRFlare mode, this corresponds to the average albedo of the
   /// object.

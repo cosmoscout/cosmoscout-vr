@@ -51,6 +51,11 @@ void main() {
   vTexCoords = vec2(offset[i], offset[j]) * 2.0;
 
   float diameter = sqrt(uSolidAngle / (4 * PI)) * 4.0;
+
+#if defined(FLARE_MODE)
+  diameter *= 10.0;
+#endif
+
   float scale = drawDist * diameter;
 
   pos += (offset[i] * x + offset[j] * y) * scale;
@@ -70,18 +75,20 @@ layout(location = 0) out vec4 oColor;
 
 void main() {
   float dist = length(vTexCoords);
+  float alpha = 1.0;
 
-#if defined(MARKER_MODE) || defined(HDR_FLARE_MODE)
+#if defined(CIRCLE_MODE)
   // This is basically a cone from above. The average value is 1.0.
-  float cone = clamp(1.0 - dist, 0.0, 1.0) * 3.0;
-  oColor = vec4(uColor.rgb, cone * uColor.a);
+  alpha = clamp(1.0 - dist, 0.0, 1.0) * 3.0;
 
-#elif defined(LDR_FLARE_MODE)
+#elif defined(FLARE_MODE)
   // The quad is drawn ten times larger than the object it represents. Hence we should make the
   // glow function equal to one at a distance of 0.1.
-  float glow = 1.0 - pow(clamp((dist-0.1)/(1.0 - 0.1), 0.0, 1.0), 0.2);
-  oColor = vec4(uColor.rgb, glow * uColor.a);
+  alpha = 1.0 - pow(clamp((dist-0.1)/(1.0 - 0.1), 0.0, 1.0), 0.2);
+
 #endif
+
+  oColor = vec4(uColor.rgb, alpha * uColor.a);
 }
 )";
 
@@ -94,29 +101,10 @@ DeepSpaceDot::DeepSpaceDot(std::shared_ptr<cs::core::SolarSystem> solarSystem)
   VistaSceneGraph* pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
   mGLNode.reset(pSG->NewOpenGLNode(pSG->GetRoot(), this));
 
-  pMode.connectAndTouch([this](Mode mode) {
-    switch (mode) {
-    case Mode::eMarker:
-      VistaOpenSGMaterialTools::SetSortKeyOnSubtree(
-          mGLNode.get(), static_cast<int>(cs::utils::DrawOrder::eTransparentItems) - 1);
-      break;
+  pDrawOrder.connectAndTouch(
+      [this](int order) { VistaOpenSGMaterialTools::SetSortKeyOnSubtree(mGLNode.get(), order); });
 
-    case Mode::eLDRFlare:
-      VistaOpenSGMaterialTools::SetSortKeyOnSubtree(
-          mGLNode.get(), static_cast<int>(cs::utils::DrawOrder::ePlanets) - 1);
-      break;
-
-    case Mode::eHDRFlare:
-      VistaOpenSGMaterialTools::SetSortKeyOnSubtree(
-          mGLNode.get(), static_cast<int>(cs::utils::DrawOrder::eAtmospheres) + 1);
-      break;
-
-    default:
-      break;
-    }
-
-    mShaderDirty = true;
-  });
+  pDrawOrder.connectAndTouch([this](int order) { mShaderDirty = true; });
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -153,12 +141,10 @@ bool DeepSpaceDot::Do() {
   if (mShaderDirty) {
     std::string defines = "#version 330\n";
 
-    if (pMode.get() == Mode::eHDRFlare) {
-      defines += "#define HDR_FLARE_MODE\n";
-    } else if (pMode.get() == Mode::eLDRFlare) {
-      defines += "#define LDR_FLARE_MODE\n";
-    } else {
-      defines += "#define MARKER_MODE\n";
+    if (pMode.get() == Mode::eSmoothCircle) {
+      defines += "#define CIRCLE_MODE\n";
+    } else if (pMode.get() == Mode::eFlare) {
+      defines += "#define FLARE_MODE\n";
     }
 
     mShader = VistaGLSLShader();
