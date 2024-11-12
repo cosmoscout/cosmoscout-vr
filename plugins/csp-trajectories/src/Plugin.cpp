@@ -260,8 +260,9 @@ void Plugin::update() {
 
       flare->pSolidAngle = flareSolidAngle;
       flare->pLuminance  = luminance;
-      flare->pColor      = VistaColor(flare->pColor.get()[0], flare->pColor.get()[1],
-               flare->pColor.get()[2], static_cast<float>(alpha));
+
+      flare->pColor = VistaColor(flare->pColor.get()[0], flare->pColor.get()[1],
+          flare->pColor.get()[2], static_cast<float>(alpha));
 
       // The draw-order of the flare is a bit tricky. We want to draw it on top of the body and its
       // atmosphere in order to cover any flickering of small screen-space objects. However, when we
@@ -334,8 +335,9 @@ void Plugin::onLoad() {
       mLDRFlares[ldrFlareIndex]->setObjectName(settings.first);
       mLDRFlares[ldrFlareIndex]->pMode      = DeepSpaceDot::Mode::eFlare;
       mLDRFlares[ldrFlareIndex]->pDrawOrder = static_cast<int>(cs::utils::DrawOrder::ePlanets) - 1;
-      mLDRFlares[ldrFlareIndex]->pColor     = VistaColor(settings.second.mFlareColor.get().r,
-              settings.second.mFlareColor.get().g, settings.second.mFlareColor.get().b);
+
+      mLDRFlares[ldrFlareIndex]->pColor = VistaColor(settings.second.mFlareColor.get().r,
+          settings.second.mFlareColor.get().g, settings.second.mFlareColor.get().b);
 
       ++ldrFlareIndex;
     }
