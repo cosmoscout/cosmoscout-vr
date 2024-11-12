@@ -263,6 +263,16 @@ void Plugin::update() {
       flare->pColor      = VistaColor(flare->pColor.get()[0], flare->pColor.get()[1],
                flare->pColor.get()[2], static_cast<float>(alpha));
 
+      // The draw-order of the flare is a bit tricky. We want to draw it on top of the body and its
+      // atmosphere in order to cover any flickering of small screen-space objects. However, when we
+      // land on the surface of a body, we want to see the flares of the other bodies behind the sky
+      // of the body we are standing on.
+      // To accomplish this, we use a simple heuristic: If the object is too small to be seen, we
+      // draw the flare before atmospheres. If it is large enough to be seen, we draw the flare
+      // after the atmospheres. This works well for all planets and moons. However, the Sun is so
+      // large that it is visible even if we are on another body. Hence, we draw the Sun's flare
+      // before the atmospheres in all cases. As the Sun does not have its own atmosphere, this is
+      // fine.
       if (objectName != "Sun") {
         flare->pDrawOrder = object->getIsBodyVisible()
                                 ? static_cast<int>(cs::utils::DrawOrder::eAtmospheres) + 1
