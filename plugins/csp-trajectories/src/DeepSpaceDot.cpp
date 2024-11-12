@@ -182,7 +182,7 @@ bool DeepSpaceDot::Do() {
   glUniformMatrix4fv(mUniforms.projectionMatrix, 1, GL_FALSE, glMatP.data());
   mShader.SetUniform(mUniforms.color, pLuminance.get() * pColor.get()[0],
       pLuminance.get() * pColor.get()[1], pLuminance.get() * pColor.get()[2], pColor.get()[3]);
-  mShader.SetUniform(mUniforms.solidAngle, std::min(pSolidAngle.get(), 3.9F * glm::pi<float>()));
+  mShader.SetUniform(mUniforms.solidAngle, pSolidAngle.get());
   glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
   mShader.Release();
 
