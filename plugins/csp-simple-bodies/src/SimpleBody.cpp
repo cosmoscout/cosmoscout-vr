@@ -6,7 +6,6 @@
 // SPDX-License-Identifier: MIT
 
 #include "SimpleBody.hpp"
-#include "logger.hpp"
 
 #include "../../../src/cs-core/Settings.hpp"
 #include "../../../src/cs-core/SolarSystem.hpp"

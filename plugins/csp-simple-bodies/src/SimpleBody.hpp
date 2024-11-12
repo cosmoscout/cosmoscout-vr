@@ -40,7 +40,7 @@ class SimpleBody : public cs::scene::CelestialSurface,
       std::shared_ptr<cs::core::SolarSystem>     solarSystem);
 
   SimpleBody(SimpleBody const& other) = delete;
-  SimpleBody(SimpleBody&& other) = default;
+  SimpleBody(SimpleBody&& other)      = default;
 
   SimpleBody& operator=(SimpleBody const& other) = delete;
   SimpleBody& operator=(SimpleBody&& other) = default;
