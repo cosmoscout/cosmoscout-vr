@@ -195,7 +195,8 @@ void Plugin::update() {
       double sceneScale      = mSolarSystem->getObserver().getScale();
       double bodyAngularSize = std::asin(object->getRadii()[0] / (bodyDist * sceneScale));
 
-      flare->pSolidAngle = 4.0 * glm::pi<double>() * std::pow(std::sin(bodyAngularSize * 0.5), 2.0);
+      flare->pSolidAngle = static_cast<float>(
+          4.0 * glm::pi<double>() * std::pow(std::sin(bodyAngularSize * 0.5), 2.0));
     }
   }
 
@@ -258,8 +259,8 @@ void Plugin::update() {
         luminance          = phase * scaleFac * illuminance / glm::pi<double>();
       }
 
-      flare->pSolidAngle = flareSolidAngle;
-      flare->pLuminance  = luminance;
+      flare->pSolidAngle = static_cast<float>(flareSolidAngle);
+      flare->pLuminance  = static_cast<float>(luminance);
 
       flare->pColor = VistaColor(flare->pColor.get()[0], flare->pColor.get()[1],
           flare->pColor.get()[2], static_cast<float>(alpha));
