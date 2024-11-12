@@ -283,7 +283,7 @@ SimpleBody::SimpleBody(std::shared_ptr<cs::core::Settings> settings,
   mEnableLightingConnection = mSettings->mGraphics.pEnableLighting.connect(
       [this](bool /*enabled*/) { mShaderDirty = true; });
   mEnableHDRConnection = mSettings->mGraphics.pEnableHDR.connectAndTouch(
-      [this](bool enabled) { mShaderDirty = true; });
+      [this](bool /*enabled*/) { mShaderDirty = true; });
 
   // Add to scenegraph.
   VistaSceneGraph* pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
