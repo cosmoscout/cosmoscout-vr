@@ -351,7 +351,7 @@ void Plugin::onLoad() {
       }
 
       mHDRFlares[hdrFlareIndex]->setObjectName(settings.first);
-      mHDRFlares[hdrFlareIndex]->pMode = DeepSpaceDot::Mode::eSmoothCircle;
+      mHDRFlares[hdrFlareIndex]->pMode = DeepSpaceDot::Mode::eHDRBillboard;
       mHDRFlares[hdrFlareIndex]->pDrawOrder =
           static_cast<int>(cs::utils::DrawOrder::eAtmospheres) - 1;
       mHDRFlares[hdrFlareIndex]->pColor = VistaColor(settings.second.mFlareColor.get().r,

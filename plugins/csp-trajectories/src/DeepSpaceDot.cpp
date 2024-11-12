@@ -75,20 +75,25 @@ layout(location = 0) out vec4 oColor;
 
 void main() {
   float dist = length(vTexCoords);
-  float alpha = 1.0;
 
 #if defined(CIRCLE_MODE)
+  // Draw an pseudo-anti-aliased circle.
+  float alpha = 1.0 - smoothstep(0.9, 1.0, dist);
+  oColor = vec4(uColor.rgb, alpha * uColor.a);
+
+#elif defined(HDR_BILLBOARD_MODE)
   // This is basically a cone from above. The average value is 1.0.
-  alpha = clamp(1.0 - dist, 0.0, 1.0) * 3.0;
+  float intensity = clamp(1.0 - dist, 0.0, 1.0) * 3.0;
+  oColor = vec4(uColor.rgb * intensity, uColor.a);
 
 #elif defined(FLARE_MODE)
   // The quad is drawn ten times larger than the object it represents. Hence we should make the
   // glow function equal to one at a distance of 0.1.
-  alpha = 1.0 - pow(clamp((dist-0.1)/(1.0 - 0.1), 0.0, 1.0), 0.2);
+  float alpha = 1.0 - pow(clamp((dist-0.1)/(1.0 - 0.1), 0.0, 1.0), 0.2);
+  oColor = vec4(uColor.rgb, alpha * uColor.a);
 
 #endif
 
-  oColor = vec4(uColor.rgb, alpha * uColor.a);
 }
 )";
 
@@ -143,6 +148,8 @@ bool DeepSpaceDot::Do() {
 
     if (pMode.get() == Mode::eSmoothCircle) {
       defines += "#define CIRCLE_MODE\n";
+    } else if (pMode.get() == Mode::eHDRBillboard) {
+      defines += "#define HDR_BILLBOARD_MODE\n";
     } else if (pMode.get() == Mode::eFlare) {
       defines += "#define FLARE_MODE\n";
     }

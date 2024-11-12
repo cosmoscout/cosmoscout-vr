@@ -25,9 +25,12 @@ class DeepSpaceDot : public IVistaOpenGLDraw {
  public:
   /// The mode of the marker.
   enum class Mode {
-    /// In this mode, the dot is drawn as a circle with an average brightness of the given
-    /// luminance.
+    /// In this mode, the dot is drawn as an antialiased circle with the given color.
     eSmoothCircle,
+
+    /// In this mode, the dot is drawn with a linear brightness gradient with an average luminance
+    /// of the given value.
+    eHDRBillboard,
 
     /// In this mode, the dot is drawn ten times larger than the given solid angle and an
     /// exponential glow effect is applied to the dot. This is useful to add an artificial glow to
@@ -62,7 +65,7 @@ class DeepSpaceDot : public IVistaOpenGLDraw {
   DeepSpaceDot(DeepSpaceDot&& other)      = default;
 
   DeepSpaceDot& operator=(DeepSpaceDot const& other) = delete;
-  DeepSpaceDot& operator=(DeepSpaceDot&& other) = default;
+  DeepSpaceDot& operator=(DeepSpaceDot&& other)      = default;
 
   ~DeepSpaceDot() override;
 
