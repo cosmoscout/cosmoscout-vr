@@ -282,8 +282,8 @@ SimpleBody::SimpleBody(std::shared_ptr<cs::core::Settings> settings,
   // Recreate the shader if lighting or HDR rendering mode are toggled.
   mEnableLightingConnection = mSettings->mGraphics.pEnableLighting.connect(
       [this](bool /*enabled*/) { mShaderDirty = true; });
-  mEnableHDRConnection = mSettings->mGraphics.pEnableHDR.connectAndTouch(
-      [this](bool /*enabled*/) { mShaderDirty = true; });
+  mEnableHDRConnection =
+      mSettings->mGraphics.pEnableHDR.connect([this](bool /*enabled*/) { mShaderDirty = true; });
 
   // Add to scenegraph.
   VistaSceneGraph* pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();

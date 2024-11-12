@@ -11,8 +11,6 @@
 #include "../../../src/cs-core/PluginBase.hpp"
 #include "../../../src/cs-utils/DefaultProperty.hpp"
 
-#include <glm/glm.hpp>
-
 #include <map>
 #include <optional>
 #include <string>
