@@ -213,14 +213,13 @@ void Plugin::update() {
 
   // Finally update all HDR flares. Usually, we scale them to be the same size as the body they are
   // attached to. However, there is a hard-coded upper and lower limit: The flares do not get larger
-  // than 0.001 steradians and they do not get smaller than 0.00001 steradians. Between 0.0001 and
-  // 0.001 steradians the flares fade out. As the flare is drawn on top of the body, the flare
-  // starts covering the body at 0.001 steradians and completely hides it at 0.0001 steradians. This
-  // avoids severe flickering when the body gets very small in screen space. The lower limit of
-  // 0.00001 steradians ensures that the flare is always visible, even if the body is very far away.
-  // We scale the luminance of the flare so that it contributes the same amount of energy to the
-  // framebuffer as the body would if it was visible. We also incorporate the phase angle into this
-  // calculation. The phase angle is the angle between the observer, the body, and the sun.
+  // or smaller than a certain amount of steradians. As the flare is drawn on top of the body, the
+  // flare starts covering the body as it fades in and fully covers it at some point. This avoids
+  // severe flickering when the body gets very small in screen space. The lower limit of ensures
+  // that the flare is always visible, even if the body is very far away. We scale the luminance of
+  // the flare so that it contributes the same amount of energy to the framebuffer as the body would
+  // if it was visible. We also incorporate the phase angle into this calculation. The phase angle
+  // is the angle between the observer, the body, and the sun.
   bool hdrFlaresEnabled =
       mPluginSettings->mEnableHDRFlares.get() && mAllSettings->mGraphics.pEnableHDR.get();
   for (auto const& flare : mHDRFlares) {
@@ -238,9 +237,9 @@ void Plugin::update() {
       double bodySolidAngle =
           4.0 * glm::pi<double>() * std::pow(std::sin(bodyAngularSize * 0.5), 2.0);
 
-      double maxSolidAngle     = 0.001;   // The flare is invisible above this solid angle.
-      double fadeEndSolidAngle = 0.0001;  // The flare is fully visible below this solid angle.
-      double minSolidAngle     = 0.00001; // The flare will not get smaller than this.
+      double maxSolidAngle     = 0.005 * fov2;   // The flare is invisible above this solid angle.
+      double fadeEndSolidAngle = 0.0005 * fov2;  // The flare is fully visible below this angle.
+      double minSolidAngle     = 0.00005 * fov2; // The flare will not get smaller than this.
 
       // We make the flare a bit larger than the body to ensure that it covers the body completely.
       double flareSolidAngle = glm::clamp(bodySolidAngle * 1.2, minSolidAngle, maxSolidAngle);
@@ -260,7 +259,10 @@ void Plugin::update() {
       double luminance = 0.0;
 
       // For the Sun, we use the actual luminance of the Sun. For all other objects, we compute the
-      // luminance based on the phase angle between the observer, the body, and the Sun.
+      // luminance based on the phase angle between the observer, the body, and the Sun. Using a
+      // linear relationship between phase angle and luminance is a simplification. A more accurate
+      // model would use the phase curve of the body (see
+      // https://en.wikipedia.org/wiki/Phase_curve_(astronomy))
       if (objectName == "Sun") {
         luminance = scaleFac * mSolarSystem->getSunLuminance();
       } else {
