@@ -50,7 +50,7 @@ class DeepSpaceDot : public IVistaOpenGLDraw {
 
   /// The color of the marker. In eHDRFlare mode, this corresponds to the average albedo of the
   /// object.
-  cs::utils::Property<VistaColor> pColor = VistaColor(1, 1, 1, 1);
+  cs::utils::Property<glm::vec4> pColor = glm::vec4(1.F);
 
   /// This is used as a multiplier for the color. In eMarker and eLDRFlare mode, this should be
   /// 1.0. In eHDRFlare mode, this should be the luminance of the object.

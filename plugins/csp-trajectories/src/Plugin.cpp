@@ -262,8 +262,9 @@ void Plugin::update() {
       flare->pSolidAngle = static_cast<float>(flareSolidAngle);
       flare->pLuminance  = static_cast<float>(luminance);
 
-      flare->pColor = VistaColor(flare->pColor.get()[0], flare->pColor.get()[1],
-          flare->pColor.get()[2], static_cast<float>(alpha));
+      auto color    = flare->pColor.get();
+      color.a       = static_cast<float>(alpha);
+      flare->pColor = color;
 
       // The draw-order of the flare is a bit tricky. We want to draw it on top of the body and its
       // atmosphere in order to cover any flickering of small screen-space objects. However, when we
@@ -336,9 +337,7 @@ void Plugin::onLoad() {
       mLDRFlares[ldrFlareIndex]->setObjectName(settings.first);
       mLDRFlares[ldrFlareIndex]->pMode      = DeepSpaceDot::Mode::eFlare;
       mLDRFlares[ldrFlareIndex]->pDrawOrder = static_cast<int>(cs::utils::DrawOrder::ePlanets) - 1;
-
-      mLDRFlares[ldrFlareIndex]->pColor = VistaColor(settings.second.mFlareColor.get().r,
-          settings.second.mFlareColor.get().g, settings.second.mFlareColor.get().b);
+      mLDRFlares[ldrFlareIndex]->pColor     = glm::vec4(settings.second.mFlareColor.get(), 1.F);
 
       ++ldrFlareIndex;
     }
@@ -354,8 +353,7 @@ void Plugin::onLoad() {
       mHDRFlares[hdrFlareIndex]->pMode = DeepSpaceDot::Mode::eHDRBillboard;
       mHDRFlares[hdrFlareIndex]->pDrawOrder =
           static_cast<int>(cs::utils::DrawOrder::eAtmospheres) - 1;
-      mHDRFlares[hdrFlareIndex]->pColor = VistaColor(settings.second.mFlareColor.get().r,
-          settings.second.mFlareColor.get().g, settings.second.mFlareColor.get().b);
+      mHDRFlares[hdrFlareIndex]->pColor = glm::vec4(settings.second.mFlareColor.get(), 1.F);
 
       ++hdrFlareIndex;
     }
@@ -371,8 +369,7 @@ void Plugin::onLoad() {
       mTrajectoryDots[dotIndex]->pDrawOrder =
           static_cast<int>(cs::utils::DrawOrder::eTransparentItems) - 1;
       mTrajectoryDots[dotIndex]->pSolidAngle = 0.00005F;
-      mTrajectoryDots[dotIndex]->pColor =
-          VistaColor(settings.second.mColor.r, settings.second.mColor.g, settings.second.mColor.b);
+      mTrajectoryDots[dotIndex]->pColor      = glm::vec4(settings.second.mColor, 1.F);
       mTrajectoryDots[dotIndex]->pVisible.connectFrom(mPluginSettings->mEnablePlanetMarks);
 
       ++dotIndex;
