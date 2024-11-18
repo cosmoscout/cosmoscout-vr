@@ -20,7 +20,7 @@ The camera glare will make the dots glow in HDR mode.
 
 This plugin can be enabled with the following configuration in your `settings.json`:
 
-```json
+```js
 {
   ...
   "plugins": {
@@ -31,7 +31,7 @@ This plugin can be enabled with the following configuration in your `settings.js
       "enableHDRFlares": <boolean>,             // optional, default: true
       "enablePlanetMarks": <boolean>,           // optional, default: true
       "trajectories": {
-        <object name>: {
+        "<object name>": {
           "color": [<red>, <green>, <blue>],      // between 0 and 1
           "drawDot": <boolean>,                   // optional, default: true
           "drawLDRFlare": <boolean>,              // optional, default: false

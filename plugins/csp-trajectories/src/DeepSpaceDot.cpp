@@ -89,7 +89,7 @@ void main() {
 #elif defined(FLARE_MODE)
   // The quad is drawn ten times larger than the object it represents. Hence we should make the
   // glow function equal to one at a distance of 0.1.
-  float alpha = 1.0 - pow(clamp((dist-0.1)/(1.0 - 0.1), 0.0, 1.0), 0.2);
+  float alpha = 1.0 - pow(clamp((dist - 0.1) / (1.0 - 0.1), 0.0, 1.0), 0.2);
   oColor = vec4(uColor.rgb, alpha * uColor.a);
 
 #endif
