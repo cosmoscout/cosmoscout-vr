@@ -16,6 +16,9 @@
 #include "../../../src/cs-core/TimeControl.hpp"
 #include "../../../src/cs-utils/logger.hpp"
 
+#include <VistaKernel/DisplayManager/VistaDisplayManager.h>
+#include <VistaKernel/VistaSystem.h>
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 EXPORT_FN cs::core::PluginBase* create() {
@@ -176,10 +179,18 @@ void Plugin::update() {
     return visible;
   };
 
+  // Trajectory dots as well as the HDR flares should be constant in size on screen. Therefore, we
+  // have to compute thei solid angle based on the current field of view.
+  VistaTransformMatrix proj =
+      GetVistaSystem()->GetDisplayManager()->GetCurrentRenderInfo()->m_matProjection;
+  float fov2 = std::pow(std::min(std::atan(1.F / proj[1][1]), std::atan(1.F / proj[0][0])), 2.F);
+
   // First update all trajectory dots. We only have to show or hide them.
   bool dotsEnabled = mPluginSettings->mEnablePlanetMarks.get();
   for (auto const& dot : mTrajectoryDots) {
-    updateVisibility(dot, dotsEnabled);
+    if (updateVisibility(dot, dotsEnabled)) {
+      dot->pSolidAngle = 0.0002F * fov2;
+    }
   }
 
   // Next update the visibility of the LDR flares. We give them the current angular size of the body
@@ -368,8 +379,7 @@ void Plugin::onLoad() {
       mTrajectoryDots[dotIndex]->pMode = DeepSpaceDot::Mode::eSmoothCircle;
       mTrajectoryDots[dotIndex]->pDrawOrder =
           static_cast<int>(cs::utils::DrawOrder::eTransparentItems) - 1;
-      mTrajectoryDots[dotIndex]->pSolidAngle = 0.00005F;
-      mTrajectoryDots[dotIndex]->pColor      = glm::vec4(settings.second.mColor, 1.F);
+      mTrajectoryDots[dotIndex]->pColor = glm::vec4(settings.second.mColor, 1.F);
       mTrajectoryDots[dotIndex]->pVisible.connectFrom(mPluginSettings->mEnablePlanetMarks);
 
       ++dotIndex;
