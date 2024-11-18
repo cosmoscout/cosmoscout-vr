@@ -237,20 +237,27 @@ void Plugin::update() {
       double bodySolidAngle =
           4.0 * glm::pi<double>() * std::pow(std::sin(bodyAngularSize * 0.5), 2.0);
 
-      double maxSolidAngle     = 0.005 * fov2;   // The flare is invisible above this solid angle.
-      double fadeEndSolidAngle = 0.0005 * fov2;  // The flare is fully visible below this angle.
-      double minSolidAngle     = 0.00005 * fov2; // The flare will not get smaller than this.
+      double maxSolidAngle = 0.005 * fov2;   // The flare will not get larger than this.
+      double minSolidAngle = 0.00005 * fov2; // The flare will not get smaller than this.
 
       // We make the flare a bit larger than the body to ensure that it covers the body completely.
       double flareSolidAngle = glm::clamp(bodySolidAngle * 1.2, minSolidAngle, maxSolidAngle);
 
-      // Fade the flare out between fadeEndSolidAngle and maxSolidAngle.
-      double alpha = glm::clamp(
-          1.0 - (flareSolidAngle - fadeEndSolidAngle) / (maxSolidAngle - fadeEndSolidAngle), 0.0,
-          1.0);
+      double alpha = 1.0;
 
-      // Make the fade perceptually more linear.
-      alpha = std::pow(alpha, 10.0);
+      // If the body is visible (usually drawn as a simple body or as a LoD body), we fade the flare
+      // out between fadeEndSolidAngle and maxSolidAngle.
+      if (object->getIsBodyVisible()) {
+        // The flare is faded out between fadeEndSolidAngle and maxSolidAngle.
+        double fadeEndSolidAngle = 0.0005 * fov2;
+
+        alpha = glm::clamp(
+            1.0 - (flareSolidAngle - fadeEndSolidAngle) / (maxSolidAngle - fadeEndSolidAngle), 0.0,
+            1.0);
+
+        // Make the fade perceptually more linear.
+        alpha = std::pow(alpha, 10.0);
+      }
 
       // Scale the luminance of the flare so that it contributes the same amount of energy to the
       // framebuffer as if it had the same solid angle as the body.
