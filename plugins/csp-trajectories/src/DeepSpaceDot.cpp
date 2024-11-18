@@ -79,17 +79,32 @@ void main() {
 #if defined(CIRCLE_MODE)
   // Draw an pseudo-anti-aliased circle.
   float alpha = 1.0 - smoothstep(0.9, 1.0, dist);
+
+  if (alpha <= 0.0) {
+    discard;
+  }
+
   oColor = vec4(uColor.rgb, alpha * uColor.a);
 
 #elif defined(HDR_BILLBOARD_MODE)
   // This is basically a cone from above. The average value is 1.0.
   float intensity = clamp(1.0 - dist, 0.0, 1.0) * 3.0;
+
+  if (intensity <= 0.0) {
+    discard;
+  }
+
   oColor = vec4(uColor.rgb * intensity, uColor.a);
 
 #elif defined(FLARE_MODE)
   // The quad is drawn ten times larger than the object it represents. Hence we should make the
   // glow function equal to one at a distance of 0.1.
   float alpha = 1.0 - pow(clamp((dist - 0.1) / (1.0 - 0.1), 0.0, 1.0), 0.2);
+
+  if (alpha <= 0.0) {
+    discard;
+  }
+
   oColor = vec4(uColor.rgb, alpha * uColor.a);
 
 #endif
