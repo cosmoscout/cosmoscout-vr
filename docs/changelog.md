@@ -19,6 +19,7 @@ SPDX-License-Identifier: CC-BY-4.0
 
 #### Other Changes
 
+- The depth-write for trajectory lines has been disabled. This improves their rendering on many GPUs. They are now not always correctly composited with transparent objects, but this will produce only minor artifacts in most cases.
 - It is now possible to use the vista debug text rendering again.
 - New callback `CosmoScout.callbacks.input.reloadDFNs()` to hot reload DFN xml files.
 - The preprocessing of the Bruneton atmosphere model has been refactored to a standalone tool. This tool can now be used to generate the necessary data offline and thus improves the start-up time of CosmoScout VR significantly.
