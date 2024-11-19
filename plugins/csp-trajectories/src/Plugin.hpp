@@ -18,11 +18,12 @@
 namespace csp::trajectories {
 
 class DeepSpaceDot;
-class SunFlare;
 class Trajectory;
 
 /// This plugin is providing HUD elements that display trajectories and markers for orbiting
-/// objects. The configuration of this plugin is done via the provided json config. See README.md
+/// objects. It also draws some flares around objects in HDR and non-HDR mode so that bodies
+/// are visible even if they are smaller than a pixel.
+/// The configuration of this plugin is done via the provided json config. See README.md
 /// for details.
 class Plugin : public cs::core::PluginBase {
  public:
@@ -52,11 +53,17 @@ class Plugin : public cs::core::PluginBase {
       /// Specifies the color of the trail and dot.
       glm::vec3 mColor{};
 
-      /// If available and true a dot will indicate the objects position.
-      std::optional<bool> mDrawDot;
+      /// If true, a dot will indicate the objects position.
+      cs::utils::DefaultProperty<bool> mDrawDot{true};
 
-      /// If available and true a flare will be drawn around the object.
-      std::optional<bool> mDrawFlare;
+      /// If true, a flare will be drawn around the object in non-HDR mode.
+      cs::utils::DefaultProperty<bool> mDrawLDRFlare{false};
+
+      /// If true, a flare will be drawn around the object in HDR mode.
+      cs::utils::DefaultProperty<bool> mDrawHDRFlare{true};
+
+      /// Specifies the color of the flare.
+      cs::utils::DefaultProperty<glm::vec3> mFlareColor{glm::vec3(1.F, 1.F, 1.F)};
 
       /// If available a trail will be drawn behind the object.
       std::optional<Trail> mTrail;
@@ -68,8 +75,11 @@ class Plugin : public cs::core::PluginBase {
     /// Toggles trajectories at runtime.
     cs::utils::DefaultProperty<bool> mEnableTrajectories{true};
 
-    /// Toggles flares at runtime.
-    cs::utils::DefaultProperty<bool> mEnableSunFlares{true};
+    /// Toggles non-HDR flares at runtime.
+    cs::utils::DefaultProperty<bool> mEnableLDRFlares{true};
+
+    /// Toggles HDR flares at runtime.
+    cs::utils::DefaultProperty<bool> mEnableHDRFlares{true};
 
     /// Toggles dots at runtime.
     cs::utils::DefaultProperty<bool> mEnablePlanetMarks{true};
@@ -85,8 +95,9 @@ class Plugin : public cs::core::PluginBase {
 
   std::shared_ptr<Settings>                  mPluginSettings = std::make_shared<Settings>();
   std::vector<std::unique_ptr<Trajectory>>   mTrajectories;
-  std::vector<std::unique_ptr<DeepSpaceDot>> mDeepSpaceDots;
-  std::vector<std::unique_ptr<SunFlare>>     mSunFlares;
+  std::vector<std::unique_ptr<DeepSpaceDot>> mTrajectoryDots;
+  std::vector<std::unique_ptr<DeepSpaceDot>> mHDRFlares;
+  std::vector<std::unique_ptr<DeepSpaceDot>> mLDRFlares;
 
   int mOnLoadConnection = -1;
   int mOnSaveConnection = -1;
