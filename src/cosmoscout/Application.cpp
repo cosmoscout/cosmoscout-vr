@@ -702,9 +702,11 @@ void Application::onLoad() {
     }
   }
 
+  mTimeControl->update();
+
   // Move the observer to the new position.
   mSolarSystem->flyObserverTo(mSettings->mObserver.pCenter.get(), mSettings->mObserver.pFrame.get(),
-      mSettings->mObserver.pPosition.get(), mSettings->mObserver.pRotation.get(), 5.0);
+      mSettings->mObserver.pPosition.get(), mSettings->mObserver.pRotation.get(), 0.0);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
