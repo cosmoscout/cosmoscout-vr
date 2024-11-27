@@ -35,12 +35,19 @@ class Plugin : public cs::core::PluginBase {
   BeanStructuralElementInstance getSEI(std::string const& uuid);
   CategoryAssignment            getCA(std::string const& uuid);
 
+  void setRepository(std::string const& repoName);
+  void setRootSEI(std::string const& uuid);
+
   std::shared_ptr<Settings> mPluginSettings = std::make_shared<Settings>();
 
   RestRequestManager mManagementAPI;
   RestRequestManager mModelAPI;
 
-  std::string mRepoName;
+  std::vector<std::string>   mRepositories{};
+  std::optional<std::string> mRepoName{};
+
+  std::map<std::string, BeanStructuralElementInstance> mRootSEIs{};
+  std::optional<BeanStructuralElementInstance>         mRootSEI{};
 
   std::unique_ptr<BoxRenderer> mBoxRenderer;
 

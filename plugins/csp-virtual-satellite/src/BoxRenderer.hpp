@@ -11,7 +11,6 @@
 #include "Plugin.hpp"
 #include "RenderTypes.hpp"
 
-#include <VistaBase/VistaColor.h>
 #include <VistaKernel/GraphicsManager/VistaOpenGLDraw.h>
 #include <VistaKernel/GraphicsManager/VistaOpenGLNode.h>
 #include <VistaOGLExt/VistaGLSLShader.h>
@@ -38,6 +37,8 @@ class BoxRenderer : public IVistaOpenGLDraw {
   bool GetBoundingBox(VistaBoundingBox& bb) override;
 
  private:
+  void drawBox(Box const& box, glm::mat4 const& mvp) const;
+
   std::shared_ptr<Plugin::Settings>      mPluginSettings;
   std::shared_ptr<cs::core::SolarSystem> mSolarSystem;
   std::string                            mObjectName;

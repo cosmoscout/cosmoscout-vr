@@ -148,6 +148,22 @@ void BoxRenderer::setBoxes(std::vector<Box> const& boxes) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void BoxRenderer::drawBox(Box const& box, glm::mat4 const& mvp) const {
+  glm::mat4 boxMatrix = glm::mat4(1.0f);
+  boxMatrix           = glm::translate(boxMatrix, box.pos);
+  boxMatrix           = boxMatrix * glm::mat4_cast(box.rot);
+  boxMatrix           = glm::scale(boxMatrix, box.size);
+
+  glm::mat4 boxMVP = mvp * boxMatrix;
+
+  glUniformMatrix4fv(mUniforms.mvp, 1, GL_FALSE, glm::value_ptr(boxMVP));
+  glUniform4fv(mUniforms.color, 1, glm::value_ptr(box.color));
+
+  glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, nullptr);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 bool BoxRenderer::Do() {
   auto object = mSolarSystem->getObject(mObjectName);
   if (!object || !object->getIsOrbitVisible()) {
@@ -166,19 +182,10 @@ bool BoxRenderer::Do() {
 
   glBindVertexArray(mVAO);
 
-  auto drawBox = [this, &matMVP](Box const& box) {
-    glm::mat4 boxMatrix = glm::mat4(1.0f);
-    boxMatrix           = glm::translate(boxMatrix, box.pos);
-    boxMatrix           = boxMatrix * glm::mat4_cast(box.rot);
-    boxMatrix           = glm::scale(boxMatrix, box.size);
-
-    glm::mat4 boxMVP = matMVP * boxMatrix;
-
-    glUniformMatrix4fv(mUniforms.mvp, 1, GL_FALSE, glm::value_ptr(boxMVP));
-    glUniform4fv(mUniforms.color, 1, glm::value_ptr(box.color));
-
-    glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, nullptr);
-  };
+  glPushAttrib(GL_ENABLE_BIT | GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  glEnable(GL_DEPTH_TEST);
+  glDepthMask(GL_TRUE);
+  glDisable(GL_BLEND);
 
   size_t i = 0;
   for (const auto& box : mSolidBoxes) {
@@ -186,18 +193,16 @@ bool BoxRenderer::Do() {
     if (i++ < 3) {
       scale = glm::vec3{100, 100, 1};
     }
-    drawBox({box.pos, box.rot, box.size * scale, box.color});
+    drawBox({box.pos, box.rot, box.size * scale, box.color}, matMVP);
   }
 
-  glPushAttrib(GL_ENABLE_BIT | GL_COLOR_BUFFER_BIT);
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
   for (auto const& box : mTranslucentBoxes) {
-    drawBox({box.pos, box.rot, box.size * 100.F, box.color});
+    drawBox({box.pos, box.rot, box.size * 100.F, box.color}, matMVP);
   }
 
-  glDisable(GL_BLEND);
   glPopAttrib();
 
   glBindVertexArray(0);

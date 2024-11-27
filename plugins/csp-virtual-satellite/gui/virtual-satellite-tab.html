@@ -1,1 +1,31 @@
-<p>Your sidebar content here!</p>
+<!--
+SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
+SPDX-License-Identifier: MIT
+-->
+
+<div class="strike">
+    <span>Satellite Selection</span>
+</div>
+<div class="row mb-1">
+    <div class="col-5">
+        <label>Repository</label>
+    </div>
+    <div class="col-6">
+        <select data-callback="virtualSatellite.setRepository" data-container="#cosmoscout" data-width="100%"
+                class="simple-value-dropdown" data-dropdown-align-right="true">
+            <!-- Filled by JavaScript Function called from Plugin.cpp -->
+        </select>
+    </div>
+</div>
+
+<div class="row mb-1">
+    <div class="col-5">
+        <label>Root SEI</label>
+    </div>
+    <div class="col-6">
+        <select data-callback="virtualSatellite.setRootSEI" data-container="#cosmoscout" data-width="100%"
+                class="simple-value-dropdown" data-dropdown-align-right="true" data-live-search="true">
+            <!-- Filled by JavaScript Function called from Plugin.cpp -->
+        </select>
+    </div>
+</div>
