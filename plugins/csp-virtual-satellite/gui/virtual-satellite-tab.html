@@ -6,11 +6,30 @@ SPDX-License-Identifier: MIT
 <div class="strike">
     <span>Satellite Selection</span>
 </div>
-<div class="row mb-1">
-    <div class="col-5">
+
+<div id="virtualSatellite-auth-root" class="row mb-1">
+    <div class="col-3">
+        <label>Username</label>
+    </div>
+    <div class="col-9">
+        <input type="text" class="form-control" id="virtualSatellite-username">
+    </div>
+    <div class="col-3">
+        <label>Password</label>
+    </div>
+    <div class="col-9">
+        <input type="password" class="form-control" id="virtualSatellite-password">
+    </div>
+    <div class="col-3 offset-3 mt-2">
+        <button class="btn glass" onclick="CosmoScout.virtualSatellite.authenticate()">Login</button>
+    </div>
+</div>
+
+<div id="virtualSatellite-repo-root" class="row mb-1" hidden>
+    <div class="col-3">
         <label>Repository</label>
     </div>
-    <div class="col-6">
+    <div class="col-9">
         <select data-callback="virtualSatellite.setRepository" data-container="#cosmoscout" data-width="100%"
                 class="simple-value-dropdown" data-dropdown-align-right="true">
             <!-- Filled by JavaScript Function called from Plugin.cpp -->
@@ -18,11 +37,11 @@ SPDX-License-Identifier: MIT
     </div>
 </div>
 
-<div class="row mb-1">
-    <div class="col-5">
+<div id="virtualSatellite-sei-root" class="row mb-1" hidden>
+    <div class="col-3">
         <label>Root SEI</label>
     </div>
-    <div class="col-6">
+    <div class="col-9">
         <select data-callback="virtualSatellite.setRootSEI" data-container="#cosmoscout" data-width="100%"
                 class="simple-value-dropdown" data-dropdown-align-right="true" data-live-search="true">
             <!-- Filled by JavaScript Function called from Plugin.cpp -->

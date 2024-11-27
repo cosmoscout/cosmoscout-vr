@@ -20,12 +20,45 @@
      */
     init() {
       this._rootSEISelect = document.querySelector(`[data-callback="virtualSatellite.setRootSEI"]`);
+      this._repoSelect = document.querySelector(`[data-callback="virtualSatellite.setRepository"]`);
     }
 
     /**
      * @inheritDoc
      */
     update() {
+    }
+
+    authenticate() {
+      const username = document.querySelector('#virtualSatellite-username').value;
+      const password = document.querySelector('#virtualSatellite-password').value;
+
+      CosmoScout.callbacks.virtualSatellite.authenticate(username, password);
+    }
+
+    resetRepoSelect() {
+      $(this._repoSelect).selectpicker("destroy");
+      $(this._repoSelect).selectpicker();
+      CosmoScout.gui.clearDropdown("virtualSatellite.setRepository");
+      CosmoScout.gui.addDropdownValue("virtualSatellite.setRepository", "None", "None", true);
+      document.querySelector("#virtualSatellite-repo-root").hidden = true;
+    }
+
+    refreshRepoSelect() {
+      $(this._repoSelect).selectpicker("refresh");
+      document.querySelector("#virtualSatellite-repo-root").hidden = false;
+    }
+
+
+    addRepo(repo) {
+      const option = document.createElement('option');
+
+      option.value     = repo;
+      option.selected  = false;
+      option.disabled  = false;
+      option.innerHTML = repo;
+
+      this._repoSelect.appendChild(option);
     }
 
     /**
@@ -36,6 +69,7 @@
       $(this._rootSEISelect).selectpicker();
       CosmoScout.gui.clearDropdown("virtualSatellite.setRootSEI");
       CosmoScout.gui.addDropdownValue("virtualSatellite.setRootSEI", "None", "None", true);
+      document.querySelector("#virtualSatellite-sei-root").hidden = true;
     }
 
     /**
@@ -43,6 +77,7 @@
      */
     refreshSEISelect() {
       $(this._rootSEISelect).selectpicker("refresh");
+      document.querySelector("#virtualSatellite-sei-root").hidden = false;
     }
 
     /**

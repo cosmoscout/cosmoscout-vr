@@ -120,9 +120,9 @@ void Plugin::onLoad() {
   from_json(mAllSettings->mPlugins.at("csp-virtual-satellite"), *mPluginSettings);
 
   mManagementAPI = RestRequestManager(
-      mPluginSettings->mUrl.get() + "rest/management/v0.0.1/project/", "user_a", "1234");
+      mPluginSettings->mUrl.get() + "rest/management/v0.0.1/project/", "", "");
   mModelAPI = RestRequestManager(
-      mPluginSettings->mUrl.get() + "rest/model/v0.0.1/repository/", "user_a", "1234");
+      mPluginSettings->mUrl.get() + "rest/model/v0.0.1/repository/", "", "");
 
   mGuiManager->getGui()->registerCallback("virtualSatellite.setRepository",
       "Set the current repository to the one with the given name.",
@@ -138,20 +138,29 @@ void Plugin::onLoad() {
         setRootSEI(uuid);
       }));
 
-  // get repo name
-  if (auto result = mManagementAPI.getRequest(""); result.is_array() && !result.empty()) {
-    mRepositories = result.get<std::vector<std::string>>();
+  mGuiManager->getGui()->registerCallback("virtualSatellite.authenticate",
+      "Try to authenticate with username and password.",
+      std::function([this](std::string&& username, std::string&& password) {
+        mManagementAPI.setUsername(username);
+        mManagementAPI.setPassword(password);
 
-    mGuiManager->getGui()->callJavascript(
-        "CosmoScout.gui.clearDropdown", "virtualSatellite.setRepository");
-    mGuiManager->getGui()->callJavascript(
-        "CosmoScout.gui.addDropdownValue", "virtualSatellite.setRepository", "None", "None", true);
+        if (auto result = mManagementAPI.getRequest(""); result.is_array() && !result.empty()) {
+          mModelAPI.setUsername(username);
+          mModelAPI.setPassword(password);
+          mRepositories = result.get<std::vector<std::string>>();
 
-    for (auto const& repoName : mRepositories) {
-      mGuiManager->getGui()->callJavascript("CosmoScout.gui.addDropdownValue",
-          "virtualSatellite.setRepository", repoName, repoName, false);
-    }
-  }
+          mGuiManager->getGui()->callJavascript("CosmoScout.virtualSatellite.resetRepoSelect");
+          for (auto const& repoName : mRepositories) {
+            mGuiManager->getGui()->callJavascript("CosmoScout.virtualSatellite.addRepo", repoName);
+          }
+          mGuiManager->getGui()->callJavascript("CosmoScout.virtualSatellite.refreshRepoSelect");
+        } else {
+          mManagementAPI.setUsername("");
+          mManagementAPI.setPassword("");
+          logger().error(
+              "Failed to fetch data. Error: {} ({})", result.at("message"), result.at("status"));
+        }
+      }));
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
