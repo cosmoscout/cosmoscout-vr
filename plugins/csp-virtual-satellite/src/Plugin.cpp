@@ -152,141 +152,6 @@ void Plugin::onLoad() {
           "virtualSatellite.setRepository", repoName, repoName, false);
     }
   }
-
-  // get root SEIs
-  if (mRepoName) {
-    auto result =
-        mModelAPI.getRequest(*mRepoName + "/seis", {{"sync", "true"}, {"build", "false"}});
-    auto rootSEIs = result.get<std::vector<BeanStructuralElementInstance>>();
-
-    std::function<void(BeanStructuralElementInstance const&, uint32_t)> printTree;
-    printTree = [this, &printTree](BeanStructuralElementInstance const& sei, uint32_t depth) {
-      std::string indent = std::string(2 * depth, ' ');
-      std::string categories;
-      for (size_t i = 0; i < sei.categoryAssignments.size(); i++) {
-        if (i > 0) {
-          categories += ", ";
-        }
-        categories += sei.categoryAssignments[i].name;
-      }
-
-      logger().info("{}{}", indent, std::string(90 - 2 * depth, '-'));
-
-      logger().info("{}|       UUID: {}", indent, sei.uuid);
-      logger().info("{}|       Name: {}", indent, sei.name);
-      logger().info("{}|       Type: {}", indent, sei.type.value_or(""));
-      logger().info("{}| Categories: {}", indent, categories);
-
-      if (!sei.categoryAssignments.empty() && sei.categoryAssignments[0].name == "Visualisation") {
-        auto ca = getCA(sei.categoryAssignments[0].uuid);
-        logger().info("{}|   CA Shape: {}", indent, std::get<std::string>(ca.shapeBean.value));
-        logger().info("{}|   CA   Pos: ({}, {}, {})", indent,
-            std::get<float>(ca.positionXBean.value), std::get<float>(ca.positionYBean.value),
-            std::get<float>(ca.positionZBean.value));
-
-        logger().info("{}|   CA   Rot: ({}, {}, {})", indent,
-            std::get<float>(ca.rotationXBean.value), std::get<float>(ca.rotationYBean.value),
-            std::get<float>(ca.rotationZBean.value));
-
-        if (std::get<std::string>(ca.shapeBean.value) == "BOX") {
-          logger().info("{}|   CA  Size: ({}, {}, {})", indent, std::get<float>(ca.sizeXBean.value),
-              std::get<float>(ca.sizeYBean.value), std::get<float>(ca.sizeZBean.value));
-        } else if (std::get<std::string>(ca.shapeBean.value) == "SPHERE") {
-          logger().info("{}| CA  Radius: {}", indent, std::get<float>(ca.radiusBean.value));
-        }
-
-        if (ca.colorBean.value.index() != 0) {
-          auto value = std::get<int64_t>(ca.colorBean.value);
-          auto color = static_cast<uint32_t>(value);
-
-          std::stringstream stream;
-          stream << std::hex << color;
-          std::string colorString(stream.str());
-
-          std::array<uint8_t, 4> _rgb;
-          std::memcpy(_rgb.data(), &color, sizeof(uint32_t));
-
-          logger().info("{}|   CA Color: {}", indent, colorString);
-          logger().info("{}|   CA Color: ({}, {}, {})", indent, _rgb[0] / 255.0, _rgb[1] / 255.0,
-              _rgb[2] / 255.0);
-        }
-
-        if (ca.transparencyBean.value.index() != 0) {
-          auto value = std::get<float>(ca.transparencyBean.value);
-          logger().info("{}|   CA Alpha: {}", indent, value);
-        }
-      }
-
-      logger().info("{}{}", indent, std::string(90 - 2 * depth, '-'));
-
-      for (auto const& child : sei.children) {
-        printTree(getSEI(child.uuid), depth + 1);
-      }
-    };
-
-    for (auto& rootSEI : rootSEIs) {
-      if (auto sei = getSEI(rootSEI.uuid);
-          sei.type == "de.dlr.sc.virsat.model.extension.ps.ConfigurationTree") {
-        printTree(sei, 0);
-      }
-    }
-
-    std::vector<Box>    boxes;
-    std::vector<Sphere> spheres;
-
-    std::function<void(BeanStructuralElementInstance)> buildVisualisationTree;
-    buildVisualisationTree = [this, &buildVisualisationTree, &boxes](
-                                 BeanStructuralElementInstance const& sei) {
-      if (sei.children.empty() && !sei.categoryAssignments.empty() &&
-          sei.categoryAssignments[0].name == "Visualisation") {
-        auto ca = getCA(sei.categoryAssignments[0].uuid);
-
-        if (std::get<std::string>(ca.shapeBean.value) == "BOX") {
-          Box box{
-              getPositionFromCA(ca),
-              getRotationFromCA(ca),
-              getSizeFromCA(ca),
-              getColorFromCA(ca),
-          };
-
-          auto currSei = sei;
-          while (currSei.parent) {
-            currSei = getSEI(currSei.parent.value());
-            if (!currSei.categoryAssignments.empty() &&
-                currSei.categoryAssignments[0].name == "Visualisation") {
-              auto currCA = getCA(currSei.categoryAssignments[0].uuid);
-              box.pos += getPositionFromCA(currCA);
-              box.rot *= getRotationFromCA(currCA);
-            }
-          }
-          boxes.push_back(box);
-        }
-      } else if (!sei.children.empty()) {
-        for (auto const& child : sei.children) {
-          buildVisualisationTree(getSEI(child.uuid));
-        }
-      }
-    };
-
-    for (auto& rootSEI : rootSEIs) {
-      if (auto sei = getSEI(rootSEI.uuid);
-          sei.type == "de.dlr.sc.virsat.model.extension.ps.ConfigurationTree") {
-        buildVisualisationTree(sei);
-      }
-    }
-
-    for (const auto& [pos, rot, size, color] : boxes) {
-      logger().info("Box ---------------------------");
-      logger().info("pos:   ({:.2f}, {:.2f}, {:.2f})", pos.x, pos.y, pos.z);
-      logger().info("rot:   ({:.2f}, {:.2f}, {:.2f}, {:.2f})", rot.x, rot.y, rot.z, rot.w);
-      logger().info("size:  ({:.2f}, {:.2f}, {:.2f})", size.x, size.y, size.z);
-      logger().info("color: ({:.2f}, {:.2f}, {:.2f}, {:.2f})", color.r, color.g, color.b, color.a);
-    }
-
-    mBoxRenderer = std::make_unique<BoxRenderer>(mPluginSettings, mSolarSystem);
-    mBoxRenderer->setObjectName("ISS");
-    mBoxRenderer->setBoxes(boxes);
-  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -328,44 +193,46 @@ void Plugin::setRootSEI(std::string const& uuid) {
 
   mRootSEI = mRootSEIs.at(uuid);
 
-  std::vector<Box> boxes;
+  printTree(*mRootSEI);
+
+  std::vector<Box>                                   boxes;
   std::function<void(BeanStructuralElementInstance)> buildVisualisationTree;
-    buildVisualisationTree = [this, &buildVisualisationTree, &boxes](
-                                 BeanStructuralElementInstance const& sei) {
-      if (sei.children.empty() && !sei.categoryAssignments.empty() &&
-          sei.categoryAssignments[0].name == "Visualisation") {
-        auto ca = getCA(sei.categoryAssignments[0].uuid);
+  buildVisualisationTree = [this, &buildVisualisationTree, &boxes](
+                               BeanStructuralElementInstance const& sei) {
+    if (sei.children.empty() && !sei.categoryAssignments.empty() &&
+        sei.categoryAssignments[0].name == "Visualisation") {
+      auto ca = getCA(sei.categoryAssignments[0].uuid);
 
-        if (std::get<std::string>(ca.shapeBean.value) == "BOX") {
-          Box box{
-              getPositionFromCA(ca),
-              getRotationFromCA(ca),
-              getSizeFromCA(ca),
-              getColorFromCA(ca),
-          };
+      if (std::get<std::string>(ca.shapeBean.value) == "BOX") {
+        Box box{
+            getPositionFromCA(ca),
+            getRotationFromCA(ca),
+            getSizeFromCA(ca),
+            getColorFromCA(ca),
+        };
 
-          auto currSei = sei;
-          while (currSei.parent) {
-            currSei = getSEI(currSei.parent.value());
-            if (!currSei.categoryAssignments.empty() &&
-                currSei.categoryAssignments[0].name == "Visualisation") {
-              auto currCA = getCA(currSei.categoryAssignments[0].uuid);
-              box.pos += getPositionFromCA(currCA);
-              box.rot *= getRotationFromCA(currCA);
-            }
+        auto currSei = sei;
+        while (currSei.parent) {
+          currSei = getSEI(currSei.parent.value());
+          if (!currSei.categoryAssignments.empty() &&
+              currSei.categoryAssignments[0].name == "Visualisation") {
+            auto currCA = getCA(currSei.categoryAssignments[0].uuid);
+            box.pos += getPositionFromCA(currCA);
+            box.rot *= getRotationFromCA(currCA);
           }
-          boxes.push_back(box);
         }
-      } else if (!sei.children.empty()) {
-        for (auto const& child : sei.children) {
-          buildVisualisationTree(getSEI(child.uuid));
-        }
+        boxes.push_back(box);
       }
-    };
+    } else if (!sei.children.empty()) {
+      for (auto const& child : sei.children) {
+        buildVisualisationTree(getSEI(child.uuid));
+      }
+    }
+  };
 
-    buildVisualisationTree(*mRootSEI);
+  buildVisualisationTree(*mRootSEI);
 
-    mBoxRenderer->setBoxes(boxes);
+  mBoxRenderer->setBoxes(boxes);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -394,6 +261,70 @@ CategoryAssignment Plugin::getCA(std::string const& uuid) {
   auto ca = result.get<CategoryAssignment>();
   mCACache.insert({uuid, ca});
   return ca;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Plugin::printTree(BeanStructuralElementInstance const& sei, uint32_t depth) {
+  std::string indent = std::string(2 * depth, ' ');
+  std::string categories;
+  for (size_t i = 0; i < sei.categoryAssignments.size(); i++) {
+    if (i > 0) {
+      categories += ", ";
+    }
+    categories += sei.categoryAssignments[i].name;
+  }
+
+  logger().info("{}{}", indent, std::string(90 - 2 * depth, '-'));
+
+  logger().info("{}|       UUID: {}", indent, sei.uuid);
+  logger().info("{}|       Name: {}", indent, sei.name);
+  logger().info("{}|       Type: {}", indent, sei.type.value_or(""));
+  logger().info("{}| Categories: {}", indent, categories);
+
+  if (!sei.categoryAssignments.empty() && sei.categoryAssignments[0].name == "Visualisation") {
+    auto ca = getCA(sei.categoryAssignments[0].uuid);
+    logger().info("{}|   CA Shape: {}", indent, std::get<std::string>(ca.shapeBean.value));
+    logger().info("{}|   CA   Pos: ({}, {}, {})", indent, std::get<float>(ca.positionXBean.value),
+        std::get<float>(ca.positionYBean.value), std::get<float>(ca.positionZBean.value));
+
+    logger().info("{}|   CA   Rot: ({}, {}, {})", indent, std::get<float>(ca.rotationXBean.value),
+        std::get<float>(ca.rotationYBean.value), std::get<float>(ca.rotationZBean.value));
+
+    if (std::get<std::string>(ca.shapeBean.value) == "BOX") {
+      logger().info("{}|   CA  Size: ({}, {}, {})", indent, std::get<float>(ca.sizeXBean.value),
+          std::get<float>(ca.sizeYBean.value), std::get<float>(ca.sizeZBean.value));
+    } else if (std::get<std::string>(ca.shapeBean.value) == "SPHERE") {
+      logger().info("{}| CA  Radius: {}", indent, std::get<float>(ca.radiusBean.value));
+    }
+
+    if (ca.colorBean.value.index() != 0) {
+      auto value = std::get<int64_t>(ca.colorBean.value);
+      auto color = static_cast<uint32_t>(value);
+
+      std::stringstream stream;
+      stream << std::hex << color;
+      std::string colorString(stream.str());
+
+      std::array<uint8_t, 4> _rgb;
+      std::memcpy(_rgb.data(), &color, sizeof(uint32_t));
+
+      logger().info("{}|   CA Color: {}", indent, colorString);
+      logger().info("{}|   CA Color: ({}, {}, {})", indent, _rgb[0] / 255.0, _rgb[1] / 255.0,
+          _rgb[2] / 255.0);
+    }
+
+    if (ca.transparencyBean.value.index() != 0) {
+      auto value = std::get<float>(ca.transparencyBean.value);
+      logger().info("{}|   CA Alpha: {}", indent, value);
+    }
+  }
+
+  logger().info("{}{}", indent, std::string(90 - 2 * depth, '-'));
+
+  for (auto const& child : sei.children) {
+    printTree(getSEI(child.uuid), depth + 1);
+  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

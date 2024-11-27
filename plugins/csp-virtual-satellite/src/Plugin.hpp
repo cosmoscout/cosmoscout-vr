@@ -56,6 +56,8 @@ class Plugin : public cs::core::PluginBase {
 
   int mOnLoadConnection = -1;
   int mOnSaveConnection = -1;
+
+  void printTree(BeanStructuralElementInstance const& sei, uint32_t depth = 0);
 };
 
 } // namespace csp::virtualsatellite
