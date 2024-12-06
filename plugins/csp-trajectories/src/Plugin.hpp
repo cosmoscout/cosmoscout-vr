@@ -83,6 +83,12 @@ class Plugin : public cs::core::PluginBase {
 
     /// Toggles dots at runtime.
     cs::utils::DefaultProperty<bool> mEnablePlanetMarks{true};
+
+    /// Scaling factor for HDR flares.
+    cs::utils::DefaultProperty<double> mHDRFlareScale{1.0};
+
+    /// Scaling factor for dots.
+    cs::utils::DefaultProperty<double> mPlanetMarkScale{1.0};
   };
 
   void init() override;

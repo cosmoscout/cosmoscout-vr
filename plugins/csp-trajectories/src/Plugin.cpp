@@ -77,6 +77,8 @@ void from_json(nlohmann::json const& j, Plugin::Settings& o) {
   cs::core::Settings::deserialize(j, "enableLDRFlares", o.mEnableLDRFlares);
   cs::core::Settings::deserialize(j, "enableHDRFlares", o.mEnableHDRFlares);
   cs::core::Settings::deserialize(j, "enablePlanetMarks", o.mEnablePlanetMarks);
+  cs::core::Settings::deserialize(j, "hdrFlareScale", o.mHDRFlareScale);
+  cs::core::Settings::deserialize(j, "planetMarkScale", o.mPlanetMarkScale);
 }
 
 void to_json(nlohmann::json& j, Plugin::Settings const& o) {
@@ -85,6 +87,8 @@ void to_json(nlohmann::json& j, Plugin::Settings const& o) {
   cs::core::Settings::serialize(j, "enableLDRFlares", o.mEnableLDRFlares);
   cs::core::Settings::serialize(j, "enableHDRFlares", o.mEnableHDRFlares);
   cs::core::Settings::serialize(j, "enablePlanetMarks", o.mEnablePlanetMarks);
+  cs::core::Settings::serialize(j, "hdrFlareScale", o.mHDRFlareScale);
+  cs::core::Settings::serialize(j, "planetMarkScale", o.mPlanetMarkScale);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -180,7 +184,7 @@ void Plugin::update() {
   };
 
   // Trajectory dots as well as the HDR flares should be constant in size on screen. Therefore, we
-  // have to compute thei solid angle based on the current field of view.
+  // have to compute their solid angle based on the current field of view.
   VistaTransformMatrix proj =
       GetVistaSystem()->GetDisplayManager()->GetCurrentRenderInfo()->m_matProjection;
   float fov2 = std::pow(std::min(std::atan(1.F / proj[1][1]), std::atan(1.F / proj[0][0])), 2.F);
@@ -189,7 +193,8 @@ void Plugin::update() {
   bool dotsEnabled = mPluginSettings->mEnablePlanetMarks.get();
   for (auto const& dot : mTrajectoryDots) {
     if (updateVisibility(dot, dotsEnabled)) {
-      dot->pSolidAngle = 0.0002F * fov2;
+      double dotScale = mPluginSettings->mPlanetMarkScale.get() * mPluginSettings->mPlanetMarkScale.get();
+      dot->pSolidAngle = 0.0002F * fov2 * dotScale;
     }
   }
 
@@ -237,8 +242,9 @@ void Plugin::update() {
       double bodySolidAngle =
           4.0 * glm::pi<double>() * std::pow(std::sin(bodyAngularSize * 0.5), 2.0);
 
-      double maxSolidAngle = 0.005 * fov2;   // The flare will not get larger than this.
-      double minSolidAngle = 0.00005 * fov2; // The flare will not get smaller than this.
+      double flareScale = mPluginSettings->mHDRFlareScale.get() * mPluginSettings->mHDRFlareScale.get();
+      double maxSolidAngle = 0.005 * fov2 * flareScale;   // The flare will not get larger than this.
+      double minSolidAngle = 0.00005 * fov2 * flareScale; // The flare will not get smaller than this.
 
       // We make the flare a bit larger than the body to ensure that it covers the body completely.
       double flareSolidAngle = glm::clamp(bodySolidAngle * 1.2, minSolidAngle, maxSolidAngle);
@@ -249,7 +255,7 @@ void Plugin::update() {
       // out between fadeEndSolidAngle and maxSolidAngle.
       if (object->getIsBodyVisible()) {
         // The flare is faded out between fadeEndSolidAngle and maxSolidAngle.
-        double fadeEndSolidAngle = 0.0005 * fov2;
+        double fadeEndSolidAngle = 0.0005 * fov2 * flareScale;
 
         alpha = glm::clamp(
             1.0 - (flareSolidAngle - fadeEndSolidAngle) / (maxSolidAngle - fadeEndSolidAngle), 0.0,
