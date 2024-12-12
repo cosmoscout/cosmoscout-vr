@@ -48,7 +48,15 @@ class Stars : public IVistaOpenGLDraw {
     eCount
   };
 
-  enum class DrawMode { ePoint, eSmoothPoint, eDisc, eSmoothDisc, eScaledDisc, eSprite };
+  enum class DrawMode {
+    ePoint,
+    eSmoothPoint,
+    eDisc,
+    eSmoothDisc,
+    eScaledDisc,
+    eGlareDisc,
+    eSprite
+  };
 
   /// It is possible to load multiple catalogs, currently Hipparcos and any of Tycho or Tycho2 can
   /// be loaded together. Stars which are in both catalogs will be loaded from Hipparcos. Once

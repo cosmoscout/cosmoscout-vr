@@ -166,9 +166,12 @@ void Plugin::init() {
       "Enables scaled disc draw mode for the stars.",
       std::function([this]() { mPluginSettings.mDrawMode = Stars::DrawMode::eScaledDisc; }));
   mGuiManager->getGui()->registerCallback("stars.setDrawMode5",
+      "Enables glare disc draw mode for the stars.",
+      std::function([this]() { mPluginSettings.mDrawMode = Stars::DrawMode::eGlareDisc; }));
+  mGuiManager->getGui()->registerCallback("stars.setDrawMode6",
       "Enables sprite draw mode for the stars.",
       std::function([this]() { mPluginSettings.mDrawMode = Stars::DrawMode::eSprite; }));
-  mPluginSettings.mDrawMode.connect([this](Stars::DrawMode drawMode) {
+  mPluginSettings.mDrawMode.connectAndTouch([this](Stars::DrawMode drawMode) {
     if (drawMode == Stars::DrawMode::ePoint) {
       mGuiManager->setRadioChecked("stars.setDrawMode0");
     } else if (drawMode == Stars::DrawMode::eSmoothPoint) {
@@ -179,8 +182,10 @@ void Plugin::init() {
       mGuiManager->setRadioChecked("stars.setDrawMode3");
     } else if (drawMode == Stars::DrawMode::eScaledDisc) {
       mGuiManager->setRadioChecked("stars.setDrawMode4");
-    } else if (drawMode == Stars::DrawMode::eSprite) {
+    } else if (drawMode == Stars::DrawMode::eGlareDisc) {
       mGuiManager->setRadioChecked("stars.setDrawMode5");
+    } else if (drawMode == Stars::DrawMode::eSprite) {
+      mGuiManager->setRadioChecked("stars.setDrawMode6");
     }
   });
 
@@ -218,6 +223,7 @@ void Plugin::deInit() {
   mGuiManager->getGui()->unregisterCallback("stars.setDrawMode3");
   mGuiManager->getGui()->unregisterCallback("stars.setDrawMode4");
   mGuiManager->getGui()->unregisterCallback("stars.setDrawMode5");
+  mGuiManager->getGui()->unregisterCallback("stars.setDrawMode6");
   mGuiManager->getGui()->unregisterCallback("stars.setEnabled");
   mGuiManager->getGui()->unregisterCallback("stars.setEnableGrid");
   mGuiManager->getGui()->unregisterCallback("stars.setEnableFigures");
