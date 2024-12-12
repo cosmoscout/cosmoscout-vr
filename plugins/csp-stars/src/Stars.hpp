@@ -207,15 +207,6 @@ class Stars : public IVistaOpenGLDraw {
   static constexpr size_t NUM_COLUMNS  = cs::utils::enumCast(CatalogColumn::eCount);
 
   static const std::array<std::array<int, NUM_COLUMNS>, NUM_CATALOGS> cColumnMapping;
-
-  static const char* cStarsSnippets;
-  static const char* cStarsVertOnePixel;
-  static const char* cStarsFragOnePixel;
-  static const char* cStarsVert;
-  static const char* cStarsFrag;
-  static const char* cStarsGeom;
-  static const char* cBackgroundVert;
-  static const char* cBackgroundFrag;
 };
 
 } // namespace csp::stars

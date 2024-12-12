@@ -11,6 +11,7 @@
 
 #include "../../../src/cs-graphics/TextureLoader.hpp"
 #include "../../../src/cs-utils/FrameStats.hpp"
+#include "../../../src/cs-utils/filesystem.hpp"
 
 #ifdef _WIN32
 #include <Windows.h>
@@ -354,21 +355,37 @@ bool Stars::Do() {
       defines += "#define DRAWMODE_SPRITE\n";
     }
 
+    defines += cs::utils::filesystem::loadToString("../share/resources/shaders/starSnippets.glsl");
+
     mStarShader = VistaGLSLShader();
     if (mDrawMode == DrawMode::ePoint || mDrawMode == DrawMode::eSmoothPoint) {
-      mStarShader.InitVertexShaderFromString(defines + cStarsSnippets + cStarsVertOnePixel);
-      mStarShader.InitFragmentShaderFromString(defines + cStarsSnippets + cStarsFragOnePixel);
+      mStarShader.InitVertexShaderFromString(
+          defines +
+          cs::utils::filesystem::loadToString("../share/resources/shaders/starsOnePixel.vert"));
+      mStarShader.InitFragmentShaderFromString(
+          defines +
+          cs::utils::filesystem::loadToString("../share/resources/shaders/starsOnePixel.frag"));
     } else {
-      mStarShader.InitVertexShaderFromString(defines + cStarsSnippets + cStarsVert);
-      mStarShader.InitGeometryShaderFromString(defines + cStarsSnippets + cStarsGeom);
-      mStarShader.InitFragmentShaderFromString(defines + cStarsSnippets + cStarsFrag);
+      mStarShader.InitVertexShaderFromString(
+          defines +
+          cs::utils::filesystem::loadToString("../share/resources/shaders/starsBillboard.vert"));
+      mStarShader.InitGeometryShaderFromString(
+          defines +
+          cs::utils::filesystem::loadToString("../share/resources/shaders/starsBillboard.geom"));
+      mStarShader.InitFragmentShaderFromString(
+          defines +
+          cs::utils::filesystem::loadToString("../share/resources/shaders/starsBillboard.frag"));
     }
 
     mStarShader.Link();
 
     mBackgroundShader = VistaGLSLShader();
-    mBackgroundShader.InitVertexShaderFromString(defines + cBackgroundVert);
-    mBackgroundShader.InitFragmentShaderFromString(defines + cBackgroundFrag);
+    mBackgroundShader.InitVertexShaderFromString(
+        defines +
+        cs::utils::filesystem::loadToString("../share/resources/shaders/starsBackground.vert"));
+    mBackgroundShader.InitFragmentShaderFromString(
+        defines +
+        cs::utils::filesystem::loadToString("../share/resources/shaders/starsBackground.frag"));
     mBackgroundShader.Link();
 
     mUniforms.bgInverseMVMatrix  = mBackgroundShader.GetUniformLocation("uInvMV");
