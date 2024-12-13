@@ -22,5 +22,5 @@ void main() {
 
   vec3 sampled_glare_base_level_values = texelFetch(uGlareMipMap, pixelPos, 0).rgb;
   // Finally store the glare value in the output layer of the glare mipmap.
-  imageStore(uOutGlare, pixelPos, vec4(sampled_glare_base_level_values, 0.0));
+  imageStore(uOutGlare, pixelPos, vec4(1.0*GLARE_INTENSITY, 0.0, 0.0, 0.0));
 }

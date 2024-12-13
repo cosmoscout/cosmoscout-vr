@@ -189,7 +189,7 @@ GraphicsEngine::GraphicsEngine(std::shared_ptr<core::Settings> settings)
 
   mSettings->mGraphics.pGlareIntensity.connectAndTouch(
       [this](float val) { mToneMappingNode->setGlareIntensity(val);
-                          mHDRBuffer->setGlareQuality(val);});
+                          mHDRBuffer->setGlareIntensity(val);});
 
   mSettings->mGraphics.pGlareQuality.connectAndTouch(
       [this](uint32_t val) { mHDRBuffer->setGlareQuality(val); });

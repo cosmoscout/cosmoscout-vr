@@ -106,7 +106,7 @@ void GlareMipMap::update(
 
   utils::FrameStats::ScopedTimer timer("Compute Glare");
 
-  if (mGlareProgram == 0 || glareMode != mLastGlareMode || glareQuality != mLastGlareQuality) {
+  if (mGlareProgram == 0 || glareMode != mLastGlareMode || glareQuality != mLastGlareQuality || glareIntensity != mLastGlareIntensity) {
 
     // Create the compute shader.
     std::string source = "#version 430\n";
