@@ -9,7 +9,7 @@
 
 layout(local_size_x = 16, local_size_y = 16) in;
 
-layout(rgba32f, binding = 1) readonly uniform image2D uInGlare;
+layout(binding = 0) uniform sampler2D uGlareMipMap;
 layout(rgba32f, binding = 2) writeonly uniform image2D uOutGlare;
 
 void main() {
@@ -22,6 +22,7 @@ void main() {
     return;
   }
 
+  vec3 sampled_glare_base_level_values = texelFetch(uGlareMipMap, pixelPos, 0).rgb;
   // Finally store the glare value in the output layer of the glare mipmap.
-  imageStore(uOutGlare, pixelPos, vec4(1.0, 0.0, 0.0, 0.0));
+  imageStore(uOutGlare, pixelPos, vec4(sampled_glare_base_level_values, 0.0));
 }

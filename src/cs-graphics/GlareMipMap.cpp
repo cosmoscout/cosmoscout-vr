@@ -204,7 +204,7 @@ void GlareMipMap::update(
   glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 
   glUseProgram(mCompositeProgram);
-  // glBindImageTexture(1, mTemporaryTarget->GetId(), 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA32F);
+  this->Bind(GL_TEXTURE0);
   glBindImageTexture(2, this->GetId(), 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA32F);
   glDispatchCompute(static_cast<uint32_t>(std::ceil(0.5 * mHDRBufferWidth / 16)),
       static_cast<uint32_t>(std::ceil(0.5 * mHDRBufferHeight / 16)), 1);
