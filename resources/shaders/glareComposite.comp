@@ -1,0 +1,27 @@
+////////////////////////////////////////////////////////////////////////////////////////////////////
+//                               This file is part of CosmoScout VR                               //
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
+// SPDX-License-Identifier: MIT
+
+#version 430
+
+layout(local_size_x = 16, local_size_y = 16) in;
+
+layout(rgba32f, binding = 1) readonly uniform image2D uInGlare;
+layout(rgba32f, binding = 2) writeonly uniform image2D uOutGlare;
+
+void main() {
+
+  ivec2 pixelPos   = ivec2(gl_GlobalInvocationID.xy);
+  ivec2 outputSize = imageSize(uOutGlare);
+
+  // Discard any threads outside the output layer.
+  if (pixelPos.x >= outputSize.x || pixelPos.y >= outputSize.y) {
+    return;
+  }
+
+  // Finally store the glare value in the output layer of the glare mipmap.
+  imageStore(uOutGlare, pixelPos, vec4(1.0, 0.0, 0.0, 0.0));
+}

@@ -22,6 +22,46 @@ namespace cs::graphics {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+namespace {
+GLint createComputeShader(std::string const& source) {
+  auto shader  = glCreateShader(GL_COMPUTE_SHADER);
+  auto pSource = source.c_str();
+  glShaderSource(shader, 1, &pSource, nullptr);
+  glCompileShader(shader);
+
+  auto val = 0;
+  glGetShaderiv(shader, GL_COMPILE_STATUS, &val);
+  if (val != GL_TRUE) {
+    auto log_length = 0;
+    glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &log_length);
+    std::vector<char> v(log_length);
+    glGetShaderInfoLog(shader, log_length, nullptr, v.data());
+    std::string log(begin(v), end(v));
+    glDeleteShader(shader);
+    logger().error("ERROR: Failed to compile shader: {}", log);
+  }
+
+  auto program = glCreateProgram();
+  glAttachShader(program, shader);
+  glLinkProgram(program);
+  glDeleteShader(shader);
+
+  glGetProgramiv(program, GL_LINK_STATUS, &val);
+  if (!val) {
+    auto log_length = 0;
+    glGetProgramiv(program, GL_INFO_LOG_LENGTH, &log_length);
+    std::vector<char> v(log_length);
+    glGetProgramInfoLog(program, log_length, nullptr, v.data());
+    std::string log(begin(v), end(v));
+    logger().error("ERROR: Failed to link compute shader: {}", log);
+  }
+
+  return program;
+}
+} // namespace
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 GlareMipMap::GlareMipMap(uint32_t hdrBufferSamples, int hdrBufferWidth, int hdrBufferHeight)
     : VistaTexture(GL_TEXTURE_2D)
     , mHDRBufferSamples(hdrBufferSamples)
@@ -55,7 +95,8 @@ GlareMipMap::GlareMipMap(uint32_t hdrBufferSamples, int hdrBufferWidth, int hdrB
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 GlareMipMap::~GlareMipMap() {
-  glDeleteProgram(mComputeProgram);
+  glDeleteProgram(mGlareProgram);
+  glDeleteProgram(mCompositeProgram);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -65,10 +106,9 @@ void GlareMipMap::update(
 
   utils::FrameStats::ScopedTimer timer("Compute Glare");
 
-  if (mComputeProgram == 0 || glareMode != mLastGlareMode || glareQuality != mLastGlareQuality) {
+  if (mGlareProgram == 0 || glareMode != mLastGlareMode || glareQuality != mLastGlareQuality) {
 
     // Create the compute shader.
-    auto        shader = glCreateShader(GL_COMPUTE_SHADER);
     std::string source = "#version 430\n";
     source += "#define NUM_MULTISAMPLES " + std::to_string(mHDRBufferSamples) + "\n";
     source += "#define GLARE_QUALITY " + std::to_string(glareQuality) + "\n";
@@ -81,43 +121,16 @@ void GlareMipMap::update(
     }
 
     source += utils::filesystem::loadToString("../share/resources/shaders/glare.comp");
-    const char* pSource = source.c_str();
-    glShaderSource(shader, 1, &pSource, nullptr);
-    glCompileShader(shader);
 
-    auto val = 0;
-    glGetShaderiv(shader, GL_COMPILE_STATUS, &val);
-    if (val != GL_TRUE) {
-      auto log_length = 0;
-      glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &log_length);
-      std::vector<char> v(log_length);
-      glGetShaderInfoLog(shader, log_length, nullptr, v.data());
-      std::string log(begin(v), end(v));
-      glDeleteShader(shader);
-      logger().error("ERROR: Failed to compile shader: {}", log);
-    }
+    mGlareProgram = createComputeShader(source);
 
-    mComputeProgram = glCreateProgram();
-    glAttachShader(mComputeProgram, shader);
-    glLinkProgram(mComputeProgram);
-    glDeleteShader(shader);
+    mUniforms.level                   = glGetUniformLocation(mGlareProgram, "uLevel");
+    mUniforms.pass                    = glGetUniformLocation(mGlareProgram, "uPass");
+    mUniforms.projectionMatrix        = glGetUniformLocation(mGlareProgram, "uMatP");
+    mUniforms.inverseProjectionMatrix = glGetUniformLocation(mGlareProgram, "uMatInvP");
 
-    auto rvalue = 0;
-    glGetProgramiv(mComputeProgram, GL_LINK_STATUS, &rvalue);
-    if (!rvalue) {
-      auto log_length = 0;
-      glGetProgramiv(mComputeProgram, GL_INFO_LOG_LENGTH, &log_length);
-      std::vector<char> v(log_length);
-      glGetProgramInfoLog(mComputeProgram, log_length, nullptr, v.data());
-      std::string log(begin(v), end(v));
-
-      logger().error("ERROR: Failed to link compute shader: {}", log);
-    }
-
-    mUniforms.level                   = glGetUniformLocation(mComputeProgram, "uLevel");
-    mUniforms.pass                    = glGetUniformLocation(mComputeProgram, "uPass");
-    mUniforms.projectionMatrix        = glGetUniformLocation(mComputeProgram, "uMatP");
-    mUniforms.inverseProjectionMatrix = glGetUniformLocation(mComputeProgram, "uMatInvP");
+    mCompositeProgram = createComputeShader(
+        utils::filesystem::loadToString("../share/resources/shaders/glareComposite.comp"));
 
     mLastGlareMode    = glareMode;
     mLastGlareQuality = glareQuality;
@@ -129,7 +142,7 @@ void GlareMipMap::update(
   // In the asymmetric case, its not strictly horizontal and vertical - see the shader above for
   // details.
 
-  glUseProgram(mComputeProgram);
+  glUseProgram(mGlareProgram);
 
   glBindImageTexture(0, hdrBufferComposite->GetId(), 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA32F);
 
@@ -153,22 +166,22 @@ void GlareMipMap::update(
       int           outputLevel = level;
 
       // level  pass   input   inputLevel output outputLevel     blur      samplesHigherLevel
-      //   0     0   hdrbuffer    0        temp      0        horizontal          true
-      //   0     1     temp       0        this      0         vertical           false
-      //   1     0     this       0        temp      1        horizontal          true
-      //   1     1     temp       1        this      1         vertical           false
-      //   2     0     this       1        temp      2        horizontal          true
-      //   2     1     temp       2        this      2         vertical           false
-      //   3     0     this       2        temp      3        horizontal          true
-      //   3     1     temp       3        this      3         vertical           false
+      //   0     0   hdrbuffer    0        this      0        horizontal          true
+      //   0     1     this       0        temp      0         vertical           false
+      //   1     0     temp       0        this      1        horizontal          true
+      //   1     1     this       1        temp      1         vertical           false
+      //   2     0     temp       1        this      2        horizontal          true
+      //   2     1     this       2        temp      2         vertical           false
+      //   3     0     temp       2        this      3        horizontal          true
+      //   3     1     this       3        temp      3         vertical           false
 
       if (pass == 0) {
-        output     = mTemporaryTarget;
+        input      = mTemporaryTarget;
         inputLevel = std::max(0, inputLevel - 1);
       }
 
       if (pass == 1) {
-        input = mTemporaryTarget;
+        output = mTemporaryTarget;
       }
 
       glUniform1i(mUniforms.pass, pass);
@@ -188,6 +201,13 @@ void GlareMipMap::update(
           static_cast<uint32_t>(std::ceil(1.0 * height / 16)), 1);
     }
   }
+  glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+
+  glUseProgram(mCompositeProgram);
+  // glBindImageTexture(1, mTemporaryTarget->GetId(), 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA32F);
+  glBindImageTexture(2, this->GetId(), 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA32F);
+  glDispatchCompute(static_cast<uint32_t>(std::ceil(0.5 * mHDRBufferWidth / 16)),
+      static_cast<uint32_t>(std::ceil(0.5 * mHDRBufferHeight / 16)), 1);
 
   glBindImageTexture(0, 0, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA32F);
   glBindImageTexture(1, 0, 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA32F);

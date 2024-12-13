@@ -35,7 +35,8 @@ class CS_GRAPHICS_EXPORT GlareMipMap : public VistaTexture {
       VistaTexture* hdrBufferComposite, HDRBuffer::GlareMode glareMode, uint32_t glareQuality);
 
  private:
-  GLuint               mComputeProgram   = 0;
+  GLuint               mGlareProgram     = 0;
+  GLuint               mCompositeProgram = 0;
   uint32_t             mHDRBufferSamples = 0;
   int                  mMaxLevels        = 0;
   int                  mHDRBufferWidth   = 0;
