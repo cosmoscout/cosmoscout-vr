@@ -130,6 +130,14 @@ void main() {
 #endif
 
   if (uGlareIntensity > 0) {
+#ifdef BICUBIC_GLARE_FILTER
+
+      vec3 glare = texture2D(uGlareMipMap, vTexcoords, 0).rgb;
+
+      color = mix(color, glare, pow(uGlareIntensity, 2.0));
+#else
+
+
     vec3  glare     = vec3(0);
     float maxLevels = textureQueryLevels(uGlareMipMap);
 
@@ -140,17 +148,17 @@ void main() {
     for (int i = 0; i < maxLevels; ++i) {
       float weight = 1.0 / pow(2, i);
 
-#ifdef BICUBIC_GLARE_FILTER
-      glare += texture2D_bicubic(uGlareMipMap, vTexcoords, i).rgb * weight;
-#else
+
       glare += texture2D(uGlareMipMap, vTexcoords, i).rgb * weight;
-#endif
+
 
       totalWeight += weight;
     }
 
     // To make sure that we do not add energy, we divide by the total weight.
     color = mix(color, glare / totalWeight, pow(uGlareIntensity, 2.0));
+#endif
+
   }
 
 // Filmic

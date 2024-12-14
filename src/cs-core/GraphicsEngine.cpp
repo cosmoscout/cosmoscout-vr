@@ -188,7 +188,8 @@ GraphicsEngine::GraphicsEngine(std::shared_ptr<core::Settings> settings)
       toneMappingGLNode, static_cast<int>(utils::DrawOrder::eToneMapping));
 
   mSettings->mGraphics.pGlareIntensity.connectAndTouch(
-      [this](float val) { mToneMappingNode->setGlareIntensity(val); });
+      [this](float val) { mToneMappingNode->setGlareIntensity(val);
+                          mHDRBuffer->setGlareIntensity(val);});
 
   mSettings->mGraphics.pGlareQuality.connectAndTouch(
       [this](uint32_t val) { mHDRBuffer->setGlareQuality(val); });
