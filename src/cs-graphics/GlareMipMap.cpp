@@ -88,6 +88,11 @@ GlareMipMap::GlareMipMap(uint32_t hdrBufferSamples, int hdrBufferWidth, int hdrB
 
   // Create storage for temporary glare target (this is used for the vertical blurring passes).
   mTemporaryTarget->Bind();
+  mTemporaryTarget->SetMinFilter(GL_LINEAR_MIPMAP_LINEAR);
+  mTemporaryTarget->SetMagFilter(GL_LINEAR);
+  mTemporaryTarget->SetWrapS(GL_CLAMP_TO_EDGE);
+  mTemporaryTarget->SetWrapT(GL_CLAMP_TO_EDGE);
+
   glTexStorage2D(GL_TEXTURE_2D, mMaxLevels, GL_RGBA32F, iWidth, iHeight);
   mTemporaryTarget->Unbind();
 }
@@ -209,7 +214,7 @@ void GlareMipMap::update(
   glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 
   glUseProgram(mCompositeProgram);
-  this->Bind(GL_TEXTURE0);
+  mTemporaryTarget->Bind(GL_TEXTURE0);
   glBindImageTexture(2, this->GetId(), 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA32F);
   glDispatchCompute(static_cast<uint32_t>(std::ceil(0.5 * mHDRBufferWidth / 16)),
       static_cast<uint32_t>(std::ceil(0.5 * mHDRBufferHeight / 16)), 1);
