@@ -13,6 +13,7 @@ layout(rgba32f, binding = 0) readonly uniform image2DMS uInHDRBuffer;
 layout(rgba32f, binding = 0) readonly uniform image2D uInHDRBuffer;
 #endif
 
+layout(binding = 0) uniform sampler2D uInGlareMipMap;
 layout(rgba32f, binding = 1) readonly uniform image2D uInGlare;
 layout(rgba32f, binding = 2) writeonly uniform image2D uOutGlare;
 
@@ -62,11 +63,27 @@ vec3 sampleHDRBuffer(vec2 pos) {
 // corresponding to the pixel position in the current layer of the mipmap pyramid.
 vec3 sampleHigherLevel(ivec2 pos) {
   ivec2 pos_times_two = pos << 1;
+
+
+
+#if 1
   vec3 col = imageLoad(uInGlare, ivec2(pos_times_two + ivec2(0, 0))).rgb +
              imageLoad(uInGlare, ivec2(pos_times_two + ivec2(1, 0))).rgb +
              imageLoad(uInGlare, ivec2(pos_times_two + ivec2(0, 1))).rgb +
              imageLoad(uInGlare, ivec2(pos_times_two + ivec2(1, 1))).rgb;
   col *= 0.25;
+#else
+
+  int input_level = uLevel;
+  if(0 == uPass) {
+    input_level = max(0, input_level - 1);
+  }
+  ivec2 texture_size_of_lod = textureSize(uInGlareMipMap, input_level);
+
+  vec2 normalized_sampling_pos = (pos_times_two + 0.5) / vec2(texture_size_of_lod);
+
+  vec3 col = texture2D(uInGlareMipMap, normalized_sampling_pos, input_level).rgb;
+#endif
   return col;
 }
 
@@ -87,7 +104,8 @@ vec3 sampleHigherLevel(vec2 pos) {
 // Makes just one texture look-ups in the input layer of the glare mipmap at the given
 // pixel position.
 vec3 sampleSameLevel(ivec2 pos) {
-  return imageLoad(uInGlare, pos).rgb;
+  return texelFetch(uInGlareMipMap, pos, uLevel).rgb;
+  //return imageLoad(uInGlare, pos).rgb;
 }
 
 // Calls the method above four times in order to allow for bilinear interpolation. This is
