@@ -72,8 +72,8 @@ void HDRBuffer::bind() {
         glTexImage2DMultisample(
             target, mMultiSamples, internalFormat, hdrBuffer.mWidth, hdrBuffer.mHeight, false);
       } else {
-        glTexParameteri(target, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        glTexParameteri(target, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glTexParameteri(target, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         glTexParameteri(target, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(target, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         glTexImage2D(target, 0, internalFormat, hdrBuffer.mWidth, hdrBuffer.mHeight, 0, format,

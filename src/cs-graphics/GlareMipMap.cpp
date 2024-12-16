@@ -159,7 +159,7 @@ void GlareMipMap::update(VistaTexture* hdrBufferComposite, HDRBuffer::GlareMode 
 
   glUseProgram(mGlareProgram);
 
-  glBindImageTexture(0, hdrBufferComposite->GetId(), 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA32F);
+  hdrBufferComposite->Bind(GL_TEXTURE0);
 
   // The asymmetric variant requires the projection and the inverse projection matrices.
   if (glareMode == HDRBuffer::GlareMode::eAsymmetricGauss) {
@@ -208,16 +208,15 @@ void GlareMipMap::update(VistaTexture* hdrBufferComposite, HDRBuffer::GlareMode 
           std::max(1.0, std::floor(static_cast<double>(static_cast<int>(mHDRBufferHeight / 2)) /
                                    std::pow(2, level))));
 
-      input->Bind(GL_TEXTURE0);
+      input->Bind(GL_TEXTURE1);
       glBindImageTexture(1, input->GetId(), inputLevel, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA32F);
       glBindImageTexture(2, output->GetId(), outputLevel, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA32F);
 
-      glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
       glDispatchCompute(static_cast<uint32_t>(std::ceil(1.0 * width / 16)),
           static_cast<uint32_t>(std::ceil(1.0 * height / 16)), 1);
+      glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
     }
   }
-  glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 
   glUseProgram(mCompositeProgram);
   mTemporaryTarget->Bind(GL_TEXTURE0);

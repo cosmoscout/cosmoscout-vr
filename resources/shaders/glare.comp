@@ -8,12 +8,12 @@
 layout(local_size_x = 16, local_size_y = 16) in;
 
 #if NUM_MULTISAMPLES > 0
-layout(rgba32f, binding = 0) readonly uniform image2DMS uInHDRBuffer;
+layout(binding = 0) uniform sampler2DMS uInHDRBuffer;
 #else
-layout(rgba32f, binding = 0) readonly uniform image2D uInHDRBuffer;
+layout(binding = 0) uniform sampler2D uInHDRBuffer;
 #endif
 
-layout(binding = 0) uniform sampler2D uInGlareMipMap;
+layout(binding = 1) uniform sampler2D uInGlareMipMap;
 layout(rgba32f, binding = 1) readonly uniform image2D uInGlare;
 layout(rgba32f, binding = 2) writeonly uniform image2D uOutGlare;
 
@@ -28,21 +28,18 @@ const float PI = 3.14159265359;
 // the pixel position in the base layer of the output mipmap pyramid.
 // For performance reasons, we only use one sample for multisample inputs.
 vec3 sampleHDRBuffer(ivec2 pos) {
-  ivec2 pos_times_two = pos << 1;
+  ivec2 posTimesTwo = pos << 1;
 
 #if NUM_MULTISAMPLES > 0
-  vec3 col = imageLoad(uInHDRBuffer, ivec2(pos_times_two + ivec2(0, 0)), 0).rgb +
-             imageLoad(uInHDRBuffer, ivec2(pos_times_two + ivec2(1, 0)), 0).rgb +
-             imageLoad(uInHDRBuffer, ivec2(pos_times_two + ivec2(0, 1)), 0).rgb +
-             imageLoad(uInHDRBuffer, ivec2(pos_times_two + ivec2(1, 1)), 0).rgb;
+  vec3 col = texelFetch(uInHDRBuffer, ivec2(posTimesTwo + ivec2(0, 0)), 0).rgb +
+             texelFetch(uInHDRBuffer, ivec2(posTimesTwo + ivec2(1, 0)), 0).rgb +
+             texelFetch(uInHDRBuffer, ivec2(posTimesTwo + ivec2(0, 1)), 0).rgb +
+             texelFetch(uInHDRBuffer, ivec2(posTimesTwo + ivec2(1, 1)), 0).rgb;
+  return col * 0.25;
 #else
-  vec3 col = imageLoad(uInHDRBuffer, ivec2(pos_times_two + ivec2(0, 0))).rgb +
-             imageLoad(uInHDRBuffer, ivec2(pos_times_two + ivec2(1, 0))).rgb +
-             imageLoad(uInHDRBuffer, ivec2(pos_times_two + ivec2(0, 1))).rgb +
-             imageLoad(uInHDRBuffer, ivec2(pos_times_two + ivec2(1, 1))).rgb;
+  ivec2 size = textureSize(uInHDRBuffer, 0);
+  return texture(uInHDRBuffer, vec2(posTimesTwo) / size).rgb;
 #endif
-  col *= 0.25;
-  return col;
 }
 
 // Calls the method above four times in order to allow for bilinear interpolation. This is
@@ -62,29 +59,10 @@ vec3 sampleHDRBuffer(vec2 pos) {
 // Makes four texture look-ups in the input layer of the glare mipmap at the four pixels
 // corresponding to the pixel position in the current layer of the mipmap pyramid.
 vec3 sampleHigherLevel(ivec2 pos) {
-  ivec2 pos_times_two = pos << 1;
-
-
-
-#if 1
-  vec3 col = imageLoad(uInGlare, ivec2(pos_times_two + ivec2(0, 0))).rgb +
-             imageLoad(uInGlare, ivec2(pos_times_two + ivec2(1, 0))).rgb +
-             imageLoad(uInGlare, ivec2(pos_times_two + ivec2(0, 1))).rgb +
-             imageLoad(uInGlare, ivec2(pos_times_two + ivec2(1, 1))).rgb;
-  col *= 0.25;
-#else
-
-  int input_level = uLevel;
-  if(0 == uPass) {
-    input_level = max(0, input_level - 1);
-  }
-  ivec2 texture_size_of_lod = textureSize(uInGlareMipMap, input_level);
-
-  vec2 normalized_sampling_pos = (pos_times_two + 0.5) / vec2(texture_size_of_lod);
-
-  vec3 col = texture2D(uInGlareMipMap, normalized_sampling_pos, input_level).rgb;
-#endif
-  return col;
+  ivec2 posTimesTwo = pos << 1;
+  int   inputLevel  = uPass == 0 ? max(0, uLevel - 1) : uLevel;
+  ivec2 size        = textureSize(uInGlareMipMap, inputLevel);
+  return textureLod(uInGlareMipMap, (posTimesTwo + 1.0) / vec2(size), inputLevel).rgb;
 }
 
 // Calls the method above four times in order to allow for bilinear interpolation. This is
@@ -105,21 +83,13 @@ vec3 sampleHigherLevel(vec2 pos) {
 // pixel position.
 vec3 sampleSameLevel(ivec2 pos) {
   return texelFetch(uInGlareMipMap, pos, uLevel).rgb;
-  //return imageLoad(uInGlare, pos).rgb;
 }
 
 // Calls the method above four times in order to allow for bilinear interpolation. This is
 // required for floating point positions and results in four texture look-ups.
 vec3 sampleSameLevel(vec2 pos) {
-  ivec2 ipos = ivec2(pos);
-  vec3  tl   = sampleSameLevel(ipos);
-  vec3  tr   = sampleSameLevel(ipos + ivec2(1, 0));
-  vec3  bl   = sampleSameLevel(ipos + ivec2(0, 1));
-  vec3  br   = sampleSameLevel(ipos + ivec2(1, 1));
-  vec2  f    = fract(pos);
-  vec3  tA   = mix(tl, tr, f.x);
-  vec3  tB   = mix(bl, br, f.x);
-  return mix(tA, tB, f.y);
+  ivec2 size = textureSize(uInGlareMipMap, uLevel);
+  return textureLod(uInGlareMipMap, (pos + 0.5) / vec2(size), uLevel).rgb;
 }
 
 // Rotates the given vector around a given axis.
