@@ -446,7 +446,7 @@ class CS_CORE_EXPORT Settings {
     utils::DefaultProperty<float> pGlareIntensity{0.2F};
 
     /// Higher values produce a smoother glare.
-    utils::DefaultProperty<uint32_t> pGlareQuality{0};
+    utils::DefaultProperty<uint32_t> pGlareQuality{1};
 
     /// If enabled, the more expensive but much smoother manual bicubic texture filtering is used
     /// for the glare.
