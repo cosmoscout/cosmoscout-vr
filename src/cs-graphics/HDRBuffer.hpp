@@ -95,6 +95,10 @@ class CS_GRAPHICS_EXPORT HDRBuffer {
   void setEnableBicubicGlareFilter(bool enable);
   bool getEnableBicubicGlareFilter() const;
 
+  /// If enabled, the glare will be computed in 32 bit precision.
+  void setEnable32BitGlare(bool enable);
+  bool getEnable32BitGlare() const;
+
   /// Returns the depth attachment for the currently rendered viewport. Be aware, that this can be
   /// texture with the target GL_TEXTURE_2D_MULTISAMPLE if getMultiSamples() > 0.
   VistaTexture* getDepthAttachment() const;
@@ -139,6 +143,7 @@ class CS_GRAPHICS_EXPORT HDRBuffer {
   GlareMode                                         mGlareMode    = GlareMode::eSymmetricGauss;
   uint32_t                                          mGlareQuality = 0;
   bool                                              mEnableBicubicGlareFilter = true;
+  bool                                              mEnable32BitGlare         = false;
   std::unordered_map<VistaViewport*, HDRBufferData> mHDRBufferData;
   float                                             mTotalLuminance   = 1.F;
   float                                             mMaximumLuminance = 1.F;

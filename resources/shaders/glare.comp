@@ -14,8 +14,14 @@ layout(binding = 0) uniform sampler2D uInHDRBuffer;
 #endif
 
 layout(binding = 1) uniform sampler2D uInGlareMipMap;
+
+#ifdef ENABLE_32BIT_GLARE
+layout(rgba32f, binding = 1) readonly uniform image2D uInGlare;
+layout(rgba32f, binding = 2) writeonly uniform image2D uOutGlare;
+#else
 layout(rgba16f, binding = 1) readonly uniform image2D uInGlare;
 layout(rgba16f, binding = 2) writeonly uniform image2D uOutGlare;
+#endif
 
 uniform int   uPass;
 uniform int   uLevel;

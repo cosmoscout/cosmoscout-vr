@@ -66,35 +66,13 @@ GlareMipMap::GlareMipMap(uint32_t hdrBufferSamples, int hdrBufferWidth, int hdrB
     : VistaTexture(GL_TEXTURE_2D)
     , mHDRBufferSamples(hdrBufferSamples)
     , mHDRBufferWidth(hdrBufferWidth)
-    , mHDRBufferHeight(hdrBufferHeight)
-    , mTemporaryTarget(new VistaTexture(GL_TEXTURE_2D)) {
-
-  // Create glare mipmap storage. The texture has half the size of the HDR buffer (rounded down) in
-  // both directions.
-  int iWidth  = mHDRBufferWidth / 2;
-  int iHeight = mHDRBufferHeight / 2;
+    , mHDRBufferHeight(hdrBufferHeight) {
 
   // Compute the number of available mipmap levels.
+  int iWidth  = mHDRBufferWidth / 2;
+  int iHeight = mHDRBufferHeight / 2;
   mMaxLevels =
       static_cast<int>(std::max(1.0, std::floor(std::log2(std::max(iWidth, iHeight))) + 1));
-
-  Bind();
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
-  glTexStorage2D(GL_TEXTURE_2D, mMaxLevels, GL_RGBA16F, iWidth, iHeight);
-
-  // Create storage for temporary glare target (this is used for the vertical blurring passes).
-  mTemporaryTarget->Bind();
-  mTemporaryTarget->SetMinFilter(GL_LINEAR_MIPMAP_LINEAR);
-  mTemporaryTarget->SetMagFilter(GL_LINEAR);
-  mTemporaryTarget->SetWrapS(GL_CLAMP_TO_EDGE);
-  mTemporaryTarget->SetWrapT(GL_CLAMP_TO_EDGE);
-
-  glTexStorage2D(GL_TEXTURE_2D, mMaxLevels, GL_RGBA16F, iWidth, iHeight);
-  mTemporaryTarget->Unbind();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -107,10 +85,44 @@ GlareMipMap::~GlareMipMap() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void GlareMipMap::update(VistaTexture* hdrBufferComposite, float exposure,
-    HDRBuffer::GlareMode glareMode, uint32_t glareQuality, bool bicubicGlareFilter) {
+    HDRBuffer::GlareMode glareMode, uint32_t glareQuality, bool bicubicGlareFilter,
+    bool enable32BitGlare) {
+
+  GLint internalFormat = enable32BitGlare ? GL_RGBA32F : GL_RGBA16F;
+
+  if (mLast32BitGlare != enable32BitGlare || mTemporaryTarget == nullptr) {
+    // Create glare mipmap storage. The texture has half the size of the HDR buffer (rounded down)
+    // in both directions.
+    int iWidth  = mHDRBufferWidth / 2;
+    int iHeight = mHDRBufferHeight / 2;
+
+    glDeleteTextures(1, &m_uiId);
+    glGenTextures(1, &m_uiId);
+
+    Bind();
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexStorage2D(GL_TEXTURE_2D, mMaxLevels, internalFormat, iWidth, iHeight);
+
+    if (mTemporaryTarget != nullptr) {
+      delete mTemporaryTarget;
+    }
+
+    // Create storage for temporary glare target (this is used for the vertical blurring passes).
+    mTemporaryTarget = new VistaTexture(GL_TEXTURE_2D);
+    mTemporaryTarget->Bind();
+    mTemporaryTarget->SetMinFilter(GL_LINEAR_MIPMAP_LINEAR);
+    mTemporaryTarget->SetMagFilter(GL_LINEAR);
+    mTemporaryTarget->SetWrapS(GL_CLAMP_TO_EDGE);
+    mTemporaryTarget->SetWrapT(GL_CLAMP_TO_EDGE);
+    glTexStorage2D(GL_TEXTURE_2D, mMaxLevels, internalFormat, iWidth, iHeight);
+    mTemporaryTarget->Unbind();
+  }
 
   if (mGlareProgram == 0 || glareMode != mLastGlareMode || glareQuality != mLastGlareQuality ||
-      bicubicGlareFilter != mLastGlareBicubic) {
+      bicubicGlareFilter != mLastGlareBicubic || mLast32BitGlare != enable32BitGlare) {
 
     // Create the compute shader.
     std::string source = "#version 430\n";
@@ -126,6 +138,10 @@ void GlareMipMap::update(VistaTexture* hdrBufferComposite, float exposure,
 
     if (bicubicGlareFilter) {
       source += "#define BICUBIC_GLARE_FILTER\n";
+    }
+
+    if (enable32BitGlare) {
+      source += "#define ENABLE_32BIT_GLARE\n";
     }
 
     std::string glareMipMapComputeShaderSource = source;
@@ -148,6 +164,7 @@ void GlareMipMap::update(VistaTexture* hdrBufferComposite, float exposure,
     mLastGlareMode    = glareMode;
     mLastGlareQuality = glareQuality;
     mLastGlareBicubic = bicubicGlareFilter;
+    mLast32BitGlare   = enable32BitGlare;
   }
 
   // We update the glare mipmap with several passes. First, the base level is filled with a
@@ -211,8 +228,10 @@ void GlareMipMap::update(VistaTexture* hdrBufferComposite, float exposure,
                                      std::pow(2, level))));
 
         input->Bind(GL_TEXTURE1);
-        glBindImageTexture(1, input->GetId(), inputLevel, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA16F);
-        glBindImageTexture(2, output->GetId(), outputLevel, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA16F);
+        glBindImageTexture(
+            1, input->GetId(), inputLevel, GL_FALSE, 0, GL_READ_ONLY, internalFormat);
+        glBindImageTexture(
+            2, output->GetId(), outputLevel, GL_FALSE, 0, GL_WRITE_ONLY, internalFormat);
 
         glDispatchCompute(static_cast<uint32_t>(std::ceil(1.0 * width / 16)),
             static_cast<uint32_t>(std::ceil(1.0 * height / 16)), 1);
@@ -225,13 +244,13 @@ void GlareMipMap::update(VistaTexture* hdrBufferComposite, float exposure,
 
   glUseProgram(mCompositeProgram);
   mTemporaryTarget->Bind(GL_TEXTURE0);
-  glBindImageTexture(2, this->GetId(), 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA16F);
+  glBindImageTexture(2, this->GetId(), 0, GL_FALSE, 0, GL_WRITE_ONLY, internalFormat);
   glDispatchCompute(static_cast<uint32_t>(std::ceil(0.5 * mHDRBufferWidth / 16)),
       static_cast<uint32_t>(std::ceil(0.5 * mHDRBufferHeight / 16)), 1);
 
-  glBindImageTexture(0, 0, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA16F);
-  glBindImageTexture(1, 0, 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA16F);
-  glBindImageTexture(2, 0, 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA16F);
+  glBindImageTexture(0, 0, 0, GL_FALSE, 0, GL_WRITE_ONLY, internalFormat);
+  glBindImageTexture(1, 0, 0, GL_FALSE, 0, GL_READ_ONLY, internalFormat);
+  glBindImageTexture(2, 0, 0, GL_FALSE, 0, GL_READ_ONLY, internalFormat);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
