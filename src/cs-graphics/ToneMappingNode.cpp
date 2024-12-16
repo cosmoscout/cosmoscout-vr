@@ -235,21 +235,6 @@ float ToneMappingNode::getGlareIntensity() const {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void ToneMappingNode::setEnableBicubicGlareFilter(bool enable) {
-  if (mEnableBicubicGlareFilter != enable) {
-    mEnableBicubicGlareFilter = enable;
-    mShaderDirty              = true;
-  }
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-bool ToneMappingNode::getEnableBicubicGlareFilter() const {
-  return mEnableBicubicGlareFilter;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
 void ToneMappingNode::setToneMappingMode(ToneMappingNode::ToneMappingMode mode) {
   if (mToneMappingMode != mode) {
     mToneMappingMode = mode;
@@ -292,10 +277,6 @@ bool ToneMappingNode::ToneMappingNode::Do() {
 
     std::string defines = "#version 430\n";
     defines += "#define NUM_MULTISAMPLES " + std::to_string(mHDRBuffer->getMultiSamples()) + "\n";
-
-    if (mEnableBicubicGlareFilter) {
-      defines += "#define BICUBIC_GLARE_FILTER\n";
-    }
 
     defines +=
         "#define TONE_MAPPING_MODE " + std::to_string(static_cast<int>(mToneMappingMode)) + "\n";

@@ -188,8 +188,7 @@ GraphicsEngine::GraphicsEngine(std::shared_ptr<core::Settings> settings)
       toneMappingGLNode, static_cast<int>(utils::DrawOrder::eToneMapping));
 
   mSettings->mGraphics.pGlareIntensity.connectAndTouch(
-      [this](float val) { mToneMappingNode->setGlareIntensity(val);
-                          mHDRBuffer->setGlareIntensity(val);});
+      [this](float val) { mToneMappingNode->setGlareIntensity(val); });
 
   mSettings->mGraphics.pGlareQuality.connectAndTouch(
       [this](uint32_t val) { mHDRBuffer->setGlareQuality(val); });
@@ -203,7 +202,7 @@ GraphicsEngine::GraphicsEngine(std::shared_ptr<core::Settings> settings)
       });
 
   mSettings->mGraphics.pEnableBicubicGlareFilter.connectAndTouch(
-      [this](bool enable) { mToneMappingNode->setEnableBicubicGlareFilter(enable); });
+      [this](bool enable) { mHDRBuffer->setEnableBicubicGlareFilter(enable); });
 
   mSettings->mGraphics.pExposureCompensation.connectAndTouch(
       [this](float val) { mToneMappingNode->setExposureCompensation(val); });

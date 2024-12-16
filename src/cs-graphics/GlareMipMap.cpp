@@ -106,18 +106,18 @@ GlareMipMap::~GlareMipMap() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void GlareMipMap::update(
-    VistaTexture* hdrBufferComposite, HDRBuffer::GlareMode glareMode, uint32_t glareQuality, float glareIntensity) {
+void GlareMipMap::update(VistaTexture* hdrBufferComposite, HDRBuffer::GlareMode glareMode,
+    uint32_t glareQuality, bool bicubicGlareFilter) {
 
   utils::FrameStats::ScopedTimer timer("Compute Glare");
 
-  if (mGlareProgram == 0 || glareMode != mLastGlareMode || glareQuality != mLastGlareQuality || glareIntensity != mLastGlareIntensity) {
+  if (mGlareProgram == 0 || glareMode != mLastGlareMode || glareQuality != mLastGlareQuality ||
+      bicubicGlareFilter != mLastGlareBicubic) {
 
     // Create the compute shader.
     std::string source = "#version 430\n";
     source += "#define NUM_MULTISAMPLES " + std::to_string(mHDRBufferSamples) + "\n";
     source += "#define GLARE_QUALITY " + std::to_string(glareQuality) + "\n";
-    source += "#define GLARE_INTENSITY " + std::to_string(glareIntensity) + "\n";
     source += "#define MAX_LEVELS " + std::to_string(mMaxLevels) + "\n";
 
     if (glareMode == HDRBuffer::GlareMode::eSymmetricGauss) {
@@ -126,8 +126,13 @@ void GlareMipMap::update(
       source += "#define GLAREMODE_ASYMMETRIC_GAUSS\n";
     }
 
+    if (bicubicGlareFilter) {
+      source += "#define BICUBIC_GLARE_FILTER\n";
+    }
+
     std::string glareMipMapComputeShaderSource = source;
-    glareMipMapComputeShaderSource += utils::filesystem::loadToString("../share/resources/shaders/glare.comp");
+    glareMipMapComputeShaderSource +=
+        utils::filesystem::loadToString("../share/resources/shaders/glare.comp");
 
     mGlareProgram = createComputeShader(glareMipMapComputeShaderSource);
 
@@ -136,14 +141,14 @@ void GlareMipMap::update(
     mUniforms.projectionMatrix        = glGetUniformLocation(mGlareProgram, "uMatP");
     mUniforms.inverseProjectionMatrix = glGetUniformLocation(mGlareProgram, "uMatInvP");
 
-
     std::string glareCompositeComputeShaderSource = source;
-    glareCompositeComputeShaderSource += utils::filesystem::loadToString("../share/resources/shaders/glareComposite.comp");
+    glareCompositeComputeShaderSource +=
+        utils::filesystem::loadToString("../share/resources/shaders/glareComposite.comp");
     mCompositeProgram = createComputeShader(glareCompositeComputeShaderSource);
 
     mLastGlareMode    = glareMode;
     mLastGlareQuality = glareQuality;
-    mLastGlareIntensity = glareIntensity;
+    mLastGlareBicubic = bicubicGlareFilter;
   }
 
   // We update the glare mipmap with several passes. First, the base level is filled with a

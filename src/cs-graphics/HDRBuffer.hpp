@@ -44,7 +44,7 @@ class CS_GRAPHICS_EXPORT HDRBuffer {
   HDRBuffer(HDRBuffer&& other)      = delete;
 
   HDRBuffer& operator=(HDRBuffer const& other) = delete;
-  HDRBuffer& operator=(HDRBuffer&& other) = delete;
+  HDRBuffer& operator=(HDRBuffer&& other)      = delete;
 
   virtual ~HDRBuffer();
 
@@ -90,10 +90,10 @@ class CS_GRAPHICS_EXPORT HDRBuffer {
   void     setGlareQuality(uint32_t quality);
   uint32_t getGlareQuality() const;
 
-  /// Controls the amount of artificial glare. Should be in the range [0-1]. If set to zero, the
-  /// GlareMipMap will not be updated which will increase performance.
-  void     setGlareIntensity(float intensity);
-  float    getGlareIntensity() const;
+  /// If enabled, the more expensive but much smoother manual bicubic texture filtering is used
+  /// for the glare.
+  void setEnableBicubicGlareFilter(bool enable);
+  bool getEnableBicubicGlareFilter() const;
 
   /// Returns the depth attachment for the currently rendered viewport. Be aware, that this can be
   /// texture with the target GL_TEXTURE_2D_MULTISAMPLE if getMultiSamples() > 0.
@@ -138,7 +138,7 @@ class CS_GRAPHICS_EXPORT HDRBuffer {
 
   GlareMode                                         mGlareMode    = GlareMode::eSymmetricGauss;
   uint32_t                                          mGlareQuality = 0;
-  float                                             mGlareIntensity = 0.F;
+  bool                                              mEnableBicubicGlareFilter = true;
   std::unordered_map<VistaViewport*, HDRBufferData> mHDRBufferData;
   float                                             mTotalLuminance   = 1.F;
   float                                             mMaximumLuminance = 1.F;

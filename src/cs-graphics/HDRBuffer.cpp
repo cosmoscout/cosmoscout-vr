@@ -262,7 +262,7 @@ void HDRBuffer::updateGlareMipMap() {
     composite = hdrBuffer.mColorAttachments.at(1).get();
   }
 
-  hdrBuffer.mGlareMipMap->update(composite, mGlareMode, mGlareQuality, mGlareIntensity);
+  hdrBuffer.mGlareMipMap->update(composite, mGlareMode, mGlareQuality, mEnableBicubicGlareFilter);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -298,14 +298,14 @@ uint32_t HDRBuffer::getGlareQuality() const {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void HDRBuffer::setGlareIntensity(float intensity) {
-  mGlareIntensity = intensity;
+void HDRBuffer::setEnableBicubicGlareFilter(bool enable) {
+  mEnableBicubicGlareFilter = enable;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-float HDRBuffer::getGlareIntensity() const {
-  return mGlareIntensity;
+bool HDRBuffer::getEnableBicubicGlareFilter() const {
+  return mEnableBicubicGlareFilter;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
