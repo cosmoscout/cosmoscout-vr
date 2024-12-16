@@ -38,7 +38,7 @@ vec3 sampleHDRBuffer(ivec2 pos) {
   return col * 0.25;
 #else
   ivec2 size = textureSize(uInHDRBuffer, 0);
-  return texture(uInHDRBuffer, vec2(posTimesTwo) / size).rgb;
+  return texture(uInHDRBuffer, vec2(posTimesTwo + 1.0) / size).rgb;
 #endif
 }
 
