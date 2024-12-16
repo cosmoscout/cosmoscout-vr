@@ -29,7 +29,8 @@ void main() {
   vColor = SRGBtoLINEAR(inColor);
 
   vScreenSpacePos = uMatP * uMatMV * vec4(inPos * parsecToMeter, 1);
-  vScreenSpacePos /= vScreenSpacePos.w;
 
   gl_Position = vScreenSpacePos;
+
+  vScreenSpacePos /= vScreenSpacePos.w;
 }
