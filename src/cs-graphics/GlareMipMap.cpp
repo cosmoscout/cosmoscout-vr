@@ -156,6 +156,8 @@ void GlareMipMap::update(VistaTexture* hdrBufferComposite, HDRBuffer::GlareMode 
   // vertically. Then it's downsampled and horizontally blurred once more. And so on.
   // In the asymmetric case, its not strictly horizontal and vertical - see the shader above for
   // details.
+  {
+    utils::FrameStats::ScopedTimer timer("Compute Glare");
 
   glUseProgram(mGlareProgram);
 
@@ -212,15 +214,13 @@ void GlareMipMap::update(VistaTexture* hdrBufferComposite, HDRBuffer::GlareMode 
       glBindImageTexture(1, input->GetId(), inputLevel, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA32F);
       glBindImageTexture(2, output->GetId(), outputLevel, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA32F);
 
-      glDispatchCompute(static_cast<uint32_t>(std::ceil(1.0 * width / 16)),
-          static_cast<uint32_t>(std::ceil(1.0 * height / 16)), 1);
-      glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
-    }
   }
+
+  utils::FrameStats::ScopedTimer timer("Composite Glare");
 
   glUseProgram(mCompositeProgram);
   mTemporaryTarget->Bind(GL_TEXTURE0);
-  glBindImageTexture(2, this->GetId(), 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA32F);
+  glBindImageTexture(2, this->GetId(), 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA16F);
   glDispatchCompute(static_cast<uint32_t>(std::ceil(0.5 * mHDRBufferWidth / 16)),
       static_cast<uint32_t>(std::ceil(0.5 * mHDRBufferHeight / 16)), 1);
 
