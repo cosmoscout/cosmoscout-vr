@@ -66,6 +66,9 @@ void main() {
   gl_FragDepth = texelFetch(uDepth, ivec2(vTexcoords * textureSize(uDepth, 0)), 0).r;
 #endif
 
+  color *= uExposure;
+
+  // Glare is pre-exposed.
   if (uGlareIntensity > 0) {
     vec3 glare = texture2D(uGlareMipMap, vTexcoords, 0).rgb;
     color      = mix(color, glare, pow(uGlareIntensity, 2.0));
@@ -73,16 +76,16 @@ void main() {
 
 // Filmic
 #if TONE_MAPPING_MODE == 2
-  color           = Uncharted2Tonemap(uExposure * color);
+  color           = Uncharted2Tonemap(color);
   vec3 whiteScale = vec3(1.0) / Uncharted2Tonemap(vec3(W));
   oColor          = linear_to_srgb(color * whiteScale);
 
 // Gamma only
 #elif TONE_MAPPING_MODE == 1
-  oColor       = linear_to_srgb(uExposure * color);
+  oColor       = linear_to_srgb(color);
 
 // None
 #else
-  oColor = uExposure * color;
+  oColor = color;
 #endif
 }

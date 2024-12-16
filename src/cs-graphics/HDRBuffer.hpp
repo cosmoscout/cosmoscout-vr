@@ -77,7 +77,7 @@ class CS_GRAPHICS_EXPORT HDRBuffer {
   float getMaximumLuminance() const;
 
   /// Update and access the GlareMipMap.
-  void          updateGlareMipMap();
+  void          updateGlareMipMap(float exposure);
   VistaTexture* getGlareMipMap() const;
 
   /// Specifies how the glare should be computed.

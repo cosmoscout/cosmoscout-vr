@@ -321,15 +321,15 @@ bool ToneMappingNode::ToneMappingNode::Do() {
     }
   }
 
-  if (mGlareIntensity > 0) {
-    mHDRBuffer->updateGlareMipMap();
-  }
-
   if (doCalculateExposure && mEnableAutoExposure) {
     mExposure = glm::clamp(mAutoExposure, mMinAutoExposure, mMaxAutoExposure);
   }
 
   float exposure = std::pow(2.F, mExposure + mExposureCompensation);
+
+  if (mGlareIntensity > 0) {
+    mHDRBuffer->updateGlareMipMap(exposure);
+  }
 
   mHDRBuffer->unbind();
   mHDRBuffer->getCurrentWriteAttachment()->Bind(GL_TEXTURE0);
