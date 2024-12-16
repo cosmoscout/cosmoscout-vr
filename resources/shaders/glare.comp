@@ -14,13 +14,20 @@ layout(binding = 0) uniform sampler2D uInHDRBuffer;
 #endif
 
 layout(binding = 1) uniform sampler2D uInGlareMipMap;
+
+#ifdef ENABLE_32BIT_GLARE
 layout(rgba32f, binding = 1) readonly uniform image2D uInGlare;
 layout(rgba32f, binding = 2) writeonly uniform image2D uOutGlare;
+#else
+layout(rgba16f, binding = 1) readonly uniform image2D uInGlare;
+layout(rgba16f, binding = 2) writeonly uniform image2D uOutGlare;
+#endif
 
-uniform int  uPass;
-uniform int  uLevel;
-uniform mat4 uMatP;
-uniform mat4 uMatInvP;
+uniform int   uPass;
+uniform int   uLevel;
+uniform float uExposure;
+uniform mat4  uMatP;
+uniform mat4  uMatInvP;
 
 const float PI = 3.14159265359;
 
@@ -35,10 +42,10 @@ vec3 sampleHDRBuffer(ivec2 pos) {
              texelFetch(uInHDRBuffer, ivec2(posTimesTwo + ivec2(1, 0)), 0).rgb +
              texelFetch(uInHDRBuffer, ivec2(posTimesTwo + ivec2(0, 1)), 0).rgb +
              texelFetch(uInHDRBuffer, ivec2(posTimesTwo + ivec2(1, 1)), 0).rgb;
-  return col * 0.25;
+  return col * 0.25 * uExposure;
 #else
   ivec2 size = textureSize(uInHDRBuffer, 0);
-  return texture(uInHDRBuffer, vec2(posTimesTwo) / size).rgb;
+  return texture(uInHDRBuffer, vec2(posTimesTwo + 1.0) / size).rgb * uExposure;
 #endif
 }
 

@@ -66,35 +66,13 @@ GlareMipMap::GlareMipMap(uint32_t hdrBufferSamples, int hdrBufferWidth, int hdrB
     : VistaTexture(GL_TEXTURE_2D)
     , mHDRBufferSamples(hdrBufferSamples)
     , mHDRBufferWidth(hdrBufferWidth)
-    , mHDRBufferHeight(hdrBufferHeight)
-    , mTemporaryTarget(new VistaTexture(GL_TEXTURE_2D)) {
-
-  // Create glare mipmap storage. The texture has half the size of the HDR buffer (rounded down) in
-  // both directions.
-  int iWidth  = mHDRBufferWidth / 2;
-  int iHeight = mHDRBufferHeight / 2;
+    , mHDRBufferHeight(hdrBufferHeight) {
 
   // Compute the number of available mipmap levels.
+  int iWidth  = mHDRBufferWidth / 2;
+  int iHeight = mHDRBufferHeight / 2;
   mMaxLevels =
       static_cast<int>(std::max(1.0, std::floor(std::log2(std::max(iWidth, iHeight))) + 1));
-
-  Bind();
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
-  glTexStorage2D(GL_TEXTURE_2D, mMaxLevels, GL_RGBA32F, iWidth, iHeight);
-
-  // Create storage for temporary glare target (this is used for the vertical blurring passes).
-  mTemporaryTarget->Bind();
-  mTemporaryTarget->SetMinFilter(GL_LINEAR_MIPMAP_LINEAR);
-  mTemporaryTarget->SetMagFilter(GL_LINEAR);
-  mTemporaryTarget->SetWrapS(GL_CLAMP_TO_EDGE);
-  mTemporaryTarget->SetWrapT(GL_CLAMP_TO_EDGE);
-
-  glTexStorage2D(GL_TEXTURE_2D, mMaxLevels, GL_RGBA32F, iWidth, iHeight);
-  mTemporaryTarget->Unbind();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -106,13 +84,45 @@ GlareMipMap::~GlareMipMap() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void GlareMipMap::update(VistaTexture* hdrBufferComposite, HDRBuffer::GlareMode glareMode,
-    uint32_t glareQuality, bool bicubicGlareFilter) {
+void GlareMipMap::update(VistaTexture* hdrBufferComposite, float exposure,
+    HDRBuffer::GlareMode glareMode, uint32_t glareQuality, bool bicubicGlareFilter,
+    bool enable32BitGlare) {
 
-  utils::FrameStats::ScopedTimer timer("Compute Glare");
+  GLint internalFormat = enable32BitGlare ? GL_RGBA32F : GL_RGBA16F;
+
+  if (mLast32BitGlare != enable32BitGlare || mTemporaryTarget == nullptr) {
+    // Create glare mipmap storage. The texture has half the size of the HDR buffer (rounded down)
+    // in both directions.
+    int iWidth  = mHDRBufferWidth / 2;
+    int iHeight = mHDRBufferHeight / 2;
+
+    glDeleteTextures(1, &m_uiId);
+    glGenTextures(1, &m_uiId);
+
+    Bind();
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexStorage2D(GL_TEXTURE_2D, mMaxLevels, internalFormat, iWidth, iHeight);
+
+    if (mTemporaryTarget != nullptr) {
+      delete mTemporaryTarget;
+    }
+
+    // Create storage for temporary glare target (this is used for the vertical blurring passes).
+    mTemporaryTarget = new VistaTexture(GL_TEXTURE_2D);
+    mTemporaryTarget->Bind();
+    mTemporaryTarget->SetMinFilter(GL_LINEAR_MIPMAP_LINEAR);
+    mTemporaryTarget->SetMagFilter(GL_LINEAR);
+    mTemporaryTarget->SetWrapS(GL_CLAMP_TO_EDGE);
+    mTemporaryTarget->SetWrapT(GL_CLAMP_TO_EDGE);
+    glTexStorage2D(GL_TEXTURE_2D, mMaxLevels, internalFormat, iWidth, iHeight);
+    mTemporaryTarget->Unbind();
+  }
 
   if (mGlareProgram == 0 || glareMode != mLastGlareMode || glareQuality != mLastGlareQuality ||
-      bicubicGlareFilter != mLastGlareBicubic) {
+      bicubicGlareFilter != mLastGlareBicubic || mLast32BitGlare != enable32BitGlare) {
 
     // Create the compute shader.
     std::string source = "#version 430\n";
@@ -130,6 +140,10 @@ void GlareMipMap::update(VistaTexture* hdrBufferComposite, HDRBuffer::GlareMode 
       source += "#define BICUBIC_GLARE_FILTER\n";
     }
 
+    if (enable32BitGlare) {
+      source += "#define ENABLE_32BIT_GLARE\n";
+    }
+
     std::string glareMipMapComputeShaderSource = source;
     glareMipMapComputeShaderSource +=
         utils::filesystem::loadToString("../share/resources/shaders/glare.comp");
@@ -138,6 +152,7 @@ void GlareMipMap::update(VistaTexture* hdrBufferComposite, HDRBuffer::GlareMode 
 
     mUniforms.level                   = glGetUniformLocation(mGlareProgram, "uLevel");
     mUniforms.pass                    = glGetUniformLocation(mGlareProgram, "uPass");
+    mUniforms.exposure                = glGetUniformLocation(mGlareProgram, "uExposure");
     mUniforms.projectionMatrix        = glGetUniformLocation(mGlareProgram, "uMatP");
     mUniforms.inverseProjectionMatrix = glGetUniformLocation(mGlareProgram, "uMatInvP");
 
@@ -149,6 +164,7 @@ void GlareMipMap::update(VistaTexture* hdrBufferComposite, HDRBuffer::GlareMode 
     mLastGlareMode    = glareMode;
     mLastGlareQuality = glareQuality;
     mLastGlareBicubic = bicubicGlareFilter;
+    mLast32BitGlare   = enable32BitGlare;
   }
 
   // We update the glare mipmap with several passes. First, the base level is filled with a
@@ -156,77 +172,85 @@ void GlareMipMap::update(VistaTexture* hdrBufferComposite, HDRBuffer::GlareMode 
   // vertically. Then it's downsampled and horizontally blurred once more. And so on.
   // In the asymmetric case, its not strictly horizontal and vertical - see the shader above for
   // details.
+  {
+    utils::FrameStats::ScopedTimer timer("Compute Glare");
 
-  glUseProgram(mGlareProgram);
+    glUseProgram(mGlareProgram);
+    glUniform1f(mUniforms.exposure, exposure);
 
-  hdrBufferComposite->Bind(GL_TEXTURE0);
+    hdrBufferComposite->Bind(GL_TEXTURE0);
 
-  // The asymmetric variant requires the projection and the inverse projection matrices.
-  if (glareMode == HDRBuffer::GlareMode::eAsymmetricGauss) {
-    std::array<GLfloat, 16> glMatP{};
-    glGetFloatv(GL_PROJECTION_MATRIX, glMatP.data());
-    glm::mat4 matP    = glm::make_mat4x4(glMatP.data());
-    glm::mat4 matInvP = glm::inverse(matP);
-    glUniformMatrix4fv(mUniforms.projectionMatrix, 1, GL_FALSE, glm::value_ptr(matP));
-    glUniformMatrix4fv(mUniforms.inverseProjectionMatrix, 1, GL_FALSE, glm::value_ptr(matInvP));
-  }
+    // The asymmetric variant requires the projection and the inverse projection matrices.
+    if (glareMode == HDRBuffer::GlareMode::eAsymmetricGauss) {
+      std::array<GLfloat, 16> glMatP{};
+      glGetFloatv(GL_PROJECTION_MATRIX, glMatP.data());
+      glm::mat4 matP    = glm::make_mat4x4(glMatP.data());
+      glm::mat4 matInvP = glm::inverse(matP);
+      glUniformMatrix4fv(mUniforms.projectionMatrix, 1, GL_FALSE, glm::value_ptr(matP));
+      glUniformMatrix4fv(mUniforms.inverseProjectionMatrix, 1, GL_FALSE, glm::value_ptr(matInvP));
+    }
 
-  for (int level(0); level < mMaxLevels; ++level) {
-    glUniform1i(mUniforms.level, level);
+    for (int level(0); level < mMaxLevels; ++level) {
+      glUniform1i(mUniforms.level, level);
 
-    for (int pass(0); pass < 2; ++pass) {
-      VistaTexture* input       = this;
-      VistaTexture* output      = this;
-      int           inputLevel  = level;
-      int           outputLevel = level;
+      for (int pass(0); pass < 2; ++pass) {
+        VistaTexture* input       = this;
+        VistaTexture* output      = this;
+        int           inputLevel  = level;
+        int           outputLevel = level;
 
-      // level  pass   input   inputLevel output outputLevel     blur      samplesHigherLevel
-      //   0     0   hdrbuffer    0        this      0        horizontal          true
-      //   0     1     this       0        temp      0         vertical           false
-      //   1     0     temp       0        this      1        horizontal          true
-      //   1     1     this       1        temp      1         vertical           false
-      //   2     0     temp       1        this      2        horizontal          true
-      //   2     1     this       2        temp      2         vertical           false
-      //   3     0     temp       2        this      3        horizontal          true
-      //   3     1     this       3        temp      3         vertical           false
+        // level  pass   input   inputLevel output outputLevel     blur      samplesHigherLevel
+        //   0     0   hdrbuffer    0        this      0        horizontal          true
+        //   0     1     this       0        temp      0         vertical           false
+        //   1     0     temp       0        this      1        horizontal          true
+        //   1     1     this       1        temp      1         vertical           false
+        //   2     0     temp       1        this      2        horizontal          true
+        //   2     1     this       2        temp      2         vertical           false
+        //   3     0     temp       2        this      3        horizontal          true
+        //   3     1     this       3        temp      3         vertical           false
 
-      if (pass == 0) {
-        input      = mTemporaryTarget;
-        inputLevel = std::max(0, inputLevel - 1);
+        if (pass == 0) {
+          input      = mTemporaryTarget;
+          inputLevel = std::max(0, inputLevel - 1);
+        }
+
+        if (pass == 1) {
+          output = mTemporaryTarget;
+        }
+
+        glUniform1i(mUniforms.pass, pass);
+
+        int width = static_cast<int>(
+            std::max(1.0, std::floor(static_cast<double>(static_cast<int>(mHDRBufferWidth / 2)) /
+                                     std::pow(2, level))));
+        int height = static_cast<int>(
+            std::max(1.0, std::floor(static_cast<double>(static_cast<int>(mHDRBufferHeight / 2)) /
+                                     std::pow(2, level))));
+
+        input->Bind(GL_TEXTURE1);
+        glBindImageTexture(
+            1, input->GetId(), inputLevel, GL_FALSE, 0, GL_READ_ONLY, internalFormat);
+        glBindImageTexture(
+            2, output->GetId(), outputLevel, GL_FALSE, 0, GL_WRITE_ONLY, internalFormat);
+
+        glDispatchCompute(static_cast<uint32_t>(std::ceil(1.0 * width / 16)),
+            static_cast<uint32_t>(std::ceil(1.0 * height / 16)), 1);
+        glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
       }
-
-      if (pass == 1) {
-        output = mTemporaryTarget;
-      }
-
-      glUniform1i(mUniforms.pass, pass);
-
-      int width = static_cast<int>(
-          std::max(1.0, std::floor(static_cast<double>(static_cast<int>(mHDRBufferWidth / 2)) /
-                                   std::pow(2, level))));
-      int height = static_cast<int>(
-          std::max(1.0, std::floor(static_cast<double>(static_cast<int>(mHDRBufferHeight / 2)) /
-                                   std::pow(2, level))));
-
-      input->Bind(GL_TEXTURE1);
-      glBindImageTexture(1, input->GetId(), inputLevel, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA32F);
-      glBindImageTexture(2, output->GetId(), outputLevel, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA32F);
-
-      glDispatchCompute(static_cast<uint32_t>(std::ceil(1.0 * width / 16)),
-          static_cast<uint32_t>(std::ceil(1.0 * height / 16)), 1);
-      glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
     }
   }
 
+  utils::FrameStats::ScopedTimer timer("Composite Glare");
+
   glUseProgram(mCompositeProgram);
   mTemporaryTarget->Bind(GL_TEXTURE0);
-  glBindImageTexture(2, this->GetId(), 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA32F);
+  glBindImageTexture(2, this->GetId(), 0, GL_FALSE, 0, GL_WRITE_ONLY, internalFormat);
   glDispatchCompute(static_cast<uint32_t>(std::ceil(0.5 * mHDRBufferWidth / 16)),
       static_cast<uint32_t>(std::ceil(0.5 * mHDRBufferHeight / 16)), 1);
 
-  glBindImageTexture(0, 0, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA32F);
-  glBindImageTexture(1, 0, 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA32F);
-  glBindImageTexture(2, 0, 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA32F);
+  glBindImageTexture(0, 0, 0, GL_FALSE, 0, GL_WRITE_ONLY, internalFormat);
+  glBindImageTexture(1, 0, 0, GL_FALSE, 0, GL_READ_ONLY, internalFormat);
+  glBindImageTexture(2, 0, 0, GL_FALSE, 0, GL_READ_ONLY, internalFormat);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

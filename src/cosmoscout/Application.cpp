@@ -1142,6 +1142,14 @@ void Application::registerGuiCallbacks() {
   mSettings->mGraphics.pGlareQuality.connect(
       [this](uint32_t val) { mGuiManager->setSliderValue("graphics.setGlareQuality", val); });
 
+  // Enables 32bit glare computation.
+  mGuiManager->getGui()->registerCallback("graphics.setEnable32BitGlare",
+      "Enables or disables 32bit glare computation.",
+      std::function([this](bool enable) { mSettings->mGraphics.pEnable32BitGlare = enable; }));
+  mSettings->mGraphics.pEnable32BitGlare.connectAndTouch([this](bool enable) {
+    mGuiManager->setCheckboxValue("graphics.setEnable32BitGlare", enable);
+  });
+
   // Enables bicubic glare filtering.
   mGuiManager->getGui()->registerCallback("graphics.setEnableBicubicGlareFilter",
       "Enables or disables bicubic glare filtering.", std::function([this](bool enable) {
