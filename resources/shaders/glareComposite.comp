@@ -14,6 +14,9 @@ layout(rgba32f, binding = 2) writeonly uniform image2D uOutGlare;
 // See GPU Gems 2: "Fast Third-Order Texture Filtering", Sigg & Hadwiger:
 // http://http.developer.nvidia.com/GPUGems2/gpugems2_chapter20.html
 
+
+
+
 // w0, w1, w2, and w3 are the four cubic B-spline basis functions
 float w0(float a) {
   return (1.0 / 6.0) * (a * (a * (-a + 3.0) - 3.0) + 1.0);
@@ -49,7 +52,71 @@ float h1(float a) {
   return 1.0 + w3(a) / (w2(a) + w3(a));
 }
 
-vec4 texture2D_bicubic(sampler2D tex, vec2 uv, int p_lod) {
+vec3 cubic_filter(float x, vec3 c0, vec3 c1, vec3 c2, vec3 c3) {
+    vec3 result = c0 * w0(x);
+    result += c1 * w1(x);
+    result += c2 * w2(x);
+    result += c3 * w3(x);
+
+    return result;
+}
+
+vec3 texture2D_exact_bicubic(sampler2D tex, vec2 uv, int p_lod) {
+  float lod        = float(p_lod);
+  vec2  tex_size   = textureSize(uGlareMipMap, p_lod);
+  vec2  pixel_size = 1.0 / tex_size;
+  uv               = uv * tex_size + 0.5;
+  vec2 iuv         = floor(uv);
+  ivec2 iuv_as_int = ivec2(uv - 1.0);
+  vec2 fuv         = fract(uv);
+  
+  return cubic_filter(
+    fuv.y, cubic_filter(
+            fuv.x, texelFetch(uGlareMipMap, iuv_as_int + ivec2(-1,-1), p_lod).rgb,
+                   texelFetch(uGlareMipMap, iuv_as_int + ivec2( 0, -1), p_lod).rgb,
+                   texelFetch(uGlareMipMap, iuv_as_int + ivec2( 1, -1), p_lod).rgb,
+                   texelFetch(uGlareMipMap, iuv_as_int + ivec2( 2, -1), p_lod).rgb
+            ),
+            cubic_filter(
+            fuv.x, texelFetch(uGlareMipMap, iuv_as_int + ivec2(-1, 0), p_lod).rgb,
+                   texelFetch(uGlareMipMap, iuv_as_int + ivec2( 0, 0), p_lod).rgb,
+                   texelFetch(uGlareMipMap, iuv_as_int + ivec2( 1, 0), p_lod).rgb,
+                   texelFetch(uGlareMipMap, iuv_as_int + ivec2( 2, 0), p_lod).rgb
+            ),
+            cubic_filter(
+            fuv.x, texelFetch(uGlareMipMap, iuv_as_int + ivec2(-1, 1), p_lod).rgb,
+                   texelFetch(uGlareMipMap, iuv_as_int + ivec2( 0, 1), p_lod).rgb,
+                   texelFetch(uGlareMipMap, iuv_as_int + ivec2( 1, 1), p_lod).rgb,
+                   texelFetch(uGlareMipMap, iuv_as_int + ivec2( 2, 1), p_lod).rgb
+            ),
+            cubic_filter(
+            fuv.x, texelFetch(uGlareMipMap, iuv_as_int + ivec2(-1, 2), p_lod).rgb,
+                   texelFetch(uGlareMipMap, iuv_as_int + ivec2( 0, 2), p_lod).rgb,
+                   texelFetch(uGlareMipMap, iuv_as_int + ivec2( 1, 2), p_lod).rgb,
+                   texelFetch(uGlareMipMap, iuv_as_int + ivec2( 2, 2), p_lod).rgb
+            )
+        
+  );
+
+  /*
+  float g0x = g0(fuv.x);
+  float g1x = g1(fuv.x);
+  float h0x = h0(fuv.x);
+  float h1x = h1(fuv.x);
+  float h0y = h0(fuv.y);
+  float h1y = h1(fuv.y);
+
+  vec2 p0 = (vec2(iuv.x + h0x, iuv.y + h0y) - 0.5) * pixel_size;
+  vec2 p1 = (vec2(iuv.x + h1x, iuv.y + h0y) - 0.5) * pixel_size;
+  vec2 p2 = (vec2(iuv.x + h0x, iuv.y + h1y) - 0.5) * pixel_size;
+  vec2 p3 = (vec2(iuv.x + h1x, iuv.y + h1y) - 0.5) * pixel_size;
+
+  return (g0(fuv.y) * (g0x * textureLod(tex, p0, lod) + g1x * textureLod(tex, p1, lod))) +
+         (g1(fuv.y) * (g0x * textureLod(tex, p2, lod) + g1x * textureLod(tex, p3, lod)));
+    */
+}
+
+vec3 texture2D_fast_bicubic(sampler2D tex, vec2 uv, int p_lod) {
   float lod        = float(p_lod);
   vec2  tex_size   = textureSize(uGlareMipMap, p_lod);
   vec2  pixel_size = 1.0 / tex_size;
@@ -69,8 +136,8 @@ vec4 texture2D_bicubic(sampler2D tex, vec2 uv, int p_lod) {
   vec2 p2 = (vec2(iuv.x + h0x, iuv.y + h1y) - 0.5) * pixel_size;
   vec2 p3 = (vec2(iuv.x + h1x, iuv.y + h1y) - 0.5) * pixel_size;
 
-  return (g0(fuv.y) * (g0x * textureLod(tex, p0, lod) + g1x * textureLod(tex, p1, lod))) +
-         (g1(fuv.y) * (g0x * textureLod(tex, p2, lod) + g1x * textureLod(tex, p3, lod)));
+  return (g0(fuv.y) * (g0x * textureLod(tex, p0, lod).rgb + g1x * textureLod(tex, p1, lod).rgb)) +
+         (g1(fuv.y) * (g0x * textureLod(tex, p2, lod).rgb + g1x * textureLod(tex, p3, lod).rgb));
 }
 
 void main() {
@@ -95,7 +162,13 @@ void main() {
   for (int i = 0; i < maxLevels; ++i) {
     float weight = 1.0 / (1 << i);
 #ifdef BICUBIC_GLARE_FILTER
-    glare += texture2D_bicubic(uGlareMipMap, vTexcoords, i).rgb * weight;
+
+#if 1
+    glare += texture2D_fast_bicubic(uGlareMipMap, vTexcoords, i) * weight;
+#else
+    glare += texture2D_exact_bicubic(uGlareMipMap, vTexcoords, i) * weight;
+#endif
+
 #else
     glare += textureLod(uGlareMipMap, vTexcoords, float(i)).rgb * weight;
 #endif
