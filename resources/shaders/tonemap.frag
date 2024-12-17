@@ -20,6 +20,7 @@ layout(binding = 1) uniform sampler2D uDepth;
 layout(binding = 2) uniform sampler2D uGlareMipMap;
 
 uniform float uExposure;
+uniform float uMaxLuminance;
 uniform float uGlareIntensity;
 
 layout(location = 0) out vec3 oColor;
@@ -66,13 +67,13 @@ void main() {
   gl_FragDepth = texelFetch(uDepth, ivec2(vTexcoords * textureSize(uDepth, 0)), 0).r;
 #endif
 
-  color *= uExposure;
-
-  // Glare is pre-exposed.
+  // Glare is scaled by max luminance.
   if (uGlareIntensity > 0) {
-    vec3 glare = texture2D(uGlareMipMap, vTexcoords, 0).rgb;
+    vec3 glare = texture(uGlareMipMap, vTexcoords, 0).rgb * uMaxLuminance / 65500;
     color      = mix(color, glare, pow(uGlareIntensity, 2.0));
   }
+
+  color *= uExposure;
 
 // Filmic
 #if TONE_MAPPING_MODE == 2
@@ -82,7 +83,7 @@ void main() {
 
 // Gamma only
 #elif TONE_MAPPING_MODE == 1
-  oColor       = linear_to_srgb(color);
+  oColor = linear_to_srgb(color);
 
 // None
 #else

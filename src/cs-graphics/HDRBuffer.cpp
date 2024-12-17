@@ -252,7 +252,7 @@ float HDRBuffer::getMaximumLuminance() const {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void HDRBuffer::updateGlareMipMap(float exposure) {
+void HDRBuffer::updateGlareMipMap(float maxLuminance) {
   auto&         hdrBuffer = getCurrentHDRBuffer();
   VistaTexture* composite = nullptr;
 
@@ -262,8 +262,8 @@ void HDRBuffer::updateGlareMipMap(float exposure) {
     composite = hdrBuffer.mColorAttachments.at(1).get();
   }
 
-  hdrBuffer.mGlareMipMap->update(
-      composite, exposure, mGlareMode, mGlareQuality, mEnableBicubicGlareFilter, mEnable32BitGlare);
+  hdrBuffer.mGlareMipMap->update(composite, maxLuminance, mGlareMode, mGlareQuality,
+      mEnableBicubicGlareFilter, mEnable32BitGlare);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
