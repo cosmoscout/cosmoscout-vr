@@ -389,10 +389,12 @@ void Plugin::update() {
     if (mCaptureRequested) {
       if (mCaptureWidth > 0 && mCaptureHeight > 0) {
         auto* window = GetVistaSystem()->GetDisplayManager()->GetWindows().begin()->second;
+        window->GetWindowProperties()->GetSize(mRestoreW, mRestoreH);
         window->GetWindowProperties()->SetSize(mCaptureWidth, mCaptureHeight);
       }
       mCaptureAtFrame = GetVistaSystem()->GetFrameLoop()->GetFrameCount() + mCaptureDelay;
       if (mCaptureGui != "auto") {
+        mRestoreGui = mAllSettings->pEnableUserInterface.get();
         mAllSettings->pEnableUserInterface = mCaptureGui == "true";
       }
       mCaptureRequested = false;
@@ -407,8 +409,8 @@ void Plugin::update() {
       window->GetWindowProperties()->GetSize(mCaptureWidth, mCaptureHeight);
 
       logger().debug("Capturing capture for /capture request: resolution = {}x{}, show gui = {}, "
-                     "depth = {}, format = {}",
-          mCaptureWidth, mCaptureHeight, mCaptureGui, mCaptureDepth, mCaptureFormat);
+                     "depth = {}, format = {}, restore resolution to {}x{}, reenable Gui {}",
+          mCaptureWidth, mCaptureHeight, mCaptureGui, mCaptureDepth, mCaptureFormat, mRestoreW, mRestoreH, mRestoreGui);
 
       // We encode image data in the main thread as this is not thread-safe.
       stbi_flip_vertically_on_write(1);
@@ -459,6 +461,7 @@ void Plugin::update() {
             stbi_write_jpg_to_func(&stbWriteToVector, &mCapture, mCaptureWidth, mCaptureHeight, 1,
                 captureByte.data(), 80);
           }
+          
         }
 
       } else {
@@ -485,6 +488,16 @@ void Plugin::update() {
 
       // The capture has been done, notify the worker thread,
       mCaptureDone.notify_one();
+
+      // Restore interactive window UI and image resolution
+      if (mCaptureGui != "auto"){
+        mAllSettings->pEnableUserInterface = mRestoreGui;
+      }
+
+      if (mRestoreW > 0 && mRestoreH > 0){
+        auto* window = GetVistaSystem()->GetDisplayManager()->GetWindows().begin()->second;
+        window->GetWindowProperties()->SetSize(mRestoreW, mRestoreH);
+      }
     }
   }
 
