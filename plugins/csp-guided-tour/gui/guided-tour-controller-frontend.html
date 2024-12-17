@@ -1,0 +1,161 @@
+<!-- 
+SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
+SPDX-License-Identifier: MIT
+-->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>CosmoScout VR</title>
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@10.0.1/build/styles/default.min.css">
+
+  <style>
+    body {
+      background-color: #051622;
+      margin: 0;
+      padding: 0;
+    }
+
+    .header {
+      text-align: center;
+      color: #D0AB4C;
+      font-weight: 300;
+      font-size: 36px;
+      margin-top: 50px;
+      position: relative;
+    }
+
+    .header::after {
+      content: '';
+      display: block;
+      width: calc(100% - 40px); 
+      height: 1px;
+      background-color: #D0AB4C;
+      position: absolute;
+      bottom: -10px;
+      left: 20px; 
+    }
+
+    .card-box {
+      background-color: #092539;
+      border: 2px solid #D0AB4C;
+      color: #D0AB4C;
+      padding: 20px;
+      margin-top: 40px;
+    }
+    .button-container {
+      display: flex;
+      justify-content: space-between;
+      margin-top: auto;
+    }
+
+    .golden-button {
+      background-color: #D0AB4C;
+      color: #092539;
+      box-shadow: inset 0 0 10px #EDBE45; 
+      border: none;
+      border-radius: 5px;
+      padding: 10px 20px;
+      margin-top: 20px;
+      cursor: pointer;
+      margin: auto;
+    }
+
+    .golden-button:hover {
+      background-color: #EDBE45;
+      color: #092539;
+    }
+  </style>
+</head>
+
+<body>
+  <main class="row">
+    <div class="header">
+      Guided Tour
+    </div>
+    <div class="col s6">
+      <!-- Welcome Card -->
+      <div class="card-box">
+        <p>Willkommen bei der guided Mars Tour. Mithilfe dieser Steuerungszentrale kann die Route neugestartet oder gewechselt werden.</p>
+      </div>
+      <!-- Button Card -->
+      <div class="card hoverable blue-grey darken-1 white-text">
+        <div class="card-box">
+          <div class="button-container">
+            <button class="golden-button" onclick="runJS('CosmoScout.callbacks.guidedTours.loadTour(\'Mars Exploring\');')">Mars Exploring</button>
+            <button class="golden-button" onclick="runJS('CosmoScout.callbacks.guidedTours.loadTour(\'Adventure Tour\');')">Adventure Tour</button>
+            <button class="golden-button" onclick="runJS('CosmoScout.callbacks.guidedTours.reset();')">Alle Touren zurücksetzen</button>
+        </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</body>
+
+<!-- Third Party-->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+<script src="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@10.0.1/build/highlight.min.js"></script>
+
+<script type="text/javascript">
+  // Reloads the log every second.
+  window.setInterval(function () {
+    jQuery.getJSON("/log?length=50", function (result) {
+      $("#log").empty();
+      jQuery.each(result, function (i, item){
+        $("#log").append("<div>" + item + "</pre>");
+      });
+    });
+  }, 1000);
+
+  // Reloads the screenshot. We first set the source to an empty string so that the spinner in
+  // the background gets visible.
+  function reloadScreenshot() {
+    document.getElementById('screenshot').src = "";
+    document.getElementById('screenshot').src =
+      "/capture?width=1200&height=600&delay=10&gui=false&random=" + new Date().getTime();
+  }
+
+  // Runs the given JavaScript code on the CosmoScout VR backend.
+  function runJS(code) {
+    jQuery.post('/run-js', code);
+  }
+
+  // Loads the given script file and executes it on the CosmoScout VR backend.
+  function loadJS(file) {
+    if (file) {
+      var reader = new FileReader();
+      reader.onload = function (evt) {
+        jQuery.post('/run-js', evt.target.result);
+      };
+      reader.readAsText(file);
+    }
+  }
+
+  // Loads the given file and sends it to the CosmoScout VR backend.
+  function loadSettings(file) {
+    if (file) {
+      var reader = new FileReader();
+      reader.onload = function (evt) {
+        jQuery.post('/load', evt.target.result);
+      };
+      reader.readAsText(file);
+    }
+  }
+
+  // The URL to this site is used in several places throughout the page.
+  $(".document-location").text(document.location);
+
+  // Initialize materializecss.
+  M.AutoInit();
+
+  // Initialize code highlight
+  hljs.initHighlightingOnLoad();
+
+  // die json auslesen und buttons erstellen
+</script>
+</html>

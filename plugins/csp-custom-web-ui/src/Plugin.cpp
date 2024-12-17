@@ -137,7 +137,7 @@ void Plugin::update() {
     if (object) {
       auto scale = mSolarSystem->getScaleBasedOnObserverDistance(
           object, item.mPosition, item.mScale, mAllSettings->mGraphics.pWorldUIScale.get());
-      auto rotation = mSolarSystem->getRotationToObserver(object, item.mPosition, false);
+      auto rotation = mSolarSystem->getRotationToObserver(object, item.mPosition, true);
 
       auto transform = object->getObserverRelativeTransform(item.mPosition, rotation, scale);
       item.mAnchor->SetTransform(glm::value_ptr(transform), true);

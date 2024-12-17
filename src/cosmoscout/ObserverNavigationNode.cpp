@@ -23,6 +23,7 @@ ObserverNavigationNode::ObserverNavigationNode(
     , mTranslation(nullptr)
     , mRotation(nullptr)
     , mOffset(nullptr)
+    , mRotationOffset(nullptr)
     , mPreventNavigationWhenHoveredGui(
           oParams.GetValueOrDefault<bool>("prevent_navigation_when_hovered_gui", true))
     , mFixedHorizon(oParams.GetValueOrDefault<bool>("fixed_horizon", false))
@@ -50,6 +51,9 @@ ObserverNavigationNode::ObserverNavigationNode(
 
   // NOLINTNEXTLINE(cppcoreguidelines-owning-memory): deleted in IVdfnNode::~IVdfnNode()
   RegisterInPortPrototype("offset", new TVdfnPortTypeCompare<TVdfnPort<VistaVector3D>>);
+
+  RegisterInPortPrototype("rotation_offset", new TVdfnPortTypeCompare<TVdfnPort<VistaQuaternion>>);
+
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -59,13 +63,15 @@ bool ObserverNavigationNode::PrepareEvaluationRun() {
   mTranslation = dynamic_cast<TVdfnPort<VistaVector3D>*>(GetInPort("translation"));
   mRotation    = dynamic_cast<TVdfnPort<VistaQuaternion>*>(GetInPort("rotation"));
   mOffset      = dynamic_cast<TVdfnPort<VistaVector3D>*>(GetInPort("offset"));
+  mRotationOffset      = dynamic_cast<TVdfnPort<VistaQuaternion>*>(GetInPort("rotation_offset"));
+
   return GetIsValid();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool ObserverNavigationNode::GetIsValid() const {
-  return ((mTranslation || mRotation || mOffset) && mTime);
+  return ((mTranslation || mRotation || mRotationOffset || mOffset ) && mTime);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -154,13 +160,22 @@ bool ObserverNavigationNode::DoEvalNode() {
   auto  newPosition = oObs.getPosition() + oObs.getRotation() * vTranslation * oObs.getScale();
   oObs.setPosition(newPosition);
 
+  glm::dquat qRotationOffset(1 , 0 ,0 ,0);
+
+  if (mRotationOffset) {
+    auto          tmp       = mRotationOffset->GetValue().GetNormalized().GetAxisAndAngle();
+    VistaVector3D axis      = tmp.m_v3Axis;
+    double        angle     = tmp.m_fAngle;
+    qRotationOffset = glm::angleAxis(angle, glm::dvec3(axis[0], axis[1], axis[2]));
+  }
+
   auto       qRotation     = mAngularDirection;
   glm::dvec3 vRotationAxis = glm::axis(qRotation);
   double     dRotationAngle =
       glm::angle(qRotation) * dDeltaTime * mMaxAngularSpeed * mAngularSpeed.get(dTtime);
 
   auto newRotation =
-      glm::normalize(oObs.getRotation() * glm::angleAxis(dRotationAngle, vRotationAxis));
+      glm::normalize(oObs.getRotation() * glm::angleAxis(dRotationAngle, vRotationAxis) * qRotationOffset);
 
   // If mFixedHorizon is set, we rotate the observer so that the horizon of the active object is
   // always leveled. For now, this breaks if we are in outer space or looking straight up or down.
