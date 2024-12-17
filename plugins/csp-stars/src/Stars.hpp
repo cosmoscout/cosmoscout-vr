@@ -172,7 +172,7 @@ class Stars : public IVistaOpenGLDraw {
   std::vector<Star>                  mStars;
   std::map<CatalogType, std::string> mCatalogs;
 
-  DrawMode mDrawMode = DrawMode::eScaledDisc;
+  DrawMode mDrawMode = DrawMode::eGlareDisc;
 
   bool  mShaderDirty                = true;
   bool  mEnableHDR                  = true;
