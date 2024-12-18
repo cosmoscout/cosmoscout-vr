@@ -84,7 +84,7 @@ GlareMipMap::~GlareMipMap() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void GlareMipMap::update(VistaTexture* hdrBufferComposite, float exposure,
+void GlareMipMap::update(VistaTexture* hdrBufferComposite, float maxLuminance,
     HDRBuffer::GlareMode glareMode, uint32_t glareQuality, bool bicubicGlareFilter,
     bool enable32BitGlare) {
 
@@ -152,7 +152,7 @@ void GlareMipMap::update(VistaTexture* hdrBufferComposite, float exposure,
 
     mUniforms.level                   = glGetUniformLocation(mGlareProgram, "uLevel");
     mUniforms.pass                    = glGetUniformLocation(mGlareProgram, "uPass");
-    mUniforms.exposure                = glGetUniformLocation(mGlareProgram, "uExposure");
+    mUniforms.maxLuminance            = glGetUniformLocation(mGlareProgram, "uMaxLuminance");
     mUniforms.projectionMatrix        = glGetUniformLocation(mGlareProgram, "uMatP");
     mUniforms.inverseProjectionMatrix = glGetUniformLocation(mGlareProgram, "uMatInvP");
 
@@ -176,7 +176,7 @@ void GlareMipMap::update(VistaTexture* hdrBufferComposite, float exposure,
     utils::FrameStats::ScopedTimer timer("Compute Glare");
 
     glUseProgram(mGlareProgram);
-    glUniform1f(mUniforms.exposure, exposure);
+    glUniform1f(mUniforms.maxLuminance, maxLuminance);
 
     hdrBufferComposite->Bind(GL_TEXTURE0);
 

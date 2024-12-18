@@ -42,10 +42,10 @@ void main() {
 #endif
 
 #ifdef DRAWMODE_GLARE_DISC
-  float scaleFac = mapRange(sqrt(luminance), 0, 5, 1.0, 500.0);
+  float scaleFac = mapRange(sqrt(luminance), 0, 5, 1.0, 100.0);
 
-  // In this mode, 90% of the brightness is drawn using a small smooth disc in the center
-  // (just like DRAWMODE_SMOOTH_DISC) and the othe 10% are drawn as glare using an inverse
+  // In this mode, 20% of the brightness is drawn using a small smooth disc in the center
+  // (just like DRAWMODE_SMOOTH_DISC) and the other 80% are drawn as glare using an inverse
   // quadratic falloff.
 
   // The billboard is scaled depending on the magnitude, but we want the disc to be the same
@@ -55,7 +55,7 @@ void main() {
   float falloff = max(0, 0.5 / pow(dist + 0.1, 2) - 0.5);
   float glare   = luminance * falloff / (scaleFac * scaleFac) * 0.5;
 
-  float fac = 0.5 * glare + 0.5 * disc;
+  float fac = 0.2 * glare + 0.8 * disc;
 #endif
 
 #ifdef DRAWMODE_SPRITE

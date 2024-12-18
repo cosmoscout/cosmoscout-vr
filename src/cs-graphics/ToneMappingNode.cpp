@@ -290,16 +290,17 @@ bool ToneMappingNode::ToneMappingNode::Do() {
     mShader->Link();
 
     mUniforms.exposure       = mShader->GetUniformLocation("uExposure");
+    mUniforms.maxLuminance   = mShader->GetUniformLocation("uMaxLuminance");
     mUniforms.glareIntensity = mShader->GetUniformLocation("uGlareIntensity");
 
     mShaderDirty = false;
   }
 
-  bool doCalculateExposure =
-      GetVistaSystem()->GetDisplayManager()->GetCurrentRenderInfo()->m_eEyeRenderMode !=
-      VistaDisplayManager::RenderInfo::ERM_RIGHT;
+  bool leftEye = GetVistaSystem()->GetDisplayManager()->GetCurrentRenderInfo()->m_eEyeRenderMode !=
+                 VistaDisplayManager::RenderInfo::ERM_RIGHT;
+  bool calculateFrameLuminance = leftEye && (mEnableAutoExposure || mGlareIntensity > 0);
 
-  if (doCalculateExposure && mEnableAutoExposure) {
+  if (calculateFrameLuminance) {
     mHDRBuffer->calculateLuminance();
 
     // We accumulate all luminance values of this frame (can be multiple viewports and / or multiple
@@ -313,22 +314,22 @@ bool ToneMappingNode::ToneMappingNode::Do() {
 
     // Calculate exposure based on last frame's average luminance Time-dependent visual adaptation
     // for fast realistic image display (https://dl.acm.org/citation.cfm?id=344810).
-    if (mGlobalLuminanceData.mPixelCount > 0 && mGlobalLuminanceData.mTotalLuminance > 0) {
-      auto  frameTime = static_cast<float>(GetVistaSystem()->GetFrameLoop()->GetAverageLoopTime());
-      float averageLuminance = getLastAverageLuminance();
-      mAutoExposure += (std::log2(1.F / averageLuminance) - mAutoExposure) *
-                       (1.F - std::exp(-mExposureAdaptionSpeed * frameTime));
-    }
-  }
+    if (mEnableAutoExposure) {
+      if (mGlobalLuminanceData.mPixelCount > 0 && mGlobalLuminanceData.mTotalLuminance > 0) {
+        auto frameTime = static_cast<float>(GetVistaSystem()->GetFrameLoop()->GetAverageLoopTime());
+        float averageLuminance = getLastAverageLuminance();
+        mAutoExposure += (std::log2(1.F / averageLuminance) - mAutoExposure) *
+                         (1.F - std::exp(-mExposureAdaptionSpeed * frameTime));
+      }
 
-  if (doCalculateExposure && mEnableAutoExposure) {
-    mExposure = glm::clamp(mAutoExposure, mMinAutoExposure, mMaxAutoExposure);
+      mExposure = glm::clamp(mAutoExposure, mMinAutoExposure, mMaxAutoExposure);
+    }
   }
 
   float exposure = std::pow(2.F, mExposure + mExposureCompensation);
 
   if (mGlareIntensity > 0) {
-    mHDRBuffer->updateGlareMipMap(exposure);
+    mHDRBuffer->updateGlareMipMap(mGlobalLuminanceData.mMaximumLuminance);
   }
 
   mHDRBuffer->unbind();
@@ -338,6 +339,7 @@ bool ToneMappingNode::ToneMappingNode::Do() {
 
   mShader->Bind();
   mShader->SetUniform(mUniforms.exposure, exposure);
+  mShader->SetUniform(mUniforms.maxLuminance, mGlobalLuminanceData.mMaximumLuminance);
   mShader->SetUniform(mUniforms.glareIntensity, mGlareIntensity);
 
   glDrawArrays(GL_TRIANGLES, 0, 3);

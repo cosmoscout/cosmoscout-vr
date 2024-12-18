@@ -25,7 +25,7 @@ layout(rgba16f, binding = 2) writeonly uniform image2D uOutGlare;
 
 uniform int   uPass;
 uniform int   uLevel;
-uniform float uExposure;
+uniform float uMaxLuminance;
 uniform mat4  uMatP;
 uniform mat4  uMatInvP;
 
@@ -42,10 +42,10 @@ vec3 sampleHDRBuffer(ivec2 pos) {
              texelFetch(uInHDRBuffer, ivec2(posTimesTwo + ivec2(1, 0)), 0).rgb +
              texelFetch(uInHDRBuffer, ivec2(posTimesTwo + ivec2(0, 1)), 0).rgb +
              texelFetch(uInHDRBuffer, ivec2(posTimesTwo + ivec2(1, 1)), 0).rgb;
-  return col * 0.25 * uExposure;
+  return col * 0.25 / uMaxLuminance * 65500;
 #else
   ivec2 size = textureSize(uInHDRBuffer, 0);
-  return texture(uInHDRBuffer, vec2(posTimesTwo + 1.0) / size).rgb * uExposure;
+  return texture(uInHDRBuffer, vec2(posTimesTwo + 1.0) / size).rgb / uMaxLuminance * 65500;
 #endif
 }
 

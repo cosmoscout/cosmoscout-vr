@@ -114,6 +114,7 @@ class CS_GRAPHICS_EXPORT ToneMappingNode : public IVistaOpenGLDraw, public Vista
 
   struct {
     uint32_t exposure       = 0;
+    uint32_t maxLuminance   = 0;
     uint32_t glareIntensity = 0;
     uint32_t glareQuality   = 0;
   } mUniforms;
