@@ -106,9 +106,43 @@ void main() {
 #endif
 
   ivec2 outSize = imageSize(uOutRed);
-  ivec2 coords  = ivec2(((vScreenSpacePos.xy + 1) / 2) * vec2(outSize));
+
+  vec2 float_star_coords = ((vScreenSpacePos.xy + 1) / 2) * vec2(outSize);
+
+
+  //shift the exact projected star coordinates by -.5 such that one refers to the four nearest pixels in the following
+  vec2 ref_weights = float_star_coords - 0.5;
+  ivec2 integer_ref_star_coords  = ivec2(ref_weights);
+  ref_weights = fract(ref_weights);
   
-  imageAtomicAdd(uOutRed, coords, oLuminance.r);
-  imageAtomicAdd(uOutGreen, coords, oLuminance.g);
-  imageAtomicAdd(uOutBlue, coords, oLuminance.b);
+  //four nearest pixels
+  ivec2 target_star_coords[4] = {integer_ref_star_coords              , integer_ref_star_coords + ivec2(1, 0),
+                                 integer_ref_star_coords + ivec2(0, 1), integer_ref_star_coords + ivec2(1, 1)};
+
+  //weighting related to bilinear interpolation, but not correct apparently, since the perceived luminance is odd
+  float pixel_weights[4] = {(1.0 - ref_weights.x) * (1.0 - ref_weights.y), 
+                            (ref_weights.x) * (1.0 - ref_weights.y), 
+                            (1.0 - ref_weights.x) * (ref_weights.y), 
+                            (ref_weights.x) * ( ref_weights.y)};
+  
+  //calculate accumulated weights for subsequent weight normalization
+  float accumulated_weights = 0.0;
+  for(int i = 0; i < 4; ++i) {
+   accumulated_weights += pixel_weights[i];
+  }
+
+  //normalize weights and add
+  for(int i = 0; i < 4; ++i) {
+    pixel_weights[i] /= accumulated_weights;
+
+    ivec2 current_target_position = target_star_coords[i];
+
+    vec3 oPixelWeightedLuminance = pixel_weights[i] * oLuminance.rgb;
+
+    imageAtomicAdd(uOutRed, current_target_position, oPixelWeightedLuminance.r);
+    imageAtomicAdd(uOutGreen, current_target_position, oPixelWeightedLuminance.g);
+    imageAtomicAdd(uOutBlue, current_target_position, oPixelWeightedLuminance.b);
+  }
+
+
 }
