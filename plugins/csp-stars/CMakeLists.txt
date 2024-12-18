@@ -19,10 +19,17 @@ file(GLOB SOURCE_FILES src/*.cpp)
 file(GLOB HEADER_FILES src/*.hpp)
 file(GLOB_RECURSE RESOUCRE_FILES gui/* textures/*)
 
+# Shader files are also only added in order to make them available in your IDE.
+set(CSP_STARS_SHADER_DIR ${CMAKE_CURRENT_SOURCE_DIR}/shaders/)
+file(GLOB SHADER_FILES ${CSP_STARS_SHADER_DIR}* ${CSP_STARS_SHADER_DIR}*/*)
+
+source_group("src/shaders" FILES ${SHADER_FILES})
+
 add_library(csp-stars SHARED
   ${SOURCE_FILES}
   ${HEADER_FILES}
   ${RESOUCRE_FILES}
+  ${SHADER_FILES}
 )
 
 target_link_libraries(csp-stars
