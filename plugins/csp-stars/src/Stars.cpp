@@ -19,9 +19,11 @@
 
 #include <VistaInterProcComm/Connections/VistaByteBufferDeSerializer.h>
 #include <VistaInterProcComm/Connections/VistaByteBufferSerializer.h>
+#include <VistaKernel/DisplayManager/VistaDisplayManager.h>
 #include <VistaKernel/GraphicsManager/VistaGeometryFactory.h>
 #include <VistaKernel/GraphicsManager/VistaOpenGLNode.h>
 #include <VistaKernel/GraphicsManager/VistaSceneGraph.h>
+#include <VistaKernel/VistaSystem.h>
 #include <VistaOGLExt/VistaBufferObject.h>
 #include <VistaOGLExt/VistaGLSLShader.h>
 #include <VistaOGLExt/VistaOGLUtils.h>
@@ -82,6 +84,32 @@ const std::array<std::array<int, Stars::NUM_COLUMNS>, Stars::NUM_CATALOGS> Stars
 // Increase this if the cache format changed and is incompatible now. This will
 // force a reload.
 const int Stars::cCacheVersion = 3;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+Stars::Stars() {
+
+  for (auto const& viewport : GetVistaSystem()->GetDisplayManager()->GetViewports()) {
+    SoftwareRasterizerTargets srTarget;
+
+    int width, height;
+    viewport.second->GetViewportProperties()->GetSize(width, height);
+
+    srTarget.mR = std::make_unique<VistaTexture>(GL_TEXTURE_2D);
+    srTarget.mR->Bind();
+    glTexStorage2D(GL_TEXTURE_2D, 1, GL_R32F, width, height);
+
+    srTarget.mG = std::make_unique<VistaTexture>(GL_TEXTURE_2D);
+    srTarget.mG->Bind();
+    glTexStorage2D(GL_TEXTURE_2D, 1, GL_R32F, width, height);
+
+    srTarget.mB = std::make_unique<VistaTexture>(GL_TEXTURE_2D);
+    srTarget.mB->Bind();
+    glTexStorage2D(GL_TEXTURE_2D, 1, GL_R32F, width, height);
+
+    mSRTargets.emplace(viewport.second, std::move(srTarget));
+  }
+}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -333,7 +361,14 @@ bool Stars::Do() {
   VistaTransformMatrix matProjection(glMat.data(), true);
 
   if (mShaderDirty) {
-    std::string defines = "#version 330\n";
+    std::string defines;
+
+    if (mDrawMode == DrawMode::eSRPoint) {
+      defines += "#version 430\n";
+      defines += "#extension GL_NV_shader_atomic_float : enable\n";
+    } else {
+      defines += "#version 330\n";
+    }
 
     if (mEnableHDR) {
       defines += "#define ENABLE_HDR\n";
@@ -353,6 +388,8 @@ bool Stars::Do() {
       defines += "#define DRAWMODE_GLARE_DISC\n";
     } else if (mDrawMode == DrawMode::eSprite) {
       defines += "#define DRAWMODE_SPRITE\n";
+    } else if (mDrawMode == DrawMode::eSRPoint) {
+      defines += "#define DRAWMODE_SRPOINT\n";
     }
 
     defines += cs::utils::filesystem::loadToString("../share/resources/shaders/starSnippets.glsl");
@@ -365,6 +402,19 @@ bool Stars::Do() {
       mStarShader.InitFragmentShaderFromString(
           defines +
           cs::utils::filesystem::loadToString("../share/resources/shaders/starsOnePixel.frag"));
+    } else if (mDrawMode == DrawMode::eSRPoint) {
+      mStarShader.InitComputeShaderFromString(
+          defines +
+          cs::utils::filesystem::loadToString("../share/resources/shaders/starsSRPoint.comp"));
+
+      mSRBlitShader = VistaGLSLShader();
+      mSRBlitShader.InitVertexShaderFromString(
+          defines +
+          cs::utils::filesystem::loadToString("../share/resources/shaders/starsSRBlit.vert"));
+      mSRBlitShader.InitFragmentShaderFromString(
+          defines +
+          cs::utils::filesystem::loadToString("../share/resources/shaders/starsSRBlit.frag"));
+      mSRBlitShader.Link();
     } else {
       mStarShader.InitVertexShaderFromString(
           defines +
@@ -404,6 +454,10 @@ bool Stars::Do() {
     mUniforms.starPMatrix         = mStarShader.GetUniformLocation("uMatP");
     mUniforms.starInverseMVMatrix = mStarShader.GetUniformLocation("uInvMV");
     mUniforms.starInversePMatrix  = mStarShader.GetUniformLocation("uInvP");
+
+    if (mDrawMode == DrawMode::eSRPoint) {
+      mUniforms.starCount = mStarShader.GetUniformLocation("uStarCount");
+    }
 
     mShaderDirty = false;
   }
@@ -452,8 +506,13 @@ bool Stars::Do() {
     mBackgroundVAO.Release();
   }
 
-  // draw stars
-  mStarVAO.Bind();
+  // Draw stars. In software rasterization mode, we need to bind the VBO as SSBO.
+  if (mDrawMode == DrawMode::eSRPoint) {
+    mStarVBO.BindBufferBase(GL_SHADER_STORAGE_BUFFER, 0);
+  } else {
+    mStarVAO.Bind();
+  }
+
   mStarShader.Bind();
 
   if (mDrawMode == DrawMode::ePoint || mDrawMode == DrawMode::eSmoothPoint) {
@@ -492,12 +551,40 @@ bool Stars::Do() {
   glUniformMatrix4fv(mUniforms.starInverseMVMatrix, 1, GL_FALSE, matInverseMV.GetData());
   glUniformMatrix4fv(mUniforms.starInversePMatrix, 1, GL_FALSE, matInverseP.GetData());
 
-  glDrawArrays(GL_POINTS, 0, static_cast<GLsizei>(mStars.size()));
+  if (mDrawMode == DrawMode::eSRPoint) {
+    glUniform1i(mUniforms.starCount, static_cast<int>(mStars.size()));
+
+    auto* viewport   = GetVistaSystem()->GetDisplayManager()->GetCurrentRenderInfo()->m_pViewport;
+    auto const& data = mSRTargets[viewport];
+
+    glClearTexImage(data.mR->GetId(), 0, GL_RED, GL_FLOAT, nullptr);
+    glClearTexImage(data.mG->GetId(), 0, GL_RED, GL_FLOAT, nullptr);
+    glClearTexImage(data.mB->GetId(), 0, GL_RED, GL_FLOAT, nullptr);
+
+    glBindImageTexture(0, data.mR->GetId(), 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_R32F);
+    glBindImageTexture(1, data.mG->GetId(), 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_R32F);
+    glBindImageTexture(2, data.mB->GetId(), 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_R32F);
+
+    glDispatchCompute(static_cast<uint32_t>(std::ceil(1.0 * mStars.size() / 256)), 1, 1);
+
+    // Blit the result to the screen.
+    glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+
+    mSRBlitShader.Bind();
+    data.mR->Bind(GL_TEXTURE0);
+    data.mG->Bind(GL_TEXTURE1);
+    data.mB->Bind(GL_TEXTURE2);
+
+    glDrawArrays(GL_TRIANGLES, 0, 3);
+
+  } else {
+    glDrawArrays(GL_POINTS, 0, static_cast<GLsizei>(mStars.size()));
+    mStarVAO.Release();
+  }
 
   mStarTexture->Unbind(GL_TEXTURE0);
 
   mStarShader.Release();
-  mStarVAO.Release();
 
   glDepthMask(GL_TRUE);
   glPopAttrib();

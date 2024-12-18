@@ -1,0 +1,114 @@
+////////////////////////////////////////////////////////////////////////////////////////////////////
+//                               This file is part of CosmoScout VR                               //
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
+// SPDX-License-Identifier: MIT
+
+#line 9
+
+layout(local_size_x = 256) in;
+
+layout(r32f, binding = 0) coherent uniform image2D uOutRed;
+layout(r32f, binding = 1) coherent uniform image2D uOutGreen;
+layout(r32f, binding = 2) coherent uniform image2D uOutBlue;
+
+// input SSBO
+struct Star {
+  float posX;
+  float posY;
+  float posZ;
+  float colorR;
+  float colorG;
+  float colorB;
+  float absMagnitude;
+};
+
+layout(std430, binding = 0) buffer StarSSBO {
+  Star stars[];
+};
+
+// uniforms
+uniform int  uStarCount;
+uniform mat4 uMatMV;
+uniform mat4 uMatP;
+uniform mat4 uInvMV;
+
+uniform float uLuminanceMultiplicator;
+uniform mat4  uInvP;
+uniform vec2  uResolution;
+uniform float uMinMagnitude;
+uniform float uMaxMagnitude;
+uniform float uSolidAngle;
+
+float getSolidAngle(vec3 a, vec3 b, vec3 c) {
+  return 2 * atan(abs(dot(a, cross(b, c))) / (1 + dot(a, b) + dot(a, c) + dot(b, c)));
+}
+
+float getSolidAngleOfPixel(vec4 screenSpacePosition, vec2 resolution, mat4 invProjection) {
+  vec2 pixel           = vec2(1.0) / resolution;
+  vec4 pixelCorners[4] = vec4[4](screenSpacePosition + vec4(-pixel.x, -pixel.y, 0, 0),
+      screenSpacePosition + vec4(+pixel.x, -pixel.y, 0, 0),
+      screenSpacePosition + vec4(+pixel.x, +pixel.y, 0, 0),
+      screenSpacePosition + vec4(-pixel.x, +pixel.y, 0, 0));
+
+  for (int i = 0; i < 4; ++i) {
+    pixelCorners[i]     = invProjection * pixelCorners[i];
+    pixelCorners[i].xyz = normalize(pixelCorners[i].xyz);
+  }
+
+  return getSolidAngle(pixelCorners[0].xyz, pixelCorners[1].xyz, pixelCorners[2].xyz) +
+         getSolidAngle(pixelCorners[0].xyz, pixelCorners[2].xyz, pixelCorners[3].xyz);
+}
+
+void main() {
+  int index = int(gl_GlobalInvocationID.x);
+
+  // Discard any threads outside the output layer.
+  if (index >= uStarCount) {
+    return;
+  }
+
+  const float parsecToMeter = 3.08567758e16;
+  vec3        observerPos   = (uInvMV * vec4(0, 0, 0, 1) / parsecToMeter).xyz;
+
+  Star  star           = stars[index];
+  vec3  inPos          = vec3(star.posX, star.posY, star.posZ);
+  vec3  inColor        = vec3(star.colorR, star.colorG, star.colorB);
+  float inAbsMagnitude = star.absMagnitude;
+
+  float vMagnitude      = getApparentMagnitude(inAbsMagnitude, length(inPos - observerPos));
+  vec3  vColor          = SRGBtoLINEAR(inColor);
+  vec4  vScreenSpacePos = uMatP * uMatMV * vec4(inPos * parsecToMeter, 1);
+
+  if (vScreenSpacePos.w <= 0) {
+    return;
+  }
+
+  vScreenSpacePos /= vScreenSpacePos.w;
+
+  if (vScreenSpacePos.x < -1 || vScreenSpacePos.x > 1 || vScreenSpacePos.y < -1 ||
+      vScreenSpacePos.y > 1) {
+    return;
+  }
+
+  if (vMagnitude > uMaxMagnitude || vMagnitude < uMinMagnitude) {
+    return;
+  }
+
+  float solidAngle = getSolidAngleOfPixel(vScreenSpacePos, uResolution, uInvP);
+  float luminance  = magnitudeToLuminance(vMagnitude, solidAngle);
+
+  vec4 oLuminance = vec4(vColor * luminance * uLuminanceMultiplicator, 1.0);
+
+#ifndef ENABLE_HDR
+  oLuminance.rgb = Uncharted2Tonemap(oLuminance.rgb * uSolidAngle * 5e8);
+#endif
+
+  ivec2 outSize = imageSize(uOutRed);
+  ivec2 coords  = ivec2(((vScreenSpacePos.xy + 1) / 2) * vec2(outSize));
+  
+  imageAtomicAdd(uOutRed, coords, oLuminance.r);
+  imageAtomicAdd(uOutGreen, coords, oLuminance.g);
+  imageAtomicAdd(uOutBlue, coords, oLuminance.b);
+}

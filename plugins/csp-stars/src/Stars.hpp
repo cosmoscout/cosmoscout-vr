@@ -9,6 +9,7 @@
 #define CSP_STARS_VISTA_STARS_HPP
 
 #include <VistaBase/VistaColor.h>
+#include <VistaKernel/DisplayManager/VistaViewport.h>
 #include <VistaKernel/GraphicsManager/VistaOpenGLDraw.h>
 #include <VistaOGLExt/VistaBufferObject.h>
 #include <VistaOGLExt/VistaGLSLShader.h>
@@ -55,8 +56,12 @@ class Stars : public IVistaOpenGLDraw {
     eSmoothDisc,
     eScaledDisc,
     eGlareDisc,
-    eSprite
+    eSprite,
+    eSRPoint
   };
+
+  Stars();
+  ~Stars() = default;
 
   /// It is possible to load multiple catalogs, currently Hipparcos and any of Tycho or Tycho2 can
   /// be loaded together. Stars which are in both catalogs will be loaded from Hipparcos. Once
@@ -161,6 +166,7 @@ class Stars : public IVistaOpenGLDraw {
   std::string mCacheFile = "star_cache.dat";
 
   VistaGLSLShader        mStarShader;
+  VistaGLSLShader        mSRBlitShader;
   VistaGLSLShader        mBackgroundShader;
   VistaColor             mBackgroundColor1;
   VistaColor             mBackgroundColor2;
@@ -199,7 +205,17 @@ class Stars : public IVistaOpenGLDraw {
     uint32_t starPMatrix         = 0;
     uint32_t starInverseMVMatrix = 0;
     uint32_t starInversePMatrix  = 0;
+
+    uint32_t starCount = 0;
   } mUniforms;
+
+  struct SoftwareRasterizerTargets {
+    std::unique_ptr<VistaTexture> mR;
+    std::unique_ptr<VistaTexture> mG;
+    std::unique_ptr<VistaTexture> mB;
+  };
+
+  std::unordered_map<VistaViewport*, SoftwareRasterizerTargets> mSRTargets;
 
   static const int cCacheVersion;
 
