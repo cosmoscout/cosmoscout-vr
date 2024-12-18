@@ -80,7 +80,7 @@ vec3 texture2D_exact_bicubic_with_shared_memory(sampler2D tex, vec2 uv, int p_lo
   
 
 
-  ivec2 globalWorkgroupStartOffset = ivec2(gl_WorkGroupID.xy * (gl_WorkGroupSize.xy) ) ;//  * (tex_size / textureSize(uGlareMipMap, 0)) );
+  ivec2 globalWorkgroupStartOffset = ivec2(gl_WorkGroupID.xy * (gl_WorkGroupSize.xy) / (1 << p_lod) )  ;
   
 
 
@@ -90,17 +90,17 @@ vec3 texture2D_exact_bicubic_with_shared_memory(sampler2D tex, vec2 uv, int p_lo
                                             (( int(gl_WorkGroupSize.y) / (1 << p_lod)) +  NUM_PADDING_CELLS_IN_TOTAL);
 
   for(int flatGlareSampleWriteIndex = int(gl_LocalInvocationIndex);
-  flatGlareSampleWriteIndex < totalNumSharedSamples; 
-  flatGlareSampleWriteIndex += total_num_cells_to_sample_per_level) {
+  flatGlareSampleWriteIndex < total_num_cells_to_sample_per_level; 
+  flatGlareSampleWriteIndex += totalNumThreadsInWorkgroup) {
 
     ivec2 unflattenedGlareSampleWriteIndex = 
-    ivec2(flatGlareSampleWriteIndex % NUM_SHARED_MEMORY_CELLS_ONE_D,
-          flatGlareSampleWriteIndex / NUM_SHARED_MEMORY_CELLS_ONE_D);
+    ivec2(flatGlareSampleWriteIndex % (( int(gl_WorkGroupSize.x) / (1 << p_lod)) +  NUM_PADDING_CELLS_IN_TOTAL),
+          flatGlareSampleWriteIndex / (( int(gl_WorkGroupSize.x) / (1 << p_lod)) +  NUM_PADDING_CELLS_IN_TOTAL));
 
     //calculate the offset of the shared sample array with respect to the threads local position
     ivec2 globalCellID = max(ivec2(0),(unflattenedGlareSampleWriteIndex + globalWorkgroupStartOffset) - NUM_PADDING_CELLS_OFFSET);
 
-    vec2 vTexcoords  = (globalCellID + vec2(0.5)) / textureSize(uGlareMipMap, 0);
+    vec2 vTexcoords  = (globalCellID + vec2(0.5)) / textureSize(uGlareMipMap, p_lod);
 
     vTexcoords       = vTexcoords * tex_size + 0.5;
     ivec2 iuv_as_int = ivec2(vTexcoords - 1.0);
@@ -112,7 +112,7 @@ vec3 texture2D_exact_bicubic_with_shared_memory(sampler2D tex, vec2 uv, int p_lo
 
   barrier();
 
-  ivec2 shared_memory_sampling_base_offset = (ivec2(gl_LocalInvocationID.xy)) + NUM_PADDING_CELLS_OFFSET;
+  ivec2 shared_memory_sampling_base_offset = (ivec2(gl_LocalInvocationID.xy / (1 << p_lod)  )) + NUM_PADDING_CELLS_OFFSET;
 
   return cubic_filter(
     fuv.y, cubic_filter(
