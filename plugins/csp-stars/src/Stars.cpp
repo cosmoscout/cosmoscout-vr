@@ -572,25 +572,29 @@ bool Stars::Do() {
 
     glUniform1i(mUniforms.starCount, static_cast<int>(mStars.size()));
 
-    glClearTexImage(data.mR->GetId(), 0, GL_RED, GL_FLOAT, nullptr);
-    glClearTexImage(data.mG->GetId(), 0, GL_RED, GL_FLOAT, nullptr);
-    glClearTexImage(data.mB->GetId(), 0, GL_RED, GL_FLOAT, nullptr);
+    {
+      cs::utils::FrameStats::ScopedTimer timer("Software Rasterizer");
+      glClearTexImage(data.mR->GetId(), 0, GL_RED, GL_FLOAT, nullptr);
+      glClearTexImage(data.mG->GetId(), 0, GL_RED, GL_FLOAT, nullptr);
+      glClearTexImage(data.mB->GetId(), 0, GL_RED, GL_FLOAT, nullptr);
 
-    glBindImageTexture(0, data.mR->GetId(), 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_R32F);
-    glBindImageTexture(1, data.mG->GetId(), 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_R32F);
-    glBindImageTexture(2, data.mB->GetId(), 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_R32F);
+      glBindImageTexture(0, data.mR->GetId(), 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_R32F);
+      glBindImageTexture(1, data.mG->GetId(), 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_R32F);
+      glBindImageTexture(2, data.mB->GetId(), 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_R32F);
 
-    glDispatchCompute(static_cast<uint32_t>(std::ceil(1.0 * mStars.size() / 256)), 1, 1);
+      glDispatchCompute(static_cast<uint32_t>(std::ceil(1.0 * mStars.size() / 256)), 1, 1);
+      glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+    }
 
-    // Blit the result to the screen.
-    glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+    {
+      cs::utils::FrameStats::ScopedTimer timer("Blit Results");
+      mSRBlitShader.Bind();
+      data.mR->Bind(GL_TEXTURE0);
+      data.mG->Bind(GL_TEXTURE1);
+      data.mB->Bind(GL_TEXTURE2);
 
-    mSRBlitShader.Bind();
-    data.mR->Bind(GL_TEXTURE0);
-    data.mG->Bind(GL_TEXTURE1);
-    data.mB->Bind(GL_TEXTURE2);
-
-    glDrawArrays(GL_TRIANGLES, 0, 3);
+      glDrawArrays(GL_TRIANGLES, 0, 3);
+    }
 
   } else {
     glDrawArrays(GL_POINTS, 0, static_cast<GLsizei>(mStars.size()));
