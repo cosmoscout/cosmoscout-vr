@@ -110,7 +110,7 @@ void main() {
   // shift the exact projected star coordinates by -.5 such that one refers to the four nearest
   // pixels in the following
   vec2  ref_weights             = float_star_coords - 0.5;
-  ivec2 integer_ref_star_coords = ivec2(ref_weights);
+  ivec2 integer_ref_star_coords = ivec2(floor(ref_weights));
   ref_weights                   = fract(ref_weights);
 
   // four nearest pixels
