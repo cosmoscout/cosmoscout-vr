@@ -88,38 +88,8 @@ const int Stars::cCacheVersion = 3;
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 Stars::Stars() {
-
   for (auto const& viewport : GetVistaSystem()->GetDisplayManager()->GetViewports()) {
-    SoftwareRasterizerTargets srTarget;
-
-    int width, height;
-    viewport.second->GetViewportProperties()->GetSize(width, height);
-
-    srTarget.mR = std::make_unique<VistaTexture>(GL_TEXTURE_2D);
-    srTarget.mR->Bind();
-    srTarget.mR->SetWrapS(GL_CLAMP_TO_EDGE);
-    srTarget.mR->SetWrapT(GL_CLAMP_TO_EDGE);
-    srTarget.mR->SetMinFilter(GL_NEAREST);
-    srTarget.mR->SetMagFilter(GL_NEAREST);
-    glTexStorage2D(GL_TEXTURE_2D, 1, GL_R32F, width, height);
-
-    srTarget.mG = std::make_unique<VistaTexture>(GL_TEXTURE_2D);
-    srTarget.mG->Bind();
-    srTarget.mG->SetWrapS(GL_CLAMP_TO_EDGE);
-    srTarget.mG->SetWrapT(GL_CLAMP_TO_EDGE);
-    srTarget.mG->SetMinFilter(GL_NEAREST);
-    srTarget.mG->SetMagFilter(GL_NEAREST);
-    glTexStorage2D(GL_TEXTURE_2D, 1, GL_R32F, width, height);
-
-    srTarget.mB = std::make_unique<VistaTexture>(GL_TEXTURE_2D);
-    srTarget.mB->Bind();
-    srTarget.mB->SetWrapS(GL_CLAMP_TO_EDGE);
-    srTarget.mB->SetWrapT(GL_CLAMP_TO_EDGE);
-    srTarget.mB->SetMinFilter(GL_NEAREST);
-    srTarget.mB->SetMagFilter(GL_NEAREST);
-    glTexStorage2D(GL_TEXTURE_2D, 1, GL_R32F, width, height);
-
-    mSRTargets.emplace(viewport.second, std::move(srTarget));
+    mSRTargets[viewport.second] = {};
   }
 }
 
@@ -564,10 +534,43 @@ bool Stars::Do() {
   glUniformMatrix4fv(mUniforms.starInversePMatrix, 1, GL_FALSE, matInverseP.GetData());
 
   if (mDrawMode == DrawMode::eSRPoint) {
-    glUniform1i(mUniforms.starCount, static_cast<int>(mStars.size()));
+    // Recreate the render targets if the viewport size changed.
+    auto* viewport = GetVistaSystem()->GetDisplayManager()->GetCurrentRenderInfo()->m_pViewport;
+    auto& data     = mSRTargets[viewport];
 
-    auto* viewport   = GetVistaSystem()->GetDisplayManager()->GetCurrentRenderInfo()->m_pViewport;
-    auto const& data = mSRTargets[viewport];
+    int width, height;
+    viewport->GetViewportProperties()->GetSize(width, height);
+
+    if (data.mWidth != width || data.mHeight != height) {
+      data.mWidth  = width;
+      data.mHeight = height;
+
+      data.mR = std::make_unique<VistaTexture>(GL_TEXTURE_2D);
+      data.mR->Bind();
+      data.mR->SetWrapS(GL_CLAMP_TO_EDGE);
+      data.mR->SetWrapT(GL_CLAMP_TO_EDGE);
+      data.mR->SetMinFilter(GL_NEAREST);
+      data.mR->SetMagFilter(GL_NEAREST);
+      glTexStorage2D(GL_TEXTURE_2D, 1, GL_R32F, width, height);
+
+      data.mG = std::make_unique<VistaTexture>(GL_TEXTURE_2D);
+      data.mG->Bind();
+      data.mG->SetWrapS(GL_CLAMP_TO_EDGE);
+      data.mG->SetWrapT(GL_CLAMP_TO_EDGE);
+      data.mG->SetMinFilter(GL_NEAREST);
+      data.mG->SetMagFilter(GL_NEAREST);
+      glTexStorage2D(GL_TEXTURE_2D, 1, GL_R32F, width, height);
+
+      data.mB = std::make_unique<VistaTexture>(GL_TEXTURE_2D);
+      data.mB->Bind();
+      data.mB->SetWrapS(GL_CLAMP_TO_EDGE);
+      data.mB->SetWrapT(GL_CLAMP_TO_EDGE);
+      data.mB->SetMinFilter(GL_NEAREST);
+      data.mB->SetMagFilter(GL_NEAREST);
+      glTexStorage2D(GL_TEXTURE_2D, 1, GL_R32F, width, height);
+    }
+
+    glUniform1i(mUniforms.starCount, static_cast<int>(mStars.size()));
 
     glClearTexImage(data.mR->GetId(), 0, GL_RED, GL_FLOAT, nullptr);
     glClearTexImage(data.mG->GetId(), 0, GL_RED, GL_FLOAT, nullptr);

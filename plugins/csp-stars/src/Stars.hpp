@@ -213,6 +213,8 @@ class Stars : public IVistaOpenGLDraw {
     std::unique_ptr<VistaTexture> mR;
     std::unique_ptr<VistaTexture> mG;
     std::unique_ptr<VistaTexture> mB;
+    int                           mWidth  = 0;
+    int                           mHeight = 0;
   };
 
   std::unordered_map<VistaViewport*, SoftwareRasterizerTargets> mSRTargets;
