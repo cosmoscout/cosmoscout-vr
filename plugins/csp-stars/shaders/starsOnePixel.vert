@@ -7,7 +7,7 @@
 
 // inputs
 layout(location = 0) in vec3 inPos;
-layout(location = 1) in vec3 inColor;
+layout(location = 1) in float inTemperature;
 layout(location = 2) in float inAbsMagnitude;
 
 // uniforms
@@ -16,7 +16,7 @@ uniform mat4 uMatP;
 uniform mat4 uInvMV;
 
 // outputs
-out vec3  vColor;
+out float vTemperature;
 out vec4  vScreenSpacePos;
 out float vMagnitude;
 
@@ -26,7 +26,7 @@ void main() {
 
   vMagnitude = getApparentMagnitude(inAbsMagnitude, length(inPos - observerPos));
 
-  vColor = SRGBtoLINEAR(inColor);
+  vTemperature = inTemperature;
 
   vScreenSpacePos = uMatP * uMatMV * vec4(inPos * parsecToMeter, 1);
 

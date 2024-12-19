@@ -9,7 +9,7 @@ layout(points) in;
 layout(triangle_strip, max_vertices = 4) out;
 
 // inputs
-in vec3  vColor[];
+in float vTemperature[];
 in float vMagnitude[];
 
 // uniforms
@@ -24,7 +24,7 @@ out float iMagnitude;
 out vec2  iTexcoords;
 
 void main() {
-  iColor = SRGBtoLINEAR(vColor[0]);
+  iColor = getStarColor(vTemperature[0]);
 
   iMagnitude = vMagnitude[0];
 

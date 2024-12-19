@@ -18,9 +18,7 @@ struct Star {
   float posX;
   float posY;
   float posZ;
-  float colorR;
-  float colorG;
-  float colorB;
+  float tEff;
   float absMagnitude;
 };
 
@@ -96,7 +94,7 @@ void main() {
   float solidAngle = getSolidAngleOfPixel(vScreenSpacePos, uResolution, uInvP);
   float luminance  = magnitudeToLuminance(vMagnitude, solidAngle);
 
-  vec3 vColor     = SRGBtoLINEAR(vec3(star.colorR, star.colorG, star.colorB));
+  vec3 vColor     = getStarColor(star.tEff);
   vec4 oLuminance = vec4(vColor * luminance * uLuminanceMultiplicator, 1.0);
 
 #ifndef ENABLE_HDR

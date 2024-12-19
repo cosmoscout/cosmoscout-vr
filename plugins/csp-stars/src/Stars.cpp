@@ -50,23 +50,6 @@ bool fromString(std::string const& v, T& out) {
   return (iss.rdstate() & std::stringstream::failbit) == 0;
 }
 
-// spectral colors from B-V index -0.4 to 2.0 in steps of 0.05
-// values from  http://www.vendian.org/mncharity/dir3/starcolor/details.html
-// NOLINTNEXTLINE(cert-err58-cpp)
-const std::array sSpectralColors = {VistaColor(0x9bb2ff), VistaColor(0x9eb5ff),
-    VistaColor(0xa3b9ff), VistaColor(0xaabfff), VistaColor(0xb2c5ff), VistaColor(0xbbccff),
-    VistaColor(0xc4d2ff), VistaColor(0xccd8ff), VistaColor(0xd3ddff), VistaColor(0xdae2ff),
-    VistaColor(0xdfe5ff), VistaColor(0xe4e9ff), VistaColor(0xe9ecff), VistaColor(0xeeefff),
-    VistaColor(0xf3f2ff), VistaColor(0xf8f6ff), VistaColor(0xfef9ff), VistaColor(0xfff9fb),
-    VistaColor(0xfff7f5), VistaColor(0xfff5ef), VistaColor(0xfff3ea), VistaColor(0xfff1e5),
-    VistaColor(0xffefe0), VistaColor(0xffeddb), VistaColor(0xffebd6), VistaColor(0xffe8ce),
-    VistaColor(0xffe6ca), VistaColor(0xffe5c6), VistaColor(0xffe3c3), VistaColor(0xffe2bf),
-    VistaColor(0xffe0bb), VistaColor(0xffdfb8), VistaColor(0xffddb4), VistaColor(0xffdbb0),
-    VistaColor(0xffdaad), VistaColor(0xffd8a9), VistaColor(0xffd6a5), VistaColor(0xffd29c),
-    VistaColor(0xffd096), VistaColor(0xffcc8f), VistaColor(0xffc885), VistaColor(0xffc178),
-    VistaColor(0xffb765), VistaColor(0xffa94b), VistaColor(0xff9523), VistaColor(0xff7b00),
-    VistaColor(0xff5200)};
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 } // namespace
@@ -836,18 +819,21 @@ bool Stars::readStarCache(const std::string& sCacheFile) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Stars::buildStarVAO() {
-  int                c(0);
-  const int          iElementCount(7);
+  int                index(0);
+  const int          iElementCount(5);
   std::vector<float> data(iElementCount * mStars.size());
 
-  for (auto it = mStars.begin(); it != mStars.end(); ++it, c += iElementCount) {
+  for (auto it = mStars.begin(); it != mStars.end(); ++it, index += iElementCount) {
     // use B and V magnitude to retrieve the according color
-    const float minIdx(-0.4F);
-    const float maxIdx(2.0F);
-    const float step(0.05F);
-    float       bvIndex = std::min(maxIdx, std::max(minIdx, it->mBMagnitude - it->mVMagnitude));
-    float       normalizedIndex = (bvIndex - minIdx) / (maxIdx - minIdx) / step + 0.5F;
-    VistaColor  color           = sSpectralColors.at(static_cast<int>(normalizedIndex));
+    float bv = it->mBMagnitude - it->mVMagnitude;
+
+    // https://arxiv.org/pdf/1201.1809
+    // https://github.com/sczesla/PyAstronomy/blob/master/src/pyasl/asl/aslExt_1/ballesterosBV_T.py
+    const float t0   = 4600.F;
+    const float a    = 0.92F;
+    const float b    = 1.7F;
+    const float c    = 0.62F;
+    float       tEff = t0 * (1.0 / (a * bv + b) + 1.0 / (a * bv + c));
 
     // distance in parsec --- some have parallax of zero; assume a
     // large distance in those cases
@@ -861,13 +847,11 @@ void Stars::buildStarVAO() {
         glm::sin(it->mDeclination) * fDist,
         glm::cos(it->mDeclination) * glm::sin(it->mAscension) * fDist);
 
-    data[c]     = starPos[0];
-    data[c + 1] = starPos[1];
-    data[c + 2] = starPos[2];
-    data[c + 3] = color.GetRed();
-    data[c + 4] = color.GetGreen();
-    data[c + 5] = color.GetBlue();
-    data[c + 6] = it->mVMagnitude - 5.F * std::log10(fDist / 10.F);
+    data[index]     = starPos[0];
+    data[index + 1] = starPos[1];
+    data[index + 2] = starPos[2];
+    data[index + 3] = tEff;
+    data[index + 4] = it->mVMagnitude - 5.F * std::log10(fDist / 10.F);
   }
 
   mStarVBO.Bind(GL_ARRAY_BUFFER);
@@ -879,15 +863,15 @@ void Stars::buildStarVAO() {
   mStarVAO.SpecifyAttributeArrayFloat(
       0, 3, GL_FLOAT, GL_FALSE, iElementCount * sizeof(float), 0, &mStarVBO);
 
-  // color
+  // temperature
   mStarVAO.EnableAttributeArray(1);
   mStarVAO.SpecifyAttributeArrayFloat(
-      1, 3, GL_FLOAT, GL_FALSE, iElementCount * sizeof(float), 3 * sizeof(float), &mStarVBO);
+      1, 1, GL_FLOAT, GL_FALSE, iElementCount * sizeof(float), 3 * sizeof(float), &mStarVBO);
 
   // magnitude
   mStarVAO.EnableAttributeArray(2);
   mStarVAO.SpecifyAttributeArrayFloat(
-      2, 1, GL_FLOAT, GL_FALSE, iElementCount * sizeof(float), 6 * sizeof(float), &mStarVBO);
+      2, 1, GL_FLOAT, GL_FALSE, iElementCount * sizeof(float), 4 * sizeof(float), &mStarVBO);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

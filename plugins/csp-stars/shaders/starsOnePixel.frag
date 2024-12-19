@@ -6,7 +6,7 @@
 // SPDX-License-Identifier: MIT
 
 // inputs
-in vec3  vColor;
+in float vTemperature;
 in vec4  vScreenSpacePos;
 in float vMagnitude;
 
@@ -49,7 +49,7 @@ void main() {
   float solidAngle = getSolidAngleOfPixel(vScreenSpacePos, uResolution, uInvP);
   float luminance  = magnitudeToLuminance(vMagnitude, solidAngle);
 
-  oLuminance = vec4(vColor * luminance * uLuminanceMultiplicator, 1.0);
+  oLuminance = vec4(getStarColor(vTemperature) * luminance * uLuminanceMultiplicator, 1.0);
 
 #ifndef ENABLE_HDR
   oLuminance.rgb = Uncharted2Tonemap(oLuminance.rgb * uSolidAngle * 5e8);
