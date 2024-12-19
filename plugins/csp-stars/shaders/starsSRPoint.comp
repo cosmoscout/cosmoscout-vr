@@ -72,14 +72,10 @@ void main() {
   const float parsecToMeter = 3.08567758e16;
   vec3        observerPos   = (uInvMV * vec4(0, 0, 0, 1) / parsecToMeter).xyz;
 
-  Star  star           = stars[index];
-  vec3  inPos          = vec3(star.posX, star.posY, star.posZ);
-  vec3  inColor        = vec3(star.colorR, star.colorG, star.colorB);
-  float inAbsMagnitude = star.absMagnitude;
+  Star star  = stars[index];
+  vec3 inPos = vec3(star.posX, star.posY, star.posZ);
 
-  float vMagnitude      = getApparentMagnitude(inAbsMagnitude, length(inPos - observerPos));
-  vec3  vColor          = SRGBtoLINEAR(inColor);
-  vec4  vScreenSpacePos = uMatP * uMatMV * vec4(inPos * parsecToMeter, 1);
+  vec4 vScreenSpacePos = uMatP * uMatMV * vec4(inPos * parsecToMeter, 1);
 
   if (vScreenSpacePos.w <= 0) {
     return;
@@ -92,6 +88,7 @@ void main() {
     return;
   }
 
+  float vMagnitude = getApparentMagnitude(star.absMagnitude, length(inPos - observerPos));
   if (vMagnitude > uMaxMagnitude || vMagnitude < uMinMagnitude) {
     return;
   }
@@ -99,6 +96,7 @@ void main() {
   float solidAngle = getSolidAngleOfPixel(vScreenSpacePos, uResolution, uInvP);
   float luminance  = magnitudeToLuminance(vMagnitude, solidAngle);
 
+  vec3 vColor     = SRGBtoLINEAR(vec3(star.colorR, star.colorG, star.colorB));
   vec4 oLuminance = vec4(vColor * luminance * uLuminanceMultiplicator, 1.0);
 
 #ifndef ENABLE_HDR
@@ -109,40 +107,27 @@ void main() {
 
   vec2 float_star_coords = ((vScreenSpacePos.xy + 1) / 2) * vec2(outSize);
 
+  // shift the exact projected star coordinates by -.5 such that one refers to the four nearest
+  // pixels in the following
+  vec2  ref_weights             = float_star_coords - 0.5;
+  ivec2 integer_ref_star_coords = ivec2(ref_weights);
+  ref_weights                   = fract(ref_weights);
 
-  //shift the exact projected star coordinates by -.5 such that one refers to the four nearest pixels in the following
-  vec2 ref_weights = float_star_coords - 0.5;
-  ivec2 integer_ref_star_coords  = ivec2(ref_weights);
-  ref_weights = fract(ref_weights);
-  
-  //four nearest pixels
-  ivec2 target_star_coords[4] = {integer_ref_star_coords              , integer_ref_star_coords + ivec2(1, 0),
-                                 integer_ref_star_coords + ivec2(0, 1), integer_ref_star_coords + ivec2(1, 1)};
+  // four nearest pixels
+  ivec2 target_star_coords[4] = {integer_ref_star_coords, integer_ref_star_coords + ivec2(1, 0),
+      integer_ref_star_coords + ivec2(0, 1), integer_ref_star_coords + ivec2(1, 1)};
 
-  //weighting related to bilinear interpolation, but not correct apparently, since the perceived luminance is odd
-  float pixel_weights[4] = {(1.0 - ref_weights.x) * (1.0 - ref_weights.y), 
-                            (ref_weights.x) * (1.0 - ref_weights.y), 
-                            (1.0 - ref_weights.x) * (ref_weights.y), 
-                            (ref_weights.x) * ( ref_weights.y)};
-  
-  //calculate accumulated weights for subsequent weight normalization
-  float accumulated_weights = 0.0;
-  for(int i = 0; i < 4; ++i) {
-   accumulated_weights += pixel_weights[i];
-  }
+  float weights[4] = {(1 - ref_weights.x) * (1 - ref_weights.y),
+      ref_weights.x * (1 - ref_weights.y), (1 - ref_weights.x) * ref_weights.y,
+      ref_weights.x * ref_weights.y};
 
-  //normalize weights and add
-  for(int i = 0; i < 4; ++i) {
-    pixel_weights[i] /= accumulated_weights;
-
+  // normalize weights and add
+  for (int i = 0; i < 4; ++i) {
     ivec2 current_target_position = target_star_coords[i];
-
-    vec3 oPixelWeightedLuminance = pixel_weights[i] * oLuminance.rgb;
+    vec3  oPixelWeightedLuminance = weights[i] * oLuminance.rgb;
 
     imageAtomicAdd(uOutRed, current_target_position, oPixelWeightedLuminance.r);
     imageAtomicAdd(uOutGreen, current_target_position, oPixelWeightedLuminance.g);
     imageAtomicAdd(uOutBlue, current_target_position, oPixelWeightedLuminance.b);
   }
-
-
 }
