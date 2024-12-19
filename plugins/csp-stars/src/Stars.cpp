@@ -97,14 +97,26 @@ Stars::Stars() {
 
     srTarget.mR = std::make_unique<VistaTexture>(GL_TEXTURE_2D);
     srTarget.mR->Bind();
+    srTarget.mR->SetWrapS(GL_CLAMP_TO_EDGE);
+    srTarget.mR->SetWrapT(GL_CLAMP_TO_EDGE);
+    srTarget.mR->SetMinFilter(GL_NEAREST);
+    srTarget.mR->SetMagFilter(GL_NEAREST);
     glTexStorage2D(GL_TEXTURE_2D, 1, GL_R32F, width, height);
 
     srTarget.mG = std::make_unique<VistaTexture>(GL_TEXTURE_2D);
     srTarget.mG->Bind();
+    srTarget.mG->SetWrapS(GL_CLAMP_TO_EDGE);
+    srTarget.mG->SetWrapT(GL_CLAMP_TO_EDGE);
+    srTarget.mG->SetMinFilter(GL_NEAREST);
+    srTarget.mG->SetMagFilter(GL_NEAREST);
     glTexStorage2D(GL_TEXTURE_2D, 1, GL_R32F, width, height);
 
     srTarget.mB = std::make_unique<VistaTexture>(GL_TEXTURE_2D);
     srTarget.mB->Bind();
+    srTarget.mB->SetWrapS(GL_CLAMP_TO_EDGE);
+    srTarget.mB->SetWrapT(GL_CLAMP_TO_EDGE);
+    srTarget.mB->SetMinFilter(GL_NEAREST);
+    srTarget.mB->SetMagFilter(GL_NEAREST);
     glTexStorage2D(GL_TEXTURE_2D, 1, GL_R32F, width, height);
 
     mSRTargets.emplace(viewport.second, std::move(srTarget));
