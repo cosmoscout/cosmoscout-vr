@@ -30,85 +30,107 @@ SPDX-License-Identifier: MIT
 </div>
 
 <div class="row">
+  <div class="col-12">Draw Mode</div>
   <div class="col-5">
-    Draw Mode
-  </div>
-  <div class="col-7">
     <label class="radiolabel">
-      <input name="star_draw_mode" type="radio" data-callback="stars.setDrawMode0" />
+      <input
+        name="star_draw_mode"
+        type="radio"
+        data-callback="stars.setDrawMode0"
+      />
       <span>Points</span>
     </label>
   </div>
-  <div class="col-7 offset-5">
+  <div class="col-7">
     <label class="radiolabel">
-      <input name="star_draw_mode" type="radio" data-callback="stars.setDrawMode1" />
-      <span>Smooth Points</span>
-    </label>
-  </div>
-  <div class="col-7 offset-5">
-    <label class="radiolabel">
-      <input name="star_draw_mode" type="radio" data-callback="stars.setDrawMode2" />
+      <input
+        name="star_draw_mode"
+        type="radio"
+        data-callback="stars.setDrawMode2"
+      />
       <span>Discs</span>
     </label>
   </div>
-  <div class="col-7 offset-5">
+  <div class="col-5">
     <label class="radiolabel">
-      <input name="star_draw_mode" type="radio" data-callback="stars.setDrawMode3" />
+      <input
+        name="star_draw_mode"
+        type="radio"
+        data-callback="stars.setDrawMode1"
+      />
+      <span>Smooth Points</span>
+    </label>
+  </div>
+  <div class="col-7">
+    <label class="radiolabel">
+      <input
+        name="star_draw_mode"
+        type="radio"
+        data-callback="stars.setDrawMode3"
+      />
       <span>Smooth Discs</span>
     </label>
   </div>
-  <div class="col-7 offset-5">
+  <div class="col-5">
     <label class="radiolabel">
-      <input name="star_draw_mode" type="radio" data-callback="stars.setDrawMode4" />
+      <input
+        name="star_draw_mode"
+        type="radio"
+        data-callback="stars.setDrawMode7"
+      />
+      <span>SR-Points</span>
+    </label>
+  </div>
+  <div class="col-7">
+    <label class="radiolabel">
+      <input
+        name="star_draw_mode"
+        type="radio"
+        data-callback="stars.setDrawMode4"
+      />
       <span>Scaled Disc</span>
     </label>
   </div>
   <div class="col-7 offset-5">
     <label class="radiolabel">
-      <input name="star_draw_mode" type="radio" data-callback="stars.setDrawMode5" checked />
+      <input
+        name="star_draw_mode"
+        type="radio"
+        data-callback="stars.setDrawMode5"
+        checked
+      />
       <span>Glare Disc</span>
     </label>
   </div>
   <div class="col-7 offset-5">
     <label class="radiolabel">
-      <input name="star_draw_mode" type="radio" data-callback="stars.setDrawMode6" />
+      <input
+        name="star_draw_mode"
+        type="radio"
+        data-callback="stars.setDrawMode6"
+      />
       <span>Textured Sprites</span>
     </label>
   </div>
-  <div class="col-7 offset-5">
-    <label class="radiolabel">
-      <input name="star_draw_mode" type="radio" data-callback="stars.setDrawMode7" />
-      <span>SR-Points</span>
-    </label>
+</div>
+
+<div class="row">
+  <div class="col-5">Display Magnitude</div>
+  <div class="col-7">
+    <div data-callback="stars.setMagnitude"></div>
   </div>
 </div>
 
 <div class="row">
-  <div class="col-5">
-    Display Magnitude
-  </div>
+  <div class="col-5">Star Size</div>
   <div class="col-7">
-    <div data-callback="stars.setMagnitude">
-    </div>
+    <div data-callback="stars.setSize"></div>
   </div>
 </div>
 
 <div class="row">
-  <div class="col-5">
-    Star Size
-  </div>
+  <div class="col-5">Luminance Boost</div>
   <div class="col-7">
-    <div data-callback="stars.setSize">
-    </div>
-  </div>
-</div>
-
-<div class="row">
-  <div class="col-5">
-    Luminance Boost
-  </div>
-  <div class="col-7">
-    <div data-callback="stars.setLuminanceBoost">
-    </div>
+    <div data-callback="stars.setLuminanceBoost"></div>
   </div>
 </div>
