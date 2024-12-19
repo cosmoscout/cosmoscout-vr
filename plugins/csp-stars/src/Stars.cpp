@@ -330,7 +330,6 @@ bool Stars::Do() {
 
     if (mDrawMode == DrawMode::eSRPoint) {
       defines += "#version 430\n";
-      defines += "#extension GL_NV_shader_atomic_float : enable\n";
     } else {
       defines += "#version 330\n";
     }
@@ -528,42 +527,21 @@ bool Stars::Do() {
       data.mWidth  = width;
       data.mHeight = height;
 
-      data.mR = std::make_unique<VistaTexture>(GL_TEXTURE_2D);
-      data.mR->Bind();
-      data.mR->SetWrapS(GL_CLAMP_TO_EDGE);
-      data.mR->SetWrapT(GL_CLAMP_TO_EDGE);
-      data.mR->SetMinFilter(GL_NEAREST);
-      data.mR->SetMagFilter(GL_NEAREST);
-      glTexStorage2D(GL_TEXTURE_2D, 1, GL_R32F, width, height);
-
-      data.mG = std::make_unique<VistaTexture>(GL_TEXTURE_2D);
-      data.mG->Bind();
-      data.mG->SetWrapS(GL_CLAMP_TO_EDGE);
-      data.mG->SetWrapT(GL_CLAMP_TO_EDGE);
-      data.mG->SetMinFilter(GL_NEAREST);
-      data.mG->SetMagFilter(GL_NEAREST);
-      glTexStorage2D(GL_TEXTURE_2D, 1, GL_R32F, width, height);
-
-      data.mB = std::make_unique<VistaTexture>(GL_TEXTURE_2D);
-      data.mB->Bind();
-      data.mB->SetWrapS(GL_CLAMP_TO_EDGE);
-      data.mB->SetWrapT(GL_CLAMP_TO_EDGE);
-      data.mB->SetMinFilter(GL_NEAREST);
-      data.mB->SetMagFilter(GL_NEAREST);
-      glTexStorage2D(GL_TEXTURE_2D, 1, GL_R32F, width, height);
+      data.mImage = std::make_unique<VistaTexture>(GL_TEXTURE_2D);
+      data.mImage->Bind();
+      data.mImage->SetWrapS(GL_CLAMP_TO_EDGE);
+      data.mImage->SetWrapT(GL_CLAMP_TO_EDGE);
+      data.mImage->SetMinFilter(GL_NEAREST);
+      data.mImage->SetMagFilter(GL_NEAREST);
+      glTexStorage2D(GL_TEXTURE_2D, 1, GL_R32UI, width, height);
     }
 
     glUniform1i(mUniforms.starCount, static_cast<int>(mStars.size()));
 
     {
       cs::utils::FrameStats::ScopedTimer timer("Software Rasterizer");
-      glClearTexImage(data.mR->GetId(), 0, GL_RED, GL_FLOAT, nullptr);
-      glClearTexImage(data.mG->GetId(), 0, GL_RED, GL_FLOAT, nullptr);
-      glClearTexImage(data.mB->GetId(), 0, GL_RED, GL_FLOAT, nullptr);
-
-      glBindImageTexture(0, data.mR->GetId(), 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_R32F);
-      glBindImageTexture(1, data.mG->GetId(), 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_R32F);
-      glBindImageTexture(2, data.mB->GetId(), 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_R32F);
+      glClearTexImage(data.mImage->GetId(), 0, GL_RED_INTEGER, GL_UNSIGNED_INT, nullptr);
+      glBindImageTexture(0, data.mImage->GetId(), 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_R32UI);
 
       glDispatchCompute(static_cast<uint32_t>(std::ceil(1.0 * mStars.size() / 256)), 1, 1);
       glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
@@ -572,9 +550,7 @@ bool Stars::Do() {
     {
       cs::utils::FrameStats::ScopedTimer timer("Blit Results");
       mSRBlitShader.Bind();
-      data.mR->Bind(GL_TEXTURE0);
-      data.mG->Bind(GL_TEXTURE1);
-      data.mB->Bind(GL_TEXTURE2);
+      data.mImage->Bind(GL_TEXTURE0);
 
       glDrawArrays(GL_TRIANGLES, 0, 3);
     }

@@ -210,9 +210,7 @@ class Stars : public IVistaOpenGLDraw {
   } mUniforms;
 
   struct SoftwareRasterizerTargets {
-    std::unique_ptr<VistaTexture> mR;
-    std::unique_ptr<VistaTexture> mG;
-    std::unique_ptr<VistaTexture> mB;
+    std::unique_ptr<VistaTexture> mImage;
     int                           mWidth  = 0;
     int                           mHeight = 0;
   };

@@ -9,9 +9,7 @@
 
 layout(local_size_x = 256) in;
 
-layout(r32f, binding = 0) coherent uniform image2D uOutRed;
-layout(r32f, binding = 1) coherent uniform image2D uOutGreen;
-layout(r32f, binding = 2) coherent uniform image2D uOutBlue;
+layout(r32ui, binding = 0) coherent uniform uimage2D uOutImage;
 
 // input SSBO
 struct Star {
@@ -94,14 +92,9 @@ void main() {
   float solidAngle = getSolidAngleOfPixel(vScreenSpacePos, uResolution, uInvP);
   float luminance  = magnitudeToLuminance(vMagnitude, solidAngle);
 
-  vec3 vColor     = getStarColor(star.tEff);
-  vec4 oLuminance = vec4(vColor * luminance * uLuminanceMultiplicator, 1.0);
+  vec3 vColor = getStarColor(star.tEff);
 
-#ifndef ENABLE_HDR
-  oLuminance.rgb = Uncharted2Tonemap(oLuminance.rgb * uSolidAngle * 5e8);
-#endif
-
-  ivec2 outSize = imageSize(uOutRed);
+  ivec2 outSize = imageSize(uOutImage);
 
   vec2 float_star_coords = ((vScreenSpacePos.xy + 1) / 2) * vec2(outSize);
 
@@ -122,10 +115,29 @@ void main() {
   // normalize weights and add
   for (int i = 0; i < 4; ++i) {
     ivec2 current_target_position = target_star_coords[i];
-    vec3  oPixelWeightedLuminance = weights[i] * oLuminance.rgb;
+    float oPixelWeightedLuminance = weights[i] * luminance * uLuminanceMultiplicator;
 
-    imageAtomicAdd(uOutRed, current_target_position, oPixelWeightedLuminance.r);
-    imageAtomicAdd(uOutGreen, current_target_position, oPixelWeightedLuminance.g);
-    imageAtomicAdd(uOutBlue, current_target_position, oPixelWeightedLuminance.b);
+    uint intLuminance = uint(pow(2, 20) * oPixelWeightedLuminance);
+    uint intTemp      = uint(0.01 * star.tEff);
+    uint oldVal       = 0;
+    uint newVal       = 0;
+
+    do {
+      oldVal = imageLoad(uOutImage, current_target_position).r;
+
+      // tEff is stored in the first 8 bits of the red channel
+      uint tEff = oldVal & 0xFF;
+
+      // luminance is stored in the remaining 24 bits
+      uint oldLuminance = oldVal >> 8;
+
+      // luminance is added to the old value
+      uint newLuminance = oldLuminance + intLuminance;
+
+      // tEff is weighted by the luminances
+      uint newTEff = uint((1.0 * tEff * oldLuminance + intTemp * intLuminance) / newLuminance);
+
+      newVal = (newTEff & 0xFF) | (newLuminance << 8);
+    } while (oldVal != imageAtomicCompSwap(uOutImage, current_target_position, oldVal, newVal));
   }
 }
