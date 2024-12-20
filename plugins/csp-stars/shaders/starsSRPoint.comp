@@ -117,27 +117,20 @@ void main() {
     ivec2 current_target_position = target_star_coords[i];
     float oPixelWeightedLuminance = weights[i] * luminance * uLuminanceMultiplicator;
 
-    uint intLuminance = uint(pow(2, 20) * oPixelWeightedLuminance);
-    uint intTemp      = uint(0.01 * star.tEff);
-    uint oldVal       = 0;
-    uint newVal       = 0;
+    uint oldVal = 0;
+    uint newVal = 0;
 
     do {
       oldVal = imageLoad(uOutImage, current_target_position).r;
 
-      // tEff is stored in the first 8 bits of the red channel
-      uint tEff = oldVal & 0xFF;
+      vec2 temperatureLuminance = unpackHalf2x16(oldVal);
 
-      // luminance is stored in the remaining 24 bits
-      uint oldLuminance = oldVal >> 8;
+      float newLuminance = temperatureLuminance.y + oPixelWeightedLuminance;
+      float newTEff =
+          (temperatureLuminance.x * temperatureLuminance.y + star.tEff * oPixelWeightedLuminance) /
+          newLuminance;
 
-      // luminance is added to the old value
-      uint newLuminance = oldLuminance + intLuminance;
-
-      // tEff is weighted by the luminances
-      uint newTEff = uint((1.0 * tEff * oldLuminance + intTemp * intLuminance) / newLuminance);
-
-      newVal = (newTEff & 0xFF) | (newLuminance << 8);
+      newVal = packHalf2x16(vec2(newTEff, newLuminance));
     } while (oldVal != imageAtomicCompSwap(uOutImage, current_target_position, oldVal, newVal));
   }
 }
