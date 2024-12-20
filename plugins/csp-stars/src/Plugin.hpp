@@ -33,6 +33,7 @@ class Plugin : public cs::core::PluginBase {
     std::optional<std::string>                  mHipparcosCatalog;
     std::optional<std::string>                  mTychoCatalog;
     std::optional<std::string>                  mTycho2Catalog;
+    std::optional<std::string>                  mGaiaCatalog;
     cs::utils::DefaultProperty<bool>            mEnabled{true};
     cs::utils::DefaultProperty<bool>            mEnableCelestialGrid{false};
     cs::utils::DefaultProperty<bool>            mEnableStarFigures{false};

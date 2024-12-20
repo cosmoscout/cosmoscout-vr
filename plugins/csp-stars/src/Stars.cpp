@@ -57,16 +57,17 @@ bool fromString(std::string const& v, T& out) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 const std::array<std::array<int, Stars::NUM_COLUMNS>, Stars::NUM_CATALOGS> Stars::cColumnMapping{
-    std::array{34, 32, 11, 8, 9, 31}, // CatalogType::eHipparcos
-    std::array{34, 32, 11, 8, 9, 31}, // CatalogType::eTycho
-    std::array{19, 17, -1, 2, 3, 23}  // CatalogType::eTycho2
+    std::array{34, 11, 8, 9, 31}, // CatalogType::eHipparcos
+    std::array{34, 11, 8, 9, 31}, // CatalogType::eTycho
+    std::array{19, -1, 2, 3, 23}, // CatalogType::eTycho2
+    std::array{5, 4, 2, 3, 1}     // CatalogType::eGaia
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // Increase this if the cache format changed and is incompatible now. This will
 // force a reload.
-const int Stars::cCacheVersion = 3;
+const int Stars::cCacheVersion = 4;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -102,11 +103,22 @@ void Stars::setCatalogs(std::map<Stars::CatalogType, std::string> catalogs) {
 
       it = mCatalogs.find(CatalogType::eTycho2);
       if (it != mCatalogs.end()) {
-        // do not load tycho and tycho 2
+        // Do not load tycho and tycho 2.
         if (mCatalogs.find(CatalogType::eTycho) == mCatalogs.end()) {
           readStarsFromCatalog(it->first, it->second);
         } else {
           logger().warn("Failed to load Tycho2 catalog: Tycho already loaded!");
+        }
+      }
+
+      it = mCatalogs.find(CatalogType::eGaia);
+      if (it != mCatalogs.end()) {
+        // Do not load together with tycho and tycho 2.
+        if (mCatalogs.find(CatalogType::eTycho) == mCatalogs.end() &&
+            mCatalogs.find(CatalogType::eTycho2) == mCatalogs.end()) {
+          readStarsFromCatalog(it->first, it->second);
+        } else {
+          logger().warn("Failed to load Gaia catalog: Tycho already loaded!");
         }
       }
 
@@ -622,29 +634,26 @@ bool Stars::readStarsFromCatalog(CatalogType type, std::string const& filename) 
       std::vector<std::string> items = cs::utils::splitString(line, '|');
 
       // convert value strings to int/double/float and save in star data structure
-      // expecting Hipparcos or Tycho-1 catalog and more than 12 columns
-      if (items.size() > 12) {
+      // expecting Hipparcos or Tycho-1 catalog and more than 5 columns
+      if (items.size() > 5) {
         // skip if part of hipparcos catalogue
-        int tmp{};
-        if (type != CatalogType::eHipparcos && loadHipparcos &&
-            fromString<int>(items[cColumnMapping.at(cs::utils::enumCast(type))
-                                      .at(cs::utils::enumCast(CatalogColumn::eHipp))],
-                tmp)) {
-          continue;
+        if (type != CatalogType::eHipparcos && loadHipparcos) {
+          int  hippID{};
+          bool read = fromString<int>(items[cColumnMapping.at(cs::utils::enumCast(type))
+                                                .at(cs::utils::enumCast(CatalogColumn::eHipp))],
+              hippID);
+          if (read && hippID >= 0) {
+            continue;
+          }
         }
 
         // store star data
         bool successStoreData(true);
 
         Star star{};
-        successStoreData &= fromString<float>(
-            items[cColumnMapping.at(
-                cs::utils::enumCast(type))[cs::utils::enumCast(CatalogColumn::eVmag)]],
-            star.mVMagnitude);
-        successStoreData &= fromString<float>(
-            items[cColumnMapping.at(
-                cs::utils::enumCast(type))[cs::utils::enumCast(CatalogColumn::eBmag)]],
-            star.mBMagnitude);
+        successStoreData &= fromString<float>(items[cColumnMapping.at(cs::utils::enumCast(
+                                                  type))[cs::utils::enumCast(CatalogColumn::eMag)]],
+            star.mMagnitude);
         successStoreData &= fromString<float>(
             items[cColumnMapping.at(
                 cs::utils::enumCast(type))[cs::utils::enumCast(CatalogColumn::eRect)]],
@@ -665,6 +674,33 @@ bool Stars::readStarsFromCatalog(CatalogType type, std::string const& filename) 
           star.mParallax = 0;
         }
 
+        if (type == CatalogType::eGaia) {
+          int   GbpMinusGrpColumn = 6;
+          float GbpMinusGrp       = 0;
+          successStoreData &= fromString<float>(items[GbpMinusGrpColumn], GbpMinusGrp);
+
+          // https://doi.org/10.1051/0004-6361/201015441
+          float logTeff = 3.999 - 0.654 * GbpMinusGrp + 0.709 * std::pow(GbpMinusGrp, 2) -
+                          0.316 * std::pow(GbpMinusGrp, 3);
+          star.mTEff = std::pow(10, logTeff);
+
+        } else {
+          int   bMagColumn = type == CatalogType::eTycho2 ? 17 : 32;
+          float bMag       = 0;
+          successStoreData &= fromString<float>(items[bMagColumn], bMag);
+
+          // use B and V magnitude to retrieve the according color
+          float bv = bMag - star.mMagnitude;
+
+          // https://arxiv.org/pdf/1201.1809
+          // https://github.com/sczesla/PyAstronomy/blob/master/src/pyasl/asl/aslExt_1/ballesterosBV_T.py
+          const float t0 = 4600.F;
+          const float a  = 0.92F;
+          const float b  = 1.7F;
+          const float c  = 0.62F;
+          star.mTEff     = t0 * (1.0 / (a * bv + b) + 1.0 / (a * bv + c));
+        }
+
         if (successStoreData) {
           star.mAscension   = (360.F + 90.F - star.mAscension) / 180.F * Vista::Pi;
           star.mDeclination = star.mDeclination / 180.F * Vista::Pi;
@@ -673,7 +709,7 @@ bool Stars::readStarsFromCatalog(CatalogType type, std::string const& filename) 
         }
       }
 
-      // print progress status
+      // Print progress status every 10000 stars.
       if (mStars.size() % 10000 == 0) {
         logger().info("Read {} stars so far...", mStars.size());
       }
@@ -706,8 +742,8 @@ void Stars::writeStarCache(const std::string& sCacheFile) const {
 
   for (const auto& mStar : mStars) {
     // serialize star data into byte stream
-    serializer.WriteFloat32(mStar.mVMagnitude);
-    serializer.WriteFloat32(mStar.mBMagnitude);
+    serializer.WriteFloat32(mStar.mMagnitude);
+    serializer.WriteFloat32(mStar.mTEff);
     serializer.WriteFloat32(mStar.mAscension);
     serializer.WriteFloat32(mStar.mDeclination);
     serializer.WriteFloat32(mStar.mParallax);
@@ -779,8 +815,8 @@ bool Stars::readStarCache(const std::string& sCacheFile) {
 
     for (unsigned int num = 0; num < numStars; ++num) {
       Star star{};
-      deserializer.ReadFloat32(star.mVMagnitude);
-      deserializer.ReadFloat32(star.mBMagnitude);
+      deserializer.ReadFloat32(star.mMagnitude);
+      deserializer.ReadFloat32(star.mTEff);
       deserializer.ReadFloat32(star.mAscension);
       deserializer.ReadFloat32(star.mDeclination);
       deserializer.ReadFloat32(star.mParallax);
@@ -809,19 +845,7 @@ void Stars::buildStarVAO() {
   std::vector<float> data(iElementCount * mStars.size());
 
   for (auto it = mStars.begin(); it != mStars.end(); ++it, index += iElementCount) {
-    // use B and V magnitude to retrieve the according color
-    float bv = it->mBMagnitude - it->mVMagnitude;
-
-    // https://arxiv.org/pdf/1201.1809
-    // https://github.com/sczesla/PyAstronomy/blob/master/src/pyasl/asl/aslExt_1/ballesterosBV_T.py
-    const float t0   = 4600.F;
-    const float a    = 0.92F;
-    const float b    = 1.7F;
-    const float c    = 0.62F;
-    float       tEff = t0 * (1.0 / (a * bv + b) + 1.0 / (a * bv + c));
-
-    // distance in parsec --- some have parallax of zero; assume a
-    // large distance in those cases
+    // Distance in parsec --- some have parallax of zero; assume a large distance in those cases.
     float fDist = 1000.F;
 
     if (it->mParallax > 0.F) {
@@ -835,8 +859,8 @@ void Stars::buildStarVAO() {
     data[index]     = starPos[0];
     data[index + 1] = starPos[1];
     data[index + 2] = starPos[2];
-    data[index + 3] = tEff;
-    data[index + 4] = it->mVMagnitude - 5.F * std::log10(fDist / 10.F);
+    data[index + 3] = it->mTEff;
+    data[index + 4] = it->mMagnitude - 5.F * std::log10(fDist / 10.F);
   }
 
   mStarVBO.Bind(GL_ARRAY_BUFFER);

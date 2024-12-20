@@ -35,17 +35,16 @@ class Stars : public IVistaOpenGLDraw {
   ///    http://cdsarc.u-strasbg.fr/viz-bin/Cat?cat=I%2F239
   /// Tycho2 can be obtained from:
   ///    http://cdsarc.u-strasbg.fr/cgi-bin/myqcat3?I/259/
-  enum class CatalogType { eHipparcos = 0, eTycho, eTycho2, eCount };
+  enum class CatalogType { eHipparcos = 0, eTycho, eTycho2, eGaia, eCount };
 
   /// The required columns of each catalog. The position of each column in each catalog is
   /// configured with the static member COLUMN_MAPPING at the bottom of this file.
   enum class CatalogColumn {
-    eVmag = 0, ///< visual magnitude
-    eBmag,     ///< blue magnitude
-    ePara,     ///< trigonometric parallax
-    eRect,     ///< rectascension
-    eDecl,     ///< declination
-    eHipp,     ///< hipparcos number
+    eMag = 0, ///< visual magnitude
+    ePara,    ///< trigonometric parallax
+    eRect,    ///< rectascension
+    eDecl,    ///< declination
+    eHipp,    ///< hipparcos number
     eCount
   };
 
@@ -134,8 +133,8 @@ class Stars : public IVistaOpenGLDraw {
  private:
   /// Data structure of one record from star catalog.
   struct Star {
-    float mVMagnitude;
-    float mBMagnitude;
+    float mMagnitude;
+    float mTEff;
     float mAscension;
     float mDeclination;
     float mParallax;

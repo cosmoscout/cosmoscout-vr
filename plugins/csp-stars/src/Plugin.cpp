@@ -47,6 +47,7 @@ void from_json(nlohmann::json const& j, Plugin::Settings& o) {
   cs::core::Settings::deserialize(j, "hipparcosCatalog", o.mHipparcosCatalog);
   cs::core::Settings::deserialize(j, "tychoCatalog", o.mTychoCatalog);
   cs::core::Settings::deserialize(j, "tycho2Catalog", o.mTycho2Catalog);
+  cs::core::Settings::deserialize(j, "gaiaCatalog", o.mGaiaCatalog);
   cs::core::Settings::deserialize(j, "enabled", o.mEnabled);
   cs::core::Settings::deserialize(j, "enableCelestialGrid", o.mEnableCelestialGrid);
   cs::core::Settings::deserialize(j, "enableStarFigures", o.mEnableStarFigures);
@@ -66,6 +67,7 @@ void to_json(nlohmann::json& j, Plugin::Settings const& o) {
   cs::core::Settings::serialize(j, "hipparcosCatalog", o.mHipparcosCatalog);
   cs::core::Settings::serialize(j, "tychoCatalog", o.mTychoCatalog);
   cs::core::Settings::serialize(j, "tycho2Catalog", o.mTycho2Catalog);
+  cs::core::Settings::serialize(j, "gaiaCatalog", o.mGaiaCatalog);
   cs::core::Settings::serialize(j, "enabled", o.mEnabled);
   cs::core::Settings::serialize(j, "enableCelestialGrid", o.mEnableCelestialGrid);
   cs::core::Settings::serialize(j, "enableStarFigures", o.mEnableStarFigures);
@@ -288,6 +290,10 @@ void Plugin::onLoad() {
 
   if (mPluginSettings.mTycho2Catalog) {
     catalogs[Stars::CatalogType::eTycho2] = *mPluginSettings.mTycho2Catalog;
+  }
+
+  if (mPluginSettings.mGaiaCatalog) {
+    catalogs[Stars::CatalogType::eGaia] = *mPluginSettings.mGaiaCatalog;
   }
 
   mStars->setCatalogs(catalogs);
