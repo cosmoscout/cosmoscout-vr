@@ -412,7 +412,12 @@ bool Stars::Do() {
     mUniforms.starMinMagnitude = mStarShader.GetUniformLocation("uMinMagnitude");
     mUniforms.starMaxMagnitude = mStarShader.GetUniformLocation("uMaxMagnitude");
     mUniforms.starSolidAngle   = mStarShader.GetUniformLocation("uSolidAngle");
-    mUniforms.starLuminanceMul = mStarShader.GetUniformLocation("uLuminanceMultiplicator");
+
+    if (mDrawMode == DrawMode::eSRPoint) {
+      mUniforms.starLuminanceMul = mSRBlitShader.GetUniformLocation("uLuminanceMultiplicator");
+    } else {
+      mUniforms.starLuminanceMul = mStarShader.GetUniformLocation("uLuminanceMultiplicator");
+    }
 
     mUniforms.starMVMatrix        = mStarShader.GetUniformLocation("uMatMV");
     mUniforms.starPMatrix         = mStarShader.GetUniformLocation("uMatP");
@@ -505,7 +510,9 @@ bool Stars::Do() {
   mStarShader.SetUniform(mUniforms.starSolidAngle, mSolidAngle);
 
   float fadeOut = mEnableHDR ? 1.F : sceneBrightness;
-  mStarShader.SetUniform(mUniforms.starLuminanceMul, mLuminanceMultiplicator * fadeOut);
+  if (mDrawMode != DrawMode::eSRPoint) {
+    mStarShader.SetUniform(mUniforms.starLuminanceMul, mLuminanceMultiplicator * fadeOut);
+  }
 
   VistaTransformMatrix matInverseMV(matModelView.GetInverted());
   VistaTransformMatrix matInverseP(matProjection.GetInverted());
@@ -550,6 +557,8 @@ bool Stars::Do() {
     {
       cs::utils::FrameStats::ScopedTimer timer("Blit Results");
       mSRBlitShader.Bind();
+      mSRBlitShader.SetUniform(mUniforms.starLuminanceMul, mLuminanceMultiplicator * fadeOut);
+
       data.mImage->Bind(GL_TEXTURE0);
 
       glDrawArrays(GL_TRIANGLES, 0, 3);

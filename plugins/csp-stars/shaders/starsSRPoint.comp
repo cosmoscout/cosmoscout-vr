@@ -30,7 +30,6 @@ uniform mat4 uMatMV;
 uniform mat4 uMatP;
 uniform mat4 uInvMV;
 
-uniform float uLuminanceMultiplicator;
 uniform mat4  uInvP;
 uniform vec2  uResolution;
 uniform float uMinMagnitude;
@@ -115,7 +114,7 @@ void main() {
   // normalize weights and add
   for (int i = 0; i < 4; ++i) {
     ivec2 current_target_position = target_star_coords[i];
-    float oPixelWeightedLuminance = weights[i] * luminance * uLuminanceMultiplicator;
+    float oPixelWeightedLuminance = weights[i] * luminance;
 
     uint oldVal = 0;
     uint newVal = 0;
