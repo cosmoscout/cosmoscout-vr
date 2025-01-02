@@ -33,6 +33,8 @@
 #include <stb_image_write.h>
 #include <utility>
 
+#include <chrono>
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 EXPORT_FN cs::core::PluginBase* create() {
@@ -275,9 +277,9 @@ void Plugin::init() {
     mCaptureFormat = getParam<std::string>(conn, "format", mCaptureDepth ? "tiff" : "png");
 
     // Validate format parameter.
-    if (mCaptureFormat != "png" && mCaptureFormat != "jpeg" && mCaptureFormat != "tiff") {
+    if (mCaptureFormat != "png" && mCaptureFormat != "jpeg" && mCaptureFormat != "tiff" && mCaptureFormat != "raw") {
       mg_send_http_error(
-          conn, 422, "Only 'png', 'jpeg', or 'tiff' are allowed for the format parameter!");
+          conn, 422, "Only 'png', 'jpeg', 'tiff' or 'raw' are allowed for the format parameter!");
       return;
     }
 
@@ -294,10 +296,13 @@ void Plugin::init() {
     // Now we use a condition variable to wait for the capture. It is actually captured in the
     // Plugin::update() method further below.
     mCaptureDone.wait(lock);
-
+    auto start_time = std::chrono::high_resolution_clock::now();
     // The capture has been captured, return the result!
     mg_send_http_ok(conn, ("image/" + mCaptureFormat).c_str(), mCapture.size());
     mg_write(conn, mCapture.data(), mCapture.size());
+    auto end_time = std::chrono::high_resolution_clock::now();
+    logger().debug("sending data took {} microseconds",
+        std::chrono::duration_cast<std::chrono::microseconds>(end_time - start_time).count());
   }));
 
   // All POST requests received on /run-js are stored in a queue. They are executed in the main
@@ -388,6 +393,7 @@ void Plugin::update() {
   {
     std::lock_guard<std::mutex> lock(mCaptureMutex);
     if (mCaptureRequested) {
+      auto start_time = std::chrono::high_resolution_clock::now();
       if (mCaptureWidth > 0 && mCaptureHeight > 0) {
         auto* window = GetVistaSystem()->GetDisplayManager()->GetWindows().begin()->second;
         window->GetWindowProperties()->GetSize(mRestoreW, mRestoreH);
@@ -399,6 +405,9 @@ void Plugin::update() {
         mAllSettings->pEnableUserInterface = mCaptureGui == "true";
       }
       mCaptureRequested = false;
+      auto end_time     = std::chrono::high_resolution_clock::now();
+      logger().debug("preparing for capture took {} microseconds",
+          std::chrono::duration_cast<std::chrono::microseconds>(end_time - start_time).count());
     }
 
     // Now we waited several frames. We read the pixels, encode the data as png and notify the
@@ -466,19 +475,28 @@ void Plugin::update() {
         }
 
       } else {
-        // Capturing color images is pretty straight-forward.
-        std::vector<std::byte> capture(mCaptureWidth * mCaptureHeight * 3);
-        glReadPixels(0, 0, mCaptureWidth, mCaptureHeight, GL_RGB, GL_UNSIGNED_BYTE, &capture[0]);
-
-        if (mCaptureFormat == "tiff") {
-          tiffWriteToVector(mCapture, capture, mCaptureWidth, mCaptureHeight, 3, 8);
-        } else if (mCaptureFormat == "png") {
-          stbi_write_png_to_func(&stbWriteToVector, &mCapture, mCaptureWidth, mCaptureHeight, 3,
-              capture.data(), mCaptureWidth * 3);
+        auto start_time = std::chrono::high_resolution_clock::now();
+        if (mCaptureFormat == "raw") {
+          mCapture.resize(mCaptureWidth * mCaptureHeight * 3 * 4);
+          glReadPixels(0, 0, mCaptureWidth, mCaptureHeight, GL_RGB, GL_FLOAT, (void*)mCapture.data());
         } else {
-          stbi_write_jpg_to_func(
-              &stbWriteToVector, &mCapture, mCaptureWidth, mCaptureHeight, 3, capture.data(), 80);
+          // Capturing color images is pretty straight-forward.
+          std::vector<std::byte> capture(mCaptureWidth * mCaptureHeight * 3);
+          glReadPixels(0, 0, mCaptureWidth, mCaptureHeight, GL_RGB, GL_UNSIGNED_BYTE, &capture[0]);
+
+          if (mCaptureFormat == "tiff") {
+            tiffWriteToVector(mCapture, capture, mCaptureWidth, mCaptureHeight, 3, 8);
+          } else if (mCaptureFormat == "png") {
+            stbi_write_png_to_func(&stbWriteToVector, &mCapture, mCaptureWidth, mCaptureHeight, 3,
+                capture.data(), mCaptureWidth * 3);
+          } else {
+            stbi_write_jpg_to_func(
+                &stbWriteToVector, &mCapture, mCaptureWidth, mCaptureHeight, 3, capture.data(), 80);
+          }
         }
+        auto end_time = std::chrono::high_resolution_clock::now();
+        logger().debug("reading image from graphics memory to cpu took {} microseconds",
+            std::chrono::duration_cast<std::chrono::microseconds>(end_time - start_time).count());
       }
 
       // Restore stb image state to default.
