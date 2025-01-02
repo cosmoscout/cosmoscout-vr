@@ -61,6 +61,7 @@ class Plugin : public cs::core::PluginBase {
   int32_t                 mCaptureHeight    = 0;
   int32_t                 mCaptureDelay     = 0;
   std::string             mCaptureGui       = "auto";
+  bool                    mRestoreState     = false;
   bool                    mRestoreGui       = true;
   int32_t                 mRestoreW         = -1;
   int32_t                 mRestoreH         = -1;

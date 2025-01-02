@@ -267,8 +267,9 @@ void Plugin::init() {
 
     // Read all paramters.
     mCaptureDelay  = std::clamp(getParam<int32_t>(conn, "delay", 50), 1, 200);
-    mCaptureWidth  = std::clamp(getParam<int32_t>(conn, "width", 0), 0, 2000);
-    mCaptureHeight = std::clamp(getParam<int32_t>(conn, "height", 0), 0, 2000);
+    mCaptureWidth  = std::clamp(getParam<int32_t>(conn, "width", 0), 0, 4096);
+    mCaptureHeight = std::clamp(getParam<int32_t>(conn, "height", 0), 0, 4096);
+    mRestoreState  = getParam<std::string>(conn, "restoreState", "false") == "true";
     mCaptureGui    = getParam<std::string>(conn, "gui", "auto");
     mCaptureDepth  = getParam<std::string>(conn, "depth", "false") == "true";
     mCaptureFormat = getParam<std::string>(conn, "format", mCaptureDepth ? "tiff" : "png");
@@ -394,7 +395,7 @@ void Plugin::update() {
       }
       mCaptureAtFrame = GetVistaSystem()->GetFrameLoop()->GetFrameCount() + mCaptureDelay;
       if (mCaptureGui != "auto") {
-        mRestoreGui = mAllSettings->pEnableUserInterface.get();
+        mRestoreGui                        = mAllSettings->pEnableUserInterface.get();
         mAllSettings->pEnableUserInterface = mCaptureGui == "true";
       }
       mCaptureRequested = false;
@@ -410,7 +411,8 @@ void Plugin::update() {
 
       logger().debug("Capturing capture for /capture request: resolution = {}x{}, show gui = {}, "
                      "depth = {}, format = {}, restore resolution to {}x{}, reenable Gui {}",
-          mCaptureWidth, mCaptureHeight, mCaptureGui, mCaptureDepth, mCaptureFormat, mRestoreW, mRestoreH, mRestoreGui);
+          mCaptureWidth, mCaptureHeight, mCaptureGui, mCaptureDepth, mCaptureFormat, mRestoreW,
+          mRestoreH, mRestoreGui);
 
       // We encode image data in the main thread as this is not thread-safe.
       stbi_flip_vertically_on_write(1);
@@ -461,11 +463,9 @@ void Plugin::update() {
             stbi_write_jpg_to_func(&stbWriteToVector, &mCapture, mCaptureWidth, mCaptureHeight, 1,
                 captureByte.data(), 80);
           }
-          
         }
 
       } else {
-
         // Capturing color images is pretty straight-forward.
         std::vector<std::byte> capture(mCaptureWidth * mCaptureHeight * 3);
         glReadPixels(0, 0, mCaptureWidth, mCaptureHeight, GL_RGB, GL_UNSIGNED_BYTE, &capture[0]);
@@ -488,15 +488,16 @@ void Plugin::update() {
 
       // The capture has been done, notify the worker thread,
       mCaptureDone.notify_one();
+      if (mRestoreState) {
+        // Restore interactive window UI and image resolution
+        if (mCaptureGui != "auto") {
+          mAllSettings->pEnableUserInterface = mRestoreGui;
+        }
 
-      // Restore interactive window UI and image resolution
-      if (mCaptureGui != "auto"){
-        mAllSettings->pEnableUserInterface = mRestoreGui;
-      }
-
-      if (mRestoreW > 0 && mRestoreH > 0){
-        auto* window = GetVistaSystem()->GetDisplayManager()->GetWindows().begin()->second;
-        window->GetWindowProperties()->SetSize(mRestoreW, mRestoreH);
+        if (mRestoreW > 0 && mRestoreH > 0) {
+          auto* window = GetVistaSystem()->GetDisplayManager()->GetWindows().begin()->second;
+          window->GetWindowProperties()->SetSize(mRestoreW, mRestoreH);
+        }
       }
     }
   }
