@@ -50,35 +50,35 @@ int main(int argc, char** argv) {
 
   std::vector<std::string> arguments(argv + 2, argv + argc);
 
-  if (cMode == "limb-darkening") {
+  if (cMode == "simple-limb-darkening") {
     return simple::limbDarkeningMode(arguments);
   }
 
-  if (cMode == "circles") {
+  if (cMode == "simple-circles") {
     return simple::circleIntersectionMode(arguments);
   }
 
-  if (cMode == "smoothstep") {
+  if (cMode == "simple-smoothstep") {
     return simple::smoothstepMode(arguments);
   }
 
-  if (cMode == "linear") {
+  if (cMode == "simple-linear") {
     return simple::linearMode(arguments);
   }
 
-  if (cMode == "bruneton") {
-    return advanced::brunetonMode(arguments);
+  if (cMode == "advanced-shadow") {
+    return advanced::shadowMode(arguments);
   }
 
-  if (cMode == "limb-luminance") {
+  if (cMode == "advanced-limb-luminance") {
     return advanced::limbLuminanceMode(arguments);
   }
 
-  if (cMode == "planet-view") {
+  if (cMode == "advanced-planet-view") {
     return advanced::planetViewMode(arguments);
   }
 
-  if (cMode == "atmo-view") {
+  if (cMode == "advanced-atmo-view") {
     return advanced::atmoViewMode(arguments);
   }
 

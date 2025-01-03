@@ -22,7 +22,7 @@ namespace {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-enum class Mode { eBruneton, ePlanetView, eAtmoView, eLimbLuminance };
+enum class Mode { eShadow, eLimbLuminance, ePlanetView, eAtmoView };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -413,7 +413,7 @@ int run(Mode mode, std::vector<std::string> const& arguments) {
         &output.mBuffer, static_cast<size_t>(output.mSize * output.mSize) * 3 * sizeof(float)));
   }
 
-  if (mode == Mode::eBruneton) {
+  if (mode == Mode::eShadow) {
     computeShadowMap<<<gridSize, blockSize>>>(output, mapping, geometry, limbDarkening, textures);
   } else if (mode == Mode::eLimbLuminance) {
     computeLimbLuminance<<<gridSize, blockSize>>>(
@@ -475,8 +475,8 @@ namespace advanced {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-int brunetonMode(std::vector<std::string> const& arguments) {
-  return run(Mode::eBruneton, arguments);
+int shadowMode(std::vector<std::string> const& arguments) {
+  return run(Mode::eShadow, arguments);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
