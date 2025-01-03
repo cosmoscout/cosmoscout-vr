@@ -69,11 +69,11 @@ double __device__ getSunIlluminance(double sunDistance) {
 __global__ void computeShadowMap(common::Output output, common::Mapping mapping,
     common::Geometry geometry, common::LimbDarkening limbDarkening, advanced::Textures textures) {
 
-  uint32_t x = blockIdx.x * blockDim.x + threadIdx.x;
-  uint32_t y = blockIdx.y * blockDim.y + threadIdx.y;
-  uint32_t i = y * output.mSize + x;
+  uint32_t uShadow = blockIdx.x * blockDim.x + threadIdx.x;
+  uint32_t vShadow = blockIdx.y * blockDim.y + threadIdx.y;
+  uint32_t i       = vShadow * output.mSize + uShadow;
 
-  if ((x >= output.mSize) || (y >= output.mSize)) {
+  if ((uShadow >= output.mSize) || (vShadow >= output.mSize)) {
     return;
   }
 
@@ -82,23 +82,24 @@ __global__ void computeShadowMap(common::Output output, common::Mapping mapping,
   // contains exactly on half of the atmosphere as seen from the point. The individual sample points
   // are weighted by the solid angle they cover on the sphere around the point.
   //
-  //     ┌---..
-  //   y │      '
-  //     └--.     \
-  //       x \     │
-  //          │    │
-  //         /     │
-  //     ┌--'     /
-  //     │      .
-  //     └---''
+  //        ┌---..
+  //  vLimb │      '
+  //        └--.     \
+  //      uLimb \     │
+  //             │    │
+  //            /     │
+  //        ┌--'     /
+  //        │      .
+  //        └---''
   //
   // We use this resolution for the integration:
-  uint32_t samplesX = 256;
-  uint32_t samplesY = 256;
+  uint32_t samplesULimb = 256;
+  uint32_t samplesVLimb = 256;
 
   // First, compute the angular radii of Sun and occluder as well as the angle between the two.
   double phiOcc, phiSun, delta;
-  math::mapPixelToAngles(glm::ivec2(x, y), output.mSize, mapping, geometry, phiOcc, phiSun, delta);
+  math::mapPixelToAngles(
+      glm::ivec2(uShadow, vShadow), output.mSize, mapping, geometry, phiOcc, phiSun, delta);
 
   // Make sure to stick to positions outside the atmosphere.
   double occDist    = glm::max(geometry.mRadiusOcc / glm::sin(phiOcc), geometry.mRadiusAtmo);
@@ -111,24 +112,24 @@ __global__ void computeShadowMap(common::Output output, common::Mapping mapping,
 
   glm::vec3 indirectIlluminance(0.0);
 
-  for (uint32_t sampleY = 0; sampleY < samplesY; ++sampleY) {
-    double relativeY        = ((double)sampleY + 0.5) / samplesY;
-    double upperBound       = ((double)sampleY + 1.0) / samplesY;
-    double lowerBound       = ((double)sampleY) / samplesY;
+  for (uint32_t sampleV = 0; sampleV < samplesVLimb; ++sampleV) {
+    double vLimb            = ((double)sampleV + 0.5) / samplesVLimb;
+    double upperBound       = ((double)sampleV + 1.0) / samplesVLimb;
+    double lowerBound       = ((double)sampleV) / samplesVLimb;
     double upperPhiRay      = phiOcc + upperBound * (phiAtmo - phiOcc);
     double lowerPhiRay      = phiOcc + lowerBound * (phiAtmo - phiOcc);
     double rowSolidAngle    = 0.5 * (math::getCapArea(upperPhiRay) - math::getCapArea(lowerPhiRay));
-    double sampleSolidAngle = rowSolidAngle / samplesX;
+    double sampleSolidAngle = rowSolidAngle / samplesULimb;
 
-    for (uint32_t sampleX = 0; sampleX < samplesX; ++sampleX) {
+    for (uint32_t sampleU = 0; sampleU < samplesULimb; ++sampleU) {
 
-      double theta = (((double)sampleX + 0.5) / samplesX) * M_PI;
+      double beta = (((double)sampleU + 0.5) / samplesULimb) * M_PI;
 
       // Compute the direction of the ray.
-      double     phiRay = phiOcc + relativeY * (phiAtmo - phiOcc);
+      double     phiRay = phiOcc + vLimb * (phiAtmo - phiOcc);
       glm::dvec3 rayDir = glm::dvec3(0.0, glm::sin(phiRay), -glm::cos(phiRay));
       rayDir =
-          glm::normalize(math::rotateVector(rayDir, glm::dvec3(0.0, 0.0, -1.0), glm::cos(theta)));
+          glm::normalize(math::rotateVector(rayDir, glm::dvec3(0.0, 0.0, -1.0), glm::cos(beta)));
 
       glm::vec3 luminance = advanced::getLuminance(
           camera, rayDir, sunDirection, geometry, limbDarkening, textures, phiSun);
@@ -147,7 +148,7 @@ __global__ void computeShadowMap(common::Output output, common::Mapping mapping,
 
   double sunArea = math::getCircleArea(1.0);
   double radiusOcc, distance;
-  math::mapPixelToRadii(glm::ivec2(x, y), output.mSize, mapping, radiusOcc, distance);
+  math::mapPixelToRadii(glm::ivec2(uShadow, vShadow), output.mSize, mapping, radiusOcc, distance);
   double radiusAtmo = radiusOcc * geometry.mRadiusAtmo / geometry.mRadiusOcc;
   double visibleFraction =
       1.0 - math::sampleCircleIntersection(1.0, radiusAtmo, distance, limbDarkening) / sunArea;
@@ -190,19 +191,19 @@ __global__ void computeLimbLuminance(common::Output output, common::Mapping mapp
   // contains exactly on half of the atmosphere as seen from the point. The individual sample points
   // are weighted by the solid angle they cover on the sphere around the point.
   //
-  //     ┌---..
-  //   y │      '
-  //     └--.     \
-  //       x \     │
-  //          │    │
-  //         /     │
-  //     ┌--'     /
-  //     │      .
-  //     └---''
+  //        ┌---..
+  //  vLimb │      '
+  //        └--.     \
+  //      uLimb \     │
+  //             │    │
+  //            /     │
+  //        ┌--'     /
+  //        │      .
+  //        └---''
   //
   // We use this resolution for the integration:
-  uint32_t samplesX = output.mSize;
-  uint32_t samplesY = 256;
+  uint32_t samplesULimb = output.mSize;
+  uint32_t samplesVLimb = 256;
 
   // First, compute the angular radii of Sun and occluder as well as the angle between the two.
   double phiOcc, phiSun, delta;
@@ -219,19 +220,18 @@ __global__ void computeLimbLuminance(common::Output output, common::Mapping mapp
 
   glm::vec3 luminance(0.0);
 
-  for (uint32_t sampleY = 0; sampleY < samplesY; ++sampleY) {
-    double relativeY = ((double)sampleY + 0.5) / samplesY;
-    double theta     = (((double)z + 0.5) / samplesX) * M_PI;
+  for (uint32_t sampleV = 0; sampleV < samplesVLimb; ++sampleV) {
+    double vLimb = ((double)sampleV + 0.5) / samplesVLimb;
+    double beta  = (((double)z + 0.5) / samplesULimb) * M_PI;
 
     // Compute the direction of the ray.
-    double     phiRay = phiOcc + relativeY * (phiAtmo - phiOcc);
+    double     phiRay = phiOcc + vLimb * (phiAtmo - phiOcc);
     glm::dvec3 rayDir = glm::dvec3(0.0, glm::sin(phiRay), -glm::cos(phiRay));
-    rayDir =
-        glm::normalize(math::rotateVector(rayDir, glm::dvec3(0.0, 0.0, -1.0), glm::cos(theta)));
+    rayDir = glm::normalize(math::rotateVector(rayDir, glm::dvec3(0.0, 0.0, -1.0), glm::cos(beta)));
 
     luminance += advanced::getLuminance(
                      camera, rayDir, sunDirection, geometry, limbDarkening, textures, phiSun) /
-                 static_cast<float>(samplesY);
+                 static_cast<float>(samplesVLimb);
   }
 
   // And divide by the illuminance at the point if there were no atmosphere and no planet.
@@ -267,12 +267,12 @@ __global__ void drawAtmoView(common::Mapping mapping, common::Geometry geometry,
   glm::dvec3 sunDirection = glm::dvec3(0.0, glm::sin(delta), -glm::cos(delta));
 
   // Compute the direction of the ray.
-  double theta     = (x / (double)output.mSize) * M_PI;
-  double relativeY = (y / (double)output.mSize);
+  double beta  = (x / (double)output.mSize) * M_PI;
+  double vLimb = (y / (double)output.mSize);
 
-  double     phiRay = phiOcc + relativeY * (phiAtmo - phiOcc);
+  double     phiRay = phiOcc + vLimb * (phiAtmo - phiOcc);
   glm::dvec3 rayDir = glm::dvec3(0.0, glm::sin(phiRay), -glm::cos(phiRay));
-  rayDir = glm::normalize(math::rotateVector(rayDir, glm::dvec3(0.0, 0.0, -1.0), glm::cos(theta)));
+  rayDir = glm::normalize(math::rotateVector(rayDir, glm::dvec3(0.0, 0.0, -1.0), glm::cos(beta)));
 
   glm::vec3 luminance = advanced::getLuminance(
       camera, rayDir, sunDirection, geometry, limbDarkening, textures, phiSun);
