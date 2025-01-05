@@ -41,10 +41,10 @@ class CS_GRAPHICS_EXPORT HDRBuffer {
   explicit HDRBuffer(uint32_t multiSamples, bool highPrecision = true);
 
   HDRBuffer(HDRBuffer const& other) = delete;
-  HDRBuffer(HDRBuffer&& other)      = delete;
+  HDRBuffer(HDRBuffer&& other) = delete;
 
   HDRBuffer& operator=(HDRBuffer const& other) = delete;
-  HDRBuffer& operator=(HDRBuffer&& other)      = delete;
+  HDRBuffer& operator=(HDRBuffer&& other) = delete;
 
   virtual ~HDRBuffer();
 
@@ -76,7 +76,8 @@ class CS_GRAPHICS_EXPORT HDRBuffer {
   float getTotalLuminance() const;
   float getMaximumLuminance() const;
 
-  /// Update and access the GlareMipMap.
+  /// Update and access the GlareMipMap. The maximum luminance of the current frame is required to
+  /// normalize the glare.
   void          updateGlareMipMap(float maxLuminance);
   VistaTexture* getGlareMipMap() const;
 

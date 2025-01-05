@@ -36,10 +36,10 @@ class CS_GRAPHICS_EXPORT ToneMappingNode : public IVistaOpenGLDraw, public Vista
   explicit ToneMappingNode(std::shared_ptr<HDRBuffer> hdrBuffer);
 
   ToneMappingNode(ToneMappingNode const& other) = delete;
-  ToneMappingNode(ToneMappingNode&& other)      = delete;
+  ToneMappingNode(ToneMappingNode&& other) = delete;
 
   ToneMappingNode& operator=(ToneMappingNode const& other) = delete;
-  ToneMappingNode& operator=(ToneMappingNode&& other)      = delete;
+  ToneMappingNode& operator=(ToneMappingNode&& other) = delete;
 
   ~ToneMappingNode() override;
 
