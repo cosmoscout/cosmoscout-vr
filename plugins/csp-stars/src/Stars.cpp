@@ -680,8 +680,8 @@ bool Stars::readStarsFromCatalog(CatalogType type, std::string const& filename) 
           successStoreData &= fromString<float>(items[GbpMinusGrpColumn], GbpMinusGrp);
 
           // https://doi.org/10.1051/0004-6361/201015441
-          float logTeff = 3.999 - 0.654 * GbpMinusGrp + 0.709 * std::pow(GbpMinusGrp, 2) -
-                          0.316 * std::pow(GbpMinusGrp, 3);
+          float logTeff = 3.999F - 0.654F * GbpMinusGrp + 0.709F * std::pow(GbpMinusGrp, 2.F) -
+                          0.316F * std::pow(GbpMinusGrp, 3.F);
           star.mTEff = std::pow(10, logTeff);
 
         } else {
@@ -698,7 +698,7 @@ bool Stars::readStarsFromCatalog(CatalogType type, std::string const& filename) 
           const float a  = 0.92F;
           const float b  = 1.7F;
           const float c  = 0.62F;
-          star.mTEff     = t0 * (1.0 / (a * bv + b) + 1.0 / (a * bv + c));
+          star.mTEff     = t0 * (1.0F / (a * bv + b) + 1.0F / (a * bv + c));
         }
 
         if (successStoreData) {
