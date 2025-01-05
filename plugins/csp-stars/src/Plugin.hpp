@@ -38,7 +38,7 @@ class Plugin : public cs::core::PluginBase {
     cs::utils::DefaultProperty<bool>            mEnableCelestialGrid{false};
     cs::utils::DefaultProperty<bool>            mEnableStarFigures{false};
     cs::utils::DefaultProperty<float>           mLuminanceMultiplicator{0.F};
-    cs::utils::DefaultProperty<Stars::DrawMode> mDrawMode{Stars::DrawMode::eGlareDisc};
+    cs::utils::DefaultProperty<Stars::DrawMode> mDrawMode{Stars::DrawMode::eSRPoint};
     cs::utils::DefaultProperty<float>           mSize{0.05F};
     cs::utils::DefaultProperty<glm::vec2>       mMagnitudeRange{glm::vec2(-5.F, 13.F)};
   };
