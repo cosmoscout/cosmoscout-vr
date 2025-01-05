@@ -67,7 +67,8 @@ void main() {
   gl_FragDepth = texelFetch(uDepth, ivec2(vTexcoords * textureSize(uDepth, 0)), 0).r;
 #endif
 
-  // Glare is scaled by max luminance.
+  // Glare is scaled so that it fits the range of a half float. He we scale it back to the original
+  // range.
   if (uGlareIntensity > 0) {
     vec3 glare = texture(uGlareMipMap, vTexcoords, 0).rgb * uMaxLuminance / 65500;
     color      = mix(color, glare, pow(uGlareIntensity, 2.0));

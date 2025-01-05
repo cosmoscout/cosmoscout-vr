@@ -14,9 +14,6 @@ layout(rgba32f, binding = 2) writeonly uniform image2D uOutGlare;
 // See GPU Gems 2: "Fast Third-Order Texture Filtering", Sigg & Hadwiger:
 // http://http.developer.nvidia.com/GPUGems2/gpugems2_chapter20.html
 
-
-
-
 // w0, w1, w2, and w3 are the four cubic B-spline basis functions
 float w0(float a) {
   return (1.0 / 6.0) * (a * (a * (-a + 3.0) - 3.0) + 1.0);
@@ -52,134 +49,7 @@ float h1(float a) {
   return 1.0 + w3(a) / (w2(a) + w3(a));
 }
 
-vec3 cubic_filter(float x, vec3 c0, vec3 c1, vec3 c2, vec3 c3) {
-    vec3 result = c0 * w0(x);
-    result += c1 * w1(x);
-    result += c2 * w2(x);
-    result += c3 * w3(x);
-
-    return result;
-}
-
-
-const int NUM_PADDING_CELLS_OFFSET = 1;
-const int NUM_PADDING_CELLS_IN_TOTAL = 3;
-const int NUM_SHARED_MEMORY_CELLS_ONE_D = 16+NUM_PADDING_CELLS_IN_TOTAL;
-shared vec3 sharedGlareSamples[NUM_SHARED_MEMORY_CELLS_ONE_D][NUM_SHARED_MEMORY_CELLS_ONE_D];
-const int totalNumSharedSamples = NUM_SHARED_MEMORY_CELLS_ONE_D*NUM_SHARED_MEMORY_CELLS_ONE_D;
-const int totalNumThreadsInWorkgroup = 16 * 16;
-
-
-vec3 texture2D_exact_bicubic_with_shared_memory(sampler2D tex, vec2 uv, int p_lod) {
-  float lod        = float(p_lod);
-  vec2  tex_size   = textureSize(uGlareMipMap, p_lod);
-  uv               = uv * tex_size + 0.5;
-  vec2 iuv         = floor(uv);
-  ivec2 iuv_as_int = ivec2(uv - 1.0);
-  vec2 fuv         = fract(uv);
-  
-
-
-  ivec2 globalWorkgroupStartOffset = ivec2(gl_WorkGroupID.xy * (gl_WorkGroupSize.xy) / (1 << p_lod) )  ;
-  
-
-
-  barrier();
-
-  int total_num_cells_to_sample_per_level = (( int(gl_WorkGroupSize.x) / (1 << p_lod)) +  NUM_PADDING_CELLS_IN_TOTAL) *
-                                            (( int(gl_WorkGroupSize.y) / (1 << p_lod)) +  NUM_PADDING_CELLS_IN_TOTAL);
-
-  for(int flatGlareSampleWriteIndex = int(gl_LocalInvocationIndex);
-  flatGlareSampleWriteIndex < total_num_cells_to_sample_per_level; 
-  flatGlareSampleWriteIndex += totalNumThreadsInWorkgroup) {
-
-    ivec2 unflattenedGlareSampleWriteIndex = 
-    ivec2(flatGlareSampleWriteIndex % (( int(gl_WorkGroupSize.x) / (1 << p_lod)) +  NUM_PADDING_CELLS_IN_TOTAL),
-          flatGlareSampleWriteIndex / (( int(gl_WorkGroupSize.x) / (1 << p_lod)) +  NUM_PADDING_CELLS_IN_TOTAL));
-
-    //calculate the offset of the shared sample array with respect to the threads local position
-    ivec2 globalCellID = max(ivec2(0),(unflattenedGlareSampleWriteIndex + globalWorkgroupStartOffset) - NUM_PADDING_CELLS_OFFSET);
-
-    vec2 vTexcoords  = (globalCellID + vec2(0.5)) / textureSize(uGlareMipMap, p_lod);
-
-    vTexcoords       = vTexcoords * tex_size + 0.5;
-    ivec2 iuv_as_int = ivec2(vTexcoords - 1.0);
-    sharedGlareSamples[unflattenedGlareSampleWriteIndex.x][unflattenedGlareSampleWriteIndex.y]
-      = texelFetch(uGlareMipMap, iuv_as_int, p_lod).rgb;
-
-  
-  }
-
-  barrier();
-
-  ivec2 shared_memory_sampling_base_offset = (ivec2(gl_LocalInvocationID.xy / (1 << p_lod)  )) + NUM_PADDING_CELLS_OFFSET;
-
-  return cubic_filter(
-    fuv.y, cubic_filter(
-            fuv.x, sharedGlareSamples[shared_memory_sampling_base_offset.x - 1][shared_memory_sampling_base_offset.y - 1],
-                   sharedGlareSamples[shared_memory_sampling_base_offset.x    ][shared_memory_sampling_base_offset.y - 1],
-                   sharedGlareSamples[shared_memory_sampling_base_offset.x + 1][shared_memory_sampling_base_offset.y - 1],
-                   sharedGlareSamples[shared_memory_sampling_base_offset.x + 2][shared_memory_sampling_base_offset.y - 1]
-            ),
-            cubic_filter(
-            fuv.x, sharedGlareSamples[shared_memory_sampling_base_offset.x - 1][shared_memory_sampling_base_offset.y    ],
-                   sharedGlareSamples[shared_memory_sampling_base_offset.x    ][shared_memory_sampling_base_offset.y    ],
-                   sharedGlareSamples[shared_memory_sampling_base_offset.x + 1][shared_memory_sampling_base_offset.y    ],
-                   sharedGlareSamples[shared_memory_sampling_base_offset.x + 2][shared_memory_sampling_base_offset.y    ]
-            ),
-            cubic_filter(
-            fuv.x, sharedGlareSamples[shared_memory_sampling_base_offset.x - 1][shared_memory_sampling_base_offset.y + 1],
-                   sharedGlareSamples[shared_memory_sampling_base_offset.x    ][shared_memory_sampling_base_offset.y + 1],
-                   sharedGlareSamples[shared_memory_sampling_base_offset.x + 1][shared_memory_sampling_base_offset.y + 1],
-                   sharedGlareSamples[shared_memory_sampling_base_offset.x + 2][shared_memory_sampling_base_offset.y + 1]
-            ),
-            cubic_filter(
-            fuv.x, sharedGlareSamples[shared_memory_sampling_base_offset.x - 1][shared_memory_sampling_base_offset.y + 2],
-                   sharedGlareSamples[shared_memory_sampling_base_offset.x    ][shared_memory_sampling_base_offset.y + 2],
-                   sharedGlareSamples[shared_memory_sampling_base_offset.x + 1][shared_memory_sampling_base_offset.y + 2],
-                   sharedGlareSamples[shared_memory_sampling_base_offset.x + 2][shared_memory_sampling_base_offset.y + 2]
-            )
-  );
-}
-
-vec3 texture2D_exact_bicubic(sampler2D tex, vec2 uv, int p_lod) {
-  float lod        = float(p_lod);
-  vec2  tex_size   = textureSize(uGlareMipMap, p_lod);
-  uv               = uv * tex_size - 0.5;
-  vec2 iuv         = floor(uv);
-  ivec2 iuv_as_int = ivec2(uv);
-  vec2 fuv         = fract(uv);
-  
-  return cubic_filter(
-    fuv.y, cubic_filter(
-            fuv.x, texelFetch(uGlareMipMap, iuv_as_int + ivec2(-1, -1), p_lod).rgb,
-                   texelFetch(uGlareMipMap, iuv_as_int + ivec2( 0, -1), p_lod).rgb,
-                   texelFetch(uGlareMipMap, iuv_as_int + ivec2( 1, -1), p_lod).rgb,
-                   texelFetch(uGlareMipMap, iuv_as_int + ivec2( 2, -1), p_lod).rgb
-            ),
-            cubic_filter(
-            fuv.x, texelFetch(uGlareMipMap, iuv_as_int + ivec2(-1, 0), p_lod).rgb,
-                   texelFetch(uGlareMipMap, iuv_as_int + ivec2( 0, 0), p_lod).rgb,
-                   texelFetch(uGlareMipMap, iuv_as_int + ivec2( 1, 0), p_lod).rgb,
-                   texelFetch(uGlareMipMap, iuv_as_int + ivec2( 2, 0), p_lod).rgb
-            ),
-            cubic_filter(
-            fuv.x, texelFetch(uGlareMipMap, iuv_as_int + ivec2(-1, 1), p_lod).rgb,
-                   texelFetch(uGlareMipMap, iuv_as_int + ivec2( 0, 1), p_lod).rgb,
-                   texelFetch(uGlareMipMap, iuv_as_int + ivec2( 1, 1), p_lod).rgb,
-                   texelFetch(uGlareMipMap, iuv_as_int + ivec2( 2, 1), p_lod).rgb
-            ),
-            cubic_filter(
-            fuv.x, texelFetch(uGlareMipMap, iuv_as_int + ivec2(-1, 2), p_lod).rgb,
-                   texelFetch(uGlareMipMap, iuv_as_int + ivec2( 0, 2), p_lod).rgb,
-                   texelFetch(uGlareMipMap, iuv_as_int + ivec2( 1, 2), p_lod).rgb,
-                   texelFetch(uGlareMipMap, iuv_as_int + ivec2( 2, 2), p_lod).rgb
-            )
-        
-  );
-}
-
-vec3 texture2D_fast_bicubic(sampler2D tex, vec2 uv, int p_lod) {
+vec3 texture2DBicubic(sampler2D tex, vec2 uv, int p_lod) {
   float lod        = float(p_lod);
   vec2  tex_size   = textureSize(uGlareMipMap, p_lod);
   vec2  pixel_size = 1.0 / tex_size;
@@ -203,6 +73,7 @@ vec3 texture2D_fast_bicubic(sampler2D tex, vec2 uv, int p_lod) {
          (g1(fuv.y) * (g0x * textureLod(tex, p2, lod).rgb + g1x * textureLod(tex, p3, lod).rgb));
 }
 
+// This pass accumulates the glare values from the glare mipmap into the output layer.
 void main() {
 
   ivec2 pixelPos   = ivec2(gl_GlobalInvocationID.xy);
@@ -225,23 +96,7 @@ void main() {
   for (int i = 0; i < maxLevels; ++i) {
     float weight = 1.0 / (1 << i);
 #ifdef BICUBIC_GLARE_FILTER
-
-    //#define USE_EXACT_PATH_WITHOUT_SHARED_MEMORY
-    //#define USE_EXACT_PATH_WITH_SHARED_MEMORY
-    #define USE_APPROXIMATE_FAST_PATH
-
-    #ifdef USE_APPROXIMATE_FAST_PATH
-          glare += texture2D_fast_bicubic(uGlareMipMap, vTexcoords, i) * weight;
-    #else
-
-    #ifdef USE_EXACT_PATH_WITHOUT_SHARED_MEMORY
-          glare += texture2D_exact_bicubic(uGlareMipMap, vTexcoords, i) * weight;
-    #else
-          glare += texture2D_exact_bicubic_with_shared_memory(uGlareMipMap, vTexcoords, i) * weight;
-    #endif
-
-    #endif
-
+    glare += texture2DBicubic(uGlareMipMap, vTexcoords, i) * weight;
 #else
     glare += textureLod(uGlareMipMap, vTexcoords, float(i)).rgb * weight;
 #endif
@@ -250,7 +105,6 @@ void main() {
 
   vec3 final_glare_value = glare / totalWeight;
 
-  // vec3 sampled_glare_base_level_values = texelFetch(uGlareMipMap, pixelPos, 0).rgb;
   //  Finally store the glare value in the output layer of the glare mipmap.
   imageStore(uOutGlare, pixelPos, vec4(final_glare_value, 0.0));
 }

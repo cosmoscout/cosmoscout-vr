@@ -32,8 +32,10 @@ uniform mat4  uMatInvP;
 const float PI = 3.14159265359;
 
 // Makes four texture look-ups in the input HDRBuffer at the four pixels corresponding to
-// the pixel position in the base layer of the output mipmap pyramid.
-// For performance reasons, we only use one sample for multisample inputs.
+// the pixel position in the base layer of the output mipmap pyramid. For performance
+// reasons, we only use one sample for multisample inputs. The luminance is scaled so that
+// the maximum luminance in the scene is mapped to 65500, the maximum value representable
+// by a half float.
 vec3 sampleHDRBuffer(ivec2 pos) {
   ivec2 posTimesTwo = pos << 1;
 
@@ -63,8 +65,9 @@ vec3 sampleHDRBuffer(vec2 pos) {
   return mix(tA, tB, f.y);
 }
 
-// Makes four texture look-ups in the input layer of the glare mipmap at the four pixels
-// corresponding to the pixel position in the current layer of the mipmap pyramid.
+// Makes a bilinearly interpolated texture look-up in the input layer of the glare mipmap
+// exactly in the center of the four pixels corresponding to the pixel position in the
+// current layer of the mipmap pyramid.
 vec3 sampleHigherLevel(ivec2 pos) {
   ivec2 posTimesTwo = pos << 1;
   int   inputLevel  = uPass == 0 ? max(0, uLevel - 1) : uLevel;
@@ -73,7 +76,7 @@ vec3 sampleHigherLevel(ivec2 pos) {
 }
 
 // Calls the method above four times in order to allow for bilinear interpolation. This is
-// required for floating point positions and results in sixteen texture look-ups.
+// required for floating point positions and results in four texture look-ups.
 vec3 sampleHigherLevel(vec2 pos) {
   ivec2 ipos = ivec2(pos);
   vec3  tl   = sampleHigherLevel(ipos);
@@ -86,14 +89,13 @@ vec3 sampleHigherLevel(vec2 pos) {
   return mix(tA, tB, f.y);
 }
 
-// Makes just one texture look-ups in the input layer of the glare mipmap at the given
+// Makes just one texture look-up in the input layer of the glare mipmap at the given
 // pixel position.
 vec3 sampleSameLevel(ivec2 pos) {
   return texelFetch(uInGlareMipMap, pos, uLevel).rgb;
 }
 
-// Calls the method above four times in order to allow for bilinear interpolation. This is
-// required for floating point positions and results in four texture look-ups.
+// Same as above but for floating point positions. This uses bilinear interpolation.
 vec3 sampleSameLevel(vec2 pos) {
   ivec2 size = textureSize(uInGlareMipMap, uLevel);
   return textureLod(uInGlareMipMap, (pos + 0.5) / vec2(size), uLevel).rgb;
@@ -160,7 +162,7 @@ void main() {
   //             Primary Component            Secondary (orthogonal) Component
   //
   //                  \  |  /                              / --- \
-    //                 --  X  --                            |   O   |
+  //                 --  X  --                            |   O   |
   //                  /  |  \                              \ --- /
   //                   radial                             circular
   //
@@ -168,7 +170,7 @@ void main() {
   // Therefore the implementation below uses two components like the following:
   //
   //                  \  |  /                               / -- \
-    //                  |  |  |                              -- -- --
+  //                  |  |  |                              -- -- --
   //                  /  |  \                               \ -- /
   //            vertical / radial                  horizontal / circular
 
