@@ -753,7 +753,6 @@
         },
         "Mars": {
           "topAltitude": 80000,
-          "limbLuminanceTexture": "../share/resources/textures/marsLimbLuminance.tif",
           "bottomAltitude": -5000,
           "model": "Bruneton",
           "modelSettings": {
