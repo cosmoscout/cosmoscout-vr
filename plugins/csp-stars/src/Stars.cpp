@@ -693,7 +693,7 @@ bool Stars::readStarsFromCatalog(CatalogType type, std::string const& filename) 
           // https://doi.org/10.1051/0004-6361/201015441
           float logTeff = 3.999F - 0.654F * GbpMinusGrp + 0.709F * std::pow(GbpMinusGrp, 2.F) -
                           0.316F * std::pow(GbpMinusGrp, 3.F);
-          star.mTEff = std::pow(10, logTeff);
+          star.mTEff = std::pow(10.F, logTeff);
 
         } else {
           int   bMagColumn = type == CatalogType::eTycho2 ? 17 : 32;
