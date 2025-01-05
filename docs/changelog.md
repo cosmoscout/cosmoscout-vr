@@ -13,8 +13,14 @@ SPDX-License-Identifier: CC-BY-4.0
 
 **Release Date:** TBD
 
+#### New Features
+
+- The `csp-trajectories` now draws proxies for celestial objects when they are smaller than a few pixels in HDR mode. This makes them visible even if they are very small, such as when looking in the sky at night. This also drastically reduces flickering in HDR mode when the bodies are very small on the screen.
+
 #### Other Changes
 
+- The simulation time can now be adjusted in a continuous manner using the slider below the timeline.
+- The depth-write for trajectory lines has been disabled. This improves their rendering on many GPUs. They are now not always correctly composited with transparent objects, but this will produce only minor artifacts in most cases.
 - It is now possible to use the vista debug text rendering again.
 - New callback `CosmoScout.callbacks.input.reloadDFNs()` to hot reload DFN xml files.
 - The preprocessing of the Bruneton atmosphere model has been refactored to a standalone tool. This tool can now be used to generate the necessary data offline and thus improves the start-up time of CosmoScout VR significantly.

@@ -12,16 +12,6 @@ class TimelineApi extends IApi {
   name = 'timeline';
 
   /**
-   * Conversions to seconds.
-   */
-  PAUSE    = 0;
-  REALTIME = 1;
-  MINUTES  = 60;
-  HOURS    = 3600;
-  DAYS     = 86400;
-  MONTHS   = 2628000;
-
-  /**
    * @type {DataSet}
    */
   _bookmarks;
@@ -128,29 +118,15 @@ class TimelineApi extends IApi {
   _timeSpeedSlider;
   _firstSliderValue = true;
 
-  _timeSpeedSteps = {
-    pause: 0,
-    secForward: 1,
-    minForward: 2,
-    hourForward: 3,
-    dayForward: 4,
-    monthForward: 5,
-    secBack: -1,
-    minBack: -2,
-    hourBack: -3,
-    dayBack: -4,
-    monthBack: -5,
-  };
-
   /**
-   * Stores one of the values above.
+   * If the simulation time is paused.
    */
-  _currentSpeed = this._timeSpeedSteps.secForward;
+  _paused = false;
 
   /**
    * Used to restore playback state after a timeline drag.
    */
-  _beforeDragSpeed = this._currentSpeed;
+  _beforeDragSpeed = 1;
 
   /**
    * Used to differentiate between a click and a drag.
@@ -316,7 +292,6 @@ class TimelineApi extends IApi {
    */
   _addBookmarkCallback() {
     CosmoScout.bookmarkEditor.addNewBookmark();
-    this._setSpeed(0);
   }
 
   /**
@@ -386,23 +361,31 @@ class TimelineApi extends IApi {
 
     // Handler for speed-decrease button.
     document.getElementById('speed-decrease-button').onclick = () => {
-      if (this._timeSpeedSlider.noUiSlider.get() > 0) {
-        this._timeSpeedSlider.noUiSlider.set(-1);
-      } else if (this._currentSpeed === 0) {
+      if (this._paused) {
         this._togglePause();
+      }
+
+      const currentValue = parseFloat(this._timeSpeedSlider.noUiSlider.get());
+      const nextValue    = currentValue - 0.1;
+      if (nextValue > -1 && nextValue < 1) {
+        this._timeSpeedSlider.noUiSlider.set(-1);
       } else {
-        this._timeSpeedSlider.noUiSlider.set(this._currentSpeed - 1);
+        this._timeSpeedSlider.noUiSlider.set(nextValue);
       }
     };
 
     // Handler for speed-increase button.
     document.getElementById('speed-increase-button').onclick = () => {
-      if (this._timeSpeedSlider.noUiSlider.get() < 0) {
-        this._timeSpeedSlider.noUiSlider.set(1);
-      } else if (this._currentSpeed === 0) {
+      if (this._paused) {
         this._togglePause();
+      }
+
+      const currentValue = parseFloat(this._timeSpeedSlider.noUiSlider.get());
+      const nextValue    = currentValue + 0.1;
+      if (nextValue > -1 && nextValue < 1) {
+        this._timeSpeedSlider.noUiSlider.set(1);
       } else {
-        this._timeSpeedSlider.noUiSlider.set(this._currentSpeed - (-1));
+        this._timeSpeedSlider.noUiSlider.set(nextValue);
       }
     };
 
@@ -414,8 +397,11 @@ class TimelineApi extends IApi {
     };
 
     // Start the simulation time when clicking on the speed slider.
-    document.getElementsByClassName('range-label')[0].addEventListener(
-        'mousedown', () => this._setSpeed(this._timeSpeedSlider.noUiSlider.get()));
+    document.getElementsByClassName('range-label')[0].addEventListener('mousedown', () => {
+      if (this._paused) {
+        this._togglePause();
+      }
+    });
 
     // Toggle the overview with the tiny button on the right.
     document.getElementById('expand-button').onclick = () => {
@@ -477,43 +463,38 @@ class TimelineApi extends IApi {
   }
 
   _togglePause() {
-    if (this._currentSpeed == 0) {
-      this._setSpeed(this._timeSpeedSlider.noUiSlider.get());
-    } else {
-      this._setSpeed(0);
-    }
+    this._paused = !this._paused;
+    this._onSpeedSliderUpdate(parseFloat(this._timeSpeedSlider.noUiSlider.get()));
   }
 
   _initTimeSpeedSlider() {
     this._timeSpeedSlider = document.getElementById('range');
 
     try {
+      // The values of the slider range from -2 to 2. The slider is divided into three sections:
+      //  [-2, -1] : reverse speed with -2 being the fastest and -1 real-time speed
+      //  [-1, 1]  : gap between reverse and real-time speed, it is not possible to set the slider
+      //             to any value in this range
+      //  [1, 2]   : forward speed with 1 being real-time speed and 2 being the fastest
       noUiSlider.create(this._timeSpeedSlider, {
         range: {
-          min: this._timeSpeedSteps.monthBack,
-          '4.5%': this._timeSpeedSteps.dayBack,
-          '9%': this._timeSpeedSteps.hourBack,
-          '13.5%': this._timeSpeedSteps.minBack,
-          '18%': this._timeSpeedSteps.secBack,
-          '82%': this._timeSpeedSteps.secForward,
-          '86.5%': this._timeSpeedSteps.minForward,
-          '91%': this._timeSpeedSteps.hourForward,
-          '95.5%': this._timeSpeedSteps.dayForward,
-          max: this._timeSpeedSteps.monthForward,
+          'min': [-2],
+          '18%': [-1, 2],
+          '82%': [1],
+          'max': [2],
         },
-        snap: true,
         start: 1,
       });
 
       this._timeSpeedSlider.noUiSlider.on('update', () => {
-        let speed = this._timeSpeedSlider.noUiSlider.get();
+        let speed = parseFloat(this._timeSpeedSlider.noUiSlider.get());
         if (this._firstSliderValue) {
           document.getElementsByClassName('range-label')[0].innerHTML =
               '<i class="material-icons">chevron_right</i>';
           this._firstSliderValue = false;
           return;
         }
-        this._setSpeed(speed);
+        this._onSpeedSliderUpdate(speed);
       });
     } catch (e) { console.error('Slider was already initialized'); }
   }
@@ -523,63 +504,35 @@ class TimelineApi extends IApi {
    *
    * @private
    */
-  _setSpeed(speed) {
-    this._currentSpeed = parseInt(speed);
+  _onSpeedSliderUpdate(sliderValue) {
 
-    if (this._currentSpeed == 0) {
+    if (this._paused) {
+      document.getElementById('pause-button').innerHTML = '<i class="material-icons">pause</i>';
+    } else {
       document.getElementById('pause-button').innerHTML =
           '<i class="material-icons">play_arrow</i>';
-    } else {
-      document.getElementById('pause-button').innerHTML = '<i class="material-icons">pause</i>';
     }
 
-    if (this._currentSpeed < 0) {
+    if (this._paused) {
       document.getElementsByClassName('range-label')[0].innerHTML =
-          '<i class="material-icons">chevron_left</i>';
-    } else if (this._currentSpeed > 0) {
+          '<i class="material-icons">pause</i>';
+    } else if (sliderValue > 0) {
       document.getElementsByClassName('range-label')[0].innerHTML =
           '<i class="material-icons">chevron_right</i>';
     } else {
       document.getElementsByClassName('range-label')[0].innerHTML =
-          '<i class="material-icons">pause</i>';
+          '<i class="material-icons">chevron_left</i>';
     }
 
-    switch (this._currentSpeed) {
-    case this._timeSpeedSteps.monthBack:
-      CosmoScout.callbacks.time.setSpeed(-this.MONTHS);
-      break;
-    case this._timeSpeedSteps.dayBack:
-      CosmoScout.callbacks.time.setSpeed(-this.DAYS);
-      break;
-    case this._timeSpeedSteps.hourBack:
-      CosmoScout.callbacks.time.setSpeed(-this.HOURS);
-      break;
-    case this._timeSpeedSteps.minBack:
-      CosmoScout.callbacks.time.setSpeed(-this.MINUTES);
-      break;
-    case this._timeSpeedSteps.secBack:
-      CosmoScout.callbacks.time.setSpeed(-1);
-      break;
-    case 0:
+    if (this._paused) {
       CosmoScout.callbacks.time.setSpeed(0);
-      break;
-    case this._timeSpeedSteps.secForward:
-      CosmoScout.callbacks.time.setSpeed(1);
-      break;
-    case this._timeSpeedSteps.minForward:
-      CosmoScout.callbacks.time.setSpeed(this.MINUTES);
-      break;
-    case this._timeSpeedSteps.hourForward:
-      CosmoScout.callbacks.time.setSpeed(this.HOURS);
-      break;
-    case this._timeSpeedSteps.dayForward:
-      CosmoScout.callbacks.time.setSpeed(this.DAYS);
-      break;
-    case this._timeSpeedSteps.monthForward:
-      CosmoScout.callbacks.time.setSpeed(this.MONTHS);
-      break;
-    default:
+      return;
     }
+
+    const direction = Math.sign(sliderValue);
+    const speed     = Math.pow(sliderValue, 25.0);
+
+    CosmoScout.callbacks.time.setSpeed(direction * speed);
   }
 
   /**
@@ -705,9 +658,9 @@ class TimelineApi extends IApi {
    */
   _timelineDragCallback(properties) {
     if (properties.byUser) {
-      if (this._currentSpeed !== 0) {
-        this._beforeDragSpeed = this._currentSpeed;
-        this._setSpeed(0);
+      if (!this._paused) {
+        this._beforeDragSpeed = parseFloat(this._timeSpeedSlider.noUiSlider.get());
+        this._togglePause();
       }
 
       this._centerTime = new Date(properties.start.getTime() / 2 + properties.end.getTime() / 2);
@@ -725,7 +678,7 @@ class TimelineApi extends IApi {
    */
   _timelineDragEndCallback(properties) {
     if (properties.byUser) {
-      this._setSpeed(this._beforeDragSpeed);
+      this._onSpeedSliderUpdate(this._beforeDragSpeed);
       this._beforeDragSpeed = 0;
     }
   }
