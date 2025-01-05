@@ -19,11 +19,9 @@ out float vTemperature;
 out float vMagnitude;
 
 void main() {
-  const float parsecToMeter = 3.08567758e16;
-  vec3        observerPos   = (uInvMV * vec4(0, 0, 0, 1) / parsecToMeter).xyz;
+  vec3 observerPos = getObserverPosition(uInvMV);
+  vMagnitude       = getApparentMagnitude(inAbsMagnitude, length(inPos - observerPos));
+  vTemperature     = inTemperature;
 
-  vMagnitude   = getApparentMagnitude(inAbsMagnitude, length(inPos - observerPos));
-  vTemperature = inTemperature;
-
-  gl_Position = uMatMV * vec4(inPos * parsecToMeter, 1);
+  gl_Position = uMatMV * vec4(inPos * cParsecToMeter, 1);
 }

@@ -21,14 +21,12 @@ out vec4  vScreenSpacePos;
 out float vMagnitude;
 
 void main() {
-  const float parsecToMeter = 3.08567758e16;
-  vec3        observerPos   = (uInvMV * vec4(0, 0, 0, 1) / parsecToMeter).xyz;
-
-  vMagnitude = getApparentMagnitude(inAbsMagnitude, length(inPos - observerPos));
+  vec3 observerPos = getObserverPosition(uInvMV);
+  vMagnitude       = getApparentMagnitude(inAbsMagnitude, length(inPos - observerPos));
 
   vTemperature = inTemperature;
 
-  vScreenSpacePos = uMatP * uMatMV * vec4(inPos * parsecToMeter, 1);
+  vScreenSpacePos = uMatP * uMatMV * vec4(inPos * cParsecToMeter, 1);
 
   gl_Position = vScreenSpacePos;
 

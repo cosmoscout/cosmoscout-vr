@@ -75,6 +75,7 @@ void main() {
   oLuminance = vec4(vColor, 1.0);
 
 #ifndef ENABLE_HDR
-  oLuminance.rgb = Uncharted2Tonemap(oLuminance.rgb * uSolidAngle * 5e8);
+  // Random exposure adjustment to make the stars look good in non-HDR mode.
+  oLuminance.rgb = Uncharted2Tonemap(oLuminance.rgb * uSolidAngle * 4e8);
 #endif
 }

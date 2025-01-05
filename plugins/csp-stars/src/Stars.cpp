@@ -113,7 +113,7 @@ void Stars::setCatalogs(std::map<Stars::CatalogType, std::string> catalogs) {
 
       it = mCatalogs.find(CatalogType::eGaia);
       if (it != mCatalogs.end()) {
-        // Do not load together with tycho and tycho 2.
+        // Do not load gaia together with tycho or tycho 2.
         if (mCatalogs.find(CatalogType::eTycho) == mCatalogs.end() &&
             mCatalogs.find(CatalogType::eTycho2) == mCatalogs.end()) {
           readStarsFromCatalog(it->first, it->second);
@@ -313,7 +313,7 @@ bool Stars::Do() {
   // mLuminanceMultiplicator even if we are in full daylight.
   float sceneBrightness = (1.F - mApproximateSceneBrightness) + 0.001F;
 
-  // Start are not visible with a low luminance multiplicator
+  // Stars are not visible with a low luminance multiplicator
   if (mLuminanceMultiplicator * sceneBrightness < 0.005F) {
     return true;
   }
@@ -322,14 +322,14 @@ bool Stars::Do() {
   cs::utils::FrameStats::ScopedSamplesCounter    samplesCounter("Render Stars");
   cs::utils::FrameStats::ScopedPrimitivesCounter primitivesCounter("Render Stars");
 
-  // save current state of the OpenGL state machine
+  // Save current state of the OpenGL state machine.
   glPushAttrib(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT | GL_ENABLE_BIT);
   glDepthMask(GL_FALSE);
   glDisable(GL_DEPTH_TEST);
   glEnable(GL_BLEND);
   glBlendFunc(GL_ONE, GL_ONE);
 
-  // get matrices
+  // Get matrices.
   std::array<GLfloat, 16> glMat{};
   glGetFloatv(GL_MODELVIEW_MATRIX, glMat.data());
   VistaTransformMatrix matModelView(glMat.data(), true);
@@ -340,6 +340,7 @@ bool Stars::Do() {
   if (mShaderDirty) {
     std::string defines;
 
+    // The compute shader needs a higher version for gl_GlobalInvocationID.
     if (mDrawMode == DrawMode::eSRPoint) {
       defines += "#version 430\n";
     } else {
@@ -443,7 +444,7 @@ bool Stars::Do() {
     mShaderDirty = false;
   }
 
-  // draw background
+  // Draw background images.
   if ((mCelestialGridTexture && mBackgroundColor1[3] != 0.F) ||
       (mStarFiguresTexture && mBackgroundColor2[3] != 0.F)) {
     mBackgroundVAO.Bind();
@@ -455,7 +456,7 @@ bool Stars::Do() {
 
     VistaTransformMatrix matMVNoTranslation = matModelView;
 
-    // reduce jitter
+    // Reduce jitter.
     matMVNoTranslation[0][3] = 0.F;
     matMVNoTranslation[1][3] = 0.F;
     matMVNoTranslation[2][3] = 0.F;
@@ -514,8 +515,10 @@ bool Stars::Do() {
   mStarShader.SetUniform(mUniforms.starResolution, static_cast<float>(viewport.at(2)),
       static_cast<float>(viewport.at(3)));
 
-  mStarTexture->Bind(GL_TEXTURE0);
-  mStarShader.SetUniform(mUniforms.starTexture, 0);
+  if (mDrawMode == DrawMode::eSprite) {
+    mStarTexture->Bind(GL_TEXTURE0);
+    mStarShader.SetUniform(mUniforms.starTexture, 0);
+  }
 
   mStarShader.SetUniform(mUniforms.starMinMagnitude, mMinMagnitude);
   mStarShader.SetUniform(mUniforms.starMaxMagnitude, mMaxMagnitude);
@@ -534,6 +537,10 @@ bool Stars::Do() {
   glUniformMatrix4fv(mUniforms.starInverseMVMatrix, 1, GL_FALSE, matInverseMV.GetData());
   glUniformMatrix4fv(mUniforms.starInversePMatrix, 1, GL_FALSE, matInverseP.GetData());
 
+  // The software rasterization mode is implemented as a compute shader and a blit shader.
+  // The compute pass accumulates the star luminance and color temperatures in a 2D texture. The
+  // blit shader then reads the texture, computes the final color for each pixel and writes it to
+  // the framebuffer.
   if (mDrawMode == DrawMode::eSRPoint) {
     // Recreate the render targets if the viewport size changed.
     auto* viewport = GetVistaSystem()->GetDisplayManager()->GetCurrentRenderInfo()->m_pViewport;
@@ -577,11 +584,15 @@ bool Stars::Do() {
     }
 
   } else {
+    // The other draw modes are very simple. They are either using point primitives or a geometry
+    // shader to create the star billboards.
     glDrawArrays(GL_POINTS, 0, static_cast<GLsizei>(mStars.size()));
     mStarVAO.Release();
   }
 
-  mStarTexture->Unbind(GL_TEXTURE0);
+  if (mDrawMode == DrawMode::eSprite) {
+    mStarTexture->Unbind(GL_TEXTURE0);
+  }
 
   mStarShader.Release();
 

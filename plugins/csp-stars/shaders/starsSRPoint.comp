@@ -5,8 +5,6 @@
 // SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
 // SPDX-License-Identifier: MIT
 
-#line 9
-
 layout(local_size_x = 256) in;
 
 layout(r32ui, binding = 0) coherent uniform uimage2D uOutImage;
@@ -20,70 +18,51 @@ struct Star {
   float absMagnitude;
 };
 
+// This SSBO contains all stars. In the other modes, this is bound as VBO.
 layout(std430, binding = 0) buffer StarSSBO {
   Star stars[];
 };
 
 // uniforms
-uniform int  uStarCount;
-uniform mat4 uMatMV;
-uniform mat4 uMatP;
-uniform mat4 uInvMV;
-
+uniform int   uStarCount;
+uniform mat4  uMatMV;
+uniform mat4  uMatP;
+uniform mat4  uInvMV;
 uniform mat4  uInvP;
 uniform vec2  uResolution;
 uniform float uMinMagnitude;
 uniform float uMaxMagnitude;
 uniform float uSolidAngle;
 
-float getSolidAngle(vec3 a, vec3 b, vec3 c) {
-  return 2 * atan(abs(dot(a, cross(b, c))) / (1 + dot(a, b) + dot(a, c) + dot(b, c)));
-}
-
-float getSolidAngleOfPixel(vec4 screenSpacePosition, vec2 resolution, mat4 invProjection) {
-  vec2 pixel           = vec2(1.0) / resolution;
-  vec4 pixelCorners[4] = vec4[4](screenSpacePosition + vec4(-pixel.x, -pixel.y, 0, 0),
-      screenSpacePosition + vec4(+pixel.x, -pixel.y, 0, 0),
-      screenSpacePosition + vec4(+pixel.x, +pixel.y, 0, 0),
-      screenSpacePosition + vec4(-pixel.x, +pixel.y, 0, 0));
-
-  for (int i = 0; i < 4; ++i) {
-    pixelCorners[i]     = invProjection * pixelCorners[i];
-    pixelCorners[i].xyz = normalize(pixelCorners[i].xyz);
-  }
-
-  return getSolidAngle(pixelCorners[0].xyz, pixelCorners[1].xyz, pixelCorners[2].xyz) +
-         getSolidAngle(pixelCorners[0].xyz, pixelCorners[2].xyz, pixelCorners[3].xyz);
-}
-
 void main() {
   int index = int(gl_GlobalInvocationID.x);
 
-  // Discard any threads outside the output layer.
+  // Discard any threads outside our star data.
   if (index >= uStarCount) {
     return;
   }
 
-  const float parsecToMeter = 3.08567758e16;
-  vec3        observerPos   = (uInvMV * vec4(0, 0, 0, 1) / parsecToMeter).xyz;
+  Star star            = stars[index];
+  vec3 inPos           = vec3(star.posX, star.posY, star.posZ);
+  vec4 vScreenSpacePos = uMatP * uMatMV * vec4(inPos * cParsecToMeter, 1);
 
-  Star star  = stars[index];
-  vec3 inPos = vec3(star.posX, star.posY, star.posZ);
-
-  vec4 vScreenSpacePos = uMatP * uMatMV * vec4(inPos * parsecToMeter, 1);
-
+  // Discard stars behind the camera.
   if (vScreenSpacePos.w <= 0) {
     return;
   }
 
   vScreenSpacePos /= vScreenSpacePos.w;
 
+  // Discard stars outside the frustum.
   if (vScreenSpacePos.x < -1 || vScreenSpacePos.x > 1 || vScreenSpacePos.y < -1 ||
       vScreenSpacePos.y > 1) {
     return;
   }
 
-  float vMagnitude = getApparentMagnitude(star.absMagnitude, length(inPos - observerPos));
+  vec3  observerPos = getObserverPosition(uInvMV);
+  float vMagnitude  = getApparentMagnitude(star.absMagnitude, length(inPos - observerPos));
+
+  // Discard stars outside the magnitude range.
   if (vMagnitude > uMaxMagnitude || vMagnitude < uMinMagnitude) {
     return;
   }
@@ -91,45 +70,53 @@ void main() {
   float solidAngle = getSolidAngleOfPixel(vScreenSpacePos, uResolution, uInvP);
   float luminance  = magnitudeToLuminance(vMagnitude, solidAngle);
 
-  vec3 vColor = getStarColor(star.tEff);
+  // Compute the star coordinates in fractional pixel coordinates.
+  // Shift the exact projected star coordinates by -.5 such that one refers to the four nearest
+  // pixels in the following.
+  ivec2 outSize           = imageSize(uOutImage);
+  vec2  starCoords        = ((vScreenSpacePos.xy + 1) / 2) * vec2(outSize) - 0.5;
+  ivec2 integerStarCoords = ivec2(floor(starCoords));
 
-  ivec2 outSize = imageSize(uOutImage);
+  // Compute the fractional part of the star coordinates.
+  vec2 starWeights = fract(starCoords);
 
-  vec2 float_star_coords = ((vScreenSpacePos.xy + 1) / 2) * vec2(outSize);
+  // Four nearest pixels.
+  ivec2 targetStarCoords[4] = {integerStarCoords, integerStarCoords + ivec2(1, 0),
+      integerStarCoords + ivec2(0, 1), integerStarCoords + ivec2(1, 1)};
 
-  // shift the exact projected star coordinates by -.5 such that one refers to the four nearest
-  // pixels in the following
-  vec2  ref_weights             = float_star_coords - 0.5;
-  ivec2 integer_ref_star_coords = ivec2(floor(ref_weights));
-  ref_weights                   = fract(ref_weights);
+  // Linear interpolation weights for the four nearest pixels.
+  float weights[4] = {(1 - starWeights.x) * (1 - starWeights.y),
+      starWeights.x * (1 - starWeights.y), (1 - starWeights.x) * starWeights.y,
+      starWeights.x * starWeights.y};
 
-  // four nearest pixels
-  ivec2 target_star_coords[4] = {integer_ref_star_coords, integer_ref_star_coords + ivec2(1, 0),
-      integer_ref_star_coords + ivec2(0, 1), integer_ref_star_coords + ivec2(1, 1)};
-
-  float weights[4] = {(1 - ref_weights.x) * (1 - ref_weights.y),
-      ref_weights.x * (1 - ref_weights.y), (1 - ref_weights.x) * ref_weights.y,
-      ref_weights.x * ref_weights.y};
-
-  // normalize weights and add
+  // Write the contribution of the star to the four nearest pixels.
   for (int i = 0; i < 4; ++i) {
-    ivec2 current_target_position = target_star_coords[i];
     float oPixelWeightedLuminance = weights[i] * luminance;
 
+    // We use an atomic operation to write the new luminance and color temperature to the image. The
+    // process is as follows: We read the old value from the image, compute the new value, and write
+    // the result only if the image still contains the old value. Else another thread has already
+    // written a new value, and we have to try again.
     uint oldVal = 0;
     uint newVal = 0;
 
     do {
-      oldVal = imageLoad(uOutImage, current_target_position).r;
+      oldVal = imageLoad(uOutImage, targetStarCoords[i]).r;
 
+      // Unpack the old value.
       vec2 temperatureLuminance = unpackHalf2x16(oldVal);
 
+      // Luminance is additive.
       float newLuminance = temperatureLuminance.y + oPixelWeightedLuminance;
+
+      // Weighted average of color temperature.
       float newTEff =
           (temperatureLuminance.x * temperatureLuminance.y + star.tEff * oPixelWeightedLuminance) /
           newLuminance;
 
+      // Pack the new value.
       newVal = packHalf2x16(vec2(newTEff, newLuminance));
-    } while (oldVal != imageAtomicCompSwap(uOutImage, current_target_position, oldVal, newVal));
+
+    } while (oldVal != imageAtomicCompSwap(uOutImage, targetStarCoords[i], oldVal, newVal));
   }
 }

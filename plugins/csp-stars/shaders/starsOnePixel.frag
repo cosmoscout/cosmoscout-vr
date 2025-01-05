@@ -21,26 +21,6 @@ uniform float uSolidAngle;
 // outputs
 out vec4 oLuminance;
 
-float getSolidAngle(vec3 a, vec3 b, vec3 c) {
-  return 2 * atan(abs(dot(a, cross(b, c))) / (1 + dot(a, b) + dot(a, c) + dot(b, c)));
-}
-
-float getSolidAngleOfPixel(vec4 screenSpacePosition, vec2 resolution, mat4 invProjection) {
-  vec2 pixel           = vec2(1.0) / resolution;
-  vec4 pixelCorners[4] = vec4[4](screenSpacePosition + vec4(-pixel.x, -pixel.y, 0, 0),
-      screenSpacePosition + vec4(+pixel.x, -pixel.y, 0, 0),
-      screenSpacePosition + vec4(+pixel.x, +pixel.y, 0, 0),
-      screenSpacePosition + vec4(-pixel.x, +pixel.y, 0, 0));
-
-  for (int i = 0; i < 4; ++i) {
-    pixelCorners[i]     = invProjection * pixelCorners[i];
-    pixelCorners[i].xyz = normalize(pixelCorners[i].xyz);
-  }
-
-  return getSolidAngle(pixelCorners[0].xyz, pixelCorners[1].xyz, pixelCorners[2].xyz) +
-         getSolidAngle(pixelCorners[0].xyz, pixelCorners[2].xyz, pixelCorners[3].xyz);
-}
-
 void main() {
   if (vMagnitude > uMaxMagnitude || vMagnitude < uMinMagnitude) {
     discard;
@@ -52,6 +32,7 @@ void main() {
   oLuminance = vec4(getStarColor(vTemperature) * luminance * uLuminanceMultiplicator, 1.0);
 
 #ifndef ENABLE_HDR
-  oLuminance.rgb = Uncharted2Tonemap(oLuminance.rgb * uSolidAngle * 5e8);
+  // Random exposure adjustment to make the stars look good in non-HDR mode.
+  oLuminance.rgb = Uncharted2Tonemap(oLuminance.rgb * uSolidAngle * 4e8);
 #endif
 }
