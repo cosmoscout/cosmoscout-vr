@@ -175,14 +175,15 @@ __global__ void computeShadowMap(common::Output output, common::Mapping mapping,
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 __global__ void computeLimbLuminance(common::Output output, common::Mapping mapping,
-    common::Geometry geometry, common::LimbDarkening limbDarkening, advanced::Textures textures) {
+    common::Geometry geometry, common::LimbDarkening limbDarkening, advanced::Textures textures,
+    int layers) {
 
   uint32_t x = blockIdx.x * blockDim.x + threadIdx.x;
   uint32_t y = blockIdx.y * blockDim.y + threadIdx.y;
   uint32_t z = blockIdx.z * blockDim.z + threadIdx.z;
   uint32_t i = z * output.mSize * output.mSize + y * output.mSize + x;
 
-  if ((x >= output.mSize) || (y >= output.mSize) || (z >= output.mSize)) {
+  if ((x >= output.mSize) || (y >= output.mSize) || (z >= output.mSize * layers)) {
     return;
   }
 
@@ -191,19 +192,23 @@ __global__ void computeLimbLuminance(common::Output output, common::Mapping mapp
   // contains exactly on half of the atmosphere as seen from the point. The individual sample points
   // are weighted by the solid angle they cover on the sphere around the point.
   //
-  //        ┌---..
-  //  vLimb │      '
-  //        └--.     \
-  //      uLimb \     │
-  //             │    │
-  //            /     │
-  //        ┌--'     /
-  //        │      .
-  //        └---''
+  //            uLimb - .
+  //       ^   ┌---..     '
+  // vLimb │   ├ -.  /'     \ 
+  //       │   └--./ .  \    │
+  //           │β⁠/ \  .  │   V
+  //           o    │ .  │
+  //               /  .  │
+  //           ┌--'  .  /
+  //           ├ - '   .
+  //           └---''
   //
   // We use this resolution for the integration:
   uint32_t samplesULimb = output.mSize;
   uint32_t samplesVLimb = 256;
+
+  uint32_t sampleU = z % output.mSize;
+  uint32_t layer   = z / output.mSize;
 
   // First, compute the angular radii of Sun and occluder as well as the angle between the two.
   double phiOcc, phiSun, delta;
@@ -218,11 +223,16 @@ __global__ void computeLimbLuminance(common::Output output, common::Mapping mapp
   glm::dvec3 camera       = glm::dvec3(0.0, 0.0, occDist);
   glm::dvec3 sunDirection = glm::dvec3(0.0, glm::sin(delta), -glm::cos(delta));
 
+  double beta = (((double)sampleU + 0.5) / samplesULimb) * M_PI;
+
   glm::vec3 luminance(0.0);
 
   for (uint32_t sampleV = 0; sampleV < samplesVLimb; ++sampleV) {
     double vLimb = ((double)sampleV + 0.5) / samplesVLimb;
-    double beta  = (((double)z + 0.5) / samplesULimb) * M_PI;
+
+    double layerStart = (double)layer / layers;
+    double layerEnd   = (double)(layer + 1) / layers;
+    vLimb             = layerStart + vLimb * (layerEnd - layerStart);
 
     // Compute the direction of the ray.
     double     phiRay = phiOcc + vLimb * (phiAtmo - phiOcc);
@@ -241,7 +251,8 @@ __global__ void computeLimbLuminance(common::Output output, common::Mapping mapp
 
   // Print a rough progress estimate.
   if (i % 1000 == 0) {
-    printf("Progress: %f%%\n", (i / (float)(output.mSize * output.mSize * output.mSize)) * 100.0);
+    printf("Progress: %f%%\n",
+        (i / (float)(output.mSize * output.mSize * output.mSize * layers)) * 100.0);
   }
 }
 
@@ -339,6 +350,9 @@ int run(Mode mode, std::vector<std::string> const& arguments) {
   // This is only required for the planet view mode.
   float fov = 45.0; // The field of view of the camera in degrees.
 
+  // This is only required for the limb luminance mode.
+  int limbLuminanceLayers = 1; // The number of vertical layers in the limb luminance texture.
+
   // First configure all possible command line options.
   cs::utils::CommandLine args("Here are the available options:");
   common::addMappingFlags(args, mapping);
@@ -363,6 +377,12 @@ int run(Mode mode, std::vector<std::string> const& arguments) {
   if (mode == Mode::ePlanetView) {
     args.addArgument({"--fov"}, &fov,
         "The field of view of the camera in degrees. Default is " + std::to_string(fov));
+  }
+
+  if (mode == Mode::eLimbLuminance) {
+    args.addArgument({"--layers"}, &limbLuminanceLayers,
+        "The number of vertical layers in the limb luminance texture. Default is " +
+            std::to_string(limbLuminanceLayers));
   }
 
   args.addArgument({"-h", "--help"}, &printHelp, "Show this help message.");
@@ -400,14 +420,16 @@ int run(Mode mode, std::vector<std::string> const& arguments) {
   dim3     blockSize(8, 8, mode == Mode::eLimbLuminance ? 8 : 1);
   uint32_t numBlocksX = (output.mSize + blockSize.x - 1) / blockSize.x;
   uint32_t numBlocksY = (output.mSize + blockSize.y - 1) / blockSize.y;
-  uint32_t numBlocksZ =
-      mode == Mode::eLimbLuminance ? (output.mSize + blockSize.z - 1) / blockSize.z : 1;
-  dim3 gridSize = dim3(numBlocksX, numBlocksY, numBlocksZ);
+  uint32_t numBlocksZ = mode == Mode::eLimbLuminance
+                            ? (output.mSize * limbLuminanceLayers + blockSize.z - 1) / blockSize.z
+                            : 1;
+  dim3     gridSize   = dim3(numBlocksX, numBlocksY, numBlocksZ);
 
   // Allocate the shared memory for the shadow map.
   if (mode == Mode::eLimbLuminance) {
     gpuErrchk(cudaMallocManaged(&output.mBuffer,
-        static_cast<size_t>(output.mSize * output.mSize * output.mSize) * 3 * sizeof(float)));
+        static_cast<size_t>(output.mSize * output.mSize * output.mSize * limbLuminanceLayers) * 3 *
+            sizeof(float)));
   } else {
     gpuErrchk(cudaMallocManaged(
         &output.mBuffer, static_cast<size_t>(output.mSize * output.mSize) * 3 * sizeof(float)));
@@ -417,7 +439,7 @@ int run(Mode mode, std::vector<std::string> const& arguments) {
     computeShadowMap<<<gridSize, blockSize>>>(output, mapping, geometry, limbDarkening, textures);
   } else if (mode == Mode::eLimbLuminance) {
     computeLimbLuminance<<<gridSize, blockSize>>>(
-        output, mapping, geometry, limbDarkening, textures);
+        output, mapping, geometry, limbDarkening, textures, limbLuminanceLayers);
   } else {
 
     double     phiOcc, phiSun, delta;
@@ -453,7 +475,7 @@ int run(Mode mode, std::vector<std::string> const& arguments) {
   // Finally write the output texture!
   if (mode == Mode::eLimbLuminance) {
     tiff_utils::write3D(output.mFile, output.mBuffer, static_cast<int>(output.mSize),
-        static_cast<int>(output.mSize), static_cast<int>(output.mSize), 3);
+        static_cast<int>(output.mSize), static_cast<int>(output.mSize * limbLuminanceLayers), 3);
   } else {
     tiff_utils::write2D(output.mFile, output.mBuffer, static_cast<int>(output.mSize),
         static_cast<int>(output.mSize), 3);

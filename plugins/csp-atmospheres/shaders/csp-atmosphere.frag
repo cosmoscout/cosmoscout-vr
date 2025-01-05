@@ -516,22 +516,79 @@ vec3 getApproximateLimbLuminance(vec3 rayOrigin, vec3 rayDir) {
   float x = uShadowCoordinates.x;
   float y = uShadowCoordinates.y;
 
-  // The third coordinate is the angle between the projected direction to the Sun and the projected
-  // direction to the position on the limb. Like this:
+  // The third coordinate is based on the angle between the projected direction to the Sun and the
+  // projected direction to the position on the limb. Like this:
   //
-  //  projSun
-  //     ┌---..   projAtmo
-  //     │     /'
-  //     └--./    \
-  //     │z/ \     │
-  //     o    │    │
-  //         /     │
-  //     ┌--'     /
-  //     │      .
-  //     └---''
+  //                    projSun
+  //                       │        projAtmo
+  // This part is          ┌┬--..  /
+  // drawn below in  --->  ├┤-.  /'
+  // more detail.          └┴-./ .  \
+  //                       │β⁠/ \  .  │
+  //                       o    │ .  │
+  //                           /  .  │
+  //                       ┌--'  .  /
+  //                       ├ - '   .
+  //                       └---''
   //
-  float z         = acos(clamp(dot(normalize(projSun), normalize(projAtmo)), -1.0, 1.0)) / PI;
-  vec3  luminance = texture(uLimbLuminanceTexture, vec3(x, y, z)).rgb;
+  float beta = acos(clamp(dot(normalize(projSun), normalize(projAtmo)), -1.0, 1.0)) / PI;
+
+  ivec3 texSize = textureSize(uLimbLuminanceTexture, 0);
+  float res     = float(texSize.x);
+  float layers  = float(texSize.z) / res;
+
+  if (layers == 1) {
+    vec3 luminance = texture(uLimbLuminanceTexture, vec3(x, y, beta)).rgb;
+
+#if !ENABLE_HDR
+    luminance = tonemap(luminance / uSunInfo.y);
+    luminance = linearToSRGB(luminance);
+#endif
+
+    return luminance;
+  }
+
+  // The limb is vertically subdivided in a set of layers which are stored consecutively in the
+  // texture. If there are two layers, the pixel strip from [x, y, 0] to [x, y, 0.5] contains the
+  // luminance of the bottom layer, and the pixel strip from [x, y, 0.5] to [x, y, 1.0] contains the
+  // luminance of the upper layer. The same applies for three layers, four layers, and so on.
+  float layerWidth = 1.0 / layers - 1.0 / res;
+
+  float phiOcc      = asin(PLANET_RADIUS / dist);
+  float phiAtmo     = asin(ATMOSPHERE_RADIUS / dist);
+  float phi         = acos(clamp(dot(rayDir, -toCenter), -1.0, 1.0)) - phiOcc;
+  float relativePhi = clamp(phi / (phiAtmo - phiOcc), 0.0, 1.0);
+
+  //   phiAtmo  ┌─────────┐ 1.0
+  //            │         │
+  //            │         │
+  //            │         │
+  //            ├─────────┤
+  //            │         │
+  //            │         │  relativePhi
+  //            │         │
+  //            ├─────────┤
+  //            │         │
+  //            │         │
+  //            │         │
+  //   pjiOcc   └─────────┘ 0.0
+
+  vec3 luminance;
+
+  if (relativePhi < 0.5 / layers || relativePhi > 1.0 - 0.5 / layers) {
+    float layerStart = floor(relativePhi * layers) / layers + 0.5 / res;
+    float z          = layerStart + beta * layerWidth;
+    luminance        = texture(uLimbLuminanceTexture, vec3(x, y, z)).rgb;
+  } else {
+    float upperLayerStart = floor(relativePhi * layers + 0.5) / layers + 0.5 / res;
+    float lowerLayerStart = floor(relativePhi * layers - 0.5) / layers + 0.5 / res;
+    float upperZ          = upperLayerStart + beta * layerWidth;
+    float lowerZ          = lowerLayerStart + beta * layerWidth;
+    vec3  upperLuminance  = texture(uLimbLuminanceTexture, vec3(x, y, upperZ)).rgb;
+    vec3  lowerLuminance  = texture(uLimbLuminanceTexture, vec3(x, y, lowerZ)).rgb;
+    float blend           = relativePhi * layers - 0.5 - floor(relativePhi * layers - 0.5);
+    luminance             = mix(lowerLuminance, upperLuminance, blend);
+  }
 
 #if !ENABLE_HDR
   luminance = tonemap(luminance / uSunInfo.y);
@@ -695,8 +752,8 @@ void main() {
     float pixelWidth = uShadowCoordinates.z;
 
     // Use the limb luminance only if the observer is not too close to the occluder and if the
-    // ring is thinner than 5 pixels.
-    if (uShadowCoordinates.x > 0.05 && uShadowCoordinates.y > 0.0 && pixelWidth < 5.0) {
+    // ring is thinner than 50 pixels.
+    if (uShadowCoordinates.x > 0.05 && uShadowCoordinates.y > 0.0 && pixelWidth < 50.0) {
 
       vec2 planetIntersections = intersectPlanetsphere(vsIn.rayOrigin, rayDir);
       if (planetIntersections.x > planetIntersections.y) {
@@ -751,8 +808,8 @@ void main() {
 
     // Looking down onto the ocean.
     if (oceanIntersections.x > 0) {
-      vec3        oceanSurface      = vsIn.rayOrigin + rayDir * oceanIntersections.x;
-      vec3        idealNormal       = normalize(oceanSurface);
+      vec3 oceanSurface = vsIn.rayOrigin + rayDir * oceanIntersections.x;
+      vec3 idealNormal  = normalize(oceanSurface);
 
 #if ENABLE_WAVES
       const float WAVE_SPEED        = 0.2;
