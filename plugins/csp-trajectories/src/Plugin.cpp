@@ -193,8 +193,9 @@ void Plugin::update() {
   bool dotsEnabled = mPluginSettings->mEnablePlanetMarks.get();
   for (auto const& dot : mTrajectoryDots) {
     if (updateVisibility(dot, dotsEnabled)) {
-      double dotScale = mPluginSettings->mPlanetMarkScale.get() * mPluginSettings->mPlanetMarkScale.get();
-      dot->pSolidAngle = 0.0002F * fov2 * dotScale;
+      double dotScale =
+          mPluginSettings->mPlanetMarkScale.get() * mPluginSettings->mPlanetMarkScale.get();
+      dot->pSolidAngle = 0.0002F * fov2 * static_cast<float>(dotScale);
     }
   }
 
@@ -242,9 +243,11 @@ void Plugin::update() {
       double bodySolidAngle =
           4.0 * glm::pi<double>() * std::pow(std::sin(bodyAngularSize * 0.5), 2.0);
 
-      double flareScale = mPluginSettings->mHDRFlareScale.get() * mPluginSettings->mHDRFlareScale.get();
-      double maxSolidAngle = 0.005 * fov2 * flareScale;   // The flare will not get larger than this.
-      double minSolidAngle = 0.00005 * fov2 * flareScale; // The flare will not get smaller than this.
+      double flareScale =
+          mPluginSettings->mHDRFlareScale.get() * mPluginSettings->mHDRFlareScale.get();
+      double maxSolidAngle = 0.005 * fov2 * flareScale; // The flare will not get larger than this.
+      double minSolidAngle =
+          0.00005 * fov2 * flareScale; // The flare will not get smaller than this.
 
       // We make the flare a bit larger than the body to ensure that it covers the body completely.
       double flareSolidAngle = glm::clamp(bodySolidAngle * 1.2, minSolidAngle, maxSolidAngle);
