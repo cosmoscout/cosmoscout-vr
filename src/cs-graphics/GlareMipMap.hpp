@@ -24,7 +24,7 @@ class CS_GRAPHICS_EXPORT GlareMipMap : public VistaTexture {
   ~GlareMipMap() override;
 
   GlareMipMap(GlareMipMap const& other) = delete;
-  GlareMipMap(GlareMipMap&& other) = delete;
+  GlareMipMap(GlareMipMap&& other)      = delete;
 
   GlareMipMap& operator=(GlareMipMap const& other) = delete;
   GlareMipMap& operator=(GlareMipMap&& other) = delete;

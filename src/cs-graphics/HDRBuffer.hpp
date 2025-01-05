@@ -41,7 +41,7 @@ class CS_GRAPHICS_EXPORT HDRBuffer {
   explicit HDRBuffer(uint32_t multiSamples, bool highPrecision = true);
 
   HDRBuffer(HDRBuffer const& other) = delete;
-  HDRBuffer(HDRBuffer&& other) = delete;
+  HDRBuffer(HDRBuffer&& other)      = delete;
 
   HDRBuffer& operator=(HDRBuffer const& other) = delete;
   HDRBuffer& operator=(HDRBuffer&& other) = delete;
