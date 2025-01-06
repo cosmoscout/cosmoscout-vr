@@ -33,10 +33,19 @@ namespace advanced {
 // for each position in the shadow map.
 int shadowMode(std::vector<std::string> const& arguments);
 
-// Computes the average luminance of the atmosphere for each position in the shadow map in a
-// direction-dependent manner. The result is a 3D texture: The x and y coordinates are the usual
-// shadow map coordinates, and the z coordinate maps to a trip around the planet from the direction
-// towards the Sun to the direction opposite to the Sun.
+// Computes the luminance of the atmosphere as seen from every position in the shadow map. The
+// result is a 4D texture: The x and y coordinates are the usual shadow map coordinates, and the z
+// coordinate contains several pixel strips of the atmosphere image around the planet. Like this:
+//            strips - .
+//        ^   ┌---..     '
+// layers │   ├ - .  '     \ 
+//        │   └--.  `. \    │
+//                \  .  │   V
+//                 │ .  │
+//                /  .  │
+//            ┌--'  .  /
+//            ├ - '   .
+//            └---''
 int limbLuminanceMode(std::vector<std::string> const& arguments);
 
 // Draws the atmosphere of a planet into a texture as seen through a pinhole camera. The atmospheric

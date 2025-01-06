@@ -187,10 +187,13 @@ __global__ void computeLimbLuminance(common::Output output, common::Mapping mapp
     return;
   }
 
-  // For integrating the luminance over all directions, we render an image of the atmosphere from
-  // the perspective of the point in space. We use a parametrization of the texture space which
-  // contains exactly on half of the atmosphere as seen from the point. The individual sample points
-  // are weighted by the solid angle they cover on the sphere around the point.
+  // For precomputing the atmosphere's luminance for every position in the shadow volume, we render
+  // an image of the atmosphere from the perspective of the point in space. We use a parametrization
+  // of the texture space which contains exactly on half of the atmosphere as seen from the point.
+  // We render with a relatively high resolution in the vertical direction to capture even a small
+  // refracted image of the Sun. The output texture however only contain a few layers in the vLimb
+  // direction to keep the memory requirements low. For this, we render each layer separately and
+  // integrate the luminance over the vLimb direction.
   //
   //            uLimb - .
   //       ^   ┌---..     '
@@ -203,12 +206,18 @@ __global__ void computeLimbLuminance(common::Output output, common::Mapping mapp
   //           ├ - '   .
   //           └---''
   //
-  // We use this resolution for the integration:
+  // The output texture is a 4D texture stored in a 3D texture: The x and y coordinates are the
+  // usual shadow map coordinates, and the z coordinate contains the layers of the atmosphere image
+  // around the planet. The resolution of the texture is [output.mSize, output.mSize, output.mSize *
+  // layers].
   uint32_t samplesULimb = output.mSize;
+
+  // We use this many vertical samples for each layer.
   uint32_t samplesVLimb = 256;
 
-  uint32_t sampleU = z % output.mSize;
+  // This thread computes the luminance for this layer and this position along the atmosphere ring.
   uint32_t layer   = z / output.mSize;
+  uint32_t sampleU = z % output.mSize;
 
   // First, compute the angular radii of Sun and occluder as well as the angle between the two.
   double phiOcc, phiSun, delta;
