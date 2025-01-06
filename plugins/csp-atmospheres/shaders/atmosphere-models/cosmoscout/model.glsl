@@ -160,6 +160,7 @@ bool RefractionSupported() {
   return false;
 }
 
+// This model does not support refraction, so the input ray is returned unchanged.
 vec3 GetRefractedRay(vec3 camera, vec3 ray, out bool hitsGround) {
   hitsGround = false;
   return ray;

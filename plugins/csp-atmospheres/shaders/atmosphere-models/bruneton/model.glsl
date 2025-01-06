@@ -229,6 +229,8 @@ bool RefractionSupported() {
 #endif
 }
 
+// If refraction is supported, the ray is rotated by the angle of deviation stored in the deviation
+// texture towards the ground.
 vec3 GetRefractedRay(vec3 camera, vec3 ray, out bool hitsGround) {
 #if USE_REFRACTION
   float r  = length(camera);
