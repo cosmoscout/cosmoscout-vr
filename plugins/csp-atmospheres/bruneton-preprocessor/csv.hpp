@@ -66,17 +66,6 @@ std::vector<std::vector<float>> readPhase(
 /// 6.8e-07, 1.00e-07
 ///
 std::vector<float> readExtinction(std::string const& filename, std::vector<float>& wavelengths);
-
-/// This loads the refractive index of the atmosphere from a CSV file. The refractive index is
-/// stored as n-1. The units for the wavelengths should be [m]. The content of the CSV file could
-/// look like this:
-///
-/// lambda,  n-1
-/// 4.4e-07, 0.0001
-/// 5.5e-07, 0.0002
-/// 6.8e-07, 0.0003
-///
-std::vector<float> readIoR(std::string const& filename, std::vector<float>& wavelengths);
 } // namespace csv
 
 #endif // CSV_HPP

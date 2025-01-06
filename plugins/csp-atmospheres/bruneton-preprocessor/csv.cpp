@@ -240,42 +240,4 @@ std::vector<float> readExtinction(std::string const& filename, std::vector<float
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::vector<float> readIoR(std::string const& filename, std::vector<float>& wavelengths) {
-  std::vector<float> result;
-
-  // We will check the read wavelengths if some target wavelengths are given.
-  bool checkWavelengths = !wavelengths.empty();
-
-  // Read the file line-by-line.
-  readLines(filename, [&](long lineNumber, std::string line) {
-    std::stringstream ss(trim(removeMultiWhitespaces(replaceTabsWithWhitespaces(line))));
-
-    // Skip empty lines and first line.
-    if (ss.rdbuf()->in_avail() == 0 || lineNumber == 0) {
-      return;
-    }
-
-    auto elements = lineToArray(ss, ',');
-
-    // Convert to nanometers.
-    float lambda = stringToFloat(elements[0]) * 1e9F;
-
-    if (checkWavelengths) {
-      if (lambda != wavelengths[lineNumber - 1]) {
-        throw std::runtime_error(
-            "Failed to read IoR data from '" + filename +
-            "': Wavelengths are not the same as in a previously loaded data set!");
-      }
-    } else {
-      wavelengths.push_back(lambda);
-    }
-
-    result.push_back(stringToFloat(elements[1]));
-  });
-
-  return result;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
 } // namespace csv
