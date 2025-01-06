@@ -57,7 +57,7 @@ install/linux-Release/bin/scattering-table-generator --help
 | `cornette` `henyey` `dhenyey` | These modes write either the Cornette-Shanks, the Henyey-Greenstein, or the Double-Henyey-Greenstein parametric phase function for the specified wavelengths. Use `scattering-table-generator <mode> --help` to learn about all the options.                                                                                                                                                               |
 | `ozone`                       | This mode writes the absorption coefficients of ozone molecules for the specified wavelengths. Use `scattering-table-generator ozone --help` to learn about all the options.                                                                                                                                                                                                                               |
 | `density`                     | This mode samples a given multi-modal density function at evenly spaced altitudes and writes the resulting data. Use `scattering-table-generator density --help` to learn about all the options.                                                                                                                                                                                                           |
-| `ior`                         | This mode approximates the refractive index of a mixture of gases. For increased precision, `n-1` is written to the output. Use `scattering-table-generator ior --help` to learn about all the options.                                                                                                                                                                                                    |
+| `ior`                         | This mode approximates the refractive index of a mixture of gases. It is not really used during the preprocessing as only one, wavelength-independent value is used by the atmospheric scattering, but it can be used to get this one value nonetheless. For increased precision, `n-1` is written to the output. Use `scattering-table-generator ior --help` to learn about all the options.              |
 
 ## The CSV Files
 
@@ -168,9 +168,6 @@ install/linux-Release/bin/scattering-table-generator rayleigh --ior 1.00000337 -
 # Aerosols
 install/linux-Release/bin/scattering-table-generator density -i plugins/csp-atmospheres/scattering-table-generator/density-settings/mars_cosmoscout_aerosols_realistic.json -o plugins/csp-atmospheres/scattering-table-generator/output/mars_cosmoscout_aerosols_realistic
 install/linux-Release/bin/scattering-table-generator mie -i plugins/csp-atmospheres/scattering-table-generator/mie-settings/mars_realistic.json --theta-samples 91 --number-density 5e9 --radius-samples 10000 -o plugins/csp-atmospheres/scattering-table-generator/output/mars_cosmoscout_aerosols_realistic
-
-# IoR Information for Light Refraction
-install/linux-Release/bin/scattering-table-generator ior -i plugins/csp-atmospheres/scattering-table-generator/ior-settings/mars.json -o plugins/csp-atmospheres/scattering-table-generator/output/mars_cosmoscout_ior_realistic --temperature 215 --pressure 610
 ```
 
 </details>
@@ -186,9 +183,6 @@ install/linux-Release/bin/scattering-table-generator rayleigh --lambdas 440e-9,5
 # Aerosols
 install/linux-Release/bin/scattering-table-generator density -i plugins/csp-atmospheres/scattering-table-generator/density-settings/mars_cosmoscout_aerosols_cinematic.json -o plugins/csp-atmospheres/scattering-table-generator/output/mars_cosmoscout_aerosols_cinematic
 install/linux-Release/bin/scattering-table-generator mie --lambdas 440e-9,550e-9,680e-9 -i plugins/csp-atmospheres/scattering-table-generator/mie-settings/mars_cinematic.json --phase-flattening 0.8 --theta-samples 91 --number-density 5e9 --radius-samples 10000 -o plugins/csp-atmospheres/scattering-table-generator/output/mars_cosmoscout_aerosols_cinematic
-
-# IoR Information for Light Refraction
-install/linux-Release/bin/scattering-table-generator ior --lambdas 440e-9,550e-9,680e-9 -i plugins/csp-atmospheres/scattering-table-generator/ior-settings/mars.json -o plugins/csp-atmospheres/scattering-table-generator/output/mars_cosmoscout_ior_cinematic --temperature 215 --pressure 610
 ```
 
 </details>
