@@ -264,19 +264,6 @@ vec2 getLngLat(vec3 position) {
 
 // -------------------------------------------------------------------------------------------------
 
-// Returns the depth at the current pixel. If multisampling is used, we take the minimum depth.
-float getFramebufferDepth(vec2 texcoords) {
-#if HDR_SAMPLES > 0
-  float depth = 1.0;
-  for (int i = 0; i < HDR_SAMPLES; ++i) {
-    depth = min(depth, texelFetch(uDepthBuffer, ivec2(texcoords * textureSize(uDepthBuffer)), i).r);
-  }
-  return depth;
-#else
-  return texture(uDepthBuffer, texcoords).r;
-#endif
-}
-
 // Returns the background color at the current pixel. If multisampling is used, we take the average
 // color.
 vec3 getFramebufferColor(vec2 texcoords) {
@@ -288,6 +275,19 @@ vec3 getFramebufferColor(vec2 texcoords) {
   return color / HDR_SAMPLES;
 #else
   return texture(uColorBuffer, texcoords).rgb;
+#endif
+}
+
+// Returns the depth at the current pixel. If multisampling is used, we take the minimum depth.
+float getFramebufferDepth(vec2 texcoords) {
+#if HDR_SAMPLES > 0
+  float depth = 1.0;
+  for (int i = 0; i < HDR_SAMPLES; ++i) {
+    depth = min(depth, texelFetch(uDepthBuffer, ivec2(texcoords * textureSize(uDepthBuffer)), i).r);
+  }
+  return depth;
+#else
+  return texture(uDepthBuffer, texcoords).r;
 #endif
 }
 
@@ -672,50 +672,6 @@ void main() {
   }
 
   oColor = transmittance * oColor + inScatter;
-}
-
-#elif ATMOPANO_MODE
-
-uniform vec3 uAtmoPanoUniforms;
-
-// Rodrigues' rotation formula
-vec3 rotateVector(vec3 v, vec3 a, float cosMu) {
-  float sinMu = sqrt(1.0 - cosMu * cosMu);
-  return v * cosMu + cross(a, v) * sinMu + a * dot(a, v) * (1.0 - cosMu);
-}
-
-// In this special mode, the atmosphere shader will draw a fish-eye view of the entire sky. This
-// is meant for testing and debugging purposes.
-void main() {
-  float occDist = uAtmoPanoUniforms.x;
-  float phiOcc  = uAtmoPanoUniforms.y;
-  float phiAtmo = uAtmoPanoUniforms.z;
-
-  vec3 rayOrigin = vec3(0.0, 0.0, occDist);
-
-  float theta   = vsIn.texcoords.x * PI;
-  float phi     = phiOcc + vsIn.texcoords.y * (phiAtmo - phiOcc);
-  vec3  rayDirD = vec3(0.0, sin(phi), -cos(phi));
-  vec3  rayDir  = vec3(normalize(rotateVector(rayDirD, vec3(0.0, 0.0, -1.0), cos(theta))));
-
-  vec3 transmittance;
-  vec3 inScatter = GetSkyLuminance(rayOrigin, rayDir, uSunDir, transmittance);
-
-  vec2 atmosphereIntersections = intersectAtmosphere(rayOrigin, rayDir);
-  vec3 entryPoint =
-      rayOrigin + rayDir * (atmosphereIntersections.x > 0.0 ? atmosphereIntersections.x : 0.0);
-
-  float sunAngularRadius = 0.0092 / 2.0;
-  float sunColor         = 0.0;
-
-  bool hitsGround   = false;
-  vec3 refractedRay = GetRefractedRay(entryPoint, rayDir, hitsGround);
-
-  if (!hitsGround && angleBetweenVectors(refractedRay, uSunDir) < sunAngularRadius) {
-    sunColor = 2.0e9;
-  }
-
-  oColor = transmittance * sunColor + inScatter;
 }
 
 #else

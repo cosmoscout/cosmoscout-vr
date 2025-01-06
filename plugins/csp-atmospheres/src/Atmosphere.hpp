@@ -74,7 +74,7 @@ class Atmosphere : public IVistaOpenGLDraw {
     uint32_t sunElevation = 0;
   };
 
-  enum class ShaderType { eAtmosphere, ePanorama, eSkyDome };
+  enum class ShaderType { eAtmosphere, eSkyDome };
 
   void createShader(ShaderType type, VistaGLSLShader& shader, Uniforms& uniforms) const;
   void updateShaders();
@@ -114,9 +114,6 @@ class Atmosphere : public IVistaOpenGLDraw {
 
   VistaGLSLShader mAtmoShader;
   Uniforms        mAtmoUniforms;
-
-  VistaGLSLShader mPanoShader;
-  Uniforms        mPanoUniforms;
 
   std::unique_ptr<ModelBase> mModel;
 };

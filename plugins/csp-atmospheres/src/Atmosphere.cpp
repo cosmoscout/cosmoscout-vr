@@ -193,7 +193,6 @@ void Atmosphere::createShader(ShaderType type, VistaGLSLShader& shader, Uniforms
       cs::utils::filesystem::loadToString("../share/resources/shaders/csp-atmosphere.frag");
 
   cs::utils::replaceString(sFrag, "SKYDOME_MODE", type == ShaderType::eSkyDome ? "1" : "0");
-  cs::utils::replaceString(sFrag, "ATMOPANO_MODE", type == ShaderType::ePanorama ? "1" : "0");
   cs::utils::replaceString(
       sFrag, "PLANET_RADIUS", std::to_string(mRadii[0] + mSettings.mBottomAltitude.get()));
   cs::utils::replaceString(
@@ -247,7 +246,6 @@ void Atmosphere::createShader(ShaderType type, VistaGLSLShader& shader, Uniforms
 
 void Atmosphere::updateShaders() {
   createShader(ShaderType::eAtmosphere, mAtmoShader, mAtmoUniforms);
-  createShader(ShaderType::ePanorama, mPanoShader, mPanoUniforms);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
