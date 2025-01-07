@@ -28,7 +28,19 @@ void main() {
 
   iMagnitude = vMagnitude[0];
 
+  // Discard stars that are too bright or too dim.
   if (iMagnitude > uMaxMagnitude || iMagnitude < uMinMagnitude) {
+    return;
+  }
+
+  // Discard stars that are outside the frustum. We only test the center position.
+  vec4 center = uMatP * vec4(gl_in[0].gl_Position.xyz, 1);
+  if (center.w <= 0) {
+    return;
+  }
+
+  center /= center.w;
+  if (center.x < -1 || center.x > 1 || center.y < -1 || center.y > 1) {
     return;
   }
 
