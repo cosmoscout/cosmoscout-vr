@@ -63,7 +63,7 @@ void main() {
 
 #ifdef DRAWMODE_GLARE_DISC
   float luminance = magnitudeToLuminance(iMagnitude, uSolidAngle);
-  scale *= mapRange(sqrt(luminance), 0, 5, 1.0, 100.0);
+  scale *= mapRange(sqrt(luminance), 0, 5, 2.0, 100.0);
 #endif
 
 #ifdef DRAWMODE_SPRITE
