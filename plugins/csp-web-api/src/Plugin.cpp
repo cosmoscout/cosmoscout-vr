@@ -23,6 +23,7 @@
 #include <VistaKernel/DisplayManager/VistaWindow.h>
 #include <VistaKernel/VistaFrameLoop.h>
 #include <VistaKernel/VistaSystem.h>
+#include <VistaOGLExt/VistaTexture.h>
 #include <curlpp/cURLpp.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <sstream>
@@ -34,6 +35,8 @@
 #include <utility>
 
 #include <chrono>
+
+#include "../../../src/cs-core/GraphicsEngine.hpp"
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -478,7 +481,13 @@ void Plugin::update() {
         auto start_time = std::chrono::high_resolution_clock::now();
         if (mCaptureFormat == "raw") {
           mCapture.resize(mCaptureWidth * mCaptureHeight * 3 * 4);
-          glReadPixels(0, 0, mCaptureWidth, mCaptureHeight, GL_RGB, GL_FLOAT, (void*)mCapture.data());
+          std::shared_ptr<cs::graphics::HDRBuffer> hdrBuffer = mGraphicsEngine->getHDRBuffer();
+          logger().debug("got a pointer to HDRBuffer at {}", (void*)hdrBuffer.get());
+          VistaTexture* luminance_buffer = hdrBuffer->getCurrentWriteAttachment();
+          logger().debug("got a pointer to a VistaTexture at {}", (void*)luminance_buffer);
+          luminance_buffer->Bind(GL_TEXTURE_2D);
+          logger().debug("binding texture successful");
+          glGetTexImage(GL_TEXTURE_2D, 0, GL_RGB, GL_FLOAT, (void*)mCapture.data());
         } else {
           // Capturing color images is pretty straight-forward.
           std::vector<std::byte> capture(mCaptureWidth * mCaptureHeight * 3);

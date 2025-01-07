@@ -58,7 +58,8 @@ void HDRBuffer::bind() {
     hdrBuffer.mFBO.reset(new VistaFramebufferObj());
 
     // Attaches a new texture to the hdrBuffer framebuffer object.
-    auto addAttachment = [&hdrBuffer, this](std::unique_ptr<VistaTexture>& texture, int attachment,
+    logger().debug("new attachment with resolution {}x{}", size[0], size[1]);
+      auto addAttachment = [&hdrBuffer, this](std::unique_ptr<VistaTexture>& texture, int attachment,
                              int internalFormat, int format, int type) {
       auto target = (mMultiSamples > 0) ? GL_TEXTURE_2D_MULTISAMPLE : GL_TEXTURE_2D;
 
@@ -188,15 +189,27 @@ VistaTexture* HDRBuffer::getCurrentReadAttachment() const {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+VistaViewport* HDRBuffer::getCurrentViewportSafe() const{
+  VistaViewport* viewport = GetVistaSystem()->GetDisplayManager()->GetCurrentRenderInfo()->m_pViewport;
+  if(viewport == NULL){
+    auto first_kv = mHDRBufferData.begin();
+    viewport = first_kv->first;
+    logger().debug("No current viewport. Taking viewport at {} instead {} viewports in map", (void*)viewport, mHDRBufferData.size());
+  }
+  return viewport;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 HDRBuffer::HDRBufferData& HDRBuffer::getCurrentHDRBuffer() {
-  auto* viewport = GetVistaSystem()->GetDisplayManager()->GetCurrentRenderInfo()->m_pViewport;
+  auto* viewport = getCurrentViewportSafe();
   return mHDRBufferData[viewport];
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 HDRBuffer::HDRBufferData const& HDRBuffer::getCurrentHDRBuffer() const {
-  auto* viewport = GetVistaSystem()->GetDisplayManager()->GetCurrentRenderInfo()->m_pViewport;
+  auto* viewport = getCurrentViewportSafe();
   return mHDRBufferData.find(viewport)->second;
 }
 

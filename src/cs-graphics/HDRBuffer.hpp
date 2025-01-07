@@ -108,6 +108,8 @@ class CS_GRAPHICS_EXPORT HDRBuffer {
   static std::array<int, 2> getCurrentViewPortPos();
 
  private:
+
+  VistaViewport* getCurrentViewportSafe() const;
   // There is one of these structs for each viewport. That means, we have a separate framebuffer
   // object, GlareMipMap and LuminanceMipMap for each viewport. This is mainly because viewports
   // often have different sizes.
