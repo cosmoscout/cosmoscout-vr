@@ -42,7 +42,7 @@ void main() {
 #endif
 
 #ifdef DRAWMODE_GLARE_DISC
-  float scaleFac = mapRange(sqrt(luminance), 0, 5, 2.0, 100.0);
+  float scaleFac = mapRange(sqrt(luminance), 0, 5, 1.0, 100.0);
 
   // In this mode, 20% of the brightness is drawn using a small smooth disc in the center
   // (just like DRAWMODE_SMOOTH_DISC) and the other 80% are drawn as glare using an inverse
