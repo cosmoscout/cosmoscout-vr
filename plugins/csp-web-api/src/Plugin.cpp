@@ -469,6 +469,7 @@ void Plugin::update() {
 
       } else {
         if (mCaptureFormat == "raw") {
+          // larger output size, but performance is comparable or better because there is no image encoding
           mCapture.resize(mCaptureWidth * mCaptureHeight * 3 * 4);
           std::shared_ptr<cs::graphics::HDRBuffer> hdrBuffer = mGraphicsEngine->getHDRBuffer();
           VistaTexture* luminance_buffer = hdrBuffer->getCurrentWriteAttachment();
