@@ -16,6 +16,7 @@ SPDX-License-Identifier: CC-BY-4.0
 #### New Features
 
 - The `csp-trajectories` now draws proxies for celestial objects when they are smaller than a few pixels in HDR mode. This makes them visible even if they are very small, such as when looking in the sky at night. This also drastically reduces flickering in HDR mode when the bodies are very small on the screen.
+- The `/capture` endpoint of the `csp-web-api` now supports an optional `restoreState` parameter. If set to `true`, the size of the window and the visibility of the user interface will be restored after capturing the image. Thanks to [@DanielPSchenk](https://github.com/DanielPSchenk) for this contribution!
 
 #### Other Changes
 
