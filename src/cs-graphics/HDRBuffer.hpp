@@ -104,8 +104,8 @@ class CS_GRAPHICS_EXPORT HDRBuffer {
   VistaTexture* getCurrentReadAttachment() const;
 
   /// Helper methods to access the size and position of the viewports we are currently rendering to.
-  static std::array<int, 2> getCurrentViewPortSize();
-  static std::array<int, 2> getCurrentViewPortPos();
+  std::array<int, 2> getCurrentViewPortSize();
+  std::array<int, 2> getCurrentViewPortPos();
 
  private:
 
