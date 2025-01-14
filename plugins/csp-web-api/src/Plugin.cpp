@@ -34,8 +34,6 @@
 #include <stb_image_write.h>
 #include <utility>
 
-#include <chrono>
-
 #include "../../../src/cs-core/GraphicsEngine.hpp"
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -299,13 +297,9 @@ void Plugin::init() {
     // Now we use a condition variable to wait for the capture. It is actually captured in the
     // Plugin::update() method further below.
     mCaptureDone.wait(lock);
-    auto start_time = std::chrono::high_resolution_clock::now();
     // The capture has been captured, return the result!
     mg_send_http_ok(conn, ("image/" + mCaptureFormat).c_str(), mCapture.size());
     mg_write(conn, mCapture.data(), mCapture.size());
-    auto end_time = std::chrono::high_resolution_clock::now();
-    logger().debug("sending data took {} microseconds",
-        std::chrono::duration_cast<std::chrono::microseconds>(end_time - start_time).count());
   }));
 
   // All POST requests received on /run-js are stored in a queue. They are executed in the main
@@ -396,7 +390,6 @@ void Plugin::update() {
   {
     std::lock_guard<std::mutex> lock(mCaptureMutex);
     if (mCaptureRequested) {
-      auto start_time = std::chrono::high_resolution_clock::now();
       if (mCaptureWidth > 0 && mCaptureHeight > 0) {
         auto* window = GetVistaSystem()->GetDisplayManager()->GetWindows().begin()->second;
         window->GetWindowProperties()->GetSize(mRestoreW, mRestoreH);
@@ -408,9 +401,6 @@ void Plugin::update() {
         mAllSettings->pEnableUserInterface = mCaptureGui == "true";
       }
       mCaptureRequested = false;
-      auto end_time     = std::chrono::high_resolution_clock::now();
-      logger().debug("preparing for capture took {} microseconds",
-          std::chrono::duration_cast<std::chrono::microseconds>(end_time - start_time).count());
     }
 
     // Now we waited several frames. We read the pixels, encode the data as png and notify the
@@ -478,15 +468,11 @@ void Plugin::update() {
         }
 
       } else {
-        auto start_time = std::chrono::high_resolution_clock::now();
         if (mCaptureFormat == "raw") {
           mCapture.resize(mCaptureWidth * mCaptureHeight * 3 * 4);
           std::shared_ptr<cs::graphics::HDRBuffer> hdrBuffer = mGraphicsEngine->getHDRBuffer();
-          logger().debug("got a pointer to HDRBuffer at {}", (void*)hdrBuffer.get());
           VistaTexture* luminance_buffer = hdrBuffer->getCurrentWriteAttachment();
-          logger().debug("got a pointer to a VistaTexture at {}", (void*)luminance_buffer);
           luminance_buffer->Bind(GL_TEXTURE_2D);
-          logger().debug("binding texture successful");
           glGetTexImage(GL_TEXTURE_2D, 0, GL_RGB, GL_FLOAT, (void*)mCapture.data());
         } else {
           // Capturing color images is pretty straight-forward.
@@ -503,9 +489,6 @@ void Plugin::update() {
                 &stbWriteToVector, &mCapture, mCaptureWidth, mCaptureHeight, 3, capture.data(), 80);
           }
         }
-        auto end_time = std::chrono::high_resolution_clock::now();
-        logger().debug("reading image from graphics memory to cpu took {} microseconds",
-            std::chrono::duration_cast<std::chrono::microseconds>(end_time - start_time).count());
       }
 
       // Restore stb image state to default.
