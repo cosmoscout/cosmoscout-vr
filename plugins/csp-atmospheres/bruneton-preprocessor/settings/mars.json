@@ -5,7 +5,7 @@
   "maxAltitude": 3469500,
   "stepSizeOpticalDepth": 2000,
   "stepSizeSingleScattering": 2000,
-  "stepSizeMultiScattering": 4000,
+  "stepSizeMultiScattering": 2000,
   "transmittanceTextureWidth": 512,
   "transmittanceTextureHeight": 256,
   "scatteringTextureRSize": 32,
