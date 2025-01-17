@@ -676,8 +676,6 @@ Preprocessor::Preprocessor(Params params)
     , mScatteringTextureHeight(mParams.mScatteringTextureMuSize.get())
     , mScatteringTextureDepth(mParams.mScatteringTextureRSize.get()) {
 
-  std::cout << "Preprocessing atmosphere..." << std::endl;
-
   // Compute angular radius of the sun.
   float sunRadius             = 696340000.F; // meters
   mMetadata.mSunAngularRadius = std::asin(sunRadius / mParams.mSunDistance);
@@ -901,7 +899,10 @@ void Preprocessor::run(unsigned int numScatteringOrders) {
           deltaAerosolsScatteringTexture, deltaScatteringDensityTexture,
           deltaMultipleScatteringTexture, lambdas, luminanceFromRadiance, i > 0 /* blend */,
           numScatteringOrders);
+      glFinish();
     }
+
+    std::cout << "Finishing precomputation..." << std::endl;
 
     // After the above iterations, the transmittance texture and the theta-deviation texture contain
     // data for the 3 wavelengths used at the last iteration. But we want data at kLambdaR,
@@ -925,15 +926,21 @@ void Preprocessor::run(unsigned int numScatteringOrders) {
         0, 0, mParams.mTransmittanceTextureWidth.get(), mParams.mTransmittanceTextureHeight.get());
     computeTransmittance.Use();
     computeTransmittance.BindTexture2d("uDensityTexture", mDensityTexture, 0);
-    DrawQuad({false}, mFullScreenQuadVAO);
-
-    glFlush();
+    if (mParams.mRefraction.get()) {
+      DrawQuad({false, false}, mFullScreenQuadVAO);
+    } else {
+      DrawQuad({false}, mFullScreenQuadVAO);
+    }
 
     // Also, the mPhaseTexture contains the phase functions for the last used wavelengths. We need
     // to update it with kLambdaR, kLambdaG, kLambdaB as well.
     updatePhaseFunctionTexture(
         {mParams.mMolecules, mParams.mAerosols}, {kLambdaR, kLambdaG, kLambdaB});
   }
+
+  glFinish();
+
+  std::cout << "Precomputation Done." << std::endl;
 
   // Delete the temporary resources allocated at the beginning of this method.
   glUseProgram(0);
