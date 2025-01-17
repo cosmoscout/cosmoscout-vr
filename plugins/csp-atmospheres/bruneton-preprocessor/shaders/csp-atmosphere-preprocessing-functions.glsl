@@ -65,7 +65,7 @@ float getIoRGradientLength(float altitude, float dh) {
 dvec2 refractRaySeron(dvec2 origin, dvec2 dir, double dx) {
   float  altitude        = max(0, float(length(origin) - BOTTOM_RADIUS));
   double refractiveIndex = getRefractiveIndex(altitude);
-  double gradientLength  = getIoRGradientLength(altitude, 100);
+  double gradientLength  = getIoRGradientLength(altitude, 10);
   dvec2  dn              = normalize(origin) * gradientLength;
   return normalize(refractiveIndex * dir + dn * dx);
 }
@@ -81,7 +81,7 @@ dvec2 refractRayWerf(dvec2 origin, dvec2 dir, double dx) {
   // be simplified to the following using trigonometric identities.
   double cosBeta = sqrt(1.0 - pow(float(dot(origin / RplusH, dir)), 2.0));
 
-  double curvature = cosBeta / getRefractiveIndex(h) * getIoRGradientLength(h, 100);
+  double curvature = cosBeta / getRefractiveIndex(h) * getIoRGradientLength(h, 10);
   double deltaBeta = dx * (cosBeta / RplusH + curvature);
   double deltaPhi  = cosBeta * dx / RplusH;
   float  diff      = float(deltaBeta - deltaPhi);
@@ -92,6 +92,11 @@ dvec2 refractRayWerf(dvec2 origin, dvec2 dir, double dx) {
 
 // Use this to switch between the two refraction methods.
 #define refractRay refractRaySeron
+
+// The method just advances the ray in the direction of the ray. No refraction is computed.
+void rayStepSimple(inout dvec2 origin, inout dvec2 dir, double dx) {
+  origin += dir * dx;
+}
 
 // The Euler method just advances the ray in the direction of the refracted ray.
 void rayStepEuler(inout dvec2 origin, inout dvec2 dir, double dx) {
@@ -145,30 +150,44 @@ struct RayInfo {
 
 RayInfo computeOpticalLengthToTopAtmosphereBoundary(float densityTextureV, float r, float mu) {
 
-  double dx          = STEP_SIZE_OPTICAL_DEPTH;
-  dvec2  startRayDir = vec2(sqrt(1 - mu * mu), mu);
+  dvec2 startRayDir = vec2(sqrt(1 - mu * mu), mu);
 
   RayInfo result;
   result.opticalDepth   = 0.0;
   result.thetaDeviation = 0.0;
   result.contactRadius  = r - BOTTOM_RADIUS;
 
-  dvec2  samplePos    = vec2(0.0, r);
-  double sampleRadius = r;
-  dvec2  currentDir   = dvec2(sqrt(1 - mu * mu), mu);
+  dvec2  currentDir     = dvec2(sqrt(1 - mu * mu), mu);
+  dvec2  samplePos      = vec2(0.0, r);
+  bool   leftAtmosphere = false;
+  double weight         = 0.5;
+  float  dx             = STEP_SIZE_OPTICAL_DEPTH;
 
-  while (sampleRadius <= TOP_RADIUS + 10) {
-    sampleRadius = length(samplePos);
+  while (!leftAtmosphere) {
+    double sampleRadius = length(samplePos);
+
+    dvec2  segmentStart  = samplePos - currentDir * dx * 0.5;
+    double segmentStartR = length(segmentStart);
+    dvec2  segmentEnd    = samplePos + currentDir * dx * 0.5;
+    double segmentEndR   = length(segmentEnd);
+
+    // If the segment leaves the atmosphere, we compute how much of the segment is inside the
+    // atmosphere.
+    if (segmentEndR > TOP_RADIUS) {
+      weight         = 1.0 - (segmentEndR - TOP_RADIUS) / (segmentEndR - segmentStartR);
+      leftAtmosphere = true;
+    }
 
     float altitude = float(sampleRadius) - BOTTOM_RADIUS;
-    result.opticalDepth += getDensity(densityTextureV, altitude);
+    result.opticalDepth += getDensity(densityTextureV, altitude) * float(weight);
     result.contactRadius = min(result.contactRadius, altitude);
 
     rayStep(samplePos, currentDir, dx);
+    weight = 1.0;
   }
 
   result.thetaDeviation = angleBetweenVectors(vec2(startRayDir), vec2(currentDir));
-  result.opticalDepth *= float(dx);
+  result.opticalDepth *= dx;
 
   return result;
 }
@@ -260,18 +279,18 @@ double clampCosine(double mu) {
   return clamp(mu, -1.0, 1.0);
 }
 
-// Returns the transmittance of a ray segment of length dx. The transmittance is based on the
-// atmospheric density at the given planet-center distance and the extinction coefficients of the
-// air molecules, aerosols, and ozone.
-vec3 getTransmittanceForRaySegment(AtmosphereComponents atmosphere, float r, float dx) {
+// Returns the optical depth of a ray segment of unit length. It is based on the atmospheric density
+// at the given planet-center distance and the extinction coefficients of the air molecules,
+// aerosols, and ozone.
+vec3 getOpticalDepth(AtmosphereComponents atmosphere, float r) {
   float altitude         = r - BOTTOM_RADIUS;
   float moleculesDensity = getDensity(atmosphere.molecules.densityTextureV, altitude);
   float aerosolsDensity  = getDensity(atmosphere.aerosols.densityTextureV, altitude);
   float ozoneDensity     = getDensity(atmosphere.ozone.densityTextureV, altitude);
 
-  return exp(-dx * (atmosphere.molecules.extinction * moleculesDensity +
-                       atmosphere.aerosols.extinction * aerosolsDensity +
-                       atmosphere.ozone.extinction * ozoneDensity));
+  return atmosphere.molecules.extinction * moleculesDensity +
+         atmosphere.aerosols.extinction * aerosolsDensity +
+         atmosphere.ozone.extinction * ozoneDensity;
 }
 
 // The direction to the sun is encoded using the cosines of the zenith angle muS and the cosine to
@@ -302,44 +321,55 @@ void computeSingleScattering(AtmosphereComponents atmosphere, sampler2D transmit
   dvec2 currentDir = vec2(sqrt(1 - mu * mu), mu);
   vec3  sunDir     = getSunDirection(mu, muS, nu);
 
-  vec3  moleculesSum     = vec3(0.0);
-  vec3  aerosolsSum      = vec3(0.0);
-  dvec3 transmittanceRay = dvec3(1.0);
+  vec3  moleculesSum    = vec3(0.0);
+  vec3  aerosolsSum     = vec3(0.0);
+  dvec3 opticalDepthRay = dvec3(0.0);
 
-  dvec2  samplePos    = vec2(0.0, r);
-  double sampleRadius = r;
-  bool   hitGround    = false;
+  dvec2  samplePos                 = vec2(0.0, r);
+  bool   hitGroundOrLeftAtmosphere = false;
+  double weight                    = 0.5;
+  float  dx                        = STEP_SIZE_SINGLE_SCATTERING;
 
-  while (sampleRadius <= TOP_RADIUS + 10 && !hitGround) {
-    double dx            = STEP_SIZE_SINGLE_SCATTERING;
-    dvec2  nextSamplePos = samplePos + currentDir * dx;
-    double nextR         = length(nextSamplePos);
+  while (!hitGroundOrLeftAtmosphere) {
+    double sampleRadius = length(samplePos);
 
-    // If the segment intersects the ground, we shorten the segment to the intersection point.
-    if (nextR < BOTTOM_RADIUS) {
-      dx            = dx * (sampleRadius - BOTTOM_RADIUS) / (sampleRadius - nextR);
-      nextSamplePos = samplePos + currentDir * dx;
-      nextR         = BOTTOM_RADIUS;
-      hitGround     = true;
+    dvec2  segmentStart  = samplePos - currentDir * dx * 0.5;
+    double segmentStartR = length(segmentStart);
+    dvec2  segmentEnd    = samplePos + currentDir * dx * 0.5;
+    double segmentEndR   = length(segmentEnd);
+
+    // If the segment intersects the ground, we compute how much of the segment is inside the
+    // atmosphere.
+    if (segmentEndR < BOTTOM_RADIUS) {
+      weight = 1.0 - (BOTTOM_RADIUS - segmentEndR) / (segmentStartR - segmentEndR);
+      hitGroundOrLeftAtmosphere = true;
     }
 
-    float muSD = clampCosine(dot(sunDir, vec3(nextSamplePos, 0.0)) / float(nextR));
+    // If the segment leaves the atmosphere, we compute how much of the segment is inside the
+    // atmosphere.
+    if (segmentEndR > TOP_RADIUS) {
+      weight                    = 1.0 - (segmentEndR - TOP_RADIUS) / (segmentEndR - segmentStartR);
+      hitGroundOrLeftAtmosphere = true;
+    }
 
-    vec3 transmittanceSun = getTransmittanceToSun(transmittanceTexture, float(nextR), muSD);
-    transmittanceRay *= getTransmittanceForRaySegment(atmosphere, float(sampleRadius), float(dx));
+    float muSD = clampCosine(dot(sunDir, vec3(samplePos, 0.0)) / float(sampleRadius));
 
-    float nextAltitude     = float(nextR) - BOTTOM_RADIUS;
-    float moleculesDensity = getDensity(atmosphere.molecules.densityTextureV, nextAltitude);
-    float aerosolsDensity  = getDensity(atmosphere.aerosols.densityTextureV, nextAltitude);
-    moleculesSum += transmittanceSun * vec3(transmittanceRay) * moleculesDensity * float(dx);
-    aerosolsSum += transmittanceSun * vec3(transmittanceRay) * aerosolsDensity * float(dx);
+    vec3 transmittanceSun = getTransmittanceToSun(transmittanceTexture, float(sampleRadius), muSD);
+    opticalDepthRay += getOpticalDepth(atmosphere, float(sampleRadius)) * dx * weight;
+    vec3 transmittanceRay = exp(-vec3(opticalDepthRay));
+
+    float altitude         = float(sampleRadius) - BOTTOM_RADIUS;
+    float moleculesDensity = getDensity(atmosphere.molecules.densityTextureV, altitude);
+    float aerosolsDensity  = getDensity(atmosphere.aerosols.densityTextureV, altitude);
+    moleculesSum += transmittanceSun * transmittanceRay * moleculesDensity * float(weight);
+    aerosolsSum += transmittanceSun * transmittanceRay * aerosolsDensity * float(weight);
 
     rayStep(samplePos, currentDir, dx);
-    sampleRadius = length(samplePos);
+    weight = 1.0;
   }
 
-  molecules = moleculesSum * SOLAR_IRRADIANCE * atmosphere.molecules.scattering;
-  aerosols  = aerosolsSum * SOLAR_IRRADIANCE * atmosphere.aerosols.scattering;
+  molecules = moleculesSum * SOLAR_IRRADIANCE * atmosphere.molecules.scattering * dx;
+  aerosols  = aerosolsSum * SOLAR_IRRADIANCE * atmosphere.aerosols.scattering * dx;
 }
 
 #else
@@ -360,14 +390,6 @@ void computeSingleScatteringIntegrand(AtmosphereComponents atmosphere,
                        getTransmittanceToSun(transmittanceTexture, rD, muSD);
   molecules = transmittance * getDensity(atmosphere.molecules.densityTextureV, rD - BOTTOM_RADIUS);
   aerosols  = transmittance * getDensity(atmosphere.aerosols.densityTextureV, rD - BOTTOM_RADIUS);
-}
-
-float distanceToNearestAtmosphereBoundary(float r, float mu, bool rayRMuIntersectsGround) {
-  if (rayRMuIntersectsGround) {
-    return distanceToBottomAtmosphereBoundary(r, mu);
-  } else {
-    return distanceToTopAtmosphereBoundary(r, mu);
-  }
 }
 
 void computeSingleScattering(AtmosphereComponents atmosphere, sampler2D transmittanceTexture,
@@ -573,7 +595,6 @@ vec3 computeScatteringDensity(AtmosphereComponents atmosphere, sampler2D transmi
 // As for the single-scattering computation, the multiple-scattering computation is different if
 // refraction is incorporated. We trace the rays in 2D and use a reconstructed 3D sun light
 // direction.
-
 vec3 computeMultipleScattering(AtmosphereComponents atmosphere, sampler2D transmittanceTexture,
     sampler3D scatteringDensityTexture, float r, float mu, float muS, float nu,
     bool rayRMuIntersectsGround) {
@@ -582,37 +603,48 @@ vec3 computeMultipleScattering(AtmosphereComponents atmosphere, sampler2D transm
   vec3  sunDir     = getSunDirection(mu, muS, nu);
 
   vec3  moleculesAerosolsSum = vec3(0.0);
-  dvec3 transmittanceRay     = dvec3(1.0);
+  dvec3 opticalDepthRay      = dvec3(0.0);
 
-  dvec2  samplePos    = vec2(0.0, r);
-  double sampleRadius = r;
-  bool   hitGround    = false;
+  dvec2  samplePos                 = vec2(0.0, r);
+  bool   hitGroundOrLeftAtmosphere = false;
+  double weight                    = 0.5;
+  float  dx                        = STEP_SIZE_MULTI_SCATTERING;
 
-  while (sampleRadius <= TOP_RADIUS + 10 && !hitGround) {
-    double dx            = STEP_SIZE_MULTI_SCATTERING;
-    dvec2  nextSamplePos = samplePos + currentDir * dx;
-    double nextR         = length(nextSamplePos);
+  while (!hitGroundOrLeftAtmosphere) {
+    double sampleRadius = length(samplePos);
 
-    // If the segment intersects the ground, we shorten the segment to the intersection point.
-    if (nextR < BOTTOM_RADIUS) {
-      dx            = dx * (sampleRadius - BOTTOM_RADIUS) / (sampleRadius - nextR);
-      nextSamplePos = samplePos + currentDir * dx;
-      nextR         = BOTTOM_RADIUS;
-      hitGround     = true;
+    dvec2  segmentStart  = samplePos - currentDir * dx * 0.5;
+    double segmentStartR = length(segmentStart);
+    dvec2  segmentEnd    = samplePos + currentDir * dx * 0.5;
+    double segmentEndR   = length(segmentEnd);
+
+    // If the segment intersects the ground, we compute how much of the segment is inside the
+    // atmosphere.
+    if (segmentEndR < BOTTOM_RADIUS) {
+      weight = 1.0 - (BOTTOM_RADIUS - segmentEndR) / (segmentStartR - segmentEndR);
+      hitGroundOrLeftAtmosphere = true;
     }
 
-    double currentMu  = clampCosine(dot(nextSamplePos / nextR, currentDir));
-    double currentMuS = clampCosine(dot(dvec3(nextSamplePos, 0.0) / nextR, sunDir));
-    double currentNu  = clampCosine(dot(dvec3(currentDir, 0.0), sunDir));
+    // If the segment leaves the atmosphere, we compute how much of the segment is inside the
+    // atmosphere.
+    if (segmentEndR > TOP_RADIUS) {
+      weight                    = 1.0 - (segmentEndR - TOP_RADIUS) / (segmentEndR - segmentStartR);
+      hitGroundOrLeftAtmosphere = true;
+    }
 
-    transmittanceRay *= getTransmittanceForRaySegment(atmosphere, float(nextR), float(dx));
+    float currentMu  = float(clampCosine(dot(samplePos / sampleRadius, currentDir)));
+    float currentMuS = float(clampCosine(dot(dvec3(samplePos, 0.0) / sampleRadius, sunDir)));
+    float currentNu  = float(clampCosine(dot(dvec3(currentDir, 0.0), sunDir)));
 
-    moleculesAerosolsSum += getScattering(scatteringDensityTexture, float(nextR), float(currentMu),
-                                float(currentMuS), float(currentNu), rayRMuIntersectsGround) *
-                            vec3(transmittanceRay) * float(dx);
+    opticalDepthRay += getOpticalDepth(atmosphere, float(sampleRadius)) * dx * weight;
+    vec3 transmittanceRay = exp(-vec3(opticalDepthRay)) * dx;
+
+    moleculesAerosolsSum += getScattering(scatteringDensityTexture, float(sampleRadius), currentMu,
+                                currentMuS, currentNu, rayRMuIntersectsGround) *
+                            transmittanceRay * float(weight);
 
     rayStep(samplePos, currentDir, dx);
-    sampleRadius = length(samplePos);
+    weight = 1.0;
   }
 
   return moleculesAerosolsSum;
