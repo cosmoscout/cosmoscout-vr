@@ -19,7 +19,7 @@ const std::string RealVec2::sName = "RealVec2";
 
 std::string RealVec2::sSource() {
   return cs::utils::filesystem::loadToString(
-      "../share/resources/nodes/csp-visual-query/RealVec4.js");
+      "../share/resources/nodes/csp-visual-query/RealVec2.js");
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

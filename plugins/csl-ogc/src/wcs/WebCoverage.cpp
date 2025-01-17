@@ -20,7 +20,7 @@ WebCoverage::WebCoverage(VistaXML::TiXmlElement* element, Settings settings, std
     : mUrl(std::move(mUrl))
     , mSettings(std::move(settings)) {
   auto title = utils::getElementValue<std::string>(element, {"ows:Title"});
-  auto id    = utils::getElementValue<std::string>(element, {"Identifier"});
+  auto id    = utils::getElementValue<std::string>(element, {"wcs:Identifier"});
 
   mId    = id.value_or("");
   mTitle = title.has_value() ? title.value() : "No Title";

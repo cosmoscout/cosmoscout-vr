@@ -260,9 +260,9 @@ std::string WebCoverageTextureLoader::getRequestUrl(
 
   if (request.mBounds != coverage.getSettings().mBounds && request.mBounds != Bounds2D()) {
     // &SUBSET=y(...,...)
-    url << "&SUBSET=y%28" << request.mBounds.mMinLat << "," << request.mBounds.mMaxLat << "%29";
+    url << "&SUBSET=Lat%28" << request.mBounds.mMinLat << "," << request.mBounds.mMaxLat << "%29";
     // &SUBSET=x(...,...)
-    url << "&SUBSET=x%28" << request.mBounds.mMinLon << "," << request.mBounds.mMaxLon << "%29";
+    url << "&SUBSET=Long%28" << request.mBounds.mMinLon << "," << request.mBounds.mMaxLon << "%29";
   }
 
   int32_t width  = coverage.getSettings().mAxisResolution[0];
@@ -297,7 +297,7 @@ std::string WebCoverageTextureLoader::getRequestUrl(
     int maxLayer = std::min(coverage.getSettings().mNumLayers, request.mLayerRange.value().second);
 
     if (minLayer == maxLayer) {
-      url << "&RANGESUBSET=" << minLayer;
+      // url << "&RANGESUBSET=" << minLayer;
     } else {
       url << "&RANGESUBSET=" << minLayer << "%3A" << maxLayer;
     }

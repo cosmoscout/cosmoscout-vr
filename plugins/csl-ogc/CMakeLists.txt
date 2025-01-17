@@ -29,10 +29,10 @@ endif()
 
 # build plugin -------------------------------------------------------------------------------------
 
-file(GLOB SOURCE_FILES src/*.cpp src/*/*.cpp)
+file(GLOB_RECURSE SOURCE_FILES *.cpp)
 
 # Resource files and header files are only added in order to make them available in your IDE.
-file(GLOB HEADER_FILES src/*.hpp src/*/*.hpp)
+file(GLOB_RECURSE HEADER_FILES *.hpp)
 
 add_library(csl-ogc SHARED
         ${SOURCE_FILES}
