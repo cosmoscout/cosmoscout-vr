@@ -278,7 +278,8 @@ void Plugin::init() {
     mCaptureFormat = getParam<std::string>(conn, "format", mCaptureDepth ? "tiff" : "png");
 
     // Validate format parameter.
-    if (mCaptureFormat != "png" && mCaptureFormat != "jpeg" && mCaptureFormat != "tiff" && mCaptureFormat != "raw") {
+    if (mCaptureFormat != "png" && mCaptureFormat != "jpeg" && mCaptureFormat != "tiff" &&
+        mCaptureFormat != "raw") {
       mg_send_http_error(
           conn, 422, "Only 'png', 'jpeg', 'tiff' or 'raw' are allowed for the format parameter!");
       return;
@@ -469,12 +470,13 @@ void Plugin::update() {
 
       } else {
         if (mCaptureFormat == "raw") {
-          // larger output size, but performance is comparable or better because there is no image encoding
+          // larger output size, but performance is comparable or better because there is no image
+          // encoding
           mCapture.resize(mCaptureWidth * mCaptureHeight * 3 * 4);
           std::shared_ptr<cs::graphics::HDRBuffer> hdrBuffer = mGraphicsEngine->getHDRBuffer();
           VistaTexture* luminance_buffer = hdrBuffer->getCurrentWriteAttachment();
-          luminance_buffer->Bind(GL_TEXTURE_2D);
-          glGetTexImage(GL_TEXTURE_2D, 0, GL_RGB, GL_FLOAT, (void*)mCapture.data());
+          luminance_buffer->Bind();
+          glGetTexImage(luminance_buffer->GetTarget(), 0, GL_RGB, GL_FLOAT, (void*)mCapture.data());
         } else {
           // Capturing color images is pretty straight-forward.
           std::vector<std::byte> capture(mCaptureWidth * mCaptureHeight * 3);

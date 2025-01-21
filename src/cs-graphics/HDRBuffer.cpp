@@ -58,7 +58,7 @@ void HDRBuffer::bind() {
     hdrBuffer.mFBO.reset(new VistaFramebufferObj());
 
     // Attaches a new texture to the hdrBuffer framebuffer object.
-      auto addAttachment = [&hdrBuffer, this](std::unique_ptr<VistaTexture>& texture, int attachment,
+    auto addAttachment = [&hdrBuffer, this](std::unique_ptr<VistaTexture>& texture, int attachment,
                              int internalFormat, int format, int type) {
       auto target = (mMultiSamples > 0) ? GL_TEXTURE_2D_MULTISAMPLE : GL_TEXTURE_2D;
 
@@ -188,12 +188,15 @@ VistaTexture* HDRBuffer::getCurrentReadAttachment() const {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-VistaViewport* HDRBuffer::getCurrentViewportSafe() const{
-  VistaViewport* viewport = GetVistaSystem()->GetDisplayManager()->GetCurrentRenderInfo()->m_pViewport;
-  if(viewport == NULL){
+VistaViewport* HDRBuffer::getCurrentViewportSafe() const {
+  VistaViewport* viewport =
+      GetVistaSystem()->GetDisplayManager()->GetCurrentRenderInfo()->m_pViewport;
+  if (viewport == NULL) {
     auto first_kv = mHDRBufferData.begin();
-    viewport = first_kv->first;
-    logger().debug("No current viewport. Taking first viewport in map at {} instead. {} viewports in map", (void*)viewport, mHDRBufferData.size());
+    viewport      = first_kv->first;
+    logger().debug(
+        "No current viewport. Taking first viewport in map at {} instead. {} viewports in map",
+        (void*)viewport, mHDRBufferData.size());
   }
   return viewport;
 }
@@ -215,7 +218,7 @@ HDRBuffer::HDRBufferData const& HDRBuffer::getCurrentHDRBuffer() const {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 std::array<int, 2> HDRBuffer::getCurrentViewPortSize() {
-  auto* viewport = getCurrentViewportSafe();
+  auto*              viewport = getCurrentViewportSafe();
   std::array<int, 2> size{};
   viewport->GetViewportProperties()->GetSize(size.at(0), size.at(1));
   return size;
@@ -224,7 +227,7 @@ std::array<int, 2> HDRBuffer::getCurrentViewPortSize() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 std::array<int, 2> HDRBuffer::getCurrentViewPortPos() {
-  auto* viewport = getCurrentViewportSafe();
+  auto*              viewport = getCurrentViewportSafe();
   std::array<int, 2> pos{};
   viewport->GetViewportProperties()->GetPosition(pos.at(0), pos.at(1));
   return pos;
