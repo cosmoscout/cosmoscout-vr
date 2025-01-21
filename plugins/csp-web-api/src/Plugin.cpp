@@ -482,6 +482,7 @@ void Plugin::update() {
           VistaTexture* luminance_buffer = hdrBuffer->getCurrentWriteAttachment();
           luminance_buffer->Bind();
           glGetTexImage(luminance_buffer->GetTarget(), 0, GL_RGB, GL_FLOAT, (void*)mCapture.data());
+          luminance_buffer->Unbind();
         } else {
           // Capturing color images is pretty straight-forward.
           std::vector<std::byte> capture(mCaptureWidth * mCaptureHeight * 3);
