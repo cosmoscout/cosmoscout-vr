@@ -430,7 +430,7 @@ void Plugin::update() {
         glReadPixels(
             0, 0, mCaptureWidth, mCaptureHeight, GL_DEPTH_COMPONENT, GL_FLOAT, capture.data());
 
-        if (mCaptureFormat == "tiff") {
+        if (mCaptureFormat == "tiff" || mCaptureFormat == "raw") {
 
           // If a tiff image is requested, we convert the depth buffer to meters.
           std::array<GLfloat, 16> glMatP{};
@@ -446,9 +446,14 @@ void Plugin::update() {
                 (glm::length(pos.xyz() / pos.w) * mSolarSystem->getObserver().getScale()));
             capture[i] = std::isinf(dist) ? std::numeric_limits<float>::max() : dist;
           }
-
-          // Now write the tiff image.
-          tiffWriteToVector(mCapture, capture, mCaptureWidth, mCaptureHeight, 1, 32);
+          if (mCaptureFormat == "tiff") {
+            // Now write the tiff image.
+            tiffWriteToVector(mCapture, capture, mCaptureWidth, mCaptureHeight, 1, 32);
+          } else {
+            // Write raw vector
+            mCapture.resize(capture.size() * sizeof(float));
+            memcpy(mCapture.data(), capture.data(), mCapture.size());
+          }
 
         } else {
           // Capture format is png or jpeg, let's convert the depth to 8-bit.
@@ -472,7 +477,7 @@ void Plugin::update() {
         if (mCaptureFormat == "raw") {
           // larger output size, but performance is comparable or better because there is no image
           // encoding
-          mCapture.resize(mCaptureWidth * mCaptureHeight * 3 * 4);
+          mCapture.resize(mCaptureWidth * mCaptureHeight * 3 * sizeof(float));
           std::shared_ptr<cs::graphics::HDRBuffer> hdrBuffer = mGraphicsEngine->getHDRBuffer();
           VistaTexture* luminance_buffer = hdrBuffer->getCurrentWriteAttachment();
           luminance_buffer->Bind();
