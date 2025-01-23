@@ -29,32 +29,32 @@ enum class Mode { eShadow, eLimbLuminance, ePlanetView, eAtmoView };
 // Tonemapping code and color space conversions.
 // http://filmicworlds.com/blog/filmic-tonemapping-operators/
 
-__device__ glm::vec3 uncharted2Tonemap(glm::vec3 c) {
+__device__ glm::vec3 uncharted2Tonemap(glm::vec3 color) {
   const float A = 0.15;
   const float B = 0.50;
   const float C = 0.10;
   const float D = 0.20;
   const float E = 0.02;
   const float F = 0.30;
-  return ((c * (A * c + C * B) + D * E) / (c * (A * c + B) + D * F)) - E / F;
+  return ((color * (A * color + C * B) + D * E) / (color * (A * color + B) + D * F)) - E / F;
 }
 
-__device__ glm::vec3 tonemap(glm::vec3 c) {
+__device__ glm::vec3 tonemap(glm::vec3 color) {
   const float W        = 11.2;
-  c                    = uncharted2Tonemap(10.0f * c);
+  color                = uncharted2Tonemap(10.0f * color);
   glm::vec3 whiteScale = glm::vec3(1.0) / uncharted2Tonemap(glm::vec3(W));
-  return c * whiteScale;
+  return color * whiteScale;
 }
 
-__device__ float linearToSRGB(float c) {
-  if (c <= 0.0031308f)
-    return 12.92f * c;
+__device__ float linearToSRGB(float value) {
+  if (value <= 0.0031308f)
+    return 12.92f * value;
   else
-    return 1.055f * pow(c, 1.0f / 2.4f) - 0.055f;
+    return 1.055f * pow(value, 1.0f / 2.4f) - 0.055f;
 }
 
-__device__ glm::vec3 linearToSRGB(glm::vec3 c) {
-  return glm::vec3(linearToSRGB(c.r), linearToSRGB(c.g), linearToSRGB(c.b));
+__device__ glm::vec3 linearToSRGB(glm::vec3 color) {
+  return glm::vec3(linearToSRGB(color.r), linearToSRGB(color.g), linearToSRGB(color.b));
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -115,7 +115,7 @@ __global__ void computeShadowMap(common::Output output, common::Mapping mapping,
   for (uint32_t sampleV = 0; sampleV < samplesVLimb; ++sampleV) {
     double vLimb            = (static_cast<double>(sampleV) + 0.5) / samplesVLimb;
     double upperBound       = (static_cast<double>(sampleV) + 1.0) / samplesVLimb;
-    double lowerBound       = (static_cast<double>(sampleV) / samplesVLimb;
+    double lowerBound       = static_cast<double>(sampleV) / samplesVLimb;
     double upperPhiRay      = phiOcc + upperBound * (phiAtmo - phiOcc);
     double lowerPhiRay      = phiOcc + lowerBound * (phiAtmo - phiOcc);
     double rowSolidAngle    = 0.5 * (math::getCapArea(upperPhiRay) - math::getCapArea(lowerPhiRay));
