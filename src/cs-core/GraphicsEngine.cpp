@@ -202,7 +202,10 @@ GraphicsEngine::GraphicsEngine(std::shared_ptr<core::Settings> settings)
       });
 
   mSettings->mGraphics.pEnableBicubicGlareFilter.connectAndTouch(
-      [this](bool enable) { mToneMappingNode->setEnableBicubicGlareFilter(enable); });
+      [this](bool enable) { mHDRBuffer->setEnableBicubicGlareFilter(enable); });
+
+  mSettings->mGraphics.pEnable32BitGlare.connectAndTouch(
+      [this](bool enable) { mHDRBuffer->setEnable32BitGlare(enable); });
 
   mSettings->mGraphics.pExposureCompensation.connectAndTouch(
       [this](float val) { mToneMappingNode->setExposureCompensation(val); });

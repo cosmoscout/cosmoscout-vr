@@ -77,11 +77,6 @@ class CS_GRAPHICS_EXPORT ToneMappingNode : public IVistaOpenGLDraw, public Vista
   void  setGlareIntensity(float intensity);
   float getGlareIntensity() const;
 
-  /// If enabled, the more expensive but much smoother manual bicubic texture filtering is used
-  /// for the glare.
-  void setEnableBicubicGlareFilter(bool enable);
-  bool getEnableBicubicGlareFilter() const;
-
   /// Sets the tone mapping mode to be used.
   void            setToneMappingMode(ToneMappingMode mode);
   ToneMappingMode getToneMappingMode() const;
@@ -98,17 +93,16 @@ class CS_GRAPHICS_EXPORT ToneMappingNode : public IVistaOpenGLDraw, public Vista
  private:
   std::shared_ptr<HDRBuffer> mHDRBuffer;
 
-  bool            mShaderDirty              = true;
-  float           mExposureCompensation     = 0.F;
-  bool            mEnableAutoExposure       = false;
-  float           mExposure                 = 0.F;
-  float           mAutoExposure             = 0.F;
-  float           mMinAutoExposure          = -15.F;
-  float           mMaxAutoExposure          = 15.F;
-  float           mExposureAdaptionSpeed    = 1.F;
-  float           mGlareIntensity           = 0.F;
-  bool            mEnableBicubicGlareFilter = true;
-  ToneMappingMode mToneMappingMode          = ToneMappingMode::eFilmic;
+  bool            mShaderDirty           = true;
+  float           mExposureCompensation  = 0.F;
+  bool            mEnableAutoExposure    = false;
+  float           mExposure              = 0.F;
+  float           mAutoExposure          = 0.F;
+  float           mMinAutoExposure       = -15.F;
+  float           mMaxAutoExposure       = 15.F;
+  float           mExposureAdaptionSpeed = 1.F;
+  float           mGlareIntensity        = 0.F;
+  ToneMappingMode mToneMappingMode       = ToneMappingMode::eFilmic;
 
   std::unique_ptr<VistaGLSLShader> mShader;
 
@@ -120,6 +114,7 @@ class CS_GRAPHICS_EXPORT ToneMappingNode : public IVistaOpenGLDraw, public Vista
 
   struct {
     uint32_t exposure       = 0;
+    uint32_t maxLuminance   = 0;
     uint32_t glareIntensity = 0;
     uint32_t glareQuality   = 0;
   } mUniforms;
