@@ -113,9 +113,9 @@ __global__ void computeShadowMap(common::Output output, common::Mapping mapping,
   glm::vec3 indirectIlluminance(0.0);
 
   for (uint32_t sampleV = 0; sampleV < samplesVLimb; ++sampleV) {
-    double vLimb            = ((double)sampleV + 0.5) / samplesVLimb;
-    double upperBound       = ((double)sampleV + 1.0) / samplesVLimb;
-    double lowerBound       = ((double)sampleV) / samplesVLimb;
+    double vLimb            = (static_cast<double>(sampleV) + 0.5) / samplesVLimb;
+    double upperBound       = (static_cast<double>(sampleV) + 1.0) / samplesVLimb;
+    double lowerBound       = (static_cast<double>(sampleV) / samplesVLimb;
     double upperPhiRay      = phiOcc + upperBound * (phiAtmo - phiOcc);
     double lowerPhiRay      = phiOcc + lowerBound * (phiAtmo - phiOcc);
     double rowSolidAngle    = 0.5 * (math::getCapArea(upperPhiRay) - math::getCapArea(lowerPhiRay));
@@ -123,7 +123,7 @@ __global__ void computeShadowMap(common::Output output, common::Mapping mapping,
 
     for (uint32_t sampleU = 0; sampleU < samplesULimb; ++sampleU) {
 
-      double beta = (((double)sampleU + 0.5) / samplesULimb) * M_PI;
+      double beta = ((static_cast<double>(sampleU) + 0.5) / samplesULimb) * M_PI;
 
       // Compute the direction of the ray.
       double     phiRay = phiOcc + vLimb * (phiAtmo - phiOcc);
@@ -134,7 +134,7 @@ __global__ void computeShadowMap(common::Output output, common::Mapping mapping,
       glm::vec3 luminance = advanced::getLuminance(
           camera, rayDir, sunDirection, geometry, limbDarkening, textures, phiSun);
 
-      indirectIlluminance += luminance * (float)(sampleSolidAngle);
+      indirectIlluminance += luminance * static_cast<float>(sampleSolidAngle);
     }
   }
 
@@ -168,7 +168,7 @@ __global__ void computeShadowMap(common::Output output, common::Mapping mapping,
 
   // Print a rough progress estimate.
   if (i % 1000 == 0) {
-    printf("Progress: %f%%\n", (i / (float)(output.mSize * output.mSize)) * 100.0);
+    printf("Progress: %f%%\n", (i / static_cast<float>(output.mSize * output.mSize)) * 100.0);
   }
 }
 
@@ -232,15 +232,15 @@ __global__ void computeLimbLuminance(common::Output output, common::Mapping mapp
   glm::dvec3 camera       = glm::dvec3(0.0, 0.0, occDist);
   glm::dvec3 sunDirection = glm::dvec3(0.0, glm::sin(delta), -glm::cos(delta));
 
-  double beta = (((double)sampleU + 0.5) / samplesULimb) * M_PI;
+  double beta = ((static_cast<double>(sampleU) + 0.5) / samplesULimb) * M_PI;
 
   glm::vec3 luminance(0.0);
 
   for (uint32_t sampleV = 0; sampleV < samplesVLimb; ++sampleV) {
-    double vLimb = ((double)sampleV + 0.5) / samplesVLimb;
+    double vLimb = (static_cast<double>(sampleV) + 0.5) / samplesVLimb;
 
-    double layerStart = (double)layer / layers;
-    double layerEnd   = (double)(layer + 1) / layers;
+    double layerStart = static_cast<double>(layer) / layers;
+    double layerEnd   = static_cast<double>(layer + 1) / layers;
     vLimb             = layerStart + vLimb * (layerEnd - layerStart);
 
     // Compute the direction of the ray.
@@ -261,7 +261,7 @@ __global__ void computeLimbLuminance(common::Output output, common::Mapping mapp
   // Print a rough progress estimate.
   if (i % 1000 == 0) {
     printf("Progress: %f%%\n",
-        (i / (float)(output.mSize * output.mSize * output.mSize * layers)) * 100.0);
+        (i / static_cast<float>(output.mSize * output.mSize * output.mSize * layers)) * 100.0);
   }
 }
 
@@ -287,8 +287,8 @@ __global__ void drawAtmoView(common::Mapping mapping, common::Geometry geometry,
   glm::dvec3 sunDirection = glm::dvec3(0.0, glm::sin(delta), -glm::cos(delta));
 
   // Compute the direction of the ray.
-  double beta  = (x / (double)output.mSize) * M_PI;
-  double vLimb = (y / (double)output.mSize);
+  double beta  = (x / static_cast<double>(output.mSize)) * M_PI;
+  double vLimb = (y / static_cast<double>(output.mSize));
 
   double     phiRay = phiOcc + vLimb * (phiAtmo - phiOcc);
   glm::dvec3 rayDir = glm::dvec3(0.0, glm::sin(phiRay), -glm::cos(phiRay));
@@ -325,8 +325,8 @@ __global__ void drawPlanet(common::Mapping mapping, common::Geometry geometry, f
   glm::dvec3 sunDirection = glm::dvec3(0.0, glm::sin(delta), -glm::cos(delta));
 
   // Compute the direction of the ray.
-  double theta = (x / (double)output.mSize - 0.5) * fieldOfView;
-  double phi   = (y / (double)output.mSize - 0.5) * fieldOfView;
+  double theta = (x / static_cast<double>(output.mSize) - 0.5) * fieldOfView;
+  double phi   = (y / static_cast<double>(output.mSize) - 0.5) * fieldOfView;
 
   glm::dvec3 rayDir =
       glm::dvec3(glm::sin(theta) * glm::cos(phi), glm::sin(phi), -glm::cos(theta) * glm::cos(phi));
