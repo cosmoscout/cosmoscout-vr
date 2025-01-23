@@ -34,7 +34,7 @@ float E = 0.02;
 float F = 0.30;
 float W = 11.2;
 
-vec3 Uncharted2Tonemap(vec3 x) {
+vec3 uncharted2Tonemap(vec3 x) {
   return ((x * (A * x + C * B) + D * E) / (x * (A * x + B) + D * F)) - E / F;
 }
 
@@ -78,8 +78,8 @@ void main() {
 
 // Filmic
 #if TONE_MAPPING_MODE == 2
-  color           = Uncharted2Tonemap(color);
-  vec3 whiteScale = vec3(1.0) / Uncharted2Tonemap(vec3(W));
+  color           = uncharted2Tonemap(color);
+  vec3 whiteScale = vec3(1.0) / uncharted2Tonemap(vec3(W));
   oColor          = linear_to_srgb(color * whiteScale);
 
 // Gamma only

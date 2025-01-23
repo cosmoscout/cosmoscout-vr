@@ -95,13 +95,13 @@ vec3 getObserverPosition(mat4 invMV) {
 }
 
 // http://filmicworlds.com/blog/filmic-tonemapping-operators/
-float A = 0.15;
-float B = 0.50;
-float C = 0.10;
-float D = 0.20;
-float E = 0.02;
-float F = 0.30;
-float W = 11.2;
+const float A = 0.15;
+const float B = 0.50;
+const float C = 0.10;
+const float D = 0.20;
+const float E = 0.02;
+const float F = 0.30;
+const float W = 11.2;
 
 vec3 Uncharted2Tonemap(vec3 x) {
   return ((x * (A * x + C * B) + D * E) / (x * (A * x + B) + D * F)) - E / F;
