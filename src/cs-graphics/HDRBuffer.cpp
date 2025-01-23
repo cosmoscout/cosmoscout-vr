@@ -72,8 +72,8 @@ void HDRBuffer::bind() {
         glTexImage2DMultisample(
             target, mMultiSamples, internalFormat, hdrBuffer.mWidth, hdrBuffer.mHeight, false);
       } else {
-        glTexParameteri(target, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        glTexParameteri(target, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glTexParameteri(target, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         glTexParameteri(target, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(target, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         glTexImage2D(target, 0, internalFormat, hdrBuffer.mWidth, hdrBuffer.mHeight, 0, format,
@@ -252,7 +252,7 @@ float HDRBuffer::getMaximumLuminance() const {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void HDRBuffer::updateGlareMipMap() {
+void HDRBuffer::updateGlareMipMap(float maxLuminance) {
   auto&         hdrBuffer = getCurrentHDRBuffer();
   VistaTexture* composite = nullptr;
 
@@ -262,7 +262,8 @@ void HDRBuffer::updateGlareMipMap() {
     composite = hdrBuffer.mColorAttachments.at(1).get();
   }
 
-  hdrBuffer.mGlareMipMap->update(composite, mGlareMode, mGlareQuality);
+  hdrBuffer.mGlareMipMap->update(composite, maxLuminance, mGlareMode, mGlareQuality,
+      mEnableBicubicGlareFilter, mEnable32BitGlare);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -294,6 +295,30 @@ void HDRBuffer::setGlareQuality(uint32_t quality) {
 
 uint32_t HDRBuffer::getGlareQuality() const {
   return mGlareQuality;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void HDRBuffer::setEnableBicubicGlareFilter(bool enable) {
+  mEnableBicubicGlareFilter = enable;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+bool HDRBuffer::getEnableBicubicGlareFilter() const {
+  return mEnableBicubicGlareFilter;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void HDRBuffer::setEnable32BitGlare(bool enable) {
+  mEnable32BitGlare = enable;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+bool HDRBuffer::getEnable32BitGlare() const {
+  return mEnable32BitGlare;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

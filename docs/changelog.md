@@ -15,12 +15,14 @@ SPDX-License-Identifier: CC-BY-4.0
 
 #### New Features
 
+- The `csp-stars` plugin now comes with two new rendering modes: Glare Discs and Software-Rasterized Points. The latter is the new default mode and is much faster than the old ones.
 - The `csp-trajectories` now draws proxies for celestial objects when they are smaller than a few pixels in HDR mode. This makes them visible even if they are very small, such as when looking in the sky at night. This also drastically reduces flickering in HDR mode when the bodies are very small on the screen.
 - The `/capture` endpoint of the `csp-web-api` now supports an optional `restoreState` parameter. If set to `true`, the size of the window and the visibility of the user interface will be restored after capturing the image. Thanks to [@DanielPSchenk](https://github.com/DanielPSchenk) for this contribution!
 
 #### Other Changes
 
 - The simulation time can now be adjusted in a continuous manner using the slider below the timeline.
+- The glare effect of the HDR rendering has been improved. It is now much faster even if set to a higher quality.
 - The depth-write for trajectory lines has been disabled. This improves their rendering on many GPUs. They are now not always correctly composited with transparent objects, but this will produce only minor artifacts in most cases.
 - It is now possible to use the vista debug text rendering again.
 - New callback `CosmoScout.callbacks.input.reloadDFNs()` to hot reload DFN xml files.

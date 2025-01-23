@@ -554,6 +554,16 @@ SPDX-License-Identifier: MIT
                   </div>
 
                   <div class="row hdr-setting">
+                    <div class="col-7 offset-5">
+                      <label class="checklabel">
+                        <input type="checkbox" data-callback="graphics.setEnable32BitGlare" />
+                        <i class="material-icons"></i>
+                        <span>32Bit Glare Filter</span>
+                      </label>
+                    </div>
+                  </div>
+
+                  <div class="row hdr-setting">
                     <div class="col-5">
                       Tone Mapping Mode
                     </div>
@@ -924,8 +934,8 @@ SPDX-License-Identifier: MIT
       CosmoScout.gui.initSlider("graphics.setAmbientLight", 0.0, 1.0, 0.001, [0.0]);
       CosmoScout.gui.initSlider("graphics.setAmbientOcclusion", 0.0, 1.0, 0.001, [0.5]);
       CosmoScout.gui.initSlider("graphics.setExposureRange", -30.0, 30, 0.1, [-12, 9]);
-      CosmoScout.gui.initSlider("graphics.setGlareIntensity", 0.0, 1, 0.01, [0.2]);
-      CosmoScout.gui.initSlider("graphics.setGlareQuality", 0, 5, 1, [0]);
+      CosmoScout.gui.initSlider("graphics.setGlareIntensity", 0.0, 1, 0.01, [0.3]);
+      CosmoScout.gui.initSlider("graphics.setGlareQuality", 0, 5, 1, [1]);
 
       $(document).on('click', '.item-create-button', function () {
         $(this).addClass('active');

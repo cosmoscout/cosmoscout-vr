@@ -33,13 +33,14 @@ class Plugin : public cs::core::PluginBase {
     std::optional<std::string>                  mHipparcosCatalog;
     std::optional<std::string>                  mTychoCatalog;
     std::optional<std::string>                  mTycho2Catalog;
+    std::optional<std::string>                  mGaiaCatalog;
     cs::utils::DefaultProperty<bool>            mEnabled{true};
     cs::utils::DefaultProperty<bool>            mEnableCelestialGrid{false};
     cs::utils::DefaultProperty<bool>            mEnableStarFigures{false};
     cs::utils::DefaultProperty<float>           mLuminanceMultiplicator{0.F};
-    cs::utils::DefaultProperty<Stars::DrawMode> mDrawMode{Stars::DrawMode::eSmoothDisc};
+    cs::utils::DefaultProperty<Stars::DrawMode> mDrawMode{Stars::DrawMode::eSRPoint};
     cs::utils::DefaultProperty<float>           mSize{0.05F};
-    cs::utils::DefaultProperty<glm::vec2>       mMagnitudeRange{glm::vec2(-5.F, 15.F)};
+    cs::utils::DefaultProperty<glm::vec2>       mMagnitudeRange{glm::vec2(-5.F, 13.F)};
   };
 
   void init() override;

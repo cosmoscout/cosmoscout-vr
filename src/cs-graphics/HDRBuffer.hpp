@@ -76,8 +76,9 @@ class CS_GRAPHICS_EXPORT HDRBuffer {
   float getTotalLuminance() const;
   float getMaximumLuminance() const;
 
-  /// Update and access the GlareMipMap.
-  void          updateGlareMipMap();
+  /// Update and access the GlareMipMap. The maximum luminance of the current frame is required to
+  /// normalize the glare.
+  void          updateGlareMipMap(float maxLuminance);
   VistaTexture* getGlareMipMap() const;
 
   /// Specifies how the glare should be computed.
@@ -89,6 +90,15 @@ class CS_GRAPHICS_EXPORT HDRBuffer {
   /// two seems to be required for normal fields of view.
   void     setGlareQuality(uint32_t quality);
   uint32_t getGlareQuality() const;
+
+  /// If enabled, the more expensive but much smoother manual bicubic texture filtering is used
+  /// for the glare.
+  void setEnableBicubicGlareFilter(bool enable);
+  bool getEnableBicubicGlareFilter() const;
+
+  /// If enabled, the glare will be computed in 32 bit precision.
+  void setEnable32BitGlare(bool enable);
+  bool getEnable32BitGlare() const;
 
   /// Returns the depth attachment for the currently rendered viewport. Be aware, that this can be
   /// texture with the target GL_TEXTURE_2D_MULTISAMPLE if getMultiSamples() > 0.
@@ -133,6 +143,8 @@ class CS_GRAPHICS_EXPORT HDRBuffer {
 
   GlareMode                                         mGlareMode    = GlareMode::eSymmetricGauss;
   uint32_t                                          mGlareQuality = 0;
+  bool                                              mEnableBicubicGlareFilter = true;
+  bool                                              mEnable32BitGlare         = false;
   std::unordered_map<VistaViewport*, HDRBufferData> mHDRBufferData;
   float                                             mTotalLuminance   = 1.F;
   float                                             mMaximumLuminance = 1.F;

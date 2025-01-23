@@ -11,6 +11,7 @@
 
 #include "../../../src/cs-graphics/TextureLoader.hpp"
 #include "../../../src/cs-utils/FrameStats.hpp"
+#include "../../../src/cs-utils/filesystem.hpp"
 
 #ifdef _WIN32
 #include <Windows.h>
@@ -18,9 +19,11 @@
 
 #include <VistaInterProcComm/Connections/VistaByteBufferDeSerializer.h>
 #include <VistaInterProcComm/Connections/VistaByteBufferSerializer.h>
+#include <VistaKernel/DisplayManager/VistaDisplayManager.h>
 #include <VistaKernel/GraphicsManager/VistaGeometryFactory.h>
 #include <VistaKernel/GraphicsManager/VistaOpenGLNode.h>
 #include <VistaKernel/GraphicsManager/VistaSceneGraph.h>
+#include <VistaKernel/VistaSystem.h>
 #include <VistaOGLExt/VistaBufferObject.h>
 #include <VistaOGLExt/VistaGLSLShader.h>
 #include <VistaOGLExt/VistaOGLUtils.h>
@@ -47,23 +50,6 @@ bool fromString(std::string const& v, T& out) {
   return (iss.rdstate() & std::stringstream::failbit) == 0;
 }
 
-// spectral colors from B-V index -0.4 to 2.0 in steps of 0.05
-// values from  http://www.vendian.org/mncharity/dir3/starcolor/details.html
-// NOLINTNEXTLINE(cert-err58-cpp)
-const std::array sSpectralColors = {VistaColor(0x9bb2ff), VistaColor(0x9eb5ff),
-    VistaColor(0xa3b9ff), VistaColor(0xaabfff), VistaColor(0xb2c5ff), VistaColor(0xbbccff),
-    VistaColor(0xc4d2ff), VistaColor(0xccd8ff), VistaColor(0xd3ddff), VistaColor(0xdae2ff),
-    VistaColor(0xdfe5ff), VistaColor(0xe4e9ff), VistaColor(0xe9ecff), VistaColor(0xeeefff),
-    VistaColor(0xf3f2ff), VistaColor(0xf8f6ff), VistaColor(0xfef9ff), VistaColor(0xfff9fb),
-    VistaColor(0xfff7f5), VistaColor(0xfff5ef), VistaColor(0xfff3ea), VistaColor(0xfff1e5),
-    VistaColor(0xffefe0), VistaColor(0xffeddb), VistaColor(0xffebd6), VistaColor(0xffe8ce),
-    VistaColor(0xffe6ca), VistaColor(0xffe5c6), VistaColor(0xffe3c3), VistaColor(0xffe2bf),
-    VistaColor(0xffe0bb), VistaColor(0xffdfb8), VistaColor(0xffddb4), VistaColor(0xffdbb0),
-    VistaColor(0xffdaad), VistaColor(0xffd8a9), VistaColor(0xffd6a5), VistaColor(0xffd29c),
-    VistaColor(0xffd096), VistaColor(0xffcc8f), VistaColor(0xffc885), VistaColor(0xffc178),
-    VistaColor(0xffb765), VistaColor(0xffa94b), VistaColor(0xff9523), VistaColor(0xff7b00),
-    VistaColor(0xff5200)};
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 } // namespace
@@ -71,16 +57,25 @@ const std::array sSpectralColors = {VistaColor(0x9bb2ff), VistaColor(0x9eb5ff),
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 const std::array<std::array<int, Stars::NUM_COLUMNS>, Stars::NUM_CATALOGS> Stars::cColumnMapping{
-    std::array{34, 32, 11, 8, 9, 31}, // CatalogType::eHipparcos
-    std::array{34, 32, 11, 8, 9, 31}, // CatalogType::eTycho
-    std::array{19, 17, -1, 2, 3, 23}  // CatalogType::eTycho2
+    std::array{34, 11, 8, 9, 31}, // CatalogType::eHipparcos
+    std::array{34, 11, 8, 9, 31}, // CatalogType::eTycho
+    std::array{19, -1, 2, 3, 23}, // CatalogType::eTycho2
+    std::array{5, 4, 2, 3, 1}     // CatalogType::eGaia
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // Increase this if the cache format changed and is incompatible now. This will
 // force a reload.
-const int Stars::cCacheVersion = 3;
+const int Stars::cCacheVersion = 4;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+Stars::Stars() {
+  for (auto const& viewport : GetVistaSystem()->GetDisplayManager()->GetViewports()) {
+    mSRTargets[viewport.second] = {};
+  }
+}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -108,11 +103,22 @@ void Stars::setCatalogs(std::map<Stars::CatalogType, std::string> catalogs) {
 
       it = mCatalogs.find(CatalogType::eTycho2);
       if (it != mCatalogs.end()) {
-        // do not load tycho and tycho 2
+        // Do not load tycho and tycho 2.
         if (mCatalogs.find(CatalogType::eTycho) == mCatalogs.end()) {
           readStarsFromCatalog(it->first, it->second);
         } else {
           logger().warn("Failed to load Tycho2 catalog: Tycho already loaded!");
+        }
+      }
+
+      it = mCatalogs.find(CatalogType::eGaia);
+      if (it != mCatalogs.end()) {
+        // Do not load gaia together with tycho or tycho 2.
+        if (mCatalogs.find(CatalogType::eTycho) == mCatalogs.end() &&
+            mCatalogs.find(CatalogType::eTycho2) == mCatalogs.end()) {
+          readStarsFromCatalog(it->first, it->second);
+        } else {
+          logger().warn("Failed to load Gaia catalog: Tycho already loaded!");
         }
       }
 
@@ -307,7 +313,7 @@ bool Stars::Do() {
   // mLuminanceMultiplicator even if we are in full daylight.
   float sceneBrightness = (1.F - mApproximateSceneBrightness) + 0.001F;
 
-  // Start are not visible with a low luminance multiplicator
+  // Stars are not visible with a low luminance multiplicator
   if (mLuminanceMultiplicator * sceneBrightness < 0.005F) {
     return true;
   }
@@ -316,14 +322,14 @@ bool Stars::Do() {
   cs::utils::FrameStats::ScopedSamplesCounter    samplesCounter("Render Stars");
   cs::utils::FrameStats::ScopedPrimitivesCounter primitivesCounter("Render Stars");
 
-  // save current state of the OpenGL state machine
+  // Save current state of the OpenGL state machine.
   glPushAttrib(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT | GL_ENABLE_BIT);
   glDepthMask(GL_FALSE);
   glDisable(GL_DEPTH_TEST);
   glEnable(GL_BLEND);
   glBlendFunc(GL_ONE, GL_ONE);
 
-  // get matrices
+  // Get matrices.
   std::array<GLfloat, 16> glMat{};
   glGetFloatv(GL_MODELVIEW_MATRIX, glMat.data());
   VistaTransformMatrix matModelView(glMat.data(), true);
@@ -332,7 +338,14 @@ bool Stars::Do() {
   VistaTransformMatrix matProjection(glMat.data(), true);
 
   if (mShaderDirty) {
-    std::string defines = "#version 330\n";
+    std::string defines;
+
+    // The compute shader needs a higher version for gl_GlobalInvocationID.
+    if (mDrawMode == DrawMode::eSRPoint) {
+      defines += "#version 430\n";
+    } else {
+      defines += "#version 330\n";
+    }
 
     if (mEnableHDR) {
       defines += "#define ENABLE_HDR\n";
@@ -348,25 +361,58 @@ bool Stars::Do() {
       defines += "#define DRAWMODE_SMOOTH_DISC\n";
     } else if (mDrawMode == DrawMode::eScaledDisc) {
       defines += "#define DRAWMODE_SCALED_DISC\n";
+    } else if (mDrawMode == DrawMode::eGlareDisc) {
+      defines += "#define DRAWMODE_GLARE_DISC\n";
     } else if (mDrawMode == DrawMode::eSprite) {
       defines += "#define DRAWMODE_SPRITE\n";
+    } else if (mDrawMode == DrawMode::eSRPoint) {
+      defines += "#define DRAWMODE_SRPOINT\n";
     }
+
+    defines += cs::utils::filesystem::loadToString("../share/resources/shaders/starSnippets.glsl");
 
     mStarShader = VistaGLSLShader();
     if (mDrawMode == DrawMode::ePoint || mDrawMode == DrawMode::eSmoothPoint) {
-      mStarShader.InitVertexShaderFromString(defines + cStarsSnippets + cStarsVertOnePixel);
-      mStarShader.InitFragmentShaderFromString(defines + cStarsSnippets + cStarsFragOnePixel);
+      mStarShader.InitVertexShaderFromString(
+          defines +
+          cs::utils::filesystem::loadToString("../share/resources/shaders/starsOnePixel.vert"));
+      mStarShader.InitFragmentShaderFromString(
+          defines +
+          cs::utils::filesystem::loadToString("../share/resources/shaders/starsOnePixel.frag"));
+    } else if (mDrawMode == DrawMode::eSRPoint) {
+      mStarShader.InitComputeShaderFromString(
+          defines +
+          cs::utils::filesystem::loadToString("../share/resources/shaders/starsSRPoint.comp"));
+
+      mSRBlitShader = VistaGLSLShader();
+      mSRBlitShader.InitVertexShaderFromString(
+          defines +
+          cs::utils::filesystem::loadToString("../share/resources/shaders/starsSRBlit.vert"));
+      mSRBlitShader.InitFragmentShaderFromString(
+          defines +
+          cs::utils::filesystem::loadToString("../share/resources/shaders/starsSRBlit.frag"));
+      mSRBlitShader.Link();
     } else {
-      mStarShader.InitVertexShaderFromString(defines + cStarsSnippets + cStarsVert);
-      mStarShader.InitGeometryShaderFromString(defines + cStarsSnippets + cStarsGeom);
-      mStarShader.InitFragmentShaderFromString(defines + cStarsSnippets + cStarsFrag);
+      mStarShader.InitVertexShaderFromString(
+          defines +
+          cs::utils::filesystem::loadToString("../share/resources/shaders/starsBillboard.vert"));
+      mStarShader.InitGeometryShaderFromString(
+          defines +
+          cs::utils::filesystem::loadToString("../share/resources/shaders/starsBillboard.geom"));
+      mStarShader.InitFragmentShaderFromString(
+          defines +
+          cs::utils::filesystem::loadToString("../share/resources/shaders/starsBillboard.frag"));
     }
 
     mStarShader.Link();
 
     mBackgroundShader = VistaGLSLShader();
-    mBackgroundShader.InitVertexShaderFromString(defines + cBackgroundVert);
-    mBackgroundShader.InitFragmentShaderFromString(defines + cBackgroundFrag);
+    mBackgroundShader.InitVertexShaderFromString(
+        defines +
+        cs::utils::filesystem::loadToString("../share/resources/shaders/starsBackground.vert"));
+    mBackgroundShader.InitFragmentShaderFromString(
+        defines +
+        cs::utils::filesystem::loadToString("../share/resources/shaders/starsBackground.frag"));
     mBackgroundShader.Link();
 
     mUniforms.bgInverseMVMatrix  = mBackgroundShader.GetUniformLocation("uInvMV");
@@ -379,17 +425,26 @@ bool Stars::Do() {
     mUniforms.starMinMagnitude = mStarShader.GetUniformLocation("uMinMagnitude");
     mUniforms.starMaxMagnitude = mStarShader.GetUniformLocation("uMaxMagnitude");
     mUniforms.starSolidAngle   = mStarShader.GetUniformLocation("uSolidAngle");
-    mUniforms.starLuminanceMul = mStarShader.GetUniformLocation("uLuminanceMultiplicator");
+
+    if (mDrawMode == DrawMode::eSRPoint) {
+      mUniforms.starLuminanceMul = mSRBlitShader.GetUniformLocation("uLuminanceMultiplicator");
+    } else {
+      mUniforms.starLuminanceMul = mStarShader.GetUniformLocation("uLuminanceMultiplicator");
+    }
 
     mUniforms.starMVMatrix        = mStarShader.GetUniformLocation("uMatMV");
     mUniforms.starPMatrix         = mStarShader.GetUniformLocation("uMatP");
     mUniforms.starInverseMVMatrix = mStarShader.GetUniformLocation("uInvMV");
     mUniforms.starInversePMatrix  = mStarShader.GetUniformLocation("uInvP");
 
+    if (mDrawMode == DrawMode::eSRPoint) {
+      mUniforms.starCount = mStarShader.GetUniformLocation("uStarCount");
+    }
+
     mShaderDirty = false;
   }
 
-  // draw background
+  // Draw background images.
   if ((mCelestialGridTexture && mBackgroundColor1[3] != 0.F) ||
       (mStarFiguresTexture && mBackgroundColor2[3] != 0.F)) {
     mBackgroundVAO.Bind();
@@ -401,7 +456,7 @@ bool Stars::Do() {
 
     VistaTransformMatrix matMVNoTranslation = matModelView;
 
-    // reduce jitter
+    // Reduce jitter.
     matMVNoTranslation[0][3] = 0.F;
     matMVNoTranslation[1][3] = 0.F;
     matMVNoTranslation[2][3] = 0.F;
@@ -433,8 +488,13 @@ bool Stars::Do() {
     mBackgroundVAO.Release();
   }
 
-  // draw stars
-  mStarVAO.Bind();
+  // Draw stars. In software rasterization mode, we need to bind the VBO as SSBO.
+  if (mDrawMode == DrawMode::eSRPoint) {
+    mStarVBO.BindBufferBase(GL_SHADER_STORAGE_BUFFER, 0);
+  } else {
+    mStarVAO.Bind();
+  }
+
   mStarShader.Bind();
 
   if (mDrawMode == DrawMode::ePoint || mDrawMode == DrawMode::eSmoothPoint) {
@@ -455,15 +515,19 @@ bool Stars::Do() {
   mStarShader.SetUniform(mUniforms.starResolution, static_cast<float>(viewport.at(2)),
       static_cast<float>(viewport.at(3)));
 
-  mStarTexture->Bind(GL_TEXTURE0);
-  mStarShader.SetUniform(mUniforms.starTexture, 0);
+  if (mDrawMode == DrawMode::eSprite) {
+    mStarTexture->Bind(GL_TEXTURE0);
+    mStarShader.SetUniform(mUniforms.starTexture, 0);
+  }
 
   mStarShader.SetUniform(mUniforms.starMinMagnitude, mMinMagnitude);
   mStarShader.SetUniform(mUniforms.starMaxMagnitude, mMaxMagnitude);
   mStarShader.SetUniform(mUniforms.starSolidAngle, mSolidAngle);
 
   float fadeOut = mEnableHDR ? 1.F : sceneBrightness;
-  mStarShader.SetUniform(mUniforms.starLuminanceMul, mLuminanceMultiplicator * fadeOut);
+  if (mDrawMode != DrawMode::eSRPoint) {
+    mStarShader.SetUniform(mUniforms.starLuminanceMul, mLuminanceMultiplicator * fadeOut);
+  }
 
   VistaTransformMatrix matInverseMV(matModelView.GetInverted());
   VistaTransformMatrix matInverseP(matProjection.GetInverted());
@@ -473,12 +537,64 @@ bool Stars::Do() {
   glUniformMatrix4fv(mUniforms.starInverseMVMatrix, 1, GL_FALSE, matInverseMV.GetData());
   glUniformMatrix4fv(mUniforms.starInversePMatrix, 1, GL_FALSE, matInverseP.GetData());
 
-  glDrawArrays(GL_POINTS, 0, static_cast<GLsizei>(mStars.size()));
+  // The software rasterization mode is implemented as a compute shader and a blit shader.
+  // The compute pass accumulates the star luminance and color temperatures in a 2D texture. The
+  // blit shader then reads the texture, computes the final color for each pixel and writes it to
+  // the framebuffer.
+  if (mDrawMode == DrawMode::eSRPoint) {
+    // Recreate the render targets if the viewport size changed.
+    auto* viewport = GetVistaSystem()->GetDisplayManager()->GetCurrentRenderInfo()->m_pViewport;
+    auto& data     = mSRTargets[viewport];
 
-  mStarTexture->Unbind(GL_TEXTURE0);
+    int width, height;
+    viewport->GetViewportProperties()->GetSize(width, height);
+
+    if (data.mWidth != width || data.mHeight != height) {
+      data.mWidth  = width;
+      data.mHeight = height;
+
+      data.mImage = std::make_unique<VistaTexture>(GL_TEXTURE_2D);
+      data.mImage->Bind();
+      data.mImage->SetWrapS(GL_CLAMP_TO_EDGE);
+      data.mImage->SetWrapT(GL_CLAMP_TO_EDGE);
+      data.mImage->SetMinFilter(GL_NEAREST);
+      data.mImage->SetMagFilter(GL_NEAREST);
+      glTexStorage2D(GL_TEXTURE_2D, 1, GL_R32UI, width, height);
+    }
+
+    glUniform1i(mUniforms.starCount, static_cast<int>(mStars.size()));
+
+    {
+      cs::utils::FrameStats::ScopedTimer timer("Software Rasterizer");
+      glClearTexImage(data.mImage->GetId(), 0, GL_RED_INTEGER, GL_UNSIGNED_INT, nullptr);
+      glBindImageTexture(0, data.mImage->GetId(), 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_R32UI);
+
+      glDispatchCompute(static_cast<uint32_t>(std::ceil(1.0 * mStars.size() / 256)), 1, 1);
+      glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+    }
+
+    {
+      cs::utils::FrameStats::ScopedTimer timer("Blit Results");
+      mSRBlitShader.Bind();
+      mSRBlitShader.SetUniform(mUniforms.starLuminanceMul, mLuminanceMultiplicator * fadeOut);
+
+      data.mImage->Bind(GL_TEXTURE0);
+
+      glDrawArrays(GL_TRIANGLES, 0, 3);
+    }
+
+  } else {
+    // The other draw modes are very simple. They are either using point primitives or a geometry
+    // shader to create the star billboards.
+    glDrawArrays(GL_POINTS, 0, static_cast<GLsizei>(mStars.size()));
+    mStarVAO.Release();
+  }
+
+  if (mDrawMode == DrawMode::eSprite) {
+    mStarTexture->Unbind(GL_TEXTURE0);
+  }
 
   mStarShader.Release();
-  mStarVAO.Release();
 
   glDepthMask(GL_TRUE);
   glPopAttrib();
@@ -529,29 +645,26 @@ bool Stars::readStarsFromCatalog(CatalogType type, std::string const& filename) 
       std::vector<std::string> items = cs::utils::splitString(line, '|');
 
       // convert value strings to int/double/float and save in star data structure
-      // expecting Hipparcos or Tycho-1 catalog and more than 12 columns
-      if (items.size() > 12) {
+      // expecting Hipparcos or Tycho-1 catalog and more than 5 columns
+      if (items.size() > 5) {
         // skip if part of hipparcos catalogue
-        int tmp{};
-        if (type != CatalogType::eHipparcos && loadHipparcos &&
-            fromString<int>(items[cColumnMapping.at(cs::utils::enumCast(type))
-                                      .at(cs::utils::enumCast(CatalogColumn::eHipp))],
-                tmp)) {
-          continue;
+        if (type != CatalogType::eHipparcos && loadHipparcos) {
+          int  hippID{};
+          bool read = fromString<int>(items[cColumnMapping.at(cs::utils::enumCast(type))
+                                                .at(cs::utils::enumCast(CatalogColumn::eHipp))],
+              hippID);
+          if (read && hippID >= 0) {
+            continue;
+          }
         }
 
         // store star data
         bool successStoreData(true);
 
         Star star{};
-        successStoreData &= fromString<float>(
-            items[cColumnMapping.at(
-                cs::utils::enumCast(type))[cs::utils::enumCast(CatalogColumn::eVmag)]],
-            star.mVMagnitude);
-        successStoreData &= fromString<float>(
-            items[cColumnMapping.at(
-                cs::utils::enumCast(type))[cs::utils::enumCast(CatalogColumn::eBmag)]],
-            star.mBMagnitude);
+        successStoreData &= fromString<float>(items[cColumnMapping.at(cs::utils::enumCast(
+                                                  type))[cs::utils::enumCast(CatalogColumn::eMag)]],
+            star.mMagnitude);
         successStoreData &= fromString<float>(
             items[cColumnMapping.at(
                 cs::utils::enumCast(type))[cs::utils::enumCast(CatalogColumn::eRect)]],
@@ -572,6 +685,33 @@ bool Stars::readStarsFromCatalog(CatalogType type, std::string const& filename) 
           star.mParallax = 0;
         }
 
+        if (type == CatalogType::eGaia) {
+          int   GbpMinusGrpColumn = 6;
+          float GbpMinusGrp       = 0;
+          successStoreData &= fromString<float>(items[GbpMinusGrpColumn], GbpMinusGrp);
+
+          // https://doi.org/10.1051/0004-6361/201015441
+          float logTeff = 3.999F - 0.654F * GbpMinusGrp + 0.709F * std::pow(GbpMinusGrp, 2.F) -
+                          0.316F * std::pow(GbpMinusGrp, 3.F);
+          star.mTEff = std::pow(10.F, logTeff);
+
+        } else {
+          int   bMagColumn = type == CatalogType::eTycho2 ? 17 : 32;
+          float bMag       = 0;
+          successStoreData &= fromString<float>(items[bMagColumn], bMag);
+
+          // use B and V magnitude to retrieve the according color
+          float bv = bMag - star.mMagnitude;
+
+          // https://arxiv.org/pdf/1201.1809
+          // https://github.com/sczesla/PyAstronomy/blob/master/src/pyasl/asl/aslExt_1/ballesterosBV_T.py
+          const float t0 = 4600.F;
+          const float a  = 0.92F;
+          const float b  = 1.7F;
+          const float c  = 0.62F;
+          star.mTEff     = t0 * (1.0F / (a * bv + b) + 1.0F / (a * bv + c));
+        }
+
         if (successStoreData) {
           star.mAscension   = (360.F + 90.F - star.mAscension) / 180.F * Vista::Pi;
           star.mDeclination = star.mDeclination / 180.F * Vista::Pi;
@@ -580,7 +720,7 @@ bool Stars::readStarsFromCatalog(CatalogType type, std::string const& filename) 
         }
       }
 
-      // print progress status
+      // Print progress status every 10000 stars.
       if (mStars.size() % 10000 == 0) {
         logger().info("Read {} stars so far...", mStars.size());
       }
@@ -613,8 +753,8 @@ void Stars::writeStarCache(const std::string& sCacheFile) const {
 
   for (const auto& mStar : mStars) {
     // serialize star data into byte stream
-    serializer.WriteFloat32(mStar.mVMagnitude);
-    serializer.WriteFloat32(mStar.mBMagnitude);
+    serializer.WriteFloat32(mStar.mMagnitude);
+    serializer.WriteFloat32(mStar.mTEff);
     serializer.WriteFloat32(mStar.mAscension);
     serializer.WriteFloat32(mStar.mDeclination);
     serializer.WriteFloat32(mStar.mParallax);
@@ -686,8 +826,8 @@ bool Stars::readStarCache(const std::string& sCacheFile) {
 
     for (unsigned int num = 0; num < numStars; ++num) {
       Star star{};
-      deserializer.ReadFloat32(star.mVMagnitude);
-      deserializer.ReadFloat32(star.mBMagnitude);
+      deserializer.ReadFloat32(star.mMagnitude);
+      deserializer.ReadFloat32(star.mTEff);
       deserializer.ReadFloat32(star.mAscension);
       deserializer.ReadFloat32(star.mDeclination);
       deserializer.ReadFloat32(star.mParallax);
@@ -711,21 +851,12 @@ bool Stars::readStarCache(const std::string& sCacheFile) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Stars::buildStarVAO() {
-  int                c(0);
-  const int          iElementCount(7);
+  int                index(0);
+  const int          iElementCount(5);
   std::vector<float> data(iElementCount * mStars.size());
 
-  for (auto it = mStars.begin(); it != mStars.end(); ++it, c += iElementCount) {
-    // use B and V magnitude to retrieve the according color
-    const float minIdx(-0.4F);
-    const float maxIdx(2.0F);
-    const float step(0.05F);
-    float       bvIndex = std::min(maxIdx, std::max(minIdx, it->mBMagnitude - it->mVMagnitude));
-    float       normalizedIndex = (bvIndex - minIdx) / (maxIdx - minIdx) / step + 0.5F;
-    VistaColor  color           = sSpectralColors.at(static_cast<int>(normalizedIndex));
-
-    // distance in parsec --- some have parallax of zero; assume a
-    // large distance in those cases
+  for (auto it = mStars.begin(); it != mStars.end(); ++it, index += iElementCount) {
+    // Distance in parsec --- some have parallax of zero; assume a large distance in those cases.
     float fDist = 1000.F;
 
     if (it->mParallax > 0.F) {
@@ -736,13 +867,11 @@ void Stars::buildStarVAO() {
         glm::sin(it->mDeclination) * fDist,
         glm::cos(it->mDeclination) * glm::sin(it->mAscension) * fDist);
 
-    data[c]     = starPos[0];
-    data[c + 1] = starPos[1];
-    data[c + 2] = starPos[2];
-    data[c + 3] = color.GetRed();
-    data[c + 4] = color.GetGreen();
-    data[c + 5] = color.GetBlue();
-    data[c + 6] = it->mVMagnitude - 5.F * std::log10(fDist / 10.F);
+    data[index]     = starPos[0];
+    data[index + 1] = starPos[1];
+    data[index + 2] = starPos[2];
+    data[index + 3] = it->mTEff;
+    data[index + 4] = it->mMagnitude - 5.F * std::log10(fDist / 10.F);
   }
 
   mStarVBO.Bind(GL_ARRAY_BUFFER);
@@ -754,15 +883,15 @@ void Stars::buildStarVAO() {
   mStarVAO.SpecifyAttributeArrayFloat(
       0, 3, GL_FLOAT, GL_FALSE, iElementCount * sizeof(float), 0, &mStarVBO);
 
-  // color
+  // temperature
   mStarVAO.EnableAttributeArray(1);
   mStarVAO.SpecifyAttributeArrayFloat(
-      1, 3, GL_FLOAT, GL_FALSE, iElementCount * sizeof(float), 3 * sizeof(float), &mStarVBO);
+      1, 1, GL_FLOAT, GL_FALSE, iElementCount * sizeof(float), 3 * sizeof(float), &mStarVBO);
 
   // magnitude
   mStarVAO.EnableAttributeArray(2);
   mStarVAO.SpecifyAttributeArrayFloat(
-      2, 1, GL_FLOAT, GL_FALSE, iElementCount * sizeof(float), 6 * sizeof(float), &mStarVBO);
+      2, 1, GL_FLOAT, GL_FALSE, iElementCount * sizeof(float), 4 * sizeof(float), &mStarVBO);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

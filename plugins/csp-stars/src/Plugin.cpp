@@ -47,6 +47,7 @@ void from_json(nlohmann::json const& j, Plugin::Settings& o) {
   cs::core::Settings::deserialize(j, "hipparcosCatalog", o.mHipparcosCatalog);
   cs::core::Settings::deserialize(j, "tychoCatalog", o.mTychoCatalog);
   cs::core::Settings::deserialize(j, "tycho2Catalog", o.mTycho2Catalog);
+  cs::core::Settings::deserialize(j, "gaiaCatalog", o.mGaiaCatalog);
   cs::core::Settings::deserialize(j, "enabled", o.mEnabled);
   cs::core::Settings::deserialize(j, "enableCelestialGrid", o.mEnableCelestialGrid);
   cs::core::Settings::deserialize(j, "enableStarFigures", o.mEnableStarFigures);
@@ -66,6 +67,7 @@ void to_json(nlohmann::json& j, Plugin::Settings const& o) {
   cs::core::Settings::serialize(j, "hipparcosCatalog", o.mHipparcosCatalog);
   cs::core::Settings::serialize(j, "tychoCatalog", o.mTychoCatalog);
   cs::core::Settings::serialize(j, "tycho2Catalog", o.mTycho2Catalog);
+  cs::core::Settings::serialize(j, "gaiaCatalog", o.mGaiaCatalog);
   cs::core::Settings::serialize(j, "enabled", o.mEnabled);
   cs::core::Settings::serialize(j, "enableCelestialGrid", o.mEnableCelestialGrid);
   cs::core::Settings::serialize(j, "enableStarFigures", o.mEnableStarFigures);
@@ -166,9 +168,15 @@ void Plugin::init() {
       "Enables scaled disc draw mode for the stars.",
       std::function([this]() { mPluginSettings.mDrawMode = Stars::DrawMode::eScaledDisc; }));
   mGuiManager->getGui()->registerCallback("stars.setDrawMode5",
+      "Enables glare disc draw mode for the stars.",
+      std::function([this]() { mPluginSettings.mDrawMode = Stars::DrawMode::eGlareDisc; }));
+  mGuiManager->getGui()->registerCallback("stars.setDrawMode6",
       "Enables sprite draw mode for the stars.",
       std::function([this]() { mPluginSettings.mDrawMode = Stars::DrawMode::eSprite; }));
-  mPluginSettings.mDrawMode.connect([this](Stars::DrawMode drawMode) {
+  mGuiManager->getGui()->registerCallback("stars.setDrawMode7",
+      "Enables software rasterized point draw mode for the stars.",
+      std::function([this]() { mPluginSettings.mDrawMode = Stars::DrawMode::eSRPoint; }));
+  mPluginSettings.mDrawMode.connectAndTouch([this](Stars::DrawMode drawMode) {
     if (drawMode == Stars::DrawMode::ePoint) {
       mGuiManager->setRadioChecked("stars.setDrawMode0");
     } else if (drawMode == Stars::DrawMode::eSmoothPoint) {
@@ -179,8 +187,12 @@ void Plugin::init() {
       mGuiManager->setRadioChecked("stars.setDrawMode3");
     } else if (drawMode == Stars::DrawMode::eScaledDisc) {
       mGuiManager->setRadioChecked("stars.setDrawMode4");
-    } else if (drawMode == Stars::DrawMode::eSprite) {
+    } else if (drawMode == Stars::DrawMode::eGlareDisc) {
       mGuiManager->setRadioChecked("stars.setDrawMode5");
+    } else if (drawMode == Stars::DrawMode::eSprite) {
+      mGuiManager->setRadioChecked("stars.setDrawMode6");
+    } else if (drawMode == Stars::DrawMode::eSRPoint) {
+      mGuiManager->setRadioChecked("stars.setDrawMode7");
     }
   });
 
@@ -218,6 +230,7 @@ void Plugin::deInit() {
   mGuiManager->getGui()->unregisterCallback("stars.setDrawMode3");
   mGuiManager->getGui()->unregisterCallback("stars.setDrawMode4");
   mGuiManager->getGui()->unregisterCallback("stars.setDrawMode5");
+  mGuiManager->getGui()->unregisterCallback("stars.setDrawMode6");
   mGuiManager->getGui()->unregisterCallback("stars.setEnabled");
   mGuiManager->getGui()->unregisterCallback("stars.setEnableGrid");
   mGuiManager->getGui()->unregisterCallback("stars.setEnableFigures");
@@ -277,6 +290,10 @@ void Plugin::onLoad() {
 
   if (mPluginSettings.mTycho2Catalog) {
     catalogs[Stars::CatalogType::eTycho2] = *mPluginSettings.mTycho2Catalog;
+  }
+
+  if (mPluginSettings.mGaiaCatalog) {
+    catalogs[Stars::CatalogType::eGaia] = *mPluginSettings.mGaiaCatalog;
   }
 
   mStars->setCatalogs(catalogs);
