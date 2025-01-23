@@ -15,12 +15,12 @@ namespace csp::atmospheres::utils {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::tuple<GLuint, int32_t, int32_t> read2DTexture(std::string const& path) {
+std::tuple<GLuint, glm::ivec2> read2DTexture(std::string const& path) {
   auto* data = TIFFOpen(path.c_str(), "r");
 
   if (!data) {
     logger().error("Failed to open TIFF file '{}'", path);
-    return {0u, 0, 0};
+    return {0u, {0, 0}};
   }
 
   uint32_t width{};
@@ -48,17 +48,17 @@ std::tuple<GLuint, int32_t, int32_t> read2DTexture(std::string const& path) {
   glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, width, height, 0, GL_RGB, GL_FLOAT, pixels.data());
 
-  return {texture, width, height};
+  return {texture, {width, height}};
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::tuple<GLuint, int32_t, int32_t, int32_t> read3DTexture(std::string const& path) {
+std::tuple<GLuint, glm::ivec3> read3DTexture(std::string const& path) {
   auto* data = TIFFOpen(path.c_str(), "r");
 
   if (!data) {
     logger().error("Failed to open TIFF file '{}'", path);
-    return {0u, 0, 0, 0};
+    return {0u, {0, 0, 0}};
   }
 
   uint32_t width{};
@@ -96,7 +96,7 @@ std::tuple<GLuint, int32_t, int32_t, int32_t> read3DTexture(std::string const& p
   glTexImage3D(
       GL_TEXTURE_3D, 0, GL_RGB32F, width, height, depth, 0, GL_RGB, GL_FLOAT, pixels.data());
 
-  return {texture, width, height, depth};
+  return {texture, {width, height, depth}};
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

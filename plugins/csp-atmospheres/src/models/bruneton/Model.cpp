@@ -75,28 +75,26 @@ bool Model::init(
   mPhaseTexture = std::get<0>(utils::read2DTexture(settings.mDataDirectory + "/phase.tif"));
 
   {
-    auto const [t, w, h]  = utils::read2DTexture(settings.mDataDirectory + "/transmittance.tif");
+    auto const [t, s]     = utils::read2DTexture(settings.mDataDirectory + "/transmittance.tif");
     mTransmittanceTexture = t;
-    mTransmittanceTextureWidth  = w;
-    mTransmittanceTextureHeight = h;
+    mTransmittanceTextureWidth  = s.x;
+    mTransmittanceTextureHeight = s.y;
   }
 
   {
-    auto const [t, w, h] =
-        utils::read2DTexture(settings.mDataDirectory + "/indirect_illuminance.tif");
+    auto const [t, s] = utils::read2DTexture(settings.mDataDirectory + "/indirect_illuminance.tif");
     mIrradianceTexture       = t;
-    mIrradianceTextureWidth  = w;
-    mIrradianceTextureHeight = h;
+    mIrradianceTextureWidth  = s.x;
+    mIrradianceTextureHeight = s.y;
   }
 
   {
-    auto const [t, w, h, d] =
-        utils::read3DTexture(settings.mDataDirectory + "/multiple_scattering.tif");
+    auto const [t, s] = utils::read3DTexture(settings.mDataDirectory + "/multiple_scattering.tif");
     mMultipleScatteringTexture = t;
     mScatteringTextureNuSize   = meta.mScatteringTextureNuSize;
-    mScatteringTextureMuSSize  = w / mScatteringTextureNuSize;
-    mScatteringTextureMuSize   = h;
-    mScatteringTextureRSize    = d;
+    mScatteringTextureMuSSize  = s.x / mScatteringTextureNuSize;
+    mScatteringTextureMuSize   = s.y;
+    mScatteringTextureRSize    = s.z;
   }
 
   mSingleAerosolsScatteringTexture = std::get<0>(
