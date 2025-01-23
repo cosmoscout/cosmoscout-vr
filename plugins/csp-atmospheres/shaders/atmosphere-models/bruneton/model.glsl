@@ -151,7 +151,12 @@ vec3 getSkyRadianceToPoint(sampler2D transmittanceTexture, sampler3D multipleSca
   float d                      = length(point - camera);
   bool  rayRMuIntersectsGround = rayIntersectsGround(r, mu);
 
-  transmittance = getTransmittance(transmittanceTexture, r, mu, d, rayRMuIntersectsGround);
+  // We deliberately use mu < 0 for the last parameter here. This way, we compute the transmittance
+  // to the point using the ray segment which passes farthest away from the ground. If we used
+  // rayRMuIntersectsGround instead, the transmittance for rays passing very close above the horizon
+  // would compute the transmittance based on two values with a very small transmittance, which
+  // would result in precision errors, especially if refraction is enabled.
+  transmittance = getTransmittance(transmittanceTexture, r, mu, d, mu < 0);
 
   vec3 multipleScattering;
   vec3 singleAerosolsScattering;
