@@ -30,16 +30,17 @@ uniform sampler2D uDepthBuffer;
 #endif
 
 uniform vec3      uSunDir;
-uniform float     uSunIlluminance;
-uniform float     uSunLuminance;
+uniform vec3      uSunInfo; // x: sun luminance, y: sun illuminance, z: sun angular radius
 uniform float     uTime;
 uniform mat4      uMatM;
+uniform mat4      uMatMVP;
 uniform mat4      uMatScale;
 uniform mat4      uMatInvP;
 uniform float     uWaterLevel;
 uniform sampler2D uCloudTexture;
 uniform float     uCloudAltitude;
-uniform float     uSunElevation;
+uniform sampler3D uLimbLuminanceTexture;
+uniform vec3      uShadowCoordinates;
 
 // outputs
 layout(location = 0) out vec3 oColor;
@@ -48,6 +49,13 @@ layout(location = 0) out vec3 oColor;
 
 // Each atmospheric model will implement these three methods. We forward-declare them here. The
 // actual implementation comes from the model's shader which is linked to this shader.
+
+// This will return true or false depending on whether the atmosphere model supports refraction.
+bool RefractionSupported();
+
+// This will return the view ray after refraction by the atmosphere after it travelled all the way
+// to the end of the atmosphere.
+vec3 GetRefractedRay(vec3 camera, vec3 ray, out bool hitsGround);
 
 // Returns the sky luminance (in cd/m^2) along the segment from 'camera' to the nearest
 // atmosphere boundary in direction 'viewRay', as well as the transmittance along this segment.
@@ -239,30 +247,74 @@ vec2 getLngLat(vec3 position) {
 
 // Returns the background color at the current pixel. If multisampling is used, we take the average
 // color.
-vec3 getFramebufferColor() {
+vec3 getFramebufferColor(vec2 texcoords) {
 #if HDR_SAMPLES > 0
   vec3 color = vec3(0.0);
   for (int i = 0; i < HDR_SAMPLES; ++i) {
-    color += texelFetch(uColorBuffer, ivec2(vsIn.texcoords * textureSize(uColorBuffer)), i).rgb;
+    color += texelFetch(uColorBuffer, ivec2(texcoords * textureSize(uColorBuffer)), i).rgb;
   }
   return color / HDR_SAMPLES;
 #else
-  return texture(uColorBuffer, vsIn.texcoords).rgb;
+  return texture(uColorBuffer, texcoords).rgb;
 #endif
 }
 
 // Returns the depth at the current pixel. If multisampling is used, we take the minimum depth.
-float getFramebufferDepth() {
+float getFramebufferDepth(vec2 texcoords) {
 #if HDR_SAMPLES > 0
   float depth = 1.0;
   for (int i = 0; i < HDR_SAMPLES; ++i) {
-    depth = min(
-        depth, texelFetch(uDepthBuffer, ivec2(vsIn.texcoords * textureSize(uDepthBuffer)), i).r);
+    depth = min(depth, texelFetch(uDepthBuffer, ivec2(texcoords * textureSize(uDepthBuffer)), i).r);
   }
   return depth;
 #else
-  return texture(uDepthBuffer, vsIn.texcoords).r;
+  return texture(uDepthBuffer, texcoords).r;
 #endif
+}
+
+// Using acos is not very stable for small angles. This function is used to compute the angle
+// between two vectors in a more stable way.
+float angleBetweenVectors(vec3 u, vec3 v) {
+  return 2.0 * asin(0.5 * length(u - v));
+}
+
+// This methods returns a color from the framebuffer which most likely represents what an observer
+// would see if looking in the direction of the given ray. If the ray hits the ground, black is
+// returned. If the ray is refracted around the planet, we cannot sample the framebuffer but return
+// black as well. However, if the ray would hit the Sun, the color of the Sun is returned.
+vec3 getRefractedFramebufferColor(vec3 rayOrigin, vec3 rayDir, out vec3 refractedRay) {
+
+  // First, we assume that the refracted ray will leave the atmosphere unblocked. We compute the
+  // texture coordinates where the ray would hit the framebuffer.
+  bool hitsGround;
+  refractedRay = GetRefractedRay(rayOrigin, rayDir, hitsGround);
+
+  if (hitsGround) {
+    return vec3(0, 0, 0);
+  }
+
+  vec4 texcoords = uMatMVP * vec4(refractedRay, 0.0);
+  texcoords.xy   = texcoords.xy / texcoords.w * 0.5 + 0.5;
+
+  // We can only sample the color buffer if the point is inside the screen.
+  bool inside = all(lessThan(texcoords.xy, vec2(1.0))) && all(greaterThan(texcoords.xy, vec2(0.0)));
+
+  // Also, we check the depth buffer to see if the point is occluded. If it is, we do not sample
+  // the color buffer.
+  bool occluded = getFramebufferDepth(texcoords.xy) > 0.0001;
+
+  if (inside && !occluded) {
+    return getFramebufferColor(texcoords.xy);
+  }
+
+  float sunAngularRadius = uSunInfo.z;
+  float sunColor         = 0.0;
+
+  if (angleBetweenVectors(refractedRay, uSunDir) < sunAngularRadius) {
+    sunColor = uSunInfo.x;
+  }
+
+  return vec3(sunColor);
 }
 
 // Returns the distance to the surface of the depth buffer at the current pixel. If the depth of the
@@ -273,7 +325,7 @@ float getFramebufferDepth() {
 // intersection with the planet analytically and blend to this value instead. This means, if you are
 // close to a satellite, mountains of the planet below cannot poke through the atmosphere anymore.
 float getSurfaceDistance(vec3 rayOrigin, vec3 rayDir) {
-  float depth = getFramebufferDepth();
+  float depth = getFramebufferDepth(vsIn.texcoords);
 
   // If the fragment is really far away, the inverse reverse infinite projection divides by zero.
   // So we add a minimum threshold here.
@@ -433,9 +485,125 @@ float getCloudShadow(vec3 rayOrigin, vec3 rayDir) {
   return 1.0 - getCloudDensity(rayOrigin, rayDir, intersections.y) * fac;
 }
 
+// Returns a precomputed luminance of the atmosphere ring around the occluder for the
+// given observer position and viewing direction. This is used if the observer is inside the
+// shadow of the occluder. The normal atmosphere code would result in severe artifacts as only
+// a few refracted sunrays would actually hit the observer. The precomputed texture has been
+// generated by rendering the atmosphere from the occluder's point of view with a high resolution.
+// The precomputed texture is stored in a small four-dimensional texture.
+vec3 getApproximateLimbLuminance(vec3 rayOrigin, vec3 rayDir) {
+  float dist     = length(rayOrigin);
+  vec3  toCenter = rayOrigin / dist;
+  vec3  projSun  = dot(uSunDir, toCenter) * toCenter - uSunDir;
+  vec3  projAtmo = dot(rayDir, toCenter) * toCenter - rayDir;
+
+  // The x and y coordinates of the texture are computed on the CPU and passed as a uniform. They
+  // are based on the observer's position in the shadow volume.
+  float x = uShadowCoordinates.x;
+  float y = uShadowCoordinates.y;
+
+  // For each [x, y] coordinate in the texture, the texture contains a two-dimensional image of the
+  // atmosphere ring around the occluder as shown below. The image is stored layer-wise in the third
+  // dimension of the texture. The first strip of pixels is the bottom layer, the second strip is
+  // the second layer, and so on. The layers are stored consecutively in the texture. Usually, only
+  // very few layers are needed.
+  //
+  //                    projSun
+  //                       │        projAtmo
+  // This part is          ┌┬--..  /
+  // drawn below in  --->  ├┤-.  /'
+  // more detail.          └┴-./ .  \
+  //                       │β⁠/ \  .  │
+  //                       o    │ .  │
+  //                           /  .  │
+  //                       ┌--'  .  /
+  //                       ├ - '   .
+  //                       └---''
+  //
+  float beta = acos(clamp(dot(normalize(projSun), normalize(projAtmo)), -1.0, 1.0)) / PI;
+
+  // The texture is stored as a 3D texture with the size [res, res, layers * res].
+  ivec3 texSize = textureSize(uLimbLuminanceTexture, 0);
+  float res     = float(texSize.x);
+  float layers  = float(texSize.z) / res;
+
+  // If there is only one layer, we can use a fast path.
+  if (layers == 1) {
+    vec3 luminance = texture(uLimbLuminanceTexture, vec3(x, y, beta)).rgb;
+
+#if !ENABLE_HDR
+    luminance = tonemap(luminance / uSunInfo.y);
+    luminance = linearToSRGB(luminance);
+#endif
+
+    return luminance;
+  }
+
+  // As shown above, the limb is vertically subdivided in a set of layers which are stored
+  // consecutively in the texture. If there are two layers, the pixel strip from [x, y, 0] to
+  // [x, y, 0.5] contains the luminance of the bottom layer, and the pixel strip from [x, y, 0.5] to
+  // [x, y, 1.0] contains the luminance of the upper layer. The same applies for three layers, four
+  // layers, and so on.
+
+  // Add the layer start and end point we have to sample at pixel centers to avoid linear
+  // interpolation with the start or end of the next or previous layer.
+  float layerWidth = 1.0 / layers - 1.0 / res;
+
+  float phiOcc      = asin(PLANET_RADIUS / dist);
+  float phiAtmo     = asin(ATMOSPHERE_RADIUS / dist);
+  float phi         = acos(clamp(dot(rayDir, -toCenter), -1.0, 1.0)) - phiOcc;
+  float relativePhi = clamp(phi / (phiAtmo - phiOcc), 0.0, 1.0);
+
+  // This is a visualization of a vertical cross-section of the atmosphere as shown above. The
+  // planet is at the bottom, the upper atmosphere boundary is at the top. In this example, three
+  // layers are used:
+  //
+  //   phiAtmo  ┌─────────┐ 1.0
+  //            │         │
+  //            │         │
+  //            │         │
+  //            ├─────────┤
+  //            │         │
+  //            │         │  relativePhi
+  //            │         │
+  //            ├─────────┤
+  //            │         │
+  //            │         │
+  //            │         │
+  //   phiOcc   └─────────┘ 0.0
+
+  vec3 luminance;
+
+  // In the upper half of the top layer and in the lower half of the bottom layer, we do not need to
+  // blend between two layers. For all other positions, we blend between the two closest layers.
+  if (relativePhi < 0.5 / layers || relativePhi > 1.0 - 0.5 / layers) {
+    float layerStart = floor(relativePhi * layers) / layers + 0.5 / res;
+    float z          = layerStart + beta * layerWidth;
+    luminance        = texture(uLimbLuminanceTexture, vec3(x, y, z)).rgb;
+  } else {
+    float upperLayerStart = floor(relativePhi * layers + 0.5) / layers + 0.5 / res;
+    float lowerLayerStart = floor(relativePhi * layers - 0.5) / layers + 0.5 / res;
+    float upperZ          = upperLayerStart + beta * layerWidth;
+    float lowerZ          = lowerLayerStart + beta * layerWidth;
+    vec3  upperLuminance  = texture(uLimbLuminanceTexture, vec3(x, y, upperZ)).rgb;
+    vec3  lowerLuminance  = texture(uLimbLuminanceTexture, vec3(x, y, lowerZ)).rgb;
+    float blend           = relativePhi * layers - 0.5 - floor(relativePhi * layers - 0.5);
+    luminance             = mix(lowerLuminance, upperLuminance, blend);
+  }
+
+#if !ENABLE_HDR
+  luminance = tonemap(luminance / uSunInfo.y);
+  luminance = linearToSRGB(luminance);
+#endif
+
+  return luminance;
+}
+
 // -------------------------------------------------------------------------------------------------
 
 #if SKYDOME_MODE
+
+uniform float uSunElevation;
 
 // In this special mode, the atmosphere shader will draw a fish-eye view of the entire sky. This is
 // meant for testing and debugging purposes.
@@ -514,22 +682,58 @@ void main() {
 // resulting atmosphere color. Finally, we will compute the color of the clouds and overlay them as
 // well.
 void main() {
-  vec3 rayDir = normalize(vsIn.rayDir);
-
-  // Get the planet / background color without any atmosphere.
-  oColor = getFramebufferColor();
+  vec3 rayDir       = normalize(vsIn.rayDir);
+  vec3 refractedRay = rayDir;
 
   // If the ray does not actually hit the atmosphere or the exit is already behind camera, we do not
   // have to modify the color any further.
   vec2 atmosphereIntersections = intersectAtmosphere(vsIn.rayOrigin, rayDir);
   if (atmosphereIntersections.x > atmosphereIntersections.y || atmosphereIntersections.y < 0) {
+    oColor = getFramebufferColor(vsIn.texcoords);
     return;
   }
 
   // If something is in front of the atmosphere, we do not have to do anything either.
   float surfaceDistance = getSurfaceDistance(vsIn.rayOrigin, rayDir);
   if (surfaceDistance < atmosphereIntersections.x) {
+    oColor = getFramebufferColor(vsIn.texcoords);
     return;
+  }
+
+  // If possible, use the precomputed limb luminance to get the color of the atmosphere ring around
+  // the occluder.
+#if ENABLE_LIMB_LUMINANCE
+  if (RefractionSupported()) {
+    // The third coordinate of the shadow coordinates is the approximate width of the atmosphere
+    // ring around the occluder in pixels.
+    float pixelWidth = uShadowCoordinates.z;
+
+    // Use the limb luminance only if the observer is not too close to the occluder and if the
+    // ring is thinner than 50 pixels.
+    if (uShadowCoordinates.x > 0.05 && uShadowCoordinates.y > 0.0 && pixelWidth < 50.0) {
+
+      vec2 planetIntersections = intersectPlanetsphere(vsIn.rayOrigin, rayDir);
+      if (planetIntersections.x > planetIntersections.y) {
+        oColor = getApproximateLimbLuminance(vsIn.rayOrigin, rayDir);
+        return;
+      }
+    }
+  }
+#endif
+
+  vec3 entryPoint =
+      vsIn.rayOrigin + rayDir * (atmosphereIntersections.x > 0.0 ? atmosphereIntersections.x : 0.0);
+  vec3 exitPoint =
+      vsIn.rayOrigin + rayDir * (atmosphereIntersections.x > 0.0 ? atmosphereIntersections.x
+                                                                 : atmosphereIntersections.y);
+
+  // The ray hits an object if the distance to the depth buffer is smaller than the ray exit.
+  bool hitsSurface = surfaceDistance < atmosphereIntersections.y;
+
+  if (RefractionSupported() && !hitsSurface) {
+    oColor = getRefractedFramebufferColor(entryPoint, rayDir, refractedRay);
+  } else {
+    oColor = getFramebufferColor(vsIn.texcoords);
   }
 
   // Always operate in linear color space.
@@ -537,9 +741,7 @@ void main() {
   oColor = sRGBtoLinear(oColor);
 #endif
 
-  // The ray hits an object if the distance to the depth buffer is smaller than the ray exit.
-  bool hitsSurface = surfaceDistance < atmosphereIntersections.y;
-  bool underWater  = false;
+  bool underWater = false;
 
   vec4 oceanWaterShade   = vec4(0.0);
   vec4 oceanSurfaceColor = vec4(0.0);
@@ -563,9 +765,8 @@ void main() {
 
     // Looking down onto the ocean.
     if (oceanIntersections.x > 0) {
-
-      vec3        oceanSurface      = vsIn.rayOrigin + rayDir * oceanIntersections.x;
-      vec3        idealNormal       = normalize(oceanSurface);
+      vec3 oceanSurface = vsIn.rayOrigin + rayDir * oceanIntersections.x;
+      vec3 idealNormal  = normalize(oceanSurface);
 
 #if ENABLE_WAVES
       const float WAVE_SPEED        = 0.2;
@@ -624,13 +825,13 @@ void main() {
       float softSpecular      = pow(specularIntensity, 200) * 0.0001;
       float hardSpecular      = pow(specularIntensity, 2000) * 0.002;
       vec3  eclipseShadow     = getEclipseShadow((uMatM * vec4(oceanSurface, 1.0)).xyz);
-      oceanSurfaceColor.rgb += mix(softSpecular, hardSpecular, waveFade) * uSunLuminance *
+      oceanSurfaceColor.rgb += mix(softSpecular, hardSpecular, waveFade) * uSunInfo.x *
                                transmittance * eclipseShadow *
                                pow(smoothstep(0, 1, dot(uSunDir, idealNormal)), 0.2);
 
 #if !ENABLE_HDR
       // In non-HDR mode, we need to apply tone mapping to the ocean color.
-      oceanSurfaceColor.rgb = tonemap(oceanSurfaceColor.rgb / uSunIlluminance);
+      oceanSurfaceColor.rgb = tonemap(oceanSurfaceColor.rgb / uSunInfo.y);
 #endif
 
       // The atmosphere now actually ends at the ocean surface.
@@ -669,12 +870,12 @@ void main() {
     // no actual shadow volume in the atmosphere.
     eclipseShadow = getEclipseShadow((uMatM * vec4(surfacePoint, 1.0)).xyz);
 
-    // We have to divide by uSunIlluminance because the planet shader already multiplied the result
+    // We have to divide by uSunInfo.y because the planet shader already multiplied the result
     // of the BRDF with the Sun's illuminance. Since the planet shader does not know whether a
     // atmosphere will be drawn later, it only can assume that it is in direct sun light. However,
     // if there is an atmosphere, actually less light reaches the surface. So we have to divide by
     // the direct sun illuminance and multiply by the attenuated illuminance.
-    oColor = cloudShadow * oColor * illuminance / uSunIlluminance;
+    oColor = cloudShadow * oColor * illuminance / uSunInfo.y;
 
     oceanSurfaceColor.rgb *= cloudShadow;
 
@@ -683,18 +884,23 @@ void main() {
     // If the ray leaves the atmosphere unblocked, we only need to compute the luminance of the sky.
     inScatter = GetSkyLuminance(vsIn.rayOrigin, rayDir, uSunDir, transmittance);
 
+#if !ENABLE_HDR
+    // If HDR Mode is disabled, we draw an artificial Sun. Else the Sun would look very dim close to
+    // the horizon.
+    if (angleBetweenVectors(refractedRay, uSunDir) < uSunInfo.z) {
+      inScatter += uSunInfo.x;
+    }
+#endif
+
     // We also incorporate eclipse shadows. However, we only evaluate at the ray exit point. There
     // is no actual shadow volume in the atmosphere.
-    vec3 exitPoint =
-        vsIn.rayOrigin + rayDir * (atmosphereIntersections.x > 0.0 ? atmosphereIntersections.x
-                                                                   : atmosphereIntersections.y);
     eclipseShadow = getEclipseShadow((uMatM * vec4(exitPoint, 1.0)).xyz);
   }
 
   inScatter *= eclipseShadow;
 
 #if !ENABLE_HDR
-  inScatter = tonemap(inScatter / uSunIlluminance);
+  inScatter = tonemap(inScatter / uSunInfo.y);
 #endif
 
 #if ENABLE_WATER
@@ -719,7 +925,7 @@ void main() {
     cloudColor.rgb *= eclipseShadow;
 
 #if !ENABLE_HDR
-    cloudColor.rgb = tonemap(cloudColor.rgb / uSunIlluminance);
+    cloudColor.rgb = tonemap(cloudColor.rgb / uSunInfo.y);
 #endif
 
     oColor = mix(oColor, cloudColor.rgb, cloudColor.a);

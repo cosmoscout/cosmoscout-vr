@@ -47,9 +47,6 @@ class Model : public ModelBase {
   GLuint setUniforms(GLuint program, GLuint startTextureUnit) const override;
 
  private:
-  std::tuple<GLuint, int32_t, int32_t>          read2DTexture(std::string const& path) const;
-  std::tuple<GLuint, int32_t, int32_t, int32_t> read3DTexture(std::string const& path) const;
-
   int32_t mTransmittanceTextureWidth{};
   int32_t mTransmittanceTextureHeight{};
   int32_t mIrradianceTextureWidth{};
@@ -65,9 +62,10 @@ class Model : public ModelBase {
   GLuint mMultipleScatteringTexture       = 0;
   GLuint mSingleAerosolsScatteringTexture = 0;
 
-  GLuint mPhaseTexture         = 0;
-  GLuint mTransmittanceTexture = 0;
-  GLuint mIrradianceTexture    = 0;
+  GLuint mPhaseTexture          = 0;
+  GLuint mTransmittanceTexture  = 0;
+  GLuint mThetaDeviationTexture = 0;
+  GLuint mIrradianceTexture     = 0;
 
   GLuint mAtmosphereShader = 0;
 };

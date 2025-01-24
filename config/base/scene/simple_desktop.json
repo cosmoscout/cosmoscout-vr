@@ -282,9 +282,13 @@
   "graphics": {
     "enableHDR": true,
     "eclipseShadowMaps": {
-      "Earth": {},
+      "Earth": {
+        "texture":"../share/resources/textures/earthShadow.tif"
+      },
       "Moon": {},
-      "Mars": {},
+      "Mars": {
+        "texture":"../share/resources/textures/marsShadow.tif"
+      },
       "Phobos": {},
       "Deimos": {},
       "Jupiter": {},
@@ -739,6 +743,7 @@
       "atmospheres": {
         "Earth": {
           "cloudTexture": "../share/resources/textures/earth-clouds.jpg",
+          "limbLuminanceTexture": "../share/resources/textures/earthLimbLuminance.tif",
           "topAltitude": 80000,
           "bottomAltitude": -100,
           "model": "Bruneton",

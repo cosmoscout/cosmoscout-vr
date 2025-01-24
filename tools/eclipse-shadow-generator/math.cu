@@ -11,6 +11,20 @@ namespace math {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+double __host__ __device__ angleBetweenVectors(glm::dvec3 const& u, glm::dvec3 const& v) {
+  return 2.0 * glm::asin(0.5 * glm::length(u - v));
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+glm::dvec3 __host__ __device__ rotateVector(
+    glm::dvec3 const& v, glm::dvec3 const& a, double cosMu) {
+  double sinMu = glm::sqrt(1.0 - cosMu * cosMu);
+  return v * cosMu + glm::cross(a, v) * sinMu + a * glm::dot(a, v) * (1.0 - cosMu);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 double __host__ __device__ getCircleArea(double r) {
   return glm::pi<double>() * r * r;
 }
@@ -73,7 +87,7 @@ double __host__ __device__ getCircleIntersection(double rSun, double rOcc, doubl
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 double __host__ __device__ sampleCircleIntersection(
-    double rSun, double rOcc, double d, LimbDarkening const& limbDarkening) {
+    double rSun, double rOcc, double d, common::LimbDarkening const& limbDarkening) {
 
   // Sanity checks.
   d = std::abs(d);
@@ -136,42 +150,78 @@ double __host__ __device__ sampleCircleIntersection(
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-glm::dvec2 __host__ __device__ mapPixelToAngles(
-    glm::ivec2 const& pixel, uint32_t resolution, double exponent, bool includeUmbra) {
+void __host__ __device__ mapPixelToRadii(glm::ivec2 const& pixel, uint32_t resolution,
+    common::Mapping const& mapping, double& radiusOcc, double& distance) {
 
-  double x = glm::pow((1.0 * pixel.x + 0.5) / resolution, exponent);
-  double y = 1.0 - glm::pow(1.0 - (1.0 * pixel.y + 0.5) / resolution, exponent);
+  double x = glm::pow((1.0 * pixel.x + 0.5) / resolution, mapping.mExponent);
+  double y = 1.0 - glm::pow(1.0 - (1.0 * pixel.y + 0.5) / resolution, mapping.mExponent);
 
-  double phiSun = 1.0;
-  double phiOcc = phiSun / x - phiSun;
+  double radiusSun = 1.0;
+  radiusOcc        = radiusSun / x - radiusSun;
 
-  double minDelta = includeUmbra ? 0.0 : glm::max(phiOcc - phiSun, 0.0);
-  double maxDelta = phiOcc + phiSun;
+  double minDistance = mapping.mIncludeUmbra ? 0.0 : glm::max(radiusOcc - radiusSun, 0.0);
+  double maxDistance = radiusOcc + radiusSun;
 
-  double delta = minDelta + y * (maxDelta - minDelta);
-
-  return {phiOcc, delta};
+  distance = minDistance + y * (maxDistance - minDistance);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-glm::ivec2 __host__ __device__ mapAnglesToPixel(
-    glm::dvec2 const& angles, uint32_t resolution, double exponent, bool includeUmbra) {
+uint32_t __host__ __device__ mapPixelToAngles(glm::ivec2 const& pixel, uint32_t resolution,
+    common::Mapping const& mapping, common::Geometry const& geometry, double& phiOcc,
+    double& phiSun, double& delta) {
 
-  double phiSun   = 1.0;
-  double phiOcc   = angles.x;
-  double minDelta = includeUmbra ? 0.0 : glm::max(phiOcc - phiSun, 0.0);
-  double maxDelta = phiOcc + phiSun;
+  // This methods computes two circles, one representing the Sun and the other the occluder, as well
+  // as the distance between their centers. All values are scaled in such a way/ that the radius of
+  // the Solar disc is 1.0.
+  double radiusOcc, distance;
+  mapPixelToRadii(pixel, resolution, mapping, radiusOcc, distance);
 
-  glm::ivec2 pixel;
+  // To compute the actual geometry of the involved bodies, we need to find the position in space
+  // where the anguala radii and the anualar distance between the Sun and the occluder are as
+  // computed above, scaled by an unknown factor.
 
-  double x = 1.0 / (phiOcc / phiSun + 1.0);
-  pixel.x  = static_cast<int32_t>(resolution * glm::pow(x, 1.0 / exponent) - 0.5);
+  // As an initial guess, we assume that the Sun appears as large as it does from the occluder's
+  // position. So we scale all values to this.
+  phiSun = glm::asin(geometry.mRadiusSun / geometry.mSunOccDist);
+  phiOcc = glm::min(glm::pi<double>() / 2.0, radiusOcc * phiSun);
+  delta  = glm::min(glm::pi<double>() / 2.0, distance * phiSun);
 
-  double y = (angles.y - minDelta) / (maxDelta - minDelta);
-  pixel.y  = static_cast<int32_t>(resolution * (1.0 - glm::pow(1.0 - y, 1.0 / exponent)) - 0.5);
+  // If the occluder is larger than pi/2, an impossible situation is given.
+  if (phiOcc >= glm::pi<double>() / 2.0) {
+    return 0;
+  }
 
-  return pixel;
+  double   error      = 1.0;
+  uint32_t iterations = 0;
+
+  while (error > 0.0001 && ++iterations < 100) {
+
+    // Compute how far we would be from the occluder if it appeared this large.
+    double occDist = geometry.mRadiusOcc / glm::sin(phiOcc);
+
+    // Given the angular distance between the Sun and the occluder, we can compute the distance
+    // between the Sun and the searched point. This will be farther away than the initial guess.
+    double sunDist = occDist * glm::cos(delta) +
+                     glm::sqrt(occDist * occDist * glm::cos(delta) * glm::cos(delta) -
+                               occDist * occDist + geometry.mSunOccDist * geometry.mSunOccDist);
+
+    // Using the real radius of the Sun, we can now compute again how large the Sun will appear from
+    // the searched point. We use this as a new guess.
+    double newPhiSun = glm::asin(geometry.mRadiusSun / sunDist);
+    double newPhiOcc = radiusOcc * newPhiSun;
+    double newDelta  = distance * newPhiSun;
+
+    // Compute the maximum error in all three values.
+    error = glm::max(glm::abs(phiSun - newPhiSun) / phiSun,
+        glm::max(glm::abs(phiOcc - newPhiOcc) / phiOcc, glm::abs(delta - newDelta) / delta));
+
+    phiSun = newPhiSun;
+    phiOcc = newPhiOcc;
+    delta  = newDelta;
+  }
+
+  return iterations;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

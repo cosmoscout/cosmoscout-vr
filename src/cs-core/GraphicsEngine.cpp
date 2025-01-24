@@ -71,7 +71,7 @@ GraphicsEngine::GraphicsEngine(std::shared_ptr<core::Settings> settings)
     : mSettings(std::move(settings))
     , mShadowMap(std::make_shared<graphics::ShadowMap>())
     , mFallbackEclipseShadowMap(
-          graphics::TextureLoader::loadFromFile("../share/resources/textures/fallbackShadow.hdr")) {
+          graphics::TextureLoader::loadFromFile("../share/resources/textures/fallbackShadow.tif")) {
 
   // Tell the user what's going on.
   logger().debug("Creating GraphicsEngine.");

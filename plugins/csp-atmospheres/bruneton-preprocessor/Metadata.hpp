@@ -26,6 +26,9 @@ struct Metadata {
 
   /// The maximum Sun zenith angle for which atmospheric scattering was be precomputed.
   float mMaxSunZenithAngle{};
+
+  /// Whether refraction was used during preprocessing.
+  bool mRefraction{};
 };
 
 void to_json(nlohmann::json& j, Metadata const& o);
