@@ -262,8 +262,8 @@
       "file": "../share/download/stars/hip_main.dat"
     },
     {
-      "url": "ftp://ftp.imcce.fr/pub/catalogs/TYCHO-2/catalog.dat",
-      "file": "../share/download/stars/tyc2_main.dat"
+      "url": "https://github.com/cosmoscout/gaia-stars/releases/download/v1.0/gaia_brightest_5m.csv",
+      "file": "../share/download/stars/gaia_5m.csv"
     },
     {
       "url": "https://naif.jpl.nasa.gov/pub/naif/cosmographia/kernels/spice/pck/pck00010.tpc",
@@ -737,7 +737,7 @@
       ],
       "starTexture": "../share/resources/textures/star.png",
       "hipparcosCatalog": "../share/download/stars/hip_main.dat",
-      "tycho2Catalog": "../share/download/stars/tyc2_main.dat"
+      "gaiaCatalog": "../share/download/stars/gaia_5m.csv"
     },
     "csp-atmospheres": {
       "atmospheres": {
