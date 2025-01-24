@@ -57,7 +57,7 @@ bool fromString(std::string const& v, T& out) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 const std::array<std::array<int, Stars::NUM_COLUMNS>, Stars::NUM_CATALOGS> Stars::cColumnMapping{
-    std::array{34, 11, 8, 9, 31}, // CatalogType::eHipparcos
+    std::array{5, 11, 8, 9, 1},   // CatalogType::eHipparcos
     std::array{34, 11, 8, 9, 31}, // CatalogType::eTycho
     std::array{19, -1, 2, 3, 23}, // CatalogType::eTycho2
     std::array{5, 4, 2, 3, 1}     // CatalogType::eGaia
@@ -696,12 +696,22 @@ bool Stars::readStarsFromCatalog(CatalogType type, std::string const& filename) 
           star.mTEff = std::pow(10.F, logTeff);
 
         } else {
-          int   bMagColumn = type == CatalogType::eTycho2 ? 17 : 32;
-          float bMag       = 0;
-          successStoreData &= fromString<float>(items[bMagColumn], bMag);
+          float bv = 0;
 
           // use B and V magnitude to retrieve the according color
-          float bv = bMag - star.mMagnitude;
+          if (type == CatalogType::eTycho2) {
+            float bMag = 0;
+            successStoreData &= fromString<float>(items[17], bMag);
+            bv = bMag - star.mMagnitude;
+          } else {
+            bool hasBV = fromString<float>(items[37], bv);
+
+            if (!hasBV) {
+              float bMag = 0;
+              successStoreData &= fromString<float>(items[32], bMag);
+              bv = bMag - star.mMagnitude;
+            }
+          }
 
           // https://arxiv.org/pdf/1201.1809
           // https://github.com/sczesla/PyAstronomy/blob/master/src/pyasl/asl/aslExt_1/ballesterosBV_T.py
