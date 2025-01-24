@@ -98,10 +98,12 @@ void Plugin::init() {
       mStarsTransform.get(), static_cast<int>(cs::utils::DrawOrder::eStars));
 
   // Configure the stars node when a public property is changed.
-  mPluginSettings.mEnabled.connect([this](bool val) { mStarsNode->SetIsEnabled(val); });
-  mPluginSettings.mDrawMode.connect([this](Stars::DrawMode val) { mStars->setDrawMode(val); });
-  mPluginSettings.mSize.connect([this](float val) { mStars->setSolidAngle(val * 0.0001F); });
-  mPluginSettings.mMagnitudeRange.connect([this](glm::vec2 const& val) {
+  mPluginSettings.mEnabled.connectAndTouch([this](bool val) { mStarsNode->SetIsEnabled(val); });
+  mPluginSettings.mDrawMode.connectAndTouch(
+      [this](Stars::DrawMode val) { mStars->setDrawMode(val); });
+  mPluginSettings.mSize.connectAndTouch(
+      [this](float val) { mStars->setSolidAngle(val * 0.0001F); });
+  mPluginSettings.mMagnitudeRange.connectAndTouch([this](glm::vec2 const& val) {
     mStars->setMinMagnitude(val.x);
     mStars->setMaxMagnitude(val.y);
   });
