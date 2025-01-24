@@ -36,6 +36,7 @@ SPDX-License-Identifier: CC-BY-4.0
 
 #### Bug Fixes
 
+- Fixed loading of stars from the Hipparcos catalog which do not have Tycho photometry.
 - Fixed the cloud rendering across the date line in the pacific. Thanks to [@DanielPSchenk](https://github.com/DanielPSchenk) for this fix!
 - Fixed invalid terrain height of LoD bodies after reloading of the scene settings.
 - Fixed a bug which caused red rings in the clouds deep in the shadow-side of a planet.
