@@ -18,16 +18,12 @@ on:
 jobs:
   clang_format:
     name: Check Clang-Format
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
       - name: Checkout Submodules
         run: git submodule update --init plugins
-      - name: Download Clang-Format
-        run: |
-          sudo apt-get update -y
-          sudo apt-get install -y clang-format-11
       - name: Run Clang-Format
         run: ./tools/clang-format.sh
       - name: Compare Results
@@ -45,7 +41,7 @@ jobs:
 
   comment_percentage:
     name: Check Comment Percentage
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     if: github.event_name == 'pull_request'
     steps:
       - name: Checkout Current Repository
@@ -81,8 +77,8 @@ jobs:
           fi
 
   build_linux_gcc:
-    name: Linux GCC 9.3.0
-    runs-on: ubuntu-20.04
+    name: Linux GCC 11.4.0
+    runs-on: ubuntu-22.04
     if: >
       github.event_name == 'pull_request' ||
       ( contains(github.ref, 'main') && !contains(github.event.head_commit.message, '[no-ci]') ) ||
@@ -134,15 +130,15 @@ jobs:
           path-to-lcov: ./build/linux-Release/coverage.info
 
   build_linux_clang:
-    name: Linux Clang 11.0
-    runs-on: ubuntu-20.04
+    name: Linux Clang 14.0
+    runs-on: ubuntu-22.04
     if: >
       github.event_name == 'pull_request' ||
       ( contains(github.ref, 'main') && !contains(github.event.head_commit.message, '[no-ci]') ) ||
       contains(github.event.head_commit.message, '[run-ci]')
     env:
-      CC: clang-11
-      CXX: clang++-11
+      CC: clang-14
+      CXX: clang++-14
       COSMOSCOUT_USE_PCH: false
       COSMOSCOUT_USE_UNITY_BUILD: false
     steps:

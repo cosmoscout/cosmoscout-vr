@@ -39,7 +39,7 @@ class FloorGrid : public IVistaOpenGLDraw {
   FloorGrid(FloorGrid&& other)      = default;
 
   FloorGrid& operator=(FloorGrid const& other) = delete;
-  FloorGrid& operator=(FloorGrid&& other) = delete;
+  FloorGrid& operator=(FloorGrid&& other)      = delete;
 
   ~FloorGrid();
 

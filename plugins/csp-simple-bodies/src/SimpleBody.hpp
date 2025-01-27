@@ -43,7 +43,7 @@ class SimpleBody : public cs::scene::CelestialSurface,
   SimpleBody(SimpleBody&& other)      = default;
 
   SimpleBody& operator=(SimpleBody const& other) = delete;
-  SimpleBody& operator=(SimpleBody&& other) = default;
+  SimpleBody& operator=(SimpleBody&& other)      = default;
 
   ~SimpleBody() override;
 

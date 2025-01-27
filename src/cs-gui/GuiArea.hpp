@@ -38,7 +38,7 @@ class CS_GUI_EXPORT GuiArea {
   GuiArea(GuiArea&& other)      = delete;
 
   GuiArea& operator=(GuiArea const& other) = delete;
-  GuiArea& operator=(GuiArea&& other) = delete;
+  GuiArea& operator=(GuiArea&& other)      = delete;
 
   ~GuiArea() = default;
 

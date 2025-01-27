@@ -275,7 +275,7 @@ class TimingsApi extends IApi {
     }
 
     // Compute the number of required grid lines.
-    let ticks       = Math.floor(maxTime / interval);
+    let   ticks     = Math.floor(maxTime / interval);
     const gridLines = document.createElement('template');
 
     for (let i = 0; i <= ticks; i++) {

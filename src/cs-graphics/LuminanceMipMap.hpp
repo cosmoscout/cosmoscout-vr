@@ -27,7 +27,7 @@ class CS_GRAPHICS_EXPORT LuminanceMipMap : public VistaTexture {
   LuminanceMipMap(LuminanceMipMap&& other)      = delete;
 
   LuminanceMipMap& operator=(LuminanceMipMap const& other) = delete;
-  LuminanceMipMap& operator=(LuminanceMipMap&& other) = delete;
+  LuminanceMipMap& operator=(LuminanceMipMap&& other)      = delete;
 
   /// Perform the parallel reduction of luminance values. This is a costly operation and should only
   /// be called once a frame.

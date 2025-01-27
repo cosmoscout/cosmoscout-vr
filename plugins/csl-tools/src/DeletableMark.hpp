@@ -28,7 +28,7 @@ class CSL_TOOLS_EXPORT DeletableMark : public Mark {
   DeletableMark(DeletableMark&& other)      = delete;
 
   DeletableMark& operator=(DeletableMark const& other) = delete;
-  DeletableMark& operator=(DeletableMark&& other) = delete;
+  DeletableMark& operator=(DeletableMark&& other)      = delete;
 
   ~DeletableMark() override;
 

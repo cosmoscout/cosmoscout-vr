@@ -42,7 +42,7 @@ class PathTool : public IVistaOpenGLDraw, public csl::tools::MultiPointTool {
   PathTool(PathTool&& other)      = delete;
 
   PathTool& operator=(PathTool const& other) = delete;
-  PathTool& operator=(PathTool&& other) = delete;
+  PathTool& operator=(PathTool&& other)      = delete;
 
   ~PathTool() override;
 

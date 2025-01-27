@@ -306,7 +306,7 @@ void Mark::initData() {
     double height  = surface ? surface->getHeight(lngLat) : 0.0;
     auto   radii   = object->getRadii();
     mPosition      = cs::utils::convert::toCartesian(
-        lngLat, radii, height * mSettings->mGraphics.pHeightScale.get());
+             lngLat, radii, height * mSettings->mGraphics.pHeightScale.get());
   });
 
   // connect the heightscale value to this object. Whenever the heightscale value changes

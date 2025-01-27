@@ -38,7 +38,7 @@ class Satellite {
   Satellite(Satellite&& other)      = default;
 
   Satellite& operator=(Satellite const& other) = delete;
-  Satellite& operator=(Satellite&& other) = delete;
+  Satellite& operator=(Satellite&& other)      = delete;
 
   ~Satellite();
 

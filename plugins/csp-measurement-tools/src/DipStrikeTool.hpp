@@ -48,7 +48,7 @@ class DipStrikeTool : public IVistaOpenGLDraw, public csl::tools::MultiPointTool
   DipStrikeTool(DipStrikeTool&& other)      = delete;
 
   DipStrikeTool& operator=(DipStrikeTool const& other) = delete;
-  DipStrikeTool& operator=(DipStrikeTool&& other) = delete;
+  DipStrikeTool& operator=(DipStrikeTool&& other)      = delete;
 
   ~DipStrikeTool() override;
 

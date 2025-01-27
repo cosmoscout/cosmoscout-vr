@@ -127,7 +127,7 @@ class CS_CORE_EXPORT InputManager : public VistaKeyboardSystemControl::IVistaDir
   InputManager(InputManager&& other)      = delete;
 
   InputManager& operator=(InputManager const& other) = delete;
-  InputManager& operator=(InputManager&& other) = delete;
+  InputManager& operator=(InputManager&& other)      = delete;
 
   ~InputManager() override;
 

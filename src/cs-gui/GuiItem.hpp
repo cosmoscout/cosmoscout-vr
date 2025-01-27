@@ -26,7 +26,7 @@ class CS_GUI_EXPORT GuiItem : public WebView {
   GuiItem(GuiItem&& other)      = delete;
 
   GuiItem& operator=(GuiItem const& other) = delete;
-  GuiItem& operator=(GuiItem&& other) = delete;
+  GuiItem& operator=(GuiItem&& other)      = delete;
 
   ~GuiItem() override;
 
