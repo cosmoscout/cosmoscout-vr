@@ -489,8 +489,8 @@ void Plugin::update() {
           } else {
             // without HDR, output is float in [0, 1], but the values in the buffer were
             // previously converted to uint [0, 255]. For high quality raw output, use HDR mode.
-            glReadPixels(
-                0, 0, mCaptureWidth, mCaptureHeight, GL_RGB, GL_FLOAT, (void*)mCapture.data());
+            glReadPixels(0, 0, mCaptureWidth, mCaptureHeight, GL_RGB, GL_FLOAT,
+                static_cast<void*>(mCapture.data()));
           }
         } else {
           // Capturing color images is pretty straight-forward.
