@@ -77,7 +77,7 @@ jobs:
           fi
 
   build_linux_gcc:
-    name: Linux GCC 9.3.0
+    name: Linux GCC 11.4.0
     runs-on: ubuntu-22.04
     if: >
       github.event_name == 'pull_request' ||
@@ -130,15 +130,15 @@ jobs:
           path-to-lcov: ./build/linux-Release/coverage.info
 
   build_linux_clang:
-    name: Linux Clang 11.0
+    name: Linux Clang 14.0
     runs-on: ubuntu-22.04
     if: >
       github.event_name == 'pull_request' ||
       ( contains(github.ref, 'main') && !contains(github.event.head_commit.message, '[no-ci]') ) ||
       contains(github.event.head_commit.message, '[run-ci]')
     env:
-      CC: clang-11
-      CXX: clang++-11
+      CC: clang-14
+      CXX: clang++-14
       COSMOSCOUT_USE_PCH: false
       COSMOSCOUT_USE_UNITY_BUILD: false
     steps:
