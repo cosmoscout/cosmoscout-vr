@@ -24,10 +24,6 @@ jobs:
         uses: actions/checkout@v4
       - name: Checkout Submodules
         run: git submodule update --init plugins
-      - name: Download Clang-Format
-        run: |
-          sudo apt-get update -y
-          sudo apt-get install -y clang-format-11
       - name: Run Clang-Format
         run: ./tools/clang-format.sh
       - name: Compare Results
