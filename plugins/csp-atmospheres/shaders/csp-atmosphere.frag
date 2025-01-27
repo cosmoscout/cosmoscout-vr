@@ -320,15 +320,62 @@ vec4 getOceanShade(float d) {
 
 // -------------------------------------------------------------------------------------------------
 
+float remap(float v, float min_old, float max_old, float min_new, float max_new){
+  float v_in_0_1 = (v - min_old) / (max_old - min_old);
+  return clamp(v_in_0_1 * (max_new - min_new) + min_new, min_new, max_new);
+}
+
+
+float baseCloudNoise(vec3 position){
+  const float BASE_FREQ = 1. / 100000;
+  float freq = BASE_FREQ;
+  float noise = simplex3D(position * BASE_FREQ);
+  const float OCTAVE_STEP = 1.2;
+  const int NUM_OCTAVES = 10;
+  for(int i = 0; i < NUM_OCTAVES; i++){
+    freq *= OCTAVE_STEP;
+    noise = remap(simplex3D(position * freq), 0, noise, 0, 1);
+  }
+  //return simplex3DFractal(position / 10000);
+  return noise;
+}
+
+// varies randomly only in lat/long direction
+float getCloudCoverage(vec3 position){
+  float topAltitude = PLANET_RADIUS + uCloudAltitude;
+  float thickness = uCloudAltitude * 0.5;
+  // "progress" in cloud from bottom to top in range 0 to 1
+  float height_in_cloud = remap(length(position), topAltitude - thickness, topAltitude, 0, 1);
+  float height_component = remap(height_in_cloud, 0, .3, 0, 1) * remap(height_in_cloud, 0.7, 1, 1, 0);
+  vec2 lngLat = getLngLat(position);
+  vec2 texCoords = vec2(lngLat.x / (2 * PI) + 0.5, 1.0 - lngLat.y / PI + 0.5);
+  float texture_contrib = texture(uCloudTexture, texCoords).r;
+
+  return texture_contrib * height_component;
+  
+  const float TOTAL_COVERAGE = .3;
+  const float DENSE_REGION_FRACTION = .3;
+  // relatively low frequency noise
+  float map_contribution = simplex3DFractal(vec3(lngLat * 10, 0));
+  return remap(texture_contrib, TOTAL_COVERAGE, 1. - (1. - TOTAL_COVERAGE) * DENSE_REGION_FRACTION, 0, 1) /* height_component*/;
+}
+
 // Returns the value of the cloud texture at the position described by the three parameters.
 float getCloudDensity(vec3 rayOrigin, vec3 rayDir, float tIntersection) {
   vec3 position  = rayOrigin + rayDir * tIntersection;
   vec2 lngLat    = getLngLat(position);
   vec2 texCoords = vec2(lngLat.x / (2 * PI) + 0.5, 1.0 - lngLat.y / PI + 0.5);
+  float texture_contrib = texture(uCloudTexture, texCoords).r;
+  float noise_contrib = clamp(simplex3DFractal(vec3(texCoords * 100, length(position) / 100)), 0., 1.);
+  float cloud_density = texture_contrib * noise_contrib;
+  // only use cloud coverage for now
+  float cloud_coverage = getCloudCoverage(position);
+  cloud_density = remap(baseCloudNoise(position), 0, 1, 0, 1);
+  //cloud_density = texture_contrib;
 #if ENABLE_HDR
-  return sRGBtoLinear(texture(uCloudTexture, texCoords).r);
+  return cloud_density;
 #else
-  return texture(uCloudTexture, texCoords).r;
+  return cloud_density;
 #endif
 }
 
@@ -353,7 +400,7 @@ vec4 getCloudColor(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, float surfaceDistan
   float topAltitude = PLANET_RADIUS + uCloudAltitude;
 
   // The number of cloud layers.
-  int samples = 10;
+  int samples = 20;
 
   vec2 intersections = intersectSphere(rayOrigin, rayDir, topAltitude);
 
@@ -383,12 +430,12 @@ vec4 getCloudColor(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, float surfaceDistan
     float fac           = 1.0;
 
     // Reduce cloud opacity when end point is very close to planet surface.
-    fac *= clamp(abs(surfaceDistance - intersections.x) / fadeWidth, 0, 1);
-    fac *= clamp(abs(surfaceDistance - intersections.y) / fadeWidth, 0, 1);
+    //fac *= clamp(abs(surfaceDistance - intersections.x) / fadeWidth, 0, 1);
+    //fac *= clamp(abs(surfaceDistance - intersections.y) / fadeWidth, 0, 1);
 
     // Reduce cloud opacity when start point is very close to cloud surface.
-    fac *= clamp(abs(intersections.x) / thickness, 0, 1);
-    fac *= clamp(abs(intersections.y) / thickness, 0, 1);
+    //fac *= clamp(abs(intersections.x) / thickness, 0, 1);
+    //fac *= clamp(abs(intersections.y) / thickness, 0, 1);
 
     // If we intersect the cloud sphere...
     if (intersections.y > 0 && intersections.x < intersections.y) {
@@ -403,10 +450,14 @@ vec4 getCloudColor(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, float surfaceDistan
       }
     }
   }
-
+  density /= samples;
   // Compute the final color based on the cloud density.
+  /*
   return vec4(
-      transmittance * (sunIlluminance + skyIlluminance) / PI + inScatter, density / samples);
+    density, 1- density, 0, 1
+  ) * 100;*/
+  return vec4(
+      transmittance * (sunIlluminance + skyIlluminance) / PI + inScatter, density);
 }
 
 // This returns the density of the clouds when seen from rayOrigin looking into rayDir. This is used
