@@ -10,6 +10,7 @@
 #include "angstromMode.hpp"
 #include "densityMode.hpp"
 #include "hulstMode.hpp"
+#include "iorMode.hpp"
 #include "manualMode.hpp"
 #include "mieMode.hpp"
 #include "ozoneMode.hpp"
@@ -38,6 +39,7 @@ void printHelp() {
   std::cout << "dhenyey   Write the Double-Henyey-Greenstein phase function for the given wavelengths." << std::endl;
   std::cout << "ozone     Write ozone absorption coefficients for the given wavelengths." << std::endl;
   std::cout << "density   Precompute particle density distributions as a function of altitude." << std::endl;
+  std::cout << "ior       Precompute atmospheric index of refraction as a function of altitude." << std::endl;
 }
 // clang-format on
 
@@ -95,6 +97,10 @@ int main(int argc, char** argv) {
 
   if (cMode == "density") {
     return densityMode(arguments);
+  }
+
+  if (cMode == "ior") {
+    return iorMode(arguments);
   }
 
   printHelp();

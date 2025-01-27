@@ -26,6 +26,10 @@ uniform sampler3D uMultipleScatteringTexture;
 uniform sampler3D uSingleAerosolsScatteringTexture;
 uniform sampler2D uIrradianceTexture;
 
+#if USE_REFRACTION
+uniform sampler2D uThetaDeviationTexture;
+#endif
+
 vec3 moleculePhaseFunction(float nu) {
   float theta = acos(nu) / PI; // 0<->1
   return texture2D(uPhaseTexture, vec2(theta, 0.0)).rgb;
@@ -147,7 +151,12 @@ vec3 getSkyRadianceToPoint(sampler2D transmittanceTexture, sampler3D multipleSca
   float d                      = length(point - camera);
   bool  rayRMuIntersectsGround = rayIntersectsGround(r, mu);
 
-  transmittance = getTransmittance(transmittanceTexture, r, mu, d, rayRMuIntersectsGround);
+  // We deliberately use mu < 0 for the last parameter here. This way, we compute the transmittance
+  // to the point using the ray segment which passes farthest away from the ground. If we used
+  // rayRMuIntersectsGround instead, the transmittance for rays passing very close above the horizon
+  // would compute the transmittance based on two values with a very small transmittance, which
+  // would result in precision errors, especially if refraction is enabled.
+  transmittance = getTransmittance(transmittanceTexture, r, mu, d, mu < 0);
 
   vec3 multipleScattering;
   vec3 singleAerosolsScattering;
@@ -207,6 +216,44 @@ vec3 getSunAndSkyIrradiance(sampler2D transmittanceTexture, sampler2D irradiance
 
   // Direct irradiance.
   return SOLAR_ILLUMINANCE * getTransmittanceToSun(transmittanceTexture, r, muS);
+}
+
+// Rodrigues' rotation formula
+vec3 rotateVector2(vec3 v, vec3 a, float sinMu) {
+  float cosMu = sqrt(1.0 - sinMu * sinMu);
+  return v * cosMu + cross(a, v) * sinMu + a * dot(a, v) * (1.0 - cosMu);
+}
+
+// Public API --------------------------------------------------------------------------------------
+
+bool RefractionSupported() {
+#if USE_REFRACTION
+  return true;
+#else
+  return false;
+#endif
+}
+
+// If refraction is supported, the ray is rotated by the angle of deviation stored in the deviation
+// texture towards the ground.
+vec3 GetRefractedRay(vec3 camera, vec3 ray, out bool hitsGround) {
+#if USE_REFRACTION
+  float r  = length(camera);
+  float mu = dot(camera / r, ray);
+  vec2  uv = getTransmittanceTextureUvFromRMu(r, mu);
+
+  vec2  deviationContactRadius = texture(uThetaDeviationTexture, uv).rg;
+  float sinMu                  = sin(deviationContactRadius.r);
+  vec3  axis                   = normalize(cross(camera, ray));
+
+  hitsGround = deviationContactRadius.g < 0.0;
+
+  return rotateVector2(ray, axis, sinMu);
+
+#else
+  hitsGround = false;
+  return ray;
+#endif
 }
 
 vec3 GetSkyLuminance(vec3 camera, vec3 viewRay, vec3 sunDirection, out vec3 transmittance) {

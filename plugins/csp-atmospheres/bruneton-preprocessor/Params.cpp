@@ -31,13 +31,18 @@ void from_json(nlohmann::json const& j, Params& o) {
   cs::core::Settings::deserialize(j, "molecules", o.mMolecules);
   cs::core::Settings::deserialize(j, "aerosols", o.mAerosols);
   cs::core::Settings::deserialize(j, "ozone", o.mOzone);
+  cs::core::Settings::deserialize(j, "ior", o.mRefractiveIndex);
   cs::core::Settings::deserialize(j, "minAltitude", o.mMinAltitude);
   cs::core::Settings::deserialize(j, "maxAltitude", o.mMaxAltitude);
+  cs::core::Settings::deserialize(j, "refraction", o.mRefraction);
   cs::core::Settings::deserialize(j, "groundAlbedo", o.mGroundAlbedo);
   cs::core::Settings::deserialize(j, "multiScatteringOrder", o.mMultiScatteringOrder);
   cs::core::Settings::deserialize(j, "sampleCountOpticalDepth", o.mSampleCountOpticalDepth);
+  cs::core::Settings::deserialize(j, "stepSizeOpticalDepth", o.mStepSizeOpticalDepth);
   cs::core::Settings::deserialize(j, "sampleCountSingleScattering", o.mSampleCountSingleScattering);
+  cs::core::Settings::deserialize(j, "stepSizeSingleScattering", o.mStepSizeSingleScattering);
   cs::core::Settings::deserialize(j, "sampleCountMultiScattering", o.mSampleCountMultiScattering);
+  cs::core::Settings::deserialize(j, "stepSizeMultiScattering", o.mStepSizeMultiScattering);
   cs::core::Settings::deserialize(
       j, "sampleCountScatteringDensity", o.mSampleCountScatteringDensity);
   cs::core::Settings::deserialize(
