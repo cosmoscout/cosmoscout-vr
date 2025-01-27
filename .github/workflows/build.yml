@@ -18,7 +18,7 @@ on:
 jobs:
   clang_format:
     name: Check Clang-Format
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -45,7 +45,7 @@ jobs:
 
   comment_percentage:
     name: Check Comment Percentage
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     if: github.event_name == 'pull_request'
     steps:
       - name: Checkout Current Repository
@@ -82,7 +82,7 @@ jobs:
 
   build_linux_gcc:
     name: Linux GCC 9.3.0
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     if: >
       github.event_name == 'pull_request' ||
       ( contains(github.ref, 'main') && !contains(github.event.head_commit.message, '[no-ci]') ) ||
@@ -135,7 +135,7 @@ jobs:
 
   build_linux_clang:
     name: Linux Clang 11.0
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     if: >
       github.event_name == 'pull_request' ||
       ( contains(github.ref, 'main') && !contains(github.event.head_commit.message, '[no-ci]') ) ||
