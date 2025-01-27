@@ -44,7 +44,7 @@ class CS_GRAPHICS_EXPORT HDRBuffer {
   HDRBuffer(HDRBuffer&& other)      = delete;
 
   HDRBuffer& operator=(HDRBuffer const& other) = delete;
-  HDRBuffer& operator=(HDRBuffer&& other) = delete;
+  HDRBuffer& operator=(HDRBuffer&& other)      = delete;
 
   virtual ~HDRBuffer();
 
@@ -104,10 +104,11 @@ class CS_GRAPHICS_EXPORT HDRBuffer {
   VistaTexture* getCurrentReadAttachment() const;
 
   /// Helper methods to access the size and position of the viewports we are currently rendering to.
-  static std::array<int, 2> getCurrentViewPortSize();
-  static std::array<int, 2> getCurrentViewPortPos();
+  std::array<int, 2> getCurrentViewPortSize();
+  std::array<int, 2> getCurrentViewPortPos();
 
  private:
+  VistaViewport* getCurrentViewportSafe() const;
   // There is one of these structs for each viewport. That means, we have a separate framebuffer
   // object, GlareMipMap and LuminanceMipMap for each viewport. This is mainly because viewports
   // often have different sizes.

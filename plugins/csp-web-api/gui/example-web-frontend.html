@@ -199,11 +199,13 @@ SPDX-License-Identifier: MIT
               --output image.png
             </div>
 
-            Images can be retrieved in the png, jpeg, and tiff formats.
+            Images can be retrieved in the png, jpeg, and tiff or raw formats. 
             Color images will always be returned with three 8 bits channels.
             Depth images will be returned as 32 bit floating point grayscale if the tiff format is
             used (which is default for depth image requests). If depth images are requested as png
             or jpeg file, they will be normalized to the 8 bit range.
+            Raw just transmits the contents of the luminance buffer without any color mapping as
+            32 bit floating point values.
 
             <table>
               <thead>
@@ -246,9 +248,10 @@ SPDX-License-Identifier: MIT
                 </tr>
                 <tr>
                   <td>format</td>
-                  <td>png <br> tiff</td>
-                  <td>This can be either 'png', 'jpeg', or 'tiff'. It defaults to 'png' for color
-                    images and to 'tiff' for depth images.</td>
+                  <td>png <br> jpeg <br> tiff <br> raw</td>
+                  <td>This can be either 'png', 'jpeg', 'tiff', or 'raw'. It defaults to 'png' for color
+                    images and to 'tiff' for depth images. 'raw' transmits the contents of the luminance buffer without
+                    color mapping.</td>
                 </tr>
                 <tr>
                   <td>depth</td>
@@ -566,7 +569,7 @@ function runJS(code) {
     function reloadScreenshot() {
       document.getElementById('screenshot').src = "";
       document.getElementById('screenshot').src =
-        "/capture?width=1200&height=600&delay=10&gui=false&random=" + new Date().getTime();
+        "/capture?width=1200&height=600&delay=10&gui=false&restoreState=true&random=" + new Date().getTime();
     }
 
     // Initial loading.
