@@ -11,6 +11,9 @@
 # this script.
 SRC_DIR="$( cd "$( dirname "$0" )" && pwd )"
 
+# Print the clang-format version.
+echo "Using clang-format $(clang-format --version)"
+
 # Execute clang format for all *.cpp, *.hpp and *.inl files.
 find "$SRC_DIR/../src" "$SRC_DIR/../plugins" "$SRC_DIR/../resources" "$SRC_DIR/../tools" -type f \
      \( -name '*.cpp' -o -name '*.hpp' -o -name '*.inl' -o \
