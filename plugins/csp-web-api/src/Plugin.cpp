@@ -478,11 +478,20 @@ void Plugin::update() {
           // larger output size, but performance is comparable or better because there is no image
           // encoding
           mCapture.resize(mCaptureWidth * mCaptureHeight * 3 * sizeof(float));
-          std::shared_ptr<cs::graphics::HDRBuffer> hdrBuffer = mGraphicsEngine->getHDRBuffer();
-          VistaTexture* luminance_buffer = hdrBuffer->getCurrentWriteAttachment();
-          luminance_buffer->Bind();
-          glGetTexImage(luminance_buffer->GetTarget(), 0, GL_RGB, GL_FLOAT, (void*)mCapture.data());
-          luminance_buffer->Unbind();
+          if (mAllSettings->mGraphics.pEnableHDR.get()) {
+            // using the hdr buffer
+            std::shared_ptr<cs::graphics::HDRBuffer> hdrBuffer = mGraphicsEngine->getHDRBuffer();
+            VistaTexture* luminance_buffer = hdrBuffer->getCurrentWriteAttachment();
+            luminance_buffer->Bind();
+            glGetTexImage(
+                luminance_buffer->GetTarget(), 0, GL_RGB, GL_FLOAT, (void*)mCapture.data());
+            luminance_buffer->Unbind();
+          } else {
+            // without HDR, output is float in [0, 1], but the values in the buffer were
+            // previously converted to uint [0, 255]. For high quality raw output, use HDR mode.
+            glReadPixels(
+                0, 0, mCaptureWidth, mCaptureHeight, GL_RGB, GL_FLOAT, (void*)mCapture.data());
+          }
         } else {
           // Capturing color images is pretty straight-forward.
           std::vector<std::byte> capture(mCaptureWidth * mCaptureHeight * 3);
