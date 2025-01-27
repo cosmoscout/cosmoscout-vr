@@ -21,6 +21,7 @@ SPDX-License-Identifier: CC-BY-4.0
 - `csp-stars` now comes with two new rendering modes: Glare Discs and Software-Rasterized Points. The latter is the new default mode and is much faster than the old ones.
 - The default configuration now uses the five million brightest stars from ESA's Gaia DDR3 catalog. This looks much better than the Tycho-2 catalog used before.
 - The `/capture` endpoint of the `csp-web-api` now supports an optional `restoreState` parameter. If set to `true`, the size of the window and the visibility of the user interface will be restored after capturing the image. Thanks to [@DanielPSchenk](https://github.com/DanielPSchenk) for this contribution!
+- The `/capture` endpoint of the `csp-web-api` now supports a `raw` format. This will transmit the contents of the depth buffer or color buffer as a raw 32bit floating point buffer. If HDR rendering is enabled, this will return the actual luminance values of the scene before tone mapping is applied. Thanks to [@DanielPSchenk](https://github.com/DanielPSchenk) for this contribution!
 
 #### Other Changes
 
