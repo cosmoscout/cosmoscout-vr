@@ -23,6 +23,7 @@
 #include <VistaKernel/DisplayManager/VistaWindow.h>
 #include <VistaKernel/VistaFrameLoop.h>
 #include <VistaKernel/VistaSystem.h>
+#include <VistaOGLExt/VistaTexture.h>
 #include <curlpp/cURLpp.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <sstream>
@@ -32,6 +33,8 @@
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include <stb_image_write.h>
 #include <utility>
+
+#include "../../../src/cs-core/GraphicsEngine.hpp"
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -275,9 +278,10 @@ void Plugin::init() {
     mCaptureFormat = getParam<std::string>(conn, "format", mCaptureDepth ? "tiff" : "png");
 
     // Validate format parameter.
-    if (mCaptureFormat != "png" && mCaptureFormat != "jpeg" && mCaptureFormat != "tiff") {
+    if (mCaptureFormat != "png" && mCaptureFormat != "jpeg" && mCaptureFormat != "tiff" &&
+        mCaptureFormat != "raw") {
       mg_send_http_error(
-          conn, 422, "Only 'png', 'jpeg', or 'tiff' are allowed for the format parameter!");
+          conn, 422, "Only 'png', 'jpeg', 'tiff' or 'raw' are allowed for the format parameter!");
       return;
     }
 
@@ -294,7 +298,6 @@ void Plugin::init() {
     // Now we use a condition variable to wait for the capture. It is actually captured in the
     // Plugin::update() method further below.
     mCaptureDone.wait(lock);
-
     // The capture has been captured, return the result!
     mg_send_http_ok(conn, ("image/" + mCaptureFormat).c_str(), mCapture.size());
     mg_write(conn, mCapture.data(), mCapture.size());
@@ -427,7 +430,7 @@ void Plugin::update() {
         glReadPixels(
             0, 0, mCaptureWidth, mCaptureHeight, GL_DEPTH_COMPONENT, GL_FLOAT, capture.data());
 
-        if (mCaptureFormat == "tiff") {
+        if (mCaptureFormat == "tiff" || mCaptureFormat == "raw") {
 
           // If a tiff image is requested, we convert the depth buffer to meters.
           std::array<GLfloat, 16> glMatP{};
@@ -443,9 +446,14 @@ void Plugin::update() {
                 (glm::length(pos.xyz() / pos.w) * mSolarSystem->getObserver().getScale()));
             capture[i] = std::isinf(dist) ? std::numeric_limits<float>::max() : dist;
           }
-
-          // Now write the tiff image.
-          tiffWriteToVector(mCapture, capture, mCaptureWidth, mCaptureHeight, 1, 32);
+          if (mCaptureFormat == "tiff") {
+            // Now write the tiff image.
+            tiffWriteToVector(mCapture, capture, mCaptureWidth, mCaptureHeight, 1, 32);
+          } else {
+            // Write raw vector
+            mCapture.resize(capture.size() * sizeof(float));
+            memcpy(mCapture.data(), capture.data(), mCapture.size());
+          }
 
         } else {
           // Capture format is png or jpeg, let's convert the depth to 8-bit.
@@ -466,18 +474,38 @@ void Plugin::update() {
         }
 
       } else {
-        // Capturing color images is pretty straight-forward.
-        std::vector<std::byte> capture(mCaptureWidth * mCaptureHeight * 3);
-        glReadPixels(0, 0, mCaptureWidth, mCaptureHeight, GL_RGB, GL_UNSIGNED_BYTE, &capture[0]);
-
-        if (mCaptureFormat == "tiff") {
-          tiffWriteToVector(mCapture, capture, mCaptureWidth, mCaptureHeight, 3, 8);
-        } else if (mCaptureFormat == "png") {
-          stbi_write_png_to_func(&stbWriteToVector, &mCapture, mCaptureWidth, mCaptureHeight, 3,
-              capture.data(), mCaptureWidth * 3);
+        if (mCaptureFormat == "raw") {
+          // larger output size, but performance is comparable or better because there is no image
+          // encoding
+          mCapture.resize(mCaptureWidth * mCaptureHeight * 3 * sizeof(float));
+          if (mAllSettings->mGraphics.pEnableHDR.get()) {
+            // using the hdr buffer
+            std::shared_ptr<cs::graphics::HDRBuffer> hdrBuffer = mGraphicsEngine->getHDRBuffer();
+            VistaTexture* luminance_buffer = hdrBuffer->getCurrentWriteAttachment();
+            luminance_buffer->Bind();
+            glGetTexImage(luminance_buffer->GetTarget(), 0, GL_RGB, GL_FLOAT,
+                static_cast<void*>(mCapture.data()));
+            luminance_buffer->Unbind();
+          } else {
+            // without HDR, output is float in [0, 1], but the values in the buffer were
+            // previously converted to uint [0, 255]. For high quality raw output, use HDR mode.
+            glReadPixels(0, 0, mCaptureWidth, mCaptureHeight, GL_RGB, GL_FLOAT,
+                static_cast<void*>(mCapture.data()));
+          }
         } else {
-          stbi_write_jpg_to_func(
-              &stbWriteToVector, &mCapture, mCaptureWidth, mCaptureHeight, 3, capture.data(), 80);
+          // Capturing color images is pretty straight-forward.
+          std::vector<std::byte> capture(mCaptureWidth * mCaptureHeight * 3);
+          glReadPixels(0, 0, mCaptureWidth, mCaptureHeight, GL_RGB, GL_UNSIGNED_BYTE, &capture[0]);
+
+          if (mCaptureFormat == "tiff") {
+            tiffWriteToVector(mCapture, capture, mCaptureWidth, mCaptureHeight, 3, 8);
+          } else if (mCaptureFormat == "png") {
+            stbi_write_png_to_func(&stbWriteToVector, &mCapture, mCaptureWidth, mCaptureHeight, 3,
+                capture.data(), mCaptureWidth * 3);
+          } else {
+            stbi_write_jpg_to_func(
+                &stbWriteToVector, &mCapture, mCaptureWidth, mCaptureHeight, 3, capture.data(), 80);
+          }
         }
       }
 
