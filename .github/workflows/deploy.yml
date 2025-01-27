@@ -18,26 +18,27 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
     - name: Checkout Repository
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
     - name: Checkout Submodules
       run: git submodule update --init --recursive
     - name: Create Release
       run: externals/git-archive-all.sh/git-archive-all.sh --prefix cosmoscout-vr/ source-with-submodules.tar.gz
     - name: Upload Release
-      uses: svenstaro/upload-release-action@v1-release
+      uses: svenstaro/upload-release-action@2.9.0
       with:
         repo_token: ${{ secrets.UPLOAD_TOKEN }}
         file: source-with-submodules.tar.gz
         asset_name: source-with-submodules.tar.gz
         tag: ${{ github.ref }}
         overwrite: true
+        prerelease: true
 
   release_linux:
     name: Linux
     runs-on: ubuntu-20.04
     steps:
     - name: Checkout Repository
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
     - name: Checkout Submodules
       run: git submodule update --init --recursive
     - name: Download Dependencies
@@ -57,13 +58,14 @@ jobs:
         mv install/linux-Release cosmoscout-vr
         cmake -E tar cv cosmoscout-vr-linux64.tar.gz cosmoscout-vr
     - name: Upload Release
-      uses: svenstaro/upload-release-action@v1-release
+      uses: svenstaro/upload-release-action@2.9.0
       with:
         repo_token: ${{ secrets.UPLOAD_TOKEN }}
         file: cosmoscout-vr-linux64.tar.gz
         asset_name: cosmoscout-vr-linux64.tar.gz
         tag: ${{ github.ref }}
         overwrite: true
+        prerelease: true
 
   release_windows:
     name: Windows
@@ -72,7 +74,7 @@ jobs:
       BOOST_ROOT_1_72_0: C:\hostedtoolcache\windows\Boost\1.72.0\x86_64
     steps:
     - name: Checkout Repository
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
     - name: Checkout Submodules
       run: git submodule update --init --recursive
     - name: Download Boost
@@ -97,10 +99,11 @@ jobs:
         move install\windows-Release cosmoscout-vr
         cmake -E tar cv cosmoscout-vr-win64.zip --format=zip cosmoscout-vr
     - name: Upload Release
-      uses: svenstaro/upload-release-action@v1-release
+      uses: svenstaro/upload-release-action@2.9.0
       with:
         repo_token: ${{ secrets.UPLOAD_TOKEN }}
         file: cosmoscout-vr-win64.zip
         asset_name: cosmoscout-vr-win64.zip
         tag: ${{ github.ref }}
         overwrite: true
+        prerelease: true
