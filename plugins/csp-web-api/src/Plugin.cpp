@@ -483,8 +483,8 @@ void Plugin::update() {
             std::shared_ptr<cs::graphics::HDRBuffer> hdrBuffer = mGraphicsEngine->getHDRBuffer();
             VistaTexture* luminance_buffer = hdrBuffer->getCurrentWriteAttachment();
             luminance_buffer->Bind();
-            glGetTexImage(
-                luminance_buffer->GetTarget(), 0, GL_RGB, GL_FLOAT, (void*)mCapture.data());
+            glGetTexImage(luminance_buffer->GetTarget(), 0, GL_RGB, GL_FLOAT,
+                static_cast<void*>(mCapture.data()));
             luminance_buffer->Unbind();
           } else {
             // without HDR, output is float in [0, 1], but the values in the buffer were
