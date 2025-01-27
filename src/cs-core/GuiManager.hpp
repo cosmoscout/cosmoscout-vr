@@ -62,7 +62,7 @@ class CS_CORE_EXPORT GuiManager {
   GuiManager(GuiManager&& other)      = delete;
 
   GuiManager& operator=(GuiManager const& other) = delete;
-  GuiManager& operator=(GuiManager&& other) = delete;
+  GuiManager& operator=(GuiManager&& other)      = delete;
 
   virtual ~GuiManager();
 

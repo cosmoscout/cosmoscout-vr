@@ -27,7 +27,7 @@ class CS_GRAPHICS_EXPORT GlareMipMap : public VistaTexture {
   GlareMipMap(GlareMipMap&& other)      = delete;
 
   GlareMipMap& operator=(GlareMipMap const& other) = delete;
-  GlareMipMap& operator=(GlareMipMap&& other) = delete;
+  GlareMipMap& operator=(GlareMipMap&& other)      = delete;
 
   /// Perform the glare calculation by parallel reduction of the HDR values. This is a costly
   /// operation and should only be called once a frame.

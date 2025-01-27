@@ -40,7 +40,7 @@ class CSL_TOOLS_EXPORT Tool {
   Tool(Tool const& other)     = default;
   Tool(Tool&& other) noexcept = default;
 
-  Tool& operator=(Tool const& other) = default;
+  Tool& operator=(Tool const& other)     = default;
   Tool& operator=(Tool&& other) noexcept = default;
 
   virtual ~Tool() = default;

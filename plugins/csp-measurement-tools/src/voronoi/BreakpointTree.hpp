@@ -27,7 +27,7 @@ class BreakpointTree {
   BreakpointTree(BreakpointTree&& other)      = default;
 
   BreakpointTree& operator=(BreakpointTree const& other) = default;
-  BreakpointTree& operator=(BreakpointTree&& other) = default;
+  BreakpointTree& operator=(BreakpointTree&& other)      = default;
 
   ~BreakpointTree();
 

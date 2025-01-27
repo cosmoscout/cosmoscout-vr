@@ -37,7 +37,7 @@ class CS_UTILS_EXPORT TestImageCompare {
   TestImageCompare(TestImageCompare&& other)      = delete;
 
   TestImageCompare& operator=(TestImageCompare const& other) = delete;
-  TestImageCompare& operator=(TestImageCompare&& other) = delete;
+  TestImageCompare& operator=(TestImageCompare&& other)      = delete;
 
   /// This deletes the VistaSystem created by the constructor.
   virtual ~TestImageCompare() = default;

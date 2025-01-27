@@ -27,7 +27,7 @@ class TileSourceWebMapService : public TileSource {
   TileSourceWebMapService(TileSourceWebMapService&& other)      = delete;
 
   TileSourceWebMapService& operator=(TileSourceWebMapService const& other) = delete;
-  TileSourceWebMapService& operator=(TileSourceWebMapService&& other) = delete;
+  TileSourceWebMapService& operator=(TileSourceWebMapService&& other)      = delete;
 
   ~TileSourceWebMapService() override = default;
 

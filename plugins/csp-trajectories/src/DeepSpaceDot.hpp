@@ -65,7 +65,7 @@ class DeepSpaceDot : public IVistaOpenGLDraw {
   DeepSpaceDot(DeepSpaceDot&& other)      = default;
 
   DeepSpaceDot& operator=(DeepSpaceDot const& other) = delete;
-  DeepSpaceDot& operator=(DeepSpaceDot&& other) = default;
+  DeepSpaceDot& operator=(DeepSpaceDot&& other)      = default;
 
   ~DeepSpaceDot() override;
 
