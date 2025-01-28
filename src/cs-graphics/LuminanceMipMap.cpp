@@ -20,7 +20,8 @@ namespace cs::graphics {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static const char* sComputeAverage = R"(
-  layout (local_size_x = 16, local_size_y = 16) in;
+  #define LOCAL_SIZE 1024
+  layout (local_size_x = LOCAL_SIZE) in;
 
   #if NUM_MULTISAMPLES > 0
     layout (rgba32f, binding = 0) readonly uniform image2DMS uInHDRBuffer;
@@ -28,105 +29,72 @@ static const char* sComputeAverage = R"(
     layout (rgba32f, binding = 0) readonly uniform image2D uInHDRBuffer;
   #endif
 
-  layout (rg32f, binding = 1) readonly uniform image2D uInLuminance;
-  layout (rg32f, binding = 2) writeonly uniform image2D uOutLuminance;
+  layout (binding = 1, rg32f) uniform image1D uOutLuminance;
 
-  uniform int uLevel;
+  shared vec2 sData[LOCAL_SIZE];
 
-  void sampleHDRBuffer(inout float oMaximumLuminance, inout float oTotalLuminance, ivec2 offset) {
+  vec2 sampleHDRBuffer(ivec2 pos) {
     #if NUM_MULTISAMPLES > 0
       vec3 color = vec3(0.0);
       for (int i = 0; i < NUM_MULTISAMPLES; ++i) {
-        color += imageLoad(uInHDRBuffer, ivec2(gl_GlobalInvocationID.xy*2 + offset), i).rgb;
+        color += imageLoad(uInHDRBuffer, ivec2(pos), i).rgb;
       }
       color /= NUM_MULTISAMPLES;
     #else
-      vec3 color = imageLoad(uInHDRBuffer, ivec2(gl_GlobalInvocationID.xy*2 + offset)).rgb;
+      vec3 color = imageLoad(uInHDRBuffer, ivec2(pos)).rgb;
     #endif
-
     float val = max(max(color.r, color.g), color.b);
-    oTotalLuminance += val;
-    oMaximumLuminance = max(oMaximumLuminance, val);
-  }
-
-  void samplePyramid(inout float oMaximumLuminance, inout float oTotalLuminance, ivec2 offset) {
-    vec2 totalMax = imageLoad(uInLuminance, ivec2(gl_GlobalInvocationID.xy*2 + offset)).rg;
-    oTotalLuminance += totalMax.r;
-    oMaximumLuminance = max(oMaximumLuminance, totalMax.g);
+    return vec2(val, val);
   }
 
   void main() {
-    ivec2 storePos = ivec2(gl_GlobalInvocationID.xy);
-    ivec2 size     = imageSize(uOutLuminance);
+    uint tid = gl_LocalInvocationID.x;
+    uint gid = gl_GlobalInvocationID.x;
+    ivec2 bufferSize = imageSize(uInHDRBuffer);
+    ivec2 imageIdx = ivec2(gid / bufferSize.x, gid % bufferSize.x);
 
-    if (storePos.x >= size.x || storePos.y >= size.y) {
+    if (gid >= bufferSize.x * bufferSize.y) {
       return;
     }
 
-    float oTotalLuminance = 0;
-    float oMaximumLuminance = 0;
-    
-    if (uLevel == 0) {
-      sampleHDRBuffer(oMaximumLuminance, oTotalLuminance, ivec2(0, 0));
-      sampleHDRBuffer(oMaximumLuminance, oTotalLuminance, ivec2(0, 1));
-      sampleHDRBuffer(oMaximumLuminance, oTotalLuminance, ivec2(1, 0));
-      sampleHDRBuffer(oMaximumLuminance, oTotalLuminance, ivec2(1, 1));
-    } else {
-      samplePyramid(oMaximumLuminance, oTotalLuminance, ivec2(0, 0));
-      samplePyramid(oMaximumLuminance, oTotalLuminance, ivec2(0, 1));
-      samplePyramid(oMaximumLuminance, oTotalLuminance, ivec2(1, 0));
-      samplePyramid(oMaximumLuminance, oTotalLuminance, ivec2(1, 1));
+    sData[tid] = sampleHDRBuffer(imageIdx);
 
-      // handle cases close to right and top edge
-      ivec2 maxCoords = imageSize(uInLuminance) - ivec2(1);
-      if (gl_GlobalInvocationID.x*2 == maxCoords.x - 2) {
-        samplePyramid(oMaximumLuminance, oTotalLuminance, ivec2(2,0));
-        samplePyramid(oMaximumLuminance, oTotalLuminance, ivec2(2,1));
+    for (uint s = 1; s < gl_WorkGroupSize.x; s *= 2) {
+      if (tid % (2 * s) == 0) {
+        vec2 left = sData[tid];
+        vec2 right = sData[tid + s];
+        sData[tid] = vec2(
+            left.x + right.x,
+            max(left.y, right.y)
+        );
       }
 
-      if (gl_GlobalInvocationID.y*2 == maxCoords.y - 2) {
-        samplePyramid(oMaximumLuminance, oTotalLuminance, ivec2(0,2));
-        samplePyramid(oMaximumLuminance, oTotalLuminance, ivec2(1,2));
-
-        if (gl_GlobalInvocationID.x*2 == maxCoords.x - 2) {
-          samplePyramid(oMaximumLuminance, oTotalLuminance, ivec2(2,2));
-        }
-      }
+      memoryBarrierShared();
+      barrier();
     }
 
-    imageStore(uOutLuminance, storePos, vec4(oTotalLuminance, oMaximumLuminance, 0.0, 0.0));
+    if (tid == 0) {
+      imageStore(uOutLuminance, int(gl_WorkGroupID.x), vec4(sData[0].x, sData[0].y, 0.0, 0.0));
+    }
   }
 )";
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+constexpr int32_t BLOCK_SIZE = 1024;
+
 LuminanceMipMap::LuminanceMipMap(uint32_t hdrBufferSamples, int hdrBufferWidth, int hdrBufferHeight)
-    : VistaTexture(GL_TEXTURE_2D)
-    , mHDRBufferSamples(hdrBufferSamples)
+    : mHDRBufferSamples(hdrBufferSamples)
     , mHDRBufferWidth(hdrBufferWidth)
     , mHDRBufferHeight(hdrBufferHeight) {
 
-  // Create luminance mipmap storage. The texture has half the size of the HDR buffer (rounded down)
-  // in both directions.
-  int iWidth  = mHDRBufferWidth / 2;
-  int iHeight = mHDRBufferHeight / 2;
-
   // Compute the number of available mipmap levels.
-  mMaxLevels =
-      static_cast<int>(std::max(1.0, std::floor(std::log2(std::max(iWidth, iHeight))) + 1));
-
-  Bind();
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
-  glTexStorage2D(GL_TEXTURE_2D, mMaxLevels, GL_RG32F, iWidth, iHeight);
+  mWorkGroups = ((mHDRBufferWidth * mHDRBufferHeight) + BLOCK_SIZE * 2 - 1) / (BLOCK_SIZE * 2);
 
   // Create pixel buffer object for luminance read-back.
   glGenBuffers(1, &mPBO);
   glBindBuffer(GL_PIXEL_PACK_BUFFER, mPBO);
-  glBufferStorage(GL_PIXEL_PACK_BUFFER, sizeof(float) * 2, nullptr, GL_MAP_READ_BIT);
+  glBufferStorage(GL_PIXEL_PACK_BUFFER, mWorkGroups * sizeof(float) * 2, nullptr, GL_MAP_READ_BIT);
   glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
 
   // Create the compute shader.
@@ -165,8 +133,6 @@ LuminanceMipMap::LuminanceMipMap(uint32_t hdrBufferSamples, int hdrBufferWidth, 
 
     throw std::runtime_error(std::string("ERROR: Failed to link compute shader\n") + log);
   }
-
-  mUniforms.level = glGetUniformLocation(mComputeProgram, "uLevel");
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -187,9 +153,17 @@ void LuminanceMipMap::update(VistaTexture* hdrBufferComposite) {
 
   // Map the pixel buffer object and read the two values.
   if (mDataAvailable) {
-    auto* data            = static_cast<float*>(glMapBuffer(GL_PIXEL_PACK_BUFFER, GL_READ_ONLY));
-    mLastTotalLuminance   = data[0]; // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-    mLastMaximumLuminance = data[1]; // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+    glm::vec2* data = static_cast<glm::vec2*>(glMapBuffer(GL_PIXEL_PACK_BUFFER, GL_READ_ONLY));
+
+    mLastTotalLuminance   = 0;
+    mLastMaximumLuminance = 0;
+
+    for (size_t i = 0; i < mWorkGroups; ++i) {
+      glm::vec2 value = data[i];
+      mLastTotalLuminance += std::isnan(value.x) ? 0.F : value.x;
+      mLastMaximumLuminance = std::max(mLastMaximumLuminance, value.y);
+    }
+
     glUnmapBuffer(GL_PIXEL_PACK_BUFFER);
 
     if (std::isnan(mLastTotalLuminance)) {
@@ -206,36 +180,13 @@ void LuminanceMipMap::update(VistaTexture* hdrBufferComposite) {
   glUseProgram(mComputeProgram);
 
   glBindImageTexture(0, hdrBufferComposite->GetId(), 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA32F);
+  glBindImageTexture(1, mPBO, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RG32F);
 
-  // We loop through all levels always reading from the last level.
-  for (int i(0); i < mMaxLevels; ++i) {
-    int width  = static_cast<int>(std::max(1.0,
-         std::floor(static_cast<double>(static_cast<int>(mHDRBufferWidth / 2)) / std::pow(2, i))));
-    int height = static_cast<int>(std::max(1.0,
-        std::floor(static_cast<double>(static_cast<int>(mHDRBufferHeight / 2)) / std::pow(2, i))));
-
-    glUniform1i(mUniforms.level, i);
-    glBindImageTexture(2, GetId(), i, GL_FALSE, 0, GL_WRITE_ONLY, GL_RG32F);
-
-    // For the first level, hdrBufferComposite will be used for reading, all other levels use the
-    // previous level as input.
-    if (i > 0) {
-      glBindImageTexture(1, GetId(), i - 1, GL_FALSE, 0, GL_READ_ONLY, GL_RG32F);
-    }
-
-    // Make sure writing has finished.
-    glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
-    glDispatchCompute(static_cast<uint32_t>(std::ceil(1.0 * width / 16)),
-        static_cast<uint32_t>(std::ceil(1.0 * height / 16)), 1);
-  }
-
-  glBindImageTexture(0, 0, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RG32F);
+  // Make sure writing has finished.
+  glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+  glDispatchCompute(mWorkGroups, 1, 1);
   glMemoryBarrier(GL_PIXEL_BUFFER_BARRIER_BIT);
 
-  // Copy the top mipmap level to the PBO for readback in the next frame.
-  Bind();
-  glGetTexImage(GL_TEXTURE_2D, mMaxLevels - 1, GL_RG, GL_FLOAT, nullptr);
-  Unbind();
   glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
 
   mDataAvailable = true;
