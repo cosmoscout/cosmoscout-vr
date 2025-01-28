@@ -52,11 +52,11 @@ static const char* sComputeAverage = R"(
     uint gid = gl_GlobalInvocationID.x;
     ivec2 bufferSize = imageSize(uInHDRBuffer);
 
-    uint i = gl_WorkGroupID.x * gl_WorkGroupSize.x * 2 + tid;
-
-    if (i + gl_WorkGroupSize.x >= bufferSize.x * bufferSize.y) {
+    if (2 * gid >= bufferSize.x * bufferSize.y) {
       return;
     }
+
+    uint i = gl_WorkGroupID.x * gl_WorkGroupSize.x * 2 + tid;
 
     ivec2 leftIndex = ivec2(i / bufferSize.x, i % bufferSize.x);
     vec2 left = sampleHDRBuffer(leftIndex);
