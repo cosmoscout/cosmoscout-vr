@@ -231,7 +231,7 @@ uint8_t* GuiItem::updateTexture(DrawEvent const& event) {
     glBindBuffer(GL_TEXTURE_BUFFER, mTextureBuffer);
 
     size_t     bufferSize{4 * sizeof(uint8_t) * event.mWidth * event.mHeight};
-    GLbitfield flags = GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT;
+    GLbitfield flags = GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT;
     glBufferStorage(GL_TEXTURE_BUFFER, bufferSize, nullptr, flags);
     mBufferData = static_cast<uint8_t*>(glMapBufferRange(GL_TEXTURE_BUFFER, 0, bufferSize, flags));
 
