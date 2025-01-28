@@ -51,9 +51,12 @@ GuiItem::GuiItem(std::string const& url, bool allowLocalFileAccess)
   mBufferData = static_cast<uint8_t*>(glMapBufferRange(GL_TEXTURE_BUFFER, 0, bufferSize, flags));
 
   glGenTextures(1, &mTexture);
-
-  glBindTexture(GL_TEXTURE_BUFFER, mTexture);
-  glTexBuffer(GL_TEXTURE_BUFFER, GL_RGBA8, mTextureBuffer);
+  glBindTexture(GL_TEXTURE_2D, mTexture);
+  glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA8, getWidth(), getHeight());
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
   glBindBuffer(GL_TEXTURE_BUFFER, 0);
   glBindTexture(GL_TEXTURE_BUFFER, 0);
@@ -232,8 +235,14 @@ uint8_t* GuiItem::updateTexture(DrawEvent const& event) {
     glBufferStorage(GL_TEXTURE_BUFFER, bufferSize, nullptr, flags);
     mBufferData = static_cast<uint8_t*>(glMapBufferRange(GL_TEXTURE_BUFFER, 0, bufferSize, flags));
 
-    glBindTexture(GL_TEXTURE_BUFFER, mTexture);
-    glTexBuffer(GL_TEXTURE_BUFFER, GL_RGBA8, mTextureBuffer);
+    glDeleteTextures(1, &mTexture);
+    glGenTextures(1, &mTexture);
+    glBindTexture(GL_TEXTURE_2D, mTexture);
+    glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA8, event.mWidth, event.mHeight);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
     glBindBuffer(GL_TEXTURE_BUFFER, 0);
     glBindTexture(GL_TEXTURE_BUFFER, 0);
@@ -298,6 +307,14 @@ void GuiItem::updateSizes() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 uint32_t GuiItem::getTexture() const {
+
+  // Copy the texture buffer to the texture.
+  glBindBuffer(GL_PIXEL_UNPACK_BUFFER, mTextureBuffer);
+  glBindTexture(GL_TEXTURE_2D, mTexture);
+  glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, getWidth(), getHeight(), GL_BGRA, GL_UNSIGNED_BYTE, 0);
+  glBindTexture(GL_TEXTURE_2D, 0);
+  glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
+
   return mTexture;
 }
 
