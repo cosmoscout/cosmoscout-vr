@@ -40,28 +40,28 @@ void GLAPIENTRY MessageCallback(GLenum source, GLenum type, GLuint id, GLenum se
   // that isnt an error or perf. issue)
   if (settings->pLogLevelGL.get() <= spdlog::level::debug &&
       severity == GL_DEBUG_SEVERITY_NOTIFICATION) {
-    logger().debug("{}", message);
+    logger().debug("{} ({})", message, id);
     return;
   }
 
   // Print the following infos (OpenGL errors, shader compile errors, perf. warnings, shader
   // compilation warnings, depricated code, redundant state changes, undefined behaviour)
   if (settings->pLogLevelGL.get() <= spdlog::level::info && severity == GL_DEBUG_SEVERITY_LOW) {
-    logger().info("{}", message);
+    logger().info("{} ({})", message, id);
     return;
   }
 
   // Print the following infos (OpenGL errors, shader compile errors, perf. warnings, shader
   // compilation warnings, depricated code)
   if (settings->pLogLevelGL.get() <= spdlog::level::warn && severity == GL_DEBUG_SEVERITY_MEDIUM) {
-    logger().warn("{}", message);
+    logger().warn("{} ({})", message, id);
     return;
   }
 
   // Print the following infos (OpenGL errors, shader compile errors)
   if (settings->pLogLevelGL.get() <= spdlog::level::critical &&
       severity == GL_DEBUG_SEVERITY_HIGH) {
-    logger().error("{}", message);
+    logger().error("{} ({})", message, id);
   }
 }
 
