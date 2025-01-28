@@ -144,7 +144,7 @@ LuminanceMipMap::LuminanceMipMap(uint32_t hdrBufferSamples, int hdrBufferWidth, 
     , mHDRBufferWidth(hdrBufferWidth)
     , mHDRBufferHeight(hdrBufferHeight) {
 
-  mWorkGroups = static_cast<int>(std::ceil((mHDRBufferWidth * mHDRBufferHeight) / (2 * BLOCK_SIZE))) * 2;
+  mWorkGroups = static_cast<int>(std::ceil((mHDRBufferWidth * mHDRBufferHeight) / (2 * BLOCK_SIZE)));
 
   mLuminanceBuffer = std::make_unique<VistaTexture>(GL_TEXTURE_1D);
   mLuminanceBuffer->Bind();
