@@ -383,10 +383,10 @@ float baseCloudNoise(vec3 position){
   float freq = BASE_FREQ;
   float noise = simplex3D(position * BASE_FREQ);
   const float OCTAVE_STEP = 1.2;
-  const int NUM_OCTAVES = 15;
+  const int NUM_OCTAVES = 1;
   for(int i = 0; i < NUM_OCTAVES; i++){
     freq *= OCTAVE_STEP;
-    noise = remap(simplex3D(position * freq), 0, noise, 0, 1);
+    noise = remap(noise, simplex3D(position * freq), 1, 0, 1);
   }
   //return simplex3DFractal(position / 10000);
   return noise;
@@ -421,12 +421,14 @@ float GetCloudCoverageHeight(vec3 position){
 // Returns the value of the cloud texture at the position described by the three parameters.
 float getCloudDensity(vec3 position){
   // only use cloud coverage for now
+  float noise = baseCloudNoise(position);
   float cloud_coverage_h = getCloudCoverageHorizontal(position);
   float cloud_coverage_v = GetCloudCoverageHeight(position);
   float cloud_coverage = cloud_coverage_v * pow(cloud_coverage_h, 1);
-  float cloud_density = remap(baseCloudNoise(position), 0, 1, pow(cloud_coverage, 2), cloud_coverage);
+  float cloud_density = remap(noise, 0, 1, pow(cloud_coverage, 2), cloud_coverage);
   //cloud_density = remap(baseCloudNoise(position), 0, cloud_coverage, 0, 1);
   //cloud_density = texture_contrib;
+  cloud_density = noise;
 #if ENABLE_HDR
   return cloud_density;
 #else
@@ -616,7 +618,11 @@ float getCloudShadow(vec3 rayOrigin, vec3 rayDir) {
   // Reduce cloud opacity when end point is very close to planet surface.
   float fac = clamp(abs(intersections.y) / fadeWidth, 0, 1);
   vec3 position  = rayOrigin + rayDir * intersections.y;
+  #if OLD_CLOUDS
+  return 1.0 - getCloudDensityOld(rayOrigin, rayDir, intersections.y) * fac;
+  #else
   return 1.0 - getCloudDensity(position) * fac;
+  #endif
 }
 
 // Returns a precomputed luminance of the atmosphere ring around the occluder for the
