@@ -21,7 +21,7 @@ namespace cs::graphics {
 
 static const char* sComputeAverage = R"(
   #define LOCAL_SIZE 1024
-  layout (local_size_x = LOCAL_SIZE) in;
+  layout (local_size_x = LOCAL_SIZE, local_size_y = 1) in;
 
   #if NUM_MULTISAMPLES > 0
     layout (rgba32f, binding = 0) readonly uniform image2DMS uInHDRBuffer;
@@ -51,16 +51,28 @@ static const char* sComputeAverage = R"(
     uint tid = gl_LocalInvocationID.x;
     uint gid = gl_GlobalInvocationID.x;
     ivec2 bufferSize = imageSize(uInHDRBuffer);
-    ivec2 imageIdx = ivec2(gid / bufferSize.x, gid % bufferSize.x);
 
     if (gid >= bufferSize.x * bufferSize.y) {
       return;
     }
 
-    sData[tid] = sampleHDRBuffer(imageIdx);
+    ivec2 leftIndex = ivec2(gid / bufferSize.x, gid % bufferSize.x);
+    vec2 left = sampleHDRBuffer(leftIndex);
 
-    for (uint s = 1; s < gl_WorkGroupSize.x; s *= 2) {
-      if (tid % (2 * s) == 0) {
+    uint rightGID = gl_WorkGroupID.x * gl_WorkGroupSize.x * 2 + tid;
+    ivec2 rightIndex = ivec2(rightGID / bufferSize.x, rightGID % bufferSize.x);
+    vec2 right = sampleHDRBuffer(rightIndex);
+
+    sData[tid] = vec2(
+        left.x + right.x,
+        max(left.y, right.y)
+    );
+
+    memoryBarrierShared();
+    barrier();
+
+    for (uint s = gl_WorkGroupSize.x / 2; s > 32; s >>= 1) {
+      if (tid < s) {
         vec2 left = sData[tid];
         vec2 right = sData[tid + s];
         sData[tid] = vec2(
@@ -71,6 +83,50 @@ static const char* sComputeAverage = R"(
 
       memoryBarrierShared();
       barrier();
+    }
+
+    if (tid < 32) {
+      vec2 left = sData[tid];
+      vec2 right = sData[tid + 32];
+      sData[tid] = vec2(
+          left.x + right.x,
+          max(left.y, right.y)
+      );
+
+      left = sData[tid];
+      right = sData[tid + 16];
+      sData[tid] = vec2(
+          left.x + right.x,
+          max(left.y, right.y)
+      );
+
+      left = sData[tid];
+      right = sData[tid + 8];
+      sData[tid] = vec2(
+          left.x + right.x,
+          max(left.y, right.y)
+      );
+
+      left = sData[tid];
+      right = sData[tid + 4];
+      sData[tid] = vec2(
+          left.x + right.x,
+          max(left.y, right.y)
+      );
+
+      left = sData[tid];
+      right = sData[tid + 2];
+      sData[tid] = vec2(
+          left.x + right.x,
+          max(left.y, right.y)
+      );
+
+      left = sData[tid];
+      right = sData[tid + 1];
+      sData[tid] = vec2(
+          left.x + right.x,
+          max(left.y, right.y)
+      );
     }
 
     if (tid == 0) {
@@ -88,8 +144,15 @@ LuminanceMipMap::LuminanceMipMap(uint32_t hdrBufferSamples, int hdrBufferWidth, 
     , mHDRBufferWidth(hdrBufferWidth)
     , mHDRBufferHeight(hdrBufferHeight) {
 
-  // Compute the number of available mipmap levels.
-  mWorkGroups = ((mHDRBufferWidth * mHDRBufferHeight) + BLOCK_SIZE * 2 - 1) / (BLOCK_SIZE * 2);
+  mWorkGroups = static_cast<int>(std::ceil((mHDRBufferWidth * mHDRBufferHeight) / (2 * BLOCK_SIZE))) * 2;
+
+  mLuminanceBuffer = std::make_unique<VistaTexture>(GL_TEXTURE_1D);
+  mLuminanceBuffer->Bind();
+  glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+
+  glTexStorage1D(GL_TEXTURE_1D, 1, GL_RG32F, mWorkGroups);
 
   // Create pixel buffer object for luminance read-back.
   glGenBuffers(1, &mPBO);
@@ -161,31 +224,26 @@ void LuminanceMipMap::update(VistaTexture* hdrBufferComposite) {
     for (size_t i = 0; i < mWorkGroups; ++i) {
       glm::vec2 value = data[i];
       mLastTotalLuminance += std::isnan(value.x) ? 0.F : value.x;
-      mLastMaximumLuminance = std::max(mLastMaximumLuminance, value.y);
+      mLastMaximumLuminance = std::max(mLastMaximumLuminance, std::isnan(value.y) ? 0.F : value.y);
     }
 
     glUnmapBuffer(GL_PIXEL_PACK_BUFFER);
-
-    if (std::isnan(mLastTotalLuminance)) {
-      mLastTotalLuminance = 0.0;
-    }
-
-    if (std::isnan(mLastMaximumLuminance)) {
-      mLastMaximumLuminance = 0.0;
-    }
   }
 
   // Update current luminance mipmap. --------------------------------------------------------------
 
   glUseProgram(mComputeProgram);
-
   glBindImageTexture(0, hdrBufferComposite->GetId(), 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA32F);
-  glBindImageTexture(1, mPBO, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RG32F);
+  glBindImageTexture(1, mLuminanceBuffer->GetId(), 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RG32F);
 
   // Make sure writing has finished.
   glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
   glDispatchCompute(mWorkGroups, 1, 1);
   glMemoryBarrier(GL_PIXEL_BUFFER_BARRIER_BIT);
+
+  mLuminanceBuffer->Bind();
+  glGetTexImage(GL_TEXTURE_1D, 0, GL_RG, GL_FLOAT, nullptr);
+  mLuminanceBuffer->Unbind();
 
   glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
 

@@ -50,12 +50,12 @@ class CS_GRAPHICS_EXPORT LuminanceMipMap {
   uint32_t mHDRBufferSamples     = 0;
   float    mLastTotalLuminance   = 0.F;
   float    mLastMaximumLuminance = 0.F;
-  int      mWorkGroups            = 0;
+  int      mWorkGroups           = 0;
   int      mHDRBufferWidth       = 0;
   int      mHDRBufferHeight      = 0;
   bool     mDataAvailable        = false;
 
-  // std::vector<glm::vec2> mSSBO;
+  std::unique_ptr<VistaTexture> mLuminanceBuffer;
 };
 
 } // namespace cs::graphics
