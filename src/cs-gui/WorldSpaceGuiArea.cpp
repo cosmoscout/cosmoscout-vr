@@ -55,7 +55,6 @@ const char* const WorldSpaceGuiArea::QUAD_FRAG = R"(
 in vec2 vTexCoords;
 
 uniform sampler2D texture;
-uniform ivec2 texSize;
 
 layout(location = 0) out vec4 vOutColor;
 
@@ -164,7 +163,6 @@ bool WorldSpaceGuiArea::Do() {
 
     mUniforms.projectionMatrix = mShader.GetUniformLocation("uMatProjection");
     mUniforms.modelViewMatrix  = mShader.GetUniformLocation("uMatModelView");
-    mUniforms.texSize          = mShader.GetUniformLocation("texSize");
     mUniforms.texture          = mShader.GetUniformLocation("texture");
 
     mShaderDirty = false;
@@ -214,8 +212,6 @@ bool WorldSpaceGuiArea::Do() {
           glm::scale(localMat, glm::vec3(guiItem->getRelSizeX(), guiItem->getRelSizeY(), 1.F));
 
       glUniformMatrix4fv(mUniforms.modelViewMatrix, 1, GL_FALSE, glm::value_ptr(localMat));
-
-      glUniform2i(mUniforms.texSize, guiItem->getTextureSizeX(), guiItem->getTextureSizeY());
 
       glActiveTexture(GL_TEXTURE0);
       glBindTexture(GL_TEXTURE_2D, guiItem->getTexture());
