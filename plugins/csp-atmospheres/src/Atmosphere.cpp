@@ -173,7 +173,8 @@ void Atmosphere::configure(Plugin::Settings::Atmosphere const& settings) {
         mSettings.mEnableWater != settings.mEnableWater ||
         mSettings.mEnableWaves != settings.mEnableWaves ||
         mSettings.mEnableClouds != settings.mEnableClouds ||
-        mSettings.mEnableLimbLuminance != settings.mEnableLimbLuminance) {
+        mSettings.mEnableLimbLuminance != settings.mEnableLimbLuminance ||
+        mSettings.mOldClouds != settings.mOldClouds) {
       mShaderDirty = true;
     }
 
@@ -202,6 +203,8 @@ void Atmosphere::createShader(ShaderType type, VistaGLSLShader& shader, Uniforms
       sFrag, "ATMOSPHERE_RADIUS", std::to_string(mRadii[0] + mSettings.mTopAltitude));
   cs::utils::replaceString(
       sFrag, "ENABLE_CLOUDS", std::to_string(mSettings.mEnableClouds.get() && mCloudTexture));
+  cs::utils::replaceString(
+    sFrag, "OLD_CLOUDS", std::to_string(mSettings.mOldClouds.get()));
   cs::utils::replaceString(sFrag, "ENABLE_LIMB_LUMINANCE",
       std::to_string(mSettings.mEnableLimbLuminance.get() && mLimbLuminanceTexture));
   cs::utils::replaceString(sFrag, "ENABLE_WATER", std::to_string(mSettings.mEnableWater.get()));

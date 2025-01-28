@@ -67,6 +67,7 @@ void from_json(nlohmann::json const& j, Plugin::Settings::Atmosphere& o) {
   cs::core::Settings::deserialize(j, "enableWaves", o.mEnableWaves);
   cs::core::Settings::deserialize(j, "waterLevel", o.mWaterLevel);
   cs::core::Settings::deserialize(j, "enableClouds", o.mEnableClouds);
+  cs::core::Settings::deserialize(j, "oldClouds", o.mOldClouds);
   cs::core::Settings::deserialize(j, "cloudTexture", o.mCloudTexture);
   cs::core::Settings::deserialize(j, "cloudAltitude", o.mCloudAltitude);
   cs::core::Settings::deserialize(j, "enableLimbLuminance", o.mEnableLimbLuminance);
@@ -83,6 +84,7 @@ void to_json(nlohmann::json& j, Plugin::Settings::Atmosphere const& o) {
   cs::core::Settings::serialize(j, "enableWaves", o.mEnableWaves);
   cs::core::Settings::serialize(j, "waterLevel", o.mWaterLevel);
   cs::core::Settings::serialize(j, "enableClouds", o.mEnableClouds);
+  cs::core::Settings::serialize(j, "oldClouds", o.mOldClouds);
   cs::core::Settings::serialize(j, "cloudTexture", o.mCloudTexture);
   cs::core::Settings::serialize(j, "cloudAltitude", o.mCloudAltitude);
   cs::core::Settings::serialize(j, "enableLimbLuminance", o.mEnableLimbLuminance);
@@ -131,6 +133,8 @@ void Plugin::init() {
             mGuiManager->setSliderValue("atmosphere.setWaterLevel", settings.mWaterLevel.get());
             mGuiManager->setCheckboxValue(
                 "atmosphere.setEnableClouds", settings.mEnableClouds.get());
+            mGuiManager->setCheckboxValue(
+                "atmosphere.setOldClouds", settings.mOldClouds.get());
             mGuiManager->setSliderValue(
                 "atmosphere.setCloudAltitude", settings.mCloudAltitude.get());
           }
@@ -173,6 +177,16 @@ void Plugin::init() {
           mAtmospheres.at(mActiveAtmosphere)->configure(settings);
         }
       }));
+
+  mGuiManager->getGui()->registerCallback("atmosphere.setOldClouds",
+      "Enables or disables old cloud system. New cloud system is used if set to false", std::function([this](bool enable) {
+        if (!mActiveAtmosphere.empty()) {
+          auto& settings          =  mPluginSettings->mAtmospheres.at(mActiveAtmosphere);
+          settings.mOldClouds = enable;
+          mAtmospheres.at(mActiveAtmosphere)->configure(settings);
+        }
+      })
+  );
 
   mGuiManager->getGui()->registerCallback("atmosphere.setCloudAltitude",
       "Higher values create a more realistic atmosphere.", std::function([this](double value) {
@@ -219,6 +233,7 @@ void Plugin::deInit() {
   mGuiManager->getGui()->unregisterCallback("atmosphere.setEnableWaves");
   mGuiManager->getGui()->unregisterCallback("atmosphere.setWaterLevel");
   mGuiManager->getGui()->unregisterCallback("atmosphere.setEnableClouds");
+  mGuiManager->getGui()->unregisterCallback("atmosphere.setOldClouds");
   mGuiManager->getGui()->unregisterCallback("atmosphere.setCloudAltitude");
   mGuiManager->getGui()->unregisterCallback("atmosphere.setEnableLimbLuminance");
 

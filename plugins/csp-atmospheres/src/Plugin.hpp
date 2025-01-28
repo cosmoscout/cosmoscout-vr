@@ -52,6 +52,7 @@ class Plugin : public cs::core::PluginBase {
       std::optional<std::string>         mCloudTexture;          ///< Path to the cloud texture.
       cs::utils::DefaultProperty<float>  mCloudAltitude{3000.F}; ///< In meters.
       cs::utils::DefaultProperty<bool>   mEnableLimbLuminance{true};
+      cs::utils::DefaultProperty<bool>   mOldClouds{true};
       std::optional<std::string> mLimbLuminanceTexture; ///< Path to the limb luminance texture.
 
       /// If this is set to true, the plugin will save a fish-eye view of the sky to a file one

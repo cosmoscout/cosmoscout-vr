@@ -1044,6 +1044,8 @@ void main() {
   }
 #endif
 
+  // save for compositing in new cloud model
+  vec3 oColorOld = oColor;
   oColor = transmittance * oColor + inScatter;
 
 #if ENABLE_WATER
@@ -1052,8 +1054,21 @@ void main() {
   }
 #endif
 
-// Last, but not least, add the clouds.
 #if ENABLE_CLOUDS
+#if OLD_CLOUDS
+// Old cloud model, not truly physically based
+  if (!underWater) {
+    vec4 cloudColor = getCloudColorOld(vsIn.rayOrigin, rayDir, uSunDir, surfaceDistance);
+    cloudColor.rgb *= eclipseShadow;
+
+#if !ENABLE_HDR
+    cloudColor.rgb = tonemap(cloudColor.rgb / uSunInfo.y);
+#endif
+
+    oColor = mix(oColor, cloudColor.rgb, cloudColor.a);
+  }
+#else
+  // new cloud model. Utilizes proper physically based rendering
   if (!underWater) {
     vec4 cloudColor = getCloudColor(vsIn.rayOrigin, rayDir, uSunDir, surfaceDistance);
     cloudColor.rgb *= eclipseShadow;
@@ -1064,6 +1079,7 @@ void main() {
 
     oColor = mix(oColor, cloudColor.rgb, cloudColor.a);
   }
+#endif
 #endif
 
 // If HDR-mode is disabled, we have to convert to sRGB color space.
@@ -1077,5 +1093,7 @@ void main() {
     oColor = vec3(0.0);
   }
 }
+
+
 
 #endif
