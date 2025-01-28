@@ -40,28 +40,28 @@ void GLAPIENTRY MessageCallback(GLenum source, GLenum type, GLuint id, GLenum se
   // that isnt an error or perf. issue)
   if (settings->pLogLevelGL.get() <= spdlog::level::debug &&
       severity == GL_DEBUG_SEVERITY_NOTIFICATION) {
-    logger().debug("{} ({})", message, id);
+    logger().debug("{} (source=0x{:x} type=0x{:x} id=0x{:x})", message, source, type, id);
     return;
   }
 
   // Print the following infos (OpenGL errors, shader compile errors, perf. warnings, shader
   // compilation warnings, depricated code, redundant state changes, undefined behaviour)
   if (settings->pLogLevelGL.get() <= spdlog::level::info && severity == GL_DEBUG_SEVERITY_LOW) {
-    logger().info("{} ({})", message, id);
+    logger().info("{} (source=0x{:x} type=0x{:x} id=0x{:x})", message, source, type, id);
     return;
   }
 
   // Print the following infos (OpenGL errors, shader compile errors, perf. warnings, shader
   // compilation warnings, depricated code)
   if (settings->pLogLevelGL.get() <= spdlog::level::warn && severity == GL_DEBUG_SEVERITY_MEDIUM) {
-    logger().warn("{} ({})", message, id);
+    logger().warn("{} (source=0x{:x} type=0x{:x} id=0x{:x})", message, source, type, id);
     return;
   }
 
   // Print the following infos (OpenGL errors, shader compile errors)
   if (settings->pLogLevelGL.get() <= spdlog::level::critical &&
       severity == GL_DEBUG_SEVERITY_HIGH) {
-    logger().error("{} ({})", message, id);
+    logger().error("{} (source=0x{:x} type=0x{:x} id=0x{:x})", message, source, type, id);
   }
 }
 
