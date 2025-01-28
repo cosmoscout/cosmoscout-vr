@@ -88,40 +88,35 @@ static const char* sComputeAverage = R"(
     if (tid < 32) {
       vec2 left = sData[tid];
       vec2 right = sData[tid + 32];
-      sData[tid] = vec2(
+      left = vec2(
           left.x + right.x,
           max(left.y, right.y)
       );
 
-      left = sData[tid];
       right = sData[tid + 16];
-      sData[tid] = vec2(
+      left = vec2(
           left.x + right.x,
           max(left.y, right.y)
       );
 
-      left = sData[tid];
       right = sData[tid + 8];
-      sData[tid] = vec2(
+      left = vec2(
           left.x + right.x,
           max(left.y, right.y)
       );
 
-      left = sData[tid];
       right = sData[tid + 4];
-      sData[tid] = vec2(
+      left = vec2(
           left.x + right.x,
           max(left.y, right.y)
       );
 
-      left = sData[tid];
       right = sData[tid + 2];
-      sData[tid] = vec2(
+      left = vec2(
           left.x + right.x,
           max(left.y, right.y)
       );
 
-      left = sData[tid];
       right = sData[tid + 1];
       sData[tid] = vec2(
           left.x + right.x,
