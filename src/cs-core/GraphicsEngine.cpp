@@ -102,6 +102,10 @@ GraphicsEngine::GraphicsEngine(std::shared_ptr<core::Settings> settings)
   // Attach the debug callback to print the messages.
   glDebugMessageCallback(MessageCallback, static_cast<void*>(mSettings.get()));
 
+  // Ignore debug messages telling us buffers are moved in memory.
+  GLuint id = 131186;
+  glDebugMessageControl(0x8246, 0x8250, GL_DONT_CARE, 1, &id, GL_FALSE);
+
   // setup shadows ---------------------------------------------------------------------------------
 
   mShadowMap->setEnabled(false);
