@@ -86,12 +86,14 @@ class CS_GUI_EXPORT GuiItem : public WebView {
   uint32_t getTexture() const;
 
  private:
-  uint8_t* updateTexture(DrawEvent const& event);
-  void     updateSizes();
+  void recreateBuffers();
+  void updateSizes();
 
-  uint32_t mTextureBuffer{};
-  uint32_t mTexture{};
-  uint8_t* mBufferData = nullptr;
+  std::vector<uint8_t>    mPixels;
+  uint32_t                mTexture = 0;
+  std::array<uint32_t, 2> mTexturePBOs;
+  mutable uint8_t         mCurrentPBO     = 0;
+  mutable uint8_t         mPBOsNeedUpload = 0;
 
   // in pixels
   int mTextureSizeX = 0;
