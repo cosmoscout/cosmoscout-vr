@@ -10,6 +10,8 @@
 
 #include "WebView.hpp"
 
+#include <array>
+
 class VistaTexture;
 
 namespace cs::gui {

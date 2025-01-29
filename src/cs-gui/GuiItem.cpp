@@ -39,7 +39,7 @@ GuiItem::GuiItem(std::string const& url, bool allowLocalFileAccess)
     , mIsRelOffsetY(true) {
 
   setDrawCallback([this](DrawEvent const& event) {
-    mPBOsNeedUpload = mTexturePBOs.size();
+    mPBOsNeedUpload = static_cast<uint8_t>(mTexturePBOs.size());
 
     if (event.mResized) {
       mTextureSizeX = event.mWidth;
