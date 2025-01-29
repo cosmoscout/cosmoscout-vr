@@ -80,17 +80,18 @@ static const char* sComputeAverage = R"(
     memoryBarrierShared();
     barrier();
 
+    #ifdef GL_KHR_shader_subgroup_basic
+      const uint subGroupSize = gl_SubgroupSize;
+    #else
+      // Default warp size for NVIDIA. AMD might have 32 or 64.
+      const uint subGroupSize = 32;
+    #endif
+
     // 2. Step
     // Do the actual parallel reduction.
     // Each thread combines its own value with a value of 2 * its current position.
     // Each loop the amount of working threads are halfed.
     // We stop, when only one warp is left.
-    #ifdef GL_KHR_shader_subgroup_basic
-      const uint subGroupSize = gl_SubgroupSize;
-    #else
-      const uint subGroupSize = 32;
-    #endif
-
     for (uint s = gl_WorkGroupSize.x / 2; s > subGroupSize; s >>= 1) {
       if (tid < s) {
         vec2 left = sData[tid];
@@ -106,6 +107,7 @@ static const char* sComputeAverage = R"(
     }
 
     #if defined(GL_KHR_shader_subgroup_arithmetic) && defined(GL_KHR_shader_subgroup_basic)
+      // We make use of special warp arithmetic to reduce the last warp.
       if (tid < subGroupSize) {
         vec2 value = sData[tid];
         float sum = subgroupAdd(value.x);
