@@ -20,6 +20,9 @@ namespace cs::graphics {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static const char* sComputeAverage = R"(
+  #extension GL_KHR_shader_subgroup_basic : enable
+  #extension GL_KHR_shader_subgroup_arithmetic : enable
+
   #define LOCAL_SIZE 1024
   layout (local_size_x = LOCAL_SIZE) in;
 
@@ -82,7 +85,13 @@ static const char* sComputeAverage = R"(
     // Each thread combines its own value with a value of 2 * its current position.
     // Each loop the amount of working threads are halfed.
     // We stop, when only one warp is left.
-    for (uint s = gl_WorkGroupSize.x / 2; s > 32; s >>= 1) {
+    #ifdef GL_KHR_shader_subgroup_basic
+      const uint subGroupSize = gl_SubgroupSize;
+    #else
+      const uint subGroupSize = 32;
+    #endif
+
+    for (uint s = gl_WorkGroupSize.x / 2; s > subGroupSize; s >>= 1) {
       if (tid < s) {
         vec2 left = sData[tid];
         vec2 right = sData[tid + s];
@@ -96,65 +105,76 @@ static const char* sComputeAverage = R"(
       barrier();
     }
 
-    // Unroll the last warp for maximum performance gains.
-    if (tid < 32) {
-      vec2 left = sData[tid];
-      vec2 right = sData[tid + 32];
-      sData[tid] = vec2(
-          left.x + right.x,
-          max(left.y, right.y)
-      );
+    #if defined(GL_KHR_shader_subgroup_arithmetic) && defined(GL_KHR_shader_subgroup_basic)
+      if (tid < subGroupSize) {
+        vec2 value = sData[tid];
+        float sum = subgroupAdd(value.x);
+        float max = subgroupMax(value.y);
+        if (subgroupElect()) {
+            sData[tid] = vec2(sum, max);
+        }
+      }
+    #else
+      // Unroll the last warp for maximum performance gains.
+      if (tid < 32) {
+        vec2 left = sData[tid];
+        vec2 right = sData[tid + 32];
+        sData[tid] = vec2(
+            left.x + right.x,
+            max(left.y, right.y)
+        );
 
-      memoryBarrierShared();
-      barrier();
+        memoryBarrierShared();
+        barrier();
 
-      left = sData[tid];
-      right = sData[tid + 16];
-      sData[tid] = vec2(
-          left.x + right.x,
-          max(left.y, right.y)
-      );
+        left = sData[tid];
+        right = sData[tid + 16];
+        sData[tid] = vec2(
+            left.x + right.x,
+            max(left.y, right.y)
+        );
 
-      memoryBarrierShared();
-      barrier();
+        memoryBarrierShared();
+        barrier();
 
-      left = sData[tid];
-      right = sData[tid + 8];
-      sData[tid] = vec2(
-          left.x + right.x,
-          max(left.y, right.y)
-      );
+        left = sData[tid];
+        right = sData[tid + 8];
+        sData[tid] = vec2(
+            left.x + right.x,
+            max(left.y, right.y)
+        );
 
-      memoryBarrierShared();
-      barrier();
+        memoryBarrierShared();
+        barrier();
 
-      left = sData[tid];
-      right = sData[tid + 4];
-      sData[tid] = vec2(
-          left.x + right.x,
-          max(left.y, right.y)
-      );
+        left = sData[tid];
+        right = sData[tid + 4];
+        sData[tid] = vec2(
+            left.x + right.x,
+            max(left.y, right.y)
+        );
 
-      memoryBarrierShared();
-      barrier();
+        memoryBarrierShared();
+        barrier();
 
-      left = sData[tid];
-      right = sData[tid + 2];
-      sData[tid] = vec2(
-          left.x + right.x,
-          max(left.y, right.y)
-      );
+        left = sData[tid];
+        right = sData[tid + 2];
+        sData[tid] = vec2(
+            left.x + right.x,
+            max(left.y, right.y)
+        );
 
-      memoryBarrierShared();
-      barrier();
+        memoryBarrierShared();
+        barrier();
 
-      left = sData[tid];
-      right = sData[tid + 1];
-      sData[tid] = vec2(
-          left.x + right.x,
-          max(left.y, right.y)
-      );
-    }
+        left = sData[tid];
+        right = sData[tid + 1];
+        sData[tid] = vec2(
+            left.x + right.x,
+            max(left.y, right.y)
+        );
+      }
+    #endif
 
     // The first thread in each work group writes the final value to the output.
     if (tid == 0) {
