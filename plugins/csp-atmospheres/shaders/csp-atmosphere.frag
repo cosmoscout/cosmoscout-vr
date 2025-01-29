@@ -383,12 +383,13 @@ float baseCloudNoise(vec3 position){
   float freq = BASE_FREQ;
   float noise = simplex3D(position * BASE_FREQ);
   const float OCTAVE_STEP = 1.2;
-  const int NUM_OCTAVES = 1;
+  const int NUM_OCTAVES = 0;
   for(int i = 0; i < NUM_OCTAVES; i++){
     freq *= OCTAVE_STEP;
     noise = remap(noise, simplex3D(position * freq), 1, 0, 1);
   }
-  //return simplex3DFractal(position / 10000);
+  //return remap(pow(simplex3DFractal(position / 10000), .4), simplex3D(position /5000), 1, 0, 1);
+  return simplex3DFractal(position / 10000);
   return noise;
 }
 
@@ -425,10 +426,9 @@ float getCloudDensity(vec3 position){
   float cloud_coverage_h = getCloudCoverageHorizontal(position);
   float cloud_coverage_v = GetCloudCoverageHeight(position);
   float cloud_coverage = cloud_coverage_v * pow(cloud_coverage_h, 1);
-  float cloud_density = remap(noise, 0, 1, pow(cloud_coverage, 2), cloud_coverage);
+  float cloud_density = remap(noise, 1 - pow(cloud_coverage, .5), 1, 0, 1);
   //cloud_density = remap(baseCloudNoise(position), 0, cloud_coverage, 0, 1);
   //cloud_density = texture_contrib;
-  cloud_density = noise;
 #if ENABLE_HDR
   return cloud_density;
 #else
@@ -448,16 +448,19 @@ float getCloudDensityOld(vec3 rayOrigin, vec3 rayDir, float tIntersection){
   #endif
 }
 
-// Computes the color of the clouds along the ray described by the input parameters. The cloud color
-// is computed by intersecting 10 nested cloud layers. Each layer contributes a tenth of the final
-// cloud density in order to create a fake volumetric appearance. The density is faded to zero close
-// to mountains in order to prevent any hard seams.
-// The color of the clouds is computed based on the sun and sky light which reaches the top layer of
-// the clouds. Then, it is attenuated based on the transmittance of the atmosphere between the
-// observer and the cloud.
-// This method contains a couple of hard-coded values which could be made configurable in the
-// future.
+float henyeyGreenstein(vec3 r1, vec3 r2){
+  float g = .8;
+  float cosTheta = dot(r1, r2);
+  return 1 / 4 / PI * (1 - g * g) / pow(1 + g * g + 2 * g * cosTheta, 1.5);
+}
+
+// computes the cloud inscattered luminance in xyz and transmittance in alpha
+// assumptions of the ray marching: Cloud albedo is 100 percent, extinction = outscattering
 vec4 getCloudColor(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, float surfaceDistance) {
+  
+  // parameter for converting cloud density in [0, 1] to density along path in 1/meter
+  // Source: I made it up
+  float DENSITY_MULTIPLIER = 20e-6;
 
   // The distance between the top and bottom cloud layers.
   float thickness = uCloudAltitude * 0.5;
@@ -467,31 +470,89 @@ vec4 getCloudColor(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, float surfaceDistan
 
   // The altitude of the upper-most cloud layer.
   float topAltitude = PLANET_RADIUS + uCloudAltitude;
+  float lowAltitude = topAltitude - thickness / 2;
 
   // The number of cloud layers.
   int samples = 20;
 
   vec2 intersections = intersectSphere(rayOrigin, rayDir, topAltitude);
 
-  // If we do not intersect the cloud sphere, we can return early.
-  if (intersections.y < 0 || intersections.x > intersections.y) {
+  bool hitsSurface = surfaceDistance < intersections.y || intersectSphere(rayOrigin, rayDir, PLANET_RADIUS).y > 0;
+
+  float originHeight = length(rayOrigin);
+    // If we are below the clouds and the ray intersects the ground, we can also return early.
+  if (originHeight < lowAltitude && hitsSurface) {
     return vec4(0.0);
   }
 
-  // If we are below the clouds and the ray intersects the ground, we can also return early.
-  if (intersections.x < 0 && surfaceDistance < intersections.y) {
-    return vec4(0.0);
-  }
 
   // Compute intersection point of view ray with clouds. Use this to compute the illuminance at this
   // point as well as the transmittance of the atmosphere towards the observer.
   vec3 p = rayOrigin + rayDir * (intersections.x < 0 ? intersections.y : intersections.x);
   vec3 skyIlluminance, transmittance;
+
   vec3 inScatter      = GetSkyLuminanceToPoint(rayOrigin, p, uSunDir, transmittance);
   vec3 sunIlluminance = GetSunAndSkyIlluminance(p, uSunDir, skyIlluminance);
 
   // We will accumulate the cloud density in this variable.
   float density = 0.0;
+
+  
+  vec2 topIntersections = intersections;
+  vec2 lowIntersections = intersectSphere(rayOrigin, rayDir, lowAltitude);
+  
+  bool originInClouds = originHeight > lowAltitude && originHeight < topAltitude;
+
+  bool hitTop = topIntersections.y > 0;
+  bool hitBottom = lowIntersections.y > 0;
+
+  bool above = originHeight > topAltitude;
+
+  vec2 interval1 = vec2(-1, -1);
+  vec2 interval2 = vec2(-1, -1);
+
+  if(above){
+    interval1.x = topIntersections.x;
+    interval1.y = lowIntersections.x;
+    if(!hitsSurface){
+      if(hitBottom){
+        // ray exits the cloud layer at the bottom and reintersects it, creating a second interval
+        interval2.x = lowIntersections.y;
+        interval2.y = topIntersections.y;
+        //return vec4(0, 100000, 0, 1);
+      }else{
+        // ray leaves the cloud layer on the upper side
+        interval1.y = topIntersections.y;
+        //return vec4(100000, 0, 0, 1);
+      }
+    }else{
+      //return vec4(0, 0, 100000, 1);
+    }
+  }else{
+    
+    if(lowIntersections.x < 0){
+      // origin below or inside clouds, looking up. No second cloud interval in the distance
+      interval1.x = max(0, lowIntersections.y);
+      interval1.y = topIntersections.y;
+      //return vec4(10000, 0, 0, 1);
+    }else{
+      // origin inside clouds looking down with or without second interval
+      interval1.x = 0;
+      interval1.y = lowIntersections.x;
+      if(!hitsSurface){
+        // second intersection interval relevant
+        interval2.x = lowIntersections.y;
+        interval2.y = topIntersections.y;
+        //return vec4(0, 10000, 0, 1);
+      }else{
+        //return vec4(0, 0, 10000, 1);
+      }
+    }
+  }
+
+
+  
+  
 
   for (int i = 0; i < samples; ++i) {
     float altitude      = topAltitude - i * thickness / samples;
@@ -530,6 +591,16 @@ vec4 getCloudColor(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, float surfaceDistan
       transmittance * (sunIlluminance + skyIlluminance) / PI + inScatter, density);
 }
 
+
+// Computes the color of the clouds along the ray described by the input parameters. The cloud color
+// is computed by intersecting 10 nested cloud layers. Each layer contributes a tenth of the final
+// cloud density in order to create a fake volumetric appearance. The density is faded to zero close
+// to mountains in order to prevent any hard seams.
+// The color of the clouds is computed based on the sun and sky light which reaches the top layer of
+// the clouds. Then, it is attenuated based on the transmittance of the atmosphere between the
+// observer and the cloud.
+// This method contains a couple of hard-coded values which could be made configurable in the
+// future.
 vec4 getCloudColorOld(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, float surfaceDistance){
 // The distance between the top and bottom cloud layers.
   float thickness = uCloudAltitude * 0.5;
