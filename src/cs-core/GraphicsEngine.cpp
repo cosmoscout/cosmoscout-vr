@@ -106,6 +106,10 @@ GraphicsEngine::GraphicsEngine(std::shared_ptr<core::Settings> settings)
   GLuint id = 131186;
   glDebugMessageControl(0x8246, 0x8250, GL_DONT_CARE, 1, &id, GL_FALSE);
 
+  // Ignore synchronized transfer warning.
+  id = 0x20052;
+  glDebugMessageControl(0x8246, 0x8250, GL_DONT_CARE, 1, &id, GL_FALSE);
+
   // setup shadows ---------------------------------------------------------------------------------
 
   mShadowMap->setEnabled(false);
