@@ -34,9 +34,8 @@ static const char* sComputeAverage = R"(
 
   layout (rg32f, binding = 1) uniform image1D uOutLuminance;
 
-  // Shared array for this work group. Contains total luminance in the x-component and max luminance
-  // in the y-component of each element.
-  shared vec2 sData[LOCAL_SIZE];
+  shared float sTotal[LOCAL_SIZE];
+  shared float sMax[LOCAL_SIZE];
 
   // Returns the luminance for the pixel in a 2D vector.
   vec2 sampleHDRBuffer(ivec2 pos) {
@@ -71,16 +70,15 @@ static const char* sComputeAverage = R"(
     vec2 right = j < maxSize ? sampleHDRBuffer(ivec2(j % bufferSize.x, j / bufferSize.x)) : vec2(0);
 
     // The two values are being combined and written to this threads shared memory address.
-    sData[tid] = vec2(
-        left.x + right.x,
-        max(left.y, right.y)
-    );
+    sTotal[tid] = left.x + right.x;
+    sMax[tid] = max(left.y, right.y);
 
     // Wait for all threads in the work group to finish.
     memoryBarrierShared();
     barrier();
 
     #ifdef GL_KHR_shader_subgroup_basic
+      // Get the warp size using an extension.
       const uint subGroupSize = gl_SubgroupSize;
     #else
       // Default warp size for NVIDIA. AMD might have 32 or 64.
@@ -89,17 +87,13 @@ static const char* sComputeAverage = R"(
 
     // 2. Step
     // Do the actual parallel reduction.
-    // Each thread combines its own value with a value of 2 * its current position.
-    // Each loop the amount of working threads are halfed.
+    // Each thread combines its own value with a value of 2 times its current position.
+    // Each loop the amount of working threads are halved.
     // We stop, when only one warp is left.
     for (uint s = gl_WorkGroupSize.x / 2; s > subGroupSize; s >>= 1) {
       if (tid < s) {
-        vec2 left = sData[tid];
-        vec2 right = sData[tid + s];
-        sData[tid] = vec2(
-            left.x + right.x,
-            max(left.y, right.y)
-        );
+        sTotal[tid] += sTotal[tid + s];
+        sMax[tid]    = max(sMax[tid], sMax[tid + s]);
       }
 
       memoryBarrierShared();
@@ -109,78 +103,49 @@ static const char* sComputeAverage = R"(
     #if defined(GL_KHR_shader_subgroup_arithmetic) && defined(GL_KHR_shader_subgroup_basic)
       // We make use of special warp arithmetic to reduce the last warp.
       if (tid < subGroupSize) {
-        vec2 value = sData[tid];
-        float sum = subgroupAdd(value.x);
-        float max = subgroupMax(value.y);
+        float sum = subgroupAdd(sTotal[tid]);
+        float max = subgroupMax(sMax[tid]);
         if (subgroupElect()) {
-            sData[tid] = vec2(sum, max);
+            sTotal[tid] = sum;
+            sMax[tid] = max;
         }
       }
     #else
       // Unroll the last warp for maximum performance gains.
       if (tid < 32) {
-        vec2 left = sData[tid];
-        vec2 right = sData[tid + 32];
-        sData[tid] = vec2(
-            left.x + right.x,
-            max(left.y, right.y)
-        );
-
+        sTotal[tid] += sTotal[tid + 32];
+        sMax[tid]    = max(sMax[tid], sMax[tid + 32]);
         memoryBarrierShared();
         barrier();
 
-        left = sData[tid];
-        right = sData[tid + 16];
-        sData[tid] = vec2(
-            left.x + right.x,
-            max(left.y, right.y)
-        );
-
+        sTotal[tid] += sTotal[tid + 16];
+        sMax[tid]    = max(sMax[tid], sMax[tid + 16]);
         memoryBarrierShared();
         barrier();
 
-        left = sData[tid];
-        right = sData[tid + 8];
-        sData[tid] = vec2(
-            left.x + right.x,
-            max(left.y, right.y)
-        );
-
+        sTotal[tid] += sTotal[tid + 8];
+        sMax[tid]    = max(sMax[tid], sMax[tid + 8]);
         memoryBarrierShared();
         barrier();
 
-        left = sData[tid];
-        right = sData[tid + 4];
-        sData[tid] = vec2(
-            left.x + right.x,
-            max(left.y, right.y)
-        );
-
+        sTotal[tid] += sTotal[tid + 4];
+        sMax[tid]    = max(sMax[tid], sMax[tid + 4]);
         memoryBarrierShared();
         barrier();
 
-        left = sData[tid];
-        right = sData[tid + 2];
-        sData[tid] = vec2(
-            left.x + right.x,
-            max(left.y, right.y)
-        );
-
+        sTotal[tid] += sTotal[tid + 2];
+        sMax[tid]    = max(sMax[tid], sMax[tid + 2]);
         memoryBarrierShared();
         barrier();
 
-        left = sData[tid];
-        right = sData[tid + 1];
-        sData[tid] = vec2(
-            left.x + right.x,
-            max(left.y, right.y)
-        );
+        sTotal[tid] += sTotal[tid + 1];
+        sMax[tid]    = max(sMax[tid], sMax[tid + 1]);
       }
     #endif
 
     // The first thread in each work group writes the final value to the output.
     if (tid == 0) {
-      imageStore(uOutLuminance, int(gl_WorkGroupID.x), vec4(sData[0].x, sData[0].y, 0.0, 0.0));
+      imageStore(uOutLuminance, int(gl_WorkGroupID.x), vec4(sTotal[0], sMax[0], 0.0, 0.0));
     }
   }
 )";
@@ -198,8 +163,8 @@ LuminanceMipMap::LuminanceMipMap(uint32_t hdrBufferSamples, int hdrBufferWidth, 
 
   mLuminanceBuffer = std::make_unique<VistaTexture>(GL_TEXTURE_1D);
   mLuminanceBuffer->Bind();
-  glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-  glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
   glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 
   glTexStorage1D(GL_TEXTURE_1D, 1, GL_RG32F, mWorkGroups);
