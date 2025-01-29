@@ -21,7 +21,7 @@ namespace cs::graphics {
 
 static const char* sComputeAverage = R"(
   #define LOCAL_SIZE 1024
-  layout (local_size_x = LOCAL_SIZE, local_size_y = 1) in;
+  layout (local_size_x = LOCAL_SIZE) in;
 
   #if NUM_MULTISAMPLES > 0
     layout (rgba32f, binding = 0) readonly uniform image2DMS uInHDRBuffer;
@@ -29,10 +29,13 @@ static const char* sComputeAverage = R"(
     layout (rgba32f, binding = 0) readonly uniform image2D uInHDRBuffer;
   #endif
 
-  layout (binding = 1, rg32f) uniform image1D uOutLuminance;
+  layout (rg32f, binding = 1) uniform image1D uOutLuminance;
 
+  // Shared array for this work group. Contains total luminance in the x-component and max luminance
+  // in the y-component of each element.
   shared vec2 sData[LOCAL_SIZE];
 
+  // Returns the luminance for the pixel in a 2D vector.
   vec2 sampleHDRBuffer(ivec2 pos) {
     #if NUM_MULTISAMPLES > 0
       vec3 color = vec3(0.0);
@@ -47,31 +50,38 @@ static const char* sComputeAverage = R"(
     return vec2(val, val);
   }
 
+  // Do a parallel reduction of the HDR buffer for the total and maximum luminance.
   void main() {
     uint tid = gl_LocalInvocationID.x;
     uint gid = gl_GlobalInvocationID.x;
     ivec2 bufferSize = imageSize(uInHDRBuffer);
+    int maxSize = bufferSize.x * bufferSize.y;
 
-    if (2 * gid >= bufferSize.x * bufferSize.y) {
-      return;
-    }
+    // 1. Step
+    // We have half as many threads, as pixels on screen.
+    // Each thread grabs two values from the HDR buffer.
 
     uint i = gl_WorkGroupID.x * gl_WorkGroupSize.x * 2 + tid;
+    vec2 left = i < maxSize ? sampleHDRBuffer(ivec2(i % bufferSize.x, i / bufferSize.x)) : vec2(0);
 
-    ivec2 leftIndex = ivec2(i / bufferSize.x, i % bufferSize.x);
-    vec2 left = sampleHDRBuffer(leftIndex);
+    uint j = i + gl_WorkGroupSize.x;
+    vec2 right = j < maxSize ? sampleHDRBuffer(ivec2(j % bufferSize.x, j / bufferSize.x)) : vec2(0);
 
-    ivec2 rightIndex = ivec2((i + gl_WorkGroupSize.x) / bufferSize.x, (i + gl_WorkGroupSize.x) % bufferSize.x);
-    vec2 right = sampleHDRBuffer(rightIndex);
-
+    // The two values are being combined and written to this threads shared memory address.
     sData[tid] = vec2(
         left.x + right.x,
         max(left.y, right.y)
     );
 
+    // Wait for all threads in the work group to finish.
     memoryBarrierShared();
     barrier();
 
+    // 2. Step
+    // Do the actual parallel reduction.
+    // Each thread combines its own value with a value of 2 * its current position.
+    // Each loop the amount of working threads are halfed.
+    // We stop, when only one warp is left.
     for (uint s = gl_WorkGroupSize.x / 2; s > 32; s >>= 1) {
       if (tid < s) {
         vec2 left = sData[tid];
@@ -86,38 +96,59 @@ static const char* sComputeAverage = R"(
       barrier();
     }
 
+    // Unroll the last warp for maximum performance gains.
     if (tid < 32) {
       vec2 left = sData[tid];
       vec2 right = sData[tid + 32];
-      left = vec2(
+      sData[tid] = vec2(
           left.x + right.x,
           max(left.y, right.y)
       );
 
+      memoryBarrierShared();
+      barrier();
+
+      left = sData[tid];
       right = sData[tid + 16];
-      left = vec2(
+      sData[tid] = vec2(
           left.x + right.x,
           max(left.y, right.y)
       );
 
+      memoryBarrierShared();
+      barrier();
+
+      left = sData[tid];
       right = sData[tid + 8];
-      left = vec2(
+      sData[tid] = vec2(
           left.x + right.x,
           max(left.y, right.y)
       );
 
+      memoryBarrierShared();
+      barrier();
+
+      left = sData[tid];
       right = sData[tid + 4];
-      left = vec2(
+      sData[tid] = vec2(
           left.x + right.x,
           max(left.y, right.y)
       );
 
+      memoryBarrierShared();
+      barrier();
+
+      left = sData[tid];
       right = sData[tid + 2];
-      left = vec2(
+      sData[tid] = vec2(
           left.x + right.x,
           max(left.y, right.y)
       );
 
+      memoryBarrierShared();
+      barrier();
+
+      left = sData[tid];
       right = sData[tid + 1];
       sData[tid] = vec2(
           left.x + right.x,
@@ -125,6 +156,7 @@ static const char* sComputeAverage = R"(
       );
     }
 
+    // The first thread in each work group writes the final value to the output.
     if (tid == 0) {
       imageStore(uOutLuminance, int(gl_WorkGroupID.x), vec4(sData[0].x, sData[0].y, 0.0, 0.0));
     }
@@ -174,7 +206,9 @@ LuminanceMipMap::LuminanceMipMap(uint32_t hdrBufferSamples, int hdrBufferWidth, 
     glGetShaderInfoLog(shader, log_length, nullptr, v.data());
     std::string log(begin(v), end(v));
     glDeleteShader(shader);
-    throw std::runtime_error(std::string("ERROR: Failed to compile shader\n") + log);
+    std::string error = std::string("Failed to compile shader\n") + log;
+    logger().critical(error);
+    throw std::runtime_error("ERROR: " + error);
   }
 
   mComputeProgram = glCreateProgram();
@@ -189,8 +223,9 @@ LuminanceMipMap::LuminanceMipMap(uint32_t hdrBufferSamples, int hdrBufferWidth, 
     std::vector<char> v(log_length);
     glGetProgramInfoLog(mComputeProgram, log_length, nullptr, v.data());
     std::string log(begin(v), end(v));
-
-    throw std::runtime_error(std::string("ERROR: Failed to link compute shader\n") + log);
+    std::string error = std::string("Failed to link compute shader\n") + log;
+    logger().critical(error);
+    throw std::runtime_error("ERROR: " + error);
   }
 }
 
