@@ -454,13 +454,46 @@ float henyeyGreenstein(vec3 r1, vec3 r2){
   return 1 / 4 / PI * (1 - g * g) / pow(1 + g * g + 2 * g * cosTheta, 1.5);
 }
 
+
+// helper function for ray marching through an interval
+vec4 raymarchInterval(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, vec2 interval){
+  // do not march through purely negative intervals
+
+  if(interval.y < 0){
+    return vec4(0, 0, 0, 1);
+  }
+
+  // parameter for converting cloud density in [0, 1] to density along path in 1/meter
+  // Source: I made it up
+  float DENSITY_MULTIPLIER = 50e-6;
+  vec3 CLOUD_COLOR = vec3(1.);
+
+  float t_last = interval.x;
+  vec3 inscattering_acc = vec3(0.);
+  float path_transmittance = 1;
+  int samples = 20;
+  for(int i = 1; i <= samples; ++i){
+    // could be adapted for importance sampling
+    float progress = float(i) / float(samples);
+    float t_now = remap(progress, 0, 1, interval.x, interval.y);
+    float dist = t_now - t_last;
+
+    vec3 position = rayOrigin + rayDir * t_now;
+    float scatter_coefficient = getCloudDensity(position) * DENSITY_MULTIPLIER;
+
+    float extinction_along_segment = exp(-scatter_coefficient * dist);
+    path_transmittance *= extinction_along_segment;
+
+    inscattering_acc += scatter_coefficient * path_transmittance * CLOUD_COLOR;
+  }
+
+  return vec4(inscattering_acc, path_transmittance);
+}
 // computes the cloud inscattered luminance in xyz and transmittance in alpha
 // assumptions of the ray marching: Cloud albedo is 100 percent, extinction = outscattering
 vec4 getCloudColor(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, float surfaceDistance) {
   
-  // parameter for converting cloud density in [0, 1] to density along path in 1/meter
-  // Source: I made it up
-  float DENSITY_MULTIPLIER = 20e-6;
+
 
   // The distance between the top and bottom cloud layers.
   float thickness = uCloudAltitude * 0.5;
@@ -550,38 +583,8 @@ vec4 getCloudColor(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, float surfaceDistan
     }
   }
 
-
-  
-  
-
-  for (int i = 0; i < samples; ++i) {
-    float altitude      = topAltitude - i * thickness / samples;
-    vec2  intersections = intersectSphere(rayOrigin, rayDir, altitude);
-    float fac           = 1.0;
-
-    // Reduce cloud opacity when end point is very close to planet surface.
-    //fac *= clamp(abs(surfaceDistance - intersections.x) / fadeWidth, 0, 1);
-    //fac *= clamp(abs(surfaceDistance - intersections.y) / fadeWidth, 0, 1);
-
-    // Reduce cloud opacity when start point is very close to cloud surface.
-    //fac *= clamp(abs(intersections.x) / thickness, 0, 1);
-    //fac *= clamp(abs(intersections.y) / thickness, 0, 1);
-
-    // If we intersect the cloud sphere...
-    if (intersections.y > 0 && intersections.x < intersections.y) {
-      // Check whether the cloud sphere is intersected from above...
-      if (intersections.x > 0 && intersections.x < surfaceDistance) {
-        // hits from above,
-        vec3 position  = rayOrigin + rayDir * intersections.x;
-        density += getCloudDensity(position) * fac;
-      } else if (intersections.y < surfaceDistance) {
-        // ... or from from below.
-        vec3 position  = rayOrigin + rayDir * intersections.y;
-        density += getCloudDensity(position) * fac;
-      }
-    }
-  }
-  density /= samples;
+  vec4 scatter_data = raymarchInterval(rayOrigin, rayDir, sunDir, interval1);
+  density = 1 - scatter_data.a;
   // Compute the final color based on the cloud density.
   /*
   return vec4(
