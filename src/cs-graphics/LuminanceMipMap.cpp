@@ -42,14 +42,14 @@ static const char* sComputeAverage = R"(
     #if NUM_MULTISAMPLES > 0
       vec3 color = vec3(0.0);
       for (int i = 0; i < NUM_MULTISAMPLES; ++i) {
-        color += imageLoad(uInHDRBuffer, ivec2(pos), i).rgb;
+        color += imageLoad(uInHDRBuffer, pos, i).rgb;
       }
       color /= NUM_MULTISAMPLES;
     #else
-      vec3 color = imageLoad(uInHDRBuffer, ivec2(pos)).rgb;
+      vec3 color = imageLoad(uInHDRBuffer, pos).rgb;
     #endif
     float val = max(max(color.r, color.g), color.b);
-    return vec2(val, val);
+    return vec2(val);
   }
 
   // Do a parallel reduction of the HDR buffer for the total and maximum luminance.
@@ -77,7 +77,7 @@ static const char* sComputeAverage = R"(
     memoryBarrierShared();
     barrier();
 
-    #ifdef GL_KHR_shader_subgroup_basic
+    #if defined(GL_KHR_shader_subgroup_basic)
       // Get the warp size using an extension.
       const uint subGroupSize = gl_SubgroupSize;
     #else
@@ -101,13 +101,17 @@ static const char* sComputeAverage = R"(
     }
 
     #if defined(GL_KHR_shader_subgroup_arithmetic) && defined(GL_KHR_shader_subgroup_basic)
-      // We make use of special warp arithmetic to reduce the last warp.
       if (tid < subGroupSize) {
+        sTotal[tid] += sTotal[tid + subGroupSize];
+        sMax[tid]    = max(sMax[tid], sMax[tid + subGroupSize]);
+        memoryBarrierShared();
+        barrier();
+
+        // We make use of special warp arithmetic to reduce the last warp.
         float sum = subgroupAdd(sTotal[tid]);
         float max = subgroupMax(sMax[tid]);
         if (subgroupElect()) {
-            sTotal[tid] = sum;
-            sMax[tid] = max;
+            imageStore(uOutLuminance, int(gl_WorkGroupID.x), vec4(sum, sum, 0.0, 0.0));
         }
       }
     #else
@@ -141,12 +145,12 @@ static const char* sComputeAverage = R"(
         sTotal[tid] += sTotal[tid + 1];
         sMax[tid]    = max(sMax[tid], sMax[tid + 1]);
       }
-    #endif
 
-    // The first thread in each work group writes the final value to the output.
-    if (tid == 0) {
-      imageStore(uOutLuminance, int(gl_WorkGroupID.x), vec4(sTotal[0], sMax[0], 0.0, 0.0));
-    }
+      // The first thread in each work group writes the final value to the output.
+      if (tid == 0) {
+        imageStore(uOutLuminance, int(gl_WorkGroupID.x), vec4(sTotal[0], sMax[0], 0.0, 0.0));
+      }
+    #endif
   }
 )";
 
@@ -159,7 +163,7 @@ LuminanceMipMap::LuminanceMipMap(uint32_t hdrBufferSamples, int hdrBufferWidth, 
     , mHDRBufferWidth(hdrBufferWidth)
     , mHDRBufferHeight(hdrBufferHeight) {
 
-  mWorkGroups = static_cast<int>(std::ceil((mHDRBufferWidth * mHDRBufferHeight) / (2 * BLOCK_SIZE)));
+  mWorkGroups = static_cast<int>(std::ceil((mHDRBufferWidth * mHDRBufferHeight) / (2.0 * BLOCK_SIZE)));
 
   mLuminanceBuffer = std::make_unique<VistaTexture>(GL_TEXTURE_1D);
   mLuminanceBuffer->Bind();
@@ -241,7 +245,7 @@ void LuminanceMipMap::update(VistaTexture* hdrBufferComposite) {
 
     for (size_t i = 0; i < mWorkGroups; ++i) {
       glm::vec2 value = data[i];
-      mLastTotalLuminance += std::isnan(value.x) ? 0.F : value.x;
+      mLastTotalLuminance  += std::isnan(value.x) ? 0.F : value.x;
       mLastMaximumLuminance = std::max(mLastMaximumLuminance, std::isnan(value.y) ? 0.F : value.y);
     }
 
@@ -256,7 +260,10 @@ void LuminanceMipMap::update(VistaTexture* hdrBufferComposite) {
 
   // Make sure writing has finished.
   glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+
   glDispatchCompute(mWorkGroups, 1, 1);
+
+  glBindImageTexture(0, 0, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RG32F);
   glMemoryBarrier(GL_PIXEL_BUFFER_BARRIER_BIT);
 
   mLuminanceBuffer->Bind();
