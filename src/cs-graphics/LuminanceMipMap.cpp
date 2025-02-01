@@ -46,33 +46,45 @@ static const char* sComputeAverage = R"(
     return vec2(val);
   }
 
+  ivec2 indexToPos(uint index, int width) {
+    return ivec2(index % width, index / width);
+  }
+
   // We have support for subgroups and can do a lot of optimizations!
   #if defined(GL_KHR_shader_subgroup_arithmetic) && defined(GL_KHR_shader_subgroup_basic)
+    // The workgroup size will be subgroupSize squared.
     layout (local_size_x = WORKGROUP_SIZE) in;
 
+    // Each subgroup gets a space in shared memory.
     shared float sTotal[SUBGROUP_SIZE];
     shared float sMax[SUBGROUP_SIZE];
 
+    // This shader makes great use of subgroup optimization. We will have subgroupSize squared
+    // threads. This allows us to calculate the sum and max in just three steps:
+    // 1. Step: Each thread grabs two values from the HDR buffer
+    // 2. Step: Each subgroup reduces their values and write their single result into shared memory.
+    // 3. Step: The first subgroup fetches the values from shared memory and reduces them to a
+    //          single value. This value will be written to the output buffer.
     void main() {
-      uint tid = gl_LocalInvocationID.x;
-      uint gid = gl_GlobalInvocationID.x;
       ivec2 bufferSize = imageSize(uInHDRBuffer);
       int maxSize = bufferSize.x * bufferSize.y;
 
       // 1. Step
-      // We have half as many threads, as pixels on screen.
-      // Each thread grabs two values from the HDR buffer.
-
-      uint i = gl_WorkGroupID.x * gl_WorkGroupSize.x * 2 + tid;
-      vec2 left = i < maxSize ? sampleHDRBuffer(ivec2(i % bufferSize.x, i / bufferSize.x)) : vec2(0);
+      // Each thread grabs two values from the HDR buffer. We need to be careful with the indexing
+      // here, so that neighboring threads access neighboring indices in both calls.
+      uint i = gl_WorkGroupID.x * gl_WorkGroupSize.x * 2 + gl_LocalInvocationID.x;
+      vec2 left = i < maxSize ? sampleHDRBuffer(indexToPos(i, bufferSize.x)) : vec2(0);
 
       uint j = i + gl_WorkGroupSize.x;
-      vec2 right = j < maxSize ? sampleHDRBuffer(ivec2(j % bufferSize.x, j / bufferSize.x)) : vec2(0);
+      vec2 right = j < maxSize ? sampleHDRBuffer(indexToPos(j, bufferSize.x)) : vec2(0);
 
+      // 2. Step
+      // All threads in a subgroup will sum their values up and calculate their max.
       float initialSum = subgroupAdd(left.x + right.x);
       float initialMax = subgroupMax(max(left.y, right.y));
 
-      // The two values are being combined and written to this threads shared memory address.
+      // The subgroup max and sum are being combined and written to this subgroups shared memory
+      // address.
       if (subgroupElect()) {
         sTotal[gl_SubgroupID] = initialSum;
         sMax[gl_SubgroupID]   = initialMax;
@@ -82,8 +94,10 @@ static const char* sComputeAverage = R"(
       memoryBarrierShared();
       barrier();
 
+      // 3. Step
+      // The lowest indexed subgroup grab the remaining values from shared memory and reduce them.
+      // The result is written to the output buffer at the location of this work groups id.
       if (gl_SubgroupID == 0) {
-        // We make use of special warp arithmetic to reduce the last warp.
         float sum = subgroupAdd(sTotal[gl_SubgroupInvocationID]);
         float max = subgroupMax(sMax[gl_SubgroupInvocationID]);
         if (subgroupElect()) {
@@ -92,13 +106,13 @@ static const char* sComputeAverage = R"(
       }
     }
 
-  // We don't have support for subgroups and do a standard parallel reduction!
-  #else
+  #else // We don't have support for subgroups and do a standard parallel reduction!
     layout (local_size_x = 1024) in;
 
     shared float sTotal[1024];
     shared float sMax[1024];
 
+    // This shader does a standard parallel reduction based on
     void main() {
       uint tid = gl_LocalInvocationID.x;
       uint gid = gl_GlobalInvocationID.x;
@@ -110,10 +124,10 @@ static const char* sComputeAverage = R"(
       // Each thread grabs two values from the HDR buffer.
 
       uint i = gl_WorkGroupID.x * gl_WorkGroupSize.x * 2 + tid;
-      vec2 left = i < maxSize ? sampleHDRBuffer(ivec2(i % bufferSize.x, i / bufferSize.x)) : vec2(0);
+      vec2 left = i < maxSize ? sampleHDRBuffer(indexToPos(i, bufferSize.x)) : vec2(0);
 
       uint j = i + gl_WorkGroupSize.x;
-      vec2 right = j < maxSize ? sampleHDRBuffer(ivec2(j % bufferSize.x, j / bufferSize.x)) : vec2(0);
+      vec2 right = j < maxSize ? sampleHDRBuffer(indexToPos(j, bufferSize.x)) : vec2(0);
 
       // The two values are being combined and written to this threads shared memory address.
       sTotal[tid] = left.x + right.x;
@@ -124,21 +138,37 @@ static const char* sComputeAverage = R"(
       barrier();
 
       // 2. Step
-      // Do the actual parallel reduction.
       // Each thread combines its own value with a value of 2 times its current position.
-      // Each loop the amount of working threads are halved.
-      // We stop, when only one warp is left.
-      for (uint s = gl_WorkGroupSize.x / 2; s > 32; s >>= 1) {
-        if (tid < s) {
-          sTotal[tid] += sTotal[tid + s];
-          sMax[tid]    = max(sMax[tid], sMax[tid + s]);
-        }
-
-        memoryBarrierShared();
-        barrier();
+      // We will halve the amount of threads each turn.
+      // We repeat this step until one warp is left.
+      // We could do this in a loop, but manual unrolling is faster (I profiled this!).
+      if (tid < 256) {
+        sTotal[tid] += sTotal[tid + 256];
+        sMax[tid]    = max(sMax[tid], sMax[tid + 256]);
       }
 
-      // Unroll the last warp for maximum performance gains.
+      memoryBarrierShared();
+      barrier();
+
+      if (tid < 128) {
+        sTotal[tid] += sTotal[tid + 128];
+        sMax[tid]    = max(sMax[tid], sMax[tid + 128]);
+      }
+
+      memoryBarrierShared();
+      barrier();
+
+      if (tid < 64) {
+        sTotal[tid] += sTotal[tid + 64];
+        sMax[tid]    = max(sMax[tid], sMax[tid + 64]);
+      }
+
+      memoryBarrierShared();
+      barrier();
+
+      // 3. Step
+      // We don't need to check the thread id for the last warp, since they are more efficient
+      // doing the same work.
       if (tid < 32) {
         sTotal[tid] += sTotal[tid + 32];
         sMax[tid]    = max(sMax[tid], sMax[tid + 32]);
@@ -165,13 +195,13 @@ static const char* sComputeAverage = R"(
         memoryBarrierShared();
         barrier();
 
-        sTotal[tid] += sTotal[tid + 1];
-        sMax[tid]    = max(sMax[tid], sMax[tid + 1]);
-      }
+        float total = sTotal[tid] + sTotal[tid + 1];
+        float max   = max(sMax[tid], sMax[tid + 1]);
 
-      // The first thread in each work group writes the final value to the output.
-      if (tid == 0) {
-        imageStore(uOutLuminance, int(gl_WorkGroupID.x), vec4(sTotal[0], sMax[0], 0.0, 0.0));
+        // The first thread in each work group writes the final value to the output.
+        if (tid == 0) {
+          imageStore(uOutLuminance, int(gl_WorkGroupID.x), vec4(total, max, 0.0, 0.0));
+        }
       }
     }
   #endif
