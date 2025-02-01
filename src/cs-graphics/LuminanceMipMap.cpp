@@ -23,9 +23,6 @@ static const char* sComputeAverage = R"(
   #extension GL_KHR_shader_subgroup_basic : enable
   #extension GL_KHR_shader_subgroup_arithmetic : enable
 
-  #define LOCAL_SIZE 1024
-  layout (local_size_x = LOCAL_SIZE) in;
-
   #if NUM_MULTISAMPLES > 0
     layout (rgba32f, binding = 0) readonly uniform image2DMS uInHDRBuffer;
   #else
@@ -33,9 +30,6 @@ static const char* sComputeAverage = R"(
   #endif
 
   layout (rg32f, binding = 1) uniform image1D uOutLuminance;
-
-  shared float sTotal[LOCAL_SIZE];
-  shared float sMax[LOCAL_SIZE];
 
   // Returns the luminance for the pixel in a 2D vector.
   vec2 sampleHDRBuffer(ivec2 pos) {
@@ -52,69 +46,98 @@ static const char* sComputeAverage = R"(
     return vec2(val);
   }
 
-  // Do a parallel reduction of the HDR buffer for the total and maximum luminance.
-  void main() {
-    uint tid = gl_LocalInvocationID.x;
-    uint gid = gl_GlobalInvocationID.x;
-    ivec2 bufferSize = imageSize(uInHDRBuffer);
-    int maxSize = bufferSize.x * bufferSize.y;
+  // We have support for subgroups and can do a lot of optimizations!
+  #if defined(GL_KHR_shader_subgroup_arithmetic) && defined(GL_KHR_shader_subgroup_basic)
+    layout (local_size_x = WORKGROUP_SIZE) in;
 
-    // 1. Step
-    // We have half as many threads, as pixels on screen.
-    // Each thread grabs two values from the HDR buffer.
+    shared float sTotal[SUBGROUP_SIZE];
+    shared float sMax[SUBGROUP_SIZE];
 
-    uint i = gl_WorkGroupID.x * gl_WorkGroupSize.x * 2 + tid;
-    vec2 left = i < maxSize ? sampleHDRBuffer(ivec2(i % bufferSize.x, i / bufferSize.x)) : vec2(0);
+    void main() {
+      uint tid = gl_LocalInvocationID.x;
+      uint gid = gl_GlobalInvocationID.x;
+      ivec2 bufferSize = imageSize(uInHDRBuffer);
+      int maxSize = bufferSize.x * bufferSize.y;
 
-    uint j = i + gl_WorkGroupSize.x;
-    vec2 right = j < maxSize ? sampleHDRBuffer(ivec2(j % bufferSize.x, j / bufferSize.x)) : vec2(0);
+      // 1. Step
+      // We have half as many threads, as pixels on screen.
+      // Each thread grabs two values from the HDR buffer.
 
-    // The two values are being combined and written to this threads shared memory address.
-    sTotal[tid] = left.x + right.x;
-    sMax[tid] = max(left.y, right.y);
+      uint i = gl_WorkGroupID.x * gl_WorkGroupSize.x * 2 + tid;
+      vec2 left = i < maxSize ? sampleHDRBuffer(ivec2(i % bufferSize.x, i / bufferSize.x)) : vec2(0);
 
-    // Wait for all threads in the work group to finish.
-    memoryBarrierShared();
-    barrier();
+      uint j = i + gl_WorkGroupSize.x;
+      vec2 right = j < maxSize ? sampleHDRBuffer(ivec2(j % bufferSize.x, j / bufferSize.x)) : vec2(0);
 
-    #if defined(GL_KHR_shader_subgroup_basic)
-      // Get the warp size using an extension.
-      const uint subGroupSize = gl_SubgroupSize;
-    #else
-      // Default warp size for NVIDIA. AMD might have 32 or 64.
-      const uint subGroupSize = 32;
-    #endif
+      float initialSum = subgroupAdd(left.x + right.x);
+      float initialMax = subgroupMax(max(left.y, right.y));
 
-    // 2. Step
-    // Do the actual parallel reduction.
-    // Each thread combines its own value with a value of 2 times its current position.
-    // Each loop the amount of working threads are halved.
-    // We stop, when only one warp is left.
-    for (uint s = gl_WorkGroupSize.x / 2; s > subGroupSize; s >>= 1) {
-      if (tid < s) {
-        sTotal[tid] += sTotal[tid + s];
-        sMax[tid]    = max(sMax[tid], sMax[tid + s]);
+      // The two values are being combined and written to this threads shared memory address.
+      if (subgroupElect()) {
+        sTotal[gl_SubgroupID] = initialSum;
+        sMax[gl_SubgroupID]   = initialMax;
       }
 
+      // Wait for all threads in the work group to finish.
       memoryBarrierShared();
       barrier();
-    }
 
-    #if defined(GL_KHR_shader_subgroup_arithmetic) && defined(GL_KHR_shader_subgroup_basic)
-      if (tid < subGroupSize) {
-        sTotal[tid] += sTotal[tid + subGroupSize];
-        sMax[tid]    = max(sMax[tid], sMax[tid + subGroupSize]);
-        memoryBarrierShared();
-        barrier();
-
+      if (gl_SubgroupID == 0) {
         // We make use of special warp arithmetic to reduce the last warp.
-        float sum = subgroupAdd(sTotal[tid]);
-        float max = subgroupMax(sMax[tid]);
+        float sum = subgroupAdd(sTotal[gl_SubgroupInvocationID]);
+        float max = subgroupMax(sMax[gl_SubgroupInvocationID]);
         if (subgroupElect()) {
             imageStore(uOutLuminance, int(gl_WorkGroupID.x), vec4(sum, sum, 0.0, 0.0));
         }
       }
-    #else
+    }
+
+  // We don't have support for subgroups and do a standard parallel reduction!
+  #else
+    layout (local_size_x = 1024) in;
+
+    shared float sTotal[1024];
+    shared float sMax[1024];
+
+    void main() {
+      uint tid = gl_LocalInvocationID.x;
+      uint gid = gl_GlobalInvocationID.x;
+      ivec2 bufferSize = imageSize(uInHDRBuffer);
+      int maxSize = bufferSize.x * bufferSize.y;
+
+      // 1. Step
+      // We have half as many threads, as pixels on screen.
+      // Each thread grabs two values from the HDR buffer.
+
+      uint i = gl_WorkGroupID.x * gl_WorkGroupSize.x * 2 + tid;
+      vec2 left = i < maxSize ? sampleHDRBuffer(ivec2(i % bufferSize.x, i / bufferSize.x)) : vec2(0);
+
+      uint j = i + gl_WorkGroupSize.x;
+      vec2 right = j < maxSize ? sampleHDRBuffer(ivec2(j % bufferSize.x, j / bufferSize.x)) : vec2(0);
+
+      // The two values are being combined and written to this threads shared memory address.
+      sTotal[tid] = left.x + right.x;
+      sMax[tid] = max(left.y, right.y);
+
+      // Wait for all threads in the work group to finish.
+      memoryBarrierShared();
+      barrier();
+
+      // 2. Step
+      // Do the actual parallel reduction.
+      // Each thread combines its own value with a value of 2 times its current position.
+      // Each loop the amount of working threads are halved.
+      // We stop, when only one warp is left.
+      for (uint s = gl_WorkGroupSize.x / 2; s > 32; s >>= 1) {
+        if (tid < s) {
+          sTotal[tid] += sTotal[tid + s];
+          sMax[tid]    = max(sMax[tid], sMax[tid + s]);
+        }
+
+        memoryBarrierShared();
+        barrier();
+      }
+
       // Unroll the last warp for maximum performance gains.
       if (tid < 32) {
         sTotal[tid] += sTotal[tid + 32];
@@ -150,20 +173,24 @@ static const char* sComputeAverage = R"(
       if (tid == 0) {
         imageStore(uOutLuminance, int(gl_WorkGroupID.x), vec4(sTotal[0], sMax[0], 0.0, 0.0));
       }
-    #endif
-  }
+    }
+  #endif
 )";
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-
-constexpr int32_t BLOCK_SIZE = 1024;
 
 LuminanceMipMap::LuminanceMipMap(uint32_t hdrBufferSamples, int hdrBufferWidth, int hdrBufferHeight)
     : mHDRBufferSamples(hdrBufferSamples)
     , mHDRBufferWidth(hdrBufferWidth)
     , mHDRBufferHeight(hdrBufferHeight) {
 
-  mWorkGroups = static_cast<int>(std::ceil((mHDRBufferWidth * mHDRBufferHeight) / (2.0 * BLOCK_SIZE)));
+  GLint subgroupSize = 32;
+  if (glewIsSupported("GL_KHR_shader_subgroup")) {
+    glGetIntegerv(GL_SUBGROUP_SIZE_KHR, &subgroupSize);
+  }
+  GLint workgroupSize = subgroupSize * subgroupSize;
+
+  mWorkGroups = static_cast<int>(std::ceil((mHDRBufferWidth * mHDRBufferHeight) / (2.0 * workgroupSize)));
 
   mLuminanceBuffer = std::make_unique<VistaTexture>(GL_TEXTURE_1D);
   mLuminanceBuffer->Bind();
@@ -183,6 +210,8 @@ LuminanceMipMap::LuminanceMipMap(uint32_t hdrBufferSamples, int hdrBufferWidth, 
   auto        shader = glCreateShader(GL_COMPUTE_SHADER);
   std::string source = "#version 430\n";
   source += "#define NUM_MULTISAMPLES " + std::to_string(mHDRBufferSamples) + "\n";
+  source += "#define WORKGROUP_SIZE " + std::to_string(workgroupSize) + "\n";
+  source += "#define SUBGROUP_SIZE " + std::to_string(subgroupSize) + "\n";
   source += sComputeAverage;
   const char* pSource = source.c_str();
   glShaderSource(shader, 1, &pSource, nullptr);

@@ -10,6 +10,7 @@ project(cosmoscout-vr VERSION 1.10.0)
 
 # Use cmake 3.12's <PACKAGE>_ROOT variabled for searching.
 cmake_policy(SET CMP0074 NEW)
+cmake_policy(SET CMP0167 OLD)
 
 # Ensure local modules (for dependencies etc.) are found.
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
@@ -32,7 +33,7 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 include(GenerateExportHeader)
 
 # Boost and OpenGL must be present on your system. All other dependencies are included as submodules
-# in "externals/". Those must be built beforehand, breferably using the scripts "make_externals.*".
+# in "externals/". Those must be built beforehand, preferably using the scripts "make_externals.*".
 set(Boost_REALPATH ON)
 set(Boost_USE_MULTITHREADED ON)
 set(Boost_USE_STATIC_LIBS OFF)
