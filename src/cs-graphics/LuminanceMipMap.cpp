@@ -112,7 +112,8 @@ static const char* sComputeAverage = R"(
     shared float sTotal[1024];
     shared float sMax[1024];
 
-    // This shader does a standard parallel reduction based on
+    // This shader does a standard parallel reduction based on a CUDA webinar:
+    // https://developer.download.nvidia.com/assets/cuda/files/reduction.pdf
     void main() {
       uint tid = gl_LocalInvocationID.x;
       uint gid = gl_GlobalInvocationID.x;
