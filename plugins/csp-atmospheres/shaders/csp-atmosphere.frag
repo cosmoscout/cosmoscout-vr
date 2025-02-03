@@ -386,7 +386,7 @@ float baseCloudNoise(vec3 position){
   const int NUM_OCTAVES = 0;
   for(int i = 0; i < NUM_OCTAVES; i++){
     freq *= OCTAVE_STEP;
-    noise = remap(noise, simplex3D(position * freq), 1, 0, 1);
+    noise = remap(noise, simplex3D(position * freq), .9, 0, 1);
   }
   //return remap(pow(simplex3DFractal(position / 10000), .4), simplex3D(position /5000), 1, 0, 1);
   return simplex3DFractal(position / 10000);
@@ -400,12 +400,6 @@ float getCloudCoverageHorizontal(vec3 position){
   float texture_contrib = texture(uCloudTexture, texCoords).r;
 
   return texture_contrib;
-  
-  //const float TOTAL_COVERAGE = .3;
-  //const float DENSE_REGION_FRACTION = .3;
-  //// relatively low frequency noise
-  //float map_contribution = simplex3DFractal(vec3(lngLat * 10, 0));
-  //return remap(texture_contrib, TOTAL_COVERAGE, 1. - (1. - TOTAL_COVERAGE) * DENSE_REGION_FRACTION, 0, 1) /* height_component*/;
 }
 
 float GetCloudCoverageHeight(vec3 position){
@@ -413,7 +407,7 @@ float GetCloudCoverageHeight(vec3 position){
   float thickness = uCloudAltitude * 0.5;
   // "progress" in cloud from bottom to top in range 0 to 1
   float height_in_cloud = remap(length(position), topAltitude - thickness, topAltitude, 0, 1);
-  float height_component = remap(height_in_cloud, 0, .3, 0, 1) * remap(height_in_cloud, 0.7, 1, 1, 0);
+  float height_component = remap(height_in_cloud, 0, .4, 0, 1) * remap(height_in_cloud, 0.6, 1, 1, 0);
   return height_component;
 }
 
@@ -425,10 +419,15 @@ float getCloudDensity(vec3 position){
   float noise = baseCloudNoise(position);
   float cloud_coverage_h = getCloudCoverageHorizontal(position);
   float cloud_coverage_v = GetCloudCoverageHeight(position);
-  float cloud_coverage = cloud_coverage_v * pow(cloud_coverage_h, 1);
-  float cloud_density = remap(noise, 1 - pow(cloud_coverage, .5), 1, 0, 1);
-  //cloud_density = remap(baseCloudNoise(position), 0, cloud_coverage, 0, 1);
+  
+  float cloud_coverage = cloud_coverage_h * cloud_coverage_v;
+  float cloud_base = remap(cloud_coverage, .1, .9, 0, 1);
+  float base_with_noise = remap(noise, 1-cloud_base, 1, 0, 1);
   //cloud_density = texture_contrib;
+  float cloud_density = base_with_noise;
+  float high_freq_noise = simplex3DFractal(position / 1000);
+  cloud_density = remap(cloud_density, 0, .5, 0, 1);
+  cloud_density = remap(cloud_density, high_freq_noise, 1, 0, 1);
 #if ENABLE_HDR
   return cloud_density;
 #else
@@ -474,7 +473,7 @@ vec4 raymarchInterval(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, vec2 interval){
   vec3 inscattering_acc = vec3(0.);
   float path_transmittance = 1;
 
-  int samples = 20;
+  int samples = 50;
   float maximum_dist_between_samples = 1000;
   float interval_length = interval.y - interval.x;
   
@@ -484,7 +483,7 @@ vec4 raymarchInterval(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, vec2 interval){
     //return vec4(0, 0, 1, 0)*100000;
     samples = int(interval_length / maximum_dist_between_samples);
   }
-  samples=min(samples, 100);
+  samples=min(samples, 200);
 
   //return(mix(vec4(1, 0, 0, 0), vec4(0, 1, 0, 0),samples/100.) * 1000);
   float phase = henyeyGreenstein(sunDir, -rayDir);
