@@ -449,8 +449,10 @@ float getCloudDensityOld(vec3 rayOrigin, vec3 rayDir, float tIntersection){
 }
 
 float henyeyGreenstein(vec3 r1, vec3 r2){
-  float g = .8;
-  float cosTheta = dot(r1, r2);
+  float g = .6;
+  float cosTheta = dot(normalize(r1), normalize(r2));
+  float temp = 1 + pow(g, .5) + 2 * g * cosTheta;
+  return (1 - g * g) / (temp * pow(temp, .5)) / 4 / PI;
   return 1 / 4 / PI * (1 - g * g) / pow(1 + g * g + 2 * g * cosTheta, 1.5);
 }
 
@@ -465,18 +467,20 @@ vec4 raymarchInterval(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, vec2 interval){
 
   // parameter for converting cloud density in [0, 1] to density along path in 1/meter
   // Source: I made it up
-  float DENSITY_MULTIPLIER = 50e-6;
+  float DENSITY_MULTIPLIER = 500e-6;
   vec3 CLOUD_COLOR = vec3(1.);
 
   float t_last = interval.x;
   vec3 inscattering_acc = vec3(0.);
   float path_transmittance = 1;
   int samples = 20;
+  float phase = henyeyGreenstein(sunDir, -rayDir);
   for(int i = 1; i <= samples; ++i){
     // could be adapted for importance sampling
     float progress = float(i) / float(samples);
     float t_now = remap(progress, 0, 1, interval.x, interval.y);
     float dist = t_now - t_last;
+    t_last = t_now;
 
     vec3 position = rayOrigin + rayDir * t_now;
     float scatter_coefficient = getCloudDensity(position) * DENSITY_MULTIPLIER;
@@ -484,9 +488,22 @@ vec4 raymarchInterval(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, vec2 interval){
     float extinction_along_segment = exp(-scatter_coefficient * dist);
     path_transmittance *= extinction_along_segment;
 
-    inscattering_acc += scatter_coefficient * path_transmittance * CLOUD_COLOR;
-  }
+    vec3 transmittance;
+    vec3 local_incoming = GetSkyLuminance(position, sunDir, sunDir, transmittance);
 
+    // incoming luminance for single scattering in clouds
+    // heavy flickering when using the inscattered luminance directly
+    local_incoming = vec3(144809.5,129443.421875,127098.6484375) * transmittance;
+
+    
+    inscattering_acc += scatter_coefficient * dist * local_incoming * path_transmittance * CLOUD_COLOR * phase * 4 * PI;//CLOUD_COLOR * local_incoming ;
+  }
+  // cheat a little near horizon: approximate scattering from surrounding atmosphere
+  if(length(inscattering_acc) < 100 && path_transmittance < 1 - 1e-5){
+    //surroundingColor = vec3(0, 10000, 0);
+    path_transmittance = mix(1, path_transmittance, length(inscattering_acc) / 100);
+  }
+  
   return vec4(inscattering_acc, path_transmittance);
 }
 // computes the cloud inscattered luminance in xyz and transmittance in alpha
@@ -505,9 +522,6 @@ vec4 getCloudColor(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, float surfaceDistan
   float topAltitude = PLANET_RADIUS + uCloudAltitude;
   float lowAltitude = topAltitude - thickness / 2;
 
-  // The number of cloud layers.
-  int samples = 20;
-
   vec2 intersections = intersectSphere(rayOrigin, rayDir, topAltitude);
 
   bool hitsSurface = surfaceDistance < intersections.y || intersectSphere(rayOrigin, rayDir, PLANET_RADIUS).y > 0;
@@ -515,7 +529,7 @@ vec4 getCloudColor(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, float surfaceDistan
   float originHeight = length(rayOrigin);
     // If we are below the clouds and the ray intersects the ground, we can also return early.
   if (originHeight < lowAltitude && hitsSurface) {
-    return vec4(0.0);
+    return vec4(0.0, 0, 0, 1);
   }
 
 
@@ -524,7 +538,6 @@ vec4 getCloudColor(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, float surfaceDistan
   vec3 p = rayOrigin + rayDir * (intersections.x < 0 ? intersections.y : intersections.x);
   vec3 skyIlluminance, transmittance;
 
-  vec3 inScatter      = GetSkyLuminanceToPoint(rayOrigin, p, uSunDir, transmittance);
   vec3 sunIlluminance = GetSunAndSkyIlluminance(p, uSunDir, skyIlluminance);
 
   // We will accumulate the cloud density in this variable.
@@ -583,15 +596,12 @@ vec4 getCloudColor(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, float surfaceDistan
     }
   }
 
-  vec4 scatter_data = raymarchInterval(rayOrigin, rayDir, sunDir, interval1);
-  density = 1 - scatter_data.a;
-  // Compute the final color based on the cloud density.
-  /*
-  return vec4(
-    density, 1- density, 0, 1
-  ) * 100;*/
-  return vec4(
-      transmittance * (sunIlluminance + skyIlluminance) / PI + inScatter, density);
+  vec4 scatter_data1 = raymarchInterval(rayOrigin, rayDir, sunDir, interval1);
+  vec4 scatter_data2 = raymarchInterval(rayOrigin, rayDir, sunDir, interval2);
+  
+  vec3 inScatter = scatter_data1.xyz + scatter_data1.a * scatter_data2.xyz;
+  return vec4(inScatter, scatter_data1.a * scatter_data2.a);
+
 }
 
 
@@ -1124,9 +1134,9 @@ void main() {
   }
 #endif
 
+  oColor = transmittance * oColor + inScatter;
   // save for compositing in new cloud model
   vec3 oColorOld = oColor;
-  oColor = transmittance * oColor + inScatter;
 
 #if ENABLE_WATER
   if (underWater) {
@@ -1157,7 +1167,7 @@ void main() {
     cloudColor.rgb = tonemap(cloudColor.rgb / uSunInfo.y);
 #endif
 
-    oColor = mix(oColor, cloudColor.rgb, cloudColor.a);
+    oColor = oColorOld * cloudColor.a + cloudColor.rgb;
   }
 #endif
 #endif
