@@ -467,7 +467,7 @@ vec4 raymarchInterval(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, vec2 interval){
 
   // parameter for converting cloud density in [0, 1] to density along path in 1/meter
   // Source: I made it up
-  float DENSITY_MULTIPLIER = 500e-6;
+  float DENSITY_MULTIPLIER = 5e-3;
   vec3 CLOUD_COLOR = vec3(1.);
 
   float t_last = interval.x;
