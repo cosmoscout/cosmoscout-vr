@@ -473,12 +473,27 @@ vec4 raymarchInterval(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, vec2 interval){
   float t_last = interval.x;
   vec3 inscattering_acc = vec3(0.);
   float path_transmittance = 1;
+
   int samples = 20;
+  float maximum_dist_between_samples = 1000;
+  float interval_length = interval.y - interval.x;
+  
+  float regular_dist_between_samples = interval_length / samples;
+  
+  if(regular_dist_between_samples > maximum_dist_between_samples){
+    //return vec4(0, 0, 1, 0)*100000;
+    samples = int(interval_length / maximum_dist_between_samples);
+  }
+  samples=min(samples, 100);
+
+  //return(mix(vec4(1, 0, 0, 0), vec4(0, 1, 0, 0),samples/100.) * 1000);
   float phase = henyeyGreenstein(sunDir, -rayDir);
   for(int i = 1; i <= samples; ++i){
     // could be adapted for importance sampling
     float progress = float(i) / float(samples);
     float t_now = remap(progress, 0, 1, interval.x, interval.y);
+    // random offset of samples
+    t_now += (simplex3D(vec3(t_now, progress, interval_length) * 100 + vsIn.rayDir * 100) - .5) * regular_dist_between_samples;
     float dist = t_now - t_last;
     t_last = t_now;
 
@@ -504,7 +519,7 @@ vec4 raymarchInterval(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, vec2 interval){
     path_transmittance = mix(1, path_transmittance, length(inscattering_acc) / 100);
   }
   
-  return vec4(inscattering_acc, path_transmittance);
+  return vec4(inscattering_acc, path_transmittance);// + mix(vec4(1, 0, 0, 0), vec4(0, 1, 0, 0), float(samples) / 100) * 100000;
 }
 // computes the cloud inscattered luminance in xyz and transmittance in alpha
 // assumptions of the ray marching: Cloud albedo is 100 percent, extinction = outscattering
@@ -591,6 +606,7 @@ vec4 getCloudColor(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, float surfaceDistan
         interval2.y = topIntersections.y;
         //return vec4(0, 10000, 0, 1);
       }else{
+        interval1.y = min(surfaceDistance, lowIntersections.x);
         //return vec4(0, 0, 10000, 1);
       }
     }
