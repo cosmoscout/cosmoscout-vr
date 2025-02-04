@@ -374,7 +374,7 @@ vec4 getOceanShade(float d) {
 
 float remap(float v, float min_old, float max_old, float min_new, float max_new){
   float v_in_0_1 = (v - min_old) / (max_old - min_old);
-  return clamp(v_in_0_1 * (max_new - min_new) + min_new, min_new, max_new);
+  return clamp(v_in_0_1 * (max_new - min_new) + min_new, min(min_new, max_new), max(max_new, min_new));
 }
 
 
@@ -411,47 +411,58 @@ float GetCloudCoverageHeight(vec3 position, float start_height, float end_height
   return height_component;
 }
 
-
+float ALTO_CUMULUS_START_HEIGHT = 500;
+float ALTO_CUMULUS_END_HEIGHT = 5000;
 
 // Returns the value of the cloud texture at the position described by the three parameters.
 float getAltoCumulusDensity(vec3 position){
-  float COVERAGE_MULTIPLIER = 1.5;
+  float COVERAGE_MULTIPLIER = 2;
   // only use cloud coverage for now
   float noise = baseCloudNoise(position);
   float cloud_coverage_h = getCloudCoverageHorizontal(position);
-  float cloud_coverage_v = GetCloudCoverageHeight(position, 1500, 5000);
+  //cloud_coverage_h = remap(cloud_coverage_h, 0, 0.1, 0, 1) * remap(cloud_coverage_h, 0.2, 0.3, 1, 0);
+  //return cloud_coverage_h;
+  float cloud_coverage_v = GetCloudCoverageHeight(position, ALTO_CUMULUS_START_HEIGHT, ALTO_CUMULUS_END_HEIGHT);
   
+  //cloud_coverage_h = remap(cloud_coverage_h, 0, .5, 0, 1);
   float cloud_base = remap(cloud_coverage_h, 0, 1, 0, cloud_coverage_v);
-  float base_with_noise = remap(noise, 1-cloud_base * COVERAGE_MULTIPLIER, 1, 0, 1);
-  //cloud_density = texture_contrib;
+  cloud_base = cloud_coverage_h;
+  float base_with_noise = remap(noise, 1-cloud_base * COVERAGE_MULTIPLIER * cloud_coverage_v, 1, 0, 1);
   float cloud_density = base_with_noise;
   float high_freq_noise = simplex3DFractal(position / 1000);
   cloud_density = remap(cloud_density, 0, .3, 0, 1);
   cloud_density = remap(cloud_density, high_freq_noise, 1, 0, 1);
-#if ENABLE_HDR
   return cloud_density;
-#else
-  return cloud_density;
-#endif
 }
+
+float CIRRUS_START_HEIGHT = 6000;
+float CIRRUS_END_HEIGHT = 8500;
 
 float getCirrusDensity(vec3 position){
   float TOTAL_DENSITY_MULTIPLIER = .8;
   float LOW_CUTOFF = .1;
-  float NOISE_SHRINKING = .1;
+  float NOISE_SHRINKING = .5;
+  float EXPONENT = 5;
 
   float cloud_coverage_h = remap(getCloudCoverageHorizontal(position), LOW_CUTOFF, 1, 0, 1);
-  cloud_coverage_h = pow(cloud_coverage_h, 3);
-  float cloud_coverage_v = GetCloudCoverageHeight(position, 6000, 8500);
+  float cloud_coverage_v = GetCloudCoverageHeight(position, CIRRUS_START_HEIGHT, CIRRUS_END_HEIGHT);
   float cloud_base = remap(cloud_coverage_h, 0, 1, 0, cloud_coverage_v);
-  float low_freq_noise = simplex3DFractal(normalize(position) * 10);
-  cloud_base = remap(cloud_base, 0, 1, 0, 1);
+  float low_freq_noise = simplex3DFractal(normalize(position) * 20);
+  cloud_base = remap(cloud_base, 0, .8, 0, 1);
   float cloud_density = remap(cloud_base, low_freq_noise * NOISE_SHRINKING, 1, 0, 1);
-  return cloud_density * TOTAL_DENSITY_MULTIPLIER;
+  return pow(cloud_density, EXPONENT) * TOTAL_DENSITY_MULTIPLIER;
 }
 
 float getCloudDensity(vec3 position){
-  return getCirrusDensity(position);// + getAltoCumulusDensity(position);
+  float acc = 0;
+  float height = length(position) - PLANET_RADIUS;
+  if(height > ALTO_CUMULUS_START_HEIGHT && height < ALTO_CUMULUS_END_HEIGHT){
+    acc += getAltoCumulusDensity(position);
+  }
+  if(height > CIRRUS_START_HEIGHT && height < CIRRUS_END_HEIGHT){
+    //acc += getCirrusDensity(position);
+  }
+  return acc;
 }
 
 float getCloudDensityOld(vec3 rayOrigin, vec3 rayDir, float tIntersection){
@@ -475,7 +486,7 @@ float henyeyGreenstein(vec3 r1, vec3 r2){
 
 
 // helper function for ray marching through an interval
-vec4 raymarchInterval(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, vec2 interval){
+vec4 raymarchInterval(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, vec2 interval, int samples=100){
   // do not march through purely negative intervals
 
   if(interval.y < 0){
@@ -491,7 +502,6 @@ vec4 raymarchInterval(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, vec2 interval){
   vec3 inscattering_acc = vec3(0.);
   float path_transmittance = 1;
 
-  int samples = 200;
   float maximum_dist_between_samples = 1000;
   float interval_length = interval.y - interval.x;
   
@@ -541,19 +551,14 @@ vec4 raymarchInterval(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, vec2 interval){
 // computes the cloud inscattered luminance in xyz and transmittance in alpha
 // assumptions of the ray marching: Cloud albedo is 100 percent, extinction = outscattering
 vec4 getCloudColor(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, float surfaceDistance) {
-  
-
-
   // The distance between the top and bottom cloud layers.
   float thickness = 8000;
-
   // The distance to the planet surface where the fade-out starts.
   float fadeWidth = thickness * 2.0;
 
-
   // The altitude of the upper-most cloud layer.
   float topAltitude = PLANET_RADIUS + 8500;
-  float lowAltitude = topAltitude - thickness / 2;
+  float lowAltitude = topAltitude - thickness;
 
   vec2 intersections = intersectSphere(rayOrigin, rayDir, topAltitude);
 
@@ -739,7 +744,14 @@ float getCloudShadow(vec3 rayOrigin, vec3 rayDir) {
   #if OLD_CLOUDS
   return 1.0 - getCloudDensityOld(rayOrigin, rayDir, intersections.y) * fac;
   #else
-  return 1.0 - getCloudDensity(position) * fac;
+  topAltitude = PLANET_RADIUS + 8500;
+  thickness = 8000;
+
+  vec2 topIntersections = intersectSphere(rayOrigin, rayDir, topAltitude);
+  vec2 lowIntersections = intersectSphere(rayOrigin, rayDir, topAltitude - thickness);
+  vec2 interval = vec2(lowIntersections.y, topIntersections.y);
+  vec4 raymarchingResult = raymarchInterval(rayOrigin, rayDir, rayDir, interval, 10);
+  return raymarchingResult.a;
   #endif
 }
 
