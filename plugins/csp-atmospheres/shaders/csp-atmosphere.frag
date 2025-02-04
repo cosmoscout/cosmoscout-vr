@@ -420,9 +420,12 @@ float getAltoCumulusDensity(vec3 position){
   // only use cloud coverage for now
   float noise = baseCloudNoise(position);
   float cloud_coverage_h = getCloudCoverageHorizontal(position);
+  cloud_coverage_h = simplex3DFractal(normalize(position) * 50);
+  cloud_coverage_h = remap(cloud_coverage_h, .5, 1, 0, 1);
   //cloud_coverage_h = remap(cloud_coverage_h, 0, 0.1, 0, 1) * remap(cloud_coverage_h, 0.2, 0.3, 1, 0);
   //return cloud_coverage_h;
   float cloud_coverage_v = GetCloudCoverageHeight(position, ALTO_CUMULUS_START_HEIGHT, ALTO_CUMULUS_END_HEIGHT);
+  cloud_coverage_v = clamp(cloud_coverage_v, 0, 1);
   
   //cloud_coverage_h = remap(cloud_coverage_h, 0, .5, 0, 1);
   float cloud_base = remap(cloud_coverage_h, 0, 1, 0, cloud_coverage_v);
@@ -432,7 +435,10 @@ float getAltoCumulusDensity(vec3 position){
   float high_freq_noise = simplex3DFractal(position / 1000);
   cloud_density = remap(cloud_density, 0, .3, 0, 1);
   cloud_density = remap(cloud_density, high_freq_noise, 1, 0, 1);
-  return cloud_density;
+  if(isnan(cloud_density)){
+    cloud_density = 0;
+  }
+  return clamp(cloud_density, 0, 1);
 }
 
 float CIRRUS_START_HEIGHT = 6000;
@@ -460,7 +466,7 @@ float getCloudDensity(vec3 position){
     acc += getAltoCumulusDensity(position);
   }
   if(height > CIRRUS_START_HEIGHT && height < CIRRUS_END_HEIGHT){
-    //acc += getCirrusDensity(position);
+    acc += getCirrusDensity(position);
   }
   return acc;
 }
@@ -511,7 +517,7 @@ vec4 raymarchInterval(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, vec2 interval, i
     //return vec4(0, 0, 1, 0)*100000;
     samples = int(interval_length / maximum_dist_between_samples);
   }
-  samples=min(samples, 200);
+  samples=min(samples, 1000);
 
   //return(mix(vec4(1, 0, 0, 0), vec4(0, 1, 0, 0),samples/100.) * 1000);
   float phase = henyeyGreenstein(sunDir, -rayDir);
@@ -751,7 +757,8 @@ float getCloudShadow(vec3 rayOrigin, vec3 rayDir) {
   vec2 lowIntersections = intersectSphere(rayOrigin, rayDir, topAltitude - thickness);
   vec2 interval = vec2(lowIntersections.y, topIntersections.y);
   vec4 raymarchingResult = raymarchInterval(rayOrigin, rayDir, rayDir, interval, 10);
-  return raymarchingResult.a;
+  float transmittance = clamp(raymarchingResult.a, .01, 1.); 
+  return transmittance;
   #endif
 }
 
