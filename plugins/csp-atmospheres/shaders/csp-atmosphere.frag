@@ -492,7 +492,7 @@ float henyeyGreenstein(vec3 r1, vec3 r2){
 
 
 // helper function for ray marching through an interval
-vec4 raymarchInterval(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, vec2 interval, int samples=100){
+vec4 raymarchInterval(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, vec2 interval, int samples=10){
   // do not march through purely negative intervals
 
   if(interval.y < 0){
@@ -511,40 +511,75 @@ vec4 raymarchInterval(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, vec2 interval, i
   float maximum_dist_between_samples = 1000;
   float interval_length = interval.y - interval.x;
   
+  bool adaptive_sampling = samples > 10;
+
   float regular_dist_between_samples = interval_length / samples;
-  
-  if(regular_dist_between_samples > maximum_dist_between_samples){
-    //return vec4(0, 0, 1, 0)*100000;
-    samples = int(interval_length / maximum_dist_between_samples);
+  if(adaptive_sampling){
+    if(regular_dist_between_samples > maximum_dist_between_samples){
+      samples = min(int(interval_length / maximum_dist_between_samples), 100);
+    }
   }
-  samples=min(samples, 1000);
+
 
   //return(mix(vec4(1, 0, 0, 0), vec4(0, 1, 0, 0),samples/100.) * 1000);
   float phase = henyeyGreenstein(sunDir, -rayDir);
+  float last_density;
+  int num_substeps = 3;
+
+  float ADAPTIVE_SAMPLING_THRESHOLD = .02;
+
   for(int i = 1; i <= samples; ++i){
     // could be adapted for importance sampling
     float progress = float(i) / float(samples);
     float t_now = remap(progress, 0, 1, interval.x, interval.y);
     // random offset of samples
-    t_now += (simplex3D(vec3(t_now, progress, interval_length) * 100 + vsIn.rayDir * 100) - .5) * regular_dist_between_samples;
+    if(adaptive_sampling){
+      t_now += (simplex3D(vec3(t_now, progress, interval_length) * 10 + vsIn.rayDir * 1000) - .5) * (t_now - t_last);
+    }
     float dist = t_now - t_last;
-    t_last = t_now;
+    
 
     vec3 position = rayOrigin + rayDir * t_now;
-    float scatter_coefficient = getCloudDensity(position) * DENSITY_MULTIPLIER;
+    float local_density = getCloudDensity(position);
 
-    float extinction_along_segment = exp(-scatter_coefficient * dist);
-    path_transmittance *= extinction_along_segment;
+    if(local_density - last_density > ADAPTIVE_SAMPLING_THRESHOLD && adaptive_sampling){
+      //return vec4(10000, 0, 0, 0);
+      // substep through this segment
+      float t_last_substep = t_last;
+      for(int j = 1; j <= num_substeps; j++){
+        float substep_progress = float(j) / float(num_substeps);
+        float t_substep = remap(substep_progress, 0, 1, t_last, t_now);
+        //t_substep += (simplex3D(vec3(t_substep, progress, interval_length) * 10 + vsIn.rayDir * 1000) - .5) * (t_now - t_last);
 
-    vec3 transmittance;
-    vec3 local_incoming = GetSkyLuminance(position, sunDir, sunDir, transmittance);
-
-    // incoming luminance for single scattering in clouds
-    // heavy flickering when using the inscattered luminance directly
-    local_incoming = vec3(144809.5,129443.421875,127098.6484375) * transmittance;
-
-    
-    inscattering_acc += scatter_coefficient * dist * local_incoming * path_transmittance * CLOUD_COLOR * phase * 4 * PI;//CLOUD_COLOR * local_incoming ;
+        float sdist = t_substep - t_last_substep;
+        position = rayOrigin + rayDir * t_substep;
+        float local_density = getCloudDensity(position);
+        float scatter_coefficient = local_density * DENSITY_MULTIPLIER;
+        float extinction_along_segment = exp(-scatter_coefficient * sdist);
+        path_transmittance *= extinction_along_segment;
+        vec3 transmittance;
+        vec3 local_incoming = GetSkyLuminance(position, sunDir, sunDir, transmittance);
+        local_incoming = vec3(144809.5,129443.421875,127098.6484375) * transmittance;
+        inscattering_acc += scatter_coefficient * sdist * local_incoming * path_transmittance * CLOUD_COLOR * phase * 4 * PI;
+        t_last_substep = t_substep;
+      }
+      
+    }else{
+      float scatter_coefficient = local_density * DENSITY_MULTIPLIER;
+      float extinction_along_segment = exp(-scatter_coefficient * dist);
+      path_transmittance *= extinction_along_segment;
+      vec3 transmittance;
+      vec3 local_incoming = GetSkyLuminance(position, sunDir, sunDir, transmittance);
+      // incoming luminance for single scattering in clouds
+      // heavy flickering when using the inscattered luminance directly
+      local_incoming = vec3(144809.5,129443.421875,127098.6484375) * transmittance;
+      inscattering_acc += scatter_coefficient * dist * local_incoming * path_transmittance * CLOUD_COLOR * phase * 4 * PI;
+    }
+    t_last = t_now;
+    last_density = local_density;
+    if (path_transmittance < .001){
+      return vec4(inscattering_acc, path_transmittance);
+    }
   }
   // cheat a little near horizon: approximate scattering from surrounding atmosphere
   if(length(inscattering_acc) < 100 && path_transmittance < 1 - 1e-5){
@@ -641,8 +676,8 @@ vec4 getCloudColor(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, float surfaceDistan
     }
   }
 
-  vec4 scatter_data1 = raymarchInterval(rayOrigin, rayDir, sunDir, interval1);
-  vec4 scatter_data2 = raymarchInterval(rayOrigin, rayDir, sunDir, interval2);
+  vec4 scatter_data1 = raymarchInterval(rayOrigin, rayDir, sunDir, interval1, 20);
+  vec4 scatter_data2 = raymarchInterval(rayOrigin, rayDir, sunDir, interval2, 20);
   
   vec3 inScatter = scatter_data1.xyz + scatter_data1.a * scatter_data2.xyz;
   return vec4(inScatter, scatter_data1.a * scatter_data2.a);
@@ -756,7 +791,7 @@ float getCloudShadow(vec3 rayOrigin, vec3 rayDir) {
   vec2 topIntersections = intersectSphere(rayOrigin, rayDir, topAltitude);
   vec2 lowIntersections = intersectSphere(rayOrigin, rayDir, topAltitude - thickness);
   vec2 interval = vec2(lowIntersections.y, topIntersections.y);
-  vec4 raymarchingResult = raymarchInterval(rayOrigin, rayDir, rayDir, interval, 10);
+  vec4 raymarchingResult = raymarchInterval(rayOrigin, rayDir, rayDir, interval, 5);
   float transmittance = clamp(raymarchingResult.a, .01, 1.); 
   return transmittance;
   #endif
