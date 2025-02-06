@@ -445,12 +445,29 @@ float CIRRUS_START_HEIGHT = 6000;
 float CIRRUS_END_HEIGHT = 8500;
 
 float getCirrusDensity(vec3 position){
-  float TOTAL_DENSITY_MULTIPLIER = .8;
-  float LOW_CUTOFF = .1;
+  float TOTAL_DENSITY_MULTIPLIER = .5;
+  float LOW_CUTOFF = .05;
   float NOISE_SHRINKING = .5;
-  float EXPONENT = 5;
+  float EXPONENT = 2;
 
-  float cloud_coverage_h = remap(getCloudCoverageHorizontal(position), LOW_CUTOFF, 1, 0, 1);
+  float DISTORTION_MULTIPLIER = .001;
+  float DISTORTION_FREQ = 1. / 200000;
+  float FREQ_RANGE = .5;
+  float DISTORTION_ANISOTROPY = 3;
+
+  float freq = remap(simplex3D(position * DISTORTION_FREQ), 0, 1, 1, FREQ_RANGE) * DISTORTION_FREQ;
+
+  float distortion_strength = simplex3D(position * freq + vec3(10000, 0, 0)) * DISTORTION_MULTIPLIER;
+  vec2 distortion_vec = vec2(simplex3DFractal(position * freq + vec3(0, 10000, 0)) * DISTORTION_ANISOTROPY, simplex3D(position * freq));
+
+  vec2 lngLat = getLngLat(position);
+  vec2 texCoords = vec2(lngLat.x / (2 * PI) + 0.5, 1.0 - lngLat.y / PI + 0.5);
+  float distorted_contrib = texture(uCloudTexture, texCoords + distortion_vec * distortion_strength).r;
+
+  float texture_contrib = texture(uCloudTexture, texCoords).r;
+  float texture_with_distortion = mix(distorted_contrib, texture_contrib, texture_contrib);
+
+  float cloud_coverage_h = remap(distorted_contrib, LOW_CUTOFF, 1, 0, 1);
   float cloud_coverage_v = GetCloudCoverageHeight(position, CIRRUS_START_HEIGHT, CIRRUS_END_HEIGHT);
   float cloud_base = remap(cloud_coverage_h, 0, 1, 0, cloud_coverage_v);
   float low_freq_noise = simplex3DFractal(normalize(position) * 20);
@@ -516,7 +533,7 @@ vec4 raymarchInterval(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, vec2 interval, i
   float regular_dist_between_samples = interval_length / samples;
   if(adaptive_sampling){
     if(regular_dist_between_samples > maximum_dist_between_samples){
-      samples = min(int(interval_length / maximum_dist_between_samples), 100);
+      samples = min(int(interval_length / maximum_dist_between_samples), samples * 2);
     }
   }
 
@@ -526,7 +543,7 @@ vec4 raymarchInterval(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, vec2 interval, i
   float last_density;
   int num_substeps = 3;
 
-  float ADAPTIVE_SAMPLING_THRESHOLD = .02;
+  float ADAPTIVE_SAMPLING_THRESHOLD = .01;
 
   for(int i = 1; i <= samples; ++i){
     // could be adapted for importance sampling
@@ -537,47 +554,51 @@ vec4 raymarchInterval(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, vec2 interval, i
       t_now += (simplex3D(vec3(t_now, progress, interval_length) * 10 + vsIn.rayDir * 1000) - .5) * (t_now - t_last);
     }
     float dist = t_now - t_last;
-    
-
     vec3 position = rayOrigin + rayDir * t_now;
     float local_density = getCloudDensity(position);
 
-    if(local_density - last_density > ADAPTIVE_SAMPLING_THRESHOLD && adaptive_sampling){
+    vec3 transmittance;
+    vec3 local_incoming = GetSkyLuminance(position, sunDir, sunDir, transmittance);
+    local_incoming = vec3(144809.5,129443.421875,127098.6484375) * transmittance;
+      
+    if(local_density > ADAPTIVE_SAMPLING_THRESHOLD && adaptive_sampling){
       //return vec4(10000, 0, 0, 0);
       // substep through this segment
       float t_last_substep = t_last;
       for(int j = 1; j <= num_substeps; j++){
         float substep_progress = float(j) / float(num_substeps);
         float t_substep = remap(substep_progress, 0, 1, t_last, t_now);
-        //t_substep += (simplex3D(vec3(t_substep, progress, interval_length) * 10 + vsIn.rayDir * 1000) - .5) * (t_now - t_last);
+        t_substep += (simplex3D(vec3(t_substep, progress, interval_length) * 10 + vsIn.rayDir * 1000) - .5) * (t_now - t_last);
 
         float sdist = t_substep - t_last_substep;
+        // clamp to keep it reasonable for very far away clouds
+        sdist = clamp(sdist, 0, maximum_dist_between_samples);
         position = rayOrigin + rayDir * t_substep;
         float local_density = getCloudDensity(position);
         float scatter_coefficient = local_density * DENSITY_MULTIPLIER;
         float extinction_along_segment = exp(-scatter_coefficient * sdist);
-        path_transmittance *= extinction_along_segment;
-        vec3 transmittance;
-        vec3 local_incoming = GetSkyLuminance(position, sunDir, sunDir, transmittance);
-        local_incoming = vec3(144809.5,129443.421875,127098.6484375) * transmittance;
         inscattering_acc += scatter_coefficient * sdist * local_incoming * path_transmittance * CLOUD_COLOR * phase * 4 * PI;
+        path_transmittance *= extinction_along_segment;
         t_last_substep = t_substep;
       }
       
     }else{
       float scatter_coefficient = local_density * DENSITY_MULTIPLIER;
-      float extinction_along_segment = exp(-scatter_coefficient * dist);
-      path_transmittance *= extinction_along_segment;
-      vec3 transmittance;
-      vec3 local_incoming = GetSkyLuminance(position, sunDir, sunDir, transmittance);
+      // limit the scattering from clouds that are very far away by keeping the distance travelled within the cloud reasonable
+      float clamped_dist = clamp(dist, 0, maximum_dist_between_samples);
+      float extinction_along_segment = exp(-scatter_coefficient * clamped_dist);
       // incoming luminance for single scattering in clouds
       // heavy flickering when using the inscattered luminance directly
-      local_incoming = vec3(144809.5,129443.421875,127098.6484375) * transmittance;
-      inscattering_acc += scatter_coefficient * dist * local_incoming * path_transmittance * CLOUD_COLOR * phase * 4 * PI;
+      inscattering_acc += scatter_coefficient * clamped_dist * local_incoming * path_transmittance * CLOUD_COLOR * phase * 4 * PI;
+      path_transmittance *= extinction_along_segment;
     }
     t_last = t_now;
     last_density = local_density;
     if (path_transmittance < .001){
+      if(length(inscattering_acc) < 100 && path_transmittance < 1 - 1e-5){
+        //surroundingColor = vec3(0, 10000, 0);
+        path_transmittance = mix(1, path_transmittance, length(inscattering_acc) / 100);
+      }
       return vec4(inscattering_acc, path_transmittance);
     }
   }
@@ -676,8 +697,8 @@ vec4 getCloudColor(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, float surfaceDistan
     }
   }
 
-  vec4 scatter_data1 = raymarchInterval(rayOrigin, rayDir, sunDir, interval1, 20);
-  vec4 scatter_data2 = raymarchInterval(rayOrigin, rayDir, sunDir, interval2, 20);
+  vec4 scatter_data1 = raymarchInterval(rayOrigin, rayDir, sunDir, interval1, 40);
+  vec4 scatter_data2 = raymarchInterval(rayOrigin, rayDir, sunDir, interval2, 40);
   
   vec3 inScatter = scatter_data1.xyz + scatter_data1.a * scatter_data2.xyz;
   return vec4(inScatter, scatter_data1.a * scatter_data2.a);
