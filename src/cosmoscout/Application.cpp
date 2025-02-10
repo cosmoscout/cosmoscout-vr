@@ -1745,10 +1745,10 @@ void Application::registerGuiCallbacks() {
           std::string filename = file;
           filename.erase(0, 37);
           j.push_back(filename);
-        }
 
-        mGuiManager->getGui()->callJavascript(
-            "CosmoScout.transferFunctionEditor.setAvailableTransferFunctions", j.dump());
+          mGuiManager->getGui()->callJavascript(
+              "CosmoScout.transferFunctionEditor.setAvailableTransferFunctions", j.dump());
+        }
       }));
 }
 
