@@ -152,7 +152,7 @@ void WebCoverageTextureLoader::saveTextureToFile(
       boost::filesystem::remove(file);
     }
 
-    auto cacheDirPath(boost::filesystem::absolute(file.branch_path()));
+    auto cacheDirPath(boost::filesystem::absolute(file.parent_path()));
     if (!(boost::filesystem::exists(file))) {
       try {
         cs::utils::filesystem::createDirectoryRecursively(
