@@ -9,6 +9,12 @@ SPDX-License-Identifier: CC-BY-4.0
 
 # Changelog of CosmoScout VR
 
+## [unreleased]
+
+#### Bug Fixes
+
+- Fix an issue which caused some flickering above the horizon at nighttime if refraction was enabled and lighting was disabled.
+
 ## [v1.10.0](https://github.com/cosmoscout/cosmoscout-vr/releases)
 
 **Release Date:** 2025-01-27
