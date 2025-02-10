@@ -41,7 +41,7 @@ class PlanetShader : public TerrainShader {
   PlanetShader(PlanetShader&& other)      = delete;
 
   PlanetShader& operator=(PlanetShader const& other) = delete;
-  PlanetShader& operator=(PlanetShader&& other) = delete;
+  PlanetShader& operator=(PlanetShader&& other)      = delete;
 
   ~PlanetShader() override;
 

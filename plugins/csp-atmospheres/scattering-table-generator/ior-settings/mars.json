@@ -1,0 +1,16 @@
+{
+  "components": [
+    {
+      "type": "carbonDioxide",
+      "volumeMixingRatio": 0.951
+    },
+    {
+      "type": "nitrogen",
+      "volumeMixingRatio": 0.028
+    },
+    {
+      "type": "argon",
+      "volumeMixingRatio": 0.021
+    }
+  ]
+}

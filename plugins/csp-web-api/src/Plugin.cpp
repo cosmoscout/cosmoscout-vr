@@ -23,6 +23,7 @@
 #include <VistaKernel/DisplayManager/VistaWindow.h>
 #include <VistaKernel/VistaFrameLoop.h>
 #include <VistaKernel/VistaSystem.h>
+#include <VistaOGLExt/VistaTexture.h>
 #include <curlpp/cURLpp.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <sstream>
@@ -32,6 +33,8 @@
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include <stb_image_write.h>
 #include <utility>
+
+#include "../../../src/cs-core/GraphicsEngine.hpp"
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -267,16 +270,18 @@ void Plugin::init() {
 
     // Read all paramters.
     mCaptureDelay  = std::clamp(getParam<int32_t>(conn, "delay", 50), 1, 200);
-    mCaptureWidth  = std::clamp(getParam<int32_t>(conn, "width", 0), 0, 2000);
-    mCaptureHeight = std::clamp(getParam<int32_t>(conn, "height", 0), 0, 2000);
+    mCaptureWidth  = std::clamp(getParam<int32_t>(conn, "width", 0), 0, 4096);
+    mCaptureHeight = std::clamp(getParam<int32_t>(conn, "height", 0), 0, 4096);
+    mRestoreState  = getParam<std::string>(conn, "restoreState", "false") == "true";
     mCaptureGui    = getParam<std::string>(conn, "gui", "auto");
     mCaptureDepth  = getParam<std::string>(conn, "depth", "false") == "true";
     mCaptureFormat = getParam<std::string>(conn, "format", mCaptureDepth ? "tiff" : "png");
 
     // Validate format parameter.
-    if (mCaptureFormat != "png" && mCaptureFormat != "jpeg" && mCaptureFormat != "tiff") {
+    if (mCaptureFormat != "png" && mCaptureFormat != "jpeg" && mCaptureFormat != "tiff" &&
+        mCaptureFormat != "raw") {
       mg_send_http_error(
-          conn, 422, "Only 'png', 'jpeg', or 'tiff' are allowed for the format parameter!");
+          conn, 422, "Only 'png', 'jpeg', 'tiff' or 'raw' are allowed for the format parameter!");
       return;
     }
 
@@ -293,7 +298,6 @@ void Plugin::init() {
     // Now we use a condition variable to wait for the capture. It is actually captured in the
     // Plugin::update() method further below.
     mCaptureDone.wait(lock);
-
     // The capture has been captured, return the result!
     mg_send_http_ok(conn, ("image/" + mCaptureFormat).c_str(), mCapture.size());
     mg_write(conn, mCapture.data(), mCapture.size());
@@ -389,10 +393,12 @@ void Plugin::update() {
     if (mCaptureRequested) {
       if (mCaptureWidth > 0 && mCaptureHeight > 0) {
         auto* window = GetVistaSystem()->GetDisplayManager()->GetWindows().begin()->second;
+        window->GetWindowProperties()->GetSize(mRestoreW, mRestoreH);
         window->GetWindowProperties()->SetSize(mCaptureWidth, mCaptureHeight);
       }
       mCaptureAtFrame = GetVistaSystem()->GetFrameLoop()->GetFrameCount() + mCaptureDelay;
       if (mCaptureGui != "auto") {
+        mRestoreGui                        = mAllSettings->pEnableUserInterface.get();
         mAllSettings->pEnableUserInterface = mCaptureGui == "true";
       }
       mCaptureRequested = false;
@@ -407,8 +413,9 @@ void Plugin::update() {
       window->GetWindowProperties()->GetSize(mCaptureWidth, mCaptureHeight);
 
       logger().debug("Capturing capture for /capture request: resolution = {}x{}, show gui = {}, "
-                     "depth = {}, format = {}",
-          mCaptureWidth, mCaptureHeight, mCaptureGui, mCaptureDepth, mCaptureFormat);
+                     "depth = {}, format = {}, restore resolution to {}x{}, reenable Gui {}",
+          mCaptureWidth, mCaptureHeight, mCaptureGui, mCaptureDepth, mCaptureFormat, mRestoreW,
+          mRestoreH, mRestoreGui);
 
       // We encode image data in the main thread as this is not thread-safe.
       stbi_flip_vertically_on_write(1);
@@ -423,7 +430,7 @@ void Plugin::update() {
         glReadPixels(
             0, 0, mCaptureWidth, mCaptureHeight, GL_DEPTH_COMPONENT, GL_FLOAT, capture.data());
 
-        if (mCaptureFormat == "tiff") {
+        if (mCaptureFormat == "tiff" || mCaptureFormat == "raw") {
 
           // If a tiff image is requested, we convert the depth buffer to meters.
           std::array<GLfloat, 16> glMatP{};
@@ -439,9 +446,14 @@ void Plugin::update() {
                 (glm::length(pos.xyz() / pos.w) * mSolarSystem->getObserver().getScale()));
             capture[i] = std::isinf(dist) ? std::numeric_limits<float>::max() : dist;
           }
-
-          // Now write the tiff image.
-          tiffWriteToVector(mCapture, capture, mCaptureWidth, mCaptureHeight, 1, 32);
+          if (mCaptureFormat == "tiff") {
+            // Now write the tiff image.
+            tiffWriteToVector(mCapture, capture, mCaptureWidth, mCaptureHeight, 1, 32);
+          } else {
+            // Write raw vector
+            mCapture.resize(capture.size() * sizeof(float));
+            memcpy(mCapture.data(), capture.data(), mCapture.size());
+          }
 
         } else {
           // Capture format is png or jpeg, let's convert the depth to 8-bit.
@@ -462,19 +474,38 @@ void Plugin::update() {
         }
 
       } else {
-
-        // Capturing color images is pretty straight-forward.
-        std::vector<std::byte> capture(mCaptureWidth * mCaptureHeight * 3);
-        glReadPixels(0, 0, mCaptureWidth, mCaptureHeight, GL_RGB, GL_UNSIGNED_BYTE, &capture[0]);
-
-        if (mCaptureFormat == "tiff") {
-          tiffWriteToVector(mCapture, capture, mCaptureWidth, mCaptureHeight, 3, 8);
-        } else if (mCaptureFormat == "png") {
-          stbi_write_png_to_func(&stbWriteToVector, &mCapture, mCaptureWidth, mCaptureHeight, 3,
-              capture.data(), mCaptureWidth * 3);
+        if (mCaptureFormat == "raw") {
+          // larger output size, but performance is comparable or better because there is no image
+          // encoding
+          mCapture.resize(mCaptureWidth * mCaptureHeight * 3 * sizeof(float));
+          if (mAllSettings->mGraphics.pEnableHDR.get()) {
+            // using the hdr buffer
+            std::shared_ptr<cs::graphics::HDRBuffer> hdrBuffer = mGraphicsEngine->getHDRBuffer();
+            VistaTexture* luminance_buffer = hdrBuffer->getCurrentWriteAttachment();
+            luminance_buffer->Bind();
+            glGetTexImage(luminance_buffer->GetTarget(), 0, GL_RGB, GL_FLOAT,
+                static_cast<void*>(mCapture.data()));
+            luminance_buffer->Unbind();
+          } else {
+            // without HDR, output is float in [0, 1], but the values in the buffer were
+            // previously converted to uint [0, 255]. For high quality raw output, use HDR mode.
+            glReadPixels(0, 0, mCaptureWidth, mCaptureHeight, GL_RGB, GL_FLOAT,
+                static_cast<void*>(mCapture.data()));
+          }
         } else {
-          stbi_write_jpg_to_func(
-              &stbWriteToVector, &mCapture, mCaptureWidth, mCaptureHeight, 3, capture.data(), 80);
+          // Capturing color images is pretty straight-forward.
+          std::vector<std::byte> capture(mCaptureWidth * mCaptureHeight * 3);
+          glReadPixels(0, 0, mCaptureWidth, mCaptureHeight, GL_RGB, GL_UNSIGNED_BYTE, &capture[0]);
+
+          if (mCaptureFormat == "tiff") {
+            tiffWriteToVector(mCapture, capture, mCaptureWidth, mCaptureHeight, 3, 8);
+          } else if (mCaptureFormat == "png") {
+            stbi_write_png_to_func(&stbWriteToVector, &mCapture, mCaptureWidth, mCaptureHeight, 3,
+                capture.data(), mCaptureWidth * 3);
+          } else {
+            stbi_write_jpg_to_func(
+                &stbWriteToVector, &mCapture, mCaptureWidth, mCaptureHeight, 3, capture.data(), 80);
+          }
         }
       }
 
@@ -485,6 +516,17 @@ void Plugin::update() {
 
       // The capture has been done, notify the worker thread,
       mCaptureDone.notify_one();
+      if (mRestoreState) {
+        // Restore interactive window UI and image resolution
+        if (mCaptureGui != "auto") {
+          mAllSettings->pEnableUserInterface = mRestoreGui;
+        }
+
+        if (mRestoreW > 0 && mRestoreH > 0) {
+          auto* window = GetVistaSystem()->GetDisplayManager()->GetWindows().begin()->second;
+          window->GetWindowProperties()->SetSize(mRestoreW, mRestoreH);
+        }
+      }
     }
   }
 

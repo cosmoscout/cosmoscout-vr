@@ -443,10 +443,13 @@ class CS_CORE_EXPORT Settings {
 
     /// The amount of artifical glare. Has no effect if HDR rendering is disabled. This should be in
     /// the range 0-1. A value of zero disables the glare.
-    utils::DefaultProperty<float> pGlareIntensity{0.2F};
+    utils::DefaultProperty<float> pGlareIntensity{0.3F};
 
     /// Higher values produce a smoother glare.
-    utils::DefaultProperty<uint32_t> pGlareQuality{0};
+    utils::DefaultProperty<uint32_t> pGlareQuality{1};
+
+    /// If set to true, the glare will be computed in 32 bit precision.
+    utils::DefaultProperty<bool> pEnable32BitGlare{false};
 
     /// If enabled, the more expensive but much smoother manual bicubic texture filtering is used
     /// for the glare.

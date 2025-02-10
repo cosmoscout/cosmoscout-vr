@@ -44,7 +44,7 @@ class CS_GRAPHICS_EXPORT GltfLoader {
   GltfLoader(GltfLoader&& other)      = delete;
 
   GltfLoader& operator=(GltfLoader const& other) = delete;
-  GltfLoader& operator=(GltfLoader&& other) = delete;
+  GltfLoader& operator=(GltfLoader&& other)      = delete;
 
   ~GltfLoader() = default;
 

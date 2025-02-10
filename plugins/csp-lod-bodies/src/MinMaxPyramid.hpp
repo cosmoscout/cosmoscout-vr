@@ -28,7 +28,7 @@ class MinMaxPyramid {
   MinMaxPyramid(MinMaxPyramid&& other)      = default;
 
   MinMaxPyramid& operator=(MinMaxPyramid const& other) = default;
-  MinMaxPyramid& operator=(MinMaxPyramid&& other) = default;
+  MinMaxPyramid& operator=(MinMaxPyramid&& other)      = default;
 
   virtual ~MinMaxPyramid() = default;
 

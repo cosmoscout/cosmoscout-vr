@@ -8,6 +8,7 @@
 #include "ToneMappingNode.hpp"
 
 #include "../cs-utils/FrameStats.hpp"
+#include "../cs-utils/filesystem.hpp"
 #include "HDRBuffer.hpp"
 
 #include <VistaInterProcComm/Cluster/VistaClusterDataCollect.h>
@@ -119,186 +120,6 @@ void ApplyProgramAuto(
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 } // namespace internal
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-static const char* sVertexShader = R"(
-  out vec2 vTexcoords;
-
-  void main()
-  {
-    vTexcoords  = vec2(gl_VertexID & 2, (gl_VertexID << 1) & 2);
-    gl_Position = vec4(vTexcoords * 2.0 - 1.0, 0.0, 1.0);
-  }
-)";
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-static const char* sFragmentShader = R"(
-  in vec2 vTexcoords;
-
-  layout(pixel_center_integer) in vec4 gl_FragCoord;
-
-  #if NUM_MULTISAMPLES > 0
-    layout (binding = 0) uniform sampler2DMS uComposite;
-    layout (binding = 1) uniform sampler2DMS uDepth;
-  #else
-    layout (binding = 0) uniform sampler2D uComposite;
-    layout (binding = 1) uniform sampler2D uDepth;
-  #endif
-
-  layout (binding = 2) uniform sampler2D uGlareMipMap;
-
-  uniform float uExposure;
-  uniform float uGlareIntensity;
-
-  layout(location = 0) out vec3 oColor;
-
-  // http://filmicworlds.com/blog/filmic-tonemapping-operators/
-  float A = 0.15;
-  float B = 0.50;
-  float C = 0.10;
-  float D = 0.20;
-  float E = 0.02;
-  float F = 0.30;
-  float W = 11.2;
-
-  vec3 Uncharted2Tonemap(vec3 x) {
-    return ((x*(A*x+C*B)+D*E)/(x*(A*x+B)+D*F))-E/F;
-  }
-  
-  float linear_to_srgb(float c) {
-    if(c <= 0.0031308)
-      return 12.92*c;
-    else
-      return 1.055 * pow(c, 1.0/2.4) - 0.055;
-  }
-
-  vec3 linear_to_srgb(vec3 c) {
-    return vec3(linear_to_srgb(c.r), linear_to_srgb(c.g), linear_to_srgb(c.b));
-  }
-
-  // 4x4 bicubic filter using 4 bilinear texture lookups 
-  // See GPU Gems 2: "Fast Third-Order Texture Filtering", Sigg & Hadwiger:
-  // http://http.developer.nvidia.com/GPUGems2/gpugems2_chapter20.html
-
-  // w0, w1, w2, and w3 are the four cubic B-spline basis functions
-  float w0(float a) {
-    return (1.0 / 6.0) * (a * (a * (-a + 3.0) - 3.0) + 1.0);
-  }
-
-  float w1(float a) {
-    return (1.0 / 6.0) * (a * a * (3.0 * a - 6.0) + 4.0);
-  }
-
-  float w2(float a) {
-    return (1.0 / 6.0) * (a * (a * (-3.0 * a + 3.0) + 3.0) + 1.0);
-  }
-
-  float w3(float a) {
-    return (1.0 / 6.0) * (a * a * a);
-  }
-
-  // g0 and g1 are the two amplitude functions
-  float g0(float a) {
-    return w0(a) + w1(a);
-  }
-
-  float g1(float a) {
-    return w2(a) + w3(a);
-  }
-
-  // h0 and h1 are the two offset functions
-  float h0(float a) {
-    return -1.0 + w1(a) / (w0(a) + w1(a));
-  }
-
-  float h1(float a) {
-    return 1.0 + w3(a) / (w2(a) + w3(a));
-  }
-
-  vec4 texture2D_bicubic(sampler2D tex, vec2 uv, int p_lod) {
-    float lod = float(p_lod);
-    vec2 tex_size = textureSize(uGlareMipMap, p_lod);
-    vec2 pixel_size = 1.0 / tex_size;
-    uv = uv * tex_size + 0.5;
-    vec2 iuv = floor(uv);
-    vec2 fuv = fract(uv);
-
-    float g0x = g0(fuv.x);
-    float g1x = g1(fuv.x);
-    float h0x = h0(fuv.x);
-    float h1x = h1(fuv.x);
-    float h0y = h0(fuv.y);
-    float h1y = h1(fuv.y);
-
-    vec2 p0 = (vec2(iuv.x + h0x, iuv.y + h0y) - 0.5) * pixel_size;
-    vec2 p1 = (vec2(iuv.x + h1x, iuv.y + h0y) - 0.5) * pixel_size;
-    vec2 p2 = (vec2(iuv.x + h0x, iuv.y + h1y) - 0.5) * pixel_size;
-    vec2 p3 = (vec2(iuv.x + h1x, iuv.y + h1y) - 0.5) * pixel_size;
-
-    return (g0(fuv.y) * (g0x * textureLod(tex, p0, lod) + g1x * textureLod(tex, p1, lod))) +
-           (g1(fuv.y) * (g0x * textureLod(tex, p2, lod) + g1x * textureLod(tex, p3, lod)));
-  }
-
-  void main() {
-    #if NUM_MULTISAMPLES > 0
-      vec3 color = vec3(0.0);
-      for (int i = 0; i < NUM_MULTISAMPLES; ++i) {
-        color += texelFetch(uComposite, ivec2(vTexcoords * textureSize(uComposite)), i).rgb;
-      }
-      color /= NUM_MULTISAMPLES;
-
-      float depth = 1.0;
-      for (int i = 0; i < NUM_MULTISAMPLES; ++i) {
-        depth = min(depth, texelFetch(uDepth, ivec2(vTexcoords * textureSize(uDepth)), i).r);
-      }
-      gl_FragDepth = depth;
-    #else
-      vec3 color = texelFetch(uComposite, ivec2(vTexcoords * textureSize(uComposite, 0)), 0).rgb;
-      gl_FragDepth = texelFetch(uDepth, ivec2(vTexcoords * textureSize(uDepth, 0)), 0).r;
-    #endif
-
-    if (uGlareIntensity > 0) {
-      vec3  glare = vec3(0);
-      float maxLevels = textureQueryLevels(uGlareMipMap);
-
-      float totalWeight = 0;
-
-      // Each level contains a successively more blurred version of the scene. We have to
-      // accumulate them with an exponentially decreasing weight to get a proper glare distribution.
-      for (int i=0; i<maxLevels; ++i) {
-        float weight = 1.0 / pow(2, i);
-
-        #ifdef BICUBIC_GLARE_FILTER
-          glare += texture2D_bicubic(uGlareMipMap, vTexcoords, i).rgb * weight;
-        #else
-          glare += texture2D(uGlareMipMap, vTexcoords, i).rgb * weight;
-        #endif
-        
-        totalWeight += weight;
-      }
-
-      // To make sure that we do not add energy, we divide by the total weight.
-      color = mix(color, glare/totalWeight, pow(uGlareIntensity, 2.0));
-    }
-
-    // Filmic
-    #if TONE_MAPPING_MODE == 2
-      color = Uncharted2Tonemap(uExposure*color);
-      vec3 whiteScale = vec3(1.0)/Uncharted2Tonemap(vec3(W));
-      oColor = linear_to_srgb(color*whiteScale);
-    
-    // Gamma only
-    #elif TONE_MAPPING_MODE == 1
-      oColor = linear_to_srgb(uExposure*color);
-
-    // None
-    #else
-      oColor = uExposure * color;
-    #endif
-  }
-)";
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -414,21 +235,6 @@ float ToneMappingNode::getGlareIntensity() const {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void ToneMappingNode::setEnableBicubicGlareFilter(bool enable) {
-  if (mEnableBicubicGlareFilter != enable) {
-    mEnableBicubicGlareFilter = enable;
-    mShaderDirty              = true;
-  }
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-bool ToneMappingNode::getEnableBicubicGlareFilter() const {
-  return mEnableBicubicGlareFilter;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
 void ToneMappingNode::setToneMappingMode(ToneMappingNode::ToneMappingMode mode) {
   if (mToneMappingMode != mode) {
     mToneMappingMode = mode;
@@ -472,29 +278,29 @@ bool ToneMappingNode::ToneMappingNode::Do() {
     std::string defines = "#version 430\n";
     defines += "#define NUM_MULTISAMPLES " + std::to_string(mHDRBuffer->getMultiSamples()) + "\n";
 
-    if (mEnableBicubicGlareFilter) {
-      defines += "#define BICUBIC_GLARE_FILTER\n";
-    }
-
     defines +=
         "#define TONE_MAPPING_MODE " + std::to_string(static_cast<int>(mToneMappingMode)) + "\n";
 
+    std::string vert(utils::filesystem::loadToString("../share/resources/shaders/tonemap.vert"));
+    std::string frag(utils::filesystem::loadToString("../share/resources/shaders/tonemap.frag"));
+
     mShader = std::make_unique<VistaGLSLShader>();
-    mShader->InitVertexShaderFromString(defines + sVertexShader);
-    mShader->InitFragmentShaderFromString(defines + sFragmentShader);
+    mShader->InitVertexShaderFromString(defines + vert);
+    mShader->InitFragmentShaderFromString(defines + frag);
     mShader->Link();
 
     mUniforms.exposure       = mShader->GetUniformLocation("uExposure");
+    mUniforms.maxLuminance   = mShader->GetUniformLocation("uMaxLuminance");
     mUniforms.glareIntensity = mShader->GetUniformLocation("uGlareIntensity");
 
     mShaderDirty = false;
   }
 
-  bool doCalculateExposure =
-      GetVistaSystem()->GetDisplayManager()->GetCurrentRenderInfo()->m_eEyeRenderMode !=
-      VistaDisplayManager::RenderInfo::ERM_RIGHT;
+  bool leftEye = GetVistaSystem()->GetDisplayManager()->GetCurrentRenderInfo()->m_eEyeRenderMode !=
+                 VistaDisplayManager::RenderInfo::ERM_RIGHT;
+  bool calculateFrameLuminance = leftEye && (mEnableAutoExposure || mGlareIntensity > 0);
 
-  if (doCalculateExposure && mEnableAutoExposure) {
+  if (calculateFrameLuminance) {
     mHDRBuffer->calculateLuminance();
 
     // We accumulate all luminance values of this frame (can be multiple viewports and / or multiple
@@ -508,23 +314,23 @@ bool ToneMappingNode::ToneMappingNode::Do() {
 
     // Calculate exposure based on last frame's average luminance Time-dependent visual adaptation
     // for fast realistic image display (https://dl.acm.org/citation.cfm?id=344810).
-    if (mGlobalLuminanceData.mPixelCount > 0 && mGlobalLuminanceData.mTotalLuminance > 0) {
-      auto  frameTime = static_cast<float>(GetVistaSystem()->GetFrameLoop()->GetAverageLoopTime());
-      float averageLuminance = getLastAverageLuminance();
-      mAutoExposure += (std::log2(1.F / averageLuminance) - mAutoExposure) *
-                       (1.F - std::exp(-mExposureAdaptionSpeed * frameTime));
+    if (mEnableAutoExposure) {
+      if (mGlobalLuminanceData.mPixelCount > 0 && mGlobalLuminanceData.mTotalLuminance > 0) {
+        auto frameTime = static_cast<float>(GetVistaSystem()->GetFrameLoop()->GetAverageLoopTime());
+        float averageLuminance = getLastAverageLuminance();
+        mAutoExposure += (std::log2(1.F / averageLuminance) - mAutoExposure) *
+                         (1.F - std::exp(-mExposureAdaptionSpeed * frameTime));
+      }
+
+      mExposure = glm::clamp(mAutoExposure, mMinAutoExposure, mMaxAutoExposure);
     }
   }
 
-  if (mGlareIntensity > 0) {
-    mHDRBuffer->updateGlareMipMap();
-  }
-
-  if (doCalculateExposure && mEnableAutoExposure) {
-    mExposure = glm::clamp(mAutoExposure, mMinAutoExposure, mMaxAutoExposure);
-  }
-
   float exposure = std::pow(2.F, mExposure + mExposureCompensation);
+
+  if (mGlareIntensity > 0) {
+    mHDRBuffer->updateGlareMipMap(mGlobalLuminanceData.mMaximumLuminance);
+  }
 
   mHDRBuffer->unbind();
   mHDRBuffer->getCurrentWriteAttachment()->Bind(GL_TEXTURE0);
@@ -533,6 +339,7 @@ bool ToneMappingNode::ToneMappingNode::Do() {
 
   mShader->Bind();
   mShader->SetUniform(mUniforms.exposure, exposure);
+  mShader->SetUniform(mUniforms.maxLuminance, mGlobalLuminanceData.mMaximumLuminance);
   mShader->SetUniform(mUniforms.glareIntensity, mGlareIntensity);
 
   glDrawArrays(GL_TRIANGLES, 0, 3);

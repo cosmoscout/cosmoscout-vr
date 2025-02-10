@@ -37,6 +37,7 @@
 #include <VistaKernel/EventManager/VistaSystemEvent.h>
 #include <VistaKernel/GraphicsManager/VistaSceneGraph.h>
 #include <VistaKernel/GraphicsManager/VistaTransformNode.h>
+#include <VistaKernel/InteractionManager/VistaInteractionManager.h>
 #include <VistaKernel/VistaSystem.h>
 #include <VistaOGLExt/VistaShaderRegistry.h>
 #include <curlpp/cURLpp.hpp>
@@ -1142,6 +1143,14 @@ void Application::registerGuiCallbacks() {
   mSettings->mGraphics.pGlareQuality.connect(
       [this](uint32_t val) { mGuiManager->setSliderValue("graphics.setGlareQuality", val); });
 
+  // Enables 32bit glare computation.
+  mGuiManager->getGui()->registerCallback("graphics.setEnable32BitGlare",
+      "Enables or disables 32bit glare computation.",
+      std::function([this](bool enable) { mSettings->mGraphics.pEnable32BitGlare = enable; }));
+  mSettings->mGraphics.pEnable32BitGlare.connectAndTouch([this](bool enable) {
+    mGuiManager->setCheckboxValue("graphics.setEnable32BitGlare", enable);
+  });
+
   // Enables bicubic glare filtering.
   mGuiManager->getGui()->registerCallback("graphics.setEnableBicubicGlareFilter",
       "Enables or disables bicubic glare filtering.", std::function([this](bool enable) {
@@ -1722,10 +1731,24 @@ void Application::registerGuiCallbacks() {
           std::string filename = file;
           filename.erase(0, 37);
           j.push_back(filename);
-        }
 
-        mGuiManager->getGui()->callJavascript(
-            "CosmoScout.transferFunctionEditor.setAvailableTransferFunctions", j.dump());
+          mGuiManager->getGui()->callJavascript(
+              "CosmoScout.transferFunctionEditor.setAvailableTransferFunctions", j.dump());
+        }
+      }));
+
+  mGuiManager->getGui()->registerCallback("input.reloadDFNs",
+      "Reloads the DFNs. This can be used to hot reload the DFNs, when editing the interaction"
+      "xml files.",
+      std::function([] {
+        auto* interactionManager = GetVistaSystem()->GetInteractionManager();
+        auto  numContexts        = interactionManager->GetNumInteractionContexts();
+
+        for (int i = 0; i < numContexts; ++i) {
+          auto* context = interactionManager->GetInteractionContext(i);
+          interactionManager->ReloadGraphForContext(
+              context, GetVistaSystem()->GetClusterMode()->GetNodeName());
+        }
       }));
 }
 
@@ -1766,6 +1789,7 @@ void Application::unregisterGuiCallbacks() {
   mGuiManager->getGui()->unregisterCallback("graphics.setGlareQuality");
   mGuiManager->getGui()->unregisterCallback("graphics.setExposureRange");
   mGuiManager->getGui()->unregisterCallback("graphics.setFixedSunDirection");
+  mGuiManager->getGui()->unregisterCallback("input.reloadDFNs");
   mGuiManager->getGui()->unregisterCallback("navigation.fixHorizon");
   mGuiManager->getGui()->unregisterCallback("navigation.northUp");
   mGuiManager->getGui()->unregisterCallback("navigation.setBody");

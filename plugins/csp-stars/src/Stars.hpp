@@ -9,6 +9,7 @@
 #define CSP_STARS_VISTA_STARS_HPP
 
 #include <VistaBase/VistaColor.h>
+#include <VistaKernel/DisplayManager/VistaViewport.h>
 #include <VistaKernel/GraphicsManager/VistaOpenGLDraw.h>
 #include <VistaOGLExt/VistaBufferObject.h>
 #include <VistaOGLExt/VistaGLSLShader.h>
@@ -34,21 +35,32 @@ class Stars : public IVistaOpenGLDraw {
   ///    http://cdsarc.u-strasbg.fr/viz-bin/Cat?cat=I%2F239
   /// Tycho2 can be obtained from:
   ///    http://cdsarc.u-strasbg.fr/cgi-bin/myqcat3?I/259/
-  enum class CatalogType { eHipparcos = 0, eTycho, eTycho2, eCount };
+  enum class CatalogType { eHipparcos = 0, eTycho, eTycho2, eGaia, eCount };
 
   /// The required columns of each catalog. The position of each column in each catalog is
   /// configured with the static member COLUMN_MAPPING at the bottom of this file.
   enum class CatalogColumn {
-    eVmag = 0, ///< visual magnitude
-    eBmag,     ///< blue magnitude
-    ePara,     ///< trigonometric parallax
-    eRect,     ///< rectascension
-    eDecl,     ///< declination
-    eHipp,     ///< hipparcos number
+    eMag = 0, ///< visual magnitude
+    ePara,    ///< trigonometric parallax
+    eRect,    ///< rectascension
+    eDecl,    ///< declination
+    eHipp,    ///< hipparcos number
     eCount
   };
 
-  enum class DrawMode { ePoint, eSmoothPoint, eDisc, eSmoothDisc, eScaledDisc, eSprite };
+  enum class DrawMode {
+    ePoint,
+    eSmoothPoint,
+    eDisc,
+    eSmoothDisc,
+    eScaledDisc,
+    eGlareDisc,
+    eSprite,
+    eSRPoint
+  };
+
+  Stars();
+  ~Stars() = default;
 
   /// It is possible to load multiple catalogs, currently Hipparcos and any of Tycho or Tycho2 can
   /// be loaded together. Stars which are in both catalogs will be loaded from Hipparcos. Once
@@ -121,8 +133,8 @@ class Stars : public IVistaOpenGLDraw {
  private:
   /// Data structure of one record from star catalog.
   struct Star {
-    float mVMagnitude;
-    float mBMagnitude;
+    float mMagnitude;
+    float mTEff;
     float mAscension;
     float mDeclination;
     float mParallax;
@@ -153,6 +165,7 @@ class Stars : public IVistaOpenGLDraw {
   std::string mCacheFile = "star_cache.dat";
 
   VistaGLSLShader        mStarShader;
+  VistaGLSLShader        mSRBlitShader;
   VistaGLSLShader        mBackgroundShader;
   VistaColor             mBackgroundColor1;
   VistaColor             mBackgroundColor2;
@@ -164,7 +177,7 @@ class Stars : public IVistaOpenGLDraw {
   std::vector<Star>                  mStars;
   std::map<CatalogType, std::string> mCatalogs;
 
-  DrawMode mDrawMode = DrawMode::eScaledDisc;
+  DrawMode mDrawMode = DrawMode::eSRPoint;
 
   bool  mShaderDirty                = true;
   bool  mEnableHDR                  = true;
@@ -191,7 +204,17 @@ class Stars : public IVistaOpenGLDraw {
     uint32_t starPMatrix         = 0;
     uint32_t starInverseMVMatrix = 0;
     uint32_t starInversePMatrix  = 0;
+
+    uint32_t starCount = 0;
   } mUniforms;
+
+  struct SoftwareRasterizerTargets {
+    std::unique_ptr<VistaTexture> mImage;
+    int                           mWidth  = 0;
+    int                           mHeight = 0;
+  };
+
+  std::unordered_map<VistaViewport*, SoftwareRasterizerTargets> mSRTargets;
 
   static const int cCacheVersion;
 
@@ -199,15 +222,6 @@ class Stars : public IVistaOpenGLDraw {
   static constexpr size_t NUM_COLUMNS  = cs::utils::enumCast(CatalogColumn::eCount);
 
   static const std::array<std::array<int, NUM_COLUMNS>, NUM_CATALOGS> cColumnMapping;
-
-  static const char* cStarsSnippets;
-  static const char* cStarsVertOnePixel;
-  static const char* cStarsFragOnePixel;
-  static const char* cStarsVert;
-  static const char* cStarsFrag;
-  static const char* cStarsGeom;
-  static const char* cBackgroundVert;
-  static const char* cBackgroundFrag;
 };
 
 } // namespace csp::stars

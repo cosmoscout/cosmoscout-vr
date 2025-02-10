@@ -72,8 +72,8 @@ void HDRBuffer::bind() {
         glTexImage2DMultisample(
             target, mMultiSamples, internalFormat, hdrBuffer.mWidth, hdrBuffer.mHeight, false);
       } else {
-        glTexParameteri(target, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        glTexParameteri(target, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glTexParameteri(target, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         glTexParameteri(target, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(target, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         glTexImage2D(target, 0, internalFormat, hdrBuffer.mWidth, hdrBuffer.mHeight, 0, format,
@@ -188,22 +188,37 @@ VistaTexture* HDRBuffer::getCurrentReadAttachment() const {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+VistaViewport* HDRBuffer::getCurrentViewportSafe() const {
+  VistaViewport* viewport =
+      GetVistaSystem()->GetDisplayManager()->GetCurrentRenderInfo()->m_pViewport;
+  if (viewport == NULL) {
+    auto first_kv = mHDRBufferData.begin();
+    viewport      = first_kv->first;
+    logger().debug(
+        "No current viewport. Taking first viewport in map at {} instead. {} viewports in map",
+        (void*)viewport, mHDRBufferData.size());
+  }
+  return viewport;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 HDRBuffer::HDRBufferData& HDRBuffer::getCurrentHDRBuffer() {
-  auto* viewport = GetVistaSystem()->GetDisplayManager()->GetCurrentRenderInfo()->m_pViewport;
+  auto* viewport = getCurrentViewportSafe();
   return mHDRBufferData[viewport];
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 HDRBuffer::HDRBufferData const& HDRBuffer::getCurrentHDRBuffer() const {
-  auto* viewport = GetVistaSystem()->GetDisplayManager()->GetCurrentRenderInfo()->m_pViewport;
+  auto* viewport = getCurrentViewportSafe();
   return mHDRBufferData.find(viewport)->second;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 std::array<int, 2> HDRBuffer::getCurrentViewPortSize() {
-  auto* viewport = GetVistaSystem()->GetDisplayManager()->GetCurrentRenderInfo()->m_pViewport;
+  auto*              viewport = getCurrentViewportSafe();
   std::array<int, 2> size{};
   viewport->GetViewportProperties()->GetSize(size.at(0), size.at(1));
   return size;
@@ -212,7 +227,7 @@ std::array<int, 2> HDRBuffer::getCurrentViewPortSize() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 std::array<int, 2> HDRBuffer::getCurrentViewPortPos() {
-  auto* viewport = GetVistaSystem()->GetDisplayManager()->GetCurrentRenderInfo()->m_pViewport;
+  auto*              viewport = getCurrentViewportSafe();
   std::array<int, 2> pos{};
   viewport->GetViewportProperties()->GetPosition(pos.at(0), pos.at(1));
   return pos;
@@ -252,7 +267,7 @@ float HDRBuffer::getMaximumLuminance() const {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void HDRBuffer::updateGlareMipMap() {
+void HDRBuffer::updateGlareMipMap(float maxLuminance) {
   auto&         hdrBuffer = getCurrentHDRBuffer();
   VistaTexture* composite = nullptr;
 
@@ -262,7 +277,8 @@ void HDRBuffer::updateGlareMipMap() {
     composite = hdrBuffer.mColorAttachments.at(1).get();
   }
 
-  hdrBuffer.mGlareMipMap->update(composite, mGlareMode, mGlareQuality);
+  hdrBuffer.mGlareMipMap->update(composite, maxLuminance, mGlareMode, mGlareQuality,
+      mEnableBicubicGlareFilter, mEnable32BitGlare);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -294,6 +310,30 @@ void HDRBuffer::setGlareQuality(uint32_t quality) {
 
 uint32_t HDRBuffer::getGlareQuality() const {
   return mGlareQuality;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void HDRBuffer::setEnableBicubicGlareFilter(bool enable) {
+  mEnableBicubicGlareFilter = enable;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+bool HDRBuffer::getEnableBicubicGlareFilter() const {
+  return mEnableBicubicGlareFilter;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void HDRBuffer::setEnable32BitGlare(bool enable) {
+  mEnable32BitGlare = enable;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+bool HDRBuffer::getEnable32BitGlare() const {
+  return mEnable32BitGlare;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -210,7 +210,7 @@ void LuminanceMipMap::update(VistaTexture* hdrBufferComposite) {
   // We loop through all levels always reading from the last level.
   for (int i(0); i < mMaxLevels; ++i) {
     int width  = static_cast<int>(std::max(1.0,
-        std::floor(static_cast<double>(static_cast<int>(mHDRBufferWidth / 2)) / std::pow(2, i))));
+         std::floor(static_cast<double>(static_cast<int>(mHDRBufferWidth / 2)) / std::pow(2, i))));
     int height = static_cast<int>(std::max(1.0,
         std::floor(static_cast<double>(static_cast<int>(mHDRBufferHeight / 2)) / std::pow(2, i))));
 
