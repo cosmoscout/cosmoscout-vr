@@ -42,7 +42,7 @@ class CS_CORE_EXPORT DragNavigation {
   DragNavigation(DragNavigation&& other)      = delete;
 
   DragNavigation& operator=(DragNavigation const& other) = delete;
-  DragNavigation& operator=(DragNavigation&& other) = delete;
+  DragNavigation& operator=(DragNavigation&& other)      = delete;
 
   ~DragNavigation() = default;
 

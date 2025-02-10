@@ -195,7 +195,7 @@ void Plugin::onAddBookmark(std::shared_ptr<const cs::scene::CelestialObject> con
     if (activeObject && activeObject->getCenterName() == bookmark.mLocation.value().mCenter) {
       auto radii = activeObject->getRadii();
       auto p     = cs::utils::convert::cartesianToLngLat(
-          bookmark.mLocation.value().mPosition.value(), radii);
+              bookmark.mLocation.value().mPosition.value(), radii);
       p      = cs::utils::convert::toDegrees(p);
       auto c = bookmark.mColor.value_or(glm::vec3(0.8F, 0.8F, 1.0F)) * 255.F;
       mGuiManager->getGui()->callJavascript("CosmoScout.minimap.addBookmark", bookmarkID,

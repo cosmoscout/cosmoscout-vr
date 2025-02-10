@@ -9,21 +9,40 @@ SPDX-License-Identifier: CC-BY-4.0
 
 # Changelog of CosmoScout VR
 
-## [unreleased]
+## [v1.10.0](https://github.com/cosmoscout/cosmoscout-vr/releases)
 
-**Release Date:** TBD
+**Release Date:** 2025-01-27
+
+#### New Features
+
+- `csp-atmospheres` now supports refraction of light through the atmosphere. This deforms the Sun in Earth's atmosphere when it is close to the horizon. When observed from space, the sunset can turn into a glowing red ring around Earth.
+- Eclipse shadows now consider the atmosphere of the occluder. This is used for Earth and Mars. As light is refracted through the atmosphere, the shadow is not completely dark anymore. Instead, some copper-red light is now shed on the Moon during a lunar eclipse.
+- `csp-trajectories` now draws proxies for celestial objects when they are smaller than a few pixels in HDR mode. This makes them visible even if they are very small, such as when looking in the sky at night. This also drastically reduces flickering in HDR mode when the bodies are very small on the screen.
+- `csp-stars` now comes with two new rendering modes: Glare Discs and Software-Rasterized Points. The latter is the new default mode and is much faster than the old ones.
+- The default configuration now uses the five million brightest stars from ESA's Gaia DDR3 catalog. This looks much better than the Tycho-2 catalog used before.
+- The `/capture` endpoint of the `csp-web-api` now supports an optional `restoreState` parameter. If set to `true`, the size of the window and the visibility of the user interface will be restored after capturing the image. Thanks to [@DanielPSchenk](https://github.com/DanielPSchenk) for this contribution!
+- The `/capture` endpoint of the `csp-web-api` now supports a `raw` format. This will transmit the contents of the depth buffer or color buffer as a raw 32bit floating point buffer. If HDR rendering is enabled, this will return the actual luminance values of the scene before tone mapping is applied. Thanks to [@DanielPSchenk](https://github.com/DanielPSchenk) for this contribution!
 
 #### Other Changes
 
-- The preprocessing of the Bruneton atmosphere model has been refactored to a standalone tool. This tool can now be used to generate the necessary data offline and thus improves the start-up time of CosmoScout VR significantly.
+- The simulation time can now be adjusted in a continuous manner using the slider below the timeline.
+- The glare effect of the HDR rendering has been improved. It is now much faster even if set to a higher quality.
+- The depth-write for trajectory lines has been disabled. This improves their rendering on many GPUs. They are now not always correctly composited with transparent objects, but this will produce only minor artifacts in most cases.
 - It is now possible to use the vista debug text rendering again.
 - New callback `CosmoScout.callbacks.input.reloadDFNs()` to hot reload DFN xml files.
+- The preprocessing of the Bruneton atmosphere model has been refactored to a standalone tool. This tool can now be used to generate the necessary data offline and thus improves the start-up time of CosmoScout VR significantly.
+- Replaced the custom make.sh and make.bat build scripts with [CMake-Presets version 3](https://cmake.org/cmake/help/v3.22/manual/cmake-presets.7.html).
+  - The documentation on building CosmoScout VR were rewritten to reflect these changes.
+  - The documentation on IDE support was updated to reflect these changes.
 
 #### Bug Fixes
 
+- Fixed loading of stars from the Hipparcos catalog which do not have Tycho photometry.
+- Fixed the cloud rendering across the date line in the pacific. Thanks to [@DanielPSchenk](https://github.com/DanielPSchenk) for this fix!
 - Fixed invalid terrain height of LoD bodies after reloading of the scene settings.
 - Fixed a bug which caused red rings in the clouds deep in the shadow-side of a planet.
 - Fixed a bug that prevented the autocomplete to work in the js console.
+- Fixed harsh eclipse shadows on bodies which are very small when compared to the body casting the shadow.
 
 ## [v1.9.0](https://github.com/cosmoscout/cosmoscout-vr/releases)
 

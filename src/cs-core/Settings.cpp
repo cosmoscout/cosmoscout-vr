@@ -317,7 +317,8 @@ void from_json(nlohmann::json const& j, Settings::Graphics& o) {
   Settings::deserialize(j, "ambientBrightness", o.pAmbientBrightness);
   Settings::deserialize(j, "ambientOcclusion", o.pAmbientOcclusion);
   Settings::deserialize(j, "glareIntensity", o.pGlareIntensity);
-  Settings::deserialize(j, "glareRadius", o.pGlareQuality);
+  Settings::deserialize(j, "glareQuality", o.pGlareQuality);
+  Settings::deserialize(j, "enable32BitGlare", o.pEnable32BitGlare);
   Settings::deserialize(j, "glareMode", o.pGlareMode);
   Settings::deserialize(j, "toneMappingMode", o.pToneMappingMode);
   Settings::deserialize(j, "enableBicubicGlareFiltering", o.pEnableBicubicGlareFilter);
@@ -353,7 +354,8 @@ void to_json(nlohmann::json& j, Settings::Graphics const& o) {
   Settings::serialize(j, "ambientBrightness", o.pAmbientBrightness);
   Settings::serialize(j, "ambientOcclusion", o.pAmbientOcclusion);
   Settings::serialize(j, "glareIntensity", o.pGlareIntensity);
-  Settings::serialize(j, "glareRadius", o.pGlareQuality);
+  Settings::serialize(j, "glareQuality", o.pGlareQuality);
+  Settings::serialize(j, "enable32BitGlare", o.pEnable32BitGlare);
   Settings::serialize(j, "glareMode", o.pGlareMode);
   Settings::serialize(j, "toneMappingMode", o.pToneMappingMode);
   Settings::serialize(j, "enableBicubicGlareFiltering", o.pEnableBicubicGlareFilter);

@@ -14,6 +14,7 @@ void to_json(nlohmann::json& j, Metadata const& o) {
   cs::core::Settings::serialize(j, "sunIlluminance", o.mSunIlluminance);
   cs::core::Settings::serialize(j, "scatteringTextureNuSize", o.mScatteringTextureNuSize);
   cs::core::Settings::serialize(j, "maxSunZenithAngle", o.mMaxSunZenithAngle);
+  cs::core::Settings::serialize(j, "refraction", o.mRefraction);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

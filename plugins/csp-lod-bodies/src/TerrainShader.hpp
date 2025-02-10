@@ -25,7 +25,7 @@ class TerrainShader {
   TerrainShader(TerrainShader&& other)      = delete;
 
   TerrainShader& operator=(TerrainShader const& other) = delete;
-  TerrainShader& operator=(TerrainShader&& other) = delete;
+  TerrainShader& operator=(TerrainShader&& other)      = delete;
 
   virtual ~TerrainShader() = default;
 

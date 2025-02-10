@@ -28,7 +28,7 @@ class TileSource {
   TileSource(TileSource const& other)     = default;
   TileSource(TileSource&& other) noexcept = default;
 
-  TileSource& operator=(TileSource const& other) = default;
+  TileSource& operator=(TileSource const& other)     = default;
   TileSource& operator=(TileSource&& other) noexcept = default;
 
   virtual ~TileSource() = default;

@@ -53,6 +53,14 @@ bool rayIntersectsGround(float r, float mu) {
   return mu < 0.0 && r * r * (mu * mu - 1.0) + BOTTOM_RADIUS * BOTTOM_RADIUS >= 0.0;
 }
 
+float distanceToNearestAtmosphereBoundary(float r, float mu, bool rayRMuIntersectsGround) {
+  if (rayRMuIntersectsGround) {
+    return distanceToBottomAtmosphereBoundary(r, mu);
+  } else {
+    return distanceToTopAtmosphereBoundary(r, mu);
+  }
+}
+
 // Transmittance Texture Precomputation ------------------------------------------------------------
 
 // The code below is used to store the precomputed transmittance values in a 2D lookup table.

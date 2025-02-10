@@ -34,7 +34,7 @@ class Sharad : public IVistaOpenGLDraw {
   Sharad(Sharad&& other)      = delete;
 
   Sharad& operator=(Sharad const& other) = delete;
-  Sharad& operator=(Sharad&& other) = delete;
+  Sharad& operator=(Sharad&& other)      = delete;
 
   ~Sharad();
 

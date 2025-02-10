@@ -68,12 +68,13 @@ class Preprocessor {
   GLuint mMultipleScatteringTexture       = 0;
   GLuint mSingleAerosolsScatteringTexture = 0;
 
-  GLuint mPhaseTexture         = 0;
-  GLuint mDensityTexture       = 0;
-  GLuint mTransmittanceTexture = 0;
-  GLuint mIrradianceTexture    = 0;
-  GLuint mFullScreenQuadVAO    = 0;
-  GLuint mFullScreenQuadVBO    = 0;
+  GLuint mPhaseTexture          = 0;
+  GLuint mDensityTexture        = 0;
+  GLuint mTransmittanceTexture  = 0;
+  GLuint mThetaDeviationTexture = 0;
+  GLuint mIrradianceTexture     = 0;
+  GLuint mFullScreenQuadVAO     = 0;
+  GLuint mFullScreenQuadVBO     = 0;
 };
 
 #endif // PREPROCESSOR_HPP

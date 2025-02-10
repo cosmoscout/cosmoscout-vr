@@ -41,7 +41,7 @@ class CS_CORE_EXPORT GraphicsEngine {
   GraphicsEngine(GraphicsEngine&& other)      = default;
 
   GraphicsEngine& operator=(GraphicsEngine const& other) = default;
-  GraphicsEngine& operator=(GraphicsEngine&& other) = default;
+  GraphicsEngine& operator=(GraphicsEngine&& other)      = default;
 
   ~GraphicsEngine();
 

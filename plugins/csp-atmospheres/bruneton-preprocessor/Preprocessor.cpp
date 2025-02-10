@@ -31,6 +31,13 @@
 // density distributions are now loaded from CSV files and then later sampled from textures. We also
 // store photometric values instead of radiometric values in the final textures.
 
+// Also, we added the possibility to compute the refraction of light rays through the atmosphere.
+// If enabled, an additional texture is generated which contains the angular deviation of the light
+// rays as well as their closest approach to the planet's surface (this can be negative if the light
+// ray intersects the planet's surface).
+// The texture uses the same parametrization as the transmittance texture. The values are computed
+// by the kComputeTransmittanceShader.
+
 // Below, we will indicate for each group of function whether something has been changed and a link
 // to the original explanations of the methods by Eric Bruneton.
 
@@ -185,9 +192,11 @@ constexpr float XYZ_TO_SRGB[9] = {
 // An explanation of the following shaders is available online:
 // https://ebruneton.github.io/precomputed_atmospheric_scattering/atmosphere/model.cc.html#shaders
 
-// The only functional difference is that the kAtmosphereShader does not provide the radiance API
+// The only functional differences are that the kAtmosphereShader does not provide the radiance API
 // anymore as it is not required by CosmoScout VR. Also, the shadow_length parameters have been
 // removed and the GetSunAndSkyIlluminance() does not require the surface normal anymore.
+// Lastly, the kComputeTransmittanceShader has been extended to compute the refraction of light rays
+// through the atmosphere.
 
 const char kVertexShader[] = R"(
   #version 330
@@ -227,8 +236,20 @@ const char kGeometryShader[] = R"(
 const char kComputeTransmittanceShader[] = R"(
   layout(location = 0) out vec3 oTransmittance;
 
+#if COMPUTE_REFRACTION
+  layout(location = 1) out vec3 oThetaDeviationContactRadius;
+#endif
+
   void main() {
-    oTransmittance = computeTransmittanceToTopAtmosphereBoundaryTexture(ATMOSPHERE, gl_FragCoord.xy);
+    #if COMPUTE_REFRACTION
+      float contactRadius;
+      float thetaDeviation;
+      oTransmittance = computeTransmittanceToTopAtmosphereBoundaryTexture(ATMOSPHERE, gl_FragCoord.xy, thetaDeviation, contactRadius);
+      oThetaDeviationContactRadius = vec3(thetaDeviation, contactRadius, 0.0);
+
+    #else
+      oTransmittance = computeTransmittanceToTopAtmosphereBoundaryTexture(ATMOSPHERE, gl_FragCoord.xy);
+    #endif
   }
 )";
 
@@ -313,7 +334,7 @@ const char kComputeMultipleScatteringShader[] = R"(
   
   void main() {
     float nu;
-    oDeltaMultipleScattering = computeMultipleScatteringTexture(uTransmittanceTexture,
+    oDeltaMultipleScattering = computeMultipleScatteringTexture(ATMOSPHERE, uTransmittanceTexture,
                                                                 uScatteringDensityTexture,
                                                                 vec3(gl_FragCoord.xy, uLayer + 0.5),
                                                                 nu);
@@ -655,8 +676,6 @@ Preprocessor::Preprocessor(Params params)
     , mScatteringTextureHeight(mParams.mScatteringTextureMuSize.get())
     , mScatteringTextureDepth(mParams.mScatteringTextureRSize.get()) {
 
-  std::cout << "Preprocessing atmosphere..." << std::endl;
-
   // Compute angular radius of the sun.
   float sunRadius             = 696340000.F; // meters
   mMetadata.mSunAngularRadius = std::asin(sunRadius / mParams.mSunDistance);
@@ -674,6 +693,7 @@ Preprocessor::Preprocessor(Params params)
   mMetadata.mSunIlluminance          = glm::vec3(sunKR, sunKG, sunKB);
   mMetadata.mScatteringTextureNuSize = mParams.mScatteringTextureNuSize.get();
   mMetadata.mMaxSunZenithAngle       = mParams.mMaxSunZenithAngle.get();
+  mMetadata.mRefraction              = mParams.mRefraction.get();
 
   // A lambda that creates a GLSL header containing our atmosphere computation functions,
   // specialized for the given atmosphere parameters and for the 3 wavelengths in 'lambdas'.
@@ -689,8 +709,9 @@ Preprocessor::Preprocessor(Params params)
   // clang-format off
   mGlslHeaderFactory = [=](glm::vec3 const& lambdas) {
     return
-      "#version 330\n" +
+      "#version 400\n" +
       definitions +
+      "#define COMPUTE_REFRACTION "                   + cs::utils::toString(mParams.mRefraction) + "\n" +
       "const int TRANSMITTANCE_TEXTURE_WIDTH = "      + cs::utils::toString(mParams.mTransmittanceTextureWidth) + ";\n" +
       "const int TRANSMITTANCE_TEXTURE_HEIGHT = "     + cs::utils::toString(mParams.mTransmittanceTextureHeight) + ";\n" +
       "const int SCATTERING_TEXTURE_R_SIZE = "        + cs::utils::toString(mParams.mScatteringTextureRSize) + ";\n" +
@@ -700,12 +721,16 @@ Preprocessor::Preprocessor(Params params)
       "const int IRRADIANCE_TEXTURE_WIDTH = "         + cs::utils::toString(mParams.mIrradianceTextureWidth) + ";\n" +
       "const int IRRADIANCE_TEXTURE_HEIGHT = "        + cs::utils::toString(mParams.mIrradianceTextureHeight) + ";\n" +
       "const int SAMPLE_COUNT_OPTICAL_DEPTH = "       + cs::utils::toString(mParams.mSampleCountOpticalDepth) + ";\n" +
+      "const int STEP_SIZE_OPTICAL_DEPTH = "          + cs::utils::toString(mParams.mStepSizeOpticalDepth) + ";\n" +
       "const int SAMPLE_COUNT_SINGLE_SCATTERING = "   + cs::utils::toString(mParams.mSampleCountSingleScattering) + ";\n" +
+      "const int STEP_SIZE_SINGLE_SCATTERING = "      + cs::utils::toString(mParams.mStepSizeSingleScattering) + ";\n" +
       "const int SAMPLE_COUNT_SCATTERING_DENSITY = "  + cs::utils::toString(mParams.mSampleCountScatteringDensity) + ";\n" +
       "const int SAMPLE_COUNT_MULTI_SCATTERING = "    + cs::utils::toString(mParams.mSampleCountMultiScattering) + ";\n" +
+      "const int STEP_SIZE_MULTI_SCATTERING = "       + cs::utils::toString(mParams.mStepSizeMultiScattering) + ";\n" +
       "const int SAMPLE_COUNT_INDIRECT_IRRADIANCE = " + cs::utils::toString(mParams.mSampleCountIndirectIrradiance) + ";\n" +
       "const vec3 SOLAR_IRRADIANCE = "                + extractVec3(WAVELENGTHS, SOLAR_IRRADIANCE, lambdas) + ";\n" +
       "const vec3 GROUND_ALBEDO = vec3("              + cs::utils::toString(mParams.mGroundAlbedo) + ");\n" +
+      "const float INDEX_OF_REFRACTION = "            + cs::utils::toString(mParams.mRefractiveIndex) + ";\n" +
       "const float SUN_ANGULAR_RADIUS = "             + cs::utils::toString(mMetadata.mSunAngularRadius) + ";\n" +
       "const float BOTTOM_RADIUS = "                  + cs::utils::toString(mParams.mMinAltitude) + ";\n" +
       "const float TOP_RADIUS = "                     + cs::utils::toString(mParams.mMaxAltitude) + ";\n" +
@@ -721,6 +746,9 @@ Preprocessor::Preprocessor(Params params)
 
   // Allocate the precomputed textures, but don't precompute them yet.
   mTransmittanceTexture = NewTexture2d(mParams.mTransmittanceTextureWidth.get(),
+      mParams.mTransmittanceTextureHeight.get(), GL_RGB32F, GL_RGB, GL_FLOAT);
+
+  mThetaDeviationTexture = NewTexture2d(mParams.mTransmittanceTextureWidth.get(),
       mParams.mTransmittanceTextureHeight.get(), GL_RGB32F, GL_RGB, GL_FLOAT);
 
   mMultipleScatteringTexture = NewTexture3d(mScatteringTextureWidth, mScatteringTextureHeight,
@@ -782,6 +810,7 @@ Preprocessor::~Preprocessor() {
   glDeleteVertexArrays(1, &mFullScreenQuadVAO);
   glDeleteTextures(1, &mPhaseTexture);
   glDeleteTextures(1, &mTransmittanceTexture);
+  glDeleteTextures(1, &mThetaDeviationTexture);
   glDeleteTextures(1, &mMultipleScatteringTexture);
   glDeleteTextures(1, &mSingleAerosolsScatteringTexture);
   glDeleteTextures(1, &mIrradianceTexture);
@@ -870,30 +899,48 @@ void Preprocessor::run(unsigned int numScatteringOrders) {
           deltaAerosolsScatteringTexture, deltaScatteringDensityTexture,
           deltaMultipleScatteringTexture, lambdas, luminanceFromRadiance, i > 0 /* blend */,
           numScatteringOrders);
+      glFinish();
     }
 
-    // After the above iterations, the transmittance texture contains the transmittance for the 3
-    // wavelengths used at the last iteration. But we want the transmittance at kLambdaR, kLambdaG,
-    // kLambdaB instead, so we must recompute it here for these 3 wavelengths:
+    std::cout << "Finishing precomputation..." << std::endl;
+
+    // After the above iterations, the transmittance texture and the theta-deviation texture contain
+    // data for the 3 wavelengths used at the last iteration. But we want data at kLambdaR,
+    // kLambdaG, kLambdaB instead, so we must recompute it here for these 3 wavelengths:
     std::string header = mGlslHeaderFactory({kLambdaR, kLambdaG, kLambdaB});
     Program     computeTransmittance(kVertexShader, header + kComputeTransmittanceShader);
     glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, mTransmittanceTexture, 0);
-    glDrawBuffer(GL_COLOR_ATTACHMENT0);
+
+    if (mParams.mRefraction.get()) {
+      glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, mThetaDeviationTexture, 0);
+
+      const GLuint kDrawBuffers[4] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1};
+      glDrawBuffers(2, kDrawBuffers);
+    } else {
+      glDrawBuffer(GL_COLOR_ATTACHMENT0);
+    }
+
     glViewport(
         0, 0, mParams.mTransmittanceTextureWidth.get(), mParams.mTransmittanceTextureHeight.get());
     glScissor(
         0, 0, mParams.mTransmittanceTextureWidth.get(), mParams.mTransmittanceTextureHeight.get());
     computeTransmittance.Use();
     computeTransmittance.BindTexture2d("uDensityTexture", mDensityTexture, 0);
-    DrawQuad({false}, mFullScreenQuadVAO);
-
-    glFlush();
+    if (mParams.mRefraction.get()) {
+      DrawQuad({false, false}, mFullScreenQuadVAO);
+    } else {
+      DrawQuad({false}, mFullScreenQuadVAO);
+    }
 
     // Also, the mPhaseTexture contains the phase functions for the last used wavelengths. We need
     // to update it with kLambdaR, kLambdaG, kLambdaB as well.
     updatePhaseFunctionTexture(
         {mParams.mMolecules, mParams.mAerosols}, {kLambdaR, kLambdaG, kLambdaB});
   }
+
+  glFinish();
+
+  std::cout << "Precomputation Done." << std::endl;
 
   // Delete the temporary resources allocated at the beginning of this method.
   glUseProgram(0);
@@ -915,8 +962,29 @@ void Preprocessor::run(unsigned int numScatteringOrders) {
 void Preprocessor::save(std::string const& directory) {
   std::cout << "Saving precomputed atmosphere to disk..." << std::endl;
 
-  // Save the precomputed textures to disk. We need to store mMultipleScatteringTexture,
-  // mSingleAerosolsScatteringTexture, mPhaseTexture, mTransmittanceTexture, and mIrradianceTexture.
+  // For debugging purposes, we print the maximum ray deviation in degrees.
+  std::vector<float> pixels(
+      mParams.mTransmittanceTextureWidth.get() * mParams.mTransmittanceTextureHeight.get() * 3);
+  glBindTexture(GL_TEXTURE_2D, mThetaDeviationTexture);
+  glGetTexImage(GL_TEXTURE_2D, 0, GL_RGB, GL_FLOAT, pixels.data());
+  glBindTexture(GL_TEXTURE_2D, 0);
+
+  float maxThetaDeviation = 0.F;
+  for (int x = 0; x < mParams.mTransmittanceTextureWidth.get(); ++x) {
+    for (int y = 0; y < mParams.mTransmittanceTextureHeight.get(); ++y) {
+      int i = 3 * (y * mParams.mTransmittanceTextureWidth.get() + x);
+
+      float thetaDeviation = pixels[i];
+      float contactRadius  = pixels[i + 1];
+
+      if (contactRadius > 0.F) {
+        maxThetaDeviation = std::max(maxThetaDeviation, thetaDeviation);
+      }
+    }
+  }
+
+  std::cout << "Maximum ray deviation: " << maxThetaDeviation * 180.F / glm::pi<float>()
+            << " degrees." << std::endl;
 
   auto write2D = [](std::string const& path, GLuint texture, int width, int height) {
     std::vector<float> data(width * height * 3);
@@ -976,6 +1044,11 @@ void Preprocessor::save(std::string const& directory) {
       mScatteringTextureWidth, mScatteringTextureHeight, mScatteringTextureDepth);
   write3D(directory + "/single_aerosols_scattering.tif", mSingleAerosolsScatteringTexture,
       mScatteringTextureWidth, mScatteringTextureHeight, mScatteringTextureDepth);
+
+  if (mParams.mRefraction.get()) {
+    write2D(directory + "/theta_deviation.tif", mThetaDeviationTexture,
+        mParams.mTransmittanceTextureWidth.get(), mParams.mTransmittanceTextureHeight.get());
+  }
 
   std::ofstream  out(directory + "/metadata.json");
   nlohmann::json data = mMetadata;
@@ -1069,7 +1142,16 @@ void Preprocessor::precompute(GLuint fbo, GLuint deltaIrradianceTexture,
 
   // 1. Compute the transmittance, and store it in mTransmittanceTexture.
   glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, mTransmittanceTexture, 0);
-  glDrawBuffer(GL_COLOR_ATTACHMENT0);
+
+  if (mParams.mRefraction.get()) {
+    glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, mThetaDeviationTexture, 0);
+
+    const GLuint kDrawBuffers[4] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1};
+    glDrawBuffers(2, kDrawBuffers);
+  } else {
+    glDrawBuffer(GL_COLOR_ATTACHMENT0);
+  }
+
   glViewport(
       0, 0, mParams.mTransmittanceTextureWidth.get(), mParams.mTransmittanceTextureHeight.get());
   glScissor(

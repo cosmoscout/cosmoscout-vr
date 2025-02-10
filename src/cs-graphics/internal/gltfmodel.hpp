@@ -171,7 +171,7 @@ class VistaGltfNode : public IVistaOpenGLDraw {
   VistaGltfNode(VistaGltfNode&& other)      = delete;
 
   VistaGltfNode& operator=(VistaGltfNode const& other) = delete;
-  VistaGltfNode& operator=(VistaGltfNode&& other) = delete;
+  VistaGltfNode& operator=(VistaGltfNode&& other)      = delete;
 
   /// The method Do() gets the callback from scene graph during the rendering process.
   bool Do() override;

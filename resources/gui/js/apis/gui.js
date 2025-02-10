@@ -174,8 +174,8 @@ class GuiApi extends IApi {
    * @see {initInputs}
    */
   initDraggableWindows() {
-    const windows     = document.querySelectorAll(".draggable-window");
-    var currentZIndex = 100;
+    const windows       = document.querySelectorAll(".draggable-window");
+    var   currentZIndex = 100;
 
     windows.forEach((w) => {
       // Center initially.

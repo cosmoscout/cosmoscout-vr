@@ -24,7 +24,7 @@ class TileData : public BaseTileData {
   TileData(TileData&& other)      = delete;
 
   TileData& operator=(TileData const& other) = delete;
-  TileData& operator=(TileData&& other) = delete;
+  TileData& operator=(TileData&& other)      = delete;
 
   ~TileData() override;
 
