@@ -301,8 +301,8 @@ vec3 getRefractedFramebufferColor(vec3 rayOrigin, vec3 rayDir, out vec3 refracte
 
   // Also, we check the depth buffer to see if the point is occluded. If it is, we do not sample
   // the color buffer.
-  bool occluded = getFramebufferDepth(texcoords.xy) > 0.0001;
-
+  bool occluded = getFramebufferDepth(texcoords.xy) > 0.0;
+  
   if (inside && !occluded) {
     return getFramebufferColor(texcoords.xy);
   }
