@@ -301,7 +301,7 @@ void LuminanceMipMap::update(VistaTexture* hdrBufferComposite) {
     mLastTotalLuminance   = 0;
     mLastMaximumLuminance = 0;
 
-    for (size_t i = 0; i < mWorkGroups; ++i) {
+    for (int i = 0; i < mWorkGroups; ++i) {
       glm::vec2 value = data[i];
       mLastTotalLuminance  += std::isnan(value.x) ? 0.F : value.x;
       mLastMaximumLuminance = std::max(mLastMaximumLuminance, std::isnan(value.y) ? 0.F : value.y);

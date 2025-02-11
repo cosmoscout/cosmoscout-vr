@@ -83,7 +83,7 @@ cd ..
 
 cmake "${CMAKE_FLAGS[@]}" -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" \
       -DCMAKE_INSTALL_LIBDIR=lib \
-      -DCMAKE_BUILD_TYPE=$BUILD_TYPE "$BUILD_DIR/glew/extracted/glew-2.1.0/build/cmake"
+      -DCMAKE_BUILD_TYPE=$BUILD_TYPE "$BUILD_DIR/glew/extracted/glew-2.2.0/build/cmake"
 cmake --build . --target install --parallel "$(nproc)"
 
 # ViSTA expects glew library to be called libGLEW.so

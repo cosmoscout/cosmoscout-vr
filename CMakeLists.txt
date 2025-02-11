@@ -10,7 +10,7 @@ project(cosmoscout-vr VERSION 1.10.0)
 
 # Use cmake 3.12's <PACKAGE>_ROOT variabled for searching.
 cmake_policy(SET CMP0074 NEW)
-cmake_policy(SET CMP0167 OLD)
+# cmake_policy(SET CMP0167 OLD)
 
 # Ensure local modules (for dependencies etc.) are found.
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
