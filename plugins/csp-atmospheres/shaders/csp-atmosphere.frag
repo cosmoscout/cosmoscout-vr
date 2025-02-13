@@ -445,42 +445,50 @@ float CIRRUS_START_HEIGHT = 6000;
 float CIRRUS_END_HEIGHT = 8500;
 
 float getCirrusDensity(vec3 position){
-  float TOTAL_DENSITY_MULTIPLIER = .5;
+  float TOTAL_DENSITY_MULTIPLIER = .4;
   float LOW_CUTOFF = .05;
   float NOISE_SHRINKING = .5;
-  float EXPONENT = 2;
+  float EXPONENT = 3;
+
+  float DIST_NOISE_SCALE = .5 * 2;
+  float DIST_GRADIENT_SCALE = 0;
 
   float DISTORTION_MULTIPLIER = .001;
-  float DISTORTION_FREQ = 1. / 200000;
-  float FREQ_RANGE = .5;
-  float DISTORTION_ANISOTROPY = 3;
-
-  float freq = remap(simplex3D(position * DISTORTION_FREQ), 0, 1, 1, FREQ_RANGE) * DISTORTION_FREQ;
-
-  float distortion_strength = simplex3D(position * freq + vec3(10000, 0, 0)) * DISTORTION_MULTIPLIER;
-  vec2 distortion_vec = vec2(simplex3DFractal(position * freq + vec3(0, 10000, 0)) * DISTORTION_ANISOTROPY, simplex3D(position * freq));
+  float DISTORTION_FREQ = 1. / 500000;
+  float DISTORTION_ANISOTROPY = 5;
+  float FD_STEP = .0001;
 
   vec2 lngLat = getLngLat(position);
   vec2 texCoords = vec2(lngLat.x / (2 * PI) + 0.5, 1.0 - lngLat.y / PI + 0.5);
-  float distorted_contrib = texture(uCloudTexture, texCoords + distortion_vec * distortion_strength).r;
-
+  // undistorted texture used for filtering out regions far from the cloud centers
   float texture_contrib = texture(uCloudTexture, texCoords).r;
-  float texture_with_distortion = mix(distorted_contrib, texture_contrib, texture_contrib);
+  float texture_u_off = texture(uCloudTexture, texCoords + vec2(FD_STEP, 0)).r;
+  float texture_v_off = texture(uCloudTexture, texCoords + vec2(0, FD_STEP)).r;
+  vec2 cloud_gradient_uv = vec2(texture_u_off, texture_v_off) / FD_STEP;
 
-  float cloud_coverage_h = remap(distorted_contrib, LOW_CUTOFF, 1, 0, 1);
-  float cloud_coverage_v = GetCloudCoverageHeight(position, CIRRUS_START_HEIGHT, CIRRUS_END_HEIGHT);
-  float cloud_base = remap(cloud_coverage_h, 0, 1, 0, cloud_coverage_v);
-  float low_freq_noise = simplex3DFractal(normalize(position) * 20);
-  cloud_base = remap(cloud_base, 0, .8, 0, 1);
-  float cloud_density = remap(cloud_base, low_freq_noise * NOISE_SHRINKING, 1, 0, 1);
+  float freq = DISTORTION_FREQ;
+
+  float distortion_strength = DISTORTION_MULTIPLIER;//simplex3D(position * freq + vec3(10000, 0, 0)) * DISTORTION_MULTIPLIER;
+  float x_noise = (simplex3DFractal(position * freq + vec3(0, 10000, 0)) * 2 - 1) * DISTORTION_ANISOTROPY;
+  float y_noise = (simplex3D(position * freq) * 2 - 1);
+  // add gradient contribution to break up weird looking saddle points in distortion
+  vec2 distortion_vec = vec2(x_noise, y_noise) * DIST_NOISE_SCALE + normalize(cloud_gradient_uv) * DIST_GRADIENT_SCALE;
+
+  float distorted_contrib = texture(uCloudTexture, texCoords + distortion_vec * distortion_strength).r;
+  distorted_contrib = clamp(distorted_contrib, 0, texture_contrib * 2);
+
+  float cloud_base = GetCloudCoverageHeight(position, CIRRUS_START_HEIGHT, CIRRUS_END_HEIGHT);
+  float cloud_density = cloud_base * distorted_contrib;
+
   return pow(cloud_density, EXPONENT) * TOTAL_DENSITY_MULTIPLIER;
+
 }
 
 float getCloudDensity(vec3 position){
   float acc = 0;
   float height = length(position) - PLANET_RADIUS;
   if(height > ALTO_CUMULUS_START_HEIGHT && height < ALTO_CUMULUS_END_HEIGHT){
-    acc += getAltoCumulusDensity(position);
+    //acc += getAltoCumulusDensity(position);
   }
   if(height > CIRRUS_START_HEIGHT && height < CIRRUS_END_HEIGHT){
     acc += getCirrusDensity(position);
