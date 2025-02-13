@@ -22,7 +22,7 @@ class CS_GUI_EXPORT GuiItem : public WebView {
 
  public:
   /// Creates a new GuiItem for the given page at the location of the URL.
-  explicit GuiItem(std::string const& url, bool allowLocalFileAccess = false);
+  explicit GuiItem(std::string const& url);
 
   GuiItem(GuiItem const& other) = delete;
   GuiItem(GuiItem&& other)      = delete;
