@@ -443,6 +443,7 @@ float getAltoCumulusDensity(vec3 position){
 
 float CIRRUS_START_HEIGHT = 6000;
 float CIRRUS_END_HEIGHT = 8500;
+float INFINITY = 1. / 0;
 
 float getCirrusDensity(vec3 position){
   float TOTAL_DENSITY_MULTIPLIER = .4;
@@ -488,7 +489,7 @@ float getCloudDensity(vec3 position){
   float acc = 0;
   float height = length(position) - PLANET_RADIUS;
   if(height > ALTO_CUMULUS_START_HEIGHT && height < ALTO_CUMULUS_END_HEIGHT){
-    //acc += getAltoCumulusDensity(position);
+    acc += getAltoCumulusDensity(position);
   }
   if(height > CIRRUS_START_HEIGHT && height < CIRRUS_END_HEIGHT){
     acc += getCirrusDensity(position);
@@ -632,9 +633,9 @@ vec4 getCloudColor(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, float surfaceDistan
 
   vec2 intersections = intersectSphere(rayOrigin, rayDir, topAltitude);
 
+  float originHeight = length(rayOrigin);
   bool hitsSurface = surfaceDistance < intersections.y || intersectSphere(rayOrigin, rayDir, PLANET_RADIUS).y > 0;
 
-  float originHeight = length(rayOrigin);
     // If we are below the clouds and the ray intersects the ground, we can also return early.
   if (originHeight < lowAltitude && hitsSurface) {
     return vec4(0.0, 0, 0, 1);
@@ -665,9 +666,11 @@ vec4 getCloudColor(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, float surfaceDistan
   vec2 interval1 = vec2(-1, -1);
   vec2 interval2 = vec2(-1, -1);
 
+  float lowXcorrected = lowIntersections.x < lowIntersections.y ? lowIntersections.x : INFINITY;
+
   if(above){
     interval1.x = topIntersections.x;
-    interval1.y = lowIntersections.x;
+    interval1.y = lowXcorrected;
     if(!hitsSurface){
       if(hitBottom){
         // ray exits the cloud layer at the bottom and reintersects it, creating a second interval
@@ -692,15 +695,16 @@ vec4 getCloudColor(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, float surfaceDistan
     }else{
       // origin inside clouds looking down with or without second interval
       interval1.x = 0;
-      interval1.y = lowIntersections.x;
+      interval1.y = lowXcorrected;
       if(!hitsSurface){
         // second intersection interval relevant
         interval2.x = lowIntersections.y;
         interval2.y = topIntersections.y;
         //return vec4(0, 10000, 0, 1);
       }else{
-        interval1.y = min(surfaceDistance, lowIntersections.x);
-        //return vec4(0, 0, 10000, 1);
+        // ground is intersected, no second cloud interval
+        interval1.y = min(surfaceDistance, lowXcorrected);
+        //return vec4(interval1.y, 10000, 0, 1);
       }
     }
   }
