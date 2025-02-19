@@ -66,6 +66,7 @@ class Atmosphere : public IVistaOpenGLDraw {
     uint32_t modelMatrix               = 0;
     uint32_t modelViewProjectionMatrix = 0;
     uint32_t shadowCoordinates         = 0;
+    uint32_t noiseTexture              = 0;
 
     // Only used by the panorama shader.
     uint32_t atmoPanoUniforms = 0;
@@ -90,6 +91,7 @@ class Atmosphere : public IVistaOpenGLDraw {
   std::shared_ptr<cs::graphics::HDRBuffer>         mHDRBuffer;
   std::shared_ptr<cs::core::EclipseShadowReceiver> mEclipseShadowReceiver;
   std::unique_ptr<VistaTexture>                    mCloudTexture;
+  GLuint                                           mNoiseTexture = 0;
   GLuint                                           mLimbLuminanceTexture = 0;
 
   glm::dvec3                   mRadii                          = glm::dvec3(1.0, 1.0, 1.0);

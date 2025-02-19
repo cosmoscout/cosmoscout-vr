@@ -41,6 +41,8 @@ uniform sampler2D uCloudTexture;
 uniform float     uCloudAltitude;
 uniform sampler3D uLimbLuminanceTexture;
 uniform vec3      uShadowCoordinates;
+uniform sampler3D uNoiseTexture;
+uniform float     uTestUniform;
 
 // outputs
 layout(location = 0) out vec3 oColor;
@@ -389,7 +391,7 @@ float baseCloudNoise(vec3 position){
     noise = remap(noise, simplex3D(position * freq), .9, 0, 1);
   }
   //return remap(pow(simplex3DFractal(position / 10000), .4), simplex3D(position /5000), 1, 0, 1);
-  return simplex3DFractal(position / 10000);
+  return texture(uNoiseTexture, normalize(position) * 192).r;
   return noise;
 }
 
@@ -420,7 +422,7 @@ float getAltoCumulusDensity(vec3 position){
   // only use cloud coverage for now
   float noise = baseCloudNoise(position);
   float cloud_coverage_h = getCloudCoverageHorizontal(position);
-  cloud_coverage_h = simplex3DFractal(normalize(position) * 50);
+  cloud_coverage_h = texture(uNoiseTexture, normalize(position) * 50).r;
   cloud_coverage_h = remap(cloud_coverage_h, .5, 1, 0, 1);
   //cloud_coverage_h = remap(cloud_coverage_h, 0, 0.1, 0, 1) * remap(cloud_coverage_h, 0.2, 0.3, 1, 0);
   //return cloud_coverage_h;

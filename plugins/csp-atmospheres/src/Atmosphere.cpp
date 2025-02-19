@@ -35,6 +35,10 @@
 #include <stb_image.h>
 #include <stb_image_write.h>
 
+#include "TileableVolumeNoise.h"
+#include <glm/glm.hpp>
+#include <chrono>
+
 namespace csp::atmospheres {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -105,6 +109,10 @@ Atmosphere::~Atmosphere() {
   if (mLimbLuminanceTexture != 0) {
     glDeleteTextures(1, &mLimbLuminanceTexture);
   }
+
+  if (mNoiseTexture != 0) {
+    glDeleteTextures(1, &mNoiseTexture);
+  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -142,10 +150,41 @@ void Atmosphere::configure(Plugin::Settings::Atmosphere const& settings) {
       if (settings.mCloudTexture.has_value() && !settings.mCloudTexture.value().empty()) {
         mCloudTexture = cs::graphics::TextureLoader::loadFromFile(settings.mCloudTexture.value());
         mCloudTexture->Bind();
-        glTexParameteri(mCloudTexture->GetTarget(), GL_TEXTURE_MAX_LOD, 5);
+        glTexParameteri(mCloudTexture->GetTarget(), GL_TEXTURE_MAX_LOD, 3);
         mCloudTexture->Unbind();
+
+
+        auto start_time = std::chrono::high_resolution_clock::now();
+        std::vector<float> cpu_noise(32*32*32, 0);
+        for(int i = 0; i < 32; i++){
+          float u = (float)i / (32 - 1);
+          for(int j = 0; j < 32; j++){
+            float v = (float)j / (32- 1);
+            for(int k = 0; k < 32; k++){
+              float w = (float)k / (32 - 1);
+              cpu_noise[i * 32 * 32 + j * 32 + k] = Tileable3dNoise::PerlinNoise(glm::vec3(u, v, w), 5, 1);
+            }
+          }
+        }
+        auto end_time = std::chrono::high_resolution_clock::now();
+        auto interval = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time);
+        logger().info("generating noise texture on CPU took "  +std::to_string(interval.count()) + "ms");
+
+
+        glGenTextures(1, &mNoiseTexture);
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_3D, mNoiseTexture);
+        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
+        glTexImage3D(GL_TEXTURE_3D, 0, GL_RED, 32, 32, 32, 0, GL_RED, GL_FLOAT, cpu_noise.data());
+        std::vector<float> cpu_data(128*128*128, 0);
       } else {
         mCloudTexture.reset();
+
       }
       mShaderDirty = true;
     }
@@ -240,6 +279,28 @@ void Atmosphere::createShader(ShaderType type, VistaGLSLShader& shader, Uniforms
   uniforms.atmoPanoUniforms          = shader.GetUniformLocation("uAtmoPanoUniforms");
   uniforms.sunElevation              = shader.GetUniformLocation("sunElevation");
   uniforms.shadowCoordinates         = shader.GetUniformLocation("uShadowCoordinates");
+  uniforms.noiseTexture              = shader.GetUniformLocation("uNoiseTexture");
+
+
+  // printing the names of the uniforms
+  GLuint program = shader.GetProgram();
+  int iNumUniforms, iMaxNameLength;
+
+  glGetProgramiv(program, GL_ACTIVE_UNIFORMS, &iNumUniforms);
+  glGetProgramiv(program, GL_ACTIVE_UNIFORM_MAX_LENGTH, &iMaxNameLength);
+  logger().info("number of uniforms: " + std::to_string(iNumUniforms) + " max length of uniform name: " + std::to_string(iMaxNameLength));
+  char name[100];
+  GLsizei iLength;
+  GLint   iSize;
+  GLenum  iType;
+  for(int i = 0; i < iNumUniforms; i++){
+    glGetActiveUniform(
+        program, static_cast<GLuint>(i), iMaxNameLength, &iLength, &iSize, &iType, name);
+    const GLint iLocation          = glGetUniformLocation(program, name);
+    logger().info("uniform with name \"" + std::string(name) + "\" @ " + std::to_string(iLocation));
+  }
+
+  logger().info("sunDir @ " + std::to_string(uniforms.sunDir) + " noiseTexture @ " + std::to_string(uniforms.noiseTexture));
 
   // We bind the eclipse shadow map to texture unit 3. The color and depth buffer are bound to 0 and
   // 1, 2 is used for the cloud map, 3 is used for the limb luminance texture.
@@ -440,6 +501,12 @@ bool Atmosphere::Do() {
     glActiveTexture(GL_TEXTURE3);
     glBindTexture(GL_TEXTURE_3D, mLimbLuminanceTexture);
     mAtmoShader.SetUniform(mAtmoUniforms.limbLuminanceTexture, 3);
+  }
+
+  if (mSettings.mEnableClouds.get() && mNoiseTexture) {
+    glActiveTexture(GL_TEXTURE4);
+    glBindTexture(GL_TEXTURE_3D, mNoiseTexture);
+    mAtmoShader.SetUniform(mAtmoUniforms.noiseTexture, 4);
   }
 
   glUniformMatrix4fv(
