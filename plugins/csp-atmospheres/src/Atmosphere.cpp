@@ -162,7 +162,7 @@ void Atmosphere::configure(Plugin::Settings::Atmosphere const& settings) {
             float v = (float)j / (32- 1);
             for(int k = 0; k < 32; k++){
               float w = (float)k / (32 - 1);
-              cpu_noise[i * 32 * 32 + j * 32 + k] = Tileable3dNoise::PerlinNoise(glm::vec3(u, v, w), 5, 1);
+              cpu_noise[i * 32 * 32 + j * 32 + k] = Tileable3dNoise::PerlinNoise(glm::vec3(u, v, w), 5, 5);
             }
           }
         }

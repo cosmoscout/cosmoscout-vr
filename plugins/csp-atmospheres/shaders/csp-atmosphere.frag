@@ -409,8 +409,9 @@ float GetCloudCoverageHeight(vec3 position, float start_height, float end_height
   float thickness = end_height - start_height;
   // "progress" in cloud from bottom to top in range 0 to 1
   float height_in_cloud = remap(length(position), topAltitude - thickness, topAltitude, 0, 1);
-  float height_component = remap(height_in_cloud, 0, .4, 0, 1) * remap(height_in_cloud, 0.6, 1, 1, 0);
-  return height_component;
+  float height_component = remap(height_in_cloud, 0, .3, 0, 1) * remap(height_in_cloud, 0.7, 1, 1, 0);
+  //return 1 - height_in_cloud;
+  return pow(height_component, .2);
 }
 
 float ALTO_CUMULUS_START_HEIGHT = 500;
@@ -418,25 +419,22 @@ float ALTO_CUMULUS_END_HEIGHT = 5000;
 
 // Returns the value of the cloud texture at the position described by the three parameters.
 float getAltoCumulusDensity(vec3 position){
-  float COVERAGE_MULTIPLIER = 2;
+  float COVERAGE_MULTIPLIER = 1.5;
   // only use cloud coverage for now
   float noise = baseCloudNoise(position);
-  float cloud_coverage_h = getCloudCoverageHorizontal(position);
-  cloud_coverage_h = texture(uNoiseTexture, normalize(position) * 50).r;
+  //float cloud_coverage_h = getCloudCoverageHorizontal(position);
+  float cloud_coverage_h = texture(uNoiseTexture, normalize(position) * 50).r;
   cloud_coverage_h = remap(cloud_coverage_h, .5, 1, 0, 1);
   //cloud_coverage_h = remap(cloud_coverage_h, 0, 0.1, 0, 1) * remap(cloud_coverage_h, 0.2, 0.3, 1, 0);
   //return cloud_coverage_h;
   float cloud_coverage_v = GetCloudCoverageHeight(position, ALTO_CUMULUS_START_HEIGHT, ALTO_CUMULUS_END_HEIGHT);
-  cloud_coverage_v = clamp(cloud_coverage_v, 0, 1);
   
   //cloud_coverage_h = remap(cloud_coverage_h, 0, .5, 0, 1);
-  float cloud_base = remap(cloud_coverage_h, 0, 1, 0, cloud_coverage_v);
-  cloud_base = cloud_coverage_h;
-  float base_with_noise = remap(noise, 1-cloud_base * COVERAGE_MULTIPLIER * cloud_coverage_v, 1, 0, 1);
+  float cloud_base = remap(cloud_coverage_h, 1 - cloud_coverage_v, 1, 0, 1);
+  float base_with_noise = remap(noise, 1-cloud_base * COVERAGE_MULTIPLIER, 1, 0, 1);
   float cloud_density = base_with_noise;
-  float high_freq_noise = simplex3DFractal(position / 1000);
-  cloud_density = remap(cloud_density, 0, .3, 0, 1);
-  cloud_density = remap(cloud_density, high_freq_noise, 1, 0, 1);
+  float high_freq_noise = texture(uNoiseTexture, position / 5000).r;
+  cloud_density = remap(cloud_density * 2, high_freq_noise, 1, 0, 1);
   if(isnan(cloud_density)){
     cloud_density = 0;
   }
@@ -562,7 +560,7 @@ vec4 raymarchInterval(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, vec2 interval, i
     float t_now = remap(progress, 0, 1, interval.x, interval.y);
     // random offset of samples
     if(adaptive_sampling){
-      t_now += (simplex3D(vec3(t_now, progress, interval_length) * 10 + vsIn.rayDir * 1000) - .5) * (t_now - t_last);
+      //t_now += (simplex3D(vec3(t_now, progress, interval_length) * 10 + vsIn.rayDir * 1000) - .5) * (t_now - t_last);
     }
     float dist = t_now - t_last;
     vec3 position = rayOrigin + rayDir * t_now;
@@ -579,7 +577,7 @@ vec4 raymarchInterval(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, vec2 interval, i
       for(int j = 1; j <= num_substeps; j++){
         float substep_progress = float(j) / float(num_substeps);
         float t_substep = remap(substep_progress, 0, 1, t_last, t_now);
-        t_substep += (simplex3D(vec3(t_substep, progress, interval_length) * 10 + vsIn.rayDir * 1000) - .5) * (t_now - t_last);
+        //t_substep += (simplex3D(vec3(t_substep, progress, interval_length) * 10 + vsIn.rayDir * 1000) - .5) * (t_now - t_last);
 
         float sdist = t_substep - t_last_substep;
         // clamp to keep it reasonable for very far away clouds
@@ -711,7 +709,7 @@ vec4 getCloudColor(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, float surfaceDistan
     }
   }
 
-  vec4 scatter_data1 = raymarchInterval(rayOrigin, rayDir, sunDir, interval1, 40);
+  vec4 scatter_data1 = raymarchInterval(rayOrigin, rayDir, sunDir, interval1, 100);
   vec4 scatter_data2 = raymarchInterval(rayOrigin, rayDir, sunDir, interval2, 40);
   
   vec3 inScatter = scatter_data1.xyz + scatter_data1.a * scatter_data2.xyz;
