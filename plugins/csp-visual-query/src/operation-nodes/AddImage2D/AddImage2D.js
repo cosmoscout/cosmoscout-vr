@@ -5,14 +5,14 @@
 // SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
 // SPDX-License-Identifier: MIT
 
-// The DifferenceImage2DNode has two input sockets accepting Image2D connections and a single
-// Image2D output socket. The DifferenceImage2DComponent serves as a kind of factory. Whenever a new
+// The AddImage2DNode has two input sockets accepting Image2D connections and a single
+// Image2D output socket. The AddImage2DComponent serves as a kind of factory. Whenever a new
 // node is created, the builder() method is called. It is required that the class is called
 // <NAME>Component.
-class DifferenceImage2DComponent extends Rete.Component {
+class AddImage2DComponent extends Rete.Component {
   constructor() {
-    // This name must match the DifferenceImage2DNode::sName defined in DifferenceImage2DNode.cpp.
-    super("DifferenceImage2D");
+    // This name must match the AddImage2DNode::sName defined in AddImage2DNode.cpp.
+    super("AddImage2D");
 
     // This specifies the submenu from which this node can be created in the node editor.
     this.category = "Operations";
@@ -23,7 +23,7 @@ class DifferenceImage2DComponent extends Rete.Component {
 
     // This node has two inputs from which the difference is calculated.
     // The first parameter is the name of the socket and must be unique amngst all sockets.
-    // It is also used in the DifferenceImage2DComponent::process() to read the inputs of this node.
+    // It is also used in the AddImage2DComponent::process() to read the inputs of this node.
     // The second parameter is the display name of the socket on the node.
     // The last parameter references a socket type which has been registered with the node factory
     // before.
@@ -35,14 +35,14 @@ class DifferenceImage2DComponent extends Rete.Component {
 
     // This node has a single output.
     // The first parameter is the name of the socket and must be unique amongst all sockets.
-    // It is also used in the DifferenceImage2DComponent::process() to write the output of this
+    // It is also used in the AddImage2DComponent::process() to write the output of this
     // node. The second parameter is shown as name on the node. The last parameter references a
     // socket type which has been registered with the node factory before.
     let output = new Rete.Output('value', "Output", CosmoScout.socketTypes['Image2D']);
     node.addOutput(output);
 
     // This node has a widget to display error messages
-    const statusDisplay = new DiffStatusDisplay('Errors');
+    const statusDisplay = new AddStatusDisplay('Errors');
     node.addControl(statusDisplay);
 
     // This node has a listener for Messages to handle validation and error state
@@ -52,7 +52,7 @@ class DifferenceImage2DComponent extends Rete.Component {
   }
 }
 
-class DiffStatusDisplay extends Rete.Control {
+class AddStatusDisplay extends Rete.Control {
   constructor(key) {
     super(key);
 

@@ -104,7 +104,7 @@ const std::string Renderer::SURFACE_FRAG = R"(
         vec2 newCoords = vec2(float(norm_u), float(1.0 - norm_v));
 
         float value = texture(uTexture, newCoords).r;
-        value = clamp((value - uLUTRange.x) / (uLUTRange.y - uLUTRange.x), 0.0, 1.0);
+        // value = clamp((value - uLUTRange.x) / (uLUTRange.y - uLUTRange.x), 0.0, 1.0);
         FragColor = texture(uLUT, value);
       } else {
         discard;

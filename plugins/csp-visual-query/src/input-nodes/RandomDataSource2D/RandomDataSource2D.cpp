@@ -69,7 +69,7 @@ void RandomDataSource2D::process() noexcept {
   mData = std::make_shared<Image2D>(points, 4,
       glm::uvec2{static_cast<uint32_t>((mBounds.mMaxLon - mBounds.mMinLon)),
           static_cast<uint32_t>((mBounds.mMaxLat - mBounds.mMinLat))},
-      mBounds, std::nullopt);
+      mBounds, glm::vec2(0, 1), std::nullopt);
 
   writeOutput("Image2D", mData);
 }

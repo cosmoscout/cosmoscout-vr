@@ -62,12 +62,13 @@ struct Image2D {
   Image2D() = default;
 
   Image2D(PointsType points, size_t numScalars, glm::uvec2 dimension, csl::ogc::Bounds2D bounds,
-      std::optional<csl::ogc::TimeInterval> timeStamp = std::nullopt)
+      glm::vec2 minMax, std::optional<csl::ogc::TimeInterval> timeStamp = std::nullopt)
       : mPoints(std::move(points))
       , mNumScalars(numScalars)
       , mDimension(dimension)
       , mBounds(bounds)
-      , mTimeStamp(std::move(timeStamp)) {
+      , mTimeStamp(std::move(timeStamp))
+      , mMinMax(minMax) {
   }
 
   PointsType mPoints;
@@ -77,6 +78,7 @@ struct Image2D {
   csl::ogc::Bounds2D mBounds;
 
   std::optional<csl::ogc::TimeInterval> mTimeStamp;
+  glm::dvec2                            mMinMax;
 
   template <typename T>
   T at(uint32_t x, uint32_t y) {

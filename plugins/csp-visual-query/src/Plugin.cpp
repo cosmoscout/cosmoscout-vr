@@ -23,6 +23,7 @@
 #include "input-nodes/RandomDataSource3D/RandomDataSource3D.hpp"
 #include "input-nodes/TransferFunction/TransferFunction.hpp"
 #include "input-nodes/WCSCoverage/WCSCoverage.hpp"
+#include "operation-nodes/AddImage2D/AddImage2D.hpp"
 #include "operation-nodes/DifferenceImage2D/DifferenceImage2D.hpp"
 #include "output-nodes/CoverageInfo/CoverageInfo.hpp"
 #include "output-nodes/OverlayRenderer/OverlayRender.hpp"
@@ -190,6 +191,7 @@ void Plugin::setupNodeEditor(uint16_t port) {
 
   // Operations
   factory.registerNodeType<DifferenceImage2D>();
+  factory.registerNodeType<AddImage2D>();
 
   // Outputs
   factory.registerNodeType<CoverageInfo>();

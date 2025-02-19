@@ -182,12 +182,13 @@ void WCSImage2D::process() {
       F32ValueVector pointData{};
 
       for (float& scalar : textureData) {
-        scalar *= 1000000000;
+        // scalar *= 1'000'000'000;
         pointData.emplace_back(std::vector{scalar});
       }
 
       auto result = std::minmax_element(textureData.begin(), textureData.end());
-      logger().info("Min: {}, Max: {}", *(result.first), *(result.second));
+      logger().info("WCSImage2D: Min: {}, Max: {}", *(result.first), *(result.second));
+      image.mMinMax = glm::dvec2(*(result.first), *(result.second));
 
       image.mPoints = pointData;
       break;
