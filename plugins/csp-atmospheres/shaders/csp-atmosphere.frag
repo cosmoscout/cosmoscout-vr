@@ -399,9 +399,9 @@ float baseCloudNoise(vec3 position){
 float getCloudCoverageHorizontal(vec3 position){
   vec2 lngLat = getLngLat(position);
   vec2 texCoords = vec2(lngLat.x / (2 * PI) + 0.5, 1.0 - lngLat.y / PI + 0.5);
-  float texture_contrib = texture(uCloudTexture, texCoords).r;
-
-  return texture_contrib;
+  float density = texture(uCloudTexture, texCoords).r;
+  float noise = texture(uNoiseTexture, position / 100000.).r;
+  return remap(noise, 1 - density * 5, 1, 0, 1);
 }
 
 float GetCloudCoverageHeight(vec3 position, float start_height, float end_height){
@@ -419,18 +419,17 @@ float ALTO_CUMULUS_END_HEIGHT = 5000;
 
 // Returns the value of the cloud texture at the position described by the three parameters.
 float getAltoCumulusDensity(vec3 position){
-  float COVERAGE_MULTIPLIER = 1.5;
+  float COVERAGE_MULTIPLIER = 1;
   // only use cloud coverage for now
   float noise = baseCloudNoise(position);
   //float cloud_coverage_h = getCloudCoverageHorizontal(position);
-  float cloud_coverage_h = texture(uNoiseTexture, normalize(position) * 50).r;
-  cloud_coverage_h = remap(cloud_coverage_h, .5, 1, 0, 1);
-  //cloud_coverage_h = remap(cloud_coverage_h, 0, 0.1, 0, 1) * remap(cloud_coverage_h, 0.2, 0.3, 1, 0);
-  //return cloud_coverage_h;
+  float cloud_coverage_h = getCloudCoverageHorizontal(position);
+  if(cloud_coverage_h == 0){
+    return 0;
+  }
   float cloud_coverage_v = GetCloudCoverageHeight(position, ALTO_CUMULUS_START_HEIGHT, ALTO_CUMULUS_END_HEIGHT);
+  float cloud_base = cloud_coverage_h * cloud_coverage_v;
   
-  //cloud_coverage_h = remap(cloud_coverage_h, 0, .5, 0, 1);
-  float cloud_base = remap(cloud_coverage_h, 1 - cloud_coverage_v, 1, 0, 1);
   float base_with_noise = remap(noise, 1-cloud_base * COVERAGE_MULTIPLIER, 1, 0, 1);
   float cloud_density = base_with_noise;
   float high_freq_noise = texture(uNoiseTexture, position / 5000).r;
@@ -709,7 +708,7 @@ vec4 getCloudColor(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, float surfaceDistan
     }
   }
 
-  vec4 scatter_data1 = raymarchInterval(rayOrigin, rayDir, sunDir, interval1, 100);
+  vec4 scatter_data1 = raymarchInterval(rayOrigin, rayDir, sunDir, interval1, 200);
   vec4 scatter_data2 = raymarchInterval(rayOrigin, rayDir, sunDir, interval2, 40);
   
   vec3 inScatter = scatter_data1.xyz + scatter_data1.a * scatter_data2.xyz;
