@@ -425,7 +425,7 @@ float getAltoCumulusDensity(vec3 position, bool high_res = true){
   }
   float cloud_density = base_with_noise;
   float high_freq_noise = texture(uNoiseTexture, position / 900).r * texture(uNoiseTexture, position / 2000).r * texture(uNoiseTexture, position / 5000).r;
-  cloud_density = remap(high_freq_noise, 1 - cloud_density * 6, 1, 0, 1);
+  cloud_density = remap(high_freq_noise, 1 - cloud_density * 4, 1, 0, 1);
   if(isnan(cloud_density)){
     cloud_density = 0;
   }
@@ -434,7 +434,7 @@ float getAltoCumulusDensity(vec3 position, bool high_res = true){
 
 float CIRRUS_START_HEIGHT = 6000;
 float CIRRUS_END_HEIGHT = 8500;
-float INFINITY = 1. / 0;
+float INFINITY = 1 / 0.;
 
 float getCirrusDensity(vec3 position){
   float TOTAL_DENSITY_MULTIPLIER = .4;
@@ -569,7 +569,7 @@ vec4 raymarchInterval(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, vec2 interval, i
   //return(mix(vec4(1, 0, 0, 0), vec4(0, 1, 0, 0),samples/100.) * 1000);
   float phase = henyeyGreenstein(sunDir, -rayDir);
   float last_density;
-  int num_substeps = 3;
+  int num_substeps = 1;
 
   float ADAPTIVE_SAMPLING_THRESHOLD = .01;
 
@@ -589,7 +589,7 @@ vec4 raymarchInterval(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, vec2 interval, i
     vec3 local_incoming = GetSkyLuminance(position, sunDir, sunDir, transmittance);
     local_incoming = vec3(144809.5,129443.421875,127098.6484375) * transmittance;
       
-    if(local_density > ADAPTIVE_SAMPLING_THRESHOLD && adaptive_sampling){
+    if(local_density > 0 && adaptive_sampling){
       //return vec4(10000, 0, 0, 0);
       // substep through this segment
       float t_last_substep = t_last;
@@ -653,7 +653,7 @@ vec4 getCloudColor(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, float surfaceDistan
   float fadeWidth = thickness * 2.0;
 
   // The altitude of the upper-most cloud layer.
-  float topAltitude = PLANET_RADIUS + 8500;
+  float topAltitude = PLANET_RADIUS + ALTO_CUMULUS_END_HEIGHT;
   float lowAltitude = topAltitude - thickness;
 
   vec2 intersections = intersectSphere(rayOrigin, rayDir, topAltitude);
@@ -708,11 +708,12 @@ vec4 getCloudColor(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, float surfaceDistan
         //return vec4(100000, 0, 0, 1);
       }
     }else{
+      interval1.y = min(surfaceDistance, lowXcorrected);
       //return vec4(0, 0, 100000, 1);
     }
   }else{
     
-    if(lowIntersections.x < 0){
+    if(lowIntersections.x < 0 || lowIntersections.y < 0){
       // origin below or inside clouds, looking up. No second cloud interval in the distance
       interval1.x = max(0, lowIntersections.y);
       interval1.y = topIntersections.y;
@@ -735,7 +736,7 @@ vec4 getCloudColor(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, float surfaceDistan
   }
 
   vec4 scatter_data1 = raymarchInterval(rayOrigin, rayDir, sunDir, interval1, 200, true);
-  vec4 scatter_data2 = raymarchInterval(rayOrigin, rayDir, sunDir, interval2, 40);
+  vec4 scatter_data2 = raymarchInterval(rayOrigin, rayDir, sunDir, interval2, 200, true);
   
   vec3 inScatter = scatter_data1.xyz + scatter_data1.a * scatter_data2.xyz;
   return vec4(inScatter, scatter_data1.a * scatter_data2.a);
