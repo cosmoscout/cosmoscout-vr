@@ -124,7 +124,8 @@ Image2D normalize(Image2D const& image, glm::dvec2 minMax) {
     auto& points = std::get<F32ValueVector>(copy.mPoints);
     for (auto && point : points) {
       for (auto && scalar : point) {
-        scalar = static_cast<float>((static_cast<double>(scalar) - minMax.x) / (minMax.y - minMax.x));
+        double scalarD = (static_cast<double>(scalar) - minMax.x) / (minMax.y - minMax.x);
+        scalar = static_cast<float>(scalarD);
       }
     }
 

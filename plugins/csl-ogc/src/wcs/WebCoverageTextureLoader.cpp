@@ -277,8 +277,8 @@ std::string WebCoverageTextureLoader::getRequestUrl(
     height = std::max(1, height); // Ensure height is at least 1
 
     // &SCALESIZE=i(...),j(...)
-    url << "&SCALESIZE=" << coverage.getSettings().mAxisLabels[0] << "%28" << width << "%29";
-    url << "," << coverage.getSettings().mAxisLabels[1] << "%28" << height << "%29";
+    // url << "&SCALESIZE=" << coverage.getSettings().mAxisLabels[0] << "%28" << width << "%29";
+    // url << "," << coverage.getSettings().mAxisLabels[1] << "%28" << height << "%29";
   }
 
   // Add time string to map server request if time is specified
