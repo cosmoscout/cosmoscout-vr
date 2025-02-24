@@ -572,6 +572,9 @@ vec4 raymarchInterval(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, vec2 interval, o
 
   float ADAPTIVE_SAMPLING_THRESHOLD = .01;
 
+  vec3 atmo_transmittance;
+  vec3 atmo_inscattering;
+
   for(int i = 1; i <= samples; ++i){
     // could be adapted for importance sampling
     float progress = float(i) / float(samples);
@@ -586,8 +589,10 @@ vec4 raymarchInterval(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, vec2 interval, o
 
     vec3 transmittance;
     vec3 local_incoming = GetSkyLuminance(position, sunDir, sunDir, transmittance);
-    vec3 atmo_transmittance;
-    vec3 atmo_inscattering = GetSkyLuminanceToPoint(rayOrigin + t_last * rayDir, position, sunDir, atmo_transmittance);
+    if((i - 1) % 10 == 0){
+      atmo_transmittance;
+      atmo_inscattering = GetSkyLuminanceToPoint(rayOrigin + t_last * rayDir, position, sunDir, atmo_transmittance);
+    }
     local_incoming = vec3(144809.5,129443.421875,127098.6484375) * transmittance;
       
     if(local_density > 0 && adaptive_sampling){
@@ -721,17 +726,17 @@ vec4 getCloudColor(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, float surfaceDistan
     if(lowIntersections.x < 0 || lowIntersections.y < 0){
       // origin below or inside clouds, looking up. No second cloud interval in the distance
       interval1.x = max(0, lowIntersections.y);
-      interval1.y = topIntersections.y;
-      //return vec4(10000, 0, 0, 1);
+      interval1.y = min(topIntersections.y, surfaceDistance);
+      //return vec4(interval1.y / 50, 10000, 0, 1);
     }else{
       // origin inside clouds looking down with or without second interval
       interval1.x = 0;
       interval1.y = lowXcorrected;
+      //return vec4(0, 10000, 0, 1);
       if(!hitsSurface){
         // second intersection interval relevant
         interval2.x = lowIntersections.y;
         interval2.y = topIntersections.y;
-        //return vec4(0, 10000, 0, 1);
       }else{
         // ground is intersected, no second cloud interval
         interval1.y = min(surfaceDistance, lowXcorrected);
