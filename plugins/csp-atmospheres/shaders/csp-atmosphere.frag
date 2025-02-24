@@ -537,7 +537,7 @@ float raymarchTransmittance(vec3 rayOrigin, vec3 rayDir, vec2 interval, int samp
 }
 
 // helper function for ray marching through an interval
-vec4 raymarchInterval(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, vec2 interval, int samples=10, bool secondary_rays = false){
+vec4 raymarchInterval(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, vec2 interval, out vec3 path_transmittance, int samples=10, bool secondary_rays = false){
   // do not march through purely negative intervals
 
   if(interval.y < 0){
@@ -551,9 +551,8 @@ vec4 raymarchInterval(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, vec2 interval, i
 
   float t_last = interval.x;
   vec3 inscattering_acc = vec3(0.);
-  float path_transmittance = 1;
-
-  float maximum_dist_between_samples = 1000;
+  path_transmittance = vec3(1);
+  float maximum_dist_between_samples = 250;
   float interval_length = interval.y - interval.x;
   
   bool adaptive_sampling = samples > 10;
@@ -561,7 +560,7 @@ vec4 raymarchInterval(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, vec2 interval, i
   float regular_dist_between_samples = interval_length / samples;
   if(adaptive_sampling){
     if(regular_dist_between_samples > maximum_dist_between_samples){
-      samples = min(int(interval_length / maximum_dist_between_samples), samples * 2);
+      samples = min(max(int(interval_length / maximum_dist_between_samples), samples), samples * 5);//min(int(interval_length / maximum_dist_between_samples), samples * 2);
     }
   }
 
@@ -587,6 +586,8 @@ vec4 raymarchInterval(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, vec2 interval, i
 
     vec3 transmittance;
     vec3 local_incoming = GetSkyLuminance(position, sunDir, sunDir, transmittance);
+    vec3 atmo_transmittance;
+    vec3 atmo_inscattering = GetSkyLuminanceToPoint(rayOrigin + t_last * rayDir, position, sunDir, atmo_transmittance);
     local_incoming = vec3(144809.5,129443.421875,127098.6484375) * transmittance;
       
     if(local_density > 0 && adaptive_sampling){
@@ -615,7 +616,7 @@ vec4 raymarchInterval(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, vec2 interval, i
         }
 
         inscattering_acc += scatter_coefficient * sdist * incoming * path_transmittance * CLOUD_COLOR * phase * 4 * PI;
-        path_transmittance *= extinction_along_segment;
+        path_transmittance *= vec3(extinction_along_segment);
         t_last_substep = t_substep;
       }
       
@@ -624,29 +625,33 @@ vec4 raymarchInterval(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, vec2 interval, i
       float clamped_dist = clamp(dist, 0, maximum_dist_between_samples);
       float extinction_along_segment = exp(-scatter_coefficient * clamped_dist);
       inscattering_acc += scatter_coefficient * clamped_dist * local_incoming * path_transmittance * CLOUD_COLOR * phase * 4 * PI;
-      path_transmittance *= extinction_along_segment;
+      path_transmittance *= vec3(extinction_along_segment);
     }
+    path_transmittance *= atmo_transmittance;
+    inscattering_acc += path_transmittance * atmo_inscattering;
     t_last = t_now;
     last_density = local_density;
-    if (path_transmittance < .001){
-      if(length(inscattering_acc) < 100 && path_transmittance < 1 - 1e-5){
+    if (path_transmittance.r < .001){
+    if (path_transmittance.r < .001){
+      if(length(inscattering_acc) < 100 && path_transmittance.x < 1){
         //surroundingColor = vec3(0, 10000, 0);
-        path_transmittance = mix(1, path_transmittance, length(inscattering_acc) / 100);
+        path_transmittance = mix(vec3(1), path_transmittance, length(inscattering_acc) / 100);
       }
-      return vec4(inscattering_acc, path_transmittance);
+      }
+      return vec4(inscattering_acc, path_transmittance.r);
     }
   }
   // cheat a little near horizon: approximate scattering from surrounding atmosphere
-  if(length(inscattering_acc) < 100 && path_transmittance < 1 - 1e-5){
+  if(length(inscattering_acc) < 100 && path_transmittance.r < 1 - 1e-5){
     //surroundingColor = vec3(0, 10000, 0);
-    path_transmittance = mix(1, path_transmittance, length(inscattering_acc) / 100);
+    path_transmittance = mix(vec3(1), path_transmittance, length(inscattering_acc) / 100);
   }
   
-  return vec4(inscattering_acc, path_transmittance);// + mix(vec4(1, 0, 0, 0), vec4(0, 1, 0, 0), float(samples) / 100) * 100000;
+  return vec4(inscattering_acc, path_transmittance.r);// + mix(vec4(1, 0, 0, 0), vec4(0, 1, 0, 0), float(samples) / 100) * 100000;
 }
 // computes the cloud inscattered luminance in xyz and transmittance in alpha
 // assumptions of the ray marching: Cloud albedo is 100 percent, extinction = outscattering
-vec4 getCloudColor(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, float surfaceDistance) {
+vec4 getCloudColor(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, float surfaceDistance, out vec3 transmittance) {
   // The distance between the top and bottom cloud layers.
   float thickness = 8000;
   // The distance to the planet surface where the fade-out starts.
@@ -670,7 +675,7 @@ vec4 getCloudColor(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, float surfaceDistan
   // Compute intersection point of view ray with clouds. Use this to compute the illuminance at this
   // point as well as the transmittance of the atmosphere towards the observer.
   vec3 p = rayOrigin + rayDir * (intersections.x < 0 ? intersections.y : intersections.x);
-  vec3 skyIlluminance, transmittance;
+  vec3 skyIlluminance;
 
   vec3 sunIlluminance = GetSunAndSkyIlluminance(p, uSunDir, skyIlluminance);
 
@@ -735,11 +740,43 @@ vec4 getCloudColor(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, float surfaceDistan
     }
   }
 
-  vec4 scatter_data1 = raymarchInterval(rayOrigin, rayDir, sunDir, interval1, 200, true);
-  vec4 scatter_data2 = raymarchInterval(rayOrigin, rayDir, sunDir, interval2, 200, true);
+  vec3 transmittance_int1;
+  vec3 transmittance_int2;
+  vec4 scatter_data1 = raymarchInterval(rayOrigin, rayDir, sunDir, interval1, transmittance_int1, 200, true);
+  vec4 scatter_data2 = raymarchInterval(rayOrigin, rayDir, sunDir, interval2, transmittance_int2, 200, true);
+
+  //return scatter_data1;
+  if(scatter_data1.x < 1e-6 && scatter_data2.x < 1e-6){
+    // no significant inscattering from clouds. just return standard inscattering
+    if(hitsSurface){
+      return vec4(GetSkyLuminanceToPoint(rayOrigin, rayOrigin + surfaceDistance * rayDir, sunDir, transmittance), transmittance);
+    }else{
+      return vec4(GetSkyLuminance(rayOrigin, rayDir, sunDir, transmittance), transmittance.r);
+    }
+  }
+
+  vec3 transmittance_before_int1;
+  vec3 inscattering_before_int1 = GetSkyLuminanceToPoint(rayOrigin, rayOrigin + rayDir * interval1.x, sunDir, transmittance_before_int1);
+
   
-  vec3 inScatter = scatter_data1.xyz + scatter_data1.a * scatter_data2.xyz;
-  return vec4(inScatter, scatter_data1.a * scatter_data2.a);
+  if(scatter_data2.x < 1e-6){
+    // no significant inscattering from second interval. return first interval inscattering with transmittance behind
+    vec3 transmittance_behind_int1;
+    vec3 inscattering_behind_int1;
+    if(hitsSurface){
+      inscattering_behind_int1 = GetSkyLuminanceToPoint(rayOrigin + rayDir * interval1.y, rayOrigin + rayDir * surfaceDistance, sunDir, transmittance_behind_int1);
+    }else{
+      inscattering_behind_int1 = GetSkyLuminance(rayOrigin + rayDir * interval1.y, rayDir, sunDir, transmittance_behind_int1);
+    }
+    vec3 inScatter = inscattering_before_int1 + transmittance_before_int1 * (scatter_data1.xyz + transmittance_int1 * inscattering_behind_int1);
+    transmittance = transmittance_before_int1 * transmittance_int1 * transmittance_behind_int1;
+    return vec4(inScatter, transmittance.x);
+  }
+
+
+  
+  
+  return vec4(100000, 0, 0, 1);
 
 }
 
@@ -1281,9 +1318,9 @@ void main() {
   }
 #endif
 
+  vec3 oColorOld = oColor;
   oColor = transmittance * oColor + inScatter;
   // save for compositing in new cloud model
-  vec3 oColorOld = oColor;
 
 #if ENABLE_WATER
   if (underWater) {
@@ -1307,14 +1344,16 @@ void main() {
 #else
   // new cloud model. Utilizes proper physically based rendering
   if (!underWater) {
-    vec4 cloudColor = getCloudColor(vsIn.rayOrigin, rayDir, uSunDir, surfaceDistance);
+    vec3 transmittance;
+    vec4 cloudColor = getCloudColor(vsIn.rayOrigin, rayDir, uSunDir, surfaceDistance, transmittance);
     cloudColor.rgb *= eclipseShadow;
+    
 
 #if !ENABLE_HDR
     cloudColor.rgb = tonemap(cloudColor.rgb / uSunInfo.y);
 #endif
 
-    oColor = oColorOld * cloudColor.a + cloudColor.rgb;
+    oColor = oColorOld * transmittance + cloudColor.rgb;
   }
 #endif
 #endif
