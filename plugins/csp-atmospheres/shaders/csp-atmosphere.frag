@@ -575,6 +575,19 @@ vec4 raymarchInterval(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, vec2 interval, o
   vec3 atmo_transmittance;
   vec3 atmo_inscattering;
 
+  // precalculate atmospheric inscattering at 10 segments of the length of the actual cloud integration step size
+  // during cloud integration, lerp these values
+  int num_atmo_samples = 10;
+  vec3 atmo_inscatterings[10];
+  vec3 atmo_transmittances[10];
+  float cloud_integration_step_size = interval_length / samples;
+  for(int i = 0; i < num_atmo_samples; i++){
+    float start_dist = float(i) / float(num_atmo_samples - 1) * (interval_length - cloud_integration_step_size);
+    vec3 start_pos = rayOrigin + rayDir * start_dist;
+    vec3 end_pos = start_pos + rayDir * cloud_integration_step_size;
+    atmo_inscatterings[i] = GetSkyLuminanceToPoint(start_pos, end_pos, sunDir, atmo_transmittances[i]);
+  }
+
   for(int i = 1; i <= samples; ++i){
     // could be adapted for importance sampling
     float progress = float(i) / float(samples);
@@ -589,10 +602,17 @@ vec4 raymarchInterval(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, vec2 interval, o
 
     vec3 transmittance;
     vec3 local_incoming = GetSkyLuminance(position, sunDir, sunDir, transmittance);
+
+    int atmo_cell = int(progress * (num_atmo_samples - 1));
+    atmo_cell = clamp(atmo_cell, 0, num_atmo_samples - 2);
+    float pos_in_cell = (progress * (num_atmo_samples - 1)) - atmo_cell;
+
     if((i - 1) % 10 == 0){
-      atmo_transmittance;
       atmo_inscattering = GetSkyLuminanceToPoint(rayOrigin + t_last * rayDir, position, sunDir, atmo_transmittance);
     }
+    //atmo_inscattering = mix(atmo_inscatterings[atmo_cell], atmo_inscatterings[atmo_cell + 1], pos_in_cell);
+    //atmo_transmittance = mix(atmo_transmittances[atmo_cell], atmo_transmittances[atmo_cell + 1], pos_in_cell);
+
     local_incoming = vec3(144809.5,129443.421875,127098.6484375) * transmittance;
       
     if(local_density > 0 && adaptive_sampling){
@@ -667,9 +687,10 @@ vec4 getCloudColor(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, float surfaceDistan
   float lowAltitude = topAltitude - thickness;
 
   vec2 intersections = intersectSphere(rayOrigin, rayDir, topAltitude);
+  vec2 atmo_intersections = intersectAtmosphere(rayOrigin, rayDir);
 
   float originHeight = length(rayOrigin);
-  bool hitsSurface = surfaceDistance < intersections.y || intersectSphere(rayOrigin, rayDir, PLANET_RADIUS).y > 0;
+  bool hitsSurface = surfaceDistance < atmo_intersections.y || intersectSphere(rayOrigin, rayDir, PLANET_RADIUS).y > 0;
 
     // If we are below the clouds and the ray intersects the ground, we can also return early.
   if (originHeight < lowAltitude && hitsSurface) {
@@ -705,7 +726,7 @@ vec4 getCloudColor(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, float surfaceDistan
 
   if(above){
     interval1.x = topIntersections.x;
-    interval1.y = lowXcorrected;
+    interval1.y = lowIntersections.x;
     if(!hitsSurface){
       if(hitBottom){
         // ray exits the cloud layer at the bottom and reintersects it, creating a second interval
@@ -718,14 +739,21 @@ vec4 getCloudColor(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, float surfaceDistan
         //return vec4(100000, 0, 0, 1);
       }
     }else{
-      interval1.y = min(surfaceDistance, lowXcorrected);
+      if(hitBottom){
+        //return vec4(10000, 0, 0, 1);
+        interval1.y = min(surfaceDistance, lowXcorrected);
+        //return vec4(10000, 0, 0, 1);
+      }else{
+        //float topYcorrected = topIntersections.y > topIntersections.x ? topIntersections.y : INFINITY;
+        interval1.y = surfaceDistance;
+        //return vec4(0, 10000, 0, 1);
+      }
       //return vec4(0, 0, 100000, 1);
     }
   }else{
-    
     if(lowIntersections.x < 0 || lowIntersections.y < 0){
       // origin below or inside clouds, looking up. No second cloud interval in the distance
-      interval1.x = max(0, lowIntersections.y);
+      interval1.x = max(0, min(lowIntersections.y, surfaceDistance));
       interval1.y = min(topIntersections.y, surfaceDistance);
       //return vec4(interval1.y / 50, 10000, 0, 1);
     }else{
@@ -745,6 +773,16 @@ vec4 getCloudColor(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, float surfaceDistan
     }
   }
 
+  if(interval1.y < interval1.x){
+    interval1.y = -1;
+    interval1.x = 0;
+  }
+
+  if(interval2.y < interval2.x){
+    interval2.y = -1;
+    interval2.x = 0;
+  }
+
   vec3 transmittance_int1;
   vec3 transmittance_int2;
   vec4 scatter_data1 = raymarchInterval(rayOrigin, rayDir, sunDir, interval1, transmittance_int1, 200, true);
@@ -754,28 +792,35 @@ vec4 getCloudColor(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, float surfaceDistan
   if(scatter_data1.x < 1e-6 && scatter_data2.x < 1e-6){
     // no significant inscattering from clouds. just return standard inscattering
     if(hitsSurface){
+      //return vec4(10000, 0, 0, 1);
       return vec4(GetSkyLuminanceToPoint(rayOrigin, rayOrigin + surfaceDistance * rayDir, sunDir, transmittance), transmittance);
     }else{
       return vec4(GetSkyLuminance(rayOrigin, rayDir, sunDir, transmittance), transmittance.r);
     }
   }
 
+  //return vec4(interval1.x, 1, 0, 1);
   vec3 transmittance_before_int1;
   vec3 inscattering_before_int1 = GetSkyLuminanceToPoint(rayOrigin, rayOrigin + rayDir * interval1.x, sunDir, transmittance_before_int1);
 
   
   if(scatter_data2.x < 1e-6){
     // no significant inscattering from second interval. return first interval inscattering with transmittance behind
-    vec3 transmittance_behind_int1;
-    vec3 inscattering_behind_int1;
+    vec3 transmittance_behind_int1 = vec3(1);
+    vec3 inscattering_behind_int1 = vec3(0);
+    //return vec4(0, 1000, 0, 1);
     if(hitsSurface){
-      inscattering_behind_int1 = GetSkyLuminanceToPoint(rayOrigin + rayDir * interval1.y, rayOrigin + rayDir * surfaceDistance, sunDir, transmittance_behind_int1);
+      if(surfaceDistance > interval1.y){
+        inscattering_behind_int1 = GetSkyLuminanceToPoint(rayOrigin + rayDir * interval1.y, rayOrigin + rayDir * surfaceDistance, sunDir, transmittance_behind_int1);
+      }
     }else{
       inscattering_behind_int1 = GetSkyLuminance(rayOrigin + rayDir * interval1.y, rayDir, sunDir, transmittance_behind_int1);
     }
     vec3 inScatter = inscattering_before_int1 + transmittance_before_int1 * (scatter_data1.xyz + transmittance_int1 * inscattering_behind_int1);
     transmittance = transmittance_before_int1 * transmittance_int1 * transmittance_behind_int1;
     return vec4(inScatter, transmittance.x);
+  }else{
+    return vec4(100000, 0, 0, 1);
   }
 
 
