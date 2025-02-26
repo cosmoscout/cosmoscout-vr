@@ -174,10 +174,11 @@ bool Mark::Do() {
 
   geometries::drawSphere();
 
+  // Draw a line connecting a floating mark with the ground.
   if (pElevation.get() > 0 || pElevationMode.get() == ElevationMode::eOverZero) {
     mShader->SetUniform(mUniforms.scale, 0.001F, 1000.F, 0.001F);
     mShader->SetUniform(mUniforms.offset, 0.F, -1000.F, 0.F);
-    geometries::drawSphere();
+    geometries::drawCube();
   }
 
   mShader->Release();
