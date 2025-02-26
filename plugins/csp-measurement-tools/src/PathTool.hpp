@@ -11,6 +11,8 @@
 #include "../../csl-tools/src/MultiPointTool.hpp"
 
 #include <VistaKernel/GraphicsManager/VistaOpenGLDraw.h>
+#include <VistaOGLExt/VistaVertexArrayObject.h>
+#include <VistaOGLExt/VistaBufferObject.h>
 
 #include <glm/glm.hpp>
 #include <vector>

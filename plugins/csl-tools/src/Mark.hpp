@@ -13,9 +13,7 @@
 #include <VistaBase/VistaColor.h>
 #include <VistaKernel/GraphicsManager/VistaOpenGLDraw.h>
 #include <VistaKernel/GraphicsManager/VistaOpenGLNode.h>
-#include <VistaOGLExt/VistaBufferObject.h>
 #include <VistaOGLExt/VistaGLSLShader.h>
-#include <VistaOGLExt/VistaVertexArrayObject.h>
 
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
@@ -26,7 +24,6 @@ class CelestialObject;
 } // namespace cs::scene
 
 class VistaTransformNode;
-class VistaVertexArrayObject;
 
 namespace cs::core {
 class TimeControl;
@@ -83,12 +80,8 @@ class CSL_TOOLS_EXPORT Mark : public IVistaOpenGLDraw, public Tool {
  private:
   void initData();
 
-  glm::dvec3 mPosition;
-
-  std::unique_ptr<VistaVertexArrayObject> mVAO;
-  std::unique_ptr<VistaBufferObject>      mVBO;
-  std::unique_ptr<VistaBufferObject>      mIBO;
-  std::unique_ptr<VistaGLSLShader>        mShader;
+  glm::dvec3                       mPosition;
+  std::unique_ptr<VistaGLSLShader> mShader;
 
   struct {
     uint32_t modelViewMatrix   = 0;
