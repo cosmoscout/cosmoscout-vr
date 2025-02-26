@@ -7,16 +7,11 @@
 
 #include "geometries.hpp"
 
-#include <VistaBase/VistaColor.h>
-#include <VistaKernel/GraphicsManager/VistaOpenGLDraw.h>
-#include <VistaKernel/GraphicsManager/VistaOpenGLNode.h>
 #include <VistaOGLExt/VistaBufferObject.h>
-#include <VistaOGLExt/VistaGLSLShader.h>
 #include <VistaOGLExt/VistaVertexArrayObject.h>
 
 #include <array>
 #include <glm/glm.hpp>
-#include <glm/gtc/quaternion.hpp>
 #include <memory>
 
 namespace {
