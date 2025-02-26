@@ -90,8 +90,6 @@ class CSL_TOOLS_EXPORT Mark : public IVistaOpenGLDraw, public Tool {
     uint32_t color             = 0;
   } mUniforms;
 
-  size_t mIndexCount{};
-
   int mSelfLngLatConnection = -1, mHoveredNodeConnection = -1, mSelectedNodeConnection = -1,
       mButtonsConnection = -1, mHoveredPlanetConnection = -1, mHeightScaleConnection = -1;
 };
