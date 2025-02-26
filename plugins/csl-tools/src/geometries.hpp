@@ -12,9 +12,13 @@
 
 namespace csl::tools::geometries {
 
-// Uses glDrawElements with GL_TRIANGLES to draw an ico sphere. It will have a radius of 1.0 and
-// be centered at the origin.
+// Uses glDrawElements with GL_TRIANGLES to draw an ico sphere. It has a radius of 1.0 and is
+// centered at the origin.
 CSL_TOOLS_EXPORT void drawSphere();
+
+// Uses glDrawElements with GL_TRIANGLES to draw a cube. It has an edge length of 2.0 and is
+// centered at the origin.
+CSL_TOOLS_EXPORT void drawCube();
 
 } // namespace csl::tools::geometries
 
