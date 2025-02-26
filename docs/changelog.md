@@ -11,6 +11,11 @@ SPDX-License-Identifier: CC-BY-4.0
 
 ## [unreleased]
 
+#### Other Changes
+
+- Improved rendering performance on some systems by uploading GUI textures using a staging buffer instead of using persistently mapped buffers.
+- The draggable markers of `csp-measurement-tools` are now tiny spheres instead of cubes.
+
 #### Bug Fixes
 
 - Fix an issue which caused some flickering above the horizon at nighttime if refraction was enabled and lighting was disabled.

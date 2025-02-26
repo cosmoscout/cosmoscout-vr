@@ -17,6 +17,8 @@
 #include "../../../src/cs-utils/convert.hpp"
 #include "../../../src/cs-utils/utils.hpp"
 
+#include "geometries.hpp"
+
 #include <VistaDataFlowNet/VdfnObjectRegistry.h>
 #include <VistaKernel/GraphicsManager/VistaOpenGLNode.h>
 #include <VistaKernel/GraphicsManager/VistaSceneGraph.h>
@@ -76,9 +78,7 @@ Mark::Mark(std::shared_ptr<cs::core::InputManager> pInputManager,
     , mInputManager(std::move(pInputManager))
     , mSolarSystem(std::move(pSolarSystem))
     , mSettings(std::move(settings))
-    , mVAO(std::make_unique<VistaVertexArrayObject>())
-    , mVBO(std::make_unique<VistaBufferObject>())
-    , mIBO(std::make_unique<VistaBufferObject>())
+    , mPosition(0.0, 0.0, 0.0)
     , mShader(std::make_unique<VistaGLSLShader>()) {
 
   initData();
@@ -103,9 +103,6 @@ Mark::Mark(Mark const& other)
     , mSettings(other.mSettings)
     , mPosition(other.mPosition)
     , mScale(other.mScale)
-    , mVAO(std::make_unique<VistaVertexArrayObject>())
-    , mVBO(std::make_unique<VistaBufferObject>())
-    , mIBO(std::make_unique<VistaBufferObject>())
     , mShader(std::make_unique<VistaGLSLShader>()) {
 
   initData();
@@ -166,7 +163,7 @@ bool Mark::Do() {
   glDisable(GL_CULL_FACE);
 
   mShader->Bind();
-  mVAO->Bind();
+
   glUniformMatrix4fv(mUniforms.modelViewMatrix, 1, GL_FALSE, glMatMV.data());
   glUniformMatrix4fv(mUniforms.projectionMatrix, 1, GL_FALSE, glMatP.data());
   mShader->SetUniform(mUniforms.hoverSelectActive, pHovered.get() ? 1.F : 0.F,
@@ -175,16 +172,14 @@ bool Mark::Do() {
   mShader->SetUniform(mUniforms.scale, 0.005F, 0.005F, 0.005F);
   mShader->SetUniform(mUniforms.offset, 0.F, 0.F, 0.F);
 
-  glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(mIndexCount), GL_UNSIGNED_INT, nullptr);
+  geometries::drawSphere();
 
   if (pElevation.get() > 0 || pElevationMode.get() == ElevationMode::eOverZero) {
     mShader->SetUniform(mUniforms.scale, 0.001F, 1000.F, 0.001F);
     mShader->SetUniform(mUniforms.offset, 0.F, -1000.F, 0.F);
-    glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(mIndexCount), GL_UNSIGNED_INT, nullptr);
+    geometries::drawSphere();
   }
 
-  glEnable(GL_CULL_FACE);
-  mVAO->Release();
   mShader->Release();
 
   return true;
@@ -225,36 +220,6 @@ void Mark::initData() {
 
   VistaOpenSGMaterialTools::SetSortKeyOnSubtree(
       mTransform.get(), static_cast<int>(cs::utils::DrawOrder::eOpaqueNonHDR));
-
-  const std::array<glm::vec3, 26> POSITIONS = {glm::vec3(1, -1, 1), glm::vec3(-1, -1, -1),
-      glm::vec3(1, -1, -1), glm::vec3(-1, 1, -1), glm::vec3(1, 1, 1), glm::vec3(1, 1, -1),
-      glm::vec3(1, 1, -1), glm::vec3(1, -1, 1), glm::vec3(1, -1, -1), glm::vec3(1, 1, 1),
-      glm::vec3(-1, -1, 1), glm::vec3(1, -1, 1), glm::vec3(-1, -1, 1), glm::vec3(-1, 1, -1),
-      glm::vec3(-1, -1, -1), glm::vec3(1, -1, -1), glm::vec3(-1, 1, -1), glm::vec3(1, 1, -1),
-      glm::vec3(-1, -1, 1), glm::vec3(-1, 1, 1), glm::vec3(1, 1, -1), glm::vec3(1, 1, 1),
-      glm::vec3(1, -1, 1), glm::vec3(-1, 1, 1), glm::vec3(-1, 1, 1), glm::vec3(-1, -1, -1)};
-
-  // clang-format off
-  const std::array<uint32_t, 36> INDICES = { 
-     0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11,
-    12, 13, 14, 15, 16, 17,  0, 18,  1,  3, 19,  4,
-    20, 21, 22,  9, 23, 10, 12, 24, 13, 15, 25, 16
-  };
-  // clang-format on
-
-  mIndexCount = INDICES.size();
-
-  mIBO->Bind(GL_ELEMENT_ARRAY_BUFFER);
-  mIBO->BufferData(INDICES.size() * sizeof(uint32_t), INDICES.data(), GL_STATIC_DRAW);
-  mIBO->Release();
-  mVAO->SpecifyIndexBufferObject(mIBO.get());
-
-  mVBO->Bind(GL_ARRAY_BUFFER);
-  mVBO->BufferData(POSITIONS.size() * sizeof(glm::vec3), POSITIONS.data(), GL_STATIC_DRAW);
-  mVBO->Release();
-
-  mVAO->EnableAttributeArray(0);
-  mVAO->SpecifyAttributeArrayFloat(0, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), 0, mVBO.get());
 
   // update hover state
   mHoveredNodeConnection = mInputManager->pHoveredNode.connect([this](IVistaNode* node) {

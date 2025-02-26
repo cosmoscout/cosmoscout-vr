@@ -40,28 +40,28 @@ void GLAPIENTRY MessageCallback(GLenum source, GLenum type, GLuint id, GLenum se
   // that isnt an error or perf. issue)
   if (settings->pLogLevelGL.get() <= spdlog::level::debug &&
       severity == GL_DEBUG_SEVERITY_NOTIFICATION) {
-    logger().debug("{}", message);
+    logger().debug("{} (source=0x{:x} type=0x{:x} id=0x{:x})", message, source, type, id);
     return;
   }
 
   // Print the following infos (OpenGL errors, shader compile errors, perf. warnings, shader
   // compilation warnings, depricated code, redundant state changes, undefined behaviour)
   if (settings->pLogLevelGL.get() <= spdlog::level::info && severity == GL_DEBUG_SEVERITY_LOW) {
-    logger().info("{}", message);
+    logger().info("{} (source=0x{:x} type=0x{:x} id=0x{:x})", message, source, type, id);
     return;
   }
 
   // Print the following infos (OpenGL errors, shader compile errors, perf. warnings, shader
   // compilation warnings, depricated code)
   if (settings->pLogLevelGL.get() <= spdlog::level::warn && severity == GL_DEBUG_SEVERITY_MEDIUM) {
-    logger().warn("{}", message);
+    logger().warn("{} (source=0x{:x} type=0x{:x} id=0x{:x})", message, source, type, id);
     return;
   }
 
   // Print the following infos (OpenGL errors, shader compile errors)
   if (settings->pLogLevelGL.get() <= spdlog::level::critical &&
       severity == GL_DEBUG_SEVERITY_HIGH) {
-    logger().error("{}", message);
+    logger().error("{} (source=0x{:x} type=0x{:x} id=0x{:x})", message, source, type, id);
   }
 }
 
@@ -101,6 +101,14 @@ GraphicsEngine::GraphicsEngine(std::shared_ptr<core::Settings> settings)
 
   // Attach the debug callback to print the messages.
   glDebugMessageCallback(MessageCallback, static_cast<void*>(mSettings.get()));
+
+  // Ignore debug messages telling us buffers are moved in memory.
+  GLuint id = 131186;
+  glDebugMessageControl(0x8246, 0x8250, GL_DONT_CARE, 1, &id, GL_FALSE);
+
+  // Ignore synchronized transfer warning.
+  id = 0x20052;
+  glDebugMessageControl(0x8246, 0x8250, GL_DONT_CARE, 1, &id, GL_FALSE);
 
   // setup shadows ---------------------------------------------------------------------------------
 
