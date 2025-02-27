@@ -5,8 +5,8 @@
 // SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
 // SPDX-License-Identifier: MIT
 
-#ifndef CS_CORE_GRAPHICS_GraphicsEngine_HPP
-#define CS_CORE_GRAPHICS_GraphicsEngine_HPP
+#ifndef CS_CORE_GRAPHICS_ENGINE_HPP
+#define CS_CORE_GRAPHICS_ENGINE_HPP
 
 #include "../cs-graphics/HDRBuffer.hpp"
 #include "../cs-graphics/Shadows.hpp"
@@ -93,4 +93,4 @@ class CS_CORE_EXPORT GraphicsEngine {
 
 } // namespace cs::core
 
-#endif // CS_CORE_GRAPHICS_GraphicsEngine_HPP
+#endif // CS_CORE_GRAPHICS_ENGINE_HPP
