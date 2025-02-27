@@ -62,8 +62,7 @@ TextureOverlayRenderer::TextureOverlayRenderer(std::string objectName,
   // create textures ---------------------------------------------------------
   for (auto const& viewport : GetVistaSystem()->GetDisplayManager()->GetViewports()) {
     // Texture for previous renderer depth buffer
-    const auto [buffer, success] =
-        mDepthBufferData.try_emplace(viewport.second, GL_TEXTURE_RECTANGLE);
+    const auto [buffer, success] = mDepthBufferData.try_emplace(viewport.second, GL_TEXTURE_2D);
     if (success) {
       buffer->second.Bind();
       buffer->second.SetWrapS(GL_CLAMP);
@@ -541,8 +540,8 @@ bool TextureOverlayRenderer::Do() {
   VistaTexture& depthBuffer = mDepthBufferData.at(viewport);
 
   depthBuffer.Bind();
-  glCopyTexImage2D(GL_TEXTURE_RECTANGLE, 0, GL_DEPTH_COMPONENT, iViewport[0], iViewport[1],
-      iViewport[2], iViewport[3], 0);
+  glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, iViewport[0], iViewport[1], iViewport[2],
+      iViewport[3], 0);
 
   auto object    = mSolarSystem->getObject(mObjectName);
   auto radii     = object->getRadii();

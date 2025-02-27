@@ -77,7 +77,7 @@ const char* Sharad::FRAG = R"(
 #version 330
 
 uniform mat4 uMatProjection;
-uniform sampler2DRect uDepthBuffer;
+uniform sampler2D uDepthBuffer;
 uniform sampler2D uSharadTexture;
 uniform float uAmbientBrightness;
 uniform float uTime;
@@ -100,7 +100,7 @@ void main()
         discard;
     }
 
-    float fDepth = texture(uDepthBuffer,  gl_FragCoord.xy - uViewportPos).r;
+    float fDepth = texture(uDepthBuffer, gl_FragCoord.xy / textureSize(uDepthBuffer, 0)).r;
     vec4 surfacePos = inverse(uMatProjection) * vec4(vPositionSS.xy / vPositionSS.w, 2*fDepth-1, 1);
     float surfaceDistance = length(surfacePos.xyz / surfacePos.w);
     float sharadDistance  = length(vPositionVS);
@@ -159,7 +159,7 @@ Sharad::Sharad(std::shared_ptr<cs::core::Settings> settings,
     , mObjectName(std::move(objectName)) {
 
   if (mInstanceCount == 0) {
-    mDepthBuffer = std::make_unique<VistaTexture>(GL_TEXTURE_RECTANGLE);
+    mDepthBuffer = std::make_unique<VistaTexture>(GL_TEXTURE_2D);
     mDepthBuffer->Bind();
     mDepthBuffer->SetWrapS(GL_CLAMP);
     mDepthBuffer->SetWrapT(GL_CLAMP);
@@ -388,7 +388,7 @@ bool Sharad::FramebufferCallback::Do() {
   std::array<GLint, 4> iViewport{};
   glGetIntegerv(GL_VIEWPORT, iViewport.data());
   mDepthBuffer->Bind();
-  glCopyTexImage2D(GL_TEXTURE_RECTANGLE, 0, GL_DEPTH_COMPONENT, iViewport.at(0), iViewport.at(1),
+  glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, iViewport.at(0), iViewport.at(1),
       iViewport.at(2), iViewport.at(3), 0);
   return true;
 }
