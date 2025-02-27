@@ -59,6 +59,14 @@ class CS_CORE_EXPORT GraphicsEngine {
   /// SolarSystem to get all relevant eclipse shadow maps for a given position in space.
   std::vector<std::shared_ptr<graphics::EclipseShadowMap>> const& getEclipseShadowMaps() const;
 
+  /// Binds the current depth or color buffer as a texture to the given texture unit. If HDR
+  /// rendering is enabled, the current read-targets are used. If HDR rendering is disabled, the
+  /// frame buffer contents are copied to a texture first. This copy is only done once per frame,
+  /// subsequent calls will use the cached texture. If you set forceCopy to true, the texture will
+  /// be copied again.
+  void bindCurrentDepthBufferAsTexture(int textureUnit, bool forceCopy);
+  void bindCurrentColorBufferAsTexture(int textureUnit, bool forceCopy);
+
  private:
   void calculateCascades();
 
@@ -70,6 +78,17 @@ class CS_CORE_EXPORT GraphicsEngine {
   std::shared_ptr<graphics::ToneMappingNode>               mToneMappingNode;
   std::vector<std::shared_ptr<graphics::EclipseShadowMap>> mEclipseShadowMaps;
   std::shared_ptr<VistaTexture>                            mFallbackEclipseShadowMap;
+
+  struct ViewportData {
+    std::unique_ptr<VistaTexture> mBuffer;
+    bool                          mDirty = true;
+  };
+
+  // These are used to cache the frame buffer contents for the current viewport for the
+  // bindCurrentDepthBufferAsTexture and bindCurrentColorBufferAsTexture calls. They are only
+  // filled if the methods are called and HDR rendering is disabled.
+  std::unordered_map<VistaViewport*, ViewportData> mDepthBuffers;
+  std::unordered_map<VistaViewport*, ViewportData> mColorBuffers;
 };
 
 } // namespace cs::core

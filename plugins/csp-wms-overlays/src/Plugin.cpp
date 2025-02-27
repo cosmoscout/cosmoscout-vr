@@ -532,7 +532,7 @@ void Plugin::onLoad() {
     }
 
     auto wmsOverlay = std::make_shared<TextureOverlayRenderer>(
-        settings.first, mSolarSystem, mTimeControl, mAllSettings, mPluginSettings);
+        settings.first, mGraphicsEngine, mSolarSystem, mTimeControl, mAllSettings, mPluginSettings);
 
     mWMSOverlays.emplace(settings.first, wmsOverlay);
 

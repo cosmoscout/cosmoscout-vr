@@ -100,7 +100,7 @@ void main()
         discard;
     }
 
-    float fDepth = texture(uDepthBuffer, gl_FragCoord.xy / textureSize(uDepthBuffer, 0)).r;
+    float fDepth = texture(uDepthBuffer, (gl_FragCoord.xy - uViewportPos) / textureSize(uDepthBuffer, 0)).r;
     vec4 surfacePos = inverse(uMatProjection) * vec4(vPositionSS.xy / vPositionSS.w, 2*fDepth-1, 1);
     float surfaceDistance = length(surfacePos.xyz / surfacePos.w);
     float sharadDistance  = length(vPositionVS);
@@ -119,13 +119,6 @@ void main()
     oColor.a = 1.0 - clamp((sharadDistance - surfaceDistance) * uSceneScale / 30000, 0.1, 1.0);
 }
 )";
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-std::unique_ptr<VistaTexture>                Sharad::mDepthBuffer     = nullptr;
-std::unique_ptr<Sharad::FramebufferCallback> Sharad::mPreCallback     = nullptr;
-std::unique_ptr<VistaOpenGLNode>             Sharad::mPreCallbackNode = nullptr;
-int                                          Sharad::mInstanceCount   = 0;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -151,33 +144,14 @@ struct ProfileRadarData {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 Sharad::Sharad(std::shared_ptr<cs::core::Settings> settings,
+    std::shared_ptr<cs::core::GraphicsEngine>      graphicsEngine,
     std::shared_ptr<cs::core::SolarSystem> solarSystem, std::string objectName,
     std::string const& sTiffFile, std::string const& sTabFile)
     : mSettings(std::move(settings))
+    , mGraphicsEngine(std::move(graphicsEngine))
     , mSolarSystem(std::move(solarSystem))
     , mTexture(cs::graphics::TextureLoader::loadFromFile(sTiffFile))
     , mObjectName(std::move(objectName)) {
-
-  if (mInstanceCount == 0) {
-    mDepthBuffer = std::make_unique<VistaTexture>(GL_TEXTURE_2D);
-    mDepthBuffer->Bind();
-    mDepthBuffer->SetWrapS(GL_CLAMP);
-    mDepthBuffer->SetWrapT(GL_CLAMP);
-    mDepthBuffer->SetMinFilter(GL_NEAREST);
-    mDepthBuffer->SetMagFilter(GL_NEAREST);
-    mDepthBuffer->Unbind();
-
-    mPreCallback = std::make_unique<FramebufferCallback>(mDepthBuffer.get());
-
-    auto* sceneGraph = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
-    mPreCallbackNode = std::unique_ptr<VistaOpenGLNode>(
-        sceneGraph->NewOpenGLNode(sceneGraph->GetRoot(), mPreCallback.get()));
-
-    VistaOpenSGMaterialTools::SetSortKeyOnSubtree(
-        mPreCallbackNode.get(), static_cast<int>(cs::utils::DrawOrder::eOpaqueNonHDR) + 1);
-  }
-
-  ++mInstanceCount;
 
   // Disables a warning in MSVC about using fopen_s and fscanf_s, which aren't supported in GCC.
   CS_WARNINGS_PUSH
@@ -280,21 +254,6 @@ Sharad::Sharad(std::shared_ptr<cs::core::Settings> settings,
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-Sharad::~Sharad() {
-  --mInstanceCount;
-
-  if (mInstanceCount == 0) {
-    auto* sceneGraph = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
-    sceneGraph->GetRoot()->DisconnectChild(mPreCallbackNode.get());
-
-    mPreCallback.reset(nullptr);
-    mDepthBuffer.reset(nullptr);
-    mPreCallbackNode.reset(nullptr);
-  }
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
 double Sharad::getStartTime() const {
   return mStartTime;
 }
@@ -342,7 +301,7 @@ bool Sharad::Do() {
     mShader.SetUniform(mUniforms.time, static_cast<float>(mCurrTime - mStartTime));
 
     mTexture->Bind(GL_TEXTURE0);
-    mDepthBuffer->Bind(GL_TEXTURE1);
+    mGraphicsEngine->bindCurrentDepthBufferAsTexture(GL_TEXTURE1, false);
 
     glPushAttrib(GL_ENABLE_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -374,23 +333,6 @@ bool Sharad::Do() {
 
 bool Sharad::GetBoundingBox(VistaBoundingBox& /*bb*/) {
   return false;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-Sharad::FramebufferCallback::FramebufferCallback(VistaTexture* pDepthBuffer)
-    : mDepthBuffer(pDepthBuffer) {
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-bool Sharad::FramebufferCallback::Do() {
-  std::array<GLint, 4> iViewport{};
-  glGetIntegerv(GL_VIEWPORT, iViewport.data());
-  mDepthBuffer->Bind();
-  glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, iViewport.at(0), iViewport.at(1),
-      iViewport.at(2), iViewport.at(3), 0);
-  return true;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
