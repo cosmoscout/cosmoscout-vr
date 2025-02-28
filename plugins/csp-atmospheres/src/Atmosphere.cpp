@@ -68,30 +68,6 @@ Atmosphere::Atmosphere(std::shared_ptr<Plugin::Settings> pluginSettings,
   mAtmosphereNode->SetIsEnabled(false);
   VistaOpenSGMaterialTools::SetSortKeyOnSubtree(
       mAtmosphereNode.get(), static_cast<int>(cs::utils::DrawOrder::eAtmospheres));
-
-  // Create depth and color buffer textures for each viewport. We need these to read the current
-  // values from the framebuffer.
-  for (auto const& viewport : GetVistaSystem()->GetDisplayManager()->GetViewports()) {
-    GBufferData bufferData;
-
-    bufferData.mDepthBuffer = std::make_unique<VistaTexture>(GL_TEXTURE_2D);
-    bufferData.mDepthBuffer->Bind();
-    bufferData.mDepthBuffer->SetWrapS(GL_CLAMP);
-    bufferData.mDepthBuffer->SetWrapT(GL_CLAMP);
-    bufferData.mDepthBuffer->SetMinFilter(GL_NEAREST);
-    bufferData.mDepthBuffer->SetMagFilter(GL_NEAREST);
-    bufferData.mDepthBuffer->Unbind();
-
-    bufferData.mColorBuffer = std::make_unique<VistaTexture>(GL_TEXTURE_2D);
-    bufferData.mColorBuffer->Bind();
-    bufferData.mColorBuffer->SetWrapS(GL_CLAMP);
-    bufferData.mColorBuffer->SetWrapT(GL_CLAMP);
-    bufferData.mColorBuffer->SetMinFilter(GL_NEAREST);
-    bufferData.mColorBuffer->SetMagFilter(GL_NEAREST);
-    bufferData.mColorBuffer->Unbind();
-
-    mGBufferData.emplace(viewport.second, std::move(bufferData));
-  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -314,22 +290,6 @@ bool Atmosphere::Do() {
   glEnable(GL_TEXTURE_2D);
   glDepthMask(GL_FALSE);
 
-  // copy depth buffer -----------------------------------------------------------------------------
-  std::array<GLint, 4> iViewport{};
-  glGetIntegerv(GL_VIEWPORT, iViewport.data());
-
-  if (!mHDRBuffer) {
-    auto* viewport   = GetVistaSystem()->GetDisplayManager()->GetCurrentRenderInfo()->m_pViewport;
-    auto const& data = mGBufferData[viewport];
-
-    data.mDepthBuffer->Bind();
-    glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, iViewport.at(0), iViewport.at(1),
-        iViewport.at(2), iViewport.at(3), 0);
-    data.mColorBuffer->Bind();
-    glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, iViewport.at(0), iViewport.at(1), iViewport.at(2),
-        iViewport.at(3), 0);
-  }
-
   // get matrices and related values ---------------------------------------------------------------
 
   std::array<GLfloat, 16> glMatV{};
@@ -390,6 +350,10 @@ bool Atmosphere::Do() {
 
     cs::utils::Frustum frustum;
     frustum.setFromMatrix(matP);
+
+    std::array<GLint, 4> iViewport{};
+    glGetIntegerv(GL_VIEWPORT, iViewport.data());
+
     float approxPixelSize = float(frustum.getHorizontalFOV() / iViewport[2]);
     float pixelWidth      = (phiAtmo - phiOcc) / approxPixelSize;
     if (occDist < atmoRadius) {
@@ -409,14 +373,10 @@ bool Atmosphere::Do() {
   if (mHDRBuffer) {
     mHDRBuffer->doPingPong();
     mHDRBuffer->bind();
-    mHDRBuffer->getDepthAttachment()->Bind(GL_TEXTURE0);
-    mHDRBuffer->getCurrentReadAttachment()->Bind(GL_TEXTURE1);
-  } else {
-    auto* viewport   = GetVistaSystem()->GetDisplayManager()->GetCurrentRenderInfo()->m_pViewport;
-    auto const& data = mGBufferData[viewport];
-    data.mDepthBuffer->Bind(GL_TEXTURE0);
-    data.mColorBuffer->Bind(GL_TEXTURE1);
   }
+
+  mGraphicsEngine->bindCurrentDepthBufferAsTexture(GL_TEXTURE0, false);
+  mGraphicsEngine->bindCurrentColorBufferAsTexture(GL_TEXTURE1, false);
 
   mAtmoShader.SetUniform(mAtmoUniforms.depthBuffer, 0);
   mAtmoShader.SetUniform(mAtmoUniforms.colorBuffer, 1);
@@ -463,15 +423,10 @@ bool Atmosphere::Do() {
   // Reset eclipse shadow-related texture units.
   mEclipseShadowReceiver->postRender();
 
-  if (mHDRBuffer) {
-    mHDRBuffer->getDepthAttachment()->Unbind(GL_TEXTURE0);
-    mHDRBuffer->getCurrentReadAttachment()->Unbind(GL_TEXTURE1);
-  } else {
-    auto* viewport   = GetVistaSystem()->GetDisplayManager()->GetCurrentRenderInfo()->m_pViewport;
-    auto const& data = mGBufferData[viewport];
-    data.mDepthBuffer->Unbind(GL_TEXTURE0);
-    data.mColorBuffer->Unbind(GL_TEXTURE1);
-  }
+  glActiveTexture(GL_TEXTURE0);
+  glBindTexture(GL_TEXTURE_2D, 0);
+  glActiveTexture(GL_TEXTURE1);
+  glBindTexture(GL_TEXTURE_2D, 0);
 
   if (mSettings.mEnableClouds.get() && mCloudTexture) {
     mCloudTexture->Unbind(GL_TEXTURE2);
