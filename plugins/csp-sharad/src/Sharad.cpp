@@ -301,15 +301,14 @@ bool Sharad::Do() {
     mShader.SetUniform(mUniforms.time, static_cast<float>(mCurrTime - mStartTime));
 
     mTexture->Bind(GL_TEXTURE0);
-    mGraphicsEngine->bindCurrentDepthBufferAsTexture(GL_TEXTURE1, false);
+    auto depthBuffer = mGraphicsEngine->getCurrentDepthBufferAsTexture(false);
+    depthBuffer->Bind(GL_TEXTURE1);
 
     glPushAttrib(GL_ENABLE_BIT | GL_DEPTH_BUFFER_BIT);
 
     glEnable(GL_BLEND);
     glDisable(GL_CULL_FACE);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    // glDepthFunc(GL_GEQUAL);
-    // glDepthMask(false);
     glDisable(GL_DEPTH_TEST);
 
     // draw --------------------------------------------------------------------
@@ -320,6 +319,7 @@ bool Sharad::Do() {
     // clean up ----------------------------------------------------------------
     glEnable(GL_CULL_FACE);
     mTexture->Unbind(GL_TEXTURE0);
+    depthBuffer->Unbind(GL_TEXTURE1);
 
     glPopAttrib();
 

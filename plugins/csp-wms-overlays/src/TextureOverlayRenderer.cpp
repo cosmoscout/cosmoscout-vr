@@ -541,7 +541,8 @@ bool TextureOverlayRenderer::Do() {
   mShader.Bind();
 
   // Only bind the enabled textures.
-  mGraphicsEngine->bindCurrentDepthBufferAsTexture(GL_TEXTURE0, false);
+  auto depthbuffer = mGraphicsEngine->getCurrentDepthBufferAsTexture(false);
+  depthbuffer->Bind(GL_TEXTURE0);
   if (mWMSTextureUsed) {
     mWMSTexture.Bind(GL_TEXTURE1);
 
@@ -611,8 +612,7 @@ bool TextureOverlayRenderer::Do() {
   // Dummy draw
   glDrawArrays(GL_POINTS, 0, 1);
 
-  glActiveTexture(GL_TEXTURE0);
-  glBindTexture(GL_TEXTURE_2D, 0);
+  depthbuffer->Unbind(GL_TEXTURE0);
 
   if (mWMSTextureUsed) {
     mWMSTexture.Unbind(GL_TEXTURE1);
