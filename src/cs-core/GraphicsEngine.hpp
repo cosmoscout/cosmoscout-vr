@@ -80,7 +80,9 @@ class CS_CORE_EXPORT GraphicsEngine {
   std::shared_ptr<VistaTexture>                            mFallbackEclipseShadowMap;
 
   struct ViewportData {
-    std::unique_ptr<VistaTexture> mBuffer;
+    // MSVC does not like a unique_ptr here. Let's use a shared_ptr instead, although it is not
+    // really shared.
+    std::shared_ptr<VistaTexture> mBuffer;
     bool                          mDirty = true;
   };
 
