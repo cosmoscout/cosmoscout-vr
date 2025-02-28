@@ -375,8 +375,10 @@ bool Atmosphere::Do() {
     mHDRBuffer->bind();
   }
 
-  mGraphicsEngine->bindCurrentDepthBufferAsTexture(GL_TEXTURE0, false);
-  mGraphicsEngine->bindCurrentColorBufferAsTexture(GL_TEXTURE1, false);
+  auto depthBuffer = mGraphicsEngine->getCurrentDepthBufferAsTexture(false);
+  auto colorBuffer = mGraphicsEngine->getCurrentColorBufferAsTexture(false);
+  depthBuffer->Bind(GL_TEXTURE0);
+  colorBuffer->Bind(GL_TEXTURE1);
 
   mAtmoShader.SetUniform(mAtmoUniforms.depthBuffer, 0);
   mAtmoShader.SetUniform(mAtmoUniforms.colorBuffer, 1);
@@ -423,10 +425,8 @@ bool Atmosphere::Do() {
   // Reset eclipse shadow-related texture units.
   mEclipseShadowReceiver->postRender();
 
-  glActiveTexture(GL_TEXTURE0);
-  glBindTexture(GL_TEXTURE_2D, 0);
-  glActiveTexture(GL_TEXTURE1);
-  glBindTexture(GL_TEXTURE_2D, 0);
+  depthBuffer->Unbind(GL_TEXTURE0);
+  colorBuffer->Unbind(GL_TEXTURE1);
 
   if (mSettings.mEnableClouds.get() && mCloudTexture) {
     mCloudTexture->Unbind(GL_TEXTURE2);
