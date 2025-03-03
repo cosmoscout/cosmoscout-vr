@@ -559,7 +559,7 @@ vec4 raymarchInterval(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, vec2 interval, o
   bool close_sampling = false;
   float close_sample_interval_end = -1;
   float close_sample_fraction;
-  int close_samples_extra = 100;
+  int close_samples_extra = 10;
   
   bool adaptive_sampling = samples_ref > 10;
   int samples = samples_ref;
@@ -569,12 +569,12 @@ vec4 raymarchInterval(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, vec2 interval, o
       samples = min(max(int(interval_length / maximum_dist_between_samples), samples_ref), samples_ref * 10);//min(int(interval_length / maximum_dist_between_samples), samples * 2);
       //samples = min(int(interval_length / minimum_dist_between_samples), samples);
     }
-    if(interval.x < 20000){
-      close_sampling = true;
-      samples += close_samples_extra;
-      close_sample_interval_end = min(interval.x + interval_length / 2, 15000);
-      close_sample_fraction = float(close_samples_extra) / float(samples);
-    }
+    //if(interval.x < 20000){
+    //  close_sampling = false;
+    //  samples += close_samples_extra;
+    //  close_sample_interval_end = min(interval.x + interval_length / 2, 5000);
+    //  close_sample_fraction = float(close_samples_extra) / float(samples);
+    //}
   }
 
   //return vec4(samples, samples_ref, 0, 0) * 100;
@@ -609,13 +609,13 @@ vec4 raymarchInterval(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, vec2 interval, o
     float progress = float(i) / float(samples);
     //progess = progress < interval1_end ? slope1 * progress : 0;//offset2 + (progress - interval1_end) * slope2;
     float t_now = remap(progress, 0, 1, interval.x, interval.y);
-    if(close_sampling){
-      if(progress < close_sample_fraction){
-        t_now = remap(progress, 0, close_sample_fraction, interval.x, close_sample_interval_end);
-      }else{
-        t_now = remap(progress, close_sample_fraction, 1, close_sample_interval_end, interval.y);
-      }
-    }
+    //if(close_sampling){
+    //  if(progress < close_sample_fraction){
+    //    t_now = remap(progress, 0, close_sample_fraction, interval.x, close_sample_interval_end);
+    //  }else{
+    //    t_now = remap(progress, close_sample_fraction, 1, close_sample_interval_end, interval.y);
+    //  }
+    //}
     // random offset of samples
     if(adaptive_sampling){
       //t_now += (simplex3D(vec3(t_now, progress, interval_length) * 10 + vsIn.rayDir * 1000) - .5) * (t_now - t_last);
@@ -776,6 +776,9 @@ vec4 getCloudColor(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, float surfaceDistan
         interval1.y = surfaceDistance;
         //return vec4(0, 10000, 0, 1);
       }
+      if(!hitTop || surfaceDistance < topIntersections.x){
+        interval1.y = -1;
+      }
       //return vec4(0, 0, 100000, 1);
     }
   }else{
@@ -801,16 +804,20 @@ vec4 getCloudColor(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, float surfaceDistan
     }
   }
 
+  if(interval1.y - interval1.x < 100){
+    interval1.y = -1;
+    interval1.x = 0;
+  }
+
   interval1.y = min(interval1.y, surfaceDistance);
   interval2.y = min(interval2.y, surfaceDistance);
 
   if(interval1.y <= interval1.x){
     interval1.y = -1;
     interval1.x = 0;
-    //return vec4(10000, 0, 0, 1);
   }
 
-  //return vec4(interval1.y - interval1.x, 100000, 0, 1);
+  //return vec4(interval1.y - interval1.x / 10000, 10000, 0, 1);
 
   if(interval2.y < interval2.x){
     interval2.y = -1;
@@ -869,7 +876,7 @@ vec4 getCloudColor(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, float surfaceDistan
 
   
   
-  return vec4(100000, 0, 0, 1);
+  return vec4(0, 100000, 0, 1);
 
 }
 
