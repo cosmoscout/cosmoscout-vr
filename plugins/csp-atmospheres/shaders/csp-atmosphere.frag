@@ -537,7 +537,7 @@ float raymarchTransmittance(vec3 rayOrigin, vec3 rayDir, vec2 interval, int samp
 }
 
 // helper function for ray marching through an interval
-vec4 raymarchInterval(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, vec2 interval, out vec3 path_transmittance, int samples=10, bool secondary_rays = false){
+vec4 raymarchInterval(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, vec2 interval, out vec3 path_transmittance, int samples_ref=10, bool secondary_rays = false){
   // do not march through purely negative intervals
 
   if(interval.y < 0){
@@ -556,17 +556,28 @@ vec4 raymarchInterval(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, vec2 interval, o
   float maximum_dist_between_samples = 250;
   float minimum_dist_between_samples = 10;
   float interval_length = interval.y - interval.x;
+  bool close_sampling = false;
+  float close_sample_interval_end = -1;
+  float close_sample_fraction;
+  int close_samples_extra = 100;
   
-  bool adaptive_sampling = samples > 10;
-
-  float regular_dist_between_samples = interval_length / samples;
+  bool adaptive_sampling = samples_ref > 10;
+  int samples = samples_ref;
+  float regular_dist_between_samples = interval_length / samples_ref;
   if(adaptive_sampling){
     if(regular_dist_between_samples > maximum_dist_between_samples){
-      samples = min(max(int(interval_length / maximum_dist_between_samples), samples), samples * 5);//min(int(interval_length / maximum_dist_between_samples), samples * 2);
-      samples = min(int(interval_length / minimum_dist_between_samples), samples);
+      samples = min(max(int(interval_length / maximum_dist_between_samples), samples_ref), samples_ref * 10);//min(int(interval_length / maximum_dist_between_samples), samples * 2);
+      //samples = min(int(interval_length / minimum_dist_between_samples), samples);
+    }
+    if(interval.x < 20000){
+      close_sampling = true;
+      samples += close_samples_extra;
+      close_sample_interval_end = min(interval.x + interval_length / 2, 15000);
+      close_sample_fraction = float(close_samples_extra) / float(samples);
     }
   }
 
+  //return vec4(samples, samples_ref, 0, 0) * 100;
 
   //return(mix(vec4(1, 0, 0, 0), vec4(0, 1, 0, 0),samples/100.) * 1000);
   float phase = henyeyGreenstein(sunDir, -rayDir);
@@ -591,10 +602,20 @@ vec4 raymarchInterval(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, vec2 interval, o
     atmo_inscatterings[i] = GetSkyLuminanceToPoint(start_pos, end_pos, sunDir, atmo_transmittances[i]);
   }
 
+  //return vec4(samples, )
+
   for(int i = 1; i <= samples; ++i){
     // could be adapted for importance sampling
     float progress = float(i) / float(samples);
+    //progess = progress < interval1_end ? slope1 * progress : 0;//offset2 + (progress - interval1_end) * slope2;
     float t_now = remap(progress, 0, 1, interval.x, interval.y);
+    if(close_sampling){
+      if(progress < close_sample_fraction){
+        t_now = remap(progress, 0, close_sample_fraction, interval.x, close_sample_interval_end);
+      }else{
+        t_now = remap(progress, close_sample_fraction, 1, close_sample_interval_end, interval.y);
+      }
+    }
     // random offset of samples
     if(adaptive_sampling){
       //t_now += (simplex3D(vec3(t_now, progress, interval_length) * 10 + vsIn.rayDir * 1000) - .5) * (t_now - t_last);
@@ -651,7 +672,9 @@ vec4 raymarchInterval(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, vec2 interval, o
           incoming *= in_transmittance;
           //incoming *= vec3(in_transmittance > .9 ? 0 : 1, in_transmittance > .9 ? 1 : 0, 0);
         }
-
+        //if(close_sampling && progress < close_sample_fraction){
+        //  incoming *= vec3(1, 0, 0);
+        //}
         inscattering_acc += scatter_coefficient * sdist * incoming * path_transmittance * CLOUD_COLOR * phase * 4 * PI;
         path_transmittance *= vec3(extinction_along_segment);
         t_last_substep = t_substep;
@@ -796,8 +819,8 @@ vec4 getCloudColor(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, float surfaceDistan
 
   vec3 transmittance_int1 = vec3(1);
   vec3 transmittance_int2 = vec3(1);
-  vec4 scatter_data1 = raymarchInterval(rayOrigin, rayDir, sunDir, interval1, transmittance_int1, 200, false);
-  vec4 scatter_data2 = raymarchInterval(rayOrigin, rayDir, sunDir, interval2, transmittance_int2, 200, false);
+  vec4 scatter_data1 = raymarchInterval(rayOrigin, rayDir, sunDir, interval1, transmittance_int1, 50, false);
+  vec4 scatter_data2 = raymarchInterval(rayOrigin, rayDir, sunDir, interval2, transmittance_int2, 50, false);
 
   
 
