@@ -402,7 +402,7 @@ float GetCloudCoverageHeight(vec3 position, float start_height, float end_height
   return pow(height_component, .2);
 }
 
-float ALTO_CUMULUS_START_HEIGHT = 1500;
+float ALTO_CUMULUS_START_HEIGHT = 200;
 float ALTO_CUMULUS_END_HEIGHT = 5000;
 
 // Returns the value of the cloud texture at the position described by the three parameters.
@@ -430,6 +430,13 @@ float getAltoCumulusDensity(vec3 position, bool high_res = true){
     cloud_density = 0;
   }
   return clamp(cloud_density, 0, 1);
+}
+
+bool AltoCumulusCanSkip(vec3 position){
+  vec2 lngLat = getLngLat(position);
+  vec2 texCoords = vec2(lngLat.x / (2 * PI) + 0.5, 1.0 - lngLat.y / PI + 0.5);
+  float density = textureLod(uCloudTexture, texCoords, 3).r;
+  return density == 0;
 }
 
 float CIRRUS_START_HEIGHT = 6000;
@@ -551,6 +558,7 @@ vec4 raymarchInterval(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, vec2 interval, o
   vec3 CLOUD_COLOR = vec3(1.);
 
   float t_last = interval.x;
+  float progress = 0;
   vec3 inscattering_acc = vec3(0.);
   path_transmittance = vec3(1);
   float maximum_dist_between_samples = 250;
@@ -589,66 +597,48 @@ vec4 raymarchInterval(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, vec2 interval, o
   vec3 atmo_transmittance;
   vec3 atmo_inscattering;
 
-  // precalculate atmospheric inscattering at 10 segments of the length of the actual cloud integration step size
-  // during cloud integration, lerp these values
-  int num_atmo_samples = 10;
-  vec3 atmo_inscatterings[10];
-  vec3 atmo_transmittances[10];
-  float cloud_integration_step_size = interval_length / float(num_atmo_samples);
-  for(int i = 0; i < num_atmo_samples; i++){
-    float start_dist = remap(float(i) / float(num_atmo_samples - 1), 0, 1, interval.x, interval.y);
-    vec3 start_pos = rayOrigin + rayDir * start_dist;
-    vec3 end_pos = start_pos + rayDir * cloud_integration_step_size;
-    atmo_inscatterings[i] = GetSkyLuminanceToPoint(start_pos, end_pos, sunDir, atmo_transmittances[i]);
-  }
-
   //return vec4(samples, )
+  float minimum_progress = 10. / interval_length;
+  float big_step = 5000. / interval_length;
+  float standard_step = 1. / float(samples);
 
-  for(int i = 1; i <= samples; ++i){
+  // track the start of the current cloud-free part of the interval. 
+  // Inscattering from the atmosphere is added when a cloud is encountered.
+  float t_cloudfree_start = interval.x;
+  bool in_cloud = false;
+
+  while(progress < 1){
     // could be adapted for importance sampling
-    float progress = float(i) / float(samples);
-    //progess = progress < interval1_end ? slope1 * progress : 0;//offset2 + (progress - interval1_end) * slope2;
+    
     float t_now = remap(progress, 0, 1, interval.x, interval.y);
-    //if(close_sampling){
-    //  if(progress < close_sample_fraction){
-    //    t_now = remap(progress, 0, close_sample_fraction, interval.x, close_sample_interval_end);
-    //  }else{
-    //    t_now = remap(progress, close_sample_fraction, 1, close_sample_interval_end, interval.y);
-    //  }
-    //}
-    // random offset of samples
-    if(adaptive_sampling){
-      //t_now += (simplex3D(vec3(t_now, progress, interval_length) * 10 + vsIn.rayDir * 1000) - .5) * (t_now - t_last);
-    }
-    float dist = t_now - t_last;
     vec3 position = rayOrigin + rayDir * t_now;
+    if(AltoCumulusCanSkip(position)){
+      //return vec4(10000, 0, 0, 1);
+      progress += big_step;
+    }else{
+      progress += standard_step;
+    }
+
+    progress = clamp(progress, 0, 1);
+
+    t_now = remap(progress, 0, 1, interval.x, interval.y);
+    float dist = t_now - t_last;
+    position = rayOrigin + rayDir * t_now;
     float local_density = getCloudDensity(position);
 
     vec3 transmittance;
     vec3 local_incoming = GetSkyLuminance(position, sunDir, sunDir, transmittance);
 
-    int atmo_cell = int(progress * (num_atmo_samples - 1));
-    atmo_cell = clamp(atmo_cell, 0, num_atmo_samples - 2);
-    float pos_in_cell = (progress * (num_atmo_samples - 1)) - atmo_cell;
-
-    // the atmosphere model is not good for computing inscattering and transmittance over very short distances
-    // instead compute inscattering and transmittance from samples over longer distances
-    // assumes sigma_s and sigma_t constant over the long interval
-    vec3 sigma_t_approx1 = -log(atmo_transmittances[atmo_cell]) / cloud_integration_step_size;
-    vec3 sigma_t_approx2 = -log(atmo_transmittances[atmo_cell + 1]) / cloud_integration_step_size; 
-    vec3 transmittance1_approx = exp(-dist * sigma_t_approx1);
-    vec3 transmittance2_approx = exp(-dist * sigma_t_approx2);
-    vec3 scatter_factor_approx1 = atmo_inscatterings[atmo_cell] / ((1 - exp(-sigma_t_approx1 * cloud_integration_step_size)) / sigma_t_approx1);
-    vec3 scatter_factor_approx2 = atmo_inscatterings[atmo_cell + 1] / ((1 - exp(-sigma_t_approx2 * cloud_integration_step_size)) / sigma_t_approx2);
-    vec3 scatter_approx1 = scatter_factor_approx1 * ((1 - transmittance1_approx) / sigma_t_approx1);
-    vec3 scatter_approx2 = scatter_factor_approx2 * ((1 - transmittance2_approx) / sigma_t_approx2);
-
-    atmo_inscattering = mix(scatter_approx1, scatter_approx2, pos_in_cell);
-    atmo_transmittance = mix(transmittance1_approx, transmittance2_approx, pos_in_cell);
-
     local_incoming = vec3(144809.5,129443.421875,127098.6484375) * transmittance;
       
     if(local_density > 0 && adaptive_sampling){
+      if(!in_cloud){
+        atmo_inscattering = GetSkyLuminanceToPoint(rayOrigin + rayDir * t_cloudfree_start, position, sunDir, atmo_transmittance);
+        inscattering_acc += path_transmittance * atmo_inscattering;
+        path_transmittance *= atmo_transmittance;
+      }
+      in_cloud = true;
+      t_cloudfree_start = t_now;
       //return vec4(10000, 0, 0, 0);
       // substep through this segment
       float t_last_substep = t_last;
@@ -672,23 +662,21 @@ vec4 raymarchInterval(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, vec2 interval, o
           incoming *= in_transmittance;
           //incoming *= vec3(in_transmittance > .9 ? 0 : 1, in_transmittance > .9 ? 1 : 0, 0);
         }
-        //if(close_sampling && progress < close_sample_fraction){
-        //  incoming *= vec3(1, 0, 0);
-        //}
+
         inscattering_acc += scatter_coefficient * sdist * incoming * path_transmittance * CLOUD_COLOR * phase * 4 * PI;
         path_transmittance *= vec3(extinction_along_segment);
         t_last_substep = t_substep;
       }
       
     }else{
+      in_cloud = false;
       float scatter_coefficient = local_density * DENSITY_MULTIPLIER;
       float clamped_dist = clamp(dist, 0, maximum_dist_between_samples);
       float extinction_along_segment = exp(-scatter_coefficient * clamped_dist);
       inscattering_acc += scatter_coefficient * clamped_dist * local_incoming * path_transmittance * CLOUD_COLOR * phase * 4 * PI;
       path_transmittance *= vec3(extinction_along_segment);
     }
-    path_transmittance *= atmo_transmittance;
-    inscattering_acc += path_transmittance * atmo_inscattering;
+
     t_last = t_now;
     last_density = local_density;
     if (path_transmittance.r < .001){
@@ -698,7 +686,15 @@ vec4 raymarchInterval(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, vec2 interval, o
         }
       return vec4(inscattering_acc, path_transmittance.r);
     }
+    progress += minimum_progress;
   }
+  // have to add atmo inscattering when exiting the interval
+  if(!in_cloud){
+    atmo_inscattering = GetSkyLuminanceToPoint(rayOrigin + rayDir * t_cloudfree_start, rayOrigin + rayDir * interval.y, sunDir, atmo_transmittance);
+    inscattering_acc += path_transmittance * atmo_inscattering;
+    path_transmittance *= atmo_transmittance;
+  }
+
   // cheat a little near horizon: approximate scattering from surrounding atmosphere
   if(length(inscattering_acc) < 100 && path_transmittance.r < 1 - 1e-5){
     //surroundingColor = vec3(0, 10000, 0);
@@ -826,8 +822,8 @@ vec4 getCloudColor(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, float surfaceDistan
 
   vec3 transmittance_int1 = vec3(1);
   vec3 transmittance_int2 = vec3(1);
-  vec4 scatter_data1 = raymarchInterval(rayOrigin, rayDir, sunDir, interval1, transmittance_int1, 50, false);
-  vec4 scatter_data2 = raymarchInterval(rayOrigin, rayDir, sunDir, interval2, transmittance_int2, 50, false);
+  vec4 scatter_data1 = raymarchInterval(rayOrigin, rayDir, sunDir, interval1, transmittance_int1, 50, true);
+  vec4 scatter_data2 = raymarchInterval(rayOrigin, rayDir, sunDir, interval2, transmittance_int2, 50, true);
 
   
 

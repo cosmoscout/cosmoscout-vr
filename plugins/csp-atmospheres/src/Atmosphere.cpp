@@ -149,10 +149,6 @@ void Atmosphere::configure(Plugin::Settings::Atmosphere const& settings) {
     if (mSettings.mCloudTexture != settings.mCloudTexture) {
       if (settings.mCloudTexture.has_value() && !settings.mCloudTexture.value().empty()) {
         mCloudTexture = cs::graphics::TextureLoader::loadFromFile(settings.mCloudTexture.value());
-        mCloudTexture->Bind();
-        glTexParameteri(mCloudTexture->GetTarget(), GL_TEXTURE_MAX_LOD, 3);
-        mCloudTexture->Unbind();
-
 
         auto start_time = std::chrono::high_resolution_clock::now();
         std::vector<float> cpu_noise(32*32*32, 0);
