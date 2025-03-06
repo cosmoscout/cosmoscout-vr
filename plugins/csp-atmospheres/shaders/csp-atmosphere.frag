@@ -405,8 +405,12 @@ float GetCloudCoverageHeight(vec3 position, float start_height, float end_height
 }
 
 float ALTO_CUMULUS_START_HEIGHT = 1500;
-float ALTO_CUMULUS_END_HEIGHT = 5000;
+float ALTO_CUMULUS_END_HEIGHT = 8000;
 float COVERAGE_MULTIPLIER = 2;
+float localMaxHeight(vec3 position){
+  float cloud_height_noise = textureLod(uNoiseTexture, position / 10000, 0).r;
+  return ALTO_CUMULUS_END_HEIGHT - cloud_height_noise * (ALTO_CUMULUS_END_HEIGHT - ALTO_CUMULUS_START_HEIGHT) * .8;
+}
 
 // Returns the value of the cloud texture at the position described by the three parameters.
 float getAltoCumulusDensity(vec3 position, bool high_res = true){
@@ -417,8 +421,7 @@ float getAltoCumulusDensity(vec3 position, bool high_res = true){
     return 0;
   }
   //return cloud_coverage_h;
-  float cloud_height_noise = textureLod(uNoiseTexture, position / 10000, 0).r;
-  float cloud_coverage_v = GetCloudCoverageHeight(position, ALTO_CUMULUS_START_HEIGHT, ALTO_CUMULUS_END_HEIGHT - cloud_height_noise * (ALTO_CUMULUS_END_HEIGHT - ALTO_CUMULUS_START_HEIGHT) * .8);
+  float cloud_coverage_v = GetCloudCoverageHeight(position, ALTO_CUMULUS_START_HEIGHT, localMaxHeight(position));
   cloud_coverage_v = pow(cloud_coverage_v, .1);
   float cloud_base = cloud_coverage_h * cloud_coverage_v;
   
@@ -441,20 +444,36 @@ float getAltoCumulusDensity(vec3 position, bool high_res = true){
   return pow(clamp(cloud_density, 0, 1), 3);
 }
 
-float AltoCumulusFreeDistance(vec3 position, vec3 dir){
+bool AltoCumulusGuaranteedFree(vec3 position){
+  float threshold = .1;
   float coverage_horizontal = getCloudCoverageHorizontal(position);
-  if(coverage_horizontal > 0){
+  float maxHeight = localMaxHeight(position);
+  float height = length(position) - PLANET_RADIUS;
+  return coverage_horizontal < threshold || maxHeight < height;
+}
+
+bool pathFree(vec3 start, vec3 end, int samples = 9){
+  bool acc = true;
+  for(int i = 1; i <= samples; i++){
+    float progress = float(i) / float(samples);
+    vec3 position = mix(start, end, progress);
+    acc = acc && AltoCumulusGuaranteedFree(position);
+  }
+  return acc;
+}
+
+float AltoCumulusFreeDistance(vec3 position, vec3 dir){
+  
+  if(!AltoCumulusGuaranteedFree(position)){
     return 0;
   }else{
     float distance = 10000.;
-    float end_sample = getCloudCoverageHorizontal(position + dir * distance);
-    float mid_sample = getCloudCoverageHorizontal(position + dir * distance * .5);
+    bool free = pathFree(position, position + dir * distance);
     int samples_taken = 0;
-    while(end_sample != 0 && mid_sample != 0 && samples_taken < 5){
+    while(samples_taken < 5 && !free){
       distance *= .5;
       samples_taken += 1;
-      end_sample = getCloudCoverageHorizontal(position + dir * distance);
-      mid_sample = getCloudCoverageHorizontal(position + dir * distance * .5);
+      free = pathFree(position, position + dir * distance);
     }
     return distance;
   }
@@ -504,11 +523,11 @@ float getCirrusDensity(vec3 position){
 
 }
 
-float getCloudDensity(vec3 position){
+float getCloudDensity(vec3 position, bool hf = true){
   float acc = 0;
   float height = length(position) - PLANET_RADIUS;
   if(height > ALTO_CUMULUS_START_HEIGHT && height < ALTO_CUMULUS_END_HEIGHT){
-    acc += getAltoCumulusDensity(position);
+    acc += getAltoCumulusDensity(position, hf);
   }
   if(height > CIRRUS_START_HEIGHT && height < CIRRUS_END_HEIGHT){
     //acc += getCirrusDensity(position);
@@ -535,7 +554,7 @@ float henyeyGreenstein(vec3 r1, vec3 r2){
   return 1 / 4 / PI * (1 - g * g) / pow(1 + g * g + 2 * g * cosTheta, 1.5);
 }
 
-float DENSITY_MULTIPLIER = 5e-3;
+float DENSITY_MULTIPLIER = 5e-3 * 5;
 float ABSORBED_FRACTION = .05;
 float raymarchTransmittance(vec3 rayOrigin, vec3 rayDir, vec2 interval, int samples=10){
   if(interval.y < 0){
@@ -586,19 +605,8 @@ vec4 raymarchInterval(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, vec2 interval, o
   float maximum_dist_between_samples = 250;
   float minimum_dist_between_samples = 10;
   float interval_length = interval.y - interval.x;
-  bool close_sampling = false;
-  float close_sample_interval_end = -1;
-  float close_sample_fraction;
-  int close_samples_extra = 10;
   
   bool adaptive_sampling = samples_ref > 10;
-  int samples = samples_ref;
-  float regular_dist_between_samples = interval_length / samples_ref;
-  if(adaptive_sampling){
-    if(regular_dist_between_samples > maximum_dist_between_samples){
-      samples = min(max(int(interval_length / maximum_dist_between_samples), samples_ref), samples_ref * 3);//min(int(interval_length / maximum_dist_between_samples), samples * 2);
-    }
-  }
 
   //return vec4(samples, samples_ref, 0, 0) * 100;
 
@@ -614,34 +622,29 @@ vec4 raymarchInterval(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, vec2 interval, o
 
   //return vec4(samples, )
   float minimum_progress = 10. / interval_length;
-  float big_step_world = 3000;
-  float big_step = big_step_world / interval_length;
-  float standard_step_world = 100.;
-  float standard_step = standard_step_world / interval_length;
-  float cloud_step_world = 50.;
-  float cloud_step = cloud_step_world / interval_length;
-  //cloud_step = standard_step;
 
   // track the start of the current cloud-free part of the interval. 
   // Inscattering from the atmosphere is added when a cloud is encountered.
   float t_cloudfree_start = interval.x;
   bool in_cloud = getCloudDensity(rayOrigin + rayDir * interval.x) > 0;
-
   int samples_taken = 0;
 
   while(progress < 1 && samples_taken < 5000){
     samples_taken += 1;
-    
     float t_now = remap(progress, 0, 1, interval.x, interval.y);
     vec3 position = rayOrigin + rayDir * t_now;
     float freeDistance = AltoCumulusFreeDistance(position, rayDir);
     if(freeDistance > 0){
       progress += freeDistance / interval_length;
     }else{
+      float low_transmittance_multiplier = remap(path_transmittance.r, .3, 0, 1, 5);
+      //float interval_length_multiplier = 1 + remap(interval_length, 50000, 00000, 0, 5) * remap(t_now, 50000, 10000, 0, 1);
       if(in_cloud){
-        progress += cloud_step;
+        float cloud_step = remap(pow(remap(t_now, 0, 50000, 0, 1), .5), 0, 1, 10, 100) / interval_length;
+        progress += cloud_step * low_transmittance_multiplier;
       }else{
-        progress += standard_step;
+        float standard_step = remap(pow(remap(t_now, 0, 100000, 0, 1), .5), 0, 1, 30, 100) / interval_length;
+        progress += standard_step * low_transmittance_multiplier;
       }
     }
 
@@ -650,30 +653,6 @@ vec4 raymarchInterval(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, vec2 interval, o
     float dist = t_now - t_last;
     position = rayOrigin + rayDir * t_now;
 
-    float density_sample = getCloudDensity(position);
-    //if(!in_cloud && dist > cloud_step_world && density_sample > 0){
-    //  float rdist = dist;
-    //  float t_sample = t_now;
-    //  float t_intstart = t_last;
-    //  float t_intend = t_now;
-    //  while(rdist > cloud_step_world){
-    //    if(density_sample > 0){
-    //      t_intend = t_sample;
-    //    }else{
-    //      t_intstart = t_sample;
-    //    }
-    //    t_sample = (t_intstart + t_intend) / 2;
-    //    density_sample = getCloudDensity(rayOrigin + rayDir * t_sample);
-    //    rdist = rdist / 2;
-    //  }
-    //  if(density_sample > 0){
-    //    t_sample -= rdist / 2;
-    //  }
-    //  t_now = t_sample;
-    //  in_cloud = true;
-    //}
-
-    position = rayOrigin + rayDir * t_now;
     float local_density = getCloudDensity(position);
     vec3 transmittance = vec3(1);
     vec3 local_incoming = GetSkyLuminance(position, sunDir, sunDir, transmittance);
@@ -688,10 +667,6 @@ vec4 raymarchInterval(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, vec2 interval, o
       }
       in_cloud = true;
       t_cloudfree_start = t_now;
-      //return vec4(10000, 0, 0, 0);
-      // substep through this segment
-      float t_last_substep = t_last;
-
 
       float substep_progress = 1.;
       float t_substep = remap(substep_progress, 0, 1, t_last, t_now);
@@ -706,13 +681,11 @@ vec4 raymarchInterval(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, vec2 interval, o
       if (secondary_rays){
         vec2 top_intersection = intersectAtmosphere(position, sunDir);
         float in_transmittance = raymarchTransmittance(position, sunDir, vec2(0, top_intersection.y), 10);
-        //incoming *= in_transmittance;
+        incoming *= in_transmittance;
       }
       inscattering_acc += scatter_coefficient * sdist * incoming * path_transmittance * CLOUD_COLOR * phase * 4 * PI;
       path_transmittance *= vec3(extinction_along_segment);
 
-      
-      
     }else{
       in_cloud = false;
     }
@@ -724,11 +697,11 @@ vec4 raymarchInterval(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, vec2 interval, o
           //surroundingColor = vec3(0, 10000, 0);
           path_transmittance = mix(vec3(1), path_transmittance, length(inscattering_acc) / 100);
         }
-      //return vec4(float(samples_taken), float(samples_ref) * 5, 0, 1) * 50;
       return vec4(inscattering_acc, path_transmittance.r);
     }
     progress += minimum_progress;
   }
+
   // have to add atmo inscattering when exiting the interval
   if(!in_cloud){
     atmo_inscattering = GetSkyLuminanceToPoint(rayOrigin + rayDir * t_cloudfree_start, rayOrigin + rayDir * interval.y, sunDir, atmo_transmittance);
