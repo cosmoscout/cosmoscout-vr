@@ -47,7 +47,7 @@ class LodBody : public cs::scene::CelestialSurface,
   LodBody(LodBody&& other)      = delete;
 
   LodBody& operator=(LodBody const& other) = delete;
-  LodBody& operator=(LodBody&& other) = delete;
+  LodBody& operator=(LodBody&& other)      = delete;
 
   ~LodBody() override;
 

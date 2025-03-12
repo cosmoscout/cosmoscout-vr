@@ -49,7 +49,7 @@ class PolygonTool : public IVistaOpenGLDraw, public csl::tools::MultiPointTool {
   PolygonTool(PolygonTool&& other)      = delete;
 
   PolygonTool& operator=(PolygonTool const& other) = delete;
-  PolygonTool& operator=(PolygonTool&& other) = delete;
+  PolygonTool& operator=(PolygonTool&& other)      = delete;
 
   ~PolygonTool() override;
 

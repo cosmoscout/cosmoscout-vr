@@ -32,7 +32,7 @@ class CS_CORE_EXPORT TimeControl {
   TimeControl(TimeControl&& other)      = delete;
 
   TimeControl& operator=(TimeControl const& other) = delete;
-  TimeControl& operator=(TimeControl&& other) = delete;
+  TimeControl& operator=(TimeControl&& other)      = delete;
 
   ~TimeControl();
 

@@ -44,7 +44,7 @@ class CS_GRAPHICS_EXPORT HDRBuffer {
   HDRBuffer(HDRBuffer&& other)      = delete;
 
   HDRBuffer& operator=(HDRBuffer const& other) = delete;
-  HDRBuffer& operator=(HDRBuffer&& other) = delete;
+  HDRBuffer& operator=(HDRBuffer&& other)      = delete;
 
   virtual ~HDRBuffer();
 

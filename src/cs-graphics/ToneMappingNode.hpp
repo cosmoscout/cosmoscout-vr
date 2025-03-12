@@ -39,7 +39,7 @@ class CS_GRAPHICS_EXPORT ToneMappingNode : public IVistaOpenGLDraw, public Vista
   ToneMappingNode(ToneMappingNode&& other)      = delete;
 
   ToneMappingNode& operator=(ToneMappingNode const& other) = delete;
-  ToneMappingNode& operator=(ToneMappingNode&& other) = delete;
+  ToneMappingNode& operator=(ToneMappingNode&& other)      = delete;
 
   ~ToneMappingNode() override;
 

@@ -592,11 +592,11 @@ class TimelineApi extends IApi {
    * @private
    */
   _moveWindow() {
-    const step    = CosmoScout.utils.convertSeconds(this._timelineRangeFactor);
-    let startDate = new Date(this._centerTime.getTime());
-    let endDate   = new Date(this._centerTime.getTime());
-    startDate     = CosmoScout.utils.decreaseDate(
-        startDate, step.days, step.hours, step.minutes, step.seconds, step.milliSec);
+    const step      = CosmoScout.utils.convertSeconds(this._timelineRangeFactor);
+    let   startDate = new Date(this._centerTime.getTime());
+    let   endDate   = new Date(this._centerTime.getTime());
+    startDate       = CosmoScout.utils.decreaseDate(
+              startDate, step.days, step.hours, step.minutes, step.seconds, step.milliSec);
     endDate = CosmoScout.utils.increaseDate(
         endDate, step.days, step.hours, step.minutes, step.seconds, step.milliSec);
     this._updateOverviewLens();
@@ -612,7 +612,7 @@ class TimelineApi extends IApi {
    * @private
    */
   _itemOverCallback(properties) {
-    let bookmark    = this._bookmarks.get(properties.item);
+    let   bookmark  = this._bookmarks.get(properties.item);
     const eventRect = properties.event.target.getBoundingClientRect();
 
     CosmoScout.callbacks.bookmark.showTooltip(

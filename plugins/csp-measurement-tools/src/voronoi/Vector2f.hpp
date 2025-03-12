@@ -26,7 +26,7 @@ struct Vector2f {
   Vector2f(Vector2f&& other) = default;
 
   Vector2f& operator=(Vector2f const& other) = default;
-  Vector2f& operator=(Vector2f&& other) = default;
+  Vector2f& operator=(Vector2f&& other)      = default;
 
   ~Vector2f() = default;
 

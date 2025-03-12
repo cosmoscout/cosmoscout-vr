@@ -50,7 +50,7 @@ class CS_GRAPHICS_EXPORT ShadowMap : public IVistaOpenGLDraw {
   ShadowMap(ShadowMap&& other)      = delete;
 
   ShadowMap& operator=(ShadowMap const& other) = delete;
-  ShadowMap& operator=(ShadowMap&& other) = delete;
+  ShadowMap& operator=(ShadowMap&& other)      = delete;
 
   ~ShadowMap() override;
 

@@ -542,7 +542,7 @@ void Plugin::onLoad() {
       mWmsCreationThreads.at(settings.first).enqueue([this, settings, wmsUrl]() {
         try {
           WebMapService                wms(wmsUrl, mPluginSettings->mUseCapabilityCache.get(),
-              mPluginSettings->mCapabilityCache.get());
+                             mPluginSettings->mCapabilityCache.get());
           std::unique_lock<std::mutex> lock(mWmsInsertMutex);
           mWms[settings.first].push_back(std::move(wms));
         } catch (std::exception const& e) {
@@ -607,8 +607,8 @@ void Plugin::setWMSServer(
     std::shared_ptr<TextureOverlayRenderer> const& wmsOverlay, std::string const& name) {
   auto&       settings = getBodySettings(wmsOverlay);
   auto const& server   = std::find_if(mWms.at(wmsOverlay->getObjectName()).begin(),
-      mWms.at(wmsOverlay->getObjectName()).end(),
-      [&name](WebMapService const& wms) { return wms.getTitle() == name; });
+        mWms.at(wmsOverlay->getObjectName()).end(),
+        [&name](WebMapService const& wms) { return wms.getTitle() == name; });
 
   if (server == mWms.at(wmsOverlay->getObjectName()).end()) {
     if (name != "None") {

@@ -52,18 +52,13 @@ const char* const ScreenSpaceGuiArea::QUAD_FRAG = R"(
 in vec2 vTexCoords;
 in vec4 vPosition;
 
-uniform samplerBuffer texture;
+uniform sampler2D texture;
 uniform ivec2 texSize;
 
 layout(location = 0) out vec4 vOutColor;
 
-vec4 getTexel(ivec2 p) {
-  p = clamp(p, ivec2(0), texSize - ivec2(1));
-  return texelFetch(texture, p.y * texSize.x + p.x).bgra;
-}
-
 void main() {
-  vOutColor = getTexel(ivec2(vec2(texSize) * vTexCoords));
+  vOutColor = texelFetch(texture, ivec2(texSize * vTexCoords), 0);
   if (vOutColor.a == 0.0) discard;
   vOutColor.rgb /= vOutColor.a;
 }
@@ -139,12 +134,12 @@ bool ScreenSpaceGuiArea::Do() {
       glUniform2i(mUniforms.texSize, guiItem->getTextureSizeX(), guiItem->getTextureSizeY());
 
       glActiveTexture(GL_TEXTURE0);
-      glBindTexture(GL_TEXTURE_BUFFER, guiItem->getTexture());
+      glBindTexture(GL_TEXTURE_2D, guiItem->getTexture());
       mShader.SetUniform(mUniforms.texture, 0);
 
       glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
-      glBindTexture(GL_TEXTURE_BUFFER, 0);
+      glBindTexture(GL_TEXTURE_2D, 0);
     }
   }
 

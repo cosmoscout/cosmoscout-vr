@@ -55,7 +55,7 @@ class CS_CORE_EXPORT SolarSystem {
   SolarSystem(SolarSystem&& other)      = delete;
 
   SolarSystem& operator=(SolarSystem const& other) = delete;
-  SolarSystem& operator=(SolarSystem&& other) = delete;
+  SolarSystem& operator=(SolarSystem&& other)      = delete;
 
   ~SolarSystem();
 

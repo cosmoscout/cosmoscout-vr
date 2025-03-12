@@ -37,7 +37,7 @@ class TileRenderer {
   TileRenderer(TileRenderer&& other)      = delete;
 
   TileRenderer& operator=(TileRenderer const& other) = delete;
-  TileRenderer& operator=(TileRenderer&& other) = delete;
+  TileRenderer& operator=(TileRenderer&& other)      = delete;
 
   TreeManager* getTreeManager() const;
 

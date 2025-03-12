@@ -70,7 +70,7 @@ std::vector<WebMapLayer> const& WebMapService::getLayers() const {
 std::optional<WebMapLayer> WebMapService::getLayer(std::string const& name) const {
   std::vector<WebMapLayer> layers = getLayers();
   auto                     layer  = std::find_if(
-      layers.begin(), layers.end(), [name](WebMapLayer const& l) { return l.getName() == name; });
+                           layers.begin(), layers.end(), [name](WebMapLayer const& l) { return l.getName() == name; });
   if (layer == layers.end()) {
     return {};
   }
