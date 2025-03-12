@@ -571,8 +571,8 @@ float henyeyGreenstein(vec3 r1, vec3 r2){
   return 1 / 4 / PI * (1 - g * g) / pow(1 + g * g + 2 * g * cosTheta, 1.5);
 }
 
-float DENSITY_MULTIPLIER = 5e-3 * 10;
-float ABSORBED_FRACTION = .05;
+float DENSITY_MULTIPLIER = 5e-3 * 20;
+float ABSORBED_FRACTION = .0001;
 float raymarchTransmittance(vec3 rayOrigin, vec3 rayDir, vec2 interval, int samples=10){
   if(interval.y < 0){
     return 1.;
@@ -585,7 +585,7 @@ float raymarchTransmittance(vec3 rayOrigin, vec3 rayDir, vec2 interval, int samp
 
   for(int i = 1; i <= samples; ++i){
     // could be adapted for importance sampling
-    float progress = float(i) / float(samples);
+    float progress = pow(float(i) / float(samples), 2);
     float t_now = remap(progress, 0, 1, interval.x, interval.y);
 
     float dist = t_now - t_last;
@@ -644,6 +644,7 @@ vec4 raymarchInterval(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, vec2 interval, o
   float t_cloudfree_start = interval.x;
   float start_density = getCloudDensity(rayOrigin + rayDir * interval.x);
   bool in_cloud = start_density > 0;
+  float in_cloud_counter = 0;
   float last_scatter_coefficient = start_density * DENSITY_MULTIPLIER;
   int samples_taken = 0;
   float maximum_density = 0;
@@ -666,13 +667,14 @@ vec4 raymarchInterval(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, vec2 interval, o
     
     if(!skipped){
       float low_transmittance_multiplier = remap(path_transmittance.r, .5, 0, 1, 3);
+      float samples_taken_multiplier = remap(float(samples_taken) / maximum_samples, 0, 1, 1, 20);
       //float random_multiplier = 1 + .8 * (texture(uNoiseTexture, position).r - .5) * remap(t_now, 0, 100000, 1, 0);
       float random_multiplier= 1;
       float close_step = 20;
-      float mid_step = 50;
-      float far_step = 100;
-      float mid_distance = 50000;
-      float far_distance = 500000;
+      float mid_step = 100;
+      float far_step = 200;
+      float mid_distance = 40000;
+      float far_distance = 200000;
       float step = 30;
       if(t_now < mid_distance){
         step = remap(t_now, 0, mid_distance, close_step, mid_step);
@@ -680,7 +682,7 @@ vec4 raymarchInterval(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, vec2 interval, o
         step = remap(t_now, mid_distance, far_distance, mid_step, far_step);
       }
       step /= interval_length;
-      progress += step * low_transmittance_multiplier * random_multiplier;
+      progress += step * low_transmittance_multiplier * random_multiplier * samples_taken_multiplier;
     }
 
     progress = clamp(progress, 0, 1);
@@ -703,22 +705,23 @@ vec4 raymarchInterval(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, vec2 interval, o
         path_transmittance *= atmo_transmittance;
       }
       in_cloud = true;
+      in_cloud_counter +=1;
       t_cloudfree_start = t_now;
 
       float sdist = dist;
       // clamp to keep it reasonable for very far away clouds
       sdist = clamp(sdist, 0, maximum_dist_between_samples);
-      float sigma_t = scatter_coefficient * (1 + ABSORBED_FRACTION);
+      float sigma_t = (scatter_coefficient + last_scatter_coefficient) / 2 * (1 + ABSORBED_FRACTION);
       float transmittance_along_segment = exp(-sigma_t * sdist);
       vec3 incoming = local_incoming;
       if (secondary_rays){
-        vec2 top_intersection = intersectAtmosphere(position, sunDir);
-        float in_transmittance = raymarchTransmittance(position, sunDir, vec2(0, top_intersection.y), 20);
-        //incoming *= in_transmittance;
+        vec2 top_intersection = intersectSphere(position, sunDir, PLANET_RADIUS + ALTO_CUMULUS_END_HEIGHT);
+        float in_transmittance = raymarchTransmittance(position, sunDir, vec2(0, top_intersection.y), 10);
+        incoming *= in_transmittance;
       }
       vec3 S = scatter_coefficient * incoming * phase * 4 * PI * CLOUD_COLOR;
-      //inscattering_acc += path_transmittance * (S - S * transmittance_along_segment) / sigma_t;
-      inscattering_acc += S * sdist * path_transmittance;
+      inscattering_acc += path_transmittance * (S - S * transmittance_along_segment) / sigma_t;
+      //inscattering_acc += S * sdist * path_transmittance;
 
       float denom = 1 / (sdist * sigma_t * sigma_t);
       float scatter_diff = scatter_coefficient - last_scatter_coefficient;
@@ -735,6 +738,7 @@ vec4 raymarchInterval(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, vec2 interval, o
       path_transmittance *= vec3(transmittance_along_segment);
     }else{
       in_cloud = false;
+      in_cloud_counter = 0;
     }
 
     t_last = t_now;
