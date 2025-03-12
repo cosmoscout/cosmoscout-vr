@@ -42,6 +42,9 @@ uniform float     uCloudAltitude;
 uniform sampler3D uLimbLuminanceTexture;
 uniform vec3      uShadowCoordinates;
 uniform sampler3D uNoiseTexture;
+uniform sampler2D uNoiseTexture2D;
+uniform sampler2D uCloudTop;
+uniform sampler2D uCloudBottom;
 uniform float     uTestUniform;
 
 // outputs
@@ -411,12 +414,20 @@ float GetCloudCoverageHeight(vec3 position, float start_height, float end_height
   // "progress" in cloud from bottom to top in range 0 to 1
   float height_in_cloud = remap(length(position), PLANET_RADIUS + start_height, topAltitude, 0, 1);
   float height_component = remap(height_in_cloud, 0, .05, 0, 1) * pow(remap(height_in_cloud, 0.3, 1, 1, 0), 2);
-  vec4 noise_sample = textureLod(uNoiseTexture, position / 20000, 4);
-  float worley_noise = pow(1-noise_sample.b, 2);
-  float perlin_noise = pow(noise_sample.r, 2);
-  float noise = clamp(worley_noise + perlin_noise, 0,1);
+
+  vec2 lngLat = getLngLat(position);
+  vec2 texCoords = vec2(lngLat.x / (2 * PI) + 0.5, 1.0 - lngLat.y / PI + 0.5);
+  float top_type = clamp(textureLod(uNoiseTexture2D, texCoords * 10, 0).r, 0, 1);
+  float bottom_type = clamp(textureLod(uNoiseTexture2D, texCoords * 300, 0).r, 0, 1);
+  float from_type = clamp(textureLod(uCloudTop, vec2(1-remap(height_in_cloud, .3, 1, 0, 1), top_type), 0).r, 0, 1);
+  float from_b_type = clamp(textureLod(uCloudBottom, vec2(remap(height_in_cloud, 0, .3, 0, 1), bottom_type), 0).r, 0, 1);
+
+  //if(height_in_cloud > .3){
+  //  float top_type = textureLod(uNoiseTexture2D, texCoords * 100, 0).r;
+  //  height_component = textureLod(uCloudTop, vec2(1-remap(height_in_cloud, .3, 1, 0, 1), top_type), 0).r;
+  //}
   //return 1 - height_in_cloud;
-  return clamp(pow(height_component * perlin_noise, 1), 0, 1);
+  return clamp(pow(from_type * from_b_type, 2), 0, 1);
 }
 
 // Returns the value of the cloud texture at the position described by the three parameters.
@@ -439,11 +450,11 @@ float getAltoCumulusDensity(vec3 position, bool high_res = true){
     return clamp(base_with_noise, 0, 1);
   }
   float cloud_density = base_with_noise;
-  float hf_noise1 = textureLod(uNoiseTexture, position / 5000, 0).r;
-  float hf_noise2 = textureLod(uNoiseTexture, position / 5000, 0).r;
-  float hf_noise3 = 1-textureLod(uNoiseTexture, position / 10000, 0).b;
-  cloud_density = remap(cloud_density, hf_noise3 / 500, 1, 0, 1);
-  cloud_density = remap(cloud_density, hf_noise2 / 100, 1, 0, 1);
+  float hf_noise1 = textureLod(uNoiseTexture, position / 3000, 0).r;
+  float hf_noise2 = textureLod(uNoiseTexture, position / 7000, 0).r;
+  float hf_noise3 = 1-textureLod(uNoiseTexture, position / 30000, 0).b;
+  cloud_density = remap(cloud_density, hf_noise3 / 200, 1, 0, 1);
+  cloud_density = remap(cloud_density, hf_noise2 / 300, 1, 0, 1);
   cloud_density = remap(cloud_density, hf_noise1 / 300, 1, 0, 1);
   if(isnan(cloud_density)){
     cloud_density = 0;
@@ -481,7 +492,7 @@ float AltoCumulusFreeDistance(vec3 position, vec3 dir){
     float distance = 20000.;
     bool free = pathFree(position, position + dir * distance);
     int samples_taken = 0;
-    while(samples_taken < 10 && !free){
+    while(samples_taken < 7 && !free){
       distance *= .5;
       samples_taken += 1;
       free = pathFree(position, position + dir * distance);
@@ -571,7 +582,7 @@ float henyeyGreenstein(vec3 r1, vec3 r2){
   return 1 / 4 / PI * (1 - g * g) / pow(1 + g * g + 2 * g * cosTheta, 1.5);
 }
 
-float DENSITY_MULTIPLIER = 5e-3 * 20;
+float DENSITY_MULTIPLIER = 5e-3 * 3;
 float ABSORBED_FRACTION = .0001;
 float raymarchTransmittance(vec3 rayOrigin, vec3 rayDir, vec2 interval, int samples=10){
   if(interval.y < 0){
@@ -1053,7 +1064,7 @@ float getCloudShadow(vec3 rayOrigin, vec3 rayDir) {
   #if OLD_CLOUDS
   return 1.0 - getCloudDensityOld(rayOrigin, rayDir, intersections.y) * fac;
   #else
-  topAltitude = PLANET_RADIUS + 8500;
+  topAltitude = PLANET_RADIUS + ALTO_CUMULUS_END_HEIGHT;
   thickness = 8000;
 
   vec2 topIntersections = intersectSphere(rayOrigin, rayDir, topAltitude);

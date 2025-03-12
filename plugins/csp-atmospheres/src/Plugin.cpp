@@ -69,6 +69,8 @@ void from_json(nlohmann::json const& j, Plugin::Settings::Atmosphere& o) {
   cs::core::Settings::deserialize(j, "enableClouds", o.mEnableClouds);
   cs::core::Settings::deserialize(j, "oldClouds", o.mOldClouds);
   cs::core::Settings::deserialize(j, "cloudTexture", o.mCloudTexture);
+  cs::core::Settings::deserialize(j, "cloudBottom", o.mBottomTexture);
+  cs::core::Settings::deserialize(j, "cloudTop", o.mTopTexture);
   cs::core::Settings::deserialize(j, "cloudAltitude", o.mCloudAltitude);
   cs::core::Settings::deserialize(j, "enableLimbLuminance", o.mEnableLimbLuminance);
   cs::core::Settings::deserialize(j, "limbLuminanceTexture", o.mLimbLuminanceTexture);
@@ -86,6 +88,8 @@ void to_json(nlohmann::json& j, Plugin::Settings::Atmosphere const& o) {
   cs::core::Settings::serialize(j, "enableClouds", o.mEnableClouds);
   cs::core::Settings::serialize(j, "oldClouds", o.mOldClouds);
   cs::core::Settings::serialize(j, "cloudTexture", o.mCloudTexture);
+  cs::core::Settings::serialize(j, "cloudBottom", o.mBottomTexture);
+  cs::core::Settings::serialize(j, "cloudTop", o.mTopTexture);
   cs::core::Settings::serialize(j, "cloudAltitude", o.mCloudAltitude);
   cs::core::Settings::serialize(j, "enableLimbLuminance", o.mEnableLimbLuminance);
   cs::core::Settings::serialize(j, "limbLuminanceTexture", o.mLimbLuminanceTexture);

@@ -113,6 +113,10 @@ Atmosphere::~Atmosphere() {
   if (mNoiseTexture != 0) {
     glDeleteTextures(1, &mNoiseTexture);
   }
+
+  if(mNoiseTexture2D != 0) {
+    glDeleteTextures(1, &mNoiseTexture2D);
+  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -156,16 +160,20 @@ void Atmosphere::configure(Plugin::Settings::Atmosphere const& settings) {
         resy = 64;
         resz = 64;
         channels = 3;
-        std::vector<float> cpu_noise(resx * resy * resz * channels, 0);
+        std::vector<float> cpu_noise3D(resx * resy * resz * channels, 0);
+        std::vector<float> cpu_noise2D(resx * resy * channels, 0);
         for(int i = 0; i < resz; i++){
           float u = (float)i / (resz - 1);
           for(int j = 0; j < resy; j++){
             float v = (float)j / (resy- 1);
+            cpu_noise2D[(i * resx + j) * channels] = Tileable3dNoise::PerlinNoise(glm::vec3(u, v, 2), 20, 5);
+            cpu_noise2D[(i * resx + j) * channels + 1] = Tileable3dNoise::PerlinNoise(glm::vec3(u, v, 2), 50, 5);
+            cpu_noise2D[(i * resx + j) * channels + 2] = Tileable3dNoise::WorleyNoise(glm::vec3(u, v, 2), 15);
             for(int k = 0; k < resx; k++){
               float w = (float)k / (resx - 1);
-              cpu_noise[(i * resy * resx + j * resx + k) * channels] = Tileable3dNoise::PerlinNoise(glm::vec3(u, v, w), 5, 5);
-              cpu_noise[(i * resy * resx + j * resx + k) * channels + 1] = Tileable3dNoise::PerlinNoise(glm::vec3(u, v, w), 3, 10);
-              cpu_noise[(i * resy * resx + j * resx + k) * channels + 2] = Tileable3dNoise::WorleyNoise(glm::vec3(u, v, w), 7);
+              cpu_noise3D[(i * resy * resx + j * resx + k) * channels] = Tileable3dNoise::PerlinNoise(glm::vec3(u, v, w), 5, 5);
+              cpu_noise3D[(i * resy * resx + j * resx + k) * channels + 1] = Tileable3dNoise::PerlinNoise(glm::vec3(u, v, w), 3, 10);
+              cpu_noise3D[(i * resy * resx + j * resx + k) * channels + 2] = Tileable3dNoise::WorleyNoise(glm::vec3(u, v, w), 7);
               
 
             }
@@ -185,13 +193,47 @@ void Atmosphere::configure(Plugin::Settings::Atmosphere const& settings) {
         glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
-        glTexImage3D(GL_TEXTURE_3D, 0, GL_RGB, resx, resy, resz, 0, GL_RGB, GL_FLOAT, cpu_noise.data());
+        glTexImage3D(GL_TEXTURE_3D, 0, GL_RGB, resx, resy, resz, 0, GL_RGB, GL_FLOAT, cpu_noise3D.data());
+        
+        glGenTextures(1, &mNoiseTexture2D);
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, mNoiseTexture2D);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, resx, resy, 0, GL_RGB, GL_FLOAT, cpu_noise2D.data());
       } else {
         mCloudTexture.reset();
-
       }
       mShaderDirty = true;
     }
+
+    if(mSettings.mBottomTexture != settings.mBottomTexture){
+      if (settings.mBottomTexture.has_value() && !settings.mBottomTexture.value().empty()) {
+        mBottomTexture = cs::graphics::TextureLoader::loadFromFile(settings.mBottomTexture.value());
+        mBottomTexture->SetWrapS(GL_CLAMP);
+        mBottomTexture->SetWrapT(GL_CLAMP);
+      }else{
+        mBottomTexture.reset();
+      }
+      mShaderDirty = true;
+    }
+
+    if(mSettings.mTopTexture != settings.mTopTexture){
+      if (settings.mTopTexture.has_value() && !settings.mTopTexture.value().empty()) {
+        mTopTexture = cs::graphics::TextureLoader::loadFromFile(settings.mTopTexture.value());
+        mTopTexture->SetWRAPS(GL_CLAMP);
+        mTopTexture->SetWrapT(GL_CLAMP);
+      }else{
+        mTopTexture.reset();
+      }
+      mShaderDirty = true;
+    }
+    logger().info("read top texture at " + settings.mTopTexture.value());
+    logger().info("read bottom texture at " + settings.mBottomTexture.value());
+    
 
     // Reload the limb luminance texture if required.
     if (mSettings.mLimbLuminanceTexture != settings.mLimbLuminanceTexture) {
@@ -245,7 +287,7 @@ void Atmosphere::createShader(ShaderType type, VistaGLSLShader& shader, Uniforms
   cs::utils::replaceString(
       sFrag, "ATMOSPHERE_RADIUS", std::to_string(mRadii[0] + mSettings.mTopAltitude));
   cs::utils::replaceString(
-      sFrag, "ENABLE_CLOUDS", std::to_string(mSettings.mEnableClouds.get() && mCloudTexture));
+      sFrag, "ENABLE_CLOUDS", std::to_string(mSettings.mEnableClouds.get() && mCloudTexture && mTopTexture && mBottomTexture));
   cs::utils::replaceString(
     sFrag, "OLD_CLOUDS", std::to_string(mSettings.mOldClouds.get()));
   cs::utils::replaceString(sFrag, "ENABLE_LIMB_LUMINANCE",
@@ -284,6 +326,9 @@ void Atmosphere::createShader(ShaderType type, VistaGLSLShader& shader, Uniforms
   uniforms.sunElevation              = shader.GetUniformLocation("sunElevation");
   uniforms.shadowCoordinates         = shader.GetUniformLocation("uShadowCoordinates");
   uniforms.noiseTexture              = shader.GetUniformLocation("uNoiseTexture");
+  uniforms.noiseTexture2D            = shader.GetUniformLocation("uNoiseTexture2D");
+  uniforms.cloudBottom               = shader.GetUniformLocation("uCloudBottom");
+  uniforms.cloudTop                  = shader.GetUniformLocation("uCloudTop");
 
 
   // printing the names of the uniforms
@@ -512,6 +557,24 @@ bool Atmosphere::Do() {
     glBindTexture(GL_TEXTURE_3D, mNoiseTexture);
     mAtmoShader.SetUniform(mAtmoUniforms.noiseTexture, 4);
   }
+  
+  if (mSettings.mEnableClouds.get() && mTopTexture) {
+    mTopTexture->Bind(GL_TEXTURE5);
+    mAtmoShader.SetUniform(mAtmoUniforms.cloudTop, 5);
+  }
+
+  if (mSettings.mEnableClouds.get() && mBottomTexture) {
+    mBottomTexture->Bind(GL_TEXTURE6);
+    mAtmoShader.SetUniform(mAtmoUniforms.cloudBottom, 6);
+  }
+  
+  
+  if (mSettings.mEnableClouds.get() && mNoiseTexture2D) {
+    glActiveTexture(GL_TEXTURE7);
+    glBindTexture(GL_TEXTURE_2D, mNoiseTexture2D);
+    mAtmoShader.SetUniform(mAtmoUniforms.noiseTexture2D, 7);
+  }
+  
 
   glUniformMatrix4fv(
       mAtmoUniforms.inverseModelViewMatrix, 1, GL_FALSE, glm::value_ptr(glm::mat4(matInvMV)));
