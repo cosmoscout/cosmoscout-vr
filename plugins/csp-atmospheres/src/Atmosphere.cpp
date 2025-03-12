@@ -152,18 +152,22 @@ void Atmosphere::configure(Plugin::Settings::Atmosphere const& settings) {
 
         auto start_time = std::chrono::high_resolution_clock::now();
         int resx, resy, resz, channels;
-        resx = 128;
-        resy = 128;
-        resz = 128;
+        resx = 64;
+        resy = 64;
+        resz = 64;
         channels = 3;
-        std::vector<float> cpu_noise(32*32*32 * channels, 0);
+        std::vector<float> cpu_noise(resx * resy * resz * channels, 0);
         for(int i = 0; i < resz; i++){
           float u = (float)i / (resz - 1);
           for(int j = 0; j < resy; j++){
             float v = (float)j / (resy- 1);
             for(int k = 0; k < resx; k++){
               float w = (float)k / (resx - 1);
-              cpu_noise[i * resy * resx + j * resx + k] = Tileable3dNoise::PerlinNoise(glm::vec3(u, v, w), 5, 5);
+              cpu_noise[(i * resy * resx + j * resx + k) * channels] = Tileable3dNoise::PerlinNoise(glm::vec3(u, v, w), 5, 5);
+              cpu_noise[(i * resy * resx + j * resx + k) * channels + 1] = Tileable3dNoise::PerlinNoise(glm::vec3(u, v, w), 3, 10);
+              cpu_noise[(i * resy * resx + j * resx + k) * channels + 2] = Tileable3dNoise::WorleyNoise(glm::vec3(u, v, w), 7);
+              
+
             }
           }
         }
@@ -181,7 +185,7 @@ void Atmosphere::configure(Plugin::Settings::Atmosphere const& settings) {
         glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
-        glTexImage3D(GL_TEXTURE_3D, 0, GL_RED, resx, resy, resz, 0, GL_RGB, GL_FLOAT, cpu_noise.data());
+        glTexImage3D(GL_TEXTURE_3D, 0, GL_RGB, resx, resy, resz, 0, GL_RGB, GL_FLOAT, cpu_noise.data());
       } else {
         mCloudTexture.reset();
 

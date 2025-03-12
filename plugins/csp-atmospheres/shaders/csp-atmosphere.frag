@@ -381,6 +381,7 @@ float remap(float v, float min_old, float max_old, float min_new, float max_new)
 
 
 float baseCloudNoise(vec3 position){
+  return 1;
   float lower_freq = textureLod(uNoiseTexture, position / 40000, 0).r;
   float higher_freq = textureLod(uNoiseTexture, position / 15000, 0).r;
   return remap(lower_freq, higher_freq, 1, 0, 1);
@@ -391,7 +392,7 @@ float getCloudCoverageHorizontal(vec3 position){
   vec2 lngLat = getLngLat(position);
   vec2 texCoords = vec2(lngLat.x / (2 * PI) + 0.5, 1.0 - lngLat.y / PI + 0.5);
   float density = textureLod(uCloudTexture, texCoords, 0).r;
-  return remap(density + .1, .3, .7, 0, 1);
+  return pow(clamp(remap(density, 0, 1, -.5, 1), 0, 1), 2);//remap(density + .1, .3, .7, 0, 1);
 }
 
 float ALTO_CUMULUS_START_HEIGHT = 1500;
@@ -404,14 +405,18 @@ float localMaxHeight(vec3 position){
 }
 
 float GetCloudCoverageHeight(vec3 position, float start_height, float end_height){
-  end_height = localMaxHeight(position);
+  end_height = ALTO_CUMULUS_END_HEIGHT;//localMaxHeight(position);
   float topAltitude = PLANET_RADIUS + end_height;
   float thickness = end_height - start_height;
   // "progress" in cloud from bottom to top in range 0 to 1
   float height_in_cloud = remap(length(position), PLANET_RADIUS + start_height, topAltitude, 0, 1);
-  float height_component = remap(height_in_cloud, 0, .45, 0, 1) * remap(height_in_cloud, 0.55, 1, 1, 0);
+  float height_component = remap(height_in_cloud, 0, .05, 0, 1) * pow(remap(height_in_cloud, 0.3, 1, 1, 0), 2);
+  vec4 noise_sample = textureLod(uNoiseTexture, position / 20000, 4);
+  float worley_noise = pow(1-noise_sample.b, 2);
+  float perlin_noise = pow(noise_sample.r, 2);
+  float noise = clamp(worley_noise + perlin_noise, 0,1);
   //return 1 - height_in_cloud;
-  return pow(height_component, .2);
+  return clamp(pow(height_component * perlin_noise, 1), 0, 1);
 }
 
 // Returns the value of the cloud texture at the position described by the three parameters.
@@ -427,24 +432,23 @@ float getAltoCumulusDensity(vec3 position, bool high_res = true){
   float cloud_base = cloud_coverage_h * cloud_coverage_v;
   float noise = baseCloudNoise(position);
   //float base_with_noise = remap(cloud_base, noise, 1, 0, 1);
-  float base_with_noise = clamp(noise - (1-cloud_base * 3), 0, 1);
+  float base_with_noise = cloud_base;//clamp(noise - (1-cloud_base * 3), 0, 1);
   //return cloud_base;
   //return base_with_noise;
   if(!high_res){
     return clamp(base_with_noise, 0, 1);
   }
   float cloud_density = base_with_noise;
-  float hf_noise1 = textureLod(uNoiseTexture, position / 1200, 0).r;
-  float hf_noise2 = textureLod(uNoiseTexture, position / 2500, 0).r;
-  float hf_noise3 = textureLod(uNoiseTexture, position / 5000, 0).r;
-  cloud_density = remap(cloud_density, hf_noise3, 1, 0, 1);
-  cloud_density = remap(cloud_density, hf_noise2, 1, 0, 1);
-  cloud_density = pow(cloud_density, .5);
-  cloud_density = remap(cloud_density, hf_noise1, 1, 0, 1);
+  float hf_noise1 = textureLod(uNoiseTexture, position / 5000, 0).r;
+  float hf_noise2 = textureLod(uNoiseTexture, position / 5000, 0).r;
+  float hf_noise3 = 1-textureLod(uNoiseTexture, position / 10000, 0).b;
+  cloud_density = remap(cloud_density, hf_noise3 / 500, 1, 0, 1);
+  cloud_density = remap(cloud_density, hf_noise2 / 100, 1, 0, 1);
+  cloud_density = remap(cloud_density, hf_noise1 / 300, 1, 0, 1);
   if(isnan(cloud_density)){
     cloud_density = 0;
   }
-  return pow(clamp(cloud_density, 0, 1), 3);
+  return clamp(cloud_density, 0, 1);
 }
 
 bool AltoCumulusGuaranteedFree(vec3 position){
@@ -642,6 +646,7 @@ vec4 raymarchInterval(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, vec2 interval, o
   bool in_cloud = start_density > 0;
   float last_scatter_coefficient = start_density * DENSITY_MULTIPLIER;
   int samples_taken = 0;
+  float maximum_density = 0;
 
   int maximum_samples = 1000;
   while(progress < 1 && samples_taken < maximum_samples){
@@ -665,7 +670,7 @@ vec4 raymarchInterval(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, vec2 interval, o
       float random_multiplier= 1;
       float close_step = 20;
       float mid_step = 50;
-      float far_step = 50;
+      float far_step = 100;
       float mid_distance = 50000;
       float far_distance = 500000;
       float step = 30;
@@ -684,6 +689,7 @@ vec4 raymarchInterval(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, vec2 interval, o
     position = rayOrigin + rayDir * t_now;
 
     float local_density = getCloudDensity(position);
+    maximum_density = clamp(max(maximum_density, local_density), 0, 1);
     float scatter_coefficient = local_density * DENSITY_MULTIPLIER;
     vec3 transmittance = vec3(1);
     vec3 local_incoming = GetSkyLuminance(position, sunDir, sunDir, transmittance);
@@ -740,6 +746,7 @@ vec4 raymarchInterval(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, vec2 interval, o
           path_transmittance = mix(vec3(1), path_transmittance, length(inscattering_acc) / 100);
         }
       float skipped_fraction = skipped_distance / interval_length;
+      //return vec4(maximum_density, 1-maximum_density, 0, 1)*10000;
       //return vec4(skipped_fraction, 1-skipped_fraction, 0, 1)*10000;
       return vec4(inscattering_acc, path_transmittance.r);
     }
@@ -749,6 +756,7 @@ vec4 raymarchInterval(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, vec2 interval, o
   //return vec4(skipped_fraction, 1-skipped_fraction, 0, 1)*10000;
   float sample_ratio = float(samples_taken) / float(maximum_samples);
   //return vec4(sample_ratio, 1-sample_ratio, 0, 1)*10000;
+  //return vec4(maximum_density, 1-maximum_density, 0, 1)*10000;
   if(samples_taken == maximum_samples){
     return vec4(0, 0, 10000, 1);
   }
