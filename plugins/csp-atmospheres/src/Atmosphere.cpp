@@ -151,14 +151,19 @@ void Atmosphere::configure(Plugin::Settings::Atmosphere const& settings) {
         mCloudTexture = cs::graphics::TextureLoader::loadFromFile(settings.mCloudTexture.value());
 
         auto start_time = std::chrono::high_resolution_clock::now();
-        std::vector<float> cpu_noise(32*32*32, 0);
-        for(int i = 0; i < 32; i++){
-          float u = (float)i / (32 - 1);
-          for(int j = 0; j < 32; j++){
-            float v = (float)j / (32- 1);
-            for(int k = 0; k < 32; k++){
-              float w = (float)k / (32 - 1);
-              cpu_noise[i * 32 * 32 + j * 32 + k] = Tileable3dNoise::PerlinNoise(glm::vec3(u, v, w), 5, 5);
+        int resx, resy, resz, channels;
+        resx = 128;
+        resy = 128;
+        resz = 128;
+        channels = 3;
+        std::vector<float> cpu_noise(32*32*32 * channels, 0);
+        for(int i = 0; i < resz; i++){
+          float u = (float)i / (resz - 1);
+          for(int j = 0; j < resy; j++){
+            float v = (float)j / (resy- 1);
+            for(int k = 0; k < resx; k++){
+              float w = (float)k / (resx - 1);
+              cpu_noise[i * resy * resx + j * resx + k] = Tileable3dNoise::PerlinNoise(glm::vec3(u, v, w), 5, 5);
             }
           }
         }
@@ -176,8 +181,7 @@ void Atmosphere::configure(Plugin::Settings::Atmosphere const& settings) {
         glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
-        glTexImage3D(GL_TEXTURE_3D, 0, GL_RED, 32, 32, 32, 0, GL_RED, GL_FLOAT, cpu_noise.data());
-        std::vector<float> cpu_data(128*128*128, 0);
+        glTexImage3D(GL_TEXTURE_3D, 0, GL_RED, resx, resy, resz, 0, GL_RGB, GL_FLOAT, cpu_noise.data());
       } else {
         mCloudTexture.reset();
 
