@@ -156,29 +156,38 @@ void Atmosphere::configure(Plugin::Settings::Atmosphere const& settings) {
 
         auto start_time = std::chrono::high_resolution_clock::now();
         int resx, resy, resz, channels;
-        resx = 64;
-        resy = 64;
-        resz = 64;
+        resx = 32;
+        resy = 32;
+        resz = 32;
+        int resz2, resy2;
+        resz2 = 256;
+        resy2 = 256;
         channels = 3;
         std::vector<float> cpu_noise3D(resx * resy * resz * channels, 0);
-        std::vector<float> cpu_noise2D(resx * resy * channels, 0);
+        std::vector<float> cpu_noise2D(resz2 * resy2 * channels, 0);
         for(int i = 0; i < resz; i++){
           float u = (float)i / (resz - 1);
           for(int j = 0; j < resy; j++){
             float v = (float)j / (resy- 1);
-            cpu_noise2D[(i * resx + j) * channels] = Tileable3dNoise::PerlinNoise(glm::vec3(u, v, 2), 20, 5);
-            cpu_noise2D[(i * resx + j) * channels + 1] = Tileable3dNoise::PerlinNoise(glm::vec3(u, v, 2), 50, 5);
-            cpu_noise2D[(i * resx + j) * channels + 2] = Tileable3dNoise::WorleyNoise(glm::vec3(u, v, 2), 15);
             for(int k = 0; k < resx; k++){
               float w = (float)k / (resx - 1);
               cpu_noise3D[(i * resy * resx + j * resx + k) * channels] = Tileable3dNoise::PerlinNoise(glm::vec3(u, v, w), 5, 5);
               cpu_noise3D[(i * resy * resx + j * resx + k) * channels + 1] = Tileable3dNoise::PerlinNoise(glm::vec3(u, v, w), 3, 10);
               cpu_noise3D[(i * resy * resx + j * resx + k) * channels + 2] = Tileable3dNoise::WorleyNoise(glm::vec3(u, v, w), 7);
-              
-
             }
           }
         }
+        for(int i = 0; i < resz2; i++){
+          float u = (float)i / (resz2 - 1);
+          for(int j = 0; j < resy2; j++){
+            float v = (float)j / (resy2- 1);
+            cpu_noise2D[(i * resz2 + j) * channels] = Tileable3dNoise::PerlinNoise(glm::vec3(u, v, 2), 100, 10);
+            cpu_noise2D[(i * resz2 + j) * channels + 1] = Tileable3dNoise::PerlinNoise(glm::vec3(u, v, 2), 500, 10);
+            cpu_noise2D[(i * resz2 + j) * channels + 2] = Tileable3dNoise::WorleyNoise(glm::vec3(u, v, 2), 60);
+          }
+        }
+
+
         auto end_time = std::chrono::high_resolution_clock::now();
         auto interval = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time);
         logger().info("generating noise texture on CPU took "  +std::to_string(interval.count()) + "ms");
@@ -203,7 +212,7 @@ void Atmosphere::configure(Plugin::Settings::Atmosphere const& settings) {
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, resx, resy, 0, GL_RGB, GL_FLOAT, cpu_noise2D.data());
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, resz2, resy2, 0, GL_RGB, GL_FLOAT, cpu_noise2D.data());
       } else {
         mCloudTexture.reset();
       }
@@ -224,7 +233,7 @@ void Atmosphere::configure(Plugin::Settings::Atmosphere const& settings) {
     if(mSettings.mTopTexture != settings.mTopTexture){
       if (settings.mTopTexture.has_value() && !settings.mTopTexture.value().empty()) {
         mTopTexture = cs::graphics::TextureLoader::loadFromFile(settings.mTopTexture.value());
-        mTopTexture->SetWRAPS(GL_CLAMP);
+        mTopTexture->SetWrapS(GL_CLAMP);
         mTopTexture->SetWrapT(GL_CLAMP);
       }else{
         mTopTexture.reset();

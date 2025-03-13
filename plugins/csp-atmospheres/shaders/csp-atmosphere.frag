@@ -413,21 +413,21 @@ float GetCloudCoverageHeight(vec3 position, float start_height, float end_height
   float thickness = end_height - start_height;
   // "progress" in cloud from bottom to top in range 0 to 1
   float height_in_cloud = remap(length(position), PLANET_RADIUS + start_height, topAltitude, 0, 1);
-  float height_component = remap(height_in_cloud, 0, .05, 0, 1) * pow(remap(height_in_cloud, 0.3, 1, 1, 0), 2);
+  float height_component = remap(height_in_cloud, 0, .2, 0, 1) * pow(remap(height_in_cloud, 0.2, 1, 1, 0), 2);
 
   vec2 lngLat = getLngLat(position);
   vec2 texCoords = vec2(lngLat.x / (2 * PI) + 0.5, 1.0 - lngLat.y / PI + 0.5);
-  float top_type = clamp(textureLod(uNoiseTexture2D, texCoords * 10, 0).r, 0, 1);
-  float bottom_type = clamp(textureLod(uNoiseTexture2D, texCoords * 300, 0).r, 0, 1);
-  float from_type = clamp(textureLod(uCloudTop, vec2(1-remap(height_in_cloud, .3, 1, 0, 1), top_type), 0).r, 0, 1);
-  float from_b_type = clamp(textureLod(uCloudBottom, vec2(remap(height_in_cloud, 0, .3, 0, 1), bottom_type), 0).r, 0, 1);
+  float top_type = clamp(textureLod(uNoiseTexture2D, texCoords * 3, 0).r, 0, 1);
+  float bottom_type = clamp(textureLod(uNoiseTexture2D, texCoords * 3, 0).r, 0, 1);
+  float from_type = clamp(textureLod(uCloudTop, vec2(1-remap(height_in_cloud, .2, 1, 0, 1), top_type), 0).r, 0, 1);
+  float from_b_type = clamp(textureLod(uCloudBottom, vec2(remap(height_in_cloud, 0, .2, 0, 1), bottom_type), 0).r, 0, 1);
 
   //if(height_in_cloud > .3){
   //  float top_type = textureLod(uNoiseTexture2D, texCoords * 100, 0).r;
   //  height_component = textureLod(uCloudTop, vec2(1-remap(height_in_cloud, .3, 1, 0, 1), top_type), 0).r;
   //}
   //return 1 - height_in_cloud;
-  return clamp(pow(from_type * from_b_type, 2), 0, 1);
+  return from_type * from_b_type;
 }
 
 // Returns the value of the cloud texture at the position described by the three parameters.
@@ -438,24 +438,26 @@ float getAltoCumulusDensity(vec3 position, bool high_res = true){
   if(cloud_coverage_h == 0){
     return 0;
   }
-  //return cloud_coverage_h;
   float cloud_coverage_v = GetCloudCoverageHeight(position, ALTO_CUMULUS_START_HEIGHT, localMaxHeight(position));
   float cloud_base = cloud_coverage_h * cloud_coverage_v;
-  float noise = baseCloudNoise(position);
-  //float base_with_noise = remap(cloud_base, noise, 1, 0, 1);
-  float base_with_noise = cloud_base;//clamp(noise - (1-cloud_base * 3), 0, 1);
+  float base_with_noise = cloud_base;
   //return cloud_base;
   //return base_with_noise;
   if(!high_res){
     return clamp(base_with_noise, 0, 1);
   }
-  float cloud_density = base_with_noise;
-  float hf_noise1 = textureLod(uNoiseTexture, position / 3000, 0).r;
-  float hf_noise2 = textureLod(uNoiseTexture, position / 7000, 0).r;
-  float hf_noise3 = 1-textureLod(uNoiseTexture, position / 30000, 0).b;
-  cloud_density = remap(cloud_density, hf_noise3 / 200, 1, 0, 1);
-  cloud_density = remap(cloud_density, hf_noise2 / 300, 1, 0, 1);
-  cloud_density = remap(cloud_density, hf_noise1 / 300, 1, 0, 1);
+  vec2 lngLat = getLngLat(position);
+  vec2 texCoords = vec2(lngLat.x / (2 * PI) + 0.5, 1.0 - lngLat.y / PI + 0.5);
+  vec4 noise2d = textureLod(uNoiseTexture2D, lngLat, 0);
+  float cloudTex = textureLod(uCloudTexture, texCoords, 0).r;
+  float local_coverage = remap(cloudTex.r, 0, 1, 1, 3);
+  float cloud_density = clamp(base_with_noise * local_coverage, 0, 1);
+  vec4 lf_noises = textureLod(uNoiseTexture, position / 30000, 0);
+  vec4 hf_noises = textureLod(uNoiseTexture, position / 6000, 0);
+  float blended_hf_noise = mix(hf_noises.g, hf_noises.r, cloudTex);
+  float blended_lf_noise = mix(lf_noises.g, lf_noises.b, lf_noises.r);
+  cloud_density = remap(cloud_density, blended_lf_noise / 30, 1, 0, 1);
+  cloud_density = remap(cloud_density, blended_hf_noise / 30, 1, 0, 1);
   if(isnan(cloud_density)){
     cloud_density = 0;
   }
@@ -661,6 +663,9 @@ vec4 raymarchInterval(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, vec2 interval, o
   float maximum_density = 0;
 
   int maximum_samples = 1000;
+  float last_incoming_transmittance[2];
+  last_incoming_transmittance[0] = 1;
+  last_incoming_transmittance[1] = 1;
   while(progress < 1 && samples_taken < maximum_samples){
     samples_taken += 1;
     float t_now = remap(progress, 0, 1, interval.x, interval.y);
@@ -681,7 +686,7 @@ vec4 raymarchInterval(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, vec2 interval, o
       float samples_taken_multiplier = remap(float(samples_taken) / maximum_samples, 0, 1, 1, 20);
       //float random_multiplier = 1 + .8 * (texture(uNoiseTexture, position).r - .5) * remap(t_now, 0, 100000, 1, 0);
       float random_multiplier= 1;
-      float close_step = 20;
+      float close_step = 50;
       float mid_step = 100;
       float far_step = 200;
       float mid_distance = 40000;
@@ -725,10 +730,14 @@ vec4 raymarchInterval(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, vec2 interval, o
       float sigma_t = (scatter_coefficient + last_scatter_coefficient) / 2 * (1 + ABSORBED_FRACTION);
       float transmittance_along_segment = exp(-sigma_t * sdist);
       vec3 incoming = local_incoming;
-      if (secondary_rays){
+      if (secondary_rays && samples_taken % 2 == 0 || true){
         vec2 top_intersection = intersectSphere(position, sunDir, PLANET_RADIUS + ALTO_CUMULUS_END_HEIGHT);
-        float in_transmittance = raymarchTransmittance(position, sunDir, vec2(0, top_intersection.y), 10);
+        float in_transmittance = raymarchTransmittance(position, sunDir, vec2(0, top_intersection.y), 5);
         incoming *= in_transmittance;
+        last_incoming_transmittance[1] = last_incoming_transmittance[0];
+        last_incoming_transmittance[0] = in_transmittance;
+      } else {
+        incoming *= clamp(2 * last_incoming_transmittance[0] - last_incoming_transmittance[1], 0, 1);
       }
       vec3 S = scatter_coefficient * incoming * phase * 4 * PI * CLOUD_COLOR;
       inscattering_acc += path_transmittance * (S - S * transmittance_along_segment) / sigma_t;
@@ -750,6 +759,8 @@ vec4 raymarchInterval(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, vec2 interval, o
     }else{
       in_cloud = false;
       in_cloud_counter = 0;
+      last_incoming_transmittance[0] = 1;
+      last_incoming_transmittance[1] = 1;
     }
 
     t_last = t_now;
