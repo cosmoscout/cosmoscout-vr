@@ -382,6 +382,10 @@ float remap(float v, float min_old, float max_old, float min_new, float max_new)
   return clamp(v_in_0_1 * (max_new - min_new) + min_new, min(min_new, max_new), max(max_new, min_new));
 }
 
+float sigmoid(float v){
+  return 1 / (1 + exp(-v));
+}
+
 
 float baseCloudNoise(vec3 position){
   return 1;
@@ -399,7 +403,7 @@ float getCloudCoverageHorizontal(vec3 position){
 }
 
 float ALTO_CUMULUS_START_HEIGHT = 1500;
-float ALTO_CUMULUS_END_HEIGHT = 8000;
+float ALTO_CUMULUS_END_HEIGHT = 6000;
 float COVERAGE_MULTIPLIER = 2;
 
 
@@ -413,10 +417,13 @@ float GetCloudCoverageHeight(vec3 position, float start_height, float end_height
 
   vec2 lngLat = getLngLat(position);
   vec2 texCoords = vec2(lngLat.x / (2 * PI) + 0.5, 1.0 - lngLat.y / PI + 0.5);
-  float top_type = clamp(textureLod(uNoiseTexture2D, texCoords * 2, 0).r, 0, 1);
+  float cloudTex = textureLod(uCloudTexture, texCoords, 0).r;
+  vec4 noiseSample = textureLod(uNoiseTexture2D, texCoords * 30, 0);
+  float top_type = sigmoid(-2 + noiseSample.b * .8 + noiseSample.g * .8 - cloudTex * .6);
+  //top_type = pow(top_type, .8);
   float bottom_type = clamp(textureLod(uNoiseTexture2D, texCoords * 7, 0).r, 0, 1);
-  float from_type = clamp(textureLod(uCloudTop, vec2(1-remap(height_in_cloud, .2, 1, 0, 1), top_type), 0).r, 0, 1);
-  float from_b_type = clamp(textureLod(uCloudBottom, vec2(remap(height_in_cloud, 0, .2, 0, 1), bottom_type), 0).r, 0, 1);
+  float from_type = clamp(textureLod(uCloudTop, vec2(top_type, 1-remap(height_in_cloud, .2, 1, 0, 1)), 0).r, 0, 1);
+  float from_b_type = clamp(textureLod(uCloudBottom, vec2(bottom_type, 1-remap(height_in_cloud, 0, .2, 0, 1)), 0).r, 0, 1);
 
   return from_type * from_b_type;
 }
@@ -440,11 +447,11 @@ float getCumuloNimbusDensity(vec3 position, bool high_res = true){
   vec2 texCoords = vec2(lngLat.x / (2 * PI) + 0.5, 1.0 - lngLat.y / PI + 0.5);
   vec4 noise2d = textureLod(uNoiseTexture2D, lngLat * 3, 0);
   float cloudTex = textureLod(uCloudTexture, texCoords, 0).r;
-  float local_coverage = remap(noise2d.r, 0, 1, 1, 4);
-  float cloud_density = clamp(cloud_base * local_coverage, 0, 1);
+  float local_coverage = remap(noise2d.r + cloudTex, 0, 1, 1, 6);
+  float cloud_density = 1 - exp(-local_coverage * cloud_base);
   vec4 lf_noises = textureLod(uNoiseTexture, position / 30000, 0);
   vec4 hf_noises = textureLod(uNoiseTexture, position / 4000, 0);
-  float blended_hf_noise = mix(hf_noises.g, clamp(hf_noises.r * .5 - cloudTex * .4, 0, 1), cloudTex);
+  float blended_hf_noise = mix(hf_noises.g, clamp(hf_noises.r - pow(cloudTex, 1.5), 0, 1), cloudTex);
   float blended_lf_noise = mix(lf_noises.g, 1-lf_noises.b, lf_noises.r);
   cloud_density = remap(cloud_density, blended_lf_noise / 10, 1, 0, 1);
   cloud_density = remap(cloud_density, blended_hf_noise / 10, 1, 0, 1);
@@ -561,9 +568,9 @@ float getCloudDensityOld(vec3 rayOrigin, vec3 rayDir, float tIntersection){
   vec2 lngLat    = getLngLat(position);
   vec2 texCoords = vec2(lngLat.x / (2 * PI) + 0.5, 1.0 - lngLat.y / PI + 0.5);
   #if ENABLE_HDR
-    return sRGBtoLinear(texture(uCloudTexture, texCoords).r);
+    return sRGBtoLinear(textureLod(uCloudTexture, texCoords, 0).r);
   #else
-    return texture(uCloudTexture, texCoords).r;
+    return textureLod(uCloudTexture, texCoords, 0).r;
   #endif
 }
 
