@@ -14,6 +14,7 @@ SPDX-License-Identifier: CC-BY-4.0
 #### Other Changes
 
 - Improved rendering performance on some systems by uploading GUI textures using a staging buffer instead of using persistently mapped buffers.
+- The draggable markers of `csp-measurement-tools` are now tiny spheres instead of cubes.
 
 #### Bug Fixes
 
