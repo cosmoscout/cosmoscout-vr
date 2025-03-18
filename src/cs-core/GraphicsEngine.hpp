@@ -5,8 +5,8 @@
 // SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
 // SPDX-License-Identifier: MIT
 
-#ifndef CS_CORE_GRAPHICS_GraphicsEngine_HPP
-#define CS_CORE_GRAPHICS_GraphicsEngine_HPP
+#ifndef CS_CORE_GRAPHICS_ENGINE_HPP
+#define CS_CORE_GRAPHICS_ENGINE_HPP
 
 #include "../cs-graphics/HDRBuffer.hpp"
 #include "../cs-graphics/Shadows.hpp"
@@ -59,6 +59,14 @@ class CS_CORE_EXPORT GraphicsEngine {
   /// SolarSystem to get all relevant eclipse shadow maps for a given position in space.
   std::vector<std::shared_ptr<graphics::EclipseShadowMap>> const& getEclipseShadowMaps() const;
 
+  /// Returns the current depth or color buffer as a texture which can be used as shader input.
+  /// If HDR rendering is enabled, this simply returns the current read-targets. If HDR rendering is
+  /// disabled, the current frame buffer contents are copied to a texture first. This copy is only
+  /// done once per frame, subsequent calls will use the cached texture. If you set forceCopy to
+  /// true, the texture will be copied again.
+  VistaTexture* getCurrentDepthBufferAsTexture(bool forceCopy);
+  VistaTexture* getCurrentColorBufferAsTexture(bool forceCopy);
+
  private:
   void calculateCascades();
 
@@ -70,8 +78,21 @@ class CS_CORE_EXPORT GraphicsEngine {
   std::shared_ptr<graphics::ToneMappingNode>               mToneMappingNode;
   std::vector<std::shared_ptr<graphics::EclipseShadowMap>> mEclipseShadowMaps;
   std::shared_ptr<VistaTexture>                            mFallbackEclipseShadowMap;
+
+  struct ViewportData {
+    // MSVC does not like a unique_ptr here. Let's use a shared_ptr instead, although it is not
+    // really shared.
+    std::shared_ptr<VistaTexture> mBuffer;
+    bool                          mDirty = true;
+  };
+
+  // These are used to cache the frame buffer contents for the current viewport for the
+  // getCurrentDepthBufferAsTexture and getCurrentColorBufferAsTexture calls. They are only
+  // filled if the methods are called and HDR rendering is disabled.
+  std::unordered_map<VistaViewport*, ViewportData> mDepthBuffers;
+  std::unordered_map<VistaViewport*, ViewportData> mColorBuffers;
 };
 
 } // namespace cs::core
 
-#endif // CS_CORE_GRAPHICS_GraphicsEngine_HPP
+#endif // CS_CORE_GRAPHICS_ENGINE_HPP
