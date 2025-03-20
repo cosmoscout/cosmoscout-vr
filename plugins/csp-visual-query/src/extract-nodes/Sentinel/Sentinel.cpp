@@ -48,6 +48,7 @@ void Sentinel::init() {
   std::vector<std::string> operations{
       "None",
       "True Color",
+      "False Color Urban",
       "Moisture Index",
   };
 
@@ -69,6 +70,7 @@ nlohmann::json Sentinel::getData() const {
   std::vector<std::string> operations{
       "None",
       "True Color",
+      "False Color Urban",
       "Moisture Index",
   };
 
@@ -107,8 +109,11 @@ void Sentinel::process() {
     if (mCurrentOperation == "Moisture Index") {
       image.mMinMax     = {-0.8, 0.8};
       image.mNumScalars = 1;
-    } else {
+    } else if (mCurrentOperation == "False Color Urban") {
       image.mMinMax     = {0.0, 5000.0};
+      image.mNumScalars = 3;
+    } else {
+      image.mMinMax     = {0.0, 3000.0};
       image.mNumScalars = 3;
     }
 
@@ -171,6 +176,8 @@ csl::ogc::WebCoverageTextureLoader::Request Sentinel::getRequest() {
 
   if (mCurrentOperation == "Moisture Index") {
     request.mBandList = {8, 11};
+  } else if (mCurrentOperation == "False Color Urban") {
+    request.mBandList = {12, 11, 4};
   } else {
     request.mBandList = {4, 3, 2};
   }
