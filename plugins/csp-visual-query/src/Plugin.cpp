@@ -21,6 +21,7 @@
 #include "extract-nodes/WCSImageRGBA/WCSImageRGBA.hpp"
 #include "extract-nodes/WCSPointSample/WCSPointSample.hpp"
 #include "input-nodes/JsonVolumeFileLoader/JsonVolumeFileLoader.hpp"
+#include "input-nodes/LongLat/LongLat.hpp"
 #include "input-nodes/RandomDataSource2D/RandomDataSource2D.hpp"
 #include "input-nodes/RandomDataSource3D/RandomDataSource3D.hpp"
 #include "input-nodes/TransferFunction/TransferFunction.hpp"
@@ -210,6 +211,7 @@ void Plugin::setupNodeEditor(uint16_t port) {
 
   // Inputs
   factory.registerNodeType<WCSCoverage>(mPluginSettings.mWebCoverages);
+  factory.registerNodeType<LongLat>(mInputManager, mSolarSystem, mAllSettings);
   factory.registerNodeType<JsonVolumeFileLoader>();
   factory.registerNodeType<RandomDataSource2D>();
   factory.registerNodeType<RandomDataSource3D>();
