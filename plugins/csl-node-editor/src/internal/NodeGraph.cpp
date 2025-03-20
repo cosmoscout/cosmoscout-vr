@@ -247,6 +247,11 @@ void NodeGraph::process() {
   }
 
   mDirtyNodes.clear();
+
+  // Finally, we need to call tick() on all nodes.
+  for (auto const& [id, node] : mNodes) {
+    node->tick();
+  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
