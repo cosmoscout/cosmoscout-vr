@@ -28,6 +28,7 @@
 #include "input-nodes/WCSCoverage/WCSCoverage.hpp"
 #include "operation-nodes/DifferenceImage2D/DifferenceImage2D.hpp"
 #include "output-nodes/CoverageInfo/CoverageInfo.hpp"
+#include "output-nodes/Graph/Graph.hpp"
 #include "output-nodes/OverlayRenderer/OverlayRender.hpp"
 #include "output-nodes/VolumeRenderer/VolumeRenderer.hpp"
 
@@ -176,7 +177,11 @@ void Plugin::setupNodeEditor(uint16_t port) {
       "rgba(251,7,217,1) 90%, rgba(255,0,0,1) 100%);");
 
   factory.registerLibrary(
+      R"HTML(<script type="text/javascript" src="third-party/js/d3.min.js"></script>)HTML");
+  factory.registerLibrary(
       R"HTML(<script type="module" src="third-party/js/transfer-function-editor.js"></script>)HTML");
+  factory.registerStyleSheet(
+      R"HTML(<link type="text/css" rel="stylesheet" href="css/csp-visual-query.css" />)HTML");
 
   // Register control types:
   factory.registerControlType(cs::utils::filesystem::loadToString(
@@ -206,6 +211,7 @@ void Plugin::setupNodeEditor(uint16_t port) {
 
   // Outputs
   factory.registerNodeType<CoverageInfo>();
+  factory.registerNodeType<Graph>();
   factory.registerNodeType<OverlayRender>(mSolarSystem, mAllSettings);
   factory.registerNodeType<VolumeRenderer>(mSolarSystem, mAllSettings);
 
