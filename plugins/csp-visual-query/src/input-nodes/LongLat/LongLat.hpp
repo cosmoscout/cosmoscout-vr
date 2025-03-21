@@ -72,6 +72,10 @@ class LongLat : public csl::nodeeditor::Node {
 
   std::pair<double, double>         mValue;
   std::unique_ptr<csl::tools::Mark> mMark;
+
+  // We store the timestamp of the last update to avoid sending too many updates to the graph. Only
+  // once the user stopped dragging the marker, we send the update.
+  double mLastUpdateTime = 0;
 };
 
 } // namespace csp::visualquery
