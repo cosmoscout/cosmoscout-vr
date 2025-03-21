@@ -108,7 +108,7 @@ void WCSPointSample::process() {
   // request the same exact location again.
   auto texLoader  = csl::ogc::WebCoverageTextureLoader();
   auto textureOpt = texLoader.loadTexture(
-      *coverage->mServer, *coverage->mImageChannel, request, "wcs-cache", true);
+      *coverage->mServer, *coverage->mImageChannel, request, "wcs-cache", false);
 
   if (textureOpt.has_value()) {
     auto texture = textureOpt.value();

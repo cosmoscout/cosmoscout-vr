@@ -1,0 +1,25 @@
+/*
+SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
+SPDX-License-Identifier: MIT
+*/
+
+/* Charts ------------------------------------------------------------------- */
+
+svg:not(:root) {
+    overflow: visible;
+}
+
+svg .axis path,
+svg .axis line {
+    fill: none;
+    stroke: var(--cs-color-primary);
+    shape-rendering: crispEdges;
+}
+
+svg text {
+    fill: var(--cs-color-primary-transparent);
+}
+
+.tick line {
+    opacity: 0.2;
+}
