@@ -15,6 +15,15 @@
 
 namespace csp::visualquery {
 
+namespace {
+double getNow() {
+  auto time        = std::chrono::system_clock::now();
+  auto since_epoch = time.time_since_epoch();
+  return std::chrono::duration_cast<std::chrono::microseconds>(since_epoch).count() * 1e-6;
+}
+
+} // namespace
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 const std::string LongLat::sName = "LongLat";
@@ -60,8 +69,6 @@ LongLat::LongLat(std::shared_ptr<cs::core::InputManager> inputManager,
 
       mWaitingForClick = false;
 
-      std::cout << "Clicked on " << objectName << ": " << lngLat.x << ", " << lngLat.y << std::endl;
-
       // Whenever the user clicked on the surface, we write create a new Mark object at this
       // position.
       mMark =
@@ -69,6 +76,11 @@ LongLat::LongLat(std::shared_ptr<cs::core::InputManager> inputManager,
       mMark->pLngLat = cs::utils::convert::toRadians(
           glm::dvec2(lngLat.x, lngLat.y));        // Convert to radians for the Mark object.
       mMark->pColor = glm::vec3(0.75, 1.0, 0.75); // Set the color of the mark.
+
+      mMark->pLngLat.connectAndTouch([this](glm::dvec2 const& lngLat) {
+        mValue = {cs::utils::convert::toDegrees(lngLat.x), cs::utils::convert::toDegrees(lngLat.y)};
+        mLastUpdateTime = getNow();
+      });
     }
   });
 }
@@ -88,6 +100,7 @@ std::string const& LongLat::getName() const {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void LongLat::process() {
+  std::cout << "LongLat::process() called" << std::endl;
   writeOutput("value", mValue);
 }
 
@@ -95,23 +108,23 @@ void LongLat::process() {
 
 void LongLat::tick() {
   if (mMark) {
-    std::cout << "Ticking mark" << std::endl;
     mMark->update();
+
+    if (mLastUpdateTime > 0) {
+      double now = getNow();
+
+      if (now - mLastUpdateTime > 0.5) {
+        process();
+        mLastUpdateTime = 0;
+      }
+    }
   }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void LongLat::onMessageFromJS(nlohmann::json const& message) {
-  // The message sent via CosmoScout.sendMessageToCPP() contains the selected number.
-  std::cout << "button clicked" << std::endl;
   mWaitingForClick = true;
-
-  // Whenever the user entered a number, we write it to the output socket by calling the process()
-  // method. Writing the output will not trigger a graph reprocessing right away, it will only queue
-  // up the connected nodes for being processed in the next update step (and only if the value
-  // actually changed).
-  process();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
