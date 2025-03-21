@@ -275,9 +275,14 @@ std::string WebCoverageTextureLoader::getRequestUrl(
   int32_t height = coverage.getSettings().mAxisResolution[1];
 
   if (request.mMaxSize > 0 && (width > request.mMaxSize || height > request.mMaxSize)) {
-    double aspect = static_cast<double>(width) / static_cast<double>(height);
-    width         = aspect > 1 ? request.mMaxSize : static_cast<int32_t>(request.mMaxSize * aspect);
-    height        = aspect > 1 ? static_cast<int32_t>(request.mMaxSize / aspect) : request.mMaxSize;
+    if (request.mKeepAspectRatio) {
+      double aspect = static_cast<double>(width) / static_cast<double>(height);
+      width  = aspect > 1 ? request.mMaxSize : static_cast<int32_t>(request.mMaxSize * aspect);
+      height = aspect > 1 ? static_cast<int32_t>(request.mMaxSize / aspect) : request.mMaxSize;
+    } else {
+      width  = std::min(width, request.mMaxSize);
+      height = std::min(height, request.mMaxSize);
+    }
 
     width  = std::max(1, width);  // Ensure width is at least 1
     height = std::max(1, height); // Ensure height is at least 1

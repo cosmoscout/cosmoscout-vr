@@ -16,6 +16,30 @@
 
 namespace csp::visualquery {
 
+namespace {
+template <typename T>
+std::vector<std::vector<T>> getPointSampleData(csl::ogc::GDALReader::Texture const& texture) {
+
+  uint32_t       sampleCount = texture.mWidth * texture.mHeight;
+  std::vector<T> textureData(static_cast<T*>(texture.mBuffer),
+      static_cast<T*>(texture.mBuffer) + texture.mBands * sampleCount);
+
+  std::vector<std::vector<T>> pointData{};
+
+  for (uint32_t b = 0; b < texture.mBands; ++b) {
+    double average = 0.0;
+    for (uint32_t x = 0; x < texture.mWidth; ++x) {
+      for (uint32_t y = 0; y < texture.mHeight; ++y) {
+        average += textureData[b * sampleCount + x * texture.mHeight + y];
+      }
+    }
+    pointData.emplace_back(std::vector{static_cast<T>(average / sampleCount)});
+  }
+
+  return pointData;
+}
+} // namespace
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 const std::string WCSPointSample::sName = "WCSPointSample";
@@ -84,7 +108,7 @@ void WCSPointSample::process() {
   // request the same exact location again.
   auto texLoader  = csl::ogc::WebCoverageTextureLoader();
   auto textureOpt = texLoader.loadTexture(
-      *coverage->mServer, *coverage->mImageChannel, request, "wcs-cache", false);
+      *coverage->mServer, *coverage->mImageChannel, request, "wcs-cache", true);
 
   if (textureOpt.has_value()) {
     auto texture = textureOpt.value();
@@ -104,91 +128,38 @@ void WCSPointSample::process() {
     switch (texture.mDataType) {
     case 1: // UInt8
     {
-      std::vector<uint8_t> textureData(static_cast<uint8_t*>(texture.mBuffer),
-          static_cast<uint8_t*>(texture.mBuffer) + texture.mBands);
-
-      U8ValueVector pointData{};
-
-      for (uint8_t scalar : textureData) {
-        pointData.emplace_back(std::vector{scalar});
-      }
-
-      image.mPoints = pointData;
+      std::cout << "UInt8" << std::endl;
+      image.mPoints = getPointSampleData<uint8_t>(texture);
       break;
     }
 
     case 2: // UInt16
     {
-      std::vector<uint16_t> textureData(static_cast<uint16_t*>(texture.mBuffer),
-          static_cast<uint16_t*>(texture.mBuffer) + texture.mBands);
-
-      U16ValueVector pointData{};
-
-      for (uint16_t scalar : textureData) {
-        pointData.emplace_back(std::vector{scalar});
-      }
-
-      image.mPoints = pointData;
+      image.mPoints = getPointSampleData<uint16_t>(texture);
       break;
     }
 
     case 3: // Int16
     {
-      std::vector<int16_t> textureData(static_cast<int16_t*>(texture.mBuffer),
-          static_cast<int16_t*>(texture.mBuffer) + texture.mBands);
-
-      I16ValueVector pointData{};
-
-      for (int16_t scalar : textureData) {
-        pointData.emplace_back(std::vector{scalar});
-      }
-
-      image.mPoints = pointData;
+      image.mPoints = getPointSampleData<int16_t>(texture);
       break;
     }
 
     case 4: // UInt32
     {
-      std::vector<uint32_t> textureData(static_cast<uint32_t*>(texture.mBuffer),
-          static_cast<uint32_t*>(texture.mBuffer) + texture.mBands);
-
-      U32ValueVector pointData{};
-
-      for (uint32_t scalar : textureData) {
-        pointData.emplace_back(std::vector{scalar});
-      }
-
-      image.mPoints = pointData;
+      image.mPoints = getPointSampleData<uint32_t>(texture);
       break;
     }
 
     case 5: // Int32
     {
-      std::vector<int32_t> textureData(static_cast<int32_t*>(texture.mBuffer),
-          static_cast<int32_t*>(texture.mBuffer) + texture.mBands);
-
-      I32ValueVector pointData{};
-
-      for (int32_t scalar : textureData) {
-        pointData.emplace_back(std::vector{scalar});
-      }
-
-      image.mPoints = pointData;
+      image.mPoints = getPointSampleData<int32_t>(texture);
       break;
     }
 
     case 6: // Float32
     case 7: {
-      std::vector<float> textureData(static_cast<float*>(texture.mBuffer),
-          static_cast<float*>(texture.mBuffer) + texture.mBands);
-
-      F32ValueVector pointData{};
-
-      for (float scalar : textureData) {
-        pointData.emplace_back(std::vector{scalar});
-      }
-
-      image.mPoints = pointData;
+      image.mPoints = getPointSampleData<float>(texture);
       break;
     }
 
@@ -210,14 +181,17 @@ csl::ogc::WebCoverageTextureLoader::Request WCSPointSample::getRequest() {
 
   auto coords = readInput<std::pair<double, double>>("coords", {0., 0.});
 
+  // Single-Pixel requests seem to be impossible, they always return zero data. Hence we do a 2x2
+  // request and take the average of the four pixels. The bounding box can be pretty small it seems.
   csl::ogc::Bounds2D bound;
-  request.mBounds.mMinLon = coords.first;
-  request.mBounds.mMaxLon = coords.first;
-  request.mBounds.mMinLat = coords.second;
-  request.mBounds.mMaxLat = coords.second;
+  request.mBounds.mMinLon = coords.first - 0.0001;
+  request.mBounds.mMaxLon = coords.first + 0.0001;
+  request.mBounds.mMinLat = coords.second - 0.0001;
+  request.mBounds.mMaxLat = coords.second + 0.0001;
 
-  request.mMaxSize   = 1;
-  request.mBandRange = std::make_pair(1, 255);
+  request.mMaxSize         = 2;
+  request.mKeepAspectRatio = false;
+  request.mBandRange       = std::make_pair(1, 255);
 
   request.mFormat = "image/tiff";
 
