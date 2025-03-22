@@ -95,8 +95,6 @@ TileDataType TileTextureArray::getDataType() const {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void TileTextureArray::allocateGPU(std::shared_ptr<BaseTileData> data) {
-  assert(rdata->getTexLayer() < 0);
-
   mUploadQueue.push_back(std::move(data));
 }
 
