@@ -1,3 +1,10 @@
+////////////////////////////////////////////////////////////////////////////////////////////////////
+//                               This file is part of CosmoScout VR                               //
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
+// SPDX-License-Identifier: MIT
+
 #if NUM_MULTISAMPLES > 0
     layout (rgba32f, binding = 0) readonly uniform image2DMS uInHDRBuffer;
 #else

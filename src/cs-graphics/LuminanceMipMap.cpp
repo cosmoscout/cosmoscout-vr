@@ -22,8 +22,7 @@ LuminanceMipMap::LuminanceMipMap(uint32_t hdrBufferSamples, int hdrBufferWidth, 
     : mHDRBufferSamples(hdrBufferSamples)
     , mHDRBufferWidth(hdrBufferWidth)
     , mHDRBufferHeight(hdrBufferHeight) {
-
-  GLint subgroupSize = 32;
+  GLint       subgroupSize = 32;
   std::string shaderSource = "../share/resources/shaders/computeLuminanceClassic.comp";
   if (glewIsSupported("GL_KHR_shader_subgroup")) {
     glGetIntegerv(GL_SUBGROUP_SIZE_KHR, &subgroupSize);
@@ -31,7 +30,8 @@ LuminanceMipMap::LuminanceMipMap(uint32_t hdrBufferSamples, int hdrBufferWidth, 
   }
   GLint workgroupSize = subgroupSize * subgroupSize;
 
-  mWorkGroups = static_cast<int>(std::ceil((mHDRBufferWidth * mHDRBufferHeight) / (2.0 * workgroupSize)));
+  mWorkGroups =
+      static_cast<int>(std::ceil((mHDRBufferWidth * mHDRBufferHeight) / (2.0 * workgroupSize)));
 
   mLuminanceBuffer = std::make_unique<VistaTexture>(GL_TEXTURE_1D);
   mLuminanceBuffer->Bind();
@@ -100,7 +100,6 @@ LuminanceMipMap::~LuminanceMipMap() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void LuminanceMipMap::update(VistaTexture* hdrBufferComposite) {
-
   utils::FrameStats::ScopedTimer timer("Compute Scene Luminance");
 
   // Read the luminance values from the last frame. ------------------------------------------------
@@ -115,7 +114,7 @@ void LuminanceMipMap::update(VistaTexture* hdrBufferComposite) {
 
     for (int i = 0; i < mWorkGroups; ++i) {
       glm::vec2 value = data[i];
-      mLastTotalLuminance  += std::isnan(value.x) ? 0.F : value.x;
+      mLastTotalLuminance += std::isnan(value.x) ? 0.F : value.x;
       mLastMaximumLuminance = std::max(mLastMaximumLuminance, std::isnan(value.y) ? 0.F : value.y);
     }
 
