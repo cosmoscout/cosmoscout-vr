@@ -18,7 +18,6 @@
 #include "../cs-utils/utils.hpp"
 #include "EclipseShadowReceiver.hpp"
 
-#include <boost/date_time/posix_time/posix_time.hpp>
 #include <cstdint>
 #include <deque>
 #include <exception>

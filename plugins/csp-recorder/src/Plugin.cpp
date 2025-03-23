@@ -122,8 +122,8 @@ void Plugin::update() {
       mFrameCounter = 0;
 
       // We use the current date as a filename.
-      auto timeString =
-          cs::utils::convert::time::toString(boost::posix_time::microsec_clock::local_time());
+      auto timeString = cs::utils::convert::time::toString(
+          std::chrono::duration<double>(std::chrono::file_clock::now().time_since_epoch()).count());
       cs::utils::replaceString(timeString, ":", "-");
       cs::utils::replaceString(timeString, ".", "-");
       cs::utils::replaceString(timeString, "T", "-");

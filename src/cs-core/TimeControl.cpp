@@ -24,7 +24,7 @@ TimeControl::TimeControl(std::shared_ptr<core::Settings> settings)
   // Update the mStartDate in the settings. If the current simulation time differs less than one
   // minute from the current system time, we write "today", else the actual simulation date.
   mSettings->onSave().connect([this]() {
-    auto now = utils::convert::time::toSpice(boost::posix_time::microsec_clock::universal_time());
+    auto now = utils::convert::time::toSpice(std::chrono::utc_clock::now());
     if (std::abs(pSimulationTime.get() - now) < 60) {
       mSettings->mStartDate = "today";
     } else {
@@ -35,7 +35,7 @@ TimeControl::TimeControl(std::shared_ptr<core::Settings> settings)
   mSettings->onLoad().connect([this]() {
     if (mSettings->mStartDate == "today") {
       setTime(
-          utils::convert::time::toSpice(boost::posix_time::microsec_clock::universal_time()), 5.0);
+          utils::convert::time::toSpice(std::chrono::utc_clock::now()), 5.0);
     } else {
       try {
         setTime(utils::convert::time::toSpice(mSettings->mStartDate), 5.0);
@@ -61,7 +61,7 @@ TimeControl::~TimeControl() {
 
 void TimeControl::update() {
 
-  double now = utils::convert::time::toSpice(boost::posix_time::microsec_clock::universal_time());
+  double now = utils::convert::time::toSpice(std::chrono::utc_clock::now());
 
   // Initialize our members. This has to be done here as SPICE is not yet loaded at construction
   // time.
@@ -73,7 +73,7 @@ void TimeControl::update() {
         [this](std::string const& val) { pMinDate = utils::convert::time::toSpice(val); });
 
     if (mSettings->mStartDate == "today") {
-      setTime(utils::convert::time::toSpice(boost::posix_time::microsec_clock::universal_time()));
+      setTime(utils::convert::time::toSpice(std::chrono::utc_clock::now()));
     } else {
       try {
         setTime(utils::convert::time::toSpice(mSettings->mStartDate));
@@ -110,7 +110,7 @@ void TimeControl::update() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void TimeControl::setTime(double tTime, double duration, double threshold) {
-  double now = utils::convert::time::toSpice(boost::posix_time::microsec_clock::universal_time());
+  double now = utils::convert::time::toSpice(std::chrono::utc_clock::now());
   double difference = std::abs(pSimulationTime.get() - tTime);
 
   if (tTime >= pMaxDate || tTime <= pMinDate) {
@@ -138,7 +138,7 @@ void TimeControl::setTime(double tTime, double duration, double threshold) {
 void TimeControl::resetTime(double duration, double threshold) {
 
   if (mSettings->mResetDate == "today") {
-    setTime(utils::convert::time::toSpice(boost::posix_time::microsec_clock::universal_time()),
+    setTime(utils::convert::time::toSpice(std::chrono::utc_clock::now()),
         duration, threshold);
   } else {
     try {

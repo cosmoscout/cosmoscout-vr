@@ -240,8 +240,7 @@ void SolarSystem::fixObserverFrame(double lastWorkingSimulationTime) {
 
 void SolarSystem::update() {
   double simulationTime(mTimeControl->pSimulationTime.get());
-  double realTime(
-      utils::convert::time::toSpice(boost::posix_time::microsec_clock::universal_time()));
+  double realTime(utils::convert::time::toSpice(std::chrono::utc_clock::now()));
   mObserver.updateMovementAnimation(realTime);
 
   // First, update all celestial object positions.
@@ -465,8 +464,7 @@ void SolarSystem::flyObserverTo(std::string const& sCenter, std::string const& s
     glm::dvec3 const& position, glm::dquat const& rotation, double duration) {
 
   double simulationTime(mTimeControl->pSimulationTime.get());
-  double startTime(
-      utils::convert::time::toSpice(boost::posix_time::microsec_clock::universal_time()));
+  double startTime(utils::convert::time::toSpice(std::chrono::utc_clock::now()));
   double endTime(startTime + duration);
 
   if (GetVistaSystem()->GetClusterMode()->GetIsLeader()) {

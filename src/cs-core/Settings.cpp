@@ -8,11 +8,8 @@
 #include "Settings.hpp"
 
 #include "../cs-utils/convert.hpp"
-#include "SolarSystem.hpp"
-#include "logger.hpp"
 
 #include <fstream>
-#include <iostream>
 
 namespace nlohmann {
 
@@ -46,14 +43,14 @@ void from_json(nlohmann::json const&                                            
 
     // First, we parse the required parameters.
     std::string                center, frame;
-    std::array<std::string, 2> existence;
+    std::pair<std::string, std::string> existence;
     cs::core::Settings::deserialize(data, "center", center);
     cs::core::Settings::deserialize(data, "frame", frame);
     cs::core::Settings::deserialize(data, "existence", existence);
 
     object.setCenterName(center);
     object.setFrameName(frame);
-    object.setExistenceAsStrings(existence);
+    object.setExistenceAsStrings({existence.first, existence.second});
 
     // All others are optional.
     std::optional<glm::dvec3> position, radii;

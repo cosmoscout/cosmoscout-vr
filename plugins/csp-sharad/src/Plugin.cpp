@@ -16,7 +16,6 @@
 
 #include <VistaKernel/GraphicsManager/VistaTransformNode.h>
 #include <VistaKernelOpenSGExt/VistaOpenSGMaterialTools.h>
-#include <boost/filesystem.hpp>
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -79,13 +78,13 @@ void Plugin::init() {
     mGuiManager->getGui()->callJavascript("CosmoScout.gui.clearHtml", "list-sharad");
 
     // Then add new ones.
-    boost::filesystem::path               dir(filePath);
-    boost::filesystem::directory_iterator end_iter;
+    std::filesystem::path               dir(filePath);
+    std::filesystem::directory_iterator end_iter;
 
-    if (boost::filesystem::exists(dir) && boost::filesystem::is_directory(dir)) {
-      for (boost::filesystem::directory_iterator dir_iter(dir); dir_iter != end_iter; ++dir_iter) {
-        if (boost::filesystem::is_regular_file(dir_iter->status())) {
-          boost::filesystem::path path(boost::filesystem::path(*dir_iter).lexically_normal());
+    if (std::filesystem::exists(dir) && std::filesystem::is_directory(dir)) {
+      for (std::filesystem::directory_iterator dir_iter(dir); dir_iter != end_iter; ++dir_iter) {
+        if (std::filesystem::is_regular_file(dir_iter->status())) {
+          std::filesystem::path path(std::filesystem::path(*dir_iter).lexically_normal());
           std::string             file(path.stem().string());
           std::string             ext(path.extension().string());
 

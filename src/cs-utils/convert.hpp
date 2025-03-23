@@ -10,11 +10,10 @@
 
 #include "cs_utils_export.hpp"
 
-#include <boost/date_time/gregorian/gregorian.hpp>
-#include <boost/date_time/posix_time/posix_time.hpp>
+#include <chrono>
+#include <numbers>
 
 #include <glm/glm.hpp>
-#include <glm/gtc/quaternion.hpp>
 
 /// This namespace contains utility functions for converting numbers between different units of
 /// measuring. Most of the coordinate system conversion methods are based on the code from the
@@ -48,12 +47,12 @@ T metersToAstronomicalUnits(T meters) {
 
 template <typename T>
 T toRadians(T degrees) {
-  return static_cast<T>(degrees * glm::pi<double>() / 180.0);
+  return static_cast<T>(degrees * std::numbers::pi / 180.0);
 }
 
 template <typename T>
 T toDegrees(T radians) {
-  return static_cast<T>(radians * 180.0 / glm::pi<double>());
+  return static_cast<T>(radians * 180.0 / std::numbers::pi);
 }
 
 /// Projects an arbitrary cartesian point to the surface of an origin-centered ellipsoid with the
@@ -114,7 +113,7 @@ namespace time {
 /// Converts boost::posix_time::ptime to spice time, which is defined by the Barycentric Dynamical
 /// Time. Be aware, that SPICE kernels with leap seconds have to be loaded for this method to work.
 /// This means, SolarSystem::init() must have been called before.
-CS_UTILS_EXPORT double toSpice(boost::posix_time::ptime const& tIn);
+CS_UTILS_EXPORT double toSpice(std::chrono::utc_clock::time_point const& tIn);
 
 /// Converts a time string to spice time, which is defined by the Barycentric Dynamical Time. The
 /// string can be in the format YYYY-MM-DD HH:MM:SS.fff, YYYY-MM-DDTHH:MM:SS.fff, or
@@ -126,21 +125,26 @@ CS_UTILS_EXPORT double toSpice(std::string const& tIn);
 /// Converts a time string to boost::posix_time time. The string can be in the format
 /// YYYY-MM-DD HH:MM:SS.fff, YYYY-MM-DDTHH:MM:SS.fff, or YYYY-MM-DDTHH:MM:SS.fffZ and is always
 /// interpreted as UTC.
-CS_UTILS_EXPORT boost::posix_time::ptime toPosix(std::string const& tIn);
+CS_UTILS_EXPORT std::chrono::utc_clock::time_point toUTC(std::string const& tIn);
 
 /// Converts a Barycentric Dynamical Time to boost::posix_time::ptime. Be aware, that SPICE kernels
 /// with leap seconds have to be loaded for this method to work. This means, SolarSystem::init()
 /// must have been called before.
-CS_UTILS_EXPORT boost::posix_time::ptime toPosix(double tIn);
+CS_UTILS_EXPORT std::chrono::utc_clock::time_point toUTC(double tIn);
 
-/// Converts a Barycentric Dynamical Time time to a time string in the format
+/// This is a helper function to more easily create a UTC time point from year/month/day and
+/// optionally the time of day.
+CS_UTILS_EXPORT std::chrono::utc_clock::time_point toUTC(std::chrono::year_month_day const& ymd,
+    std::chrono::utc_clock::duration const& hms = std::chrono::utc_clock::duration::zero());
+
+/// Converts Barycentric Dynamical Time to a time string in the format
 /// YYYY-MM-DDTHH:MM:SS.fffZ. Be aware, that SPICE kernels with leap seconds have to be loaded for
 /// this method to work. This means, SolarSystem::init() must have been called before.
 CS_UTILS_EXPORT std::string toString(double tIn);
 
 /// Converts a boost::posix_time::ptime time to a time string in the format
 /// YYYY-MM-DDTHH:MM:SS.fffZ.
-CS_UTILS_EXPORT std::string toString(boost::posix_time::ptime const& tIn);
+CS_UTILS_EXPORT std::string toString(std::chrono::utc_clock::time_point const& tIn);
 
 } // namespace time
 

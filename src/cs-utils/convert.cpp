@@ -112,16 +112,14 @@ namespace time {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-double toSpice(boost::posix_time::ptime const& tIn) {
+double toSpice(std::chrono::utc_clock::time_point const& tIn) {
+  using namespace std::chrono_literals;
 
-  auto const startYear       = 2000;
-  auto const noon            = 12;
-  auto const secondsToMillis = 1000.0;
+  auto j2000 = toUTC(2000y / 1 / 1, 12h);
 
-  auto j2000 = boost::posix_time::ptime(
-      boost::gregorian::date(startYear, 1, 1), boost::posix_time::hours(noon));
-
-  double dTime = (tIn - j2000).total_milliseconds() / secondsToMillis;
+  // Calculate time difference in seconds
+  auto diff  = tIn - j2000;
+  auto dTime = std::chrono::duration_cast<std::chrono::duration<double>>(diff).count();
 
   // Incorporate delta between ET and UTC.
   double ETUTCDelta = 0.0;
@@ -134,7 +132,7 @@ double toSpice(boost::posix_time::ptime const& tIn) {
 
 double toSpice(std::string const& tIn) {
   try {
-    return toSpice(toPosix(tIn));
+    return toSpice(toUTC(tIn));
   } catch (std::exception& e) { logger().error("Failed to convert time: {}", e.what()); }
 
   return 0.0;
@@ -142,60 +140,121 @@ double toSpice(std::string const& tIn) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-boost::posix_time::ptime toPosix(std::string const& tIn) {
-
-  // We need at least a length of 19 chracters
+std::chrono::utc_clock::time_point toUTC(const std::string& tIn) {
+  // We need at least a length of 19 characters
   if (tIn.length() < 19) {
-    logger().error("Failed to convert '{}' to boost::posix_time::ptime!", tIn);
-    return boost::posix_time::ptime();
+    logger().error("Failed to convert '{}' to time_point!", tIn);
+    return std::chrono::utc_clock::time_point{};
   }
-
-  // Remove potential Z in YYYY-MM-DDTHH:MM:SS.fffZ
-  auto copy = tIn;
-  if (copy.back() == 'Z') {
-    copy.back() = '0';
-  }
-
-  // Remove potential T in YYYY-MM-DDTHH:MM:SS.fff
-  copy[10] = ' ';
 
   try {
-    // Let boost do the parsing
-    return boost::posix_time::time_from_string(copy);
+    // Create a copy for potential modifications
+    std::string copy = tIn;
 
-  } catch (std::exception& e) {
-    logger().error("Failed to convert '{}' to boost::posix_time::ptime: {}!", tIn, e.what());
+    // Remove potential Z in YYYY-MM-DDTHH:MM:SS.fffZ
+    if (copy.back() == 'Z') {
+      copy.pop_back();
+    }
+
+    // Replace T with space if present at position 10
+    if (copy.length() > 10 && copy[10] == 'T') {
+      copy[10] = ' ';
+    }
+
+    // Parse date and time using C++20 chrono
+    std::istringstream          ss(copy);
+    std::chrono::year_month_day date;
+
+    int  year, month, day;
+    char delimiter;
+    ss >> year >> delimiter >> month >> delimiter >> day;
+
+    if (ss.fail()) {
+      throw std::runtime_error("Failed to parse date part");
+    }
+
+    date = std::chrono::year{year} / static_cast<std::chrono::month>(month) /
+           static_cast<std::chrono::day>(day);
+
+    if (!date.ok()) {
+      throw std::runtime_error("Invalid date");
+    }
+
+    int hour, minute, second;
+    ss >> hour >> delimiter >> minute >> delimiter >> second;
+
+    if (ss.fail()) {
+      throw std::runtime_error("Failed to parse time part");
+    }
+
+    // Handle potential milliseconds
+    int milliseconds = 0;
+    if (ss.peek() == '.') {
+      ss.ignore(); // Skip the dot
+      ss >> milliseconds;
+    }
+
+    auto time = std::chrono::hours{hour} + std::chrono::minutes{minute} +
+                std::chrono::seconds{second} + std::chrono::milliseconds{milliseconds};
+
+    // Combine date and time
+    return toUTC(date, time);
+  } catch (const std::exception& e) {
+    logger().error("Failed to convert '{}' to time_point: {}!", tIn, e.what());
   }
 
-  return boost::posix_time::ptime();
+  return std::chrono::utc_clock::time_point{};
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-boost::posix_time::ptime toPosix(double tIn) {
-  auto const startYear       = 2000;
-  auto const noon            = 12;
-  auto const secondsToMillis = 1000;
+std::chrono::utc_clock::time_point toUTC(double tIn) {
+  using namespace std::chrono_literals;
 
   // Incorporate delta between ET and UTC.
   double ETUTCDelta = 0.0;
   deltet_c(tIn, "ET", &ETUTCDelta);
 
-  return boost::posix_time::ptime(boost::gregorian::date(startYear, 1, 1),
-      boost::posix_time::hours(noon) + boost::posix_time::milliseconds(static_cast<int64_t>(
-                                           (tIn - ETUTCDelta) * secondsToMillis)));
+  // Create J2000 reference time (January 1, 2000 at 12:00:00 UTC)
+  auto j2000 = toUTC(2000y / 1 / 1, 12h);
+
+  // Add the milliseconds offset
+  auto seconds = std::chrono::duration<double>(tIn - ETUTCDelta);
+
+  // Return the computed time point
+  return j2000 + std::chrono::duration_cast<std::chrono::utc_clock::duration>(seconds);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+std::chrono::utc_clock::time_point toUTC(
+    std::chrono::year_month_day const& ymd, std::chrono::utc_clock::duration const& hms) {
+  return std::chrono::utc_clock::from_sys(std::chrono::sys_days{ymd} + hms);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 std::string toString(double tIn) {
-  return toString(toPosix(tIn));
+  return toString(toUTC(tIn));
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::string toString(boost::posix_time::ptime const& tIn) {
-  return boost::posix_time::to_iso_extended_string(tIn).substr(0, 23) + "Z";
+std::string toString(std::chrono::utc_clock::time_point const& tIn) {
+  using namespace std::chrono_literals;
+
+  // This method is mainly used by creating a JavaScript date object, which doesn't support leap
+  // seconds. The formatter below does support them and would generate a 60 in the seconds field,
+  // which would not work with JavaScript's date parsing. We handle this here by subtracting a
+  // second during a leap second and displaying 59 seconds, instead of 60 seconds.
+  bool isLeapSecond = std::chrono::get_leap_second_info(tIn).is_leap_second;
+
+  auto time =
+      std::chrono::time_point_cast<std::chrono::milliseconds>(tIn - (isLeapSecond ? 1s : 0s));
+
+  // Format the time point as ISO 8601 string with milliseconds precision
+  // and append 'Z' to indicate UTC time zone
+  return std::format("{:%Y-%m-%dT%H:%M:%S}Z", time);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

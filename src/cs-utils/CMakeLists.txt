@@ -22,9 +22,6 @@ target_link_libraries(cs-utils
     glm::glm
     doctest::doctest
     tinygltf::tinygltf
-    Boost::filesystem
-    Boost::chrono
-    Boost::date_time
     GLEW::GLEW
     SDL2::base
     SDL2::main

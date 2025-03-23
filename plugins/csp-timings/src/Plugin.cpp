@@ -242,7 +242,7 @@ void Plugin::update() {
 
     // We use the current date as a directory name.
     auto timeString =
-        cs::utils::convert::time::toString(boost::posix_time::microsec_clock::local_time());
+        cs::utils::convert::time::toString(std::chrono::utc_clock::now());
     cs::utils::replaceString(timeString, ":", "-");
     cs::utils::replaceString(timeString, ".", "-");
     cs::utils::replaceString(timeString, "T", "-");
@@ -250,7 +250,7 @@ void Plugin::update() {
 
     std::string directory = "csp-timings/" + timeString;
     cs::utils::filesystem::createDirectoryRecursively(
-        boost::filesystem::system_complete(directory));
+        std::filesystem::absolute(directory));
 
     // This stores a CSV file for each nesting level in the directory created above. The prefix will
     // be prepended to the CSV file name.

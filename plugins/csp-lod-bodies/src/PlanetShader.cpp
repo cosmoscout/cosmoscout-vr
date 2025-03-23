@@ -85,7 +85,7 @@ PlanetShader::PlanetShader(std::shared_ptr<cs::core::Settings> settings,
       }
 
       mColorMaps.insert(
-          std::make_pair(name, cs::graphics::ColorMap(boost::filesystem::path(file))));
+          std::make_pair(name, cs::graphics::ColorMap(std::filesystem::path(file))));
       mGuiManager->getGui()->callJavascript(
           "CosmoScout.gui.addDropdownValue", "lodBodies.setColormap", name, name, first);
       if (first) {

@@ -35,7 +35,7 @@ class TimeComponent extends Rete.Component {
 
     // Whenever a message from C++ arrives, we set the input value accordingly. This message is
     // sent by the TimeNode::init() and TimeNode::process() methods.
-    node.onMessageFromCPP = (timeString) => { control.setValue(timeString); };
+    node.onMessageFromCPP = (timeString) => { control.setValue(new Date(timeString).toLocaleString('sv', {timeZone: 'UTC'})); };
 
     return node;
   }

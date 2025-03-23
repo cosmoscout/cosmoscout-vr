@@ -223,18 +223,18 @@ Sharad::Sharad(std::shared_ptr<cs::core::Settings> settings,
   std::vector<Vertex> vertices(mSamples * 2);
 
   for (int i = 0; i < mSamples; ++i) {
-    double tTime = cs::utils::convert::time::toSpice(
-        boost::posix_time::ptime(boost::gregorian::date(meta[i].Year, meta[i].Month, meta[i].Day),
-            boost::posix_time::hours(meta[i].Hour) + boost::posix_time::minutes(meta[i].Minute) +
-                boost::posix_time::seconds(meta[i].Second) +
-                boost::posix_time::milliseconds(meta[i].Millisecond)));
+    auto entry = meta[i];
+    auto ymd{std::chrono::year(entry.Year) / entry.Month / entry.Day};
+    auto tod = std::chrono::hours(entry.Hour) + std::chrono::minutes(entry.Minute) +
+               std::chrono::seconds(entry.Second) + std::chrono::milliseconds(entry.Millisecond);
+
+    double tTime = cs::utils::convert::time::toSpice(cs::utils::convert::time::toUTC(ymd, tod));
 
     if (i == 0) {
       mStartTime = tTime;
     }
 
-    glm::vec2 lngLat(
-        cs::utils::convert::toRadians(glm::dvec2(meta[i].Longitude, meta[i].Latitude)));
+    glm::vec2 lngLat(cs::utils::convert::toRadians(glm::dvec2(entry.Longitude, entry.Latitude)));
 
     float x    = 1.F * static_cast<float>(i) / (static_cast<float>(mSamples) - 1.F);
     auto  time = static_cast<float>(tTime - mStartTime);

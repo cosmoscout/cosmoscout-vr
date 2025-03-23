@@ -113,7 +113,7 @@ ColorMap::ColorMap(std::string const& sJsonString) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-ColorMap::ColorMap(boost::filesystem::path const& sJsonPath) {
+ColorMap::ColorMap(std::filesystem::path const& sJsonPath) {
   std::ifstream  file(sJsonPath.string());
   nlohmann::json json;
   file >> json;

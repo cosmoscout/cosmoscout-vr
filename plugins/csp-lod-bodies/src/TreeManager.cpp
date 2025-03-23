@@ -293,13 +293,6 @@ void TreeManager::prune() {
       break;
     }
   }
-
-  if (count > 0) {
-#if !defined(NDEBUG) && !defined(VISTAPLANET_NO_VERBOSE)
-    vstr::outi() << "[TreeManager::prune] nodes removed/kept " << count << " / " << mRdMap.size()
-                 << std::endl;
-#endif
-  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -319,9 +312,6 @@ void TreeManager::merge() {
   int unmerged = 0;
 
   for (auto& node : mergeNodes) {
-    assert(node != nullptr);
-    assert(node->getTile() != nullptr);
-
     if (insertNode(&mTree, node)) {
       onNodeInserted(node);
       ++merged;

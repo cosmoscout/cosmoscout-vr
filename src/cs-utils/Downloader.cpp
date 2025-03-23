@@ -21,7 +21,7 @@ Downloader::Downloader(size_t threadCount)
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Downloader::download(std::string const& url, std::string const& file) {
-  if (boost::filesystem::exists(file)) {
+  if (std::filesystem::exists(file)) {
     return;
   }
 
