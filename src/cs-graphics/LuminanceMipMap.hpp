@@ -18,10 +18,10 @@ namespace cs::graphics {
 /// The LuminanceMipMap is a texture with full mipmap levels which are used to calculate the total
 /// and maximum luminance of the current scene by parallel reduction. It's a 32bit RG texture of
 /// half the given width and height.
-class CS_GRAPHICS_EXPORT LuminanceMipMap : public VistaTexture {
+class CS_GRAPHICS_EXPORT LuminanceMipMap {
  public:
   LuminanceMipMap(uint32_t hdrBufferSamples, int hdrBufferWidth, int hdrBufferHeight);
-  ~LuminanceMipMap() override;
+  ~LuminanceMipMap();
 
   LuminanceMipMap(LuminanceMipMap const& other) = delete;
   LuminanceMipMap(LuminanceMipMap&& other)      = delete;
@@ -50,14 +50,12 @@ class CS_GRAPHICS_EXPORT LuminanceMipMap : public VistaTexture {
   uint32_t mHDRBufferSamples     = 0;
   float    mLastTotalLuminance   = 0.F;
   float    mLastMaximumLuminance = 0.F;
-  int      mMaxLevels            = 0;
+  int      mWorkGroups           = 0;
   int      mHDRBufferWidth       = 0;
   int      mHDRBufferHeight      = 0;
   bool     mDataAvailable        = false;
 
-  struct {
-    uint32_t level = 0;
-  } mUniforms;
+  std::unique_ptr<VistaTexture> mLuminanceBuffer;
 };
 
 } // namespace cs::graphics
