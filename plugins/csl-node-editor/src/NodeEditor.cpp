@@ -119,6 +119,8 @@ NodeEditor::~NodeEditor() {
       mServer.reset();
     }
   } catch (std::exception const& e) { logger().warn("Failed to quit server: {}!", e.what()); }
+
+  mGraph->clear();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
