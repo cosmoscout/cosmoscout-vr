@@ -10,6 +10,7 @@
 
 #include "logger.hpp"
 
+#include "../../../src/cs-core/GraphicsEngine.hpp"
 #include "../../../src/cs-core/Settings.hpp"
 #include "../../../src/cs-core/SolarSystem.hpp"
 #include "../../../src/cs-core/TimeControl.hpp"
@@ -44,10 +45,12 @@ namespace csp::wmsoverlays {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 TextureOverlayRenderer::TextureOverlayRenderer(std::string objectName,
+    std::shared_ptr<cs::core::GraphicsEngine>              graphicsEngine,
     std::shared_ptr<cs::core::SolarSystem>                 solarSystem,
     std::shared_ptr<cs::core::TimeControl>                 timeControl,
     std::shared_ptr<cs::core::Settings> settings, std::shared_ptr<Plugin::Settings> pluginSettings)
     : mSettings(std::move(settings))
+    , mGraphicsEngine(std::move(graphicsEngine))
     , mPluginSettings(std::move(pluginSettings))
     , mObjectName(std::move(objectName))
     , mWMSTexture(GL_TEXTURE_2D)
@@ -60,19 +63,6 @@ TextureOverlayRenderer::TextureOverlayRenderer(std::string objectName,
   mMaxBounds  = object->getRadii();
 
   // create textures ---------------------------------------------------------
-  for (auto const& viewport : GetVistaSystem()->GetDisplayManager()->GetViewports()) {
-    // Texture for previous renderer depth buffer
-    const auto [buffer, success] =
-        mDepthBufferData.try_emplace(viewport.second, GL_TEXTURE_RECTANGLE);
-    if (success) {
-      buffer->second.Bind();
-      buffer->second.SetWrapS(GL_CLAMP);
-      buffer->second.SetWrapT(GL_CLAMP);
-      buffer->second.SetMinFilter(GL_NEAREST);
-      buffer->second.SetMagFilter(GL_NEAREST);
-      buffer->second.Unbind();
-    }
-  }
 
   mWMSTexture.Bind();
   mWMSTexture.SetWrapS(GL_CLAMP_TO_EDGE);
@@ -533,17 +523,6 @@ bool TextureOverlayRenderer::Do() {
   glDepthMask(GL_FALSE);
   glEnable(GL_BLEND);
 
-  // copy depth buffer from previous rendering
-  std::array<GLint, 4> iViewport{};
-  glGetIntegerv(GL_VIEWPORT, iViewport.data());
-
-  auto* viewport = GetVistaSystem()->GetDisplayManager()->GetCurrentRenderInfo()->m_pViewport;
-  VistaTexture& depthBuffer = mDepthBufferData.at(viewport);
-
-  depthBuffer.Bind();
-  glCopyTexImage2D(GL_TEXTURE_RECTANGLE, 0, GL_DEPTH_COMPONENT, iViewport[0], iViewport[1],
-      iViewport[2], iViewport[3], 0);
-
   auto object    = mSolarSystem->getObject(mObjectName);
   auto radii     = object->getRadii();
   auto transform = object->getObserverRelativeTransform();
@@ -562,7 +541,8 @@ bool TextureOverlayRenderer::Do() {
   mShader.Bind();
 
   // Only bind the enabled textures.
-  depthBuffer.Bind(GL_TEXTURE0);
+  auto depthbuffer = mGraphicsEngine->getCurrentDepthBufferAsTexture(false);
+  depthbuffer->Bind(GL_TEXTURE0);
   if (mWMSTextureUsed) {
     mWMSTexture.Bind(GL_TEXTURE1);
 
@@ -632,7 +612,8 @@ bool TextureOverlayRenderer::Do() {
   // Dummy draw
   glDrawArrays(GL_POINTS, 0, 1);
 
-  depthBuffer.Unbind(GL_TEXTURE0);
+  depthbuffer->Unbind(GL_TEXTURE0);
+
   if (mWMSTextureUsed) {
     mWMSTexture.Unbind(GL_TEXTURE1);
 

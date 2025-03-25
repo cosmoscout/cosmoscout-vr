@@ -298,6 +298,14 @@ void GraphicsEngine::update(glm::vec3 const& sunDirection) {
     pAverageLuminance = mToneMappingNode->getLastAverageLuminance();
     pMaximumLuminance = mToneMappingNode->getLastMaximumLuminance();
   }
+
+  for (auto& viewport : mDepthBuffers) {
+    viewport.second.mDirty = true;
+  }
+
+  for (auto& viewport : mColorBuffers) {
+    viewport.second.mDirty = true;
+  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -317,6 +325,76 @@ std::shared_ptr<graphics::HDRBuffer> GraphicsEngine::getHDRBuffer() const {
 std::vector<std::shared_ptr<graphics::EclipseShadowMap>> const&
 GraphicsEngine::getEclipseShadowMaps() const {
   return mEclipseShadowMaps;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+VistaTexture* GraphicsEngine::getCurrentDepthBufferAsTexture(bool forceCopy) {
+  if (mSettings->mGraphics.pEnableHDR.get()) {
+    return mHDRBuffer->getDepthAttachment();
+  }
+
+  auto* viewport = GetVistaSystem()->GetDisplayManager()->GetCurrentRenderInfo()->m_pViewport;
+  auto  it       = mDepthBuffers.find(viewport);
+
+  if (it == mDepthBuffers.end()) {
+    ViewportData data;
+    data.mBuffer = std::make_shared<VistaTexture>(GL_TEXTURE_2D);
+    data.mBuffer->SetWrapS(GL_CLAMP);
+    data.mBuffer->SetWrapT(GL_CLAMP);
+    data.mBuffer->SetMinFilter(GL_NEAREST);
+    data.mBuffer->SetMagFilter(GL_NEAREST);
+
+    mDepthBuffers[viewport] = std::move(data);
+    it                      = mDepthBuffers.find(viewport);
+  }
+
+  if (it->second.mDirty || forceCopy) {
+    int x, y, w, h;
+    viewport->GetViewportProperties()->GetPosition(x, y);
+    viewport->GetViewportProperties()->GetSize(w, h);
+    it->second.mBuffer->Bind();
+    glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, x, y, w, h, 0);
+    it->second.mBuffer->Unbind();
+    it->second.mDirty = false;
+  }
+
+  return it->second.mBuffer.get();
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+VistaTexture* GraphicsEngine::getCurrentColorBufferAsTexture(bool forceCopy) {
+  if (mSettings->mGraphics.pEnableHDR.get()) {
+    return mHDRBuffer->getCurrentReadAttachment();
+  }
+
+  auto* viewport = GetVistaSystem()->GetDisplayManager()->GetCurrentRenderInfo()->m_pViewport;
+  auto  it       = mColorBuffers.find(viewport);
+
+  if (it == mColorBuffers.end()) {
+    ViewportData data;
+    data.mBuffer = std::make_shared<VistaTexture>(GL_TEXTURE_2D);
+    data.mBuffer->SetWrapS(GL_CLAMP);
+    data.mBuffer->SetWrapT(GL_CLAMP);
+    data.mBuffer->SetMinFilter(GL_NEAREST);
+    data.mBuffer->SetMagFilter(GL_NEAREST);
+
+    mColorBuffers[viewport] = std::move(data);
+    it                      = mColorBuffers.find(viewport);
+  }
+
+  if (it->second.mDirty || forceCopy) {
+    int x, y, w, h;
+    viewport->GetViewportProperties()->GetPosition(x, y);
+    viewport->GetViewportProperties()->GetSize(w, h);
+    it->second.mBuffer->Bind();
+    glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, x, y, w, h, 0);
+    it->second.mBuffer->Unbind();
+    it->second.mDirty = false;
+  }
+
+  return it->second.mBuffer.get();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
