@@ -13,9 +13,7 @@
 #include <VistaBase/VistaColor.h>
 #include <VistaKernel/GraphicsManager/VistaOpenGLDraw.h>
 #include <VistaKernel/GraphicsManager/VistaOpenGLNode.h>
-#include <VistaOGLExt/VistaBufferObject.h>
 #include <VistaOGLExt/VistaGLSLShader.h>
-#include <VistaOGLExt/VistaVertexArrayObject.h>
 
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
@@ -26,7 +24,6 @@ class CelestialObject;
 } // namespace cs::scene
 
 class VistaTransformNode;
-class VistaVertexArrayObject;
 
 namespace cs::core {
 class TimeControl;
@@ -83,12 +80,8 @@ class CSL_TOOLS_EXPORT Mark : public IVistaOpenGLDraw, public Tool {
  private:
   void initData();
 
-  glm::dvec3 mPosition;
-
-  std::unique_ptr<VistaVertexArrayObject> mVAO;
-  std::unique_ptr<VistaBufferObject>      mVBO;
-  std::unique_ptr<VistaBufferObject>      mIBO;
-  std::unique_ptr<VistaGLSLShader>        mShader;
+  glm::dvec3                       mPosition;
+  std::unique_ptr<VistaGLSLShader> mShader;
 
   struct {
     uint32_t modelViewMatrix   = 0;
@@ -96,8 +89,6 @@ class CSL_TOOLS_EXPORT Mark : public IVistaOpenGLDraw, public Tool {
     uint32_t hoverSelectActive = 0;
     uint32_t color             = 0;
   } mUniforms;
-
-  size_t mIndexCount{};
 
   int mSelfLngLatConnection = -1, mHoveredNodeConnection = -1, mSelectedNodeConnection = -1,
       mButtonsConnection = -1, mHoveredPlanetConnection = -1, mHeightScaleConnection = -1;

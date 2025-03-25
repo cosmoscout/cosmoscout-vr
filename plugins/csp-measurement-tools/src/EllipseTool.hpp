@@ -10,6 +10,9 @@
 
 #include "FlagTool.hpp"
 
+#include <VistaOGLExt/VistaBufferObject.h>
+#include <VistaOGLExt/VistaVertexArrayObject.h>
+
 #include <array>
 
 namespace csp::measurementtools {

@@ -54,35 +54,16 @@ void main()
 const char* const WorldSpaceGuiArea::QUAD_FRAG = R"(
 in vec2 vTexCoords;
 
-uniform samplerBuffer texture;
-uniform ivec2 texSize;
+uniform sampler2D texture;
 
 layout(location = 0) out vec4 vOutColor;
 
 vec4 getTexel(ivec2 p) {
-  p = clamp(p, ivec2(0), texSize - ivec2(1));
-  return texelFetch(texture, p.y * texSize.x + p.x).bgra;
-}
-
-vec4 getPixel(vec2 position) {
-  vec2 absolutePosition = position * texSize - 0.5;
-  ivec2 iPosition = ivec2(absolutePosition);
-
-  vec4 tl = getTexel(iPosition);
-  vec4 tr = getTexel(iPosition + ivec2(1, 0));
-  vec4 bl = getTexel(iPosition + ivec2(0, 1));
-  vec4 br = getTexel(iPosition + ivec2(1, 1));
-
-  vec2 d = fract(absolutePosition);
-
-  vec4 top = mix(tl, tr, d.x);
-  vec4 bot = mix(bl, br, d.x);
-
-  return mix(top, bot, d.y);
+  return texelFetch(texture, p, 0).bgra;
 }
 
 void main() {
-  vOutColor = getPixel(vTexCoords);
+  vOutColor = texture2D(texture, vTexCoords);
   if (vOutColor.a == 0.0) discard;
 
   vOutColor.rgb /= vOutColor.a;
@@ -182,7 +163,6 @@ bool WorldSpaceGuiArea::Do() {
 
     mUniforms.projectionMatrix = mShader.GetUniformLocation("uMatProjection");
     mUniforms.modelViewMatrix  = mShader.GetUniformLocation("uMatModelView");
-    mUniforms.texSize          = mShader.GetUniformLocation("texSize");
     mUniforms.texture          = mShader.GetUniformLocation("texture");
 
     mShaderDirty = false;
@@ -233,15 +213,13 @@ bool WorldSpaceGuiArea::Do() {
 
       glUniformMatrix4fv(mUniforms.modelViewMatrix, 1, GL_FALSE, glm::value_ptr(localMat));
 
-      glUniform2i(mUniforms.texSize, guiItem->getTextureSizeX(), guiItem->getTextureSizeY());
-
       glActiveTexture(GL_TEXTURE0);
-      glBindTexture(GL_TEXTURE_BUFFER, guiItem->getTexture());
+      glBindTexture(GL_TEXTURE_2D, guiItem->getTexture());
       mShader.SetUniform(mUniforms.texture, 0);
 
       glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
-      glBindTexture(GL_TEXTURE_BUFFER, 0);
+      glBindTexture(GL_TEXTURE_2D, 0);
     }
   }
 

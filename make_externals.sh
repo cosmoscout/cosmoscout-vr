@@ -75,15 +75,15 @@ echo "Downloading, building and installing GLEW ..."
 echo ""
 
 cmake -E make_directory "$BUILD_DIR/glew/extracted" && cd "$BUILD_DIR/glew"
-wget -nc https://netcologne.dl.sourceforge.net/project/glew/glew/2.1.0/glew-2.1.0.tgz
+wget -nc https://github.com/nigels-com/glew/releases/download/glew-2.2.0/glew-2.2.0.tgz
 
 cd "$BUILD_DIR/glew/extracted"
-cmake -E tar xzf ../glew-2.1.0.tgz
+cmake -E tar xzf ../glew-2.2.0.tgz
 cd ..
 
 cmake "${CMAKE_FLAGS[@]}" -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" \
       -DCMAKE_INSTALL_LIBDIR=lib \
-      -DCMAKE_BUILD_TYPE=$BUILD_TYPE "$BUILD_DIR/glew/extracted/glew-2.1.0/build/cmake"
+      -DCMAKE_BUILD_TYPE=$BUILD_TYPE "$BUILD_DIR/glew/extracted/glew-2.2.0/build/cmake"
 cmake --build . --target install --parallel "$(nproc)"
 
 # ViSTA expects glew library to be called libGLEW.so
