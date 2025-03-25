@@ -200,7 +200,8 @@ void drawSphere() {
   }
 
   mSphereVAO->Bind();
-  glDrawElements(GL_TRIANGLES, SPHERE_INDICES.size(), GL_UNSIGNED_INT, nullptr);
+  glDrawElements(
+      GL_TRIANGLES, static_cast<GLsizei>(SPHERE_INDICES.size()), GL_UNSIGNED_INT, nullptr);
   mSphereVAO->Release();
 }
 
@@ -215,7 +216,7 @@ void drawCube() {
   }
 
   mCubeVAO->Bind();
-  glDrawElements(GL_TRIANGLES, CUBE_INDICES.size(), GL_UNSIGNED_INT, nullptr);
+  glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(CUBE_INDICES.size()), GL_UNSIGNED_INT, nullptr);
   mCubeVAO->Release();
 }
 
