@@ -15,6 +15,7 @@
 #include "constant-nodes/Real/Real.hpp"
 #include "constant-nodes/RealVec2/RealVec2.hpp"
 #include "constant-nodes/RealVec4/RealVec4.hpp"
+#include "extract-nodes/ColorMapND/ColorMapND.hpp"
 #include "extract-nodes/Sentinel/Sentinel.hpp"
 #include "extract-nodes/TimeInterval/TimeInterval.hpp"
 #include "extract-nodes/WCSBand/WCSBand.hpp"
@@ -205,6 +206,7 @@ void Plugin::setupNodeEditor(uint16_t port) {
   factory.registerNodeType<WCSBand>();
   factory.registerNodeType<WCSImageRGBA>();
   factory.registerNodeType<Sentinel>();
+  factory.registerNodeType<ColorMapND>();
 
   // Operations
   factory.registerNodeType<DifferenceImage2D>();
