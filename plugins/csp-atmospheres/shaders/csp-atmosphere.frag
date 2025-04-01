@@ -428,12 +428,14 @@ vec3 GetCloudCoverageHeight(vec3 position){
   float rate_of_change = length(hcomp_grad);
 
   vec4 top_sample = textureLod(uCloudTop, vec2(horizontal_component, 1-height_in_cloud), 0);
-  return vec3(horizontal_component > 0 ? top_sample.r : 0., top_sample.g, 0);
-  return vec3(0);
+  return vec3(horizontal_component > 0 ? top_sample.r : 0., top_sample.g, top_sample.b);
 }
 
-float HF_FADE_DISTANCE = 10000;
+float HF_FADE_DISTANCE = 30000;
 float HF_END_DISTANCE = 100000;
+
+float LF_FADE_DISTANCE = 500000;
+float LF_END_DISTANCE = 1000000;
 
 // Returns the value of the cloud texture at the position described by the three parameters.
 float getCumuloNimbusDensity(vec3 position, vec3 cam_pos, bool high_res = true){
@@ -442,21 +444,30 @@ float getCumuloNimbusDensity(vec3 position, vec3 cam_pos, bool high_res = true){
   vec3 cloudConfig = GetCloudCoverageHeight(position);
   float cloud_base = cloudConfig.r;
   float erosionStrength = cloudConfig.g;
+  float hfStrength = cloudConfig.b;
   float cameraDist = length(cam_pos - position);
 
   float local_coverage = 2;
   float cloud_density = 1 - exp(-local_coverage * cloud_base);
-  vec4 lf_noises = textureLod(uNoiseTexture, position / 10000, 0);
-  float blended_lf_noise = mix(lf_noises.r, 1-lf_noises.b, lf_noises.g);
-  blended_lf_noise *= 1;//remap(cloudTex, .5, .8, 1, 0);
-  cloud_density = mix(cloud_density, clamp(blended_lf_noise - (1.0 - cloud_density), 0, 1), clamp(erosionStrength, 0, 1));
-  float hf_influence = .5 * erosionStrength;
-  if(high_res && cameraDist < HF_END_DISTANCE){
-    vec4 hf_noises = textureLod(uNoiseTexture, position / 2000, 0);
-    float blended_hf_noise = mix(hf_noises.r, hf_noises.b, hf_noises.g);
-    blended_hf_noise = mix(blended_hf_noise, .5,  remap(cameraDist, HF_FADE_DISTANCE, HF_END_DISTANCE, 0, 1));
-    cloud_density = clamp(hf_influence * blended_hf_noise - (hf_influence - cloud_density), 0, 1);
+  
+  float lf_influence = remap(erosionStrength, 0, .8, 0, 1);
+  float hf_influence = .4 * hfStrength;
+  if(cameraDist < LF_END_DISTANCE){
+    vec4 lf_noises = textureLod(uNoiseTexture, position / 10000, 0);
+    float blended_lf_noise = mix(lf_noises.r, 1-lf_noises.b, lf_noises.g);
+    blended_lf_noise = mix(blended_lf_noise, .5, remap(cameraDist, LF_FADE_DISTANCE, LF_END_DISTANCE, 0, 1));
+    cloud_density = clamp(lf_influence * .5 - (lf_influence - cloud_density), 0, 1);
+    
+    if(high_res && cameraDist < HF_END_DISTANCE){
+      vec4 hf_noises = textureLod(uNoiseTexture, position / 2000, 0);
+      float blended_hf_noise = mix(hf_noises.r, hf_noises.b, hf_noises.g);
+      blended_hf_noise = mix(blended_hf_noise, .5,  remap(cameraDist, HF_FADE_DISTANCE, HF_END_DISTANCE, 0, 1));
+      cloud_density = clamp(hf_influence * blended_hf_noise - (hf_influence - cloud_density), 0, 1);
+    }else{
+      cloud_density = clamp(hf_influence * .5 - (hf_influence - cloud_density), 0, 1);
+    }
   }else{
+    cloud_density = clamp(lf_influence * .5 - (lf_influence - cloud_density), 0, 1);
     cloud_density = clamp(hf_influence * .5 - (hf_influence - cloud_density), 0, 1);
   }
   if(isnan(cloud_density)){
@@ -476,8 +487,8 @@ bool CumuloNimbusGuaranteedFree(vec3 position){
   float thickness = end_height - CUMULONIMBUS_START_HEIGHT;
   // "progress" in cloud from bottom to top in range 0 to 1
   float height_in_cloud = remap(length(position), PLANET_RADIUS + CUMULONIMBUS_START_HEIGHT, topAltitude, 0, 1);
-  
-  return height_in_cloud > pow(horizontal_component, .2);
+
+  return height_in_cloud > pow(horizontal_component, .1);
 }
 
 bool pathFree(vec3 start, vec3 end, int samples = 13){
@@ -575,7 +586,7 @@ float raymarchTransmittance(vec3 rayOrigin, vec3 rayDir, vec2 interval, vec3 cam
 
     float dist = t_now - t_last;
     vec3 position = rayOrigin + rayDir * t_now;
-    float local_density = getCloudDensity(position, cam_pos, true);
+    float local_density = getCloudDensity(position, cam_pos);
 
     float scatter_coefficient = local_density * DENSITY_MULTIPLIER;
     float extinction = scatter_coefficient * (1+ABSORBED_FRACTION);
