@@ -431,7 +431,7 @@ vec3 GetCloudCoverageHeight(vec3 position){
   return vec3(horizontal_component > 0 ? top_sample.r : 0., top_sample.g, top_sample.b);
 }
 
-float HF_FADE_DISTANCE = 30000;
+float HF_FADE_DISTANCE = 10000;
 float HF_END_DISTANCE = 100000;
 
 float LF_FADE_DISTANCE = 500000;
@@ -446,21 +446,22 @@ float getCumuloNimbusDensity(vec3 position, vec3 cam_pos, bool high_res = true){
   float erosionStrength = cloudConfig.g;
   float hfStrength = cloudConfig.b;
   float cameraDist = length(cam_pos - position);
+  vec4 noise2D = textureLod(uNoiseTexture2D, getLngLat(position) * 5, 0);
 
   float local_coverage = 2;
-  float cloud_density = 1 - exp(-local_coverage * cloud_base);
+  float cloud_density = remap(pow(1 - exp(-local_coverage * cloud_base), .4), .1, 1, 0, 1);
   
-  float lf_influence = remap(erosionStrength, 0, .8, 0, 1);
-  float hf_influence = .4 * hfStrength;
+  float lf_influence = remap(erosionStrength, 0, .8, 0, .5);
+  float hf_influence = .5 * hfStrength;
   if(cameraDist < LF_END_DISTANCE){
-    vec4 lf_noises = textureLod(uNoiseTexture, position / 10000, 0);
-    float blended_lf_noise = mix(lf_noises.r, 1-lf_noises.b, lf_noises.g);
+    vec4 lf_noises = textureLod(uNoiseTexture, position / 50000, 0);
+    float blended_lf_noise = mix(lf_noises.r, lf_noises.b, noise2D.r);
     blended_lf_noise = mix(blended_lf_noise, .5, remap(cameraDist, LF_FADE_DISTANCE, LF_END_DISTANCE, 0, 1));
-    cloud_density = clamp(lf_influence * .5 - (lf_influence - cloud_density), 0, 1);
+    cloud_density = clamp(lf_influence * blended_lf_noise - (lf_influence - cloud_density), 0, 1);
     
     if(high_res && cameraDist < HF_END_DISTANCE){
-      vec4 hf_noises = textureLod(uNoiseTexture, position / 2000, 0);
-      float blended_hf_noise = mix(hf_noises.r, hf_noises.b, hf_noises.g);
+      vec4 hf_noises = textureLod(uNoiseTexture, position / 5000, 0);
+      float blended_hf_noise = mix(hf_noises.r, hf_noises.b, noise2D.b);
       blended_hf_noise = mix(blended_hf_noise, .5,  remap(cameraDist, HF_FADE_DISTANCE, HF_END_DISTANCE, 0, 1));
       cloud_density = clamp(hf_influence * blended_hf_noise - (hf_influence - cloud_density), 0, 1);
     }else{
@@ -487,7 +488,6 @@ bool CumuloNimbusGuaranteedFree(vec3 position){
   float thickness = end_height - CUMULONIMBUS_START_HEIGHT;
   // "progress" in cloud from bottom to top in range 0 to 1
   float height_in_cloud = remap(length(position), PLANET_RADIUS + CUMULONIMBUS_START_HEIGHT, topAltitude, 0, 1);
-
   return height_in_cloud > pow(horizontal_component, .1);
 }
 
@@ -610,8 +610,6 @@ vec4 raymarchInterval(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, vec2 interval, o
     return vec4(0, 0, 0, 1);
   }
 
-
-
   vec3 CLOUD_COLOR = vec3(1.);
 
   float t_last = interval.x;
@@ -667,21 +665,22 @@ vec4 raymarchInterval(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, vec2 interval, o
     if(!skipped){
       float low_transmittance_multiplier = remap(path_transmittance.r, .5, 0, 1, 3);
       float samples_taken_multiplier = remap(float(samples_taken) / maximum_samples, 0, 1, 1, 10);
+      float domain_length_multiplier = remap(interval_length, 10000, 30000, .5, 1);
       //float random_multiplier = 1 + .8 * (texture(uNoiseTexture, position).r - .5) * remap(t_now, 0, 100000, 1, 0);
       float random_multiplier= 1;
       float close_step = 50;
       float mid_step = 100;
       float far_step = 200;
-      float mid_distance = 50000;
+      float mid_distance = 70000;
       float far_distance = 200000;
-      float step = 30;
+      float step = close_step;
       if(t_now < mid_distance){
-        step = remap(t_now - interval.x, 0, mid_distance, close_step, mid_step);
+        step = remap(t_now, 0, mid_distance, close_step, mid_step);
       }else{
-        step = remap(t_now - interval.x, mid_distance, far_distance, mid_step, far_step);
+        step = remap(t_now, mid_distance, far_distance, mid_step, far_step);
       }
       step /= interval_length;
-      progress += step * low_transmittance_multiplier * random_multiplier * samples_taken_multiplier;
+      progress += step * low_transmittance_multiplier * random_multiplier * samples_taken_multiplier * domain_length_multiplier;
     }
 
     progress = clamp(progress, 0, 1);
