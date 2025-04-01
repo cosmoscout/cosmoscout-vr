@@ -451,9 +451,10 @@ float getCumuloNimbusDensity(vec3 position, vec3 cam_pos, bool high_res = true){
   blended_lf_noise *= 1;//remap(cloudTex, .5, .8, 1, 0);
   cloud_density = mix(cloud_density, clamp(blended_lf_noise - (1.0 - cloud_density), 0, 1), clamp(erosionStrength, 0, 1));
   float hf_influence = .5 * erosionStrength;
-  if(high_res){
+  if(high_res && cameraDist < HF_END_DISTANCE){
     vec4 hf_noises = textureLod(uNoiseTexture, position / 2000, 0);
     float blended_hf_noise = mix(hf_noises.r, hf_noises.b, hf_noises.g);
+    blended_hf_noise = mix(blended_hf_noise, .5,  remap(cameraDist, HF_FADE_DISTANCE, HF_END_DISTANCE, 0, 1));
     cloud_density = clamp(hf_influence * blended_hf_noise - (hf_influence - cloud_density), 0, 1);
   }else{
     cloud_density = clamp(hf_influence * .5 - (hf_influence - cloud_density), 0, 1);
@@ -574,7 +575,7 @@ float raymarchTransmittance(vec3 rayOrigin, vec3 rayDir, vec2 interval, vec3 cam
 
     float dist = t_now - t_last;
     vec3 position = rayOrigin + rayDir * t_now;
-    float local_density = getCloudDensity(position, cam_pos, false);
+    float local_density = getCloudDensity(position, cam_pos, true);
 
     float scatter_coefficient = local_density * DENSITY_MULTIPLIER;
     float extinction = scatter_coefficient * (1+ABSORBED_FRACTION);
@@ -1048,7 +1049,8 @@ float getCloudShadow(vec3 rayOrigin, vec3 rayDir) {
   vec2 topIntersections = intersectSphere(rayOrigin, rayDir, topAltitude);
   vec2 lowIntersections = intersectSphere(rayOrigin, rayDir, topAltitude - thickness);
   vec2 interval = vec2(lowIntersections.y, topIntersections.y);
-  float transmittance = raymarchTransmittance(rayOrigin, rayDir, interval, rayOrigin, 30);
+  int transmittance_samples = int(remap(interval.y - interval.x, 10000, 100000, 5, 30));
+  float transmittance = raymarchTransmittance(rayOrigin, rayDir, interval, rayOrigin, transmittance_samples);
   //float transmittance = clamp(raymarchingResult.a, .01, 1.); 
   return transmittance;
   #endif
