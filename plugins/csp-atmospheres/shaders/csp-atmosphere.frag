@@ -432,34 +432,31 @@ vec3 GetCloudCoverageHeight(vec3 position){
   return vec3(0);
 }
 
+float HF_FADE_DISTANCE = 10000;
+float HF_END_DISTANCE = 100000;
+
 // Returns the value of the cloud texture at the position described by the three parameters.
-float getCumuloNimbusDensity(vec3 position, bool high_res = true){
+float getCumuloNimbusDensity(vec3 position, vec3 cam_pos, bool high_res = true){
   // only use cloud coverage for now
   //float cloud_coverage_h = getCloudCoverageHorizontal(position);
   vec3 cloudConfig = GetCloudCoverageHeight(position);
   float cloud_base = cloudConfig.r;
   float erosionStrength = cloudConfig.g;
-  //return cloud_base;
+  float cameraDist = length(cam_pos - position);
 
-  if(!high_res){
-    return clamp(cloud_base, 0, 1);
-  }
-  //vec2 lngLat = getLngLat(position);
-  //vec2 texCoords = vec2(lngLat.x / (2 * PI) + 0.5, 1.0 - lngLat.y / PI + 0.5);
-  //vec4 noise2d = textureLod(uNoiseTexture2D, lngLat * 3, 0);
-  //float cloudTex = textureLod(uCloudTexture, texCoords, 0).r;
-  //float local_coverage = remap(noise2d.r + cloudTex, 0, 1, 1, 2);
   float local_coverage = 2;
   float cloud_density = 1 - exp(-local_coverage * cloud_base);
   vec4 lf_noises = textureLod(uNoiseTexture, position / 10000, 0);
   float blended_lf_noise = mix(lf_noises.r, 1-lf_noises.b, lf_noises.g);
   blended_lf_noise *= 1;//remap(cloudTex, .5, .8, 1, 0);
   cloud_density = mix(cloud_density, clamp(blended_lf_noise - (1.0 - cloud_density), 0, 1), clamp(erosionStrength, 0, 1));
+  float hf_influence = .5 * erosionStrength;
   if(high_res){
     vec4 hf_noises = textureLod(uNoiseTexture, position / 2000, 0);
     float blended_hf_noise = mix(hf_noises.r, hf_noises.b, hf_noises.g);
-    float hf_influence = .5 * erosionStrength;
     cloud_density = clamp(hf_influence * blended_hf_noise - (hf_influence - cloud_density), 0, 1);
+  }else{
+    cloud_density = clamp(hf_influence * .5 - (hf_influence - cloud_density), 0, 1);
   }
   if(isnan(cloud_density)){
     cloud_density = 0;
@@ -522,11 +519,11 @@ float CumuloNimbusFreeDistance(vec3 position, vec3 dir, float dist_from_camera, 
 
 float INFINITY = 1 / 0.;
 
-float getCloudDensity(vec3 position, bool hf = true){
+float getCloudDensity(vec3 position, vec3 cam_pos, bool hf = true){
   float acc = 0;
   float height = length(position) - PLANET_RADIUS;
   if(height > CUMULONIMBUS_START_HEIGHT && height < CUMULONIMBUS_END_HEIGHT){
-    acc += getCumuloNimbusDensity(position, hf);
+    acc += getCumuloNimbusDensity(position, cam_pos, hf);
   }
 
   return acc;
@@ -558,7 +555,7 @@ float DENSITY_MULTIPLIER = 2e-3;
 float ABSORBED_FRACTION = 0.;
 float HD_DISTANCE = 100000;
 
-float raymarchTransmittance(vec3 rayOrigin, vec3 rayDir, vec2 interval, int samples=10){
+float raymarchTransmittance(vec3 rayOrigin, vec3 rayDir, vec2 interval, vec3 cam_pos, int samples=10){
   if(interval.y < 0){
     return 1.;
   }
@@ -568,7 +565,7 @@ float raymarchTransmittance(vec3 rayOrigin, vec3 rayDir, vec2 interval, int samp
   float interval_length = interval.y - interval.x;
   float last_density = 0;
 
-  float last_extinction = getCloudDensity(rayOrigin) * DENSITY_MULTIPLIER * (1+ABSORBED_FRACTION);
+  float last_extinction = getCloudDensity(rayOrigin, cam_pos) * DENSITY_MULTIPLIER * (1+ABSORBED_FRACTION);
 
   for(int i = 1; i <= samples; ++i){
     // could be adapted for importance sampling
@@ -577,7 +574,7 @@ float raymarchTransmittance(vec3 rayOrigin, vec3 rayDir, vec2 interval, int samp
 
     float dist = t_now - t_last;
     vec3 position = rayOrigin + rayDir * t_now;
-    float local_density = getCloudDensity(position);
+    float local_density = getCloudDensity(position, cam_pos, false);
 
     float scatter_coefficient = local_density * DENSITY_MULTIPLIER;
     float extinction = scatter_coefficient * (1+ABSORBED_FRACTION);
@@ -629,7 +626,7 @@ vec4 raymarchInterval(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, vec2 interval, o
   // track the start of the current cloud-free part of the interval. 
   // Inscattering from the atmosphere is added when a cloud is encountered.
   float t_cloudfree_start = interval.x;
-  float start_density = getCloudDensity(rayOrigin + rayDir * interval.x);
+  float start_density = getCloudDensity(rayOrigin + rayDir * interval.x, rayOrigin);
   bool in_cloud = start_density > 0;
   float in_cloud_counter = 0;
   float last_scatter_coefficient = start_density * DENSITY_MULTIPLIER;
@@ -680,7 +677,7 @@ vec4 raymarchInterval(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, vec2 interval, o
     float dist = t_now - t_last;
     position = rayOrigin + rayDir * t_now;
 
-    float local_density = getCloudDensity(position);
+    float local_density = getCloudDensity(position, rayOrigin);
     maximum_density = clamp(max(maximum_density, local_density), 0, 1);
     float scatter_coefficient = local_density * DENSITY_MULTIPLIER;
     vec3 transmittance = vec3(1);
@@ -712,7 +709,7 @@ vec4 raymarchInterval(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, vec2 interval, o
       if (secondary_rays && samples_taken % 2 == 0 || true){
         vec2 top_intersection = intersectSphere(position, sunDir, PLANET_RADIUS + CUMULONIMBUS_END_HEIGHT);
         int transmittance_samples = int(remap(path_transmittance.r, 0, 1, 10, 2));
-        float in_transmittance = raymarchTransmittance(position, sunDir, vec2(0, top_intersection.y), transmittance_samples);
+        float in_transmittance = raymarchTransmittance(position, sunDir, vec2(0, top_intersection.y), rayOrigin, transmittance_samples);
         direct_incoming *= in_transmittance;
         last_incoming_transmittance[1] = last_incoming_transmittance[0];
         last_incoming_transmittance[0] = in_transmittance;
@@ -1046,12 +1043,12 @@ float getCloudShadow(vec3 rayOrigin, vec3 rayDir) {
   return 1.0 - getCloudDensityOld(rayOrigin, rayDir, intersections.y) * fac;
   #else
   topAltitude = PLANET_RADIUS + CUMULONIMBUS_END_HEIGHT;
-  thickness = 8000;
+  thickness = CUMULONIMBUS_END_HEIGHT - CUMULONIMBUS_START_HEIGHT;
 
   vec2 topIntersections = intersectSphere(rayOrigin, rayDir, topAltitude);
   vec2 lowIntersections = intersectSphere(rayOrigin, rayDir, topAltitude - thickness);
   vec2 interval = vec2(lowIntersections.y, topIntersections.y);
-  float transmittance = raymarchTransmittance(rayOrigin, rayDir, interval, 30);
+  float transmittance = raymarchTransmittance(rayOrigin, rayDir, interval, rayOrigin, 30);
   //float transmittance = clamp(raymarchingResult.a, .01, 1.); 
   return transmittance;
   #endif
