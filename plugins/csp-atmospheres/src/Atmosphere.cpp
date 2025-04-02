@@ -220,17 +220,17 @@ void Atmosphere::configure(Plugin::Settings::Atmosphere const& settings) {
       mShaderDirty = true;
     }
 
-    if(mSettings.mTopTexture != settings.mTopTexture){
-      if (settings.mTopTexture.has_value() && !settings.mTopTexture.value().empty()) {
-        mTopTexture = cs::graphics::TextureLoader::loadFromFile(settings.mTopTexture.value());
-        mTopTexture->SetWrapS(GL_CLAMP);
-        mTopTexture->SetWrapT(GL_CLAMP);
+    if(mSettings.mCloudTypeTexture != settings.mCloudTypeTexture){
+      if (settings.mCloudTypeTexture.has_value() && !settings.mCloudTypeTexture.value().empty()) {
+        mCloudTypeTexture = cs::graphics::TextureLoader::loadFromFile(settings.mCloudTypeTexture.value());
+        mCloudTypeTexture->SetWrapS(GL_CLAMP);
+        mCloudTypeTexture->SetWrapT(GL_CLAMP);
       }else{
-        mTopTexture.reset();
+        mCloudTypeTexture.reset();
       }
       mShaderDirty = true;
     }
-    logger().info("read top texture at " + settings.mTopTexture.value());  
+    logger().info("read top texture at " + settings.mCloudTypeTexture.value());  
 
     // Reload the limb luminance texture if required.
     if (mSettings.mLimbLuminanceTexture != settings.mLimbLuminanceTexture) {
@@ -284,7 +284,7 @@ void Atmosphere::createShader(ShaderType type, VistaGLSLShader& shader, Uniforms
   cs::utils::replaceString(
       sFrag, "ATMOSPHERE_RADIUS", std::to_string(mRadii[0] + mSettings.mTopAltitude));
   cs::utils::replaceString(
-      sFrag, "ENABLE_CLOUDS", std::to_string(mSettings.mEnableClouds.get() && mCloudTexture && mTopTexture));
+      sFrag, "ENABLE_CLOUDS", std::to_string(mSettings.mEnableClouds.get() && mCloudTexture && mCloudTypeTexture));
   cs::utils::replaceString(
     sFrag, "OLD_CLOUDS", std::to_string(!mSettings.mAdvancedClouds.get()));
   cs::utils::replaceString(sFrag, "ENABLE_LIMB_LUMINANCE",
@@ -324,7 +324,7 @@ void Atmosphere::createShader(ShaderType type, VistaGLSLShader& shader, Uniforms
   uniforms.shadowCoordinates         = shader.GetUniformLocation("uShadowCoordinates");
   uniforms.noiseTexture              = shader.GetUniformLocation("uNoiseTexture");
   uniforms.noiseTexture2D            = shader.GetUniformLocation("uNoiseTexture2D");
-  uniforms.cloudTop                  = shader.GetUniformLocation("uCloudTop");
+  uniforms.cloudTypeTexture          = shader.GetUniformLocation("uCloudTypeTexture");
 
 
   // printing the names of the uniforms
@@ -554,9 +554,9 @@ bool Atmosphere::Do() {
     mAtmoShader.SetUniform(mAtmoUniforms.noiseTexture, 4);
   }
   
-  if (mSettings.mEnableClouds.get() && mTopTexture) {
-    mTopTexture->Bind(GL_TEXTURE5);
-    mAtmoShader.SetUniform(mAtmoUniforms.cloudTop, 5);
+  if (mSettings.mEnableClouds.get() && mCloudTypeTexture) {
+    mCloudTypeTexture->Bind(GL_TEXTURE5);
+    mAtmoShader.SetUniform(mAtmoUniforms.cloudTypeTexture, 5);
   }
 
   if (mSettings.mEnableClouds.get() && mNoiseTexture2D) {

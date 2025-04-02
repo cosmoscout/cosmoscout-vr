@@ -58,7 +58,7 @@ class Atmosphere : public IVistaOpenGLDraw {
     uint32_t colorBuffer               = 0;
     uint32_t waterLevel                = 0;
     uint32_t cloudTexture              = 0;
-    uint32_t cloudTop                  = 0;
+    uint32_t cloudTypeTexture          = 0;
     uint32_t noiseTexture2D            = 0;
     uint32_t cloudAltitude             = 0;
     uint32_t limbLuminanceTexture      = 0;
@@ -93,7 +93,7 @@ class Atmosphere : public IVistaOpenGLDraw {
   std::shared_ptr<cs::graphics::HDRBuffer>         mHDRBuffer;
   std::shared_ptr<cs::core::EclipseShadowReceiver> mEclipseShadowReceiver;
   std::unique_ptr<VistaTexture>                    mCloudTexture;
-  std::unique_ptr<VistaTexture>                    mTopTexture;
+  std::unique_ptr<VistaTexture>                    mCloudTypeTexture;
   GLuint                                           mNoiseTexture = 0;
   GLuint                                           mNoiseTexture2D = 0;
   GLuint                                           mLimbLuminanceTexture = 0;

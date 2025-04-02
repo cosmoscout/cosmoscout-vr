@@ -43,7 +43,7 @@ uniform sampler3D uLimbLuminanceTexture;
 uniform vec3      uShadowCoordinates;
 uniform sampler3D uNoiseTexture;
 uniform sampler2D uNoiseTexture2D;
-uniform sampler2D uCloudTop;
+uniform sampler2D uCloudTypeTexture;
 uniform float     uTestUniform;
 
 // outputs
@@ -426,7 +426,7 @@ vec3 GetCloudCoverageHeight(vec3 position){
   vec2 hcomp_grad = vec2(GetHorizontalComponent(texCoords + x_offset).r, GetHorizontalComponent(texCoords + y_offset).r) / OFFSET_EPS;
   float rate_of_change = length(hcomp_grad);
 
-  vec4 top_sample = textureLod(uCloudTop, vec2(horizontal_component, 1-height_in_cloud), 0);
+  vec4 top_sample = textureLod(uCloudTypeTexture, vec2(horizontal_component, 1-height_in_cloud), 0);
   return vec3(horizontal_component > 0 ? pow(top_sample.r, 1.5) : 0., top_sample.g, top_sample.b);
 }
 
