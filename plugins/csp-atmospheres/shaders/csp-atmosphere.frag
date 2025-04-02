@@ -44,7 +44,6 @@ uniform vec3      uShadowCoordinates;
 uniform sampler3D uNoiseTexture;
 uniform sampler2D uNoiseTexture2D;
 uniform sampler2D uCloudTop;
-uniform sampler2D uCloudBottom;
 uniform float     uTestUniform;
 
 // outputs
