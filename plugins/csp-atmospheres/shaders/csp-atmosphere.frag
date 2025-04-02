@@ -390,7 +390,7 @@ float CUMULONIMBUS_START_HEIGHT = 1500;
 float CUMULONIMBUS_END_HEIGHT = 5000;
 float COVERAGE_MULTIPLIER = 2;
 float CLOUD_BASE_FRACTION = 0.;
-float CLOUD_COVER_MAX = .99;
+float CLOUD_COVER_MAX = .8;
 float OFFSET_EPS = 1e-3;
 
 vec4 GetHorizontalComponent(vec2 texCoords){
@@ -428,14 +428,14 @@ vec3 GetCloudCoverageHeight(vec3 position){
   float rate_of_change = length(hcomp_grad);
 
   vec4 top_sample = textureLod(uCloudTop, vec2(horizontal_component, 1-height_in_cloud), 0);
-  return vec3(horizontal_component > 0 ? top_sample.r : 0., top_sample.g, top_sample.b);
+  return vec3(horizontal_component > 0 ? pow(top_sample.r, 1.5) : 0., top_sample.g, top_sample.b);
 }
 
 float HF_FADE_DISTANCE = 10000;
 float HF_END_DISTANCE = 100000;
 
 float LF_FADE_DISTANCE = 500000;
-float LF_END_DISTANCE = 1000000;
+float LF_END_DISTANCE = 2000000;
 
 // Returns the value of the cloud texture at the position described by the three parameters.
 float getCumuloNimbusDensity(vec3 position, vec3 cam_pos, bool high_res = true){
@@ -446,21 +446,21 @@ float getCumuloNimbusDensity(vec3 position, vec3 cam_pos, bool high_res = true){
   float erosionStrength = cloudConfig.g;
   float hfStrength = cloudConfig.b;
   float cameraDist = length(cam_pos - position);
-  vec4 noise2D = textureLod(uNoiseTexture2D, getLngLat(position) * 5, 0);
+  vec4 noise2D = textureLod(uNoiseTexture2D, getLngLat(position) * 50, 0);
 
   float local_coverage = 2;
   float cloud_density = remap(pow(1 - exp(-local_coverage * cloud_base), .4), .1, 1, 0, 1);
   
-  float lf_influence = remap(erosionStrength, 0, .8, 0, .5);
-  float hf_influence = .5 * hfStrength;
+  float lf_influence = remap(erosionStrength, 0, .8, 0, 1.4);
+  float hf_influence = .6 * hfStrength;
   if(cameraDist < LF_END_DISTANCE){
-    vec4 lf_noises = textureLod(uNoiseTexture, position / 50000, 0);
-    float blended_lf_noise = mix(lf_noises.r, lf_noises.b, noise2D.r);
+    vec4 lf_noises = textureLod(uNoiseTexture, position / 15000, 0);
+    float blended_lf_noise = mix(lf_noises.r, 1 - lf_noises.b, noise2D.r);
     blended_lf_noise = mix(blended_lf_noise, .5, remap(cameraDist, LF_FADE_DISTANCE, LF_END_DISTANCE, 0, 1));
     cloud_density = clamp(lf_influence * blended_lf_noise - (lf_influence - cloud_density), 0, 1);
     
     if(high_res && cameraDist < HF_END_DISTANCE){
-      vec4 hf_noises = textureLod(uNoiseTexture, position / 5000, 0);
+      vec4 hf_noises = textureLod(uNoiseTexture, position / 3000, 0);
       float blended_hf_noise = mix(hf_noises.r, hf_noises.b, noise2D.b);
       blended_hf_noise = mix(blended_hf_noise, .5,  remap(cameraDist, HF_FADE_DISTANCE, HF_END_DISTANCE, 0, 1));
       cloud_density = clamp(hf_influence * blended_hf_noise - (hf_influence - cloud_density), 0, 1);
@@ -552,12 +552,15 @@ float getCloudDensityOld(vec3 rayOrigin, vec3 rayDir, float tIntersection){
   #endif
 }
 
-float henyeyGreenstein(vec3 r1, vec3 r2){
-  float g = .6;
+float henyeyGreenstein(vec3 r1, vec3 r2, float g){
   float cosTheta = dot(normalize(r1), normalize(r2));
   float temp = 1 + pow(g, .5) + 2 * g * cosTheta;
   return (1 - g * g) / (temp * pow(temp, .5)) / 4 / PI;
   return 1 / 4 / PI * (1 - g * g) / pow(1 + g * g + 2 * g * cosTheta, 1.5);
+}
+
+float cloudPhase(vec3 r1, vec3 r2){
+  return .2 * henyeyGreenstein(r1, r2, .95) + .6 * henyeyGreenstein(r1, r2, .6) + .2 * henyeyGreenstein(r1, -r2, .8);
 }
 
 // parameter for converting cloud density in [0, 1] to density along path in 1/meter
@@ -624,7 +627,7 @@ vec4 raymarchInterval(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, vec2 interval, o
   //return vec4(samples, samples_ref, 0, 0) * 100;
 
   //return(mix(vec4(1, 0, 0, 0), vec4(0, 1, 0, 0),samples/100.) * 1000);
-  float phase = henyeyGreenstein(sunDir, -rayDir);
+  float phase = cloudPhase(sunDir, -rayDir);
   float last_density;
 
   vec3 atmo_transmittance;
