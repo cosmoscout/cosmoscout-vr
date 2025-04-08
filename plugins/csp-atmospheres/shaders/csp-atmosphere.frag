@@ -475,8 +475,8 @@ float getCumuloNimbusDensity(vec3 position, vec3 cam_pos, bool high_res = true){
 
   float cloudDensity = remap(pow(1 - exp(-COVERAGE_MULTIPLIER * cloudBase), .4), .1, 1, 0, 1);
   
-  float lfInfluence = remap(erosionStrength, 0, .8, 0, 1.4);
-  float hfInfluence = .6 * hfStrength;
+  float lfInfluence = remap(erosionStrength, 0, .8, .05, 1.4);
+  float hfInfluence = .1 + .6 * hfStrength;
   if(cameraDist < LF_END_DISTANCE){
     vec4 lfNoises = textureLod(uNoiseTexture, position / 15000, 0);
     // blend between worley and perlin noises using a noise at a different frequency to reduce repetition
@@ -487,8 +487,8 @@ float getCumuloNimbusDensity(vec3 position, vec3 cam_pos, bool high_res = true){
     cloudDensity = clamp(lfInfluence * blended_lf_noise - (lfInfluence - cloudDensity), 0, 1);
     
     if(high_res && cameraDist < HF_END_DISTANCE){
-      vec4 hf_noises = textureLod(uNoiseTexture, position / 3000, 0);
-      float blended_hf_noise = mix(hf_noises.r, hf_noises.b, noise2D.b);
+      vec4 hf_noises = textureLod(uNoiseTexture, position / 3521, 0);
+      float blended_hf_noise = mix(hf_noises.r, 1 - hf_noises.b, noise2D.b);
       blended_hf_noise = mix(blended_hf_noise, .5,  remap(cameraDist, HF_FADE_DISTANCE, HF_END_DISTANCE, 0, 1));
       cloudDensity = clamp(hfInfluence * blended_hf_noise - (hfInfluence - cloudDensity), 0, 1);
     }else{
@@ -612,7 +612,7 @@ float raymarchTransmittance(vec3 rayOrigin, vec3 rayDir, vec2 interval, vec3 cam
 
     float dist = t_now - t_last;
     vec3 position = rayOrigin + rayDir * t_now;
-    float local_density = getCloudDensity(position, cam_pos);
+    float local_density = getCloudDensity(position, cam_pos, false);
 
     float scatter_coefficient = local_density * DENSITY_MULTIPLIER;
     float extinction = scatter_coefficient * (1+ABSORBED_FRACTION);
@@ -626,7 +626,7 @@ float raymarchTransmittance(vec3 rayOrigin, vec3 rayDir, vec2 interval, vec3 cam
 
 // The function where all the integration happens
 // uses adaptive step sizes to bring performance to an acceptable level
-vec4 raymarchInterval(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, vec2 interval, out vec3 path_transmittance, int samples_ref=10, bool secondary_rays = false){
+vec4 raymarchInterval(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, vec2 interval, out vec3 path_transmittance, bool secondary_rays = false){
   if(interval.y < 0){
     path_transmittance = vec3(1);
     return vec4(0, 0, 0, 1);
@@ -898,10 +898,10 @@ vec4 getCloudColor(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, float surfaceDistan
 
   vec3 transmittance_int1 = vec3(1);
   vec3 transmittance_int2 = vec3(1);
-  vec4 scatter_data1 = raymarchInterval(rayOrigin, rayDir, sunDir, interval1, transmittance_int1, 50, true);
+  vec4 scatter_data1 = raymarchInterval(rayOrigin, rayDir, sunDir, interval1, transmittance_int1, true);
   vec4 scatter_data2 = vec4(0,0,0,1);
   if(scatter_data1.a > .0001){
-    scatter_data2 = raymarchInterval(rayOrigin, rayDir, sunDir, interval2, transmittance_int2, 50, true);
+    scatter_data2 = raymarchInterval(rayOrigin, rayDir, sunDir, interval2, transmittance_int2, true);
   }
   if(scatter_data1.x < 1e-6 && scatter_data2.x < 1e-6){
     // no significant inscattering from clouds. just return standard inscattering
@@ -911,7 +911,7 @@ vec4 getCloudColor(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, float surfaceDistan
       return vec4(GetSkyLuminance(rayOrigin, rayDir, sunDir, transmittance), transmittance.r);
     }
   }
-  
+
   //return vec4(interval1.x, 1, 0, 1);
   vec3 transmittance_before_int1;
   vec3 inscattering_before_int1 = GetSkyLuminanceToPoint(rayOrigin, rayOrigin + rayDir * interval1.x, sunDir, transmittance_before_int1);
