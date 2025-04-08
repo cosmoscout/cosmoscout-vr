@@ -804,38 +804,21 @@ vec4 raymarchInterval(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, vec2 interval, o
   }
   return vec4(inscattering_acc, path_transmittance.r);// + mix(vec4(1, 0, 0, 0), vec4(0, 1, 0, 0), float(samples) / 100) * 100000;
 }
-// computes the cloud inscattered luminance in xyz and transmittance in alpha
-// assumptions of the ray marching: Cloud albedo is 100 percent, extinction = outscattering
-vec4 getCloudColor(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, float surfaceDistance, out vec3 transmittance) {
-  // The distance between the top and bottom cloud layers.
-  float thickness = 8000;
-  // The distance to the planet surface where the fade-out starts.
-  float fadeWidth = thickness * 2.0;
 
-  // The altitude of the upper-most cloud layer.
+// computes the cloud inscattered luminance in xyz and transmittance in alpha
+vec4 getCloudColor(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, float surfaceDistance, out vec3 transmittance) {
+  float thickness = CUMULONIMBUS_END_HEIGHT - CUMULONIMBUS_START_HEIGHT;
+
+  // The sphere radius of the upper-most and lowest cloud layers
   float topAltitude = PLANET_RADIUS + CUMULONIMBUS_END_HEIGHT;
   float lowAltitude = PLANET_RADIUS + CUMULONIMBUS_START_HEIGHT;
 
-  vec2 intersections = intersectSphere(rayOrigin, rayDir, topAltitude);
+  vec2 topIntersections = intersectSphere(rayOrigin, rayDir, topAltitude);
+  vec2 lowIntersections = intersectSphere(rayOrigin, rayDir, lowAltitude);
   vec2 atmo_intersections = intersectAtmosphere(rayOrigin, rayDir);
 
   float originHeight = length(rayOrigin);
   bool hitsSurface = surfaceDistance < atmo_intersections.y || intersectSphere(rayOrigin, rayDir, PLANET_RADIUS).y > 0;
-
-  // Compute intersection point of view ray with clouds. Use this to compute the illuminance at this
-  // point as well as the transmittance of the atmosphere towards the observer.
-  vec3 p = rayOrigin + rayDir * (intersections.x < 0 ? intersections.y : intersections.x);
-  vec3 skyIlluminance;
-
-  vec3 sunIlluminance = GetSunAndSkyIlluminance(p, uSunDir, skyIlluminance);
-
-  // We will accumulate the cloud density in this variable.
-  float density = 0.0;
-
-  
-  vec2 topIntersections = intersections;
-  vec2 lowIntersections = intersectSphere(rayOrigin, rayDir, lowAltitude);
-  
   bool originInClouds = originHeight > lowAltitude && originHeight < topAltitude;
 
   bool hitTop = topIntersections.y > 0;
@@ -847,6 +830,7 @@ vec4 getCloudColor(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, float surfaceDistan
   vec2 interval1 = vec2(0, -1);
   vec2 interval2 = vec2(0, -1);
 
+  // use infintiy for no intersection to allow selecting other variables through min operation
   float lowXcorrected = lowIntersections.x < lowIntersections.y ? lowIntersections.x : INFINITY;
 
   if(above){
@@ -857,30 +841,22 @@ vec4 getCloudColor(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, float surfaceDistan
         // ray exits the cloud layer at the bottom and reintersects it, creating a second interval
         interval2.x = lowIntersections.y;
         interval2.y = topIntersections.y;
-        //return vec4(0, 100000, 0, 1);
       }else{
         // ray leaves the cloud layer on the upper side
         interval1.y = topIntersections.y;
-        //return vec4(100000, 0, 0, 1);
       }
     }else{
       if(hitBottom){
-        //return vec4(10000, 0, 0, 1);
         interval1.y = min(surfaceDistance, lowXcorrected);
-        //return vec4(10000, 0, 0, 1);
       }else{
-        //float topYcorrected = topIntersections.y > topIntersections.x ? topIntersections.y : INFINITY;
         interval1.y = surfaceDistance;
-        //return vec4(0, 10000, 0, 1);
       }
       if(!hitTop || surfaceDistance < topIntersections.x){
         interval1.y = -1;
       }
-      //return vec4(0, 0, 100000, 1);
     }
   }else{
     if(below){
-      //return vec4(0, 10000, 0, 1);
       if(lowIntersections.y > 0){
         interval1.x = lowIntersections.y;
         interval1.y = topIntersections.y;
@@ -897,7 +873,6 @@ vec4 getCloudColor(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, float surfaceDistan
       }else{
         interval1.y = topIntersections.y;
       }
-
     }
   }
 
@@ -924,13 +899,11 @@ vec4 getCloudColor(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, float surfaceDistan
   vec3 transmittance_int1 = vec3(1);
   vec3 transmittance_int2 = vec3(1);
   vec4 scatter_data1 = raymarchInterval(rayOrigin, rayDir, sunDir, interval1, transmittance_int1, 50, true);
-  vec4 scatter_data2 = raymarchInterval(rayOrigin, rayDir, sunDir, interval2, transmittance_int2, 50, true);
-
-  
-
-  //return scatter_data1;
+  vec4 scatter_data2 = vec4(0,0,0,1);
+  if(scatter_data1.a > .0001){
+    scatter_data2 = raymarchInterval(rayOrigin, rayDir, sunDir, interval2, transmittance_int2, 50, true);
+  }
   if(scatter_data1.x < 1e-6 && scatter_data2.x < 1e-6){
-    //return vec4(0, 10000, 0, 1);
     // no significant inscattering from clouds. just return standard inscattering
     if(hitsSurface){
       return vec4(GetSkyLuminanceToPoint(rayOrigin, rayOrigin + surfaceDistance * rayDir, sunDir, transmittance), transmittance);
@@ -938,12 +911,11 @@ vec4 getCloudColor(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, float surfaceDistan
       return vec4(GetSkyLuminance(rayOrigin, rayDir, sunDir, transmittance), transmittance.r);
     }
   }
-
+  
   //return vec4(interval1.x, 1, 0, 1);
   vec3 transmittance_before_int1;
   vec3 inscattering_before_int1 = GetSkyLuminanceToPoint(rayOrigin, rayOrigin + rayDir * interval1.x, sunDir, transmittance_before_int1);
 
-  
   if(scatter_data2.x < 1e-6){
     // no significant inscattering from second interval. return first interval inscattering with transmittance behind
     vec3 transmittance_behind_int1 = vec3(1);
@@ -970,11 +942,7 @@ vec4 getCloudColor(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, float surfaceDistan
     return vec4(inScatter, transmittance.x);
   }
 
-
-  
-  
   return vec4(0, 100000, 0, 1);
-
 }
 
 
