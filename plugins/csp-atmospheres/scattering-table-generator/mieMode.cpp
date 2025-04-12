@@ -431,7 +431,7 @@ int mieMode(std::vector<std::string> const& arguments) {
   absorptionOutput << "lambda,beta_abs" << std::endl;
   phaseOutput << "lambda";
   for (int32_t t(0); t < totalAngles; ++t) {
-    phaseOutput << fmt::format(",{}", 180.0 * t / (totalAngles - 1.0));
+    phaseOutput << std::format(",{}", 180.0 * t / (totalAngles - 1.0));
   }
   phaseOutput << std::endl;
 
@@ -475,15 +475,15 @@ int mieMode(std::vector<std::string> const& arguments) {
     }
 
     // Print wavelength, scattering coefficient, and absorption coefficient.
-    scatteringOutput << fmt::format("{},{}", lambda, cNumberDensity * cSca / totalCoeffWeight)
+    scatteringOutput << std::format("{},{}", lambda, cNumberDensity * cSca / totalCoeffWeight)
                      << std::endl;
-    absorptionOutput << fmt::format("{},{}", lambda, cNumberDensity * cAbs / totalCoeffWeight)
+    absorptionOutput << std::format("{},{}", lambda, cNumberDensity * cAbs / totalCoeffWeight)
                      << std::endl;
-    phaseOutput << fmt::format("{}", lambda);
+    phaseOutput << std::format("{}", lambda);
     for (double p : phase) {
       const double isotropic = 0.25 / glm::pi<double>();
       p = (1.0 - cPhaseFlattening) * p / totalPhaseWeight + cPhaseFlattening * isotropic;
-      phaseOutput << fmt::format(",{}", p);
+      phaseOutput << std::format(",{}", p);
     }
     phaseOutput << std::endl;
   }

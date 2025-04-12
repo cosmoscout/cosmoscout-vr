@@ -557,7 +557,7 @@ void Atmosphere::renderSkyDome(std::string const& name) const {
 
     glReadPixels(0, 0, SIZE, SIZE, GL_RGBA, GL_FLOAT, &pixels[0]);
 
-    stbi_write_hdr(fmt::format("{}_{}.hdr", name, e).c_str(), SIZE, SIZE, 4, pixels.data());
+    stbi_write_hdr(std::format("{}_{}.hdr", name, e).c_str(), SIZE, SIZE, 4, pixels.data());
   }
 
   glDepthMask(GL_TRUE);

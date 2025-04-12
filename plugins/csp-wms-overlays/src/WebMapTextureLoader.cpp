@@ -15,9 +15,6 @@
 #include "../../../src/cs-utils/filesystem.hpp"
 #include "../../../src/cs-utils/utils.hpp"
 
-#include <boost/algorithm/string.hpp>
-#include <boost/filesystem.hpp>
-#include <boost/range/algorithm/replace_copy_if.hpp>
 #include <curlpp/Infos.hpp>
 #include <curlpp/Options.hpp>
 
@@ -50,10 +47,10 @@ std::future<std::optional<WebMapTexture>> WebMapTextureLoader::loadTextureAsync(
 std::optional<WebMapTexture> WebMapTextureLoader::loadTexture(WebMapService const& wms,
     WebMapLayer const& layer, Request const& request, std::string const& mapCache,
     bool saveToCache) {
-  boost::filesystem::path cachePath = getCachePath(wms, layer, request, mapCache);
+  std::filesystem::path cachePath = getCachePath(wms, layer, request, mapCache);
   if (saveToCache) {
     // The file is already there, we can return it
-    if (boost::filesystem::exists(cachePath) && boost::filesystem::file_size(cachePath) > 0) {
+    if (std::filesystem::exists(cachePath) && std::filesystem::file_size(cachePath) > 0) {
       std::optional<WebMapTexture> texture = loadTextureFromFile(cachePath.string());
       return texture;
     }
@@ -147,19 +144,19 @@ std::optional<std::stringstream> WebMapTextureLoader::requestTexture(
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void WebMapTextureLoader::saveTextureToFile(
-    boost::filesystem::path const& file, std::stringstream const& data) {
+    std::filesystem::path const& file, std::stringstream const& data) {
   {
     std::unique_lock<std::mutex> lock(mTextureMutex);
 
-    if (boost::filesystem::exists(file) && boost::filesystem::file_size(file) == 0) {
-      boost::filesystem::remove(file);
+    if (std::filesystem::exists(file) && std::filesystem::file_size(file) == 0) {
+      std::filesystem::remove(file);
     }
 
-    auto cacheDirPath(boost::filesystem::absolute(file.parent_path()));
-    if (!(boost::filesystem::exists(file))) {
+    auto cacheDirPath(std::filesystem::absolute(file.parent_path()));
+    if (!(std::filesystem::exists(file))) {
       try {
         cs::utils::filesystem::createDirectoryRecursively(
-            cacheDirPath, boost::filesystem::perms::all_all);
+            cacheDirPath, std::filesystem::perms::all);
       } catch (std::exception& e) {
         logger().warn("Failed to create cache directory: '{}'!", e.what());
         return;
@@ -179,11 +176,11 @@ void WebMapTextureLoader::saveTextureToFile(
     out << data.rdbuf();
   }
 
-  boost::filesystem::perms filePerms =
-      boost::filesystem::perms::owner_read | boost::filesystem::perms::owner_write |
-      boost::filesystem::perms::group_read | boost::filesystem::perms::group_write |
-      boost::filesystem::perms::others_read | boost::filesystem::perms::others_write;
-  boost::filesystem::permissions(file, filePerms);
+  std::filesystem::perms filePerms =
+      std::filesystem::perms::owner_read | std::filesystem::perms::owner_write |
+      std::filesystem::perms::group_read | std::filesystem::perms::group_write |
+      std::filesystem::perms::others_read | std::filesystem::perms::others_write;
+  std::filesystem::permissions(file, filePerms);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -226,13 +223,18 @@ std::optional<WebMapTexture> WebMapTextureLoader::loadTextureFromStream(
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-boost::filesystem::path WebMapTextureLoader::getCachePath(WebMapService const& wms,
+std::filesystem::path WebMapTextureLoader::getCachePath(WebMapService const& wms,
     WebMapLayer const& layer, Request const& request, std::string const& mapCache) {
 
   // Replace forbidden characters in layer string before creating cache dir.
   std::string layerFixed;
-  boost::replace_copy_if(
-      layer.getName(), std::back_inserter(layerFixed), boost::is_any_of("*.,:[|]\""), '_');
+  std::ranges::copy(
+      layer.getName() | std::views::transform([](char c) {
+          return (c == '*' || c == '.' || c == ',' || c == ':' ||
+                  c == '[' || c == '|' || c == ']' || c == '"') ? '_' : c;
+      }),
+      std::back_inserter(layerFixed)
+  );
 
   // Set file format to three caracters.
   std::string fileFormat = mMimeToExtension.at(getMimeType(wms, layer));
@@ -268,7 +270,7 @@ boost::filesystem::path WebMapTextureLoader::getCachePath(WebMapService const& w
     cacheFile << cacheDir.str() << layerFixed << "." << fileFormat;
   }
 
-  return boost::filesystem::path(cacheFile.str());
+  return std::filesystem::path(cacheFile.str());
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

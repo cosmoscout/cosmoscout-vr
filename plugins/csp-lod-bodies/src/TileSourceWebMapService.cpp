@@ -245,7 +245,7 @@ TileSourceWebMapService::TileSourceWebMapService(uint32_t resolution)
     return loadImpl<glm::u8vec4>(this, tileId);
   }
 
-  throw std::domain_error(fmt::format("Unsupported format: {}!", mFormat));
+  throw std::domain_error(std::format("Unsupported format: {}!", static_cast<int>(mFormat)));
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -349,8 +349,7 @@ std::optional<std::string> TileSourceWebMapService::loadData(TileId const& tileI
   auto cacheFilePath(std::filesystem::path(cacheFile.str()));
 
   // The file is already there, we can return it.
-  if (std::filesystem::exists(cacheFilePath) &&
-      std::filesystem::file_size(cacheFile.str()) > 0) {
+  if (std::filesystem::exists(cacheFilePath) && std::filesystem::file_size(cacheFile.str()) > 0) {
     return cacheFile.str();
   }
 
@@ -370,7 +369,7 @@ std::optional<std::string> TileSourceWebMapService::loadData(TileId const& tileI
         cs::utils::filesystem::createDirectoryRecursively(
             cacheDirPath, std::filesystem::perms::all);
       } catch (std::exception& e) {
-        throw std::runtime_error(fmt::format("Failed to create cache directory '{}'!", e.what()));
+        throw std::runtime_error(std::format("Failed to create cache directory '{}'!", e.what()));
       }
     }
 
@@ -387,7 +386,7 @@ std::optional<std::string> TileSourceWebMapService::loadData(TileId const& tileI
     out.open(cacheFile.str(), std::ofstream::out | std::ofstream::binary);
 
     if (!out) {
-      throw std::runtime_error(fmt::format(
+      throw std::runtime_error(std::format(
           "Failed to download tile data: Cannot open '{}' for writing!", cacheFile.str()));
     }
 

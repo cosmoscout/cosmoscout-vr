@@ -10,6 +10,8 @@
 #include "WebMapService.hpp"
 #include "logger.hpp"
 
+#include <ranges>
+
 #include "../../../src/cs-core/GuiManager.hpp"
 #include "../../../src/cs-core/InputManager.hpp"
 #include "../../../src/cs-core/Settings.hpp"
@@ -233,9 +235,9 @@ void Plugin::init() {
         mAllSettings->pTimeSpeed = 0.f;
         mTimeControl->setTime(
             cs::utils::convert::time::toSpice(mActiveLayers[mActiveOverlay->getObjectName()]
-                                                  ->getSettings()
-                                                  .mTimeIntervals.front()
-                                                  .mStartTime));
+                    ->getSettings()
+                    .mTimeIntervals.front()
+                    .mStartTime));
       }));
 
   mGuiManager->getGui()->registerCallback("wmsOverlays.goToPreviousTime",
@@ -247,15 +249,15 @@ void Plugin::init() {
 
         mAllSettings->pTimeSpeed = 0.f;
 
-        boost::posix_time::ptime time =
-            cs::utils::convert::time::toPosix(mTimeControl->pSimulationTime.get());
+        std::chrono::utc_clock::time_point time =
+            cs::utils::convert::time::toUTC(mTimeControl->pSimulationTime.get());
 
         std::vector<TimeInterval> intervals =
             mActiveLayers[mActiveOverlay->getObjectName()]->getSettings().mTimeIntervals;
 
         // Check if current time is in any interval
-        TimeInterval             result;
-        boost::posix_time::ptime sampleStartTime = time;
+        TimeInterval                       result;
+        std::chrono::utc_clock::time_point sampleStartTime = time;
         if (utils::timeInIntervals(sampleStartTime, intervals, result)) {
           if (sampleStartTime != time) {
             // timeInIntervals rounds down the time to the nearest timestep, so the
@@ -279,14 +281,14 @@ void Plugin::init() {
           }
           // If the time was not the start time of any interval we can substract the duration to
           // get the previous timestep.
-          sampleStartTime = utils::addDurationToTime(sampleStartTime, result.mSampleDuration, -1);
+          sampleStartTime = sampleStartTime - result.mSampleDuration;
           mTimeControl->setTime(cs::utils::convert::time::toSpice(sampleStartTime));
           return;
         }
 
         // Time was not part of any interval, so the last interval, that lies before the current
         // time has to be found.
-        boost::posix_time::ptime temp = time;
+        std::chrono::utc_clock::time_point temp = time;
         for (auto const& interval : intervals) {
           if (time > interval.mEndTime) {
             temp = interval.mEndTime;
@@ -306,15 +308,15 @@ void Plugin::init() {
 
         mAllSettings->pTimeSpeed = 0.f;
 
-        boost::posix_time::ptime time =
-            cs::utils::convert::time::toPosix(mTimeControl->pSimulationTime.get());
+        std::chrono::utc_clock::time_point time =
+            cs::utils::convert::time::toUTC(mTimeControl->pSimulationTime.get());
 
         std::vector<TimeInterval> intervals =
             mActiveLayers[mActiveOverlay->getObjectName()]->getSettings().mTimeIntervals;
 
         // Check if current time is in any interval
-        TimeInterval             result;
-        boost::posix_time::ptime sampleStartTime = time;
+        TimeInterval                       result;
+        std::chrono::utc_clock::time_point sampleStartTime = time;
         if (utils::timeInIntervals(sampleStartTime, intervals, result)) {
           if (sampleStartTime == result.mEndTime) {
             auto it = std::find(intervals.begin(), intervals.end(), result);
@@ -331,7 +333,7 @@ void Plugin::init() {
           }
           // If the time was not the end time of any interval we can add the duration to
           // get the next timestep.
-          sampleStartTime = utils::addDurationToTime(sampleStartTime, result.mSampleDuration);
+          sampleStartTime = sampleStartTime + result.mSampleDuration;
           mTimeControl->setTime(cs::utils::convert::time::toSpice(sampleStartTime));
           return;
         }
@@ -356,9 +358,9 @@ void Plugin::init() {
         mAllSettings->pTimeSpeed = 0.f;
         mTimeControl->setTime(
             cs::utils::convert::time::toSpice(mActiveLayers[mActiveOverlay->getObjectName()]
-                                                  ->getSettings()
-                                                  .mTimeIntervals.back()
-                                                  .mEndTime));
+                    ->getSettings()
+                    .mTimeIntervals.back()
+                    .mEndTime));
       }));
 
   // Fill the dropdowns with information for the active body.
@@ -687,8 +689,8 @@ void Plugin::setWMSLayer(
         "CosmoScout.gui.addDropdownValue", "wmsOverlays.setStyle", "", "Default", false);
 
     mGuiManager->getGui()->callJavascript("CosmoScout.wmsOverlays.setInfo", layer->getTitle(),
-        boost::replace_all_copy(
-            layer->getAbstract().value_or("<em>No description given</em>"), "\r", "</br>"),
+        std::regex_replace(layer->getAbstract().value_or("<em>No description given</em>"),
+            std::regex("\r"), "</br>"),
         layer->getSettings().mAttribution.value_or("None"));
     mGuiManager->getGui()->callJavascript("CosmoScout.wmsOverlays.enableInfoButton", true);
 

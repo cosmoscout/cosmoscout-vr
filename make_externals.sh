@@ -178,7 +178,8 @@ echo ""
 
 cmake -E make_directory "$BUILD_DIR/spdlog" && cd "$BUILD_DIR/spdlog"
 cmake "${CMAKE_FLAGS[@]}" -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" -DSPDLOG_BUILD_TESTS=Off \
-      -DCMAKE_POSITION_INDEPENDENT_CODE=On -DCMAKE_BUILD_TYPE=$BUILD_TYPE "$EXTERNALS_DIR/spdlog"
+      -DSPDLOG_USE_STD_FORMAT=On -DCMAKE_POSITION_INDEPENDENT_CODE=On \
+      -DCMAKE_BUILD_TYPE=$BUILD_TYPE "$EXTERNALS_DIR/spdlog"
 cmake --build . --target install --parallel "$(nproc)"
 
 # civetweb -----------------------------------------------------------------------------------------
