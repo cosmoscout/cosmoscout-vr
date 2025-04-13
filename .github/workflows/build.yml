@@ -99,7 +99,7 @@ jobs:
         run: |
           sudo apt-get update -q
           sudo apt-get install libgl1-mesa-dev libglu1-mesa-dev libx11-dev
-          sudo apt-get install libxi-dev libgconf-2-4 lcov xvfb
+          sudo apt-get install libxi-dev lcov xvfb
       - name: Build Externals
         run: >
           ./make_externals.sh -G "Unix Makefiles"
@@ -154,7 +154,7 @@ jobs:
         run: |
           sudo apt-get update -q
           sudo apt-get install libgl1-mesa-dev libglu1-mesa-dev libx11-dev
-          sudo apt-get install libxi-dev libgconf-2-4
+          sudo apt-get install libxi-dev
       - name: Build Externals
         run: >
           ./make_externals.sh -G "Unix Makefiles"
