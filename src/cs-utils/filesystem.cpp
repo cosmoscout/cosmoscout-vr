@@ -36,7 +36,7 @@ std::set<std::string> listFiles(std::string const& directory, std::regex const& 
 
   for (auto& p : std::filesystem::directory_iterator(directory)) {
 
-    if (auto const & path = p.path();
+    if (auto const& path = p.path();
         std::regex_match(path.string(), regex) && std::filesystem::is_regular_file(path)) {
       result.insert(path.generic_string());
     }
