@@ -241,16 +241,14 @@ void Plugin::update() {
   if (!mEnableRecording && !mRecordedGPURanges.empty()) {
 
     // We use the current date as a directory name.
-    auto timeString =
-        cs::utils::convert::time::toString(std::chrono::utc_clock::now());
+    auto timeString = cs::utils::convert::time::toString(std::chrono::utc_clock::now());
     cs::utils::replaceString(timeString, ":", "-");
     cs::utils::replaceString(timeString, ".", "-");
     cs::utils::replaceString(timeString, "T", "-");
     cs::utils::replaceString(timeString, "Z", "");
 
     std::string directory = "csp-timings/" + timeString;
-    cs::utils::filesystem::createDirectoryRecursively(
-        std::filesystem::absolute(directory));
+    cs::utils::filesystem::createDirectoryRecursively(std::filesystem::absolute(directory));
 
     // This stores a CSV file for each nesting level in the directory created above. The prefix will
     // be prepended to the CSV file name.

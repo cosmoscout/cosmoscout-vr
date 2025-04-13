@@ -42,7 +42,7 @@ void from_json(nlohmann::json const&                                            
     cs::scene::CelestialObject object;
 
     // First, we parse the required parameters.
-    std::string                center, frame;
+    std::string                         center, frame;
     std::pair<std::string, std::string> existence;
     cs::core::Settings::deserialize(data, "center", center);
     cs::core::Settings::deserialize(data, "frame", frame);
@@ -498,7 +498,7 @@ Settings::DeserializationException::DeserializationException(
     std::string property, std::string jsonError)
     : mProperty(std::move(property))
     , mJSONError(std::move(jsonError))
-    , mMessage("While parsing property " + mProperty + ": " + mJSONError){};
+    , mMessage("While parsing property " + mProperty + ": " + mJSONError) {};
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 

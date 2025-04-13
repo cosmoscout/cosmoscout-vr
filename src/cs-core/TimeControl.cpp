@@ -34,8 +34,7 @@ TimeControl::TimeControl(std::shared_ptr<core::Settings> settings)
 
   mSettings->onLoad().connect([this]() {
     if (mSettings->mStartDate == "today") {
-      setTime(
-          utils::convert::time::toSpice(std::chrono::utc_clock::now()), 5.0);
+      setTime(utils::convert::time::toSpice(std::chrono::utc_clock::now()), 5.0);
     } else {
       try {
         setTime(utils::convert::time::toSpice(mSettings->mStartDate), 5.0);
@@ -110,7 +109,7 @@ void TimeControl::update() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void TimeControl::setTime(double tTime, double duration, double threshold) {
-  double now = utils::convert::time::toSpice(std::chrono::utc_clock::now());
+  double now        = utils::convert::time::toSpice(std::chrono::utc_clock::now());
   double difference = std::abs(pSimulationTime.get() - tTime);
 
   if (tTime >= pMaxDate || tTime <= pMinDate) {
@@ -138,8 +137,7 @@ void TimeControl::setTime(double tTime, double duration, double threshold) {
 void TimeControl::resetTime(double duration, double threshold) {
 
   if (mSettings->mResetDate == "today") {
-    setTime(utils::convert::time::toSpice(std::chrono::utc_clock::now()),
-        duration, threshold);
+    setTime(utils::convert::time::toSpice(std::chrono::utc_clock::now()), duration, threshold);
   } else {
     try {
       setTime(utils::convert::time::toSpice(mSettings->mResetDate), duration, threshold);

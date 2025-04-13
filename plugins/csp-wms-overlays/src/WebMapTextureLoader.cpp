@@ -228,13 +228,13 @@ std::filesystem::path WebMapTextureLoader::getCachePath(WebMapService const& wms
 
   // Replace forbidden characters in layer string before creating cache dir.
   std::string layerFixed;
-  std::ranges::copy(
-      layer.getName() | std::views::transform([](char c) {
-          return (c == '*' || c == '.' || c == ',' || c == ':' ||
-                  c == '[' || c == '|' || c == ']' || c == '"') ? '_' : c;
-      }),
-      std::back_inserter(layerFixed)
-  );
+  std::ranges::copy(layer.getName() | std::views::transform([](char c) {
+    return (c == '*' || c == '.' || c == ',' || c == ':' || c == '[' || c == '|' || c == ']' ||
+               c == '"')
+               ? '_'
+               : c;
+  }),
+      std::back_inserter(layerFixed));
 
   // Set file format to three caracters.
   std::string fileFormat = mMimeToExtension.at(getMimeType(wms, layer));

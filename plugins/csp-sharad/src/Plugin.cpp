@@ -85,8 +85,8 @@ void Plugin::init() {
       for (std::filesystem::directory_iterator dir_iter(dir); dir_iter != end_iter; ++dir_iter) {
         if (std::filesystem::is_regular_file(dir_iter->status())) {
           std::filesystem::path path(std::filesystem::path(*dir_iter).lexically_normal());
-          std::string             file(path.stem().string());
-          std::string             ext(path.extension().string());
+          std::string           file(path.stem().string());
+          std::string           ext(path.extension().string());
 
           if (ext == ".tab") {
             std::string sName = file.substr(0, file.length() - 5);

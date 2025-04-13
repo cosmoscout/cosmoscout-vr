@@ -29,13 +29,13 @@ class TimeComponent extends Rete.Component {
     node.addOutput(output)
 
     // Add the time display. The name parameter must be unique amongst all controls of this
-    // node. The TextDisplayControl class is defined in the controls folder.
+    // node. The TextDisplayControl class is defined in the controls' folder.
     let control = new TextDisplayControl('display');
     node.addControl(control);
 
     // Whenever a message from C++ arrives, we set the input value accordingly. This message is
     // sent by the TimeNode::init() and TimeNode::process() methods.
-    node.onMessageFromCPP = (timeString) => { control.setValue(new Date(timeString).toLocaleString('sv', {timeZone: 'UTC'})); };
+    node.onMessageFromCPP = (timeString) => { control.setValue(timeString); };
 
     return node;
   }
