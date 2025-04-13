@@ -35,9 +35,9 @@ std::set<std::string> listFiles(std::string const& directory, std::regex const& 
   std::set<std::string> result;
 
   for (auto& p : std::filesystem::directory_iterator(directory)) {
-    auto path = p.path();
 
-    if (std::regex_match(path.string(), regex) && std::filesystem::is_regular_file(path)) {
+    if (auto const & path = p.path();
+        std::regex_match(path.string(), regex) && std::filesystem::is_regular_file(path)) {
       result.insert(path.generic_string());
     }
   }
@@ -51,7 +51,7 @@ std::set<std::string> listDirs(std::string const& directory, std::regex const& r
   std::set<std::string> result;
 
   for (auto& p : std::filesystem::directory_iterator(directory)) {
-    if (const auto& path = p.path();
+    if (auto const& path = p.path();
         std::regex_match(path.string(), regex) && std::filesystem::is_directory(path)) {
       result.insert(path.generic_string());
     }
