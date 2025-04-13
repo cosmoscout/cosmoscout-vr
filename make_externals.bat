@@ -207,8 +207,8 @@ echo.
 
 cmake -E make_directory "%BUILD_DIR%/spdlog" && cd "%BUILD_DIR%/spdlog"
 cmake %CMAKE_FLAGS% -DCMAKE_BUILD_TYPE=%BUILD_TYPE% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%"^
-      -DSPDLOG_BUILD_TESTS=Off -DSPDLOG_ENABLE_PCH=On -DSPDLOG_USE_STD_FORMAT=On^
-      "%EXTERNALS_DIR%/spdlog" || goto :error
+      -DSPDLOG_BUILD_TESTS=Off -D SPDLOG_BUILD_EXAMPLE=Off -DSPDLOG_ENABLE_PCH=On^
+      -DSPDLOG_USE_STD_FORMAT=On "%EXTERNALS_DIR%/spdlog" || goto :error
 
 cmake --build . --config %BUILD_TYPE% --target install --parallel %NUMBER_OF_PROCESSORS% || goto :error
 
@@ -395,7 +395,7 @@ echo.
 echo Downloading, building and installing cef (this may take some time) ...
 echo.
 
-set CEF_DIR=cef_binary_88.1.6+g4fe33a1+chromium-88.0.4324.96_windows64_minimal
+set CEF_DIR=cef_binary_135.0.20+ge7de5c3+chromium-135.0.7049.85_windows64_minimal
 
 cmake -E make_directory "%BUILD_DIR%/cef/extracted" && cd "%BUILD_DIR%/cef"
 
