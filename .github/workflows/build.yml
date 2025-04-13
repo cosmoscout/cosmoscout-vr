@@ -77,8 +77,8 @@ jobs:
           fi
 
   build_linux_gcc:
-    name: Linux GCC 11.4.0
-    runs-on: ubuntu-22.04
+    name: Linux GCC 13.3.0
+    runs-on: ubuntu-24.04
     if: >
       github.event_name == 'pull_request' ||
       ( contains(github.ref, 'main') && !contains(github.event.head_commit.message, '[no-ci]') ) ||
@@ -99,7 +99,7 @@ jobs:
         run: |
           sudo apt-get update -q
           sudo apt-get install libgl1-mesa-dev libglu1-mesa-dev libx11-dev
-          sudo apt-get install libxi-dev libgconf-2-4 libboost-all-dev lcov xvfb
+          sudo apt-get install libxi-dev libgconf-2-4 lcov xvfb
       - name: Build Externals
         run: >
           ./make_externals.sh -G "Unix Makefiles"
@@ -130,15 +130,15 @@ jobs:
           path-to-lcov: ./build/linux-Release/coverage.info
 
   build_linux_clang:
-    name: Linux Clang 14.0
-    runs-on: ubuntu-22.04
+    name: Linux Clang 18.0
+    runs-on: ubuntu-24.04
     if: >
       github.event_name == 'pull_request' ||
       ( contains(github.ref, 'main') && !contains(github.event.head_commit.message, '[no-ci]') ) ||
       contains(github.event.head_commit.message, '[run-ci]')
     env:
-      CC: clang-14
-      CXX: clang++-14
+      CC: clang-18
+      CXX: clang++-18
       COSMOSCOUT_USE_PCH: false
       COSMOSCOUT_USE_UNITY_BUILD: false
     steps:
@@ -154,7 +154,7 @@ jobs:
         run: |
           sudo apt-get update -q
           sudo apt-get install libgl1-mesa-dev libglu1-mesa-dev libx11-dev
-          sudo apt-get install libxi-dev libgconf-2-4 libboost-all-dev
+          sudo apt-get install libxi-dev libgconf-2-4
       - name: Build Externals
         run: >
           ./make_externals.sh -G "Unix Makefiles"
@@ -184,7 +184,6 @@ jobs:
       ( contains(github.ref, 'main') && !contains(github.event.head_commit.message, '[no-ci]') ) ||
       contains(github.event.head_commit.message, '[run-ci]')
     env:
-      BOOST_ROOT_1_72_0: C:\hostedtoolcache\windows\Boost\1.72.0\x86_64
       COSMOSCOUT_USE_PCH: true
       COSMOSCOUT_USE_UNITY_BUILD: true
     steps:
@@ -200,13 +199,6 @@ jobs:
         uses: ilammy/msvc-dev-cmd@v1
       - name: Download Dependencies
         run: |
-          # From https://github.com/actions/virtual-environments/issues/2667
-          $url = "https://github.com/actions/boost-versions/releases/download/1.72.0-20200608.4/boost-1.72.0-win32-msvc14.2-x86_64.tar.gz"
-          (New-Object System.Net.WebClient).DownloadFile($url, "$env:TEMP\boost.tar.gz")
-          7z.exe x "$env:TEMP\boost.tar.gz" -o"$env:TEMP\boostArchive" -y | Out-Null
-          7z.exe x "$env:TEMP\boostArchive" -o"$env:TEMP\boost" -y | Out-Null
-          Push-Location -Path "$env:TEMP\boost"
-          Invoke-Expression .\setup.ps1
           choco install ninja
       - name: Build Externals
         shell: cmd
@@ -216,10 +208,9 @@ jobs:
       - name: Build CosmoScout VR
         shell: cmd
         run: |
-          cmake --preset windows-ninja-release-config -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache -DBOOST_ROOT=%BOOST_ROOT_1_72_0%
+          cmake --preset windows-ninja-release-config -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache
           cmake --build --preset windows-ninja-release-build
       - name: Run Tests
         shell: cmd
         run: |
-          SET PATH=%BOOST_ROOT_1_72_0%\\lib;%PATH%
           install\\windows-Release\\bin\\run_tests.bat

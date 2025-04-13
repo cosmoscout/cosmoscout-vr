@@ -15,7 +15,7 @@ on:
 jobs:
   source_code:
     name: Source Code
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
     - name: Checkout Repository
       uses: actions/checkout@v4
@@ -35,7 +35,7 @@ jobs:
 
   release_linux:
     name: Linux
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
     - name: Checkout Repository
       uses: actions/checkout@v4
@@ -46,7 +46,7 @@ jobs:
         sudo apt-get update -q
         sudo apt-get install libgl1-mesa-dev libglu1-mesa-dev libx11-dev
         sudo apt-get install libxi-dev libgconf-2-4
-        sudo apt-get install libboost-all-dev
+        sudo apt-get install
     - name: Build Externals
       run: ./make_externals.sh -G "Unix Makefiles"
     - name: Build CosmoScout VR
@@ -70,29 +70,18 @@ jobs:
   release_windows:
     name: Windows
     runs-on: windows-2019
-    env:
-      BOOST_ROOT_1_72_0: C:\hostedtoolcache\windows\Boost\1.72.0\x86_64
     steps:
     - name: Checkout Repository
       uses: actions/checkout@v4
     - name: Checkout Submodules
       run: git submodule update --init --recursive
-    - name: Download Boost
-      run: |
-        # From https://github.com/actions/virtual-environments/issues/2667
-        $url = "https://github.com/actions/boost-versions/releases/download/1.72.0-20200608.4/boost-1.72.0-win32-msvc14.2-x86_64.tar.gz"
-        (New-Object System.Net.WebClient).DownloadFile($url, "$env:TEMP\boost.tar.gz")
-        7z.exe x "$env:TEMP\boost.tar.gz" -o"$env:TEMP\boostArchive" -y | Out-Null
-        7z.exe x "$env:TEMP\boostArchive" -o"$env:TEMP\boost" -y | Out-Null
-        Push-Location -Path "$env:TEMP\boost"
-        Invoke-Expression .\setup.ps1
     - name: Build Externals
       shell: cmd
       run: make_externals.bat -G "Visual Studio 16 2019" -A x64 
     - name: Build CosmoScout VR
       shell: cmd
       run: |
-        cmake --preset windows-vs-release-config -DBOOST_ROOT=%BOOST_ROOT_1_72_0%
+        cmake --preset windows-vs-release-config
         cmake --build --preset windows-vs-release-build
     - name: Create Release
       run: | 
