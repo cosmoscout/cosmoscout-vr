@@ -43,10 +43,12 @@ namespace csp::wmsoverlays {
 /// do the lookup in the geo-referenced texture. The value is then overlayed on that pixel position.
 class TextureOverlayRenderer : public IVistaOpenGLDraw {
  public:
-  TextureOverlayRenderer(std::string objectName, std::shared_ptr<cs::core::SolarSystem> solarSystem,
-      std::shared_ptr<cs::core::TimeControl> timeControl,
-      std::shared_ptr<cs::core::Settings>    settings,
-      std::shared_ptr<Plugin::Settings>      pluginSettings);
+  TextureOverlayRenderer(std::string            objectName,
+      std::shared_ptr<cs::core::GraphicsEngine> graphicsEngine,
+      std::shared_ptr<cs::core::SolarSystem>    solarSystem,
+      std::shared_ptr<cs::core::TimeControl>    timeControl,
+      std::shared_ptr<cs::core::Settings>       settings,
+      std::shared_ptr<Plugin::Settings>         pluginSettings);
   ~TextureOverlayRenderer() override;
 
   /// Returns the SPICE name of the body to which this renderer is assigned.
@@ -93,10 +95,11 @@ class TextureOverlayRenderer : public IVistaOpenGLDraw {
   /// Synchronously loads a texture for a time-independent map.
   void getTimeIndependentTexture(WebMapTextureLoader::Request const& request);
 
-  std::shared_ptr<cs::core::Settings> mSettings;
-  std::shared_ptr<Plugin::Settings>   mPluginSettings;
-  Plugin::Settings::Body              mSimpleWMSOverlaySettings;
-  std::string                         mObjectName;
+  std::shared_ptr<cs::core::Settings>       mSettings;
+  std::shared_ptr<cs::core::GraphicsEngine> mGraphicsEngine;
+  std::shared_ptr<Plugin::Settings>         mPluginSettings;
+  Plugin::Settings::Body                    mSimpleWMSOverlaySettings;
+  std::string                               mObjectName;
 
   std::unique_ptr<VistaOpenGLNode> mGLNode;
 
@@ -109,9 +112,6 @@ class TextureOverlayRenderer : public IVistaOpenGLDraw {
   static const std::string SURFACE_VERT;
   /// Code for the fragment shader
   static const std::string SURFACE_FRAG;
-
-  /// Store one buffer per viewport
-  std::unordered_map<VistaViewport*, VistaTexture> mDepthBufferData;
 
   /// Stores all textures, for which the request ist still pending.
   std::map<std::string, std::future<std::optional<WebMapTexture>>> mTexturesBuffer;

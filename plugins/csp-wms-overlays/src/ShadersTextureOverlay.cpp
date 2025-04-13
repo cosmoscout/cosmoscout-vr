@@ -52,23 +52,23 @@ const std::string TextureOverlayRenderer::SURFACE_VERT = R"(
 const std::string TextureOverlayRenderer::SURFACE_FRAG = R"(
     out vec4 FragColor;
 
-    uniform sampler2DRect uDepthBuffer;
-    uniform sampler2D     uFirstTexture;
-    uniform sampler2D     uSecondTexture;
+    uniform sampler2D uDepthBuffer;
+    uniform sampler2D uFirstTexture;
+    uniform sampler2D uSecondTexture;
 
-    uniform float         uFade;
-    uniform bool          uUseFirstTexture;
-    uniform bool          uUseSecondTexture;
+    uniform float     uFade;
+    uniform bool      uUseFirstTexture;
+    uniform bool      uUseSecondTexture;
 
-    uniform dmat4         uMatInvMVP;
+    uniform dmat4     uMatInvMVP;
 
-    uniform dvec2         uLonRange;
-    uniform dvec2         uLatRange;
-    uniform vec3          uRadii;
+    uniform dvec2     uLonRange;
+    uniform dvec2     uLatRange;
+    uniform vec3      uRadii;
 
-    uniform float         uAmbientBrightness;
-    uniform float         uSunIlluminance;
-    uniform vec3          uSunDirection;
+    uniform float     uAmbientBrightness;
+    uniform float     uSunIlluminance;
+    uniform vec3      uSunDirection;
 
     in vec2 texcoord;
 
@@ -104,8 +104,7 @@ const std::string TextureOverlayRenderer::SURFACE_FRAG = R"(
     // ===========================================================================
     void main()
     {
-        vec2  vTexcoords = texcoord*textureSize(uDepthBuffer);
-        float fDepth     = texture(uDepthBuffer, vTexcoords).r;
+        float fDepth = texture(uDepthBuffer, texcoord).r;
 
         if (fDepth == 1.0) 
         {

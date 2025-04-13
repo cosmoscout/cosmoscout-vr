@@ -99,13 +99,6 @@ class Atmosphere : public IVistaOpenGLDraw {
 
   int mEnableHDRConnection = -1;
 
-  struct GBufferData {
-    std::unique_ptr<VistaTexture> mDepthBuffer;
-    std::unique_ptr<VistaTexture> mColorBuffer;
-  };
-
-  std::unordered_map<VistaViewport*, GBufferData> mGBufferData;
-
   bool       mShaderDirty    = true;
   double     mSunIlluminance = 1.0;
   double     mSunLuminance   = 1.0;
