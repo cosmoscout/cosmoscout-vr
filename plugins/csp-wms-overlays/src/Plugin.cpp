@@ -235,9 +235,9 @@ void Plugin::init() {
         mAllSettings->pTimeSpeed = 0.f;
         mTimeControl->setTime(
             cs::utils::convert::time::toSpice(mActiveLayers[mActiveOverlay->getObjectName()]
-                    ->getSettings()
-                    .mTimeIntervals.front()
-                    .mStartTime));
+                                                  ->getSettings()
+                                                  .mTimeIntervals.front()
+                                                  .mStartTime));
       }));
 
   mGuiManager->getGui()->registerCallback("wmsOverlays.goToPreviousTime",
@@ -358,9 +358,9 @@ void Plugin::init() {
         mAllSettings->pTimeSpeed = 0.f;
         mTimeControl->setTime(
             cs::utils::convert::time::toSpice(mActiveLayers[mActiveOverlay->getObjectName()]
-                    ->getSettings()
-                    .mTimeIntervals.back()
-                    .mEndTime));
+                                                  ->getSettings()
+                                                  .mTimeIntervals.back()
+                                                  .mEndTime));
       }));
 
   // Fill the dropdowns with information for the active body.

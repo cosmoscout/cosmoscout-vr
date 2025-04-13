@@ -404,7 +404,7 @@ bool TextureOverlayRenderer::Do() {
     // Select WMS textures to be downloaded. If no pre-fetch is set, only sellect the texture for
     // the current timestep.
     for (int preFetch = -mPluginSettings->mPrefetchCount.get();
-        preFetch <= mPluginSettings->mPrefetchCount.get(); preFetch++) {
+         preFetch <= mPluginSettings->mPrefetchCount.get(); preFetch++) {
 
       // Get the start time of the WMS sample.
       std::chrono::utc_clock::time_point sampleStartTime =
