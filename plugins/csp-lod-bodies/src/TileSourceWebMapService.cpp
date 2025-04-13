@@ -424,7 +424,7 @@ std::optional<std::string> TileSourceWebMapService::loadData(TileId const& tileI
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /* virtual */ void TileSourceWebMapService::loadTileAsync(TileId const& tileId, OnLoadCallback cb) {
-  mThreadPool.enqueue([=]() {
+  mThreadPool.enqueue([this, tileId, cb]() {
     auto tile = loadTile(tileId);
     cb(tileId, std::move(tile));
   });

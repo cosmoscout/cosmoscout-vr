@@ -24,6 +24,7 @@
 #include <stb_image_write.h>
 
 #include <fstream>
+#include <ranges>
 
 namespace csp::wmsoverlays {
 
@@ -38,8 +39,9 @@ WebMapTextureLoader::WebMapTextureLoader()
 std::future<std::optional<WebMapTexture>> WebMapTextureLoader::loadTextureAsync(
     WebMapService const& wms, WebMapLayer const& layer, Request const& request,
     std::string const& mapCache, bool saveToCache) {
-  return mThreadPool.enqueue(
-      [=]() { return loadTexture(wms, layer, request, mapCache, saveToCache); });
+  return mThreadPool.enqueue([this, wms, layer, request, mapCache, saveToCache]() {
+    return loadTexture(wms, layer, request, mapCache, saveToCache);
+  });
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

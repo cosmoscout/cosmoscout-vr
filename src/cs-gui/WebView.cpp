@@ -28,8 +28,8 @@ WebView::WebView(const std::string& url, int width, int height, bool allowLocalF
   WebView::resize(width, height);
 
   CefWindowInfo info;
-  info.width  = width;
-  info.height = height;
+  info.bounds.width  = width;
+  info.bounds.height = height;
 
 #ifdef _MSC_VER
   info.SetAsWindowless(nullptr);
@@ -41,7 +41,6 @@ WebView::WebView(const std::string& url, int width, int height, bool allowLocalF
 
   int const targetFrameRate             = 60;
   browserSettings.windowless_frame_rate = targetFrameRate;
-  browserSettings.web_security          = allowLocalFileAccess ? STATE_DISABLED : STATE_ENABLED;
 
   mBrowser =
       CefBrowserHost::CreateBrowserSync(info, mClient, url, browserSettings, nullptr, nullptr);
@@ -247,7 +246,7 @@ void WebView::selectAll() const {
 
 void WebView::injectFocusEvent(bool focus) {
   if (mInteractive) {
-    mBrowser->GetHost()->SendFocusEvent(focus);
+    mBrowser->GetHost()->SetFocus(focus);
   }
 }
 
@@ -259,7 +258,7 @@ void WebView::injectMouseEvent(MouseEvent const& event) {
   }
 
   CefMouseEvent cef_event;
-  cef_event.modifiers = static_cast<uint32>(mMouseModifiers);
+  cef_event.modifiers = static_cast<uint32_t>(mMouseModifiers);
   cef_event.x         = mMouseX;
   cef_event.y         = mMouseY;
 
@@ -298,7 +297,7 @@ void WebView::injectMouseEvent(MouseEvent const& event) {
       mMouseModifiers |= int(Modifier::eMiddleButton);
     }
 
-    cef_event.modifiers = static_cast<uint32>(mMouseModifiers);
+    cef_event.modifiers = static_cast<uint32_t>(mMouseModifiers);
     mBrowser->GetHost()->SendMouseClickEvent(
         cef_event, static_cast<cef_mouse_button_type_t>(event.mButton), false, mClickCount);
     break;
@@ -312,7 +311,7 @@ void WebView::injectMouseEvent(MouseEvent const& event) {
       mMouseModifiers &= ~int(Modifier::eMiddleButton);
     }
 
-    cef_event.modifiers = static_cast<uint32>(mMouseModifiers);
+    cef_event.modifiers = static_cast<uint32_t>(mMouseModifiers);
     mBrowser->GetHost()->SendMouseClickEvent(
         cef_event, static_cast<cef_mouse_button_type_t>(event.mButton), true, mClickCount);
     break;

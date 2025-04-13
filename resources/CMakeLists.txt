@@ -28,11 +28,11 @@ if(${CMAKE_CXX_COMPILER_ID} STREQUAL MSVC)
     install(DIRECTORY "${CEF_RESOURCE_DIR}/" DESTINATION "bin")
 else()
     set(CEF_RESOURCES
-        "${CEF_LIBRARY_DIR}/snapshot_blob.bin"
+        # "${CEF_LIBRARY_DIR}/snapshot_blob.bin"
         "${CEF_LIBRARY_DIR}/v8_context_snapshot.bin"
     )
     install(FILES ${CEF_RESOURCES} DESTINATION "lib")
-    install(DIRECTORY "${CEF_LIBRARY_DIR}/swiftshader/" DESTINATION "lib")
+    # install(DIRECTORY "${CEF_LIBRARY_DIR}/swiftshader/" DESTINATION "lib")
     install(DIRECTORY "${CEF_RESOURCE_DIR}/" DESTINATION "lib" PATTERN "locales" EXCLUDE)
     install(DIRECTORY "${CEF_RESOURCE_DIR}/locales" DESTINATION "bin")
 endif()
