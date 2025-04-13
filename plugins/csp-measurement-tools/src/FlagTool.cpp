@@ -32,8 +32,8 @@ FlagTool::FlagTool(std::shared_ptr<cs::core::InputManager> pInputManager,
     : Mark(std::move(pInputManager), std::move(pSolarSystem), std::move(settings),
           std::move(objectName))
     , mGuiArea(std::make_unique<cs::gui::WorldSpaceGuiArea>(600, 400))
-    , mGuiItem(std::make_unique<cs::gui::GuiItem>(
-          "file://{toolZoom}../share/resources/gui/flag.html", true)) {
+    , mGuiItem(
+          std::make_unique<cs::gui::GuiItem>("file://{toolZoom}../share/resources/gui/flag.html")) {
   auto* pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
 
   mGuiTransform.reset(pSG->NewTransformNode(mTransform.get()));

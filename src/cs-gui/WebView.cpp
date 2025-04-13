@@ -23,13 +23,13 @@ class DevToolsClient : public CefClient {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-WebView::WebView(const std::string& url, int width, int height, bool allowLocalFileAccess)
+WebView::WebView(const std::string& url, int width, int height)
     : mClient(new detail::WebViewClient()) {
   WebView::resize(width, height);
 
   CefWindowInfo info;
-  info.width  = width;
-  info.height = height;
+  info.bounds.width  = width;
+  info.bounds.height = height;
 
 #ifdef _MSC_VER
   info.SetAsWindowless(nullptr);
@@ -41,7 +41,6 @@ WebView::WebView(const std::string& url, int width, int height, bool allowLocalF
 
   int const targetFrameRate             = 60;
   browserSettings.windowless_frame_rate = targetFrameRate;
-  browserSettings.web_security          = allowLocalFileAccess ? STATE_DISABLED : STATE_ENABLED;
 
   mBrowser =
       CefBrowserHost::CreateBrowserSync(info, mClient, url, browserSettings, nullptr, nullptr);
@@ -247,7 +246,7 @@ void WebView::selectAll() const {
 
 void WebView::injectFocusEvent(bool focus) {
   if (mInteractive) {
-    mBrowser->GetHost()->SendFocusEvent(focus);
+    mBrowser->GetHost()->SetFocus(focus);
   }
 }
 

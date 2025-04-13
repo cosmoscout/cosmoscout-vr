@@ -10,7 +10,7 @@ find_path(CEF_INCLUDE_DIR include/cef_version.h
     HINTS ${CEF_ROOT_DIR}/include/cef)
 
 # Locate library.
-find_path(CEF_RESOURCE_DIR cef.pak
+find_path(CEF_RESOURCE_DIR resources.pak chrome_100_percent.pak chrome_200_percent.pak
     HINTS ${CEF_ROOT_DIR}/share/cef)
 
 find_path(CEF_LIBRARY_DIR snapshot_blob.bin
