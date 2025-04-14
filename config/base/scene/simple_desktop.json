@@ -744,6 +744,7 @@
         "Earth": {
           "cloudTexture": "../share/resources/textures/earth-clouds.jpg",
           "limbLuminanceTexture": "../share/resources/textures/earthLimbLuminance.tif",
+          "cloudTypeTexture": "../share/resources/textures/cloudTop.jpg",
           "topAltitude": 80000,
           "bottomAltitude": -100,
           "model": "Bruneton",
