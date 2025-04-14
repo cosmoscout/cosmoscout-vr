@@ -32,8 +32,8 @@ FlagTool::FlagTool(std::shared_ptr<cs::core::InputManager> pInputManager,
     : Mark(std::move(pInputManager), std::move(pSolarSystem), std::move(settings),
           std::move(objectName))
     , mGuiArea(std::make_unique<cs::gui::WorldSpaceGuiArea>(600, 400))
-    , mGuiItem(std::make_unique<cs::gui::GuiItem>(
-          "file://{toolZoom}../share/resources/gui/flag.html", true)) {
+    , mGuiItem(
+          std::make_unique<cs::gui::GuiItem>("file://{toolZoom}../share/resources/gui/flag.html")) {
   auto* pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
 
   mGuiTransform.reset(pSG->NewTransformNode(mTransform.get()));
@@ -52,7 +52,7 @@ FlagTool::FlagTool(std::shared_ptr<cs::core::InputManager> pInputManager,
   mGuiItem->setCanScroll(false);
   mGuiItem->waitForFinishedLoading();
 
-  // We use a zoom factor of 2.0 in order to increae the DPI of our world space UIs.
+  // We use a zoom factor of 2.0 in order to increase the DPI of our world space UIs.
   mGuiItem->setZoomFactor(2.0);
 
   mGuiItem->registerCallback("deleteMe", "Call this to delete the tool.",
