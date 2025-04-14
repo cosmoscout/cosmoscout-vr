@@ -206,7 +206,6 @@ void Atmosphere::configure(Plugin::Settings::Atmosphere const& settings) {
       }
       mShaderDirty = true;
     }
-    logger().info("read top texture at " + settings.mCloudTypeTexture.value());  
 
     // Reload the limb luminance texture if required.
     if (mSettings.mLimbLuminanceTexture != settings.mLimbLuminanceTexture) {
@@ -260,9 +259,18 @@ void Atmosphere::createShader(ShaderType type, VistaGLSLShader& shader, Uniforms
   cs::utils::replaceString(
       sFrag, "ATMOSPHERE_RADIUS", std::to_string(mRadii[0] + mSettings.mTopAltitude));
   cs::utils::replaceString(
-      sFrag, "ENABLE_CLOUDS", std::to_string(mSettings.mEnableClouds.get() && mCloudTexture && mCloudTypeTexture));
+      sFrag, "ENABLE_CLOUDS", std::to_string(mSettings.mEnableClouds.get() && mCloudTexture));
+  if(mSettings.mEnableClouds.get() && !mCloudTexture){
+    logger().warn("No cloud texture in config but clouds are enabled");
+  }
   cs::utils::replaceString(
-    sFrag, "OLD_CLOUDS", std::to_string(!mSettings.mAdvancedClouds.get()));
+    sFrag, "OLD_CLOUDS", std::to_string(!mSettings.mAdvancedClouds.get() || !(mCloudTypeTexture) || !(mCloudTexture)));
+  if(mSettings.mAdvancedClouds.get() && !mCloudTypeTexture){
+    logger().warn("No cloud type texture in config but advanced clouds activated");
+  }
+  if(mSettings.mAdvancedClouds.get() && !mCloudTexture){
+    logger().warn("No cloud texture in config file but advanced clouds activated");
+  }
   cs::utils::replaceString(sFrag, "ENABLE_LIMB_LUMINANCE",
       std::to_string(mSettings.mEnableLimbLuminance.get() && mLimbLuminanceTexture));
   cs::utils::replaceString(sFrag, "ENABLE_WATER", std::to_string(mSettings.mEnableWater.get()));
@@ -301,27 +309,6 @@ void Atmosphere::createShader(ShaderType type, VistaGLSLShader& shader, Uniforms
   uniforms.noiseTexture              = shader.GetUniformLocation("uNoiseTexture");
   uniforms.noiseTexture2D            = shader.GetUniformLocation("uNoiseTexture2D");
   uniforms.cloudTypeTexture          = shader.GetUniformLocation("uCloudTypeTexture");
-
-
-  // printing the names of the uniforms
-  GLuint program = shader.GetProgram();
-  int iNumUniforms, iMaxNameLength;
-
-  glGetProgramiv(program, GL_ACTIVE_UNIFORMS, &iNumUniforms);
-  glGetProgramiv(program, GL_ACTIVE_UNIFORM_MAX_LENGTH, &iMaxNameLength);
-  logger().info("number of uniforms: " + std::to_string(iNumUniforms) + " max length of uniform name: " + std::to_string(iMaxNameLength));
-  char name[100];
-  GLsizei iLength;
-  GLint   iSize;
-  GLenum  iType;
-  for(int i = 0; i < iNumUniforms; i++){
-    glGetActiveUniform(
-        program, static_cast<GLuint>(i), iMaxNameLength, &iLength, &iSize, &iType, name);
-    const GLint iLocation          = glGetUniformLocation(program, name);
-    logger().info("uniform with name \"" + std::string(name) + "\" @ " + std::to_string(iLocation));
-  }
-
-  logger().info("sunDir @ " + std::to_string(uniforms.sunDir) + " noiseTexture @ " + std::to_string(uniforms.noiseTexture));
 
   // We bind the eclipse shadow map to texture unit 3. The color and depth buffer are bound to 0 and
   // 1, 2 is used for the cloud map, 3 is used for the limb luminance texture.
