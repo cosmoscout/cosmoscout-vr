@@ -36,12 +36,12 @@ void executeWebProcess(int argc, char* argv[]) {
 
 std::filesystem::path getExecutablePath() {
 #ifdef __linux__
-    std::filesystem::path path = "/proc/self/exe";
-    return std::filesystem::read_symlink(path);
+  std::filesystem::path path = "/proc/self/exe";
+  return std::filesystem::read_symlink(path);
 #elif _WIN32
-    wchar_t buffer[MAX_PATH];
-    GetModuleFileNameW(nullptr, buffer, MAX_PATH);
-    return {buffer};
+  wchar_t buffer[MAX_PATH];
+  GetModuleFileNameW(nullptr, buffer, MAX_PATH);
+  return {buffer};
 #else
   return {};
 #endif
@@ -67,7 +67,7 @@ void init() {
   settings.windowless_rendering_enabled = true;
 
   std::filesystem::path exePath = getExecutablePath();
-  std::filesystem::path exeDir = exePath.parent_path();
+  std::filesystem::path exeDir  = exePath.parent_path();
 
   std::filesystem::path localesPath = exeDir / "locales";
   CefString(&settings.locales_dir_path).FromString(localesPath.string());
