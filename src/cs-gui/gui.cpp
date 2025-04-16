@@ -10,6 +10,7 @@
 #include "internal/WebApp.hpp"
 #include "logger.hpp"
 
+#include <filesystem>
 #include <iostream>
 
 namespace cs::gui {
@@ -33,6 +34,21 @@ void executeWebProcess(int argc, char* argv[]) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+std::filesystem::path getExecutablePath() {
+#ifdef __linux__
+    std::filesystem::path path = "/proc/self/exe";
+    return std::filesystem::read_symlink(path);
+#elif _WIN32
+    wchar_t buffer[MAX_PATH];
+    GetModuleFileNameW(nullptr, buffer, MAX_PATH);
+    return {buffer};
+#else
+  return {};
+#endif
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void init() {
 
   if (!app) {
@@ -49,6 +65,15 @@ void init() {
   settings.no_sandbox                   = true;
   settings.remote_debugging_port        = 8999;
   settings.windowless_rendering_enabled = true;
+
+  std::filesystem::path exePath = getExecutablePath();
+  std::filesystem::path exeDir = exePath.parent_path();
+
+  std::filesystem::path localesPath = exeDir / "locales";
+  CefString(&settings.locales_dir_path).FromString(localesPath.string());
+
+  std::filesystem::path cachePath = exeDir / "cef_cache";
+  CefString(&settings.root_cache_path).FromString(cachePath.string());
 
   if (!CefInitialize(app->GetArgs(), settings, app, nullptr)) {
     logger().error("Failed to initialize CEF. Gui will not work at all.");
