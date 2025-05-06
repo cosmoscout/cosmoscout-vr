@@ -53,5 +53,5 @@ Then run something like the following in CosmoScout's `bin` directory:
 3. **Encode the Frames:** Using something like `ffmpeg`, the individual frames can be merged to a video file.
 Here is an example:
    ```bash
-   ffmpeg -f image2 -framerate 60 -i frame_%d.png -c:v libx264 -preset veryslow  -qp 8 -pix_std yuv420p recording.mp4
+   ffmpeg -f image2 -framerate 60 -i frame_%d.png -c:v libx264 -preset veryslow  -qp 8 -pix_fmt yuv420p recording.mp4
    ```
