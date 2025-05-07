@@ -111,8 +111,8 @@ GuiManager::GuiManager(
   // documentation of cs::gui::WebView::setZoomLevel in great detail. This also means that all other
   // WebViews with an URL starting with "file://{mainUIZoom}../" will be automatically affected by
   // the pMainUIScale factor.
-  mCosmoScoutGui = std::make_unique<gui::GuiItem>(
-      "file://{mainUIZoom}../share/resources/gui/cosmoscout.html", true);
+  mCosmoScoutGui =
+      std::make_unique<gui::GuiItem>("file://{mainUIZoom}../share/resources/gui/cosmoscout.html");
 
   // Usually, all GuiItems are attached to the global world-space GuiArea if it is
   // available. If not, they are added to the local screen-space GuiArea.
@@ -303,7 +303,7 @@ uint32_t GuiManager::addBookmark(Settings::Bookmark bookmark) {
 
     auto c = bookmark.mColor.value_or(glm::vec3(0.8F, 0.8F, 1.0F)) * 255.F;
     mCosmoScoutGui->callJavascript("CosmoScout.timeline.addBookmark", newID, start, end,
-        fmt::format("rgb({}, {}, {})", c.r, c.g, c.b));
+        std::format("rgb({}, {}, {})", c.r, c.g, c.b));
   }
 
   mBookmarks.emplace(newID, std::move(bookmark));

@@ -539,10 +539,10 @@ glm::int64 HEALPixLevel::replaceBits(glm::int64 evenBits, glm::int64 oddBits) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /* static */ glm::dvec2 HEALPix::convertBaseXY2LngLat(int basePatchIdx, double x, double y) {
-  glm::dvec2 lngLat;
-  auto const pi = glm::pi<double>();
-  double     jr = HEALPixLevel::sF1LUT.at(basePatchIdx) - x - y;
-  double     nr{};
+  glm::dvec2     lngLat;
+  constexpr auto pi = std::numbers::pi;
+  double         jr = HEALPixLevel::sF1LUT.at(basePatchIdx) - x - y;
+  double         nr{};
 
   if (jr < 1.0) {
     nr        = jr;
@@ -571,8 +571,8 @@ glm::int64 HEALPixLevel::replaceBits(glm::int64 evenBits, glm::int64 oddBits) {
   double _f1 = HEALPixLevel::sF1LUT.at(basePatchIdx);
   double _f2 = HEALPixLevel::sF2LUT.at(basePatchIdx);
 
-  double x = std::fmod(lngLat.x / glm::pi<double>() + 1.0, 2.0); //!< Ranges from  0 to 2
-  double y = std::sin(lngLat.y);                                 //!< Ranges from -1 to 1
+  double x = std::fmod(lngLat.x / std::numbers::pi + 1.0, 2.0); //!< Ranges from  0 to 2
+  double y = std::sin(lngLat.y);                                //!< Ranges from -1 to 1
 
   double ySep = 2.0 / 3.0;
 
@@ -628,8 +628,8 @@ glm::int64 HEALPixLevel::replaceBits(glm::int64 evenBits, glm::int64 oddBits) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 int HEALPix::convertLngLat2Base(glm::dvec2 const& lngLat) {
-  double x = std::fmod(lngLat.x / glm::pi<double>() + 1, 2.0); //!< Ranges from  0 to 2
-  double y = std::sin(lngLat.y);                               //!< Ranges from -1 to 1
+  double x = std::fmod(lngLat.x / std::numbers::pi + 1, 2.0); //!< Ranges from  0 to 2
+  double y = std::sin(lngLat.y);                              //!< Ranges from -1 to 1
 
   const double ySep  = 2.0 / 3.0;   //!< separation height (tip of diamonds)
   const double slope = ySep / 0.25; //!< slope of diamond edges

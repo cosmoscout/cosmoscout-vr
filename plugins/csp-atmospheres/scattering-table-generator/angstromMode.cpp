@@ -35,12 +35,12 @@ int angstromMode(std::vector<std::string> const& arguments) {
       "The scattering data will be written to <name>_scattering.csv and "
       "<name>_absorption.csv, respectively (default: \"" +
           cOutput + "\").");
-  args.addArgument({"--alpha"}, &cAlpha, fmt::format("The alpha parameter (default: {}).", cAlpha));
-  args.addArgument({"--beta"}, &cBeta, fmt::format("The beta parameter (default: {}).", cBeta));
+  args.addArgument({"--alpha"}, &cAlpha, std::format("The alpha parameter (default: {}).", cAlpha));
+  args.addArgument({"--beta"}, &cBeta, std::format("The beta parameter (default: {}).", cBeta));
   args.addArgument({"--single-scattering-albedo"}, &cSingleScatteringAlbedo,
-      fmt::format("The single-scattering albedo (default: {}).", cSingleScatteringAlbedo));
+      std::format("The single-scattering albedo (default: {}).", cSingleScatteringAlbedo));
   args.addArgument({"--scale-height"}, &cScaleHeight,
-      fmt::format("The scale height of the particles (default: {}).", cScaleHeight));
+      std::format("The scale height of the particles (default: {}).", cScaleHeight));
   common::addLambdaFlags(args, &cLambdas, &cMinLambda, &cMaxLambda, &cLambdaSamples);
   args.addArgument({"-h", "--help"}, &cPrintHelp, "Show this help message.");
 
@@ -82,8 +82,8 @@ int angstromMode(std::vector<std::string> const& arguments) {
     double beta_sca = cSingleScatteringAlbedo * beta_ext;
     double beta_abs = beta_ext - beta_sca;
 
-    scatteringOutput << fmt::format("{},{}", lambda, beta_sca) << std::endl;
-    absorptionOutput << fmt::format("{},{}", lambda, beta_abs) << std::endl;
+    scatteringOutput << std::format("{},{}", lambda, beta_sca) << std::endl;
+    absorptionOutput << std::format("{},{}", lambda, beta_abs) << std::endl;
   }
 
   return 0;

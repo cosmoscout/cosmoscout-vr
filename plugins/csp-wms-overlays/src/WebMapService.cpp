@@ -14,8 +14,6 @@
 
 #include <regex>
 
-#include <boost/filesystem.hpp>
-
 #include <curlpp/Easy.hpp>
 #include <curlpp/Options.hpp>
 
@@ -142,12 +140,12 @@ VistaXML::TiXmlElement* WebMapService::getCapabilities() {
 
     if (saveToCache && docString.has_value()) {
       // Save capabilities to cache
-      boost::filesystem::path cacheFile(mCacheFileName);
-      boost::filesystem::path cacheDir(mCacheDir);
-      boost::filesystem::path cacheFilePath(cacheDir / cacheFile);
+      std::filesystem::path cacheFile(mCacheFileName);
+      std::filesystem::path cacheDir(mCacheDir);
+      std::filesystem::path cacheFilePath(cacheDir / cacheFile);
 
-      auto cacheDirAbs(boost::filesystem::absolute(cacheDir));
-      if (!(boost::filesystem::exists(cacheDirAbs))) {
+      auto cacheDirAbs(std::filesystem::absolute(cacheDir));
+      if (!(std::filesystem::exists(cacheDirAbs))) {
         try {
           cs::utils::filesystem::createDirectoryRecursively(cacheDirAbs);
         } catch (std::exception& e) {
@@ -164,12 +162,12 @@ VistaXML::TiXmlElement* WebMapService::getCapabilities() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 std::optional<VistaXML::TiXmlDocument> WebMapService::getCapabilitiesFromCache() {
-  boost::filesystem::path cacheFile(mCacheFileName);
-  boost::filesystem::path cacheDir(mCacheDir);
-  boost::filesystem::path cacheFilePath(cacheDir / cacheFile);
+  std::filesystem::path cacheFile(mCacheFileName);
+  std::filesystem::path cacheDir(mCacheDir);
+  std::filesystem::path cacheFilePath(cacheDir / cacheFile);
 
   // Check if file with the correct name is in the cache
-  if (boost::filesystem::exists(cacheFilePath) && boost::filesystem::file_size(cacheFilePath) > 0) {
+  if (std::filesystem::exists(cacheFilePath) && std::filesystem::file_size(cacheFilePath) > 0) {
     std::string capabilitiesString = cs::utils::filesystem::loadToString(cacheFilePath.string());
 
     VistaXML::TiXmlDocument cacheDoc;

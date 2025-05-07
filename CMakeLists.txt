@@ -10,7 +10,6 @@ project(cosmoscout-vr VERSION 1.10.0)
 
 # Use cmake 3.12's <PACKAGE>_ROOT variabled for searching.
 cmake_policy(SET CMP0074 NEW)
-# cmake_policy(SET CMP0167 OLD)
 
 # Ensure local modules (for dependencies etc.) are found.
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
@@ -32,12 +31,6 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 include(GenerateExportHeader)
 
-# Boost and OpenGL must be present on your system. All other dependencies are included as submodules
-# in "externals/". Those must be built beforehand, preferably using the scripts "make_externals.*".
-set(Boost_REALPATH ON)
-set(Boost_USE_MULTITHREADED ON)
-set(Boost_USE_STATIC_LIBS OFF)
-find_package(Boost REQUIRED COMPONENTS system chrono date_time filesystem)
 find_package(OpenGL REQUIRED)
 
 # You have to provide the directory where the externals got installed to. The scripts make_*.sh and
@@ -184,30 +177,6 @@ install(
   FILES_MATCHING PATTERN "*.so*" PATTERN "*.dll*"
 )
 
-# Copy boost libraries to install directory.
-foreach(BOOST_LIB 
-  ${Boost_CHRONO_LIBRARY_DEBUG}
-  ${Boost_CHRONO_LIBRARY_RELEASE}
-  ${Boost_DATE_TIME_LIBRARY_DEBUG}
-  ${Boost_DATE_TIME_LIBRARY_RELEASE}
-  ${Boost_FILESYSTEM_LIBRARY_RELEASE}
-  ${Boost_FILESYSTEM_LIBRARY_DEBUG}
-  ${Boost_SYSTEM_LIBRARY_RELEASE}
-  ${Boost_SYSTEM_LIBRARY_DEBUG}
-)
-  if(EXISTS "${BOOST_LIB}")
-    get_filename_component(LIB_BASE_NAME ${BOOST_LIB} NAME_WE)
-    get_filename_component(LIB_PATH ${BOOST_LIB} PATH)
-    if (WIN32)
-      install(FILES ${LIB_PATH}/${LIB_BASE_NAME}.dll DESTINATION "lib")
-    endif()
-    if (UNIX)
-      file(GLOB LIB_FILES ${LIB_PATH}/${LIB_BASE_NAME}.so*)
-      install(FILES ${LIB_FILES} DESTINATION "lib")
-    endif()
-  endif()
-endforeach()
-
 # Install documentation directory
 install(DIRECTORY
   ${CMAKE_SOURCE_DIR}/docs
@@ -261,11 +230,11 @@ configure_file(
 # compiler settings --------------------------------------------------------------------------------
 
 add_definitions(
-  -DBOOST_ALL_DYN_LINK
   -DGLM_ENABLE_EXPERIMENTAL
   -DGLM_FORCE_SWIZZLE
   -DNOMINMAX
   -DSPDLOG_COMPILED_LIB
+  -DSPDLOG_USE_STD_FORMAT
 )
 
 if (MSVC)
@@ -294,7 +263,7 @@ else()
   )
 endif()
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Enable unit tests

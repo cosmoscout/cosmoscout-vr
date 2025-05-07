@@ -22,7 +22,7 @@ class LifeSpanHandler : public CefLifeSpanHandler {
 
   /// Gets called when a popup or new window is to be created. We always open them in the system's
   /// default browser.
-  bool OnBeforePopup(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame,
+  bool OnBeforePopup(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, int popup_id,
       const CefString& target_url, const CefString& target_frame_name,
       WindowOpenDisposition target_disposition, bool user_gesture,
       const CefPopupFeatures& popupFeatures, CefWindowInfo& windowInfo,

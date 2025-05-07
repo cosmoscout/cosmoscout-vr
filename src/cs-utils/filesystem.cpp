@@ -10,27 +10,23 @@
 #include "utils.hpp"
 
 #include <curlpp/Easy.hpp>
-#include <curlpp/Info.hpp>
-#include <curlpp/Infos.hpp>
 #include <curlpp/Options.hpp>
 
-#include <cmath>
 #include <fstream>
-#include <iostream>
 
 namespace cs::utils::filesystem {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void createDirectoryRecursively(
-    boost::filesystem::path const& path, boost::filesystem::perms permissions) {
+    std::filesystem::path const& path, std::filesystem::perms permissions) {
 
-  if (!boost::filesystem::exists(path.parent_path())) {
+  if (!std::filesystem::exists(path.parent_path())) {
     createDirectoryRecursively(path.parent_path(), permissions);
   }
 
-  boost::filesystem::create_directory(path);
-  boost::filesystem::permissions(path, permissions);
+  std::filesystem::create_directory(path);
+  std::filesystem::permissions(path, permissions);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -38,11 +34,11 @@ void createDirectoryRecursively(
 std::set<std::string> listFiles(std::string const& directory, std::regex const& regex) {
   std::set<std::string> result;
 
-  for (auto& p : boost::filesystem::directory_iterator(directory)) {
-    auto path = p.path().generic_path();
+  for (auto& p : std::filesystem::directory_iterator(directory)) {
 
-    if (std::regex_match(path.string(), regex) && boost::filesystem::is_regular_file(path)) {
-      result.insert(path.string());
+    if (auto const& path = p.path();
+        std::regex_match(path.string(), regex) && std::filesystem::is_regular_file(path)) {
+      result.insert(path.generic_string());
     }
   }
 
@@ -54,10 +50,10 @@ std::set<std::string> listFiles(std::string const& directory, std::regex const& 
 std::set<std::string> listDirs(std::string const& directory, std::regex const& regex) {
   std::set<std::string> result;
 
-  for (auto& p : boost::filesystem::directory_iterator(directory)) {
-    auto path = p.path().generic_path();
-    if (std::regex_match(path.string(), regex) && boost::filesystem::is_directory(path)) {
-      result.insert(path.string());
+  for (auto& p : std::filesystem::directory_iterator(directory)) {
+    if (auto const& path = p.path();
+        std::regex_match(path.string(), regex) && std::filesystem::is_directory(path)) {
+      result.insert(path.generic_string());
     }
   }
 
@@ -91,7 +87,7 @@ void writeStringToFile(std::string const& filePath, std::string const& content) 
 
 void downloadFile(std::string const& url, std::string const& destination,
     std::function<void(double, double)> const& progressCallback) {
-  createDirectoryRecursively(boost::filesystem::path(destination).parent_path());
+  createDirectoryRecursively(std::filesystem::path(destination).parent_path());
   std::ofstream stream(destination, std::ofstream::out | std::ofstream::binary);
 
   if (!stream) {

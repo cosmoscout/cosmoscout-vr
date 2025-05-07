@@ -233,7 +233,7 @@ class TimelineApi extends IApi {
    */
   setDate(date) {
     if (isNaN(date.getTime())) {
-      console.warn("Invalid date given to timeline!");
+      console.warn(`Invalid date given to timeline: ${date}!`);
     } else {
       this._centerTime = date;
       this._timeline.moveTo(this._centerTime, {
