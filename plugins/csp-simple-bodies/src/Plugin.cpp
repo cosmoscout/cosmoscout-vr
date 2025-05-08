@@ -51,12 +51,30 @@ void from_json(nlohmann::json const& j, Plugin::Settings::SimpleBody& o) {
   cs::core::Settings::deserialize(j, "texture", o.mTexture);
   cs::core::Settings::deserialize(j, "primeMeridianInCenter", o.mPrimeMeridianInCenter);
   cs::core::Settings::deserialize(j, "ring", o.mRing);
+  cs::core::Settings::deserialize(j, "brdfHdr", o.mBrdfHdr);
+  cs::core::Settings::deserialize(j, "brdfNonHdr", o.mBrdfNonHdr);
+  cs::core::Settings::deserialize(j, "avgLinearImgIntensity", o.mAvgLinearImgIntensity);
 }
 
 void to_json(nlohmann::json& j, Plugin::Settings::SimpleBody const& o) {
   cs::core::Settings::serialize(j, "texture", o.mTexture);
   cs::core::Settings::serialize(j, "primeMeridianInCenter", o.mPrimeMeridianInCenter);
   cs::core::Settings::serialize(j, "ring", o.mRing);
+  cs::core::Settings::serialize(j, "brdfHdr", o.mBrdfHdr);
+  cs::core::Settings::serialize(j, "brdfNonHdr", o.mBrdfNonHdr);
+  cs::core::Settings::serialize(j, "avgLinearImgIntensity", o.mAvgLinearImgIntensity);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void from_json(nlohmann::json const& j, Plugin::Settings::BRDF& o) {
+  cs::core::Settings::deserialize(j, "source", o.source);
+  cs::core::Settings::deserialize(j, "properties", o.properties);
+}
+
+void to_json(nlohmann::json& j, Plugin::Settings::BRDF const& o) {
+  cs::core::Settings::serialize(j, "source", o.source);
+  cs::core::Settings::serialize(j, "properties", o.properties);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

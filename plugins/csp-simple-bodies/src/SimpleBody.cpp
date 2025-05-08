@@ -11,6 +11,7 @@
 #include "../../../src/cs-core/SolarSystem.hpp"
 #include "../../../src/cs-graphics/TextureLoader.hpp"
 #include "../../../src/cs-utils/FrameStats.hpp"
+#include "../../../src/cs-utils/filesystem.hpp"
 #include "../../../src/cs-utils/utils.hpp"
 
 #include <VistaKernel/GraphicsManager/VistaSceneGraph.h>
@@ -117,48 +118,6 @@ vec3 SRGBtoLINEAR(vec3 srgbIn) {
   return mix( srgbIn/vec3(12.92), pow((srgbIn+vec3(0.055))/vec3(1.055),vec3(2.4)), bLess );
 }
 
-float orenNayar(vec3 N, vec3 L, vec3 V) {
-  float cos_theta_i = dot(N, L);
-
-  if (cos_theta_i <= 0) {
-    return 0;
-  }
-
-  float theta_i = acos(cos_theta_i);
-  
-  float cos_theta_r = dot(N, V);
-  float theta_r = acos(cos_theta_r);
-  
-  // Project L and V on a plane with N as the normal and get the cosine of the angle between the projections.
-  float cos_diff_phi = dot(normalize(V - cos_theta_r * N), normalize(L - cos_theta_i * N));
-  
-  float alpha = max(theta_i, theta_r);
-  float beta = min(theta_i, theta_r);
-  float beta_1  = 2 * beta / PI;
-  
-  const float sigma = 20;
-
-  float sigma2 = pow(sigma * PI / 180, 2);
-  float sigma_term = sigma2 / (sigma2 + 0.09);
-  
-  float C1 = 1 - 0.5 * (sigma2 / (sigma2 + 0.33));
-  
-  float C2 = 0.45 * sigma_term;
-  if (cos_diff_phi >= 0) {
-    C2 *= sin(alpha);
-  } else {
-    C2 *= sin(alpha) - pow(beta_1, 3);
-  }
-  
-  float C3 = 0.125 * sigma_term * pow(4 * alpha * beta / (PI * PI), 2);
-  
-  float L1 = C1 + cos_diff_phi * C2 * tan(beta) + (1 - abs(cos_diff_phi)) * C3 * tan((alpha + beta) / 2);
-  
-  float L2 = 0.17 * sigma2 / (sigma2 + 0.13) * (1 - cos_diff_phi * pow(beta_1, 2));
-  
-  return max(0, (L1 + L2) * cos_theta_i);
-}
-
 // Calculates the shading by planetary rings. This is done in 3 steps:
 // 1. Calculate the intersection between a ray from the fragment to the Sun and the ring plane.
 // 2. If an intersection exists check if it falls within the ring.
@@ -211,22 +170,45 @@ float getRingShadow() {
   #endif
 }
 
+// placeholder for the BRDF in HDR mode
+$BRDF_HDR
+
+// placeholder for the BRDF in light mode
+$BRDF_NON_HDR
+
 void main() {
     oColor = texture(uSurfaceTexture, vTexCoords).rgb;
 
-    #ifdef ENABLE_HDR
-      // Make the amount of ambient brightness perceptually linear in HDR mode.
-      float ambient = pow(uAmbientBrightness, E);
-      oColor = SRGBtoLINEAR(oColor) * uSunIlluminance / PI;
-    #else
-      float ambient = uAmbientBrightness;
-      oColor = oColor * uSunIlluminance;
-    #endif
+    // Needed for the BRDFs.
+    vec3 N = normalize(vNormal);
+    vec3 L = normalize(vSunDirection);
+    vec3 V = normalize(-vPosition);
+    float cos_i = dot(N, L);
+    float cos_r = dot(N, V);
 
-    #ifdef ENABLE_LIGHTING
-      vec3 light = getRingShadow() * getEclipseShadow(vPosition) * orenNayar(normalize(vNormal), normalize(vSunDirection), -normalize(vPosition));
-      oColor = mix(oColor * light, oColor, ambient);
-    #endif
+#ifdef ENABLE_HDR
+    // Make the amount of ambient brightness perceptually linear in HDR mode.
+    float ambient = pow(uAmbientBrightness, E);
+    oColor = SRGBtoLINEAR(oColor) * uSunIlluminance / $AVG_LINEAR_IMG_INTENSITY;
+    float f_r = BRDF_HDR(N, L, V);
+#else
+    float ambient = uAmbientBrightness;
+    oColor = oColor * uSunIlluminance;
+    float f_r = BRDF_NON_HDR(N, L, V);
+#endif
+
+#ifdef ENABLE_LIGHTING
+    vec3 light = vec3(1.0);
+    light *= max(0.0, cos_i);
+    if (cos_i > 0) {
+      if (f_r < 0 || isnan(f_r) || isinf(f_r)) {
+        light *= 0;
+      } else {
+        light *= f_r * getRingShadow() * getEclipseShadow(vPosition);
+      }
+    }
+    oColor = mix(oColor * light, oColor, ambient);
+#endif
 }
 )";
 
@@ -425,6 +407,30 @@ bool SimpleBody::Do() {
 
     cs::utils::replaceString(
         frag, "ECLIPSE_SHADER_SNIPPET", mEclipseShadowReceiver.getShaderSnippet());
+
+    // Include the BRDFs together with their parameters and arguments.
+    Plugin::Settings::BRDF const& brdfHdr = mSimpleBodySettings.mBrdfHdr.get();
+    Plugin::Settings::BRDF const& brdfNonHdr = mSimpleBodySettings.mBrdfNonHdr.get();
+
+    // Iterate over all key-value pairs of the properties and inject the values.
+    std::string brdfHdrSource = cs::utils::filesystem::loadToString(brdfHdr.source);
+    for (std::pair<std::string, float> const& kv : brdfHdr.properties) {
+      cs::utils::replaceString(brdfHdrSource, kv.first, std::to_string(kv.second));
+    }
+    std::string brdfNonHdrSource = cs::utils::filesystem::loadToString(brdfNonHdr.source);
+    for (std::pair<std::string, float> const& kv : brdfNonHdr.properties) {
+      cs::utils::replaceString(brdfNonHdrSource, kv.first, std::to_string(kv.second));
+    }
+
+    // Inject correct identifiers so the fragment shader can find the functions;
+    // inject the functions in the fragment shader
+    cs::utils::replaceString(brdfHdrSource, "$BRDF", "BRDF_HDR");
+    cs::utils::replaceString(brdfNonHdrSource, "$BRDF", "BRDF_NON_HDR");
+    cs::utils::replaceString(frag, "$BRDF_HDR", brdfHdrSource);
+    cs::utils::replaceString(frag, "$BRDF_NON_HDR", brdfNonHdrSource);
+
+    cs::utils::replaceString(frag, "$AVG_LINEAR_IMG_INTENSITY",
+        std::to_string(mSimpleBodySettings.mAvgLinearImgIntensity.get()));
 
     mShader.InitVertexShaderFromString(vert);
     mShader.InitFragmentShaderFromString(frag);
