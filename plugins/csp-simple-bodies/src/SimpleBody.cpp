@@ -409,7 +409,7 @@ bool SimpleBody::Do() {
         frag, "ECLIPSE_SHADER_SNIPPET", mEclipseShadowReceiver.getShaderSnippet());
 
     // Include the BRDFs together with their parameters and arguments.
-    Plugin::Settings::BRDF const& brdfHdr = mSimpleBodySettings.mBrdfHdr.get();
+    Plugin::Settings::BRDF const& brdfHdr    = mSimpleBodySettings.mBrdfHdr.get();
     Plugin::Settings::BRDF const& brdfNonHdr = mSimpleBodySettings.mBrdfNonHdr.get();
 
     // Iterate over all key-value pairs of the properties and inject the values.
