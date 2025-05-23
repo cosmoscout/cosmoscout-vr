@@ -408,29 +408,18 @@ bool SimpleBody::Do() {
     cs::utils::replaceString(
         frag, "ECLIPSE_SHADER_SNIPPET", mEclipseShadowReceiver.getShaderSnippet());
 
-    // Include the BRDFs together with their parameters and arguments.
-    Plugin::Settings::BRDF const& brdfHdr    = mSimpleBodySettings.mBrdfHdr.get();
-    Plugin::Settings::BRDF const& brdfNonHdr = mSimpleBodySettings.mBrdfNonHdr.get();
+    cs::core::Settings::Shading const& shading = mSettings.get()->getShadingForBody(mObjectName);
 
-    // Iterate over all key-value pairs of the properties and inject the values.
-    std::string brdfHdrSource = cs::utils::filesystem::loadToString(brdfHdr.source);
-    for (auto const& kv : brdfHdr.properties) {
-      cs::utils::replaceString(brdfHdrSource, kv.first, std::to_string(kv.second));
-    }
-    std::string brdfNonHdrSource = cs::utils::filesystem::loadToString(brdfNonHdr.source);
-    for (auto const& kv : brdfNonHdr.properties) {
-      cs::utils::replaceString(brdfNonHdrSource, kv.first, std::to_string(kv.second));
-    }
+    std::string brdfHdrSnippet    = shading.pBrdfHdr.get().assembleShaderSnippet("BRDF_HDR");
+    std::string brdfNonHdrSnippet = shading.pBrdfNonHdr.get().assembleShaderSnippet("BRDF_NON_HDR");
+    float       avgLinearImgIntensity = shading.pAvgLinearImgIntensity.get();
 
     // Inject correct identifiers so the fragment shader can find the functions;
     // inject the functions in the fragment shader
-    cs::utils::replaceString(brdfHdrSource, "$BRDF", "BRDF_HDR");
-    cs::utils::replaceString(brdfNonHdrSource, "$BRDF", "BRDF_NON_HDR");
-    cs::utils::replaceString(frag, "$BRDF_HDR", brdfHdrSource);
-    cs::utils::replaceString(frag, "$BRDF_NON_HDR", brdfNonHdrSource);
-
-    cs::utils::replaceString(frag, "$AVG_LINEAR_IMG_INTENSITY",
-        std::to_string(mSimpleBodySettings.mAvgLinearImgIntensity.get()));
+    cs::utils::replaceString(frag, "$BRDF_HDR", brdfHdrSnippet);
+    cs::utils::replaceString(frag, "$BRDF_NON_HDR", brdfNonHdrSnippet);
+    cs::utils::replaceString(
+        frag, "$AVG_LINEAR_IMG_INTENSITY", std::to_string(avgLinearImgIntensity));
 
     mShader.InitVertexShaderFromString(vert);
     mShader.InitFragmentShaderFromString(frag);

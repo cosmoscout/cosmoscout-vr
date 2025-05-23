@@ -25,19 +25,6 @@ class SimpleBody;
 class Plugin : public cs::core::PluginBase {
  public:
   struct Settings {
-    /// A struct that represents a BRDF, given its source code and material properties.
-    struct BRDF {
-      std::string source; ///< The source code of the BRDF in GLSL-like form.
-      std::unordered_map<std::string, float>
-           properties; ///< The material properties as key-variables and values.
-      bool operator==(BRDF const& other) const {
-        return source == other.source && properties == other.properties;
-      }
-      bool operator!=(BRDF const& other) const {
-        return !((*this) == other);
-      }
-    };
-
     struct SimpleBody {
       std::string                      mTexture;
       cs::utils::DefaultProperty<bool> mPrimeMeridianInCenter{true};
@@ -52,15 +39,6 @@ class Plugin : public cs::core::PluginBase {
         /// The distance from the planet's center to where the ring ends in meters.
         double mOuterRadius;
       };
-
-      cs::utils::DefaultProperty<BRDF> mBrdfHdr{
-          ///< The BRDF used in HDR mode, with higher precedence than lighting mode.
-          BRDF{"../share/resources/shaders/brdfs/lambert.glsl", {{"$rho", 1.0f}}}};
-      cs::utils::DefaultProperty<BRDF>  mBrdfNonHdr{///< The BRDF used in lighting mode.
-          BRDF{"../share/resources/shaders/brdfs/lambert_scaled.glsl", {{"$rho", 1.0f}}}};
-      cs::utils::DefaultProperty<float> mAvgLinearImgIntensity{
-          1.0f}; ///< The average intensity of the linear (!) image.
-
       std::optional<Ring> mRing;
     };
 
