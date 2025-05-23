@@ -408,9 +408,17 @@ bool SimpleBody::Do() {
     cs::utils::replaceString(
         frag, "ECLIPSE_SHADER_SNIPPET", mEclipseShadowReceiver.getShaderSnippet());
 
+    auto const& shadings = mSettings.get()->mGraphics.mShading;
+
+    bool const hasCustomShading =
+        shadings.has_value() && shadings.value().find(mObjectName) != shadings.value().end();
+    cs::core::Settings::Shading const& shading =
+        hasCustomShading ? shadings.value().at(mObjectName)
+                         : mSettings.get()->mGraphics.mDefaultShading.get();
+
     // Include the BRDFs together with their parameters and arguments.
-    Plugin::Settings::BRDF const& brdfHdr    = mSimpleBodySettings.mBrdfHdr.get();
-    Plugin::Settings::BRDF const& brdfNonHdr = mSimpleBodySettings.mBrdfNonHdr.get();
+    cs::graphics::BRDF const& brdfHdr    = shading.mBrdfHdr.get();
+    cs::graphics::BRDF const& brdfNonHdr = shading.mBrdfNonHdr.get();
 
     // Iterate over all key-value pairs of the properties and inject the values.
     std::string brdfHdrSource = cs::utils::filesystem::loadToString(brdfHdr.source);
@@ -429,8 +437,8 @@ bool SimpleBody::Do() {
     cs::utils::replaceString(frag, "$BRDF_HDR", brdfHdrSource);
     cs::utils::replaceString(frag, "$BRDF_NON_HDR", brdfNonHdrSource);
 
-    cs::utils::replaceString(frag, "$AVG_LINEAR_IMG_INTENSITY",
-        std::to_string(mSimpleBodySettings.mAvgLinearImgIntensity.get()));
+    cs::utils::replaceString(
+        frag, "$AVG_LINEAR_IMG_INTENSITY", std::to_string(shading.mAvgLinearImgIntensity.get()));
 
     mShader.InitVertexShaderFromString(vert);
     mShader.InitFragmentShaderFromString(frag);
