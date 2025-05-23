@@ -30,6 +30,24 @@ struct adl_serializer<spdlog::level::level_enum> {
 
 } // namespace nlohmann
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+namespace cs::graphics {
+
+void from_json(nlohmann::json const& j, cs::graphics::BRDF& o) {
+  cs::core::Settings::deserialize(j, "source", o.source);
+  cs::core::Settings::deserialize(j, "properties", o.properties);
+}
+
+void to_json(nlohmann::json& j, cs::graphics::BRDF const& o) {
+  cs::core::Settings::serialize(j, "source", o.source);
+  cs::core::Settings::serialize(j, "properties", o.properties);
+}
+
+} // namespace cs::graphics
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 namespace cs::utils {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -290,6 +308,20 @@ void to_json(nlohmann::json& j, Settings::EclipseShadowMap const& o) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void from_json(nlohmann::json const& j, Settings::Shading& o) {
+  Settings::deserialize(j, "brdfHdr", o.mBrdfHdr);
+  Settings::deserialize(j, "brdfNonHdr", o.mBrdfNonHdr);
+  Settings::deserialize(j, "avgLinearImgIntensity", o.mAvgLinearImgIntensity);
+}
+
+void to_json(nlohmann::json& j, Settings::Shading const& o) {
+  Settings::serialize(j, "brdfHdr", o.mBrdfHdr);
+  Settings::serialize(j, "brdfNonHdr", o.mBrdfNonHdr);
+  Settings::serialize(j, "avgLinearImgIntensity", o.mAvgLinearImgIntensity);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void from_json(nlohmann::json const& j, Settings::Graphics& o) {
   Settings::deserialize(j, "enableVsync", o.pEnableVsync);
   Settings::deserialize(j, "worldUIScale", o.pWorldUIScale);
@@ -325,6 +357,8 @@ void from_json(nlohmann::json const& j, Settings::Graphics& o) {
   Settings::deserialize(j, "fixedSunDirection", o.pFixedSunDirection);
   Settings::deserialize(j, "eclipseShadowMaps", o.mEclipseShadowMaps);
   Settings::deserialize(j, "eclipseShadowMode", o.pEclipseShadowMode);
+  Settings::deserialize(j, "shading", o.mShading);
+  Settings::deserialize(j, "defaultShading", o.mDefaultShading);
 }
 
 void to_json(nlohmann::json& j, Settings::Graphics const& o) {
@@ -362,6 +396,8 @@ void to_json(nlohmann::json& j, Settings::Graphics const& o) {
   Settings::serialize(j, "fixedSunDirection", o.pFixedSunDirection);
   Settings::serialize(j, "eclipseShadowMaps", o.mEclipseShadowMaps);
   Settings::serialize(j, "eclipseShadowMode", o.pEclipseShadowMode);
+  Settings::serialize(j, "shading", o.mShading);
+  Settings::serialize(j, "defaultShading", o.mDefaultShading);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -501,7 +537,7 @@ Settings::DeserializationException::DeserializationException(
     std::string property, std::string jsonError)
     : mProperty(std::move(property))
     , mJSONError(std::move(jsonError))
-    , mMessage("While parsing property " + mProperty + ": " + mJSONError){};
+    , mMessage("While parsing property " + mProperty + ": " + mJSONError) {};
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 

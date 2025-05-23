@@ -10,6 +10,7 @@
 
 #include "cs_core_export.hpp"
 
+#include "../cs-graphics/BRDFFactory.hpp"
 #include "../cs-graphics/HDRBuffer.hpp"
 #include "../cs-graphics/ToneMappingNode.hpp"
 #include "../cs-scene/CelestialObject.hpp"
@@ -355,6 +356,27 @@ class CS_CORE_EXPORT Settings {
     std::optional<std::string> mTexture;
   };
 
+  struct Shading {
+    /// The BRDF used in HDR mode, with higher precedence than lighting mode.
+    cs::utils::DefaultProperty<cs::graphics::BRDF> mBrdfHdr{
+        cs::graphics::BRDF{"../share/resources/shaders/brdfs/lambert.glsl", {{"$rho", 0.5f}}}};
+
+    /// The BRDF used in lighting mode.
+    cs::utils::DefaultProperty<cs::graphics::BRDF> mBrdfNonHdr{cs::graphics::BRDF{
+        "../share/resources/shaders/brdfs/lambert_scaled.glsl", {{"$rho", 1.0f}}}};
+
+    /// The average intensity of the linear (!) image.
+    cs::utils::DefaultProperty<float> mAvgLinearImgIntensity{0.5f};
+
+    bool operator==(Shading const& other) const {
+      return mBrdfHdr == other.mBrdfHdr && mBrdfNonHdr == other.mBrdfNonHdr &&
+             mAvgLinearImgIntensity == other.mAvgLinearImgIntensity;
+    }
+    bool operator!=(Shading const& other) const {
+      return !((*this) == other);
+    }
+  };
+
   struct Graphics {
     /// Enables or disables vertical synchronization.
     utils::DefaultProperty<bool> pEnableVsync{true};
@@ -472,6 +494,14 @@ class CS_CORE_EXPORT Settings {
 
     /// The eclipse shadow rendering mode.
     utils::DefaultProperty<EclipseShadowMode> pEclipseShadowMode{EclipseShadowMode::eFastTexture};
+
+    /// This maps anchor names to shading definitions.
+    /// TODO This should/could be a DefaultProperty, where each anchor has an entry, ...
+    /// but there are no explicit anchors here ...
+    std::optional<std::unordered_map<std::string, Shading>> mShading;
+
+    /// Helper property to work around the problem from the mShading TODO ...
+    utils::DefaultProperty<Shading> mDefaultShading{{}};
   };
 
   Graphics mGraphics;

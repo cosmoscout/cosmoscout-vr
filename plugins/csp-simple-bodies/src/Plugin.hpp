@@ -39,7 +39,6 @@ class Plugin : public cs::core::PluginBase {
         /// The distance from the planet's center to where the ring ends in meters.
         double mOuterRadius;
       };
-
       std::optional<Ring> mRing;
     };
 
