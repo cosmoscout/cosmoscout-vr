@@ -331,7 +331,7 @@
             "$phi": 0.3
           }
         },
-        "avgLinearImgIntensity": 0.04
+        "avgLinearImgIntensity": 0.3
       }
     },
     "defaultShading": {
