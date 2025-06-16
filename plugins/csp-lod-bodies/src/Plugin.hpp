@@ -120,8 +120,8 @@ class Plugin : public cs::core::PluginBase {
     struct Body {
       std::string mActiveDemDataset; ///< The name of the currently active elevation data set.
       std::string mActiveImgDataset; ///< The name of the currently active image data set.
-      std::map<std::string, Dataset>   mDemDatasets; ///< The data sets containing elevation data.
-      std::map<std::string, Dataset>   mImgDatasets; ///< The data sets containing image data.
+      std::map<std::string, Dataset> mDemDatasets; ///< The data sets containing elevation data.
+      std::map<std::string, Dataset> mImgDatasets; ///< The data sets containing image data.
     };
 
     std::map<std::string, Body> mBodies; ///< A list of planets with their anchor names.
