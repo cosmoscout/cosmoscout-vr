@@ -209,6 +209,11 @@ void main() {
     }
     oColor = mix(oColor * light, oColor, ambient);
 #endif
+
+// conserve energy
+#if defined(ENABLE_HDR) && !defined(ENABLE_LIGHTING)
+    oColor /= PI;
+#endif
 }
 )";
 
