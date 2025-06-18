@@ -158,6 +158,11 @@ void main() {
   fragColor.rgb *= uSunDirIlluminance.w / $AVG_LINEAR_IMG_INTENSITY;
 #endif
 
+// conserve energy
+#if $ENABLE_HDR && !$ENABLE_LIGHTING
+  fragColor.rgb /= VP_PI;
+#endif
+
 #if $SHOW_TILE_BORDER
   // color area by level
   const float minLevel   = 1;

@@ -11,15 +11,24 @@ SPDX-License-Identifier: CC-BY-4.0
 
 ## [unreleased]
 
+#### New Features
+
+- BRDFs for simple bodies now can be configured via `"graphics": "shading"`.
+- Default BRDFs for simple and LOD bodies now can be configured via `"graphics": "defaultShading"`.
+
 #### Other Changes
 
 - Improved rendering performance on some systems by uploading GUI textures using a staging buffer instead of using persistently mapped buffers.
 - The draggable markers of `csp-measurement-tools` are now tiny spheres instead of cubes.
 - Small improvement of rendering performance in HDR mode, by optimizing the computation of the screens' brightness.
+- BRDFs for LOD bodies are configured now via `"graphics": "shading"`.
+- Extend the auto exposure range to [-16, 12].
+- The Moon uses the Hapke BRDF per default now.
 
 #### Bug Fixes
 
 - Fix an issue which caused some flickering above the horizon at nighttime if refraction was enabled and lighting was disabled.
+- Fix energy conservation when HDR but no lighting are enabled.
 
 ## [v1.10.0](https://github.com/cosmoscout/cosmoscout-vr/releases)
 
