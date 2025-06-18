@@ -1047,10 +1047,9 @@ The trick is, to create a separate git repository for your configuration files a
 
 ## 4. Customize Shading
 
-CosmoScout VR does PBR for each body individually.
+CosmoScout VR applies PBR for each body individually.
 You can customize that by specifying a BRDF, parameters and values.
 Here is an example configuration:
-
 ```json
 "graphics": {
   "shading": {
@@ -1076,21 +1075,23 @@ Here is an example configuration:
 ```
 
 A BRDF is defined by source code similar to GLSL.
-The properties are given by property names and values.
-The settings `brdfHdr` and `brdfNonHdr` set the BRDFs to be used when HDR and lighting is enabled respectively.
+The material properties are given by names and values.
+The settings `brdfHdr` and `brdfNonHdr` set the BRDFs to be used when HDR and lighting are enabled respectively.
 When both are enabled, then the BRDF specified by `brdfHdr` is used.
-The setting `avgLinearImgIntensity` scales the surface brightness inversely in HDR rendering for an accurate luminance magnitude.
+The reason for why we have two settings is that BRDFs usually evaluate to a small number.
+This is not a problem in HDR rendering as we simulate a camera with an exposure value, but it is problematic otherwise.
+To avoid very dark surfaces when lighting but no HDR are enabled, `brdfNonHdr` can reference a scaled pseudo BRDF.
+
+The setting `avgLinearImgIntensity` scales the surface brightness inversely in HDR rendering for an accurate magnitude of luminance.
 To calculate this value, you need to gamma decode your image to linear space.
 Then you need to calculate the weighted average brightness, considering the pixel positions.
-Reason: Your image is likely an equirectangular projection so e.g. the pixels in the first row reference the same point.
-To make things easy: You can also calculate the average brightness of an image,
+*Reason: Your image is likely an equirectangular projection so e.g. the pixels in the first pixel row reference the same point.*
+For simplicity, you can also calculate the average brightness of an image,
 normalize and raise the result to the power of gamma, e.g. 2.2 with a casual sRGB image.
 This is quick and simple but also less accurate.
-The visual appearance of the scene is not affected by this setting,
-so feel free to skip it if you don't care about accurate luminance magnitudes.
+The visual appearance of the scene is not affected by this setting.
 
-If no shading is specified for a body, the Oren-Nayar model is used per default.
-
+If no shading is specified for a body, the Oren-Nayar model is used per default:
 ```json
 "defaultShading": {
   "brdfHdr": {
@@ -1118,7 +1119,6 @@ This can be customized as well of course.
 There are a few BRDFs already present that work well for most cases.
 If you want to add a new BRDF, add another file to the current repertoire and use it.
 Let's look at the definition of the Lambertian BRDF:
-
 ```glsl
 // Lambertian reflectance to represent ideal diffuse surfaces.
 
