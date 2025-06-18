@@ -164,7 +164,7 @@ void PlanetShader::compile() {
   cs::utils::replaceString(
       mFragmentSource, "$ECLIPSE_SHADER_SNIPPET", mEclipseShadowReceiver->getShaderSnippet());
 
-  cs::core::Settings::Shading const& shading = mSettings.get()->getShadingForBody(mObjectName);
+  cs::core::Settings::Shading const& shading = mSettings->getShadingForBody(mObjectName);
 
   std::string brdfHdrSnippet    = shading.pBrdfHdr.get().assembleShaderSnippet("BRDF_HDR");
   std::string brdfNonHdrSnippet = shading.pBrdfNonHdr.get().assembleShaderSnippet("BRDF_NON_HDR");

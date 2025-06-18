@@ -1091,7 +1091,7 @@ so feel free to skip it if you don't care about accurate luminance magnitudes.
 
 If no shading is specified for a body, the Oren-Nayar model is used per default.
 
-```
+```json
 "defaultShading": {
   "brdfHdr": {
     "source": "../share/resources/shaders/brdfs/oren-nayar.glsl",
@@ -1119,7 +1119,7 @@ There are a few BRDFs already present that work well for most cases.
 If you want to add a new BRDF, add another file to the current repertoire and use it.
 Let's look at the definition of the Lambertian BRDF:
 
-```
+```glsl
 // Lambertian reflectance to represent ideal diffuse surfaces.
 
 // rho: Reflectivity of the surface in range [0, 1].

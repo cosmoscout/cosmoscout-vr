@@ -532,8 +532,8 @@ std::string Settings::BRDF::assembleShaderSnippet(std::string const& functionNam
   std::string snippet = cs::utils::filesystem::loadToString(mSource);
 
   // Iterate over all key-value pairs of the properties and inject the values.
-  for (auto const& kv : mProperties) {
-    cs::utils::replaceString(snippet, kv.first, std::to_string(kv.second));
+  for (auto const& [key, value] : mProperties) {
+    cs::utils::replaceString(snippet, key, std::to_string(value));
   }
 
   cs::utils::replaceString(snippet, "$BRDF", functionName);
@@ -543,9 +543,8 @@ std::string Settings::BRDF::assembleShaderSnippet(std::string const& functionNam
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 Settings::Shading const& Settings::getShadingForBody(std::string const& body) const {
-  auto const& shadings = mGraphics.mShading;
-  bool const  hasCustomShading =
-      shadings.has_value() && shadings.value().find(body) != shadings.value().end();
+  auto const& shadings         = mGraphics.mShading;
+  bool const  hasCustomShading = shadings.has_value() && shadings->find(body) != shadings->end();
   Settings::Shading const& shading =
       hasCustomShading ? shadings.value().at(body) : mGraphics.pDefaultShading.get();
   return shading;

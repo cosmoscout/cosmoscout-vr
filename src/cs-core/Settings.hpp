@@ -360,7 +360,7 @@ class CS_CORE_EXPORT Settings {
     std::string mSource;
 
     /// The material properties as property names and values
-    std::unordered_map<std::string, float> mProperties;
+    std::map<std::string, float> mProperties;
 
     bool operator==(BRDF const& other) const {
       return mSource == other.mSource && mProperties == other.mProperties;
