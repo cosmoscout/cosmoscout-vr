@@ -1044,15 +1044,6 @@ The trick is, to create a separate git repository for your configuration files a
   subdirectories.
   So you can install any scripts / configs / data files you like as part of CosmoScout's build process!
 
-  <p align="center"><img src="img/hr.svg" /></p>
-  <p align="center">
-    <a href="using.md">&lsaquo; Using CosmoScout VR</a>
-    <img src="img/nav-vspace.svg" />
-    <a href="README.md">&#8962; Help Index</a>
-    <img src="img/nav-vspace.svg" />
-    <a href="contributing.md">Contributing Guides &rsaquo;</a>
-  </p>
-
 
 ## 4. Customize Shading
 
@@ -1144,3 +1135,13 @@ The signature of the BRDF has to be `float $BRDF(vec3 N, vec3 L, vec3 V)`, where
 The given vectors are normalized. Properties are injected via the dollar sign syntax.
 Besides these restrictions, the code must be GLSL code.
 Please include a description for each parameter and the BRDF overall, and a reference if possible.
+
+
+<p align="center"><img src="img/hr.svg" /></p>
+<p align="center">
+  <a href="using.md">&lsaquo; Using CosmoScout VR</a>
+  <img src="img/nav-vspace.svg" />
+  <a href="README.md">&#8962; Help Index</a>
+  <img src="img/nav-vspace.svg" />
+  <a href="contributing.md">Contributing Guides &rsaquo;</a>
+</p>
