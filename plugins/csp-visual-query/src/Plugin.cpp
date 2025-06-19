@@ -72,6 +72,9 @@ void Plugin::init() {
   mOnLoadConnection = mAllSettings->onLoad().connect([this]() { onLoad(); });
   mOnSaveConnection = mAllSettings->onSave().connect([this]() { onSave(); });
 
+  mGuiManager->addPluginTabToSideBarFromHTML(
+      "Data-Flow Editor", "account_tree", "../share/resources/gui/visual-query-tab.html");
+
   onLoad();
 
   // Restart the node editor if the port changes.
@@ -87,6 +90,8 @@ void Plugin::deInit() {
 
   // Save settings as this plugin may get reloaded.
   onSave();
+
+  mGuiManager->removePluginTab("Data-Flow Editor");
 
   mAllSettings->onLoad().disconnect(mOnLoadConnection);
   mAllSettings->onSave().disconnect(mOnSaveConnection);
