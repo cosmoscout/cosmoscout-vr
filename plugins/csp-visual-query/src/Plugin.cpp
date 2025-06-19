@@ -186,6 +186,8 @@ void Plugin::setupNodeEditor(uint16_t port) {
       R"HTML(<script type="text/javascript" src="third-party/js/d3.min.js"></script>)HTML");
   factory.registerLibrary(
       R"HTML(<script type="module" src="third-party/js/transfer-function-editor.js"></script>)HTML");
+  factory.registerLibrary(
+      R"HTML(<script type="module" src="third-party/js/chroma.min.js"></script>)HTML");
   factory.registerStyleSheet(
       R"HTML(<link type="text/css" rel="stylesheet" href="css/csp-visual-query.css" />)HTML");
 
