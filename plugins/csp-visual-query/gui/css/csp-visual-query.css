@@ -23,3 +23,19 @@ svg text {
 .tick line {
     opacity: 0.2;
 }
+
+.colorMapND {
+    position: relative;
+
+    .dimension-label {
+        font-size: 1.5em;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+
+        &:hover {
+            cursor: pointer;
+            text-decoration: underline;
+        }
+    }
+}

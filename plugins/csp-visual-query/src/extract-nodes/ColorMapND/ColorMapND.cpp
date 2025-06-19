@@ -156,7 +156,12 @@ void ColorMapND::init() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void ColorMapND::onMessageFromJS(nlohmann::json const& message) {
-  // mCurrentOperation = message.at("text").get<std::string>();
+  std::string operation = message.at("operation").get<std::string>();
+
+  if (operation == "setDimensions") {
+    this->mDimensionAngles = message.at("dimensions").get<std::vector<double>>();
+  }
+
   process();
 }
 
@@ -270,10 +275,18 @@ void ColorMapND::process() {
 
   // We compute the 2D position of each data point in the color map space as the weighted average
   // of the band directions.
+  if (this->mDimensionAngles.size() != texture.mBands) {
+    this->mDimensionAngles.resize(texture.mBands);
+
+    for (uint32_t i = 0; i < texture.mBands; i++) {
+      this->mDimensionAngles[i] = (i / static_cast<float>(texture.mBands)) * 2.f * glm::pi<float>();
+    }
+  }
+
   std::vector<glm::vec2> dimensionDirections(texture.mBands);
   for (uint32_t i = 0; i < texture.mBands; i++) {
-    float alpha            = (i / static_cast<float>(texture.mBands)) * 2.f * glm::pi<float>();
-    dimensionDirections[i] = glm::vec2(std::cos(alpha), std::sin(alpha));
+    dimensionDirections[i] =
+        glm::vec2(std::cos(this->mDimensionAngles[i]), std::sin(this->mDimensionAngles[i]));
   }
 
   F32ValueVector                     pointColors(texture.mWidth * texture.mHeight);
@@ -284,7 +297,7 @@ void ColorMapND::process() {
     float     magnitude = 0.0;
     float     sum       = 0.0;
     for (uint32_t i = 0; i < texture.mBands; i++) {
-      float weight = std::pow(values[i], 5.0f);
+      float weight = std::pow(values[i], 2.0f);
       sum += weight;
       magnitude += values[i] * values[i];
       position += weight * dimensionDirections[i];
@@ -313,7 +326,8 @@ void ColorMapND::process() {
   });
 
   nlohmann::json json;
-  json["data"] = pointPositions;
+  json["data"]["positions"]  = pointPositions;
+  json["data"]["dimensions"] = this->mDimensionAngles;
   sendMessageToJS(json);
 
   image.mPoints = pointColors;

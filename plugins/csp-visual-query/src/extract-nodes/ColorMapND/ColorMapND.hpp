@@ -54,7 +54,8 @@ class ColorMapND : public csl::nodeeditor::Node {
   void setData(nlohmann::json const& json) override;
 
  private:
-  std::string mCurrentOperation = "None";
+  std::vector<double> mDimensionAngles;
+  ;
 };
 
 } // namespace csp::visualquery
