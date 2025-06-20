@@ -159,7 +159,9 @@ void ColorMapND::onMessageFromJS(nlohmann::json const& message) {
   std::string operation = message.at("operation").get<std::string>();
 
   if (operation == "setDimensions") {
-    this->mDimensionAngles = message.at("dimensions").get<std::vector<double>>();
+    mDimensionAngles = message.at("dimensions").get<std::vector<double>>();
+  } else if (operation == "setHue") {
+    mHue = message.at("hue").get<double>();
   }
 
   process();
@@ -169,13 +171,16 @@ void ColorMapND::onMessageFromJS(nlohmann::json const& message) {
 
 nlohmann::json ColorMapND::getData() const {
   nlohmann::json data;
-
+  data["hue"] = mHue;
   return data;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void ColorMapND::setData(nlohmann::json const& json) {
+  if (json.find("hue") != json.end()) {
+    mHue = json["hue"];
+  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -303,7 +308,7 @@ void ColorMapND::process() {
     float     L         = 0.7;
     float     maxChroma = 0.3;
     float     c         = maxChroma * glm::length(position);
-    float     h         = glm::degrees(std::atan2(position.y, position.x)) + 360.0f;
+    float     h         = glm::degrees(std::atan2(position.y, position.x)) + 360.0f + mHue;
     glm::vec3 rgb       = oklch2rgb(L, c, h);
 
     pointColors[index] = {rgb.r, rgb.g, rgb.b};

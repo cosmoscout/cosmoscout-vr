@@ -43,7 +43,6 @@ class OverlayRenderComponent extends Rete.Component {
 
     node.onInit =
         (nodeDiv) => {
-          console.log("OverlayRenderNode.onInit", node.id, node.data);
           centerControl.init(nodeDiv, {
             options: node.data.options?.map((body, index) => ({value: index, text: body})),
             selectedValue: node.data.selectedBody

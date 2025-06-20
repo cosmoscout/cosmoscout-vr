@@ -21,8 +21,10 @@ class SliderControl extends Rete.Control {
    * @param {SliderChangeCallback} onReleaseCallback A callback that gets called when the user
    *                                                releases the slider.
    * @param {string | undefined}   label            A label to show next to the options.
+   * @param {number | undefined}   width            The width of the control in pixels. Defaults
+   *                                                to 220.
    */
-  constructor(key, onChangeCallback, onReleaseCallback, label = undefined) {
+  constructor(key, onChangeCallback, onReleaseCallback, label = undefined, width = 220) {
     super(key);
 
     this.changeCallback  = onChangeCallback;
@@ -49,7 +51,7 @@ class SliderControl extends Rete.Control {
           margin: 10px 15px !important;
         }
         #slider-${this.id} {
-          width: 220px;
+          width: ${width}px;
           margin: 5px 0 10px 0;
 
           .noUi-base {

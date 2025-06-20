@@ -55,7 +55,7 @@ class ColorMapND : public csl::nodeeditor::Node {
 
  private:
   std::vector<double> mDimensionAngles;
-  ;
+  float               mHue = 0.f;
 };
 
 } // namespace csp::visualquery

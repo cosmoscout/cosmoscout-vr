@@ -40,8 +40,15 @@ class ColorMapNDComponent extends Rete.Component {
         new Rete.Input('resolutionIn', "Maximum Resolution", CosmoScout.socketTypes['Int']);
     node.addInput(resolutionInput);
 
-    let control = new ColorWheelControl("ColorWheel");
-    node.addControl(control);
+    let colorWheelControl = new ColorWheelControl("ColorWheel");
+    node.addControl(colorWheelControl);
+
+    node.onMessageFromCPP = (message) => { colorWheelControl.setData(message.data); };
+
+    let hueControl = new SliderControl('hue', (value) => colorWheelControl.setHue(value),
+        (value) => CosmoScout.sendMessageToCPP({operation: "setHue", hue: value}, node.id),
+        "Hue Shift", 370);
+    node.addControl(hueControl);
 
     let imageOutput = new Rete.Output('imageOut', 'Image 2D', CosmoScout.socketTypes['Image2D']);
     node.addOutput(imageOutput);
@@ -49,8 +56,8 @@ class ColorMapNDComponent extends Rete.Component {
     // Once the HTML element for this node has been created, the node.onInit() method will be
     // called. This is used here to initialize the widget.
     node.onInit = (nodeDiv) => {
-      control.init(nodeDiv, node.data);
-      node.onMessageFromCPP = (message) => { control.setData(message.data); };
+      colorWheelControl.init(nodeDiv, node.data.hue || 0);
+      hueControl.init(nodeDiv, 0, 360, 1, node.data.hue || 0);
     };
 
     return node;
@@ -74,7 +81,9 @@ class ColorWheelControl extends Rete.Control {
 
   // This is called by the node.onInit() above once the HTML element for the node has been
   // created.
-  init(nodeDiv, data) {
+  init(nodeDiv, initialHue) {
+
+    this.hue = initialHue;
 
     // Get our display elements
     this.container   = nodeDiv.querySelector('[id="' + this.id + '"]');
@@ -91,6 +100,10 @@ class ColorWheelControl extends Rete.Control {
   setData(data) {
     this.drawDimensions(data.dimensions);
     this.drawPoints(data.points);
+  }
+
+  setHue(hue) {
+    this.colorCanvas.style.transform = `rotate(${- hue}deg)`;
   }
 
   drawColorWheel() {
