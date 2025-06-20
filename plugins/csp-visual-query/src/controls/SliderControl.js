@@ -79,6 +79,13 @@ class SliderControl extends Rete.Control {
     this.el.noUiSlider.on(
         "slide", (values, handle, unencoded) => { this.changeCallback(unencoded); });
     this.el.noUiSlider.on(
-        "set", (values, handle, unencoded) => { this.releaseCallback(unencoded); });
+        "change", (values, handle, unencoded) => { this.releaseCallback(unencoded); });
+  }
+
+  /** Sets the value of the slider. */
+  setValue(value) {
+    if (this.el) {
+      this.el.noUiSlider.set(value);
+    }
   }
 }

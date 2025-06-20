@@ -43,7 +43,16 @@ class ColorMapNDComponent extends Rete.Component {
     let colorWheelControl = new ColorWheelControl("ColorWheel");
     node.addControl(colorWheelControl);
 
-    node.onMessageFromCPP = (message) => { colorWheelControl.setData(message.data); };
+    let weightControl = new SliderControl('weight',
+        (value) => colorWheelControl.setWeight(value, colorWheelControl.getSelectedDimension()),
+        (value) => CosmoScout.sendMessageToCPP({
+          operation: "setWeight",
+          weight: value,
+          dimension: colorWheelControl.getSelectedDimension()
+        },
+            node.id),
+        "Selected Weight", 370);
+    node.addControl(weightControl);
 
     let hueControl = new SliderControl('hue', (value) => colorWheelControl.setHue(value),
         (value) => CosmoScout.sendMessageToCPP({operation: "setHue", hue: value}, node.id),
@@ -57,7 +66,14 @@ class ColorMapNDComponent extends Rete.Component {
     // called. This is used here to initialize the widget.
     node.onInit = (nodeDiv) => {
       colorWheelControl.init(nodeDiv, node.data.hue || 0);
+      weightControl.init(nodeDiv, 0, 10, 0.1, 3);
       hueControl.init(nodeDiv, 0, 360, 1, node.data.hue || 0);
+    };
+
+    node.onMessageFromCPP = (message) => {
+      const activeDimension = colorWheelControl.getSelectedDimension();
+      weightControl.setValue(message.data.dimensionWeights[activeDimension]);
+      colorWheelControl.setData(message.data);
     };
 
     return node;
@@ -94,16 +110,31 @@ class ColorWheelControl extends Rete.Control {
     this.drawColorWheel();
   }
 
+  getSelectedDimension() {
+    return parseInt(this.labels.querySelector(".dimension-label.active")?.textContent || 0, 10);
+  }
+
   /**
 
    */
   setData(data) {
-    this.drawDimensions(data.dimensions);
-    this.drawPoints(data.points);
+
+    this.points           = data.points;
+    this.dimensionAngles  = data.dimensionAngles;
+    this.dimensionWeights = data.dimensionWeights;
+
+    this.drawDimensions();
+    this.drawPoints();
   }
 
   setHue(hue) {
     this.colorCanvas.style.transform = `rotate(${- hue}deg)`;
+  }
+
+  setWeight(weight, dimension) {
+    this.dimensionWeights[dimension] = weight;
+    this.drawDimensions();
+    this.drawPoints();
   }
 
   drawColorWheel() {
@@ -147,12 +178,10 @@ class ColorWheelControl extends Rete.Control {
     ctx.putImageData(imageData, 0, 0);
   }
 
-  drawPoints(points) {
-
-    this.points = points || this.points;
+  drawPoints() {
 
     const directions =
-        this.dimensions.map((angle) => { return [Math.cos(angle), Math.sin(angle)]; });
+        this.dimensionAngles.map((angle) => { return [Math.cos(angle), Math.sin(angle)]; });
 
     const ctx     = this.pointCanvas.getContext("2d");
     const width   = this.pointCanvas.width;
@@ -171,8 +200,8 @@ class ColorWheelControl extends Rete.Control {
       let   weightSum = 0;
 
       // Compute the position of the point in the color wheel.
-      for (let i = 0; i < this.dimensions.length; i++) {
-        const weight = point[i] ** 2;
+      for (let i = 0; i < this.dimensionAngles.length; i++) {
+        const weight = Math.pow(point[i], 1.0 / (this.dimensionWeights[i] * 0.5 + 0.01));
         weightSum += weight;
         position[0] += weight * directions[i][0];
         position[1] += weight * directions[i][1];
@@ -193,20 +222,26 @@ class ColorWheelControl extends Rete.Control {
     });
   }
 
-  drawDimensions(dimensions) {
+  drawDimensions() {
 
-    this.dimensions = dimensions || this.dimensions;
+    // Get previously active dimension.
+    const activeDimension = this.getSelectedDimension();
 
     // Remove all children from the canvas
     this.labels.innerHTML = "";
 
     // Add a div for each dimension.
-    this.dimensions.forEach((angle, i) => {
-      const div       = document.createElement("div");
-      div.className   = "dimension-label";
-      div.textContent = i;
+    this.dimensionAngles.forEach((angle, i) => {
+      const div          = document.createElement("div");
+      div.className      = "dimension-label";
+      div.textContent    = i;
+      div.style.fontSize = `${this.dimensionWeights[i]*3 + 15}px`;
       div.style.transform =
           `translate(-50%, -50%) rotate(${angle}rad) translate(170px, 0) rotate(90deg)`;
+
+      if (i === activeDimension) {
+        div.classList.add("active");
+      }
 
       // Make the label draggable around the center.
       div.addEventListener("pointerdown", (event) => {
@@ -225,7 +260,7 @@ class ColorWheelControl extends Rete.Control {
           div.style.transform =
               `translate(-50%, -50%) rotate(${angle}rad) translate(170px, 0) rotate(90deg)`;
 
-          this.dimensions[i] = angle;
+          this.dimensionAngles[i] = angle;
 
           this.drawPoints();
 
@@ -234,8 +269,12 @@ class ColorWheelControl extends Rete.Control {
         };
 
         const onPointerUp = () => {
+          const allDivs = this.labels.querySelectorAll(".dimension-label");
+          allDivs.forEach((d) => d.classList.remove("active"));
+          div.classList.add("active");
+
           CosmoScout.sendMessageToCPP(
-              {operation: "setDimensions", dimensions: this.dimensions}, this.parent.id);
+              {operation: "setDimensions", dimensions: this.dimensionAngles}, this.parent.id);
           document.removeEventListener("pointermove", onPointerMove);
           document.removeEventListener("pointerup", onPointerUp);
         };

@@ -55,6 +55,7 @@ class ColorMapND : public csl::nodeeditor::Node {
 
  private:
   std::vector<double> mDimensionAngles;
+  std::vector<double> mDimensionWeights;
   float               mHue = 0.f;
 };
 

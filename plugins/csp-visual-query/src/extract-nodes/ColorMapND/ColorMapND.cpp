@@ -160,6 +160,9 @@ void ColorMapND::onMessageFromJS(nlohmann::json const& message) {
 
   if (operation == "setDimensions") {
     mDimensionAngles = message.at("dimensions").get<std::vector<double>>();
+  } else if (operation == "setWeight") {
+    int index                = message.at("dimension").get<int>();
+    mDimensionWeights[index] = message.at("weight").get<double>();
   } else if (operation == "setHue") {
     mHue = message.at("hue").get<double>();
   }
@@ -273,18 +276,22 @@ void ColorMapND::process() {
 
   // We compute the 2D position of each data point in the color map space as the weighted average
   // of the band directions.
-  if (this->mDimensionAngles.size() != texture.mBands) {
-    this->mDimensionAngles.resize(texture.mBands);
+  if (mDimensionAngles.size() != texture.mBands) {
+    mDimensionAngles.resize(texture.mBands);
 
     for (uint32_t i = 0; i < texture.mBands; i++) {
-      this->mDimensionAngles[i] = (i / static_cast<float>(texture.mBands)) * 2.f * glm::pi<float>();
+      mDimensionAngles[i] = (i / static_cast<float>(texture.mBands)) * 2.0 * glm::pi<float>();
     }
+  }
+
+  if (mDimensionWeights.size() != texture.mBands) {
+    mDimensionWeights = std::vector<double>(texture.mBands, 1.0);
   }
 
   std::vector<glm::vec2> dimensionDirections(texture.mBands);
   for (uint32_t i = 0; i < texture.mBands; i++) {
     dimensionDirections[i] =
-        glm::vec2(std::cos(this->mDimensionAngles[i]), std::sin(this->mDimensionAngles[i]));
+        glm::vec2(std::cos(mDimensionAngles[i]), std::sin(mDimensionAngles[i]));
   }
 
   F32ValueVector                  pointColors(texture.mWidth * texture.mHeight);
@@ -294,7 +301,7 @@ void ColorMapND::process() {
     glm::vec2 position(0.0, 0.0);
     float     sum = 0.0;
     for (uint32_t i = 0; i < texture.mBands; i++) {
-      float weight = std::pow(values[i], 2.0f);
+      float weight = std::pow(values[i], 1.0 / (mDimensionWeights[i] * 0.5 + 0.01));
       sum += weight;
       position += weight * dimensionDirections[i];
     }
@@ -319,8 +326,9 @@ void ColorMapND::process() {
   });
 
   nlohmann::json json;
-  json["data"]["points"]     = samples;
-  json["data"]["dimensions"] = this->mDimensionAngles;
+  json["data"]["points"]           = samples;
+  json["data"]["dimensionAngles"]  = mDimensionAngles;
+  json["data"]["dimensionWeights"] = mDimensionWeights;
   sendMessageToJS(json);
 
   image.mPoints = pointColors;
