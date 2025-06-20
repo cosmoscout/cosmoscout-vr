@@ -196,6 +196,8 @@ void Plugin::setupNodeEditor(uint16_t port) {
       "../share/resources/nodes/csp-visual-query/DropDownControl.js"));
   factory.registerControlType(cs::utils::filesystem::loadToString(
       "../share/resources/nodes/csp-visual-query/RealInputControl.js"));
+  factory.registerControlType(cs::utils::filesystem::loadToString(
+      "../share/resources/nodes/csp-visual-query/SliderControl.js"));
 
   // Now, we register our custom node types. Any parameter given to this method, will later be
   // passed to the constructor of the node instances. For more information, see the documentation of

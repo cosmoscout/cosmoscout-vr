@@ -27,21 +27,28 @@ class OverlayRenderComponent extends Rete.Component {
     const minMaxInput = new Rete.Input('minMax', 'LUT Min/Max', CosmoScout.socketTypes['RVec2']);
     node.addInput(minMaxInput);
 
-    const dropDownCallback = (selection) => CosmoScout.sendMessageToCPP(selection, node.id);
-
-    let centerControl =
-        new DropDownControl('center', dropDownCallback, "Body", [{value: 0, text: 'None'}]);
+    let centerControl = new DropDownControl('center',
+        (selection) =>
+            CosmoScout.sendMessageToCPP({operation: "setCenter", center: selection.text}, node.id),
+        "Body", [{value: 0, text: 'None'}]);
     node.addControl(centerControl);
 
     node.onMessageFromCPP = (message) => centerControl.setOptions(
         message.map((centerName, index) => ({value: index, text: centerName})));
 
+    let opacityControl = new SliderControl('opacity',
+        (value) => CosmoScout.sendMessageToCPP({operation: "setOpacity", opacity: value}, node.id),
+        ()      => {}, "Opacity");
+    node.addControl(opacityControl);
+
     node.onInit =
         (nodeDiv) => {
+          console.log("OverlayRenderNode.onInit", node.id, node.data);
           centerControl.init(nodeDiv, {
             options: node.data.options?.map((body, index) => ({value: index, text: body})),
             selectedValue: node.data.selectedBody
           });
+          opacityControl.init(nodeDiv, 0, 1, 0.01, node.data.opacity || 1.0);
         }
 
     return node;

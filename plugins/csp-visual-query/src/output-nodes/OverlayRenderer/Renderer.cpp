@@ -238,6 +238,14 @@ void Renderer::setMinMax(glm::vec2 const& minMax) {
   mMinMax = minMax;
 }
 
+void Renderer::setOpacity(float opacity) {
+  mOpacity = opacity;
+}
+
+float Renderer::getOpacity() const {
+  return mOpacity;
+}
+
 void Renderer::setObject(std::string objectName) {
   mObjectName = std::move(objectName);
   if (mObjectName == "None" || mObjectName.empty()) {
@@ -326,6 +334,7 @@ bool Renderer::Do() {
 
   mShader.SetUniform(mShader.GetUniformLocation("uHasLUT"), mHasLUT);
   mShader.SetUniform(mShader.GetUniformLocation("uNumScalars"), static_cast<int>(mNumScalars));
+  mShader.SetUniform(mShader.GetUniformLocation("uOpacity"), mOpacity);
   mShader.SetUniform(mShader.GetUniformLocation("uDepthBuffer"), 0);
   mShader.SetUniform(mShader.GetUniformLocation("uTexture"), 1);
   mShader.SetUniform(mShader.GetUniformLocation("uValueRange"), mMinMax.x, mMinMax.y);

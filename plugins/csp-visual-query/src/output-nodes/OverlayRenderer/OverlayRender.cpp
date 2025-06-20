@@ -81,6 +81,7 @@ nlohmann::json OverlayRender::getData() const {
 
   data["options"]      = list;
   data["selectedBody"] = mRenderer->getObject();
+  data["opacity"]      = mRenderer->getOpacity();
 
   return data;
 }
@@ -90,6 +91,9 @@ nlohmann::json OverlayRender::getData() const {
 void OverlayRender::setData(nlohmann::json const& json) {
   if (json.find("selectedBody") != json.end()) {
     mRenderer->setObject(json["selectedBody"]);
+  }
+  if (json.find("opacity") != json.end()) {
+    mRenderer->setOpacity(json["opacity"].get<float>());
   }
 }
 
@@ -111,7 +115,13 @@ void OverlayRender::init() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void OverlayRender::onMessageFromJS(const nlohmann::json& message) {
-  mRenderer->setObject(message.at("text").get<std::string>());
+  std::string operation = message.at("operation").get<std::string>();
+
+  if (operation == "setCenter") {
+    mRenderer->setObject(message.at("center").get<std::string>());
+  } else if (operation == "setOpacity") {
+    mRenderer->setOpacity(message.at("opacity").get<float>());
+  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

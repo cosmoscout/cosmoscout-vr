@@ -57,6 +57,7 @@ const std::string Renderer::SURFACE_FRAG = R"(
   uniform vec2          uValueRange;
   uniform bool          uHasLUT;
   uniform int           uNumScalars;
+  uniform float         uOpacity;
 
   uniform dmat4         uMatInvMVP;
 
@@ -217,6 +218,8 @@ const std::string Renderer::SURFACE_FRAG = R"(
           float value = max(FragColor.r, max(FragColor.g, FragColor.b));
           FragColor = texture(uLUT, value);
         }
+
+        FragColor.a *= uOpacity;
 
       } else {
         discard;
