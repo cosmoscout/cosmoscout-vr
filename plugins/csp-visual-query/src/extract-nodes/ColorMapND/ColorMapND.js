@@ -64,10 +64,12 @@ class ColorWheelControl extends Rete.Control {
     this.id = crypto.randomUUID();
 
     // This HTML code will be used whenever a node is created with this widget.
-    this.template = `<div id="${this.id}" class="colorMapND">
-           <div style="absolute; top: 0; left: 0; width: 100%; height: 100%;"></div>
-           <canvas width="400" height="400" style="margin: 0 30px"></canvas>
-         </div>`;
+    this.template = `<div id="${
+        this.id}" class="colorMapND" style="position: relative; width: 400px; height: 400px">
+          <canvas class="color-layer" style="position: absolute; top: 50px; left: 50px;" width=300 height=300></canvas>
+          <canvas class="point-layer" style="position: absolute; top: 50px; left: 50px;" width=300 height=300></canvas>
+          <div    class="label-layer" style="position: absolute; width: 400px; height: 400px"></div>
+        </div>`;
   }
 
   // This is called by the node.onInit() above once the HTML element for the node has been
@@ -75,24 +77,26 @@ class ColorWheelControl extends Rete.Control {
   init(nodeDiv, data) {
 
     // Get our display elements
-    this.container = nodeDiv.querySelector('[id="' + this.id + '"]');
-    this.labels    = this.container.querySelector("div");
-    this.canvas    = this.container.querySelector("canvas");
+    this.container   = nodeDiv.querySelector('[id="' + this.id + '"]');
+    this.labels      = this.container.querySelector(".label-layer");
+    this.pointCanvas = this.container.querySelector(".point-layer");
+    this.colorCanvas = this.container.querySelector(".color-layer");
+
+    this.drawColorWheel();
   }
 
   /**
 
    */
   setData(data) {
-    this.drawColorWheel();
-    this.drawPoints(data.positions);
     this.drawDimensions(data.dimensions);
+    this.drawPoints(data.points);
   }
 
   drawColorWheel() {
-    const ctx     = this.canvas.getContext("2d");
-    const width   = this.canvas.width;
-    const height  = this.canvas.height;
+    const ctx     = this.colorCanvas.getContext("2d");
+    const width   = this.colorCanvas.width;
+    const height  = this.colorCanvas.height;
     const centerX = width / 2;
     const centerY = height / 2;
     const radius  = width / 2;
@@ -130,21 +134,44 @@ class ColorWheelControl extends Rete.Control {
     ctx.putImageData(imageData, 0, 0);
   }
 
-  drawPoints(data) {
-    const ctx     = this.canvas.getContext("2d");
-    const width   = this.canvas.width;
-    const height  = this.canvas.height;
+  drawPoints(points) {
+
+    this.points = points || this.points;
+
+    const directions =
+        this.dimensions.map((angle) => { return [Math.cos(angle), Math.sin(angle)]; });
+
+    const ctx     = this.pointCanvas.getContext("2d");
+    const width   = this.pointCanvas.width;
+    const height  = this.pointCanvas.height;
     const centerX = width / 2;
     const centerY = height / 2;
     const radius  = width / 2;
 
+    ctx.clearRect(0, 0, width, height);
     ctx.fillStyle   = "black";
     ctx.strokeStyle = "white";
     ctx.lineWidth   = 1;
 
-    data.forEach((point) => {
-      const x = point[0] * radius + centerX;
-      const y = point[1] * radius + centerY;
+    this.points.forEach((point) => {
+      const position  = [0, 0];
+      let   weightSum = 0;
+
+      // Compute the position of the point in the color wheel.
+      for (let i = 0; i < this.dimensions.length; i++) {
+        const weight = point[i] ** 2;
+        weightSum += weight;
+        position[0] += weight * directions[i][0];
+        position[1] += weight * directions[i][1];
+      }
+
+      // If the point has no weight, skip it.
+      if (weightSum === 0) {
+        return;
+      }
+
+      const x = position[0] * radius / weightSum + centerX;
+      const y = position[1] * radius / weightSum + centerY;
 
       ctx.beginPath();
       ctx.arc(x, y, 2, 0, Math.PI * 2);
@@ -158,7 +185,7 @@ class ColorWheelControl extends Rete.Control {
     this.dimensions = dimensions || this.dimensions;
 
     // Remove all children from the canvas
-    this.labels.childNodes.forEach((child) => { this.labels.removeChild(child); });
+    this.labels.innerHTML = "";
 
     // Add a div for each dimension.
     this.dimensions.forEach((angle, i) => {
@@ -166,7 +193,7 @@ class ColorWheelControl extends Rete.Control {
       div.className   = "dimension-label";
       div.textContent = i;
       div.style.transform =
-          `translate(-50%, -50%) rotate(${angle}rad) translate(210px, 0) rotate(90deg)`;
+          `translate(-50%, -50%) rotate(${angle}rad) translate(170px, 0) rotate(90deg)`;
 
       // Make the label draggable around the center.
       div.addEventListener("pointerdown", (event) => {
@@ -183,16 +210,19 @@ class ColorWheelControl extends Rete.Control {
           const dy    = moveEvent.clientY - centerY;
           const angle = Math.atan2(dy, dx);
           div.style.transform =
-              `translate(-50%, -50%) rotate(${angle}rad) translate(210px, 0) rotate(90deg)`;
+              `translate(-50%, -50%) rotate(${angle}rad) translate(170px, 0) rotate(90deg)`;
 
           this.dimensions[i] = angle;
+
+          this.drawPoints();
 
           event.stopPropagation();
           event.preventDefault();
         };
 
         const onPointerUp = () => {
-          CosmoScout.sendMessageToCPP({operation: "setDimensions", dimensions: this.dimensions}, this.parent.id);
+          CosmoScout.sendMessageToCPP(
+              {operation: "setDimensions", dimensions: this.dimensions}, this.parent.id);
           document.removeEventListener("pointermove", onPointerMove);
           document.removeEventListener("pointerup", onPointerUp);
         };

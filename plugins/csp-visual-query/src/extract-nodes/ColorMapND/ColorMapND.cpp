@@ -240,8 +240,6 @@ void ColorMapND::process() {
     }
   };
 
-  logger().info("Texture loaded: {}x{}x{}", texture.mWidth, texture.mHeight, texture.mBands);
-
   Image2D image;
   image.mDimension  = {texture.mWidth, texture.mHeight};
   image.mMinMax     = {0.0, 1.0};
@@ -260,11 +258,6 @@ void ColorMapND::process() {
       bandRanges[i].y = std::max(bandRanges[i].y, value);
     }
   });
-
-  // Print the band ranges
-  for (size_t i = 0; i < bandRanges.size(); i++) {
-    logger().info("Band {}: {} - {}", i, bandRanges[i].x, bandRanges[i].y);
-  }
 
   forEachValue([&](uint32_t i, float& value) {
     // Ignore no data values.
@@ -289,20 +282,17 @@ void ColorMapND::process() {
         glm::vec2(std::cos(this->mDimensionAngles[i]), std::sin(this->mDimensionAngles[i]));
   }
 
-  F32ValueVector                     pointColors(texture.mWidth * texture.mHeight);
-  std::vector<std::array<double, 2>> pointPositions;
+  F32ValueVector                  pointColors(texture.mWidth * texture.mHeight);
+  std::vector<std::vector<float>> samples;
 
   forEachPixel([&](uint32_t x, uint32_t y, std::vector<float> const& values) {
     glm::vec2 position(0.0, 0.0);
-    float     magnitude = 0.0;
-    float     sum       = 0.0;
+    float     sum = 0.0;
     for (uint32_t i = 0; i < texture.mBands; i++) {
       float weight = std::pow(values[i], 2.0f);
       sum += weight;
-      magnitude += values[i] * values[i];
       position += weight * dimensionDirections[i];
     }
-    magnitude = std::sqrt(magnitude) / texture.mBands;
 
     size_t index = y * texture.mWidth + x;
 
@@ -319,14 +309,12 @@ void ColorMapND::process() {
     pointColors[index] = {rgb.r, rgb.g, rgb.b};
 
     if (index % 1000 == 0) {
-      if (position.x != 0.0 || position.y != 0) {
-        pointPositions.emplace_back(std::array<double, 2>{position.x, position.y});
-      }
+      samples.emplace_back(values);
     }
   });
 
   nlohmann::json json;
-  json["data"]["positions"]  = pointPositions;
+  json["data"]["points"]     = samples;
   json["data"]["dimensions"] = this->mDimensionAngles;
   sendMessageToJS(json);
 
