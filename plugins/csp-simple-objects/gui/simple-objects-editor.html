@@ -1,0 +1,146 @@
+<div id="simple-objects-editor" class="draggable-window resizable-window">
+  <div class="window-wrapper">
+
+    <div class="window-header">
+      <div class="window-title">
+        <i class="material-icons">edit</i>
+        <span id="simple-objects-editor-title">3D Model Editor</span>
+      </div>
+      <a class="btn light-glass" data-toggle="tooltip" title="Close" id="simple-objects-editor-close">
+        <i class="material-icons">close</i>
+      </a>
+    </div>
+
+    <div class="window-content container-fluid">
+      <div class="row mt-3 mb-2">
+        <div class="col">
+          <input type="text" placeholder="Unique Name" class="form-control" id="simple-objects-editor-name">
+          <div class="invalid-feedback"></div>
+        </div>
+        <div class="col input-group">
+          <input type="text" placeholder="Anchor" class="form-control" id="simple-objects-editor-anchor">
+          <div class="input-group-append">
+            <button class="btn glass fix-rounded-right" type="button" data-toggle="tooltip" title="Use current Body"><i
+                class="material-icons">public</i></button>
+          </div>
+          <div class="invalid-feedback"></div>
+        </div>
+      </div>
+
+
+      <div class="row mb-2">
+        <div class="col-4">
+          <label class="mb-0">Model File</label>
+        </div>
+        <div class="col-8">
+          <select data-callback="simpleObjects.setModelFile" data-container="#cosmoscout" data-width="100%"
+            class="simple-value-dropdown" id="simple-objects-editor-model-file">
+            <!-- Filled by JavaScript Function called from DataBase Manager -->
+            <option value="-1" selected>Select model file</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="row mb-2">
+        <div class="col-4">
+          <label class="mb-0">Environment Map</label>
+        </div>
+        <div class="col-8">
+          <select data-callback="simpleObjects.setEnvironmentMap" data-container="#cosmoscout" data-width="100%"
+            class="simple-value-dropdown" id="simple-objects-editor-map-file">
+            <!-- Filled by JavaScript Function called from DataBase Manager -->
+            <option value="-1" selected>Select map file</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="row mb-1">
+        <div class="col input-group">
+          <input id="simple-objects-editor-location-lng" type="text" class="form-control" placeholder="Longitude">
+          <input id="simple-objects-editor-location-lat" type="text" class="form-control" placeholder="Latitude">
+          <div class="input-group-append">
+            <div class="fix-rounded-right" data-toggle="buttons">
+              <label class="btn glass mb-0" aria-pressed="false" id="simple-objects-editor-pick-location">
+                <i class="material-icons">mouse</i>
+              </label>
+            </div>
+          </div>
+          <div class="invalid-feedback"></div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col">
+          <div class="invalid-feedback invisible-text" id="simple-objects-editor-nothing-given-error">
+            Please fill all required fields.
+          </div>
+          <!-- <small class="form-text text-muted">Place the model and environment map files into ../share/resources/models</small>-->
+        </div>
+      </div>
+
+
+      <hr class="mt-4 mb-2">
+      <div class="row">
+        <div class="col">
+          <label>Optional parameters</label>
+        </div>
+      </div>
+      <div class="row mb-2">
+        <div class="col-4">
+          <input type="text" placeholder="Elevation" class="form-control" id="simple-objects-editor-elevation">
+          <div class="invalid-feedback"></div>
+        </div>
+        <div class="col-4">
+          <input type="text" placeholder="Scale" class="form-control" id="simple-objects-editor-scale">
+          <div class="invalid-feedback"></div>
+        </div>
+        <div class="col-4">
+          <input type="text" placeholder="Size" class="form-control" id="simple-objects-editor-size" 
+          data-toggle="tooltip" title="Enter an approximate diagonal length of the object here.">
+          <div class="invalid-feedback"></div>
+        </div>
+      </div>
+  
+      <div class="row mb-2">
+        <div class="col-12 input-group">
+          <input id="simple-objects-editor-rotation-x" type="text" class="form-control" placeholder="RotX">
+          <input id="simple-objects-editor-rotation-y" type="text" class="form-control" placeholder="RotY">
+          <input id="simple-objects-editor-rotation-z" type="text" class="form-control" placeholder="RotZ">
+          <input id="simple-objects-editor-rotation-w" type="text" class="form-control " placeholder="RotW">
+          <div class="input-group-append">
+            <button class="btn glass fix-rounded-right" type="button" data-toggle="tooltip"
+              title="Use current rotation"><i class="material-icons">face</i></button>
+          </div>
+          <div class="invalid-feedback"></div>
+        </div>
+      </div>
+
+      <div class="row mb-2">
+        <div class="col">
+          <label class="checklabel">
+            <input type="checkbox" data-callback="simpleObjects.setAlignToSufaceEnabled" id="simple-objects-editor-align-surface" />
+            <i class="material-icons"></i>
+            <span>Align to surface</span>
+          </label>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="window-action-area container-fluid">
+      <div class="row mb-2">
+        <div class="col-5">
+          <button class="btn glass btn-danger block" id="simple-objects-editor-delete-button">
+            Delete Object
+          </button>
+        </div>
+        <div class="col-5 ml-auto">
+          <button class="btn glass block" id="simple-objects-editor-save-button">
+            Save Object
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>

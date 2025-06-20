@@ -1,0 +1,50 @@
+#simple-objects-editor .window-wrapper {
+    width: 520px;
+}
+
+#simple-objects-editor .form-control.is-invalid {
+    padding-right: 7px;
+    background: none;
+}
+
+#simple-objects-editor .disabled:hover {
+    /*background-color: rgba(230, 230, 255, 0.1);
+    border-bottom: 2px solid var(--cs-color-primary);
+    box-shadow: none;
+    color: var(--cs-color-text);*/
+    pointer-events: none;
+}
+
+#simple-objects-editor .btn.fix-rounded-right {
+    height: calc(1.5em + .75rem + 2px);
+}
+
+#simple-objects-editor .filter-option {
+    height: auto;
+    padding: .375rem .75rem;
+}
+
+#simple-objects-editor label {
+    padding: .375rem .75rem;
+}
+
+#simple-objects-editor-pick-location {
+    height: calc(1.5em + .75rem + 2px);
+}
+
+#simple-objects-editor-pick-location > i {
+    top: -2px;
+}
+
+#simple-objects-editor-pick-location.active {
+    color: var(--cs-color-text-highlight);
+    text-shadow: var(--cs-text-glow);
+    border: 1px dashed var(--cs-color-primary-transparent);
+    border-bottom: 2px solid var(--cs-color-text-highlight);
+    background-color: var(--cs-color-background-lightest);
+}
+
+#simple-objects-editor-pick-location.disabled {
+    top: 0px;
+    pointer-events: none;
+}
