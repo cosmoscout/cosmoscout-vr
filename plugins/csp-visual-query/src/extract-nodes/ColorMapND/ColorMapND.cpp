@@ -230,8 +230,28 @@ void ColorMapND::process() {
     }
   };
 
-  // Lambda to apply a function to each pixel in the texture. The x and y coordinates as well as the
-  // band values are passed to the function.
+  // First normalize the individual bands. We use the lambda above to first find the min and max
+  // values of each band and then normalize the values to the range [0, 1].
+  std::vector<glm::vec2> bandRanges(texture.mBands,
+      glm::vec2(std::numeric_limits<float>::max(), std::numeric_limits<float>::lowest()));
+
+  forEachValue([&](uint32_t i, float& value) {
+    // Ignore no data values.
+    if (value > 0.0) {
+      bandRanges[i].x = std::min(bandRanges[i].x, value);
+      bandRanges[i].y = std::max(bandRanges[i].y, value);
+    }
+  });
+
+  forEachValue([&](uint32_t i, float& value) {
+    // Ignore no data values.
+    if (value > 0.0) {
+      value = (value - bandRanges[i].x) / (bandRanges[i].y - bandRanges[i].x);
+    }
+  });
+
+  // Lambda to call a function for each pixel in the texture. The x and y coordinates as well as a
+  // copy of the band values are passed to the function.
   auto forEachPixel = [&](std::function<void(uint32_t, uint32_t, std::vector<float> const&)> func) {
     for (uint32_t y = 0; y < texture.mHeight; y++) {
       for (uint32_t x = 0; x < texture.mWidth; x++) {
@@ -255,27 +275,9 @@ void ColorMapND::process() {
   image.mBounds = {texture.mLnglatBounds[0] * (180 / M_PI), texture.mLnglatBounds[2] * (180 / M_PI),
       texture.mLnglatBounds[3] * (180 / M_PI), texture.mLnglatBounds[1] * (180 / M_PI)};
 
-  // First normalize the individual bands.
-  std::vector<glm::vec2> bandRanges(texture.mBands,
-      glm::vec2(std::numeric_limits<float>::max(), std::numeric_limits<float>::lowest()));
-
-  forEachValue([&](uint32_t i, float& value) {
-    // Ignore no data values.
-    if (value > 0.0) {
-      bandRanges[i].x = std::min(bandRanges[i].x, value);
-      bandRanges[i].y = std::max(bandRanges[i].y, value);
-    }
-  });
-
-  forEachValue([&](uint32_t i, float& value) {
-    // Ignore no data values.
-    if (value > 0.0) {
-      value = (value - bandRanges[i].x) / (bandRanges[i].y - bandRanges[i].x);
-    }
-  });
-
   // We compute the 2D position of each data point in the color map space as the weighted average
-  // of the band directions.
+  // of the band directions. Initially, the angles of the dimensions are evenly distributed
+  // around the circle.
   if (mDimensionAngles.size() != texture.mBands) {
     mDimensionAngles.resize(texture.mBands);
 
@@ -284,16 +286,22 @@ void ColorMapND::process() {
     }
   }
 
-  if (mDimensionWeights.size() != texture.mBands) {
-    mDimensionWeights = std::vector<double>(texture.mBands, 1.0);
-  }
-
   std::vector<glm::vec2> dimensionDirections(texture.mBands);
   for (uint32_t i = 0; i < texture.mBands; i++) {
     dimensionDirections[i] =
         glm::vec2(std::cos(mDimensionAngles[i]), std::sin(mDimensionAngles[i]));
   }
 
+  // Each dimension has a weight that can be adjusted by the user. They are initialized to 10.
+  if (mDimensionWeights.size() != texture.mBands) {
+    mDimensionWeights = std::vector<double>(texture.mBands, 10.0);
+  }
+
+  // We now compute the color for each pixel in the texture. For this, we compute the position
+  // of the data point in the color map space as the weighted average of the band directions
+  // and convert it to a color using the OKLCH color space.
+  // A couple of pixels are send to the JS side for visualization on the color map. We do not
+  // send all pixels, as this would be too much data.
   F32ValueVector                  pointColors(texture.mWidth * texture.mHeight);
   std::vector<std::vector<float>> samples;
 
@@ -301,12 +309,10 @@ void ColorMapND::process() {
     glm::vec2 position(0.0, 0.0);
     float     sum = 0.0;
     for (uint32_t i = 0; i < texture.mBands; i++) {
-      float weight = std::pow(values[i], 1.0 / (mDimensionWeights[i] * 0.5 + 0.01));
+      float weight = mDimensionWeights[i] * mDimensionWeights[i] * values[i] * values[i];
       sum += weight;
       position += weight * dimensionDirections[i];
     }
-
-    size_t index = y * texture.mWidth + x;
 
     if (sum > 0.0) {
       position /= sum;
@@ -318,9 +324,10 @@ void ColorMapND::process() {
     float     h         = glm::degrees(std::atan2(position.y, position.x)) + 360.0f + mHue;
     glm::vec3 rgb       = oklch2rgb(L, c, h);
 
+    size_t index       = y * texture.mWidth + x;
     pointColors[index] = {rgb.r, rgb.g, rgb.b};
 
-    if (index % 1000 == 0) {
+    if (index % 500 == 0) {
       samples.emplace_back(values);
     }
   });

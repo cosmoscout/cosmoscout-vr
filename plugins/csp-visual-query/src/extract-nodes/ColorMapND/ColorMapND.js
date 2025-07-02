@@ -66,7 +66,7 @@ class ColorMapNDComponent extends Rete.Component {
     // called. This is used here to initialize the widget.
     node.onInit = (nodeDiv) => {
       colorWheelControl.init(nodeDiv, node.data.hue || 0);
-      weightControl.init(nodeDiv, 0, 10, 0.1, 3);
+      weightControl.init(nodeDiv, 0, 100, 0.1, 10);
       hueControl.init(nodeDiv, 0, 360, 1, node.data.hue || 0);
     };
 
@@ -89,8 +89,8 @@ class ColorWheelControl extends Rete.Control {
     // This HTML code will be used whenever a node is created with this widget.
     this.template = `<div id="${
         this.id}" class="colorMapND" style="position: relative; width: 400px; height: 400px">
-          <canvas class="color-layer" style="position: absolute; top: 50px; left: 50px;" width=300 height=300></canvas>
-          <canvas class="point-layer" style="position: absolute; top: 50px; left: 50px;" width=300 height=300></canvas>
+          <canvas class="color-layer" style="position: absolute; top: 40px; left: 40px;" width=320 height=320></canvas>
+          <canvas class="point-layer" style="position: absolute; top: 40px; left: 40px;" width=320 height=320></canvas>
           <div    class="label-layer" style="position: absolute; width: 400px; height: 400px"></div>
         </div>`;
   }
@@ -157,8 +157,10 @@ class ColorWheelControl extends Rete.Control {
         const dx   = x - centerX;
         const dy   = y - centerY;
         const dist = Math.sqrt(dx * dx + dy * dy);
-        if (dist > radius)
+
+        if (dist > radius) {
           continue;
+        }
 
         const angle = Math.atan2(dy, dx);
         const h     = ((angle * 180) / Math.PI + 360) % 360;
@@ -179,7 +181,6 @@ class ColorWheelControl extends Rete.Control {
   }
 
   drawPoints() {
-
     const directions =
         this.dimensionAngles.map((angle) => { return [Math.cos(angle), Math.sin(angle)]; });
 
@@ -198,13 +199,15 @@ class ColorWheelControl extends Rete.Control {
     this.points.forEach((point) => {
       const position  = [0, 0];
       let   weightSum = 0;
+      let   max       = 0;
 
       // Compute the position of the point in the color wheel.
       for (let i = 0; i < this.dimensionAngles.length; i++) {
-        const weight = Math.pow(point[i], 1.0 / (this.dimensionWeights[i] * 0.5 + 0.01));
+        const weight = this.dimensionWeights[i] * this.dimensionWeights[i] * point[i] * point[i];
         weightSum += weight;
         position[0] += weight * directions[i][0];
         position[1] += weight * directions[i][1];
+        max = Math.max(max, point[i]);
       }
 
       // If the point has no weight, skip it.
@@ -215,15 +218,23 @@ class ColorWheelControl extends Rete.Control {
       const x = position[0] * radius / weightSum + centerX;
       const y = position[1] * radius / weightSum + centerY;
 
+      const angle = Math.atan2(position[1], position[0]);
+      const dist  = Math.sqrt(position[0] * position[0] + position[1] * position[1]);
+      const h     = ((angle * 180) / Math.PI + 360) % 360;
+      const c     = (dist / weightSum);
+
+      // Construct oklch color and convert to RGB
+      let color = chroma.hsl(0, 0, point[this.getSelectedDimension()]);
+
       ctx.beginPath();
       ctx.arc(x, y, 2, 0, Math.PI * 2);
+      ctx.fillStyle = color;
       ctx.fill();
-      ctx.stroke();
+      // ctx.stroke();
     });
   }
 
   drawDimensions() {
-
     // Get previously active dimension.
     const activeDimension = this.getSelectedDimension();
 
@@ -232,12 +243,12 @@ class ColorWheelControl extends Rete.Control {
 
     // Add a div for each dimension.
     this.dimensionAngles.forEach((angle, i) => {
-      const div          = document.createElement("div");
-      div.className      = "dimension-label";
-      div.textContent    = i;
-      div.style.fontSize = `${this.dimensionWeights[i]*3 + 15}px`;
+      const div         = document.createElement("div");
+      div.className     = "dimension-label";
+      div.textContent   = i;
+      div.style.opacity = Math.log10(this.dimensionWeights[i] + 3.0) * 0.5;
       div.style.transform =
-          `translate(-50%, -50%) rotate(${angle}rad) translate(170px, 0) rotate(90deg)`;
+          `translate(-50%, -50%) rotate(${angle}rad) translate(180px, 0) rotate(90deg)`;
 
       if (i === activeDimension) {
         div.classList.add("active");
@@ -258,7 +269,7 @@ class ColorWheelControl extends Rete.Control {
           const dy    = moveEvent.clientY - centerY;
           const angle = Math.atan2(dy, dx);
           div.style.transform =
-              `translate(-50%, -50%) rotate(${angle}rad) translate(170px, 0) rotate(90deg)`;
+              `translate(-50%, -50%) rotate(${angle}rad) translate(180px, 0) rotate(90deg)`;
 
           this.dimensionAngles[i] = angle;
 
