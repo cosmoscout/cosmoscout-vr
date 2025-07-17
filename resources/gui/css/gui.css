@@ -666,6 +666,14 @@ hr {
   padding: 3px 7px;
   box-shadow: none !important;
   color: var(--cs-color-text) !important;
+
+}
+
+.dropdown-toggle.flat {
+  background-color: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0;
 }
 
 .dropdown-toggle:hover {
@@ -674,6 +682,15 @@ hr {
   box-shadow: none !important;
   color: #fff !important;
 }
+
+.dropdown-toggle.flat::after {
+  display: none;
+}
+
+.dropdown-toggle.flat:hover {
+  border: none !important;
+}
+
 
 .bootstrap-select .dropdown-item:focus,
 .bootstrap-select .dropdown-toggle:focus {
