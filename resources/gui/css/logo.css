@@ -5,31 +5,31 @@ SPDX-License-Identifier: MIT
 
 #logo {
   position: absolute;
-  right: 15px;
+  right: 25px;
   bottom: 0px;
-  width: 100px;
-  height: 100px;
+  width: 200px;
+  height: 90px;
   transform-origin: 0 0;
-  opacity: 0.5;
+  opacity: 0.75;
   -webkit-perspective: 120px;
   perspective: 500px;
 }
 
 #logo-image {
   position: absolute;
-  background-image: url("../img/dlr_logo.png");
-  width: 100px;
-  height: 83px;
+  background-image: url("../img/UHB_Logo_Web_RGB.png");
+  width: 200px;
+  height: 72px;
   animation: rotate 50s ease-in-out infinite;
   -webkit-animation: rotate 50s ease-in-out infinite;
 }
 
-#logo-text {
+/* #logo-text {
   position: absolute;
   background-image: url("../img/dlr_name.png");
   width: 100px;
   height: 83px;
-}
+} */
 
 @-webkit-keyframes rotate {
   0% {

@@ -38,8 +38,8 @@ body.loaded #loading-screen {
 }
 
 #upper {
-  font-size: 12vmin;
-  line-height: 12vmin;
+  font-size: 8vmin;
+  line-height: 8vmin;
 }
 
 #progress {
@@ -69,9 +69,9 @@ body.loaded #loading-screen {
 
 #text {
   position: absolute;
-  left: calc(50vw - 40vmin);
+  left: calc(50vw - 30vw);
   top: calc(50vh + 5vmin);
-  width: 80vmin;
+  width: 60vw;
   height: 20vmin;
   text-align: center;
 }
