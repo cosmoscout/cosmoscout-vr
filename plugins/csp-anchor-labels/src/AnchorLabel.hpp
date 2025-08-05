@@ -46,7 +46,7 @@ class AnchorLabel {
   AnchorLabel(AnchorLabel&& other)      = delete;
 
   AnchorLabel& operator=(AnchorLabel const& other) = delete;
-  AnchorLabel& operator=(AnchorLabel&& other) = delete;
+  AnchorLabel& operator=(AnchorLabel&& other)      = delete;
 
   void update();
 

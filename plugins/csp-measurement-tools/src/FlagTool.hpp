@@ -36,7 +36,7 @@ class FlagTool : public csl::tools::Mark {
   FlagTool(FlagTool&& other)      = delete;
 
   FlagTool& operator=(FlagTool const& other) = delete;
-  FlagTool& operator=(FlagTool&& other) = delete;
+  FlagTool& operator=(FlagTool&& other)      = delete;
 
   ~FlagTool() override;
 

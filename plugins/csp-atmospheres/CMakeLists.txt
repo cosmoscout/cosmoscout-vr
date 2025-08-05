@@ -11,6 +11,11 @@ if (NOT CSP_ATMOSPHERES)
   return()
 endif()
 
+# build the preprocessors --------------------------------------------------------------------------
+
+add_subdirectory(scattering-table-generator)
+add_subdirectory(bruneton-preprocessor)
+
 # build plugin -------------------------------------------------------------------------------------
 
 file(GLOB SOURCE_FILES src/*.cpp src/*/*.cpp src/*/*/*.cpp src/*/*/*/*.cpp)
@@ -43,7 +48,8 @@ source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}" FILES
 
 # install plugin -----------------------------------------------------------------------------------
 
-install(TARGETS   csp-atmospheres  DESTINATION "share/plugins")
-install(DIRECTORY "textures"       DESTINATION "share/resources")
-install(DIRECTORY "shaders"        DESTINATION "share/resources")
-install(DIRECTORY "gui"            DESTINATION "share/resources")
+install(TARGETS   csp-atmospheres                   DESTINATION "share/plugins")
+install(DIRECTORY "textures"                        DESTINATION "share/resources")
+install(DIRECTORY "shaders"                         DESTINATION "share/resources")
+install(DIRECTORY "gui"                             DESTINATION "share/resources")
+install(DIRECTORY "bruneton-preprocessor/output/" DESTINATION "share/resources/atmosphere-data")

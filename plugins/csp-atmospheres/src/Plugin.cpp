@@ -59,7 +59,8 @@ void to_json(nlohmann::json& j, Plugin::Settings::Atmosphere::Model o) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void from_json(nlohmann::json const& j, Plugin::Settings::Atmosphere& o) {
-  cs::core::Settings::deserialize(j, "height", o.mHeight);
+  cs::core::Settings::deserialize(j, "topAltitude", o.mTopAltitude);
+  cs::core::Settings::deserialize(j, "bottomAltitude", o.mBottomAltitude);
   cs::core::Settings::deserialize(j, "model", o.mModel);
   cs::core::Settings::deserialize(j, "modelSettings", o.mModelSettings);
   cs::core::Settings::deserialize(j, "enableWater", o.mEnableWater);
@@ -68,10 +69,14 @@ void from_json(nlohmann::json const& j, Plugin::Settings::Atmosphere& o) {
   cs::core::Settings::deserialize(j, "enableClouds", o.mEnableClouds);
   cs::core::Settings::deserialize(j, "cloudTexture", o.mCloudTexture);
   cs::core::Settings::deserialize(j, "cloudAltitude", o.mCloudAltitude);
+  cs::core::Settings::deserialize(j, "enableLimbLuminance", o.mEnableLimbLuminance);
+  cs::core::Settings::deserialize(j, "limbLuminanceTexture", o.mLimbLuminanceTexture);
+  cs::core::Settings::deserialize(j, "renderSkydome", o.mRenderSkydome);
 }
 
 void to_json(nlohmann::json& j, Plugin::Settings::Atmosphere const& o) {
-  cs::core::Settings::serialize(j, "height", o.mHeight);
+  cs::core::Settings::serialize(j, "topAltitude", o.mTopAltitude);
+  cs::core::Settings::serialize(j, "bottomAltitude", o.mBottomAltitude);
   cs::core::Settings::serialize(j, "model", o.mModel);
   cs::core::Settings::serialize(j, "modelSettings", o.mModelSettings);
   cs::core::Settings::serialize(j, "enableWater", o.mEnableWater);
@@ -80,6 +85,9 @@ void to_json(nlohmann::json& j, Plugin::Settings::Atmosphere const& o) {
   cs::core::Settings::serialize(j, "enableClouds", o.mEnableClouds);
   cs::core::Settings::serialize(j, "cloudTexture", o.mCloudTexture);
   cs::core::Settings::serialize(j, "cloudAltitude", o.mCloudAltitude);
+  cs::core::Settings::serialize(j, "enableLimbLuminance", o.mEnableLimbLuminance);
+  cs::core::Settings::serialize(j, "limbLuminanceTexture", o.mLimbLuminanceTexture);
+  cs::core::Settings::serialize(j, "renderSkydome", o.mRenderSkydome);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -175,6 +183,15 @@ void Plugin::init() {
         }
       }));
 
+  mGuiManager->getGui()->registerCallback("atmosphere.setEnableLimbLuminance",
+      "Enables or disables rendering of a precomputed luminance when inside the shadow.",
+      std::function([this](bool enable) {
+        for (auto& settings : mPluginSettings->mAtmospheres) {
+          settings.second.mEnableLimbLuminance = enable;
+          mAtmospheres.at(settings.first)->configure(settings.second);
+        }
+      }));
+
   mGuiManager->getGui()->registerCallback("atmosphere.setEnable",
       "Enables or disables rendering of atmospheres.",
       std::function([this](bool enable) { mPluginSettings->mEnable = enable; }));
@@ -199,9 +216,11 @@ void Plugin::deInit() {
 
   mGuiManager->getGui()->unregisterCallback("atmosphere.setEnable");
   mGuiManager->getGui()->unregisterCallback("atmosphere.setEnableWater");
+  mGuiManager->getGui()->unregisterCallback("atmosphere.setEnableWaves");
   mGuiManager->getGui()->unregisterCallback("atmosphere.setWaterLevel");
   mGuiManager->getGui()->unregisterCallback("atmosphere.setEnableClouds");
   mGuiManager->getGui()->unregisterCallback("atmosphere.setCloudAltitude");
+  mGuiManager->getGui()->unregisterCallback("atmosphere.setEnableLimbLuminance");
 
   mSolarSystem->pActiveObject.disconnect(mActiveObjectConnection);
   mAllSettings->onLoad().disconnect(mOnLoadConnection);

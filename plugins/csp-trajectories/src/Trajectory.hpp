@@ -38,7 +38,7 @@ class Trajectory : public IVistaOpenGLDraw {
   Trajectory(Trajectory&& other)      = delete;
 
   Trajectory& operator=(Trajectory const& other) = delete;
-  Trajectory& operator=(Trajectory&& other) = delete;
+  Trajectory& operator=(Trajectory&& other)      = delete;
 
   ~Trajectory() override;
 

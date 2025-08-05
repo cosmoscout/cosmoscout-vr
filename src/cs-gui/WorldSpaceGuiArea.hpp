@@ -32,7 +32,7 @@ class CS_GUI_EXPORT WorldSpaceGuiArea : public GuiArea, public IVistaOpenGLDraw 
   WorldSpaceGuiArea(WorldSpaceGuiArea&& other)      = delete;
 
   WorldSpaceGuiArea& operator=(WorldSpaceGuiArea const& other) = delete;
-  WorldSpaceGuiArea& operator=(WorldSpaceGuiArea&& other) = delete;
+  WorldSpaceGuiArea& operator=(WorldSpaceGuiArea&& other)      = delete;
 
   ~WorldSpaceGuiArea() override = default;
 

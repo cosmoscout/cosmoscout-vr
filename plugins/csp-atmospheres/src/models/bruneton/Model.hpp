@@ -10,33 +10,28 @@
 
 #include "../../../../src/cs-core/Settings.hpp"
 #include "../../ModelBase.hpp"
-#include "internal/Model.hpp"
 
 namespace csp::atmospheres::models::bruneton {
 
-/// This atmospheric model uses an implementation of multi-scattering by Eric Bruneton. More
-/// information can be found in the repo
-/// https://github.com/ebruneton/precomputed_atmospheric_scattering as well as in the paper
+/// This atmospheric model is based on an implementation of multiple-scattering by Eric Bruneton.
+/// The main difference to the original implementation is that this variant uses phase functions,
+/// extinction coefficients, and density distributions loaded from CSV files instead of analytic
+/// descriptions.
+/// Besides, we refactored out the precomputation step into a separate executable, which is
+/// responsible for generating the textures needed for rendering. This way, we can increase the
+/// fidelity of the preprocessing step without affecting the startup time of the application.
+/// More information on the original implementation can be found in the repo by Eric Bruneton:
+/// https://github.com/ebruneton/precomputed_atmospheric_scattering as well as in his paper
 /// "Precomputed Atmospheric Scattering" (https://hal.inria.fr/inria-00288758/en).
 class Model : public ModelBase {
  public:
-  /// Some of the model parameters can be configured via the settings. An example parametrization is
-  /// given in README.md, more details can be found in the paper "Precomputed Atmospheric
-  /// Scattering" by Eric Bruneton. The default values below are used if parsing the settings
-  /// failed.
+  /// The settings of this model are extremely simple. They only contain the path to the directory
+  /// where the precomputed textures are stored.
   struct Settings {
-    double mSunAngularRadius          = 0.004675;
-    double mRayleigh                  = 1.24062e-6;
-    double mRayleighScaleHeight       = 8000.0; ///< In meters.
-    double mMieScaleHeight            = 1200.0; ///< In meters.
-    double mMieAngstromAlpha          = 0.0;
-    double mMieAngstromBeta           = 5.328e-3;
-    double mMieSingleScatteringAlbedo = 0.9;
-    double mMiePhaseFunctionG         = 0.8;
-
-    cs::utils::DefaultProperty<double> mGroundAlbedo{0.1};
-    cs::utils::DefaultProperty<bool>   mUseOzone{false};
+    std::string mDataDirectory;
   };
+
+  virtual ~Model();
 
   /// Whenever the model parameters are changed, this method needs to be called. It will return true
   /// if the shader needed to be recompiled. If that's the case, you can retrieve the new shader
@@ -44,15 +39,35 @@ class Model : public ModelBase {
   bool init(
       nlohmann::json const& modelSettings, double planetRadius, double atmosphereRadius) override;
 
-  /// Returns a fragment shader which you can link to your shader program. See the ModelBase class
-  /// for more details. You have to call init() for accessing the shader.
+  /// Returns a fragment shader which you can link into your shader program. See the ModelBase class
+  /// for more details. You have to call init() befor accessing the shader.
   GLuint getShader() const override;
 
-  /// This model sets three texture uniforms. So it will return startTextureUnit + 3.
+  /// This model sets five texture uniforms. So it will return startTextureUnit + 5.
   GLuint setUniforms(GLuint program, GLuint startTextureUnit) const override;
 
  private:
-  std::unique_ptr<internal::Model> mModel;
+  int32_t mTransmittanceTextureWidth{};
+  int32_t mTransmittanceTextureHeight{};
+  int32_t mIrradianceTextureWidth{};
+  int32_t mIrradianceTextureHeight{};
+  int32_t mScatteringTextureRSize{};
+  int32_t mScatteringTextureMuSize{};
+  int32_t mScatteringTextureMuSSize{};
+  int32_t mScatteringTextureNuSize{};
+
+  // To optimize resource usage, this texture stores single molecule-scattering plus all
+  // multiple-scattering contributions. The single aerosols scattering is stored in an extra
+  // texture.
+  GLuint mMultipleScatteringTexture       = 0;
+  GLuint mSingleAerosolsScatteringTexture = 0;
+
+  GLuint mPhaseTexture          = 0;
+  GLuint mTransmittanceTexture  = 0;
+  GLuint mThetaDeviationTexture = 0;
+  GLuint mIrradianceTexture     = 0;
+
+  GLuint mAtmosphereShader = 0;
 };
 
 } // namespace csp::atmospheres::models::bruneton

@@ -8,7 +8,7 @@
 #ifndef CSP_LOD_BODIES_LODVISITOR_HPP
 #define CSP_LOD_BODIES_LODVISITOR_HPP
 
-#include "Frustum.hpp"
+#include "../../../../src/cs-utils/Frustum.hpp"
 #include "TileId.hpp"
 #include "TileVisitor.hpp"
 
@@ -54,10 +54,10 @@ class LODVisitor : public TileVisitor {
  private:
   /// Struct storing camera information.
   struct CameraData {
-    Frustum        mFrustumES; // frustum in eye space
-    Frustum        mFrustumMS; // frustum in model space
-    glm::f64mat3x3 mMatN;
-    glm::dvec3     mCamPos;
+    cs::utils::Frustum mFrustumES; // frustum in eye space
+    cs::utils::Frustum mFrustumMS; // frustum in model space
+    glm::f64mat3x3     mMatN;
+    glm::dvec3         mCamPos;
   };
 
   bool preTraverse() override;

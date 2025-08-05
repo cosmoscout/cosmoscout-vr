@@ -147,7 +147,7 @@ std::vector<std::shared_ptr<graphics::EclipseShadowMap>> SolarSystem::getEclipse
       auto pRec = receiver.getObserverRelativePosition() * mObserver.getScale();
       auto pOcc = occluder->getObserverRelativePosition() * mObserver.getScale();
 
-      // Convert to receiver-centric.
+      // Convert to occluder-centric coordinates.
       pSun = pSun - pOcc;
       pRec = pRec - pOcc;
 
@@ -164,30 +164,33 @@ std::vector<std::shared_ptr<graphics::EclipseShadowMap>> SolarSystem::getEclipse
         continue;
       }
 
+      // Get the radii of all involved objects.
       double rOcc = occluder->getRadii()[0];
       double rRec = receiver.getRadii()[0];
       double rSun = mSun->getRadii()[0];
 
-      // Compute distances to the tips of the umbra and penumbra cones.
-      double dUmbra    = dSun * rOcc / (rSun - rOcc);
-      double dPenumbra = dSun * rOcc / (rSun + rOcc);
+      // Compute distances to the tips of the penumbra cone.
+      double distToApex = dSun * rOcc / (rSun + rOcc);
 
-      // Compute slopes of the penumbra cone.
-      double mPenumbra = rOcc / std::sqrt(dPenumbra * dUmbra - rOcc * rOcc);
+      // Directions from the penumbra cone tip to the occluder and the receiver.
+      auto toOccluder = -pSun * distToApex / dSun;
+      auto toReceiver = pRec + toOccluder;
 
-      // Project the vector from the occluder to the receiver onto the sun-occluder axis.
-      auto toOcc        = -pRec;
-      auto sunToOccNorm = -pSun / dSun;
-      auto toOccProj    = glm::dot(toOcc, sunToOccNorm) * sunToOccNorm;
+      // Distance from the penumbra cone tip to the receiver.
+      double distToReceiver = glm::length(toReceiver);
 
-      // Get position in shadow space.
-      double posX = glm::length(toOccProj);
-      double posY = glm::length(toOcc - toOccProj);
+      // Apparent angular sizes of the occluder and the receiver when seen from the penumbra cone
+      // tip.
+      double aOcc = std::asin(rOcc / distToApex);
+      double aRec = std::asin(rRec / distToReceiver);
 
-      // Distances of the penumbra and umbra cones from the sun-occluder axis at posX.
-      double penumbra = mPenumbra * (posX + dPenumbra);
+      // Angle between the directions to the occluder and the receiver.
+      double delta =
+          2.0 * std::asin(0.5 * glm::length(toReceiver / distToReceiver - toOccluder / distToApex));
 
-      if (posY < penumbra + rRec) {
+      // If the sum of the apparent angular sizes is larger than the angle between the directions to
+      // the occluder and the receiver, the receiver is in the penumbra cone.
+      if (aOcc + aRec > delta) {
         result.push_back(shadowMap);
       }
     }

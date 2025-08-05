@@ -51,7 +51,7 @@ class VistaPlanet : public cs::graphics::ShadowCaster {
   VistaPlanet(VistaPlanet&& other)      = delete;
 
   VistaPlanet& operator=(VistaPlanet const& other) = delete;
-  VistaPlanet& operator=(VistaPlanet&& other) = delete;
+  VistaPlanet& operator=(VistaPlanet&& other)      = delete;
 
   ~VistaPlanet();
 

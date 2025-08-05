@@ -11,6 +11,8 @@
 #include "../../csl-tools/src/MultiPointTool.hpp"
 
 #include <VistaKernel/GraphicsManager/VistaOpenGLDraw.h>
+#include <VistaOGLExt/VistaBufferObject.h>
+#include <VistaOGLExt/VistaVertexArrayObject.h>
 
 #include <glm/glm.hpp>
 #include <vector>
@@ -42,7 +44,7 @@ class PathTool : public IVistaOpenGLDraw, public csl::tools::MultiPointTool {
   PathTool(PathTool&& other)      = delete;
 
   PathTool& operator=(PathTool const& other) = delete;
-  PathTool& operator=(PathTool&& other) = delete;
+  PathTool& operator=(PathTool&& other)      = delete;
 
   ~PathTool() override;
 

@@ -37,7 +37,7 @@ class WebViewClient : public CefClient {
   WebViewClient(WebViewClient&& other)      = delete;
 
   WebViewClient& operator=(WebViewClient const& other) = delete;
-  WebViewClient& operator=(WebViewClient&& other) = delete;
+  WebViewClient& operator=(WebViewClient&& other)      = delete;
 
   /// Registers callback functions for Javascript. Registering the same name twice will override the
   /// first callback.

@@ -28,7 +28,7 @@ class BaseTileData {
   BaseTileData(BaseTileData&& other)      = default;
 
   BaseTileData& operator=(BaseTileData const& other) = delete;
-  BaseTileData& operator=(BaseTileData&& other) = default;
+  BaseTileData& operator=(BaseTileData&& other)      = default;
 
   /// Returns the enum value for the data type stored in this tile.
   virtual TileDataType getDataType() const = 0;

@@ -45,7 +45,7 @@ class TreeManager {
   TreeManager(TreeManager&& other)      = delete;
 
   TreeManager& operator=(TreeManager const& other) = delete;
-  TreeManager& operator=(TreeManager&& other) = delete;
+  TreeManager& operator=(TreeManager&& other)      = delete;
 
   virtual ~TreeManager() = default;
 

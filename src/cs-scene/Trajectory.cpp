@@ -138,6 +138,8 @@ bool Trajectory::Do() {
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glEnable(GL_LINE_SMOOTH);
     glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
+    glDepthMask(GL_FALSE);
+    glLineWidth(mWidth);
 
     mVAO->Bind();
     mShader->Bind();
@@ -154,15 +156,7 @@ bool Trajectory::Do() {
     glUniformMatrix4fv(mUniforms.modelViewMatrix, 1, GL_FALSE, glMatMV.data());
     glUniformMatrix4fv(mUniforms.projectionMatrix, 1, GL_FALSE, glMatP.data());
 
-    glLineWidth(mWidth);
-
-    uint32_t amountNoDepth = mPointCount / 2;
-
-    glDepthMask(GL_FALSE);
-    glDrawArrays(GL_LINE_STRIP, 0, amountNoDepth + 1);
-    glDepthMask(GL_TRUE);
-
-    glDrawArrays(GL_LINE_STRIP, amountNoDepth, mPointCount - amountNoDepth);
+    glDrawArrays(GL_LINE_STRIP, 0, mPointCount);
 
     mShader->Release();
     mVAO->Release();

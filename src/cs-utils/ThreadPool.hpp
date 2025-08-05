@@ -32,7 +32,7 @@ class CS_UTILS_EXPORT ThreadPool {
   ThreadPool(ThreadPool&& other)      = delete;
 
   ThreadPool& operator=(ThreadPool const& other) = delete;
-  ThreadPool& operator=(ThreadPool&& other) = delete;
+  ThreadPool& operator=(ThreadPool&& other)      = delete;
 
   virtual ~ThreadPool();
 

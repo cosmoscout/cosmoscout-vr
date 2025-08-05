@@ -59,3 +59,6 @@
 [submodule "externals/openvr"]
 	path = externals/openvr
 	url = https://github.com/ValveSoftware/openvr.git
+[submodule "plugins/csp-atmospheres/bruneton-preprocessor/output"]
+	path = plugins/csp-atmospheres/bruneton-preprocessor/output
+	url = https://github.com/cosmoscout/atmosphere-data.git

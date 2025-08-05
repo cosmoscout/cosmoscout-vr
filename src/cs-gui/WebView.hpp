@@ -37,7 +37,7 @@ class CS_GUI_EXPORT WebView {
   WebView(WebView&& other)      = delete;
 
   WebView& operator=(WebView const& other) = delete;
-  WebView& operator=(WebView&& other) = delete;
+  WebView& operator=(WebView&& other)      = delete;
 
   virtual ~WebView();
 

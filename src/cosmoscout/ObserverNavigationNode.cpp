@@ -9,8 +9,10 @@
 
 #include "../cs-core/SolarSystem.hpp"
 #include "../cs-gui/GuiItem.hpp"
+#include "../cs-utils/convert.hpp"
 
 #include <VistaAspects/VistaPropertyAwareable.h>
+#include <glm/gtx/io.hpp>
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -23,6 +25,7 @@ ObserverNavigationNode::ObserverNavigationNode(
     , mOffset(nullptr)
     , mPreventNavigationWhenHoveredGui(
           oParams.GetValueOrDefault<bool>("prevent_navigation_when_hovered_gui", true))
+    , mFixedHorizon(oParams.GetValueOrDefault<bool>("fixed_horizon", false))
     , mMaxAngularSpeed(oParams.GetValueOrDefault<double>("max_angular_speed", glm::pi<double>()))
     , mMaxLinearSpeed(oParams.GetValueOrDefault<VistaVector3D>(
           "max_linear_speed", VistaVector3D(1.0, 1.0, 1.0)))
@@ -147,18 +150,40 @@ bool ObserverNavigationNode::DoEvalNode() {
   vTranslation *= dDeltaTime;
   vTranslation += vOffset;
 
-  auto& oObs = mSolarSystem->getObserver();
-  oObs.setPosition(oObs.getPosition() + oObs.getRotation() * vTranslation * oObs.getScale());
+  auto& oObs        = mSolarSystem->getObserver();
+  auto  newPosition = oObs.getPosition() + oObs.getRotation() * vTranslation * oObs.getScale();
+  oObs.setPosition(newPosition);
 
   auto       qRotation     = mAngularDirection;
   glm::dvec3 vRotationAxis = glm::axis(qRotation);
   double     dRotationAngle =
       glm::angle(qRotation) * dDeltaTime * mMaxAngularSpeed * mAngularSpeed.get(dTtime);
 
-  if (dRotationAngle != 0.0) {
-    oObs.setRotation(
-        glm::normalize(oObs.getRotation() * glm::angleAxis(dRotationAngle, vRotationAxis)));
+  auto newRotation =
+      glm::normalize(oObs.getRotation() * glm::angleAxis(dRotationAngle, vRotationAxis));
+
+  // If mFixedHorizon is set, we rotate the observer so that the horizon of the active object is
+  // always leveled. For now, this breaks if we are in outer space or looking straight up or down.
+  // But it can be very useful in cases were we know that the user is always close to a planet.
+  if (mFixedHorizon && mSolarSystem->pActiveObject.get()) {
+    auto radii      = mSolarSystem->pActiveObject.get()->getRadii();
+    auto surfacePos = cs::utils::convert::scaleToGeodeticSurface(newPosition, radii);
+    auto distance   = newPosition - surfacePos;
+
+    glm::dvec3 normal = glm::normalize(distance);
+
+    glm::dvec3 z = (newRotation * glm::dvec4(0, 0, 1, 0)).xyz();
+    glm::dvec3 x = -glm::cross(z, normal);
+    glm::dvec3 y = -glm::cross(x, z);
+
+    x = glm::normalize(x);
+    y = glm::normalize(y);
+    z = glm::normalize(z);
+
+    newRotation = glm::toQuat(glm::dmat3(x, y, z));
   }
+
+  oObs.setRotation(newRotation);
 
   return true;
 }

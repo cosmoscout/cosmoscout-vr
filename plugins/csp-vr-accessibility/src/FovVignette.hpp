@@ -41,7 +41,7 @@ class FovVignette : public IVistaOpenGLDraw {
   FovVignette(FovVignette&& other)      = default;
 
   FovVignette& operator=(FovVignette const& other) = delete;
-  FovVignette& operator=(FovVignette&& other) = delete;
+  FovVignette& operator=(FovVignette&& other)      = delete;
 
   ~FovVignette();
 

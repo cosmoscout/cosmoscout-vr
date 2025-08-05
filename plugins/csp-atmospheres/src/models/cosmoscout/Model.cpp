@@ -53,7 +53,7 @@ bool Model::init(
   mShader.Destroy();
 
   auto sFrag = cs::utils::filesystem::loadToString(
-      "../share/resources/shaders/csp-atmospheres/models/cosmoscout/model.glsl");
+      "../share/resources/shaders/atmospheres-models/cosmoscout/model.glsl");
 
   cs::utils::replaceString(sFrag, "ATMO_RADIUS", cs::utils::toString(atmosphereRadius));
   cs::utils::replaceString(sFrag, "PLANET_RADIUS", cs::utils::toString(planetRadius));

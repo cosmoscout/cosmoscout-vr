@@ -13,6 +13,7 @@
 #include <VistaKernel/VistaSystem.h>
 
 #include <array>
+#include <functional>
 #include <iostream>
 #include <memory>
 
@@ -120,9 +121,10 @@ std::vector<std::string> splitString(std::string const& s, char delim) {
 #endif
 
 std::string exec(std::string const& cmd) {
-  std::array<char, 128>                      buffer{};
-  std::string                                result;
-  std::unique_ptr<FILE, decltype(&CS_CLOSE)> pipe(CS_POPEN(cmd.c_str(), "r"), CS_CLOSE);
+  std::array<char, 128>                            buffer{};
+  std::string                                      result;
+  std::unique_ptr<FILE, std::function<int(FILE*)>> pipe(CS_POPEN(cmd.c_str(), "r"), CS_CLOSE);
+
   if (!pipe) {
     throw std::runtime_error("popen() failed!");
   }

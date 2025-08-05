@@ -91,9 +91,9 @@ void Plugin::init() {
 
           if (ext == ".tab") {
             std::string sName = file.substr(0, file.length() - 5);
-            auto        sharad =
-                std::make_shared<Sharad>(mAllSettings, mSolarSystem, mPluginSettings.mAnchor,
-                    filePath + sName + "_tiff.tif", filePath + sName + "_geom.tab");
+            auto sharad = std::make_shared<Sharad>(mAllSettings, mGraphicsEngine, mSolarSystem,
+                mPluginSettings.mAnchor, filePath + sName + "_tiff.tif",
+                filePath + sName + "_geom.tab");
 
             auto* sharadNode = mSceneGraph->NewOpenGLNode(mSceneGraph->GetRoot(), sharad.get());
             VistaOpenSGMaterialTools::SetSortKeyOnSubtree(

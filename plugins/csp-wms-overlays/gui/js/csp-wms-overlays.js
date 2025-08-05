@@ -26,10 +26,10 @@
 
       this._defaultBoundsLabel = document.getElementById("wmsOverlays-defaultBounds");
       this._defaultBoundsGoTo  = document.querySelector(
-          '[onclick="CosmoScout.callbacks.wmsOverlays.goToDefaultBounds()"]');
+           '[onclick="CosmoScout.callbacks.wmsOverlays.goToDefaultBounds()"]');
       this._currentBoundsLabel = document.getElementById("wmsOverlays-currentBounds");
       this._currentBoundsGoTo  = document.querySelector(
-          '[onclick="CosmoScout.callbacks.wmsOverlays.goToCurrentBounds()"]');
+           '[onclick="CosmoScout.callbacks.wmsOverlays.goToCurrentBounds()"]');
       this._currentBoundsUpdate =
           document.querySelector('[onclick="CosmoScout.callbacks.wmsOverlays.updateBounds()"]');
       this._currentBoundsReset =

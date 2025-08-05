@@ -87,7 +87,7 @@ class CS_UTILS_EXPORT FrameStats {
     ScopedTimer(ScopedTimer&& other)      = delete;
 
     ScopedTimer& operator=(ScopedTimer const& other) = delete;
-    ScopedTimer& operator=(ScopedTimer&& other) = delete;
+    ScopedTimer& operator=(ScopedTimer&& other)      = delete;
 
     ~ScopedTimer();
 
@@ -106,7 +106,7 @@ class CS_UTILS_EXPORT FrameStats {
     ScopedSamplesCounter(ScopedSamplesCounter&& other)      = delete;
 
     ScopedSamplesCounter& operator=(ScopedSamplesCounter const& other) = delete;
-    ScopedSamplesCounter& operator=(ScopedSamplesCounter&& other) = delete;
+    ScopedSamplesCounter& operator=(ScopedSamplesCounter&& other)      = delete;
 
     ~ScopedSamplesCounter();
 
@@ -125,7 +125,7 @@ class CS_UTILS_EXPORT FrameStats {
     ScopedPrimitivesCounter(ScopedPrimitivesCounter&& other)      = delete;
 
     ScopedPrimitivesCounter& operator=(ScopedPrimitivesCounter const& other) = delete;
-    ScopedPrimitivesCounter& operator=(ScopedPrimitivesCounter&& other) = delete;
+    ScopedPrimitivesCounter& operator=(ScopedPrimitivesCounter&& other)      = delete;
 
     ~ScopedPrimitivesCounter();
 
@@ -148,7 +148,7 @@ class CS_UTILS_EXPORT FrameStats {
   FrameStats(FrameStats&& other)      = delete;
 
   FrameStats& operator=(FrameStats const& other) = delete;
-  FrameStats& operator=(FrameStats&& other) = delete;
+  FrameStats& operator=(FrameStats&& other)      = delete;
 
   ~FrameStats() = default;
 
@@ -206,10 +206,10 @@ class CS_UTILS_EXPORT QueryPool {
   QueryPool(std::size_t queryAllocationBucketSize);
 
   /// Do not try to copy this class!
-  QueryPool(QueryPool const&) = delete;
+  QueryPool(QueryPool const&)      = delete;
   void operator=(QueryPool const&) = delete;
 
-  QueryPool(QueryPool&&) = delete;
+  QueryPool(QueryPool&&)      = delete;
   void operator=(QueryPool&&) = delete;
 
   ~QueryPool();

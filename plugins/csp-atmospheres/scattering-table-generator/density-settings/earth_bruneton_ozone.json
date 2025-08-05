@@ -1,0 +1,10 @@
+{
+    "densityModes": [
+        {
+            "type": "tent",
+            "peakAltitude": 25000,
+            "width": 15000,
+            "relativeNumberDensity": 1
+        }
+    ]
+}
