@@ -334,7 +334,7 @@ float getSurfaceDistance(vec3 rayOrigin, vec3 rayDir) {
   // We compute the observer-centric distance to the current pixel. uMatScale is required to apply
   // the non-uniform scale of the ellipsoidal atmosphere to the reconstructed position.
   vec4 fragDir = uMatInvP * vec4(2.0 * vsIn.texcoords - 1, 2 * depth - 1, 1);
-  fragDir      /= fragDir.w;
+  fragDir /= fragDir.w;
   fragDir       = uMatScale * fragDir;
   float depthMS = length(fragDir.xyz);
 

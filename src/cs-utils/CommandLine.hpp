@@ -10,6 +10,7 @@
 
 #include "cs_utils_export.hpp"
 
+#include <cstdint>
 #include <iostream>
 #include <string>
 #include <variant>

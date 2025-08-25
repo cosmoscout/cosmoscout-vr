@@ -42,9 +42,13 @@ class CS_GUI_EXPORT WorldSpaceGuiArea : public GuiArea, public IVistaOpenGLDraw 
   int getWidth() const override;
   int getHeight() const override;
 
-  /// If true, the elements won't be occluded by world objects.
+  /// If true, the elements won't be occluded by world objects. Default is false.
   void setIgnoreDepth(bool ignore);
   bool getIgnoreDepth() const;
+
+  /// If true, the back faces will be invisible. Default is true.
+  void setEnableBackfaceCulling(bool enable);
+  bool getEnableBackfaceCulling() const;
 
   /// Calculates the position of the mouse in pixels. vRayOrigin and vRayEnd should be in
   /// gui-plane-coordinates. The gui plane is the xy-plane with the normal pointing in positive
@@ -59,10 +63,11 @@ class CS_GUI_EXPORT WorldSpaceGuiArea : public GuiArea, public IVistaOpenGLDraw 
 
  private:
   VistaGLSLShader mShader;
-  bool            mShaderDirty = true;
-  bool            mIgnoreDepth = false;
-  int             mWidth       = 0;
-  int             mHeight      = 0;
+  bool            mShaderDirty     = true;
+  bool            mIgnoreDepth     = false;
+  bool            mBackfaceCulling = true;
+  int             mWidth           = 0;
+  int             mHeight          = 0;
 
   struct {
     uint32_t projectionMatrix = 0;

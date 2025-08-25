@@ -34,9 +34,7 @@ void to_json(nlohmann::json& j, Model::Settings const& o) {
   cs::core::Settings::serialize(j, "dataDirectory", o.mDataDirectory);
 }
 
-constexpr bool      HALF_PRECISION    = false;
-constexpr bool      COMBINED_TEXTURES = true;
-constexpr Luminance LUMINANCE_MODE    = Luminance::PRECOMPUTED;
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
 Model::~Model() {
   glDeleteTextures(1, &mPhaseTexture);

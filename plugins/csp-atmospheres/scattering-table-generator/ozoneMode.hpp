@@ -5,19 +5,16 @@
 // SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
 // SPDX-License-Identifier: MIT
 
-#include "logger.hpp"
+#ifndef OZONE_MODE_HPP
+#define OZONE_MODE_HPP
 
-#include "../../../src/cs-utils/logger.hpp"
-
-namespace csp::wcsoverlays {
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-spdlog::logger& logger() {
-  static auto logger = cs::utils::createLogger("csp-wcs-overlays");
-  return *logger;
-}
+#include <string>
+#include <vector>
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
+// This method writes ozone absorption coefficients in the same format as the mie mode.           //
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
-} // namespace csp::wcsoverlays
+int ozoneMode(std::vector<std::string> const& arguments);
+
+#endif // OZONE_MODE_HPP
