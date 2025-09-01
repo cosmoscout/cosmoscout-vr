@@ -41,6 +41,7 @@ target_link_libraries(csp-visual-query
     cs-core
     csl-node-editor
     csl-ogc
+    csl-tools
 )
 
 # Add this Plugin to a "plugins" folder in your IDE.

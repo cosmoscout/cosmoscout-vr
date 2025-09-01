@@ -38,7 +38,7 @@ std::string const& DifferenceImage2D::getName() const {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-std::pair<PointsType, glm::dvec2> getDifference(PointsType const& first, PointsType const& second) {
+std::pair<ValueVector, glm::dvec2> getDifference(ValueVector const& first, ValueVector const& second) {
   T const& v1 = std::get<T>(first);
   T const& v2 = std::get<T>(second);
   // Init Result
@@ -90,7 +90,7 @@ void DifferenceImage2D::process() {
   }
   if (first->mPoints.index() != second->mPoints.index()) {
     message["status"] = "ERROR";
-    message["error"].push_back("PointsTypeMismatch");
+    message["error"].push_back("ValueVectorMismatch");
   }
   sendMessageToJS(message);
   if (message["status"] == "ERROR") {
@@ -98,41 +98,41 @@ void DifferenceImage2D::process() {
   }
 
   // Init return value
-  PointsType diffPoints;
+  ValueVector diffPoints;
   glm::dvec2 minMax;
 
   switch (first->mPoints.index()) {
-  case cs::utils::variantIndex<PointsType, U8ValueVector>(): {
+  case cs::utils::variantIndex<ValueVector, U8ValueVector>(): {
     logger().info("U8ValueVector found!");
     auto value = getDifference<U8ValueVector>(first->mPoints, second->mPoints);
     diffPoints = value.first;
     minMax     = value.second;
   } break;
-  case cs::utils::variantIndex<PointsType, U16ValueVector>(): {
+  case cs::utils::variantIndex<ValueVector, U16ValueVector>(): {
     logger().info("U16ValueVector found!");
     auto value = getDifference<U16ValueVector>(first->mPoints, second->mPoints);
     diffPoints = value.first;
     minMax     = value.second;
   } break;
-  case cs::utils::variantIndex<PointsType, U32ValueVector>(): {
+  case cs::utils::variantIndex<ValueVector, U32ValueVector>(): {
     logger().info("U16ValueVector found!");
     auto value = getDifference<U32ValueVector>(first->mPoints, second->mPoints);
     diffPoints = value.first;
     minMax     = value.second;
   } break;
-  case cs::utils::variantIndex<PointsType, I16ValueVector>(): {
+  case cs::utils::variantIndex<ValueVector, I16ValueVector>(): {
     logger().info("I16ValueVector found!");
     auto value = getDifference<I16ValueVector>(first->mPoints, second->mPoints);
     diffPoints = value.first;
     minMax     = value.second;
   } break;
-  case cs::utils::variantIndex<PointsType, I32ValueVector>(): {
+  case cs::utils::variantIndex<ValueVector, I32ValueVector>(): {
     logger().info("I32ValueVector found!");
     auto value = getDifference<I32ValueVector>(first->mPoints, second->mPoints);
     diffPoints = value.first;
     minMax     = value.second;
   } break;
-  case cs::utils::variantIndex<PointsType, F32ValueVector>(): {
+  case cs::utils::variantIndex<ValueVector, F32ValueVector>(): {
     logger().info("F32ValueVector found!");
     auto value = getDifference<F32ValueVector>(first->mPoints, second->mPoints);
     diffPoints = value.first;

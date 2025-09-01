@@ -5,8 +5,8 @@
 // SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
 // SPDX-License-Identifier: MIT
 
-#ifndef CSP_VISUAL_QUERY_WCS_IMAGE_2D_HPP
-#define CSP_VISUAL_QUERY_WCS_IMAGE_2D_HPP
+#ifndef CSP_VISUAL_QUERY_WCS_BAND_HPP
+#define CSP_VISUAL_QUERY_WCS_BAND_HPP
 
 #include "../../../../csl-node-editor/src/Node.hpp"
 #include "../../../../csl-ogc/src/wcs/WebCoverageService.hpp"
@@ -15,20 +15,15 @@
 
 namespace csp::visualquery {
 
-class WCSImage2D : public csl::nodeeditor::Node {
+class WCSBand : public csl::nodeeditor::Node {
  public:
   // static interface ------------------------------------------------------------------------------
 
-  static const std::string           sName;
-  static std::string                 sSource();
-  static std::unique_ptr<WCSImage2D> sCreate();
+  static const std::string        sName;
+  static std::string              sSource();
+  static std::unique_ptr<WCSBand> sCreate();
 
   // instance interface ----------------------------------------------------------------------------
-
-  /// New instances of this node are created by the node factory.
-
-  explicit WCSImage2D();
-  ~WCSImage2D() override;
 
   /// Each node must override this. It simply returns the static sName.
   std::string const& getName() const override;
@@ -41,25 +36,8 @@ class WCSImage2D : public csl::nodeeditor::Node {
 
   // Creates a new request object to load a texture from a server
   csl::ogc::WebCoverageTextureLoader::Request getRequest();
-
-  /// This will be called whenever the CosmoScout.sendMessageToCPP() is called by the JavaScript
-  /// client part of this node.
-  /// @param message  A JSON object as sent by the JavaScript node. In this case, it is actually
-  ///                 just the currently selected server.
-  void onMessageFromJS(nlohmann::json const& message) override;
-
-  /// This is called whenever the node needs to be serialized. It returns a JSON object containing
-  /// the currently selected server.
-  nlohmann::json getData() const override;
-
-  /// This is called whenever the node needs to be deserialized. The given JSON object should
-  /// contain a server.
-  void setData(nlohmann::json const& json) override;
-
- private:
-  // Image2D mImage;
 };
 
 } // namespace csp::visualquery
 
-#endif // CSP_VISUAL_QUERY_WCS_IMAGE_2D_HPP
+#endif // CSP_VISUAL_QUERY_WCS_BAND_HPP

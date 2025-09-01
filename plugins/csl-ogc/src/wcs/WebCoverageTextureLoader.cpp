@@ -152,7 +152,7 @@ void WebCoverageTextureLoader::saveTextureToFile(
       boost::filesystem::remove(file);
     }
 
-    auto cacheDirPath(boost::filesystem::absolute(file.branch_path()));
+    auto cacheDirPath(boost::filesystem::absolute(file.parent_path()));
     if (!(boost::filesystem::exists(file))) {
       try {
         cs::utils::filesystem::createDirectoryRecursively(
@@ -216,9 +216,15 @@ boost::filesystem::path WebCoverageTextureLoader::getCachePath(WebCoverageServic
     cacheFile << "_" << request.mTime.value();
   }
 
-  if (request.mLayerRange.has_value()) {
-    cacheFile << "_" << std::to_string(request.mLayerRange.value().first) << "_"
-              << std::to_string(request.mLayerRange.value().second);
+  // Add Layer string to cache file name
+  if (request.mBandList.has_value()) {
+    cacheFile << "_";
+    for (int layer : request.mBandList.value()) {
+      cacheFile << layer << "_";
+    }
+  } else if (request.mBandRange.has_value()) {
+    cacheFile << "_" << std::to_string(request.mBandRange.value().first) << "_"
+              << std::to_string(request.mBandRange.value().second);
   }
 
   // Add Bound string to cache file name
@@ -269,9 +275,14 @@ std::string WebCoverageTextureLoader::getRequestUrl(
   int32_t height = coverage.getSettings().mAxisResolution[1];
 
   if (request.mMaxSize > 0 && (width > request.mMaxSize || height > request.mMaxSize)) {
-    double aspect = static_cast<double>(width) / static_cast<double>(height);
-    width         = aspect > 1 ? request.mMaxSize : static_cast<int32_t>(request.mMaxSize * aspect);
-    height        = aspect > 1 ? static_cast<int32_t>(request.mMaxSize / aspect) : request.mMaxSize;
+    if (request.mKeepAspectRatio) {
+      double aspect = static_cast<double>(width) / static_cast<double>(height);
+      width  = aspect > 1 ? request.mMaxSize : static_cast<int32_t>(request.mMaxSize * aspect);
+      height = aspect > 1 ? static_cast<int32_t>(request.mMaxSize / aspect) : request.mMaxSize;
+    } else {
+      width  = std::min(width, request.mMaxSize);
+      height = std::min(height, request.mMaxSize);
+    }
 
     width  = std::max(1, width);  // Ensure width is at least 1
     height = std::max(1, height); // Ensure height is at least 1
@@ -292,9 +303,18 @@ std::string WebCoverageTextureLoader::getRequestUrl(
 
   url << "&FORMAT=" << request.mFormat.value_or("image%2Ftiff");
 
-  if (request.mLayerRange.has_value()) {
-    int minLayer = std::max(1, request.mLayerRange.value().first);
-    int maxLayer = std::min(coverage.getSettings().mNumLayers, request.mLayerRange.value().second);
+  if (request.mBandList.has_value()) {
+    url << "&RANGESUBSET=";
+    for (size_t i = 0; i < request.mBandList.value().size(); i++) {
+      url << request.mBandList.value()[i];
+      if (i < request.mBandList.value().size() - 1) {
+        url << ",";
+      }
+    }
+
+  } else if (request.mBandRange.has_value()) {
+    int minLayer = std::max(1, request.mBandRange.value().first);
+    int maxLayer = std::min(coverage.getSettings().mNumLayers, request.mBandRange.value().second);
 
     if (minLayer == maxLayer) {
       // url << "&RANGESUBSET=" << minLayer;

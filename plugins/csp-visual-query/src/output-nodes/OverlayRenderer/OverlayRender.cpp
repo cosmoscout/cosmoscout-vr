@@ -141,7 +141,6 @@ void OverlayRender::process() {
   }
 
   auto minMax = readInput<std::pair<double, double>>("minMax", std::pair(input->mMinMax.x, input->mMinMax.y));
-
   mRenderer->setData(std::make_shared<Image2D>(normalize(*input, glm::dvec2(minMax.first, minMax.second))));
   mRenderer->setMinMax(glm::vec2(0.F, 1.F));
 

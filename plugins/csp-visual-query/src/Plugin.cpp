@@ -1,4 +1,4 @@
-﻿////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////
 //                               This file is part of CosmoScout VR                               //
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -15,10 +15,14 @@
 #include "constant-nodes/Real/Real.hpp"
 #include "constant-nodes/RealVec2/RealVec2.hpp"
 #include "constant-nodes/RealVec4/RealVec4.hpp"
+#include "extract-nodes/ColorMapND/ColorMapND.hpp"
+#include "extract-nodes/Sentinel/Sentinel.hpp"
 #include "extract-nodes/TimeInterval/TimeInterval.hpp"
-#include "extract-nodes/WCSImage2D/WCSImage2D.hpp"
+#include "extract-nodes/WCSBand/WCSBand.hpp"
+#include "extract-nodes/WCSImageRGBA/WCSImageRGBA.hpp"
 #include "extract-nodes/WCSPointSample/WCSPointSample.hpp"
 #include "input-nodes/JsonVolumeFileLoader/JsonVolumeFileLoader.hpp"
+#include "input-nodes/LongLat/LongLat.hpp"
 #include "input-nodes/RandomDataSource2D/RandomDataSource2D.hpp"
 #include "input-nodes/RandomDataSource3D/RandomDataSource3D.hpp"
 #include "input-nodes/TransferFunction/TransferFunction.hpp"
@@ -26,6 +30,7 @@
 #include "operation-nodes/AddImage2D/AddImage2D.hpp"
 #include "operation-nodes/DifferenceImage2D/DifferenceImage2D.hpp"
 #include "output-nodes/CoverageInfo/CoverageInfo.hpp"
+#include "output-nodes/Graph/Graph.hpp"
 #include "output-nodes/OverlayRenderer/OverlayRender.hpp"
 #include "output-nodes/VolumeRenderer/VolumeRenderer.hpp"
 
@@ -58,6 +63,7 @@ void from_json(nlohmann::json const& j, Plugin::Settings& o) {
 void to_json(nlohmann::json& j, Plugin::Settings const& o) {
   cs::core::Settings::serialize(j, "port", o.mPort);
   cs::core::Settings::serialize(j, "graph", o.mGraph);
+  cs::core::Settings::serialize(j, "wcs", o.mWcsUrl);
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -70,7 +76,7 @@ void Plugin::init() {
   onLoad();
 
   // Restart the node editor if the port changes.
-  mPluginSettings.mPort.connectAndTouch([this](uint16_t port) { setupNodeEditor(port); });
+  mPluginSettings.mPort.connect([this](uint16_t port) { setupNodeEditor(port); });
 
   logger().info("Loading done.");
 }
@@ -104,19 +110,22 @@ void Plugin::update() {
 void Plugin::onLoad() {
   // Read settings from JSON.
   from_json(mAllSettings->mPlugins.at("csp-visual-query"), mPluginSettings);
-  // from_json(mAllSettings->mPlugins.at("csp-wcs-overlays"), mPluginSettings);
-  // If there is a graph defined in the settings, we give this to the node editor.
-  if (mPluginSettings.mGraph.has_value()) {
-    try {
-      mNodeEditor->fromJSON(mPluginSettings.mGraph.value());
-    } catch (std::exception const& e) { logger().warn("Failed to load node graph: {}", e.what()); }
-  }
 
   // load WCS
   mPluginSettings.mWebCoverages.clear();
   for (std::string const& url : mPluginSettings.mWcsUrl) {
     mPluginSettings.mWebCoverages.emplace_back(
         url, csl::ogc::WebServiceBase::CacheMode::eAlways, "wcs-cache");
+  }
+
+  setupNodeEditor(mPluginSettings.mPort.get());
+
+  // If there is a graph defined in the settings, we give this to the node editor.
+  if (mPluginSettings.mGraph.has_value()) {
+    try {
+      logger().info("Loading node graph...");
+      mNodeEditor->fromJSON(mPluginSettings.mGraph.value());
+    } catch (std::exception const& e) { logger().warn("Failed to load node graph: {}", e.what()); }
   }
 }
 
@@ -166,7 +175,11 @@ void Plugin::setupNodeEditor(uint16_t port) {
   factory.registerSocketType("LUT", "linear-gradient(90deg, rgba(255,0,0,1) 0%, rgba(255,154,0,1) 10%, rgba(208,222,33,1) 20%, rgba(79,220,74,1) 30%, rgba(63,218,216,1) 40%, rgba(47,201,226,1) 50%, rgba(28,127,238,1) 60%, rgba(95,21,242,1) 70%, rgba(186,12,248,1) 80%, rgba(251,7,217,1) 90%, rgba(255,0,0,1) 100%);");
 
   factory.registerLibrary(
+      R"HTML(<script type="text/javascript" src="third-party/js/d3.min.js"></script>)HTML");
+  factory.registerLibrary(
       R"HTML(<script type="module" src="third-party/js/transfer-function-editor.js"></script>)HTML");
+  factory.registerStyleSheet(
+      R"HTML(<link type="text/css" rel="stylesheet" href="css/csp-visual-query.css" />)HTML");
 
   // Register control types:
   factory.registerControlType(cs::utils::filesystem::loadToString(
@@ -187,7 +200,10 @@ void Plugin::setupNodeEditor(uint16_t port) {
   // Data Extraction
   factory.registerNodeType<TimeInterval>(mTimeControl);
   factory.registerNodeType<WCSPointSample>();
-  factory.registerNodeType<WCSImage2D>();
+  factory.registerNodeType<WCSBand>();
+  factory.registerNodeType<WCSImageRGBA>();
+  factory.registerNodeType<Sentinel>();
+  factory.registerNodeType<ColorMapND>();
 
   // Operations
   factory.registerNodeType<DifferenceImage2D>();
@@ -195,11 +211,13 @@ void Plugin::setupNodeEditor(uint16_t port) {
 
   // Outputs
   factory.registerNodeType<CoverageInfo>();
+  factory.registerNodeType<Graph>();
   factory.registerNodeType<OverlayRender>(mSolarSystem, mAllSettings);
   factory.registerNodeType<VolumeRenderer>(mSolarSystem, mAllSettings);
 
   // Inputs
   factory.registerNodeType<WCSCoverage>(mPluginSettings.mWebCoverages);
+  factory.registerNodeType<LongLat>(mInputManager, mSolarSystem, mAllSettings);
   factory.registerNodeType<JsonVolumeFileLoader>();
   factory.registerNodeType<RandomDataSource2D>();
   factory.registerNodeType<RandomDataSource3D>();
