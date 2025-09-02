@@ -75,8 +75,8 @@ GraphicsEngine::GraphicsEngine(std::shared_ptr<core::Settings> settings)
 
   // Tell the user what's going on.
   logger().debug("Creating GraphicsEngine.");
-  logger().info("OpenGL Vendor:  {}", glGetString(GL_VENDOR));
-  logger().info("OpenGL Version: {}", glGetString(GL_VERSION));
+  logger().info("OpenGL Vendor:  {}", reinterpret_cast<const char*>(glGetString(GL_VENDOR)));
+  logger().info("OpenGL Version: {}", reinterpret_cast<const char*>(glGetString(GL_VERSION)));
 
   auto* pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
 

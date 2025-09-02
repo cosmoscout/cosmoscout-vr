@@ -246,7 +246,7 @@ TileSourceWebMapService::TileSourceWebMapService(uint32_t resolution)
     return loadImpl<glm::u8vec4>(this, tileId);
   }
 
-  throw std::domain_error(fmt::format("Unsupported format: {}!", mFormat));
+  throw std::domain_error(fmt::format("Unsupported format: {}!", static_cast<int>(mFormat)));
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

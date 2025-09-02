@@ -355,6 +355,46 @@ class CS_CORE_EXPORT Settings {
     std::optional<std::string> mTexture;
   };
 
+  struct CS_CORE_EXPORT BRDF {
+    /// The source code of a BRDF in a similar to GLSL format
+    std::string mSource;
+
+    /// The material properties as property names and values
+    std::map<std::string, float> mProperties;
+
+    bool operator==(BRDF const& other) const {
+      return mSource == other.mSource && mProperties == other.mProperties;
+    }
+    bool operator!=(BRDF const& other) const {
+      return !((*this) == other);
+    }
+
+    /// Inject the property values in the source and call it functionName.
+    std::string assembleShaderSnippet(std::string const& functionName) const;
+  };
+
+  /// For each body, custom shading can be specified through this.
+  struct Shading {
+    /// The BRDF when HDR is enabled
+    cs::utils::DefaultProperty<BRDF> pBrdfHdr{
+        BRDF{"../share/resources/shaders/brdfs/lambert.glsl", {{"$rho", 0.5f}}}};
+
+    /// The BRDF when lighting is enabled but HDR is disabled.
+    cs::utils::DefaultProperty<BRDF> pBrdfNonHdr{
+        BRDF{"../share/resources/shaders/brdfs/lambert_scaled.glsl", {{"$rho", 1.0f}}}};
+
+    /// The average image intensity (or brightness, in range [0, 1]), normalized and in linear space
+    cs::utils::DefaultProperty<float> pAvgLinearImgIntensity{0.5f};
+
+    bool operator==(Shading const& other) const {
+      return pBrdfHdr == other.pBrdfHdr && pBrdfNonHdr == other.pBrdfNonHdr &&
+             pAvgLinearImgIntensity == other.pAvgLinearImgIntensity;
+    }
+    bool operator!=(Shading const& other) const {
+      return !((*this) == other);
+    }
+  };
+
   struct Graphics {
     /// Enables or disables vertical synchronization.
     utils::DefaultProperty<bool> pEnableVsync{true};
@@ -419,7 +459,7 @@ class CS_CORE_EXPORT Settings {
 
     /// The range from which to choose values for the auto exposure. Measured in exposure values
     /// (EV).
-    utils::DefaultProperty<glm::vec2> pAutoExposureRange{glm::vec2(-13.F, 9.F)};
+    utils::DefaultProperty<glm::vec2> pAutoExposureRange{glm::vec2(-16.F, 12.F)};
 
     /// An additional exposure control which is applied after auto exposure. Has no effect if HDR
     /// rendering is disabled. Measured in exposure values (EV).
@@ -472,7 +512,16 @@ class CS_CORE_EXPORT Settings {
 
     /// The eclipse shadow rendering mode.
     utils::DefaultProperty<EclipseShadowMode> pEclipseShadowMode{EclipseShadowMode::eFastTexture};
+
+    /// This maps anchor names to shading specifications.
+    std::optional<std::unordered_map<std::string, Shading>> mShading;
+
+    /// Default shading for all bodies
+    utils::DefaultProperty<Shading> pDefaultShading{{}};
   };
+
+  /// Returns the specified shading for body, or the default if there is none.
+  Shading const& getShadingForBody(std::string const& body) const;
 
   Graphics mGraphics;
 
