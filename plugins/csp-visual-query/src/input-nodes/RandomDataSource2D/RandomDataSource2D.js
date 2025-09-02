@@ -9,7 +9,7 @@ class RandomDataSource2DComponent extends Rete.Component {
 
   constructor() {
     super("RandomDataSource2D");
-    this.category = "Sources";
+    this.category = "Input";
   }
 
   builder(node) {
