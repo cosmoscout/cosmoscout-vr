@@ -26,6 +26,10 @@ std::vector<std::vector<T>> convertImageData(csl::ogc::GDALReader::Texture const
 
   logger().info("Texture has {} bands.", texture.mBands);
 
+  bool const ok = texture.mBands == 4;
+  if (!ok) logger().warn("Texture is not strictly compatible with WCSImageRGBA node!");
+  assert(ok); // do we want to pass through?
+
   for (uint32_t y = 0; y < texture.mHeight; y++) {
     for (uint32_t x = 0; x < texture.mWidth; x++) {
       uint32_t index = (y * texture.mWidth + x);
@@ -143,7 +147,7 @@ csl::ogc::WebCoverageTextureLoader::Request WCSImageRGBA::getRequest() {
   request.mBounds.mMaxLat = bounds[3];
 
   request.mMaxSize  = readInput<int>("resolutionIn", 1024);
-  request.mBandList = {1, 2, 3, 4};
+  request.mBandList = std::vector<int>{0, 1, 2, 3};
 
   request.mFormat = "image/tiff";
 

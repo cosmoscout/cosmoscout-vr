@@ -23,6 +23,12 @@ template <typename T>
 std::vector<std::vector<T>> convertBandData(csl::ogc::GDALReader::Texture const& texture) {
   std::vector<std::vector<T>> pointData(texture.mWidth * texture.mHeight, std::vector<T>(1));
 
+  logger().info("Texture has {} bands.", texture.mBands);
+
+  bool const ok = texture.mBands == 1;
+  if (!ok) logger().warn("Texture is not strictly compatible with WCSBand node!");
+  assert(ok); // do we want to pass through?
+
   for (uint32_t y = 0; y < texture.mHeight; y++) {
     for (uint32_t x = 0; x < texture.mWidth; x++) {
       uint32_t index      = y * texture.mWidth + x;
@@ -66,9 +72,11 @@ void WCSBand::process() {
     return;
   }
 
+  logger().info("Processing WCSBand node.");
+
   // create request for texture loading
   csl::ogc::WebCoverageTextureLoader::Request request = getRequest();
-
+  
   // load texture
   auto texLoader  = csl::ogc::WebCoverageTextureLoader();
   auto textureOpt = texLoader.loadTexture(
@@ -138,7 +146,7 @@ csl::ogc::WebCoverageTextureLoader::Request WCSBand::getRequest() {
   request.mBounds.mMaxLat = bounds[3];
 
   request.mMaxSize  = readInput<int>("resolutionIn", 1024);
-  request.mBandList = {readInput<int>("bandIn", 1)};
+  request.mBandList = std::vector<int>{readInput<int>("bandIn", 0)};
 
   request.mFormat = "image/tiff";
 

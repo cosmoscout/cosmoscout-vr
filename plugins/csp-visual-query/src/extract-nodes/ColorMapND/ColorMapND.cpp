@@ -73,6 +73,9 @@ void ColorMapND::process() {
   if (coverage == nullptr) {
     return;
   }
+
+  logger().info("Processing ColorMapND node.");
+
   // create request for texture loading
   csl::ogc::WebCoverageTextureLoader::Request request = getRequest();
 
@@ -185,12 +188,6 @@ void ColorMapND::process() {
 
     pointPositions[index] = position;
   });
-
-  for (size_t i = 0; i < pointPositions.size(); i += 1000) {
-    if (pointPositions[i].x != 0.0 || pointPositions[i].y != 0) {
-      logger().info("{} {}", pointPositions[i].x, pointPositions[i].y);
-    }
-  }
 
   // For now, we just calculate the magnitude of the vector and write this as a grayscale image.
   F32ValueVector pointData(texture.mWidth * texture.mHeight);

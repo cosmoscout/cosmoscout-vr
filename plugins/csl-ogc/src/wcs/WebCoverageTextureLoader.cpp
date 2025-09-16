@@ -304,15 +304,31 @@ std::string WebCoverageTextureLoader::getRequestUrl(
   url << "&FORMAT=" << request.mFormat.value_or("image%2Ftiff");
 
   if (request.mBandList.has_value()) {
-    url << "&RANGESUBSET=";
+    std::vector<std::string> const bns = coverage.getBandNames();
+
+    // If any band out of range is selected (=> ok == false), ignore bands and get the whole coverage.
+    bool ok = true;
+
     for (size_t i = 0; i < request.mBandList.value().size(); i++) {
-      url << request.mBandList.value()[i];
-      if (i < request.mBandList.value().size() - 1) {
-        url << ",";
+      int const idx = request.mBandList.value()[i];
+      if (bns.size() <= idx) {
+        logger().warn("Band index {} out of range!", idx);
+        logger().info("Getting all available bands: {}.", spdlog::fmt_lib::join(bns, ","));
+        ok = false;
+        break;
       }
     }
 
-  } else if (request.mBandRange.has_value()) {
+    if (ok) {
+    url << "&RANGESUBSET=";
+    for (size_t i = 0; i < request.mBandList.value().size(); i++) {
+      int const idx = request.mBandList.value()[i];
+      url << bns[idx];
+      if (i < request.mBandList.value().size() - 1) url << ",";
+    }}
+
+  }
+  else if (request.mBandRange.has_value()) {
     int minLayer = std::max(1, request.mBandRange.value().first);
     int maxLayer = std::min(coverage.getSettings().mNumLayers, request.mBandRange.value().second);
 

@@ -234,10 +234,26 @@ void WebCoverage::parseTime() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void WebCoverage::parseBandNames() {
+  auto dataRecord = csl::ogc::utils::getElement(
+      &mDoc.value(), {"wcs:CoverageDescriptions", "wcs:CoverageDescription", "gmlcov:rangeType",
+                         "swe:DataRecord"});
+
+  mBandNames.clear();
+  auto child = dataRecord->FirstChildElement(); // <swe:field name="..."> expected
+  while (child) {
+    mBandNames.push_back(child->Attribute("name"));
+    child = child->NextSiblingElement();
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void WebCoverage::update() {
   loadCoverageDetails();
   parseTime();
   parseDetails();
+  parseBandNames();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -92,6 +92,9 @@ void Sentinel::process() {
   if (coverage == nullptr) {
     return;
   }
+
+  logger().info("Processing Sentinel node.");
+
   // create request for texture loading
   csl::ogc::WebCoverageTextureLoader::Request request = getRequest();
 
@@ -175,11 +178,14 @@ csl::ogc::WebCoverageTextureLoader::Request Sentinel::getRequest() {
   request.mMaxSize = readInput<int>("resolutionIn", 1024);
 
   if (mCurrentOperation == "Moisture Index") {
-    request.mBandList = {8, 11};
+    //request.mBandList = {8, 11};
+    request.mBandList = {7, 10}; // TODO test
   } else if (mCurrentOperation == "False Color Urban") {
-    request.mBandList = {12, 11, 4};
+    //request.mBandList = {12, 11, 4};
+    request.mBandList = {11, 10, 3}; // TODO test
   } else {
-    request.mBandList = {4, 3, 2};
+    //request.mBandList = {4, 3, 2};
+    request.mBandList = {3, 2, 1}; // TODO test
   }
 
   request.mFormat = "image/tiff";

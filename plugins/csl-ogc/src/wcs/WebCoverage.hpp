@@ -49,6 +49,8 @@ class CSL_OGC_EXPORT WebCoverage {
   std::optional<std::string> const& getAbstract() const;
   /// Returns a comma separated list of keywords for this coverage.
   std::optional<std::string> getKeywords() const;
+  /// Returns the band names
+  std::vector<std::string> getBandNames() const { return mBandNames; }
   /// Gets the general settings of the coverage.
   Settings const& getSettings() const;
 
@@ -65,6 +67,9 @@ class CSL_OGC_EXPORT WebCoverage {
   void loadCoverageDetails();
   /// Parses time domain into TimeIntervals
   void parseTime();
+  /// Parses band names asigns to mBandNames
+  void parseBandNames();
+
   /// Parses coverage details into settings
   /// Mainly the axis labels are extracted for further use in scaling the coverage
   void parseDetails();
@@ -80,6 +85,9 @@ class CSL_OGC_EXPORT WebCoverage {
 
   /// DescribeCoverage Document
   std::optional<VistaXML::TiXmlDocument> mDoc;
+
+  /// Values
+  std::vector<std::string> mBandNames;
 
   Settings mSettings;
 };
