@@ -164,7 +164,7 @@ void GDALReader::BuildTexture(
     bandRange[0] = poBand->GetMinimum(&bGotMin);
     bandRange[1] = poBand->GetMaximum(&bGotMax);
     if (!bGotMin || !bGotMax) {
-      GDALComputeRasterMinMax(static_cast<GDALRasterBandH>(poBand), TRUE, bandRange.data());
+      GDALComputeRasterMinMax(static_cast<GDALRasterBandH>(poBand), FALSE, bandRange.data());
     }
 
     texture.mBandDataRanges.push_back(bandRange);
