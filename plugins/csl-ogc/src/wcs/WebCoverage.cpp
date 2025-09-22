@@ -40,28 +40,32 @@ WebCoverage::WebCoverage(VistaXML::TiXmlElement* element, Settings settings, std
     }
   }
 
+  // also <ows:BoundingBox> might be given, TODO: why?
   auto* wgs84BB = element->FirstChildElement("ows:WGS84BoundingBox");
-  if (!wgs84BB) {
-    throw std::runtime_error("Layer is missing BoundingBox.");
+
+  if (!wgs84BB) { // .. then BB is set via DescribeCoverage (or anyways atm)
+    //throw std::runtime_error("Layer is missing BoundingBox.");
   }
+  else {
+    auto* lower = wgs84BB->FirstChildElement("ows:LowerCorner");
+    auto* upper = wgs84BB->FirstChildElement("ows:UpperCorner");
 
-  auto* lower = wgs84BB->FirstChildElement("ows:LowerCorner");
-  auto* upper = wgs84BB->FirstChildElement("ows:UpperCorner");
+    std::vector<std::string> lowerSplit =
+        utils::split(utils::getElementValue<std::string>(lower).value(), ' ');
+    std::vector<std::string> upperSplit =
+        utils::split(utils::getElementValue<std::string>(upper).value(), ' ');
 
-  std::vector<std::string> lowerSplit =
-      utils::split(utils::getElementValue<std::string>(lower).value(), ' ');
-  std::vector<std::string> upperSplit =
-      utils::split(utils::getElementValue<std::string>(upper).value(), ' ');
+    if (lowerSplit.size() != 2 || upperSplit.size() != 2) {
+      throw std::runtime_error("Could not parse bounds");
+    }
 
-  if (lowerSplit.size() != 2 || upperSplit.size() != 2) {
-    throw std::runtime_error("Could not parse bounds");
+    // first longitude, then latitude
+    mSettings.mBounds.mMinLon = std::stod(lowerSplit[0]);
+    mSettings.mBounds.mMinLat = std::stod(lowerSplit[1]);
+
+    mSettings.mBounds.mMaxLon = std::stod(upperSplit[0]);
+    mSettings.mBounds.mMaxLat = std::stod(upperSplit[1]);
   }
-
-  mSettings.mBounds.mMinLon = std::stod(lowerSplit[0]);
-  mSettings.mBounds.mMinLat = std::stod(lowerSplit[1]);
-
-  mSettings.mBounds.mMaxLon = std::stod(upperSplit[0]);
-  mSettings.mBounds.mMaxLat = std::stod(upperSplit[1]);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -249,11 +253,44 @@ void WebCoverage::parseBandNames() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void WebCoverage::parseBoundingBox() {
+  auto* boundedBy = csl::ogc::utils::getElement(
+      &mDoc.value(), {"wcs:CoverageDescriptions", "wcs:CoverageDescription", "gml:boundedBy"});
+
+  auto* env       = boundedBy->FirstChildElement(); // <gml:Envelope> expected
+  auto* envPeriod = boundedBy->FirstChildElement(); // <gml:EnvelopeWithTimePeriod> expected
+
+  auto* child = env ? env : envPeriod ? envPeriod : nullptr;
+  if (!child) throw std::runtime_error("Layer is missing BoundingBox.");
+  auto* lower = child->FirstChildElement("gml:lowerCorner");
+  auto* upper = child->FirstChildElement("gml:upperCorner");
+
+  std::vector<std::string> lowerSplit =
+      utils::split(utils::getElementValue<std::string>(lower).value(), ' ');
+  std::vector<std::string> upperSplit =
+      utils::split(utils::getElementValue<std::string>(upper).value(), ' ');
+
+  if (lowerSplit.size() != 2 || upperSplit.size() != 2) {
+    throw std::runtime_error("Could not parse bounds");
+  }
+
+  // first latitude, then longitude
+  // TODO: parse attributes (axisLabels, uomLabels, srsDimension, ...) of enclosing element
+  mSettings.mBounds.mMinLon = std::stod(lowerSplit[1]);
+  mSettings.mBounds.mMinLat = std::stod(lowerSplit[0]);
+
+  mSettings.mBounds.mMaxLon = std::stod(upperSplit[1]);
+  mSettings.mBounds.mMaxLat = std::stod(upperSplit[0]);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void WebCoverage::update() {
   loadCoverageDetails();
   parseTime();
   parseDetails();
   parseBandNames();
+  parseBoundingBox();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

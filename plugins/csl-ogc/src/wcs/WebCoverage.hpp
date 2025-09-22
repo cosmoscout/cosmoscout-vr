@@ -69,6 +69,8 @@ class CSL_OGC_EXPORT WebCoverage {
   void parseTime();
   /// Parses band names asigns to mBandNames
   void parseBandNames();
+  /// Parses the bounding box
+  void parseBoundingBox();
 
   /// Parses coverage details into settings
   /// Mainly the axis labels are extracted for further use in scaling the coverage
