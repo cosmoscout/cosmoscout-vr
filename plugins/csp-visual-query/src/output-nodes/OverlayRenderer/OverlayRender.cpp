@@ -118,22 +118,6 @@ void OverlayRender::onMessageFromJS(const nlohmann::json& message) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-Image2D normalize(Image2D const& image, glm::dvec2 minMax) {
-  if (std::holds_alternative<F32ValueVector>(image.mPoints)) {
-    Image2D copy{image};
-    auto& points = std::get<F32ValueVector>(copy.mPoints);
-    for (auto && point : points) {
-      for (auto && scalar : point) {
-        double scalarD = (static_cast<double>(scalar) - minMax.x) / (minMax.y - minMax.x);
-        scalar = static_cast<float>(scalarD);
-      }
-    }
-
-    return copy;
-  }
-  return image;
-}
-
 void OverlayRender::process() {
   auto input = readInput<std::shared_ptr<Image2D>>("Image2D", nullptr);
   if (input == nullptr) {
@@ -141,8 +125,8 @@ void OverlayRender::process() {
   }
 
   auto minMax = readInput<std::pair<double, double>>("minMax", std::pair(input->mMinMax.x, input->mMinMax.y));
-  mRenderer->setData(std::make_shared<Image2D>(normalize(*input, glm::dvec2(minMax.first, minMax.second))));
-  mRenderer->setMinMax(glm::vec2(0.F, 1.F));
+  mRenderer->setData(std::make_shared<Image2D>(*input));
+  mRenderer->setMinMax(glm::vec2(minMax.first, minMax.second));
 
   auto lut = readInput<std::vector<glm::vec4>>("lut", {});
   mRenderer->setLUT(lut);
