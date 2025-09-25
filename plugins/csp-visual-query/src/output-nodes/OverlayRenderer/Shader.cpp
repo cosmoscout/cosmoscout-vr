@@ -57,6 +57,7 @@ const std::string Renderer::SURFACE_FRAG = R"(
   uniform vec2          uValueRange;
   uniform bool          uHasLUT;
   uniform int           uNumScalars;
+  uniform float         uLogExp;
 
   uniform dmat4         uMatInvMVP;
 
@@ -211,7 +212,16 @@ const std::string Renderer::SURFACE_FRAG = R"(
           FragColor.rgb = FragColor.rrr;
         }
 
+        // Normalize data range of interest, i.e. map uValueRange.[x..y] to [0..1].
         FragColor.rgb = (FragColor.rgb - uValueRange.x) / (uValueRange.y - uValueRange.x);
+
+        if (uLogExp != 0) {
+          // 1. Scale data with (exp(uLogExp) - 1) to control the curvature
+          // 2. Add 1 to handle value 0
+          // 3. Apply logarithm
+          // 4. Divide so that the overall transformation maps values uValueRange.(x, y) to (0, 1)
+          FragColor.rgb = log(FragColor.rgb * (exp(uLogExp) - 1) + 1) / uLogExp;
+        }
 
         if (uHasLUT) {
           float value = max(FragColor.r, max(FragColor.g, FragColor.b));

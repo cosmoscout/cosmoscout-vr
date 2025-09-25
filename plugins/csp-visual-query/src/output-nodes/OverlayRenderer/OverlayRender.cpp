@@ -127,6 +127,7 @@ void OverlayRender::process() {
   auto minMax = readInput<std::pair<double, double>>("minMax", std::pair(input->mMinMax.x, input->mMinMax.y));
   mRenderer->setData(std::make_shared<Image2D>(*input));
   mRenderer->setMinMax(glm::vec2(minMax.first, minMax.second));
+  mRenderer->setLogExp(readInput<double>("logIn", 0.0));
 
   auto lut = readInput<std::vector<glm::vec4>>("lut", {});
   mRenderer->setLUT(lut);

@@ -234,6 +234,10 @@ void Renderer::setLUT(std::vector<glm::vec4> const& lut) {
   }
 }
 
+void Renderer::setLogExp(double logExp) {
+  mLogExp = logExp;
+}
+
 void Renderer::setMinMax(glm::vec2 const& minMax) {
   mMinMax = minMax;
 }
@@ -329,6 +333,7 @@ bool Renderer::Do() {
   mShader.SetUniform(mShader.GetUniformLocation("uDepthBuffer"), 0);
   mShader.SetUniform(mShader.GetUniformLocation("uTexture"), 1);
   mShader.SetUniform(mShader.GetUniformLocation("uValueRange"), mMinMax.x, mMinMax.y);
+  mShader.SetUniform(mShader.GetUniformLocation("uLogExp"), static_cast<float>(mLogExp));
 
   GLint loc = mShader.GetUniformLocation("uMatInvMVP");
   glUniformMatrix4dv(loc, 1, GL_FALSE, glm::value_ptr(matInvMVP));

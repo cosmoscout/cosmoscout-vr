@@ -27,6 +27,9 @@ class OverlayRenderComponent extends Rete.Component {
     const minMaxInput = new Rete.Input('minMax', 'LUT Min/Max', CosmoScout.socketTypes['RVec2']);
     node.addInput(minMaxInput);
 
+    let logInput = new Rete.Input('logIn', "Log. scaling", CosmoScout.socketTypes['Real']);
+    node.addInput(logInput);
+
     const dropDownCallback = (selection) => CosmoScout.sendMessageToCPP(selection, node.id);
 
     let centerControl =
