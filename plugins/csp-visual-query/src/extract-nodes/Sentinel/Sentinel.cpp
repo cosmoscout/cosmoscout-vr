@@ -178,14 +178,11 @@ csl::ogc::WebCoverageTextureLoader::Request Sentinel::getRequest() {
   request.mMaxSize = readInput<int>("resolutionIn", 1024);
 
   if (mCurrentOperation == "Moisture Index") {
-    //request.mBandList = {8, 11};
-    request.mBandList = {7, 10}; // TODO test
+    request.mBandList = {7, 10};
   } else if (mCurrentOperation == "False Color Urban") {
-    //request.mBandList = {12, 11, 4};
-    request.mBandList = {11, 10, 3}; // TODO test
+    request.mBandList = {11, 10, 3};
   } else {
-    //request.mBandList = {4, 3, 2};
-    request.mBandList = {3, 2, 1}; // TODO test
+    request.mBandList = {3, 2, 1};
   }
 
   request.mFormat = "image/tiff";
