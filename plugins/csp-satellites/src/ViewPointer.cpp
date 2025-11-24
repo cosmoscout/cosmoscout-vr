@@ -39,14 +39,10 @@ uniform vec3  uRayStart;
 uniform vec3  uRayEnd;
 
 // inputs
-layout(location = 0) in vec2 iQuadPos;
-
-// outputs
-out vec2  vTexCoords;
+layout(location = 0) in vec3 iPos;
 
 void main() {
-  vTexCoords  = iQuadPos;
-  vec4 vertPos = vec4(gl_VertexID % 2 == 0 ? uRayStart : uRayEnd, 1);
+  vec4 vertPos = vec4(iPos, 1);
   vec3 pos    = (uMatModelView * vertPos).xyz;
   gl_Position = uMatProjection * vec4(pos, 1);
 }
@@ -57,14 +53,11 @@ void main() {
 const char* ViewPointer::FRAG_SHADER = R"(
 #version 330
 
-// inputs
-in vec2 vTexCoords;
-
 // outputs
 layout(location = 0) out vec4 oColor;
 
 void main() {
-  oColor = vec4(0.3, 0.5, 0.4, 1.);
+  oColor = vec4(0.1, 0.8, 0.1, 1.);
 })";
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -74,19 +67,8 @@ ViewPointer::ViewPointer(
     : mSolarSystem(solarSystem)
     , mAnchorName(anchorName) {
 
-  // Create initial Quad
-  std::array<glm::vec2, 4> vertices{};
-  vertices[0] = glm::vec2(-1.F, -1.F);
-  vertices[1] = glm::vec2(1.F, -1.F);
-  vertices[2] = glm::vec2(1.F, 1.F);
-  vertices[3] = glm::vec2(-1.F, 1.F);
-
-  mVBO.Bind(GL_ARRAY_BUFFER);
-  mVBO.BufferData(vertices.size() * sizeof(glm::vec2), vertices.data(), GL_STATIC_DRAW);
-  mVBO.Release();
-
   mVAO.EnableAttributeArray(0);
-  mVAO.SpecifyAttributeArrayFloat(0, 2, GL_FLOAT, GL_FALSE, sizeof(glm::vec2), 0, &mVBO);
+  mVAO.SpecifyAttributeArrayFloat(0, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), 0, &mVBO);
 
   // Create shader
   mShader.InitVertexShaderFromString(VERT_SHADER);
@@ -136,19 +118,33 @@ bool ViewPointer::Do() {
 
   mShader.Bind();
 
+  std::vector<glm::vec3> vertices;
+
   auto       satelliteObject    = mSolarSystem->getObject(mAnchorName);
   auto       bodyObject         = mSolarSystem->getObject(mBodyName);
   auto       bodyIntersectable  = bodyObject->getIntersectableObject();
   glm::dmat4 satelliteTransform = satelliteObject->getObserverRelativeTransform();
   glm::dmat4 bodyTransform      = bodyObject->getObserverRelativeTransform();
   glm::dvec3 rayStart           = satelliteObject->getObserverRelativePosition();
-  glm::dvec4 rayDir(0, 0, 1, 0);
-  rayDir = glm::normalize(satelliteTransform * rayDir);
-  glm::dvec3 intersection;
-  if (!bodyIntersectable->getIntersection(rayStart, rayDir, intersection)) {
-    return true;
+  std::array<glm::dvec4, 4> rayDirs;
+  rayDirs[0] = glm::dvec4(0.1, 0.1, 1, 0);
+  rayDirs[1] = glm::dvec4(-0.1, 0.1, 1, 0);
+  rayDirs[2] = glm::dvec4(0.1, -0.1, 1, 0);
+  rayDirs[3] = glm::dvec4(-0.1, -0.1, 1, 0);
+  for (glm::dvec4 rayDir : rayDirs) {
+    rayDir = glm::normalize(satelliteTransform * rayDir);
+    glm::dvec3 intersection;
+    if (!bodyIntersectable->getIntersection(rayStart, rayDir, intersection)) {
+      return true;
+    }
+    intersection = bodyTransform * glm::dvec4(intersection, 1.);
+    vertices.emplace_back(rayStart);
+    vertices.emplace_back(intersection);
   }
-  intersection = bodyTransform * glm::dvec4(intersection, 1.);
+
+  mVBO.Bind(GL_ARRAY_BUFFER);
+  mVBO.BufferData(vertices.size() * sizeof(glm::vec3), vertices.data(), GL_STATIC_DRAW);
+  mVBO.Release();
 
   // Get modelview and projection matrices
   std::array<GLfloat, 16> glMatMV{};
@@ -162,10 +158,6 @@ bool ViewPointer::Do() {
   glUniformMatrix4fv(mUniforms.modelMatrix, 1, GL_FALSE, glm::value_ptr(glMatM));
   glUniformMatrix4fv(mUniforms.modelViewMatrix, 1, GL_FALSE, glMatMV.data());
   glUniformMatrix4fv(mUniforms.projectionMatrix, 1, GL_FALSE, glMatP.data());
-  glUniform3f(mUniforms.rayStart, static_cast<float>(rayStart[0]), static_cast<float>(rayStart[1]),
-      static_cast<float>(rayStart[2]));
-  glUniform3f(mUniforms.rayEnd, static_cast<float>(intersection[0]),
-      static_cast<float>(intersection[1]), static_cast<float>(intersection[2]));
   mShader.SetUniform(mUniforms.texture, 0);
 
   // Draw
@@ -176,7 +168,7 @@ bool ViewPointer::Do() {
   mVAO.Bind();
 
   // First we draw the grid with normal depth test.
-  glDrawArrays(GL_LINES, 0, 2);
+  glDrawArrays(GL_LINES, 0, 8);
 
   mVAO.Release();
 
