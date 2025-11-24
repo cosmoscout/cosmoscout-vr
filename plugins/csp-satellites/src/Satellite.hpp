@@ -9,6 +9,7 @@
 #define CS_CORE_SATELLITE_HPP
 
 #include "Plugin.hpp"
+#include "ViewPointer.hpp"
 
 #include "../../../src/cs-core/Settings.hpp"
 
@@ -50,6 +51,8 @@ class Satellite {
   std::shared_ptr<cs::core::SolarSystem>    mSolarSystem;
   std::unique_ptr<VistaTransformNode>       mAnchor;
   std::unique_ptr<cs::graphics::GltfLoader> mModel;
+
+  std::unique_ptr<ViewPointer> mViewPointer;
 
   std::string mObjectName;
 };

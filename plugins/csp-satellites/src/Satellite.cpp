@@ -30,9 +30,10 @@ Satellite::Satellite(Plugin::Settings::Satellite const& config, std::string obje
     std::shared_ptr<cs::core::SolarSystem> solarSystem)
     : mSceneGraph(sceneGraph)
     , mSettings(std::move(settings))
-    , mSolarSystem(std::move(solarSystem))
+    , mSolarSystem(solarSystem)
     , mModel(std::make_unique<cs::graphics::GltfLoader>(config.mModelFile, config.mEnvironmentMap))
-    , mObjectName(std::move(objectName)) {
+    , mObjectName(objectName)
+    , mViewPointer(std::make_unique<ViewPointer>(solarSystem, objectName)) {
 
   mModel->setLightIntensity(15.0);
   mModel->setIBLIntensity(1.5);
