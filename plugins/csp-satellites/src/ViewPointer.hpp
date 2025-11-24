@@ -61,13 +61,7 @@ class ViewPointer : public IVistaOpenGLDraw {
 
   struct {
     uint32_t modelViewMatrix  = 0;
-    uint32_t modelMatrix      = 0;
-    uint32_t rayStart         = 0;
-    uint32_t rayEnd           = 0;
     uint32_t projectionMatrix = 0;
-    uint32_t texture          = 0;
-    uint32_t extent           = 0;
-    uint32_t size             = 0;
     uint32_t alpha            = 0;
     uint32_t color            = 0;
   } mUniforms;

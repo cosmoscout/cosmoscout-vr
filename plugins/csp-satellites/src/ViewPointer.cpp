@@ -32,11 +32,8 @@ namespace csp::satellites {
 const char* ViewPointer::VERT_SHADER = R"(
 #version 330
 
-uniform mat4  uMatModel;
 uniform mat4  uMatModelView;
 uniform mat4  uMatProjection;
-uniform vec3  uRayStart;
-uniform vec3  uRayEnd;
 
 // inputs
 layout(location = 0) in vec3 iPos;
@@ -53,11 +50,14 @@ void main() {
 const char* ViewPointer::FRAG_SHADER = R"(
 #version 330
 
+uniform float uAlpha;
+uniform vec3  uCustomColor;
+
 // outputs
 layout(location = 0) out vec4 oColor;
 
 void main() {
-  oColor = vec4(0.1, 0.8, 0.1, 1.);
+  oColor = vec4(uCustomColor, uAlpha);
 })";
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -77,13 +77,7 @@ ViewPointer::ViewPointer(
 
   // Get Uniform Locations
   mUniforms.modelViewMatrix  = mShader.GetUniformLocation("uMatModelView");
-  mUniforms.modelMatrix      = mShader.GetUniformLocation("uMatModel");
   mUniforms.projectionMatrix = mShader.GetUniformLocation("uMatProjection");
-  mUniforms.rayStart         = mShader.GetUniformLocation("uRayStart");
-  mUniforms.rayEnd           = mShader.GetUniformLocation("uRayEnd");
-  mUniforms.texture          = mShader.GetUniformLocation("uTexture");
-  mUniforms.extent           = mShader.GetUniformLocation("uExtent");
-  mUniforms.size             = mShader.GetUniformLocation("uSize");
   mUniforms.alpha            = mShader.GetUniformLocation("uAlpha");
   mUniforms.color            = mShader.GetUniformLocation("uCustomColor");
 
@@ -118,8 +112,6 @@ bool ViewPointer::Do() {
 
   mShader.Bind();
 
-  std::vector<glm::vec3> vertices;
-
   auto       satelliteObject    = mSolarSystem->getObject(mAnchorName);
   auto       bodyObject         = mSolarSystem->getObject(mBodyName);
   auto       bodyIntersectable  = bodyObject->getIntersectableObject();
@@ -131,6 +123,7 @@ bool ViewPointer::Do() {
   rayDirs[1] = glm::dvec4(-0.1, 0.1, 1, 0);
   rayDirs[2] = glm::dvec4(0.1, -0.1, 1, 0);
   rayDirs[3] = glm::dvec4(-0.1, -0.1, 1, 0);
+  std::vector<glm::vec3> vertices;
   for (glm::dvec4 rayDir : rayDirs) {
     rayDir = glm::normalize(satelliteTransform * rayDir);
     glm::dvec3 intersection;
@@ -155,10 +148,10 @@ bool ViewPointer::Do() {
   glGetFloatv(GL_PROJECTION_MATRIX, glMatP.data());
 
   // Set uniforms
-  glUniformMatrix4fv(mUniforms.modelMatrix, 1, GL_FALSE, glm::value_ptr(glMatM));
   glUniformMatrix4fv(mUniforms.modelViewMatrix, 1, GL_FALSE, glMatMV.data());
   glUniformMatrix4fv(mUniforms.projectionMatrix, 1, GL_FALSE, glMatP.data());
-  mShader.SetUniform(mUniforms.texture, 0);
+  mShader.SetUniform(mUniforms.alpha, 1.f);
+  mShader.SetUniform(mUniforms.color, 0.1f, 0.8f, 0.1f);
 
   // Draw
   glPushAttrib(GL_ENABLE_BIT | GL_BLEND | GL_DEPTH_BUFFER_BIT);
