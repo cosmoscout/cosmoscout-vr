@@ -121,8 +121,8 @@ bool ViewPointer::Do() {
   std::array<glm::dvec4, 4> rayDirs;
   rayDirs[0] = glm::dvec4(0.1, 0.1, 1, 0);
   rayDirs[1] = glm::dvec4(-0.1, 0.1, 1, 0);
-  rayDirs[2] = glm::dvec4(0.1, -0.1, 1, 0);
-  rayDirs[3] = glm::dvec4(-0.1, -0.1, 1, 0);
+  rayDirs[2] = glm::dvec4(-0.1, -0.1, 1, 0);
+  rayDirs[3] = glm::dvec4(0.1, -0.1, 1, 0);
   std::vector<glm::vec3> vertices;
   for (glm::dvec4 rayDir : rayDirs) {
     rayDir = glm::normalize(satelliteTransform * rayDir);
@@ -133,6 +133,10 @@ bool ViewPointer::Do() {
     intersection = bodyTransform * glm::dvec4(intersection, 1.);
     vertices.emplace_back(rayStart);
     vertices.emplace_back(intersection);
+  }
+  for (int i = 0; i < 4; i++) {
+    vertices.push_back(vertices[i * 2 + 1]);
+    vertices.push_back(vertices[(i * 2 + 3) % 8]);
   }
 
   mVBO.Bind(GL_ARRAY_BUFFER);
@@ -156,12 +160,13 @@ bool ViewPointer::Do() {
   // Draw
   glPushAttrib(GL_ENABLE_BIT | GL_BLEND | GL_DEPTH_BUFFER_BIT);
   glDisable(GL_CULL_FACE);
+  glDisable(GL_DEPTH_TEST);
   glDepthMask(false);
 
   mVAO.Bind();
 
   // First we draw the grid with normal depth test.
-  glDrawArrays(GL_LINES, 0, 8);
+  glDrawArrays(GL_LINES, 0, static_cast<GLsizei>(vertices.size()));
 
   mVAO.Release();
 
