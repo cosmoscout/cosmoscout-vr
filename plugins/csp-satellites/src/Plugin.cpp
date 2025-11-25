@@ -11,6 +11,7 @@
 #include "logger.hpp"
 
 #include "../../../src/cs-core/SolarSystem.hpp"
+#include "../../../src/cs-core/GuiManager.hpp"
 #include "../../../src/cs-utils/logger.hpp"
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -59,6 +60,9 @@ void Plugin::init() {
 
   mOnLoadConnection = mAllSettings->onLoad().connect([this]() { onLoad(); });
   mOnSaveConnection = mAllSettings->onSave().connect([this]() { onSave(); });
+
+  mGuiManager->addTemplate("satellite-view-template", "../share/resources/gui/csp-satellites-template.html");
+  mGuiManager->executeJavascriptFile("../share/resources/gui/js/csp-satellites.js");
 
   // Load settings.
   onLoad();
