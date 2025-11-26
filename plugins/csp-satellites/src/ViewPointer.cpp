@@ -67,8 +67,23 @@ ViewPointer::ViewPointer(
     : mSolarSystem(solarSystem)
     , mAnchorName(anchorName) {
 
+  mVAO.Bind();
   mVAO.EnableAttributeArray(0);
   mVAO.SpecifyAttributeArrayFloat(0, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), 0, &mVBO);
+
+  std::vector<unsigned> indicesLines     = {0, 1, 0, 2, 0, 3, 0, 4, 1, 2, 2, 3, 3, 4, 4, 1};
+  mIndexCountLines                       = static_cast<unsigned int>(indicesLines.size());
+  std::vector<unsigned> indicesTriangles = {0, 1, 2, 0, 2, 3, 0, 3, 4, 0, 4, 1, 1, 2, 3, 1, 4, 3};
+  mIndexCountTriangles                   = static_cast<unsigned int>(indicesTriangles.size());
+
+  mIBOTriangles.Bind(GL_ELEMENT_ARRAY_BUFFER);
+  mIBOTriangles.BufferData(
+      indicesTriangles.size() * sizeof(unsigned), indicesTriangles.data(), GL_STATIC_DRAW);
+  mIBOLines.Bind(GL_ELEMENT_ARRAY_BUFFER);
+  mIBOLines.BufferData(indicesLines.size() * sizeof(unsigned), indicesLines.data(), GL_STATIC_DRAW);
+
+  mVAO.Release();
+  mIBOLines.Release();
 
   // Create shader
   mShader.InitVertexShaderFromString(VERT_SHADER);
@@ -112,31 +127,28 @@ bool ViewPointer::Do() {
 
   mShader.Bind();
 
-  auto       satelliteObject    = mSolarSystem->getObject(mAnchorName);
-  auto       bodyObject         = mSolarSystem->getObject(mBodyName);
-  auto       bodyIntersectable  = bodyObject->getIntersectableObject();
-  glm::dmat4 satelliteTransform = satelliteObject->getObserverRelativeTransform();
-  glm::dmat4 bodyTransform      = bodyObject->getObserverRelativeTransform();
-  glm::dvec3 rayStart           = satelliteObject->getObserverRelativePosition();
+  auto                      satelliteObject    = mSolarSystem->getObject(mAnchorName);
+  auto                      bodyObject         = mSolarSystem->getObject(mBodyName);
+  auto                      bodyIntersectable  = bodyObject->getIntersectableObject();
+  glm::dmat4                satelliteTransform = satelliteObject->getObserverRelativeTransform();
+  glm::dmat4                bodyTransform      = bodyObject->getObserverRelativeTransform();
+  glm::dvec3                rayStart           = satelliteObject->getObserverRelativePosition();
   std::array<glm::dvec4, 4> rayDirs;
   rayDirs[0] = glm::dvec4(0.1, 0.1, 1, 0);
   rayDirs[1] = glm::dvec4(-0.1, 0.1, 1, 0);
   rayDirs[2] = glm::dvec4(-0.1, -0.1, 1, 0);
   rayDirs[3] = glm::dvec4(0.1, -0.1, 1, 0);
   std::vector<glm::vec3> vertices;
+  vertices.emplace_back(rayStart);
   for (glm::dvec4 rayDir : rayDirs) {
     rayDir = glm::normalize(satelliteTransform * rayDir);
     glm::dvec3 intersection;
     if (!bodyIntersectable->getIntersection(rayStart, rayDir, intersection)) {
-      return true;
+      intersection = rayStart + rayDir.xyz * 5.;
+    } else {
+      intersection = bodyTransform * glm::dvec4(intersection, 1.);
     }
-    intersection = bodyTransform * glm::dvec4(intersection, 1.);
-    vertices.emplace_back(rayStart);
     vertices.emplace_back(intersection);
-  }
-  for (int i = 0; i < 4; i++) {
-    vertices.push_back(vertices[i * 2 + 1]);
-    vertices.push_back(vertices[(i * 2 + 3) % 8]);
   }
 
   mVBO.Bind(GL_ARRAY_BUFFER);
@@ -154,20 +166,23 @@ bool ViewPointer::Do() {
   // Set uniforms
   glUniformMatrix4fv(mUniforms.modelViewMatrix, 1, GL_FALSE, glMatMV.data());
   glUniformMatrix4fv(mUniforms.projectionMatrix, 1, GL_FALSE, glMatP.data());
-  mShader.SetUniform(mUniforms.alpha, 1.f);
   mShader.SetUniform(mUniforms.color, 0.1f, 0.8f, 0.1f);
 
   // Draw
   glPushAttrib(GL_ENABLE_BIT | GL_BLEND | GL_DEPTH_BUFFER_BIT);
   glDisable(GL_CULL_FACE);
   glDisable(GL_DEPTH_TEST);
+  glEnable(GL_BLEND);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
   glDepthMask(false);
 
   mVAO.Bind();
-
-  // First we draw the grid with normal depth test.
-  glDrawArrays(GL_LINES, 0, static_cast<GLsizei>(vertices.size()));
-
+  mShader.SetUniform(mUniforms.alpha, 1.f);
+  mIBOLines.Bind(GL_ELEMENT_ARRAY_BUFFER);
+  glDrawElements(GL_LINES, mIndexCountLines, GL_UNSIGNED_INT, nullptr);
+  mShader.SetUniform(mUniforms.alpha, .1f);
+  mIBOTriangles.Bind(GL_ELEMENT_ARRAY_BUFFER);
+  glDrawElements(GL_TRIANGLES, mIndexCountTriangles, GL_UNSIGNED_INT, nullptr);
   mVAO.Release();
 
   // Clean Up

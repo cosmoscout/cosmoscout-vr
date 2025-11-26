@@ -58,6 +58,10 @@ class ViewPointer : public IVistaOpenGLDraw {
   VistaGLSLShader        mShader;
   VistaVertexArrayObject mVAO;
   VistaBufferObject      mVBO;
+  VistaBufferObject      mIBOLines;
+  VistaBufferObject      mIBOTriangles;
+  unsigned int           mIndexCountLines;
+  unsigned int           mIndexCountTriangles;
 
   struct {
     uint32_t modelViewMatrix  = 0;
