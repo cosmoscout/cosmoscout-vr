@@ -62,6 +62,7 @@ class ViewPointer : public IVistaOpenGLDraw {
   VistaBufferObject      mIBOTriangles;
   unsigned int           mIndexCountLines;
   unsigned int           mIndexCountTriangles;
+  std::array<double, 4>  mLastDist = {1., 1., 1., 1.};
 
   struct {
     uint32_t modelViewMatrix  = 0;

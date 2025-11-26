@@ -140,13 +140,15 @@ bool ViewPointer::Do() {
   rayDirs[3] = glm::dvec4(0.1, -0.1, 1, 0);
   std::vector<glm::vec3> vertices;
   vertices.emplace_back(rayStart);
-  for (glm::dvec4 rayDir : rayDirs) {
+  for (int i = 0; i < 4; i++) {
+    glm::dvec4 rayDir = rayDirs[i];
     rayDir = glm::normalize(satelliteTransform * rayDir);
     glm::dvec3 intersection;
     if (!bodyIntersectable->getIntersection(rayStart, rayDir, intersection)) {
-      intersection = rayStart + rayDir.xyz * 5.;
+      intersection = rayStart + rayDir.xyz * mLastDist[i];
     } else {
       intersection = bodyTransform * glm::dvec4(intersection, 1.);
+      mLastDist[i] = glm::length(intersection - rayStart);
     }
     vertices.emplace_back(intersection);
   }
