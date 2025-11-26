@@ -29,7 +29,7 @@
     }
 
     _resetDate() {
-        const time = CosmoScout.timeline._centerTime.toISOString().replace('T', ' ').slice(0, 19);
+        const time = CosmoScout.timeline._centerTime.toISOString();
         fetch(`${this._renderServer}/run-js`, {
             method: "POST",
             body: `CosmoScout.callbacks.time.setDate("${time}")`
