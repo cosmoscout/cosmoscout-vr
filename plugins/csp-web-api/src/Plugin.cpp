@@ -553,7 +553,11 @@ void Plugin::startServer(uint16_t port) {
 
   try {
     // We start the server with one thread only, as we do not want to process requests in parallel.
-    std::vector<std::string> options{"listening_ports", std::to_string(port), "num_threads", "1"};
+    std::vector<std::string> options{
+        "listening_ports", std::to_string(port),
+        "num_threads", "1",
+        "additional_header", "Access-Control-Allow-Origin: *"
+    };
     mServer = std::make_unique<CivetServer>(options);
 
     for (auto const& handler : mHandlers) {
