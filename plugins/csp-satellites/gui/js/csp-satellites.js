@@ -37,9 +37,6 @@
     }
 
     _fetchImage() {
-        const ctx = this._viewCtx;
-        const thiz = this;
-
         this._resetDate();
 
         const params = new URLSearchParams();
@@ -50,23 +47,17 @@
         params.append("format", "png");
         fetch(`${this._renderServer}/capture?${params}`)
             .then(res => res.blob())
-            .then(blob => {
-                const reader = new FileReader();
-                reader.onload = function() {
-                    const img = new Image();
-                    img.src = reader.result;
-                    img.onload = function() {
-                        ctx.drawImage(img, 0, 0, 200, 200);
-                        thiz._fetchImage();
-                    };
-                };
-                reader.readAsDataURL(blob);
+            .then(blob => createImageBitmap(blob))
+            .then(image => {
+                this._viewCtx.drawImage(image, 0, 0);
+                this._needImage = true;
             })
             .catch(e => console.error(`Error fetching satellite view: ${e}`));
     }
 
     init() {
         this._connectionEstablished = false;
+        this._needImage = true;
         this._viewDiv = CosmoScout.gui.loadTemplateContent('satellite-view-template');
         document.getElementById('cosmoscout').appendChild(this._viewDiv);
         this._viewCanvas = document.getElementById('satellite-view-canvas');
@@ -81,6 +72,10 @@
     }
 
     update() {
+        if (this._connectionEstablished && this._needImage) {
+            this._needImage = false;
+            this._fetchImage();
+        }
     }
   }
 
