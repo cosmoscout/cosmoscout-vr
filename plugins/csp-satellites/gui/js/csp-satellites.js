@@ -19,7 +19,7 @@
     _resetObserver() {
         fetch(`${this._renderServer}/run-js`, {
             method: "POST",
-            body: 'CosmoScout.callbacks.navigation.setBodyFull("-10001", "VLEO_PARAM", 0, 0, 0, 0.707, 0, 0, 0.707, 0)'
+            body: 'CosmoScout.callbacks.navigation.setBodyFull("-10001", "VLEO_OFFSET", 0.1, 0.1, 0.1, 0, 1, 0, 0, 0)'
         })
             .then(res => {
                 if (res.ok) {
