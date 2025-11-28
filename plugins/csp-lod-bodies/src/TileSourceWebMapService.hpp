@@ -12,6 +12,7 @@
 #include "TileData.hpp"
 #include "TileSource.hpp"
 
+#include <boost/filesystem/path.hpp>
 #include <chrono>
 #include <cstdio>
 #include <optional>

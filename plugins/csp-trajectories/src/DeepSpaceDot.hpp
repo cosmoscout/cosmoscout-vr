@@ -13,6 +13,7 @@
 
 #include <VistaBase/VistaColor.h>
 #include <VistaKernel/GraphicsManager/VistaOpenGLDraw.h>
+#include <VistaKernel/GraphicsManager/VistaOpenGLNode.h>
 #include <VistaOGLExt/VistaGLSLShader.h>
 #include <glm/glm.hpp>
 

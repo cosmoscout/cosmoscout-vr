@@ -7,9 +7,13 @@
 
 #include "LuminanceMipMap.hpp"
 
+#include "logger.hpp"
+
 #include "../cs-utils/FrameStats.hpp"
+#include "../cs-utils/filesystem.hpp"
 
 #include <algorithm>
+#include <glm/glm.hpp>
 #include <cmath>
 #include <string>
 #include <vector>
