@@ -87,7 +87,9 @@
                 this._requestedSatellites.push({
                     "bodyId": bodyId,
                     "jobId": id,
-                    "name": name,
+                    "bodyName": name,
+                    "existenceStart": this._startDateDiv.value,
+                    "existenceEnd": this._endDateDiv.value,
                 });
             });
     }
@@ -99,7 +101,7 @@
                 if (res.status == "running") {
                     setTimeout(() => { this._requestedSatellites.push(job); }, 1000);
                 } else if (res.status == "submitted") {
-                    CosmoScout.callbacks.satellites.addSatellite(job.name, job.bodyId, job.jobId);
+                    CosmoScout.callbacks.satellites.addSatellite(JSON.stringify(job));
                 }
             });
     }

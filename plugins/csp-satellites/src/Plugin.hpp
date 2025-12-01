@@ -44,6 +44,15 @@ class Plugin : public cs::core::PluginBase {
     std::map<std::string, Satellite> mSatellites;
   };
 
+  struct ExtraSatellite {
+    std::string bodyName;
+    std::string bodyId;
+    std::string jobId;
+    std::string existenceStart;
+    std::string existenceEnd;
+    std::unordered_map<std::string, std::string> kernelPaths;
+  };
+
   void init() override;
   void deInit() override;
   void update() override;
@@ -53,19 +62,12 @@ class Plugin : public cs::core::PluginBase {
   void onSave();
 
   /// Start the download of newly calculated satellite kernels
-  void downloadSatelliteKernel(
-      std::string const& bodyName, std::string const& bodyId, std::string const& jobId);
+  void downloadSatelliteKernel(ExtraSatellite&& satellite);
   /// Kernel download has finished, now load it into CosmoScout
   void loadSatelliteKernel();
 
   Settings                                mPluginSettings;
   std::vector<std::shared_ptr<Satellite>> mSatellites;
-
-  struct ExtraSatellite {
-    std::string bodyName;
-    std::string bodyId;
-    std::string kernelPath;
-  };
 
   cs::utils::Downloader       mDownloader;
   std::vector<ExtraSatellite> mPendingDownloads;
