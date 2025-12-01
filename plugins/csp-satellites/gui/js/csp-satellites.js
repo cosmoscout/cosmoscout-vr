@@ -56,14 +56,16 @@
     }
 
     _requestSatellite() {
-        console.log("Requesting satellite");
+        const bodyId = "-10002";
+        const name = "VLEO 2";
+        console.log(`Requesting satellite "${name}" (${bodyId})`);
         fetch(`${this._spiceServer}/processes/position/execute`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
             },
             body: JSON.stringify({
-                "id": -10002,
+                "id": bodyId,
                 "center": 399,
                 "frame": "J2000",
                 "MU": 398600,
@@ -82,18 +84,22 @@
             .then(res => res.json())
             .then(res => {
                 const id = res.output.bsp.replace(".bsp", "");
-                this._requestedSatellites.push(id);
+                this._requestedSatellites.push({
+                    "bodyId": bodyId,
+                    "jobId": id,
+                    "name": name,
+                });
             });
     }
 
-    _checkProcessStatus(jobId) {
-        fetch(`${this._spiceServer}/jobs/${jobId}`)
+    _checkProcessStatus(job) {
+        fetch(`${this._spiceServer}/jobs/${job.jobId}`)
             .then(res => res.json())
             .then(res => {
                 if (res.status == "running") {
-                    setTimeout(() => { this._requestedSatellites.push(jobId); }, 1000);
+                    setTimeout(() => { this._requestedSatellites.push(job); }, 1000);
                 } else if (res.status == "submitted") {
-                    CosmoScout.callbacks.satellites.addSatellite(jobId);
+                    CosmoScout.callbacks.satellites.addSatellite(job.name, job.bodyId, job.jobId);
                 }
             });
     }
@@ -121,7 +127,7 @@
             this._needImage = false;
             this._fetchImage();
         }
-        this._requestedSatellites.forEach(jobId => this._checkProcessStatus(jobId));
+        this._requestedSatellites.forEach(job => this._checkProcessStatus(job));
         this._requestedSatellites = [];
     }
   }

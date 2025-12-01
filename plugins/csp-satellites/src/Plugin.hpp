@@ -53,15 +53,22 @@ class Plugin : public cs::core::PluginBase {
   void onSave();
 
   /// Start the download of newly calculated satellite kernels
-  void downloadSatelliteKernel(std::string const& jobId);
+  void downloadSatelliteKernel(
+      std::string const& bodyName, std::string const& bodyId, std::string const& jobId);
   /// Kernel download has finished, now load it into CosmoScout
   void loadSatelliteKernel();
 
   Settings                                mPluginSettings;
   std::vector<std::shared_ptr<Satellite>> mSatellites;
 
-  cs::utils::Downloader    mDownloader;
-  std::vector<std::string> mPendingKernels;
+  struct ExtraSatellite {
+    std::string bodyName;
+    std::string bodyId;
+    std::string kernelPath;
+  };
+
+  cs::utils::Downloader       mDownloader;
+  std::vector<ExtraSatellite> mPendingDownloads;
 
   int mOnLoadConnection = -1;
   int mOnSaveConnection = -1;
