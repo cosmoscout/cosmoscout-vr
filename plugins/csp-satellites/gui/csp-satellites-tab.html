@@ -8,6 +8,42 @@ SPDX-License-Identifier: MIT
 </div>
 
 <div class="row">
+    <div class="col-5">
+        Name
+    </div>
+    <div class="col-7">
+        <input type="text" placeholder="Satellite Name" class="form-control" id="satellite-add-name" />
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-6">
+        <div class="input-group">
+            <input type="text" placeholder="Start Date" class="form-control" id="satellite-add-start-date">
+            <div class="input-group-append">
+                <button class="btn glass fix-rounded-right" type="button" data-toggle="tooltip"
+                        title="Use current time">
+                    <i class="material-icons">update</i>
+                </button>
+            </div>
+            <div class="invalid-feedback"></div>
+        </div>
+    </div>
+    <div class="col-6">
+        <div class="input-group">
+            <input type="text" placeholder="End Date" class="form-control" id="satellite-add-end-date">
+            <div class="input-group-append">
+                <button class="btn glass fix-rounded-right" type="button" data-toggle="tooltip"
+                        title="Use current time">
+                    <i class="material-icons">update</i>
+                </button>
+            </div>
+            <div class="invalid-feedback"></div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
     <div class="col-12">
         <a class="btn glass block px-3" onclick="CosmoScout.satellite._requestSatellite()">
             Request new Satellite kernels

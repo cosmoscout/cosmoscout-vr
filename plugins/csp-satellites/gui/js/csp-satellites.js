@@ -56,8 +56,8 @@
     }
 
     _requestSatellite() {
-        const bodyId = "-10002";
-        const name = "VLEO 2";
+        const bodyId = (this._nextId++).toString();
+        const name = this._nameInput.value;
         console.log(`Requesting satellite "${name}" (${bodyId})`);
         fetch(`${this._spiceServer}/processes/position/execute`, {
             method: "POST",
@@ -75,8 +75,8 @@
                 "RAAN": 0.004,
                 "AOP": 270,
                 "M": 0,
-                "START": "2028-06-01T00:00:00",
-                "END": "2028-08-01T00:00:00",
+                "START": this._startDateDiv.value,
+                "END": this._endDateDiv.value,
                 "DELTA": 60,
                 "description": "This is a test"
             }),
@@ -105,15 +105,35 @@
     }
 
     init() {
-        this._connectionEstablished = false;
-        this._needImage = true;
-        this._viewDiv = CosmoScout.gui.loadTemplateContent('satellite-view-template');
-        document.getElementById('cosmoscout').appendChild(this._viewDiv);
-        this._viewCanvas = document.getElementById('satellite-view-canvas');
-        this._viewCtx = this._viewCanvas.getContext("2d");
+        // Set up server addresses
         this._renderServer = "http://localhost:9002";
         this._spiceServer = "http://localhost:8000";
+
+        // Set up state
+        this._connectionEstablished = false;
+        this._needImage = true;
         this._requestedSatellites = [];
+        this._nextId = -11111;
+
+        // Init/Get various DOM elements
+        this._viewDiv = CosmoScout.gui.loadTemplateContent('satellite-view-template');
+        document.getElementById('cosmoscout').appendChild(this._viewDiv);
+
+        this._viewCanvas = document.getElementById('satellite-view-canvas');
+        this._viewCtx = this._viewCanvas.getContext("2d");
+
+        this._nameInput = document.getElementById("satellite-add-name");
+        this._startDateDiv = document.getElementById("satellite-add-start-date");
+        this._endDateDiv = document.getElementById("satellite-add-end-date");
+
+        document.querySelector("#satellite-add-start-date + div > button").onclick = () => {
+            this._startDateDiv.value =
+                CosmoScout.state.simulationTime.toISOString().replace('T', ' ').slice(0, 19);
+        };
+        document.querySelector("#satellite-add-end-date + div > button").onclick = () => {
+            this._endDateDiv.value =
+                CosmoScout.state.simulationTime.toISOString().replace('T', ' ').slice(0, 19);
+        };
 
         this._resetObserver();
     }
