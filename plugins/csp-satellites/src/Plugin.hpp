@@ -10,6 +10,7 @@
 
 #include "../../../src/cs-core/PluginBase.hpp"
 #include "../../../src/cs-utils/DefaultProperty.hpp"
+#include "../../../src/cs-utils/Downloader.hpp"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
@@ -27,6 +28,8 @@ class Satellite;
 /// details.
 class Plugin : public cs::core::PluginBase {
  public:
+  Plugin();
+
   struct Settings {
 
     /// The settings for a satellite.
@@ -49,8 +52,16 @@ class Plugin : public cs::core::PluginBase {
   void onLoad();
   void onSave();
 
+  /// Start the download of newly calculated satellite kernels
+  void downloadSatelliteKernel(std::string const& jobId);
+  /// Kernel download has finished, now load it into CosmoScout
+  void loadSatelliteKernel();
+
   Settings                                mPluginSettings;
   std::vector<std::shared_ptr<Satellite>> mSatellites;
+
+  cs::utils::Downloader    mDownloader;
+  std::vector<std::string> mPendingKernels;
 
   int mOnLoadConnection = -1;
   int mOnSaveConnection = -1;

@@ -55,6 +55,49 @@
             .catch(e => console.error(`Error fetching satellite view: ${e}`));
     }
 
+    _requestSatellite() {
+        console.log("Requesting satellite");
+        fetch(`${this._spiceServer}/processes/position/execute`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                "id": -10002,
+                "center": 399,
+                "frame": "J2000",
+                "MU": 398600,
+                "SMA": 6733,
+                "ECC": 0.03190221275591707,
+                "INC": 90.00014746268153,
+                "RAAN": 0.004,
+                "AOP": 270,
+                "M": 0,
+                "START": "2028-06-01T00:00:00",
+                "END": "2028-08-01T00:00:00",
+                "DELTA": 60,
+                "description": "This is a test"
+            }),
+        })
+            .then(res => res.json())
+            .then(res => {
+                const id = res.output.bsp.replace(".bsp", "");
+                this._requestedSatellites.push(id);
+            });
+    }
+
+    _checkProcessStatus(jobId) {
+        fetch(`${this._spiceServer}/jobs/${jobId}`)
+            .then(res => res.json())
+            .then(res => {
+                if (res.status == "running") {
+                    setTimeout(() => { this._requestedSatellites.push(jobId); }, 1000);
+                } else if (res.status == "submitted") {
+                    CosmoScout.callbacks.satellites.addSatellite(jobId);
+                }
+            });
+    }
+
     init() {
         this._connectionEstablished = false;
         this._needImage = true;
@@ -63,6 +106,8 @@
         this._viewCanvas = document.getElementById('satellite-view-canvas');
         this._viewCtx = this._viewCanvas.getContext("2d");
         this._renderServer = "http://localhost:9002";
+        this._spiceServer = "http://localhost:8000";
+        this._requestedSatellites = [];
 
         this._resetObserver();
     }
@@ -76,6 +121,8 @@
             this._needImage = false;
             this._fetchImage();
         }
+        this._requestedSatellites.forEach(jobId => this._checkProcessStatus(jobId));
+        this._requestedSatellites = [];
     }
   }
 

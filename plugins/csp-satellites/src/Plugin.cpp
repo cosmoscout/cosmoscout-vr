@@ -10,9 +10,11 @@
 #include "Satellite.hpp"
 #include "logger.hpp"
 
-#include "../../../src/cs-core/SolarSystem.hpp"
 #include "../../../src/cs-core/GuiManager.hpp"
+#include "../../../src/cs-core/SolarSystem.hpp"
 #include "../../../src/cs-utils/logger.hpp"
+
+#include <cspice/SpiceUsr.h>
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -54,6 +56,12 @@ void to_json(nlohmann::json& j, Plugin::Settings const& o) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+Plugin::Plugin()
+    : mDownloader(4) {
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void Plugin::init() {
 
   logger().info("Loading plugin...");
@@ -61,8 +69,15 @@ void Plugin::init() {
   mOnLoadConnection = mAllSettings->onLoad().connect([this]() { onLoad(); });
   mOnSaveConnection = mAllSettings->onSave().connect([this]() { onSave(); });
 
-  mGuiManager->addTemplate("satellite-view-template", "../share/resources/gui/csp-satellites-template.html");
+  mGuiManager->addTemplate(
+      "satellite-view-template", "../share/resources/gui/csp-satellites-template.html");
+  mGuiManager->addPluginTabToSideBarFromHTML(
+      "Satellites", "satellite", "../share/resources/gui/csp-satellites-tab.html");
   mGuiManager->executeJavascriptFile("../share/resources/gui/js/csp-satellites.js");
+
+  mGuiManager->getGui()->registerCallback("satellites.addSatellite",
+      "Succesfully requested data for a new satellite, now load it into the plugin.",
+      std::function([this](std::string jobId) { downloadSatelliteKernel(jobId); }));
 
   // Load settings.
   onLoad();
@@ -92,6 +107,9 @@ void Plugin::update() {
   for (auto const& satellite : mSatellites) {
     satellite->update();
   }
+  if (!mPendingKernels.empty() && mDownloader.hasFinished()) {
+    loadSatelliteKernel();
+  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -113,6 +131,40 @@ void Plugin::onLoad() {
 
 void Plugin::onSave() {
   mAllSettings->mPlugins["csp-satellites"] = mPluginSettings;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Plugin::downloadSatelliteKernel(std::string const& jobId) {
+  std::stringstream downloadPath;
+  downloadPath << "http://localhost:8000/jobs/" << jobId << "/result/bsp";
+  std::stringstream localPath;
+  localPath << "./spice_out/" << jobId << ".bsp";
+  mDownloader.download(downloadPath.str(), localPath.str());
+  mPendingKernels.push_back(localPath.str());
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Plugin::loadSatelliteKernel() {
+  bool failed = false;
+  for (std::string const& kernel : mPendingKernels) {
+    // Load the spice kernels.
+    furnsh_c(kernel.c_str());
+
+    if (failed_c()) {
+      int32_t const maxSpiceErrorLength = 320;
+
+      std::array<SpiceChar, maxSpiceErrorLength> msg{};
+      getmsg_c("LONG", maxSpiceErrorLength, msg.data());
+      logger().error(msg.data());
+      failed = true;
+    }
+  }
+  mPendingKernels.clear();
+  if (failed) {
+    throw std::runtime_error("Loading satellite kernels failed!");
+  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
