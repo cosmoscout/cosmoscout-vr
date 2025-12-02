@@ -126,7 +126,9 @@ void Plugin::onLoad() {
 
   mGuiManager->getGui()->registerCallback("virtualSatellite.setRepository",
       "Set the current repository to the one with the given name.",
-      std::function([this](std::string&& name) { setRepository(name); }));
+      std::function([this](std::string&& name) {
+        setRepository(name);
+      }));
 
   mGuiManager->getGui()->registerCallback("virtualSatellite.setRootSEI",
       "Set the current root SEI to the one with the given name.",
@@ -158,7 +160,7 @@ void Plugin::onLoad() {
           mManagementAPI.setUsername("");
           mManagementAPI.setPassword("");
           logger().error(
-              "Failed to fetch data. Error: {} ({})", result.at("message"), result.at("status"));
+              "Failed to fetch data. Error: {} ({})", result.at("message").dump(), result.at("status").dump());
         }
       }));
 }
@@ -166,6 +168,7 @@ void Plugin::onLoad() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Plugin::setRepository(std::string const& repoName) {
+  logger().info("Repository selected: {}", repoName);
   mGuiManager->getGui()->callJavascript("CosmoScout.virtualSatellite.resetSEISelect");
   mRootSEIs.clear();
 
@@ -176,8 +179,15 @@ void Plugin::setRepository(std::string const& repoName) {
 
   mRepoName = repoName;
 
+  //logger().info("Requesting root SEIs for {}", *mRepoName);
+
   auto result = mModelAPI.getRequest(*mRepoName + "/seis", {{"sync", "true"}, {"build", "false"}});
+
+  //logger().info("Response: {}", result.dump());
+
   auto rootSEIs = result.get<std::vector<BeanStructuralElementInstance>>();
+
+  //logger().info("Set root seis");
 
   for (auto const& rootSEI : rootSEIs) {
     auto sei = getSEI(rootSEI.uuid);
@@ -194,7 +204,7 @@ void Plugin::setRepository(std::string const& repoName) {
 
 void Plugin::setRootSEI(std::string const& uuid) {
   mBoxRenderer = std::make_unique<BoxRenderer>(mPluginSettings, mSolarSystem);
-  mBoxRenderer->setObjectName("ISS");
+  mBoxRenderer->setObjectName("VLEO");
   if (uuid == "None") {
     mRootSEI.reset();
     return;
@@ -284,16 +294,16 @@ void Plugin::printTree(BeanStructuralElementInstance const& sei, uint32_t depth)
     categories += sei.categoryAssignments[i].name;
   }
 
-  logger().info("{}{}", indent, std::string(90 - 2 * depth, '-'));
+  /*logger().info("{}{}", indent, std::string(90 - 2 * depth, '-'));
 
   logger().info("{}|       UUID: {}", indent, sei.uuid);
   logger().info("{}|       Name: {}", indent, sei.name);
   logger().info("{}|       Type: {}", indent, sei.type.value_or(""));
-  logger().info("{}| Categories: {}", indent, categories);
+  logger().info("{}| Categories: {}", indent, categories);*/
 
   if (!sei.categoryAssignments.empty() && sei.categoryAssignments[0].name == "Visualisation") {
     auto ca = getCA(sei.categoryAssignments[0].uuid);
-    logger().info("{}|   CA Shape: {}", indent, std::get<std::string>(ca.shapeBean.value));
+    /*logger().info("{}|   CA Shape: {}", indent, std::get<std::string>(ca.shapeBean.value));
     logger().info("{}|   CA   Pos: ({}, {}, {})", indent, std::get<float>(ca.positionXBean.value),
         std::get<float>(ca.positionYBean.value), std::get<float>(ca.positionZBean.value));
 
@@ -305,7 +315,7 @@ void Plugin::printTree(BeanStructuralElementInstance const& sei, uint32_t depth)
           std::get<float>(ca.sizeYBean.value), std::get<float>(ca.sizeZBean.value));
     } else if (std::get<std::string>(ca.shapeBean.value) == "SPHERE") {
       logger().info("{}| CA  Radius: {}", indent, std::get<float>(ca.radiusBean.value));
-    }
+    }*/
 
     if (ca.colorBean.value.index() != 0) {
       auto value = std::get<int64_t>(ca.colorBean.value);
@@ -318,22 +328,22 @@ void Plugin::printTree(BeanStructuralElementInstance const& sei, uint32_t depth)
       std::array<uint8_t, 4> _rgb;
       std::memcpy(_rgb.data(), &color, sizeof(uint32_t));
 
-      logger().info("{}|   CA Color: {}", indent, colorString);
+      /*logger().info("{}|   CA Color: {}", indent, colorString);
       logger().info("{}|   CA Color: ({}, {}, {})", indent, _rgb[0] / 255.0, _rgb[1] / 255.0,
-          _rgb[2] / 255.0);
+          _rgb[2] / 255.0);*/
     }
-
+/*
     if (ca.transparencyBean.value.index() != 0) {
       auto value = std::get<float>(ca.transparencyBean.value);
       logger().info("{}|   CA Alpha: {}", indent, value);
-    }
+    }*/
   }
 
-  logger().info("{}{}", indent, std::string(90 - 2 * depth, '-'));
-
+  //logger().info("{}{}", indent, std::string(90 - 2 * depth, '-'));
+/*
   for (auto const& child : sei.children) {
     printTree(getSEI(child.uuid), depth + 1);
-  }
+  }*/
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
