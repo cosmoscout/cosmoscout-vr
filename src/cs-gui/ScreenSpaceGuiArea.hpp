@@ -40,7 +40,7 @@ class CS_GUI_EXPORT ScreenSpaceGuiArea : public GuiArea,
   ScreenSpaceGuiArea(ScreenSpaceGuiArea&& other)      = delete;
 
   ScreenSpaceGuiArea& operator=(ScreenSpaceGuiArea const& other) = delete;
-  ScreenSpaceGuiArea& operator=(ScreenSpaceGuiArea&& other) = delete;
+  ScreenSpaceGuiArea& operator=(ScreenSpaceGuiArea&& other)      = delete;
 
   ~ScreenSpaceGuiArea() override = default;
 

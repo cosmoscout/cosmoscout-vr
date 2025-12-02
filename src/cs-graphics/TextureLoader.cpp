@@ -61,19 +61,6 @@ std::unique_ptr<VistaTexture> TextureLoader::loadFromFile(std::string const& sFi
     int16 channels{};
     TIFFGetField(data, TIFFTAG_SAMPLESPERPIXEL, &channels);
 
-    if (bpp != 8) {
-      logger().error(
-          "Failed to load '{}' with libtiff: Only 8 bit per sample are supported right now!",
-          sFileName);
-      return nullptr;
-    }
-
-    std::vector<char> pixels(width * height * channels);
-
-    for (unsigned y = 0; y < height; y++) {
-      TIFFReadScanline(data, &pixels[width * channels * y], y);
-    }
-
     GLenum ePixelFormat = GL_RGBA;
 
     if (channels == 1) {
@@ -84,7 +71,36 @@ std::unique_ptr<VistaTexture> TextureLoader::loadFromFile(std::string const& sFi
       ePixelFormat = GL_RGB;
     }
 
-    result->UploadTexture(width, height, pixels.data(), true, ePixelFormat);
+    if (bpp != 8 && bpp != 32) {
+      logger().error(
+          "Failed to load '{}' with libtiff: Only 8 or 32 bit per sample are supported right now!",
+          sFileName);
+      return nullptr;
+    }
+
+    if (bpp == 32) {
+
+      std::vector<float> pixels(width * height * channels);
+
+      for (unsigned y = 0; y < height; y++) {
+        TIFFReadScanline(data, &pixels[width * channels * y], y);
+      }
+
+      result->Bind();
+      glTexImage2D(
+          GL_TEXTURE_2D, 0, GL_RGB32F, width, height, 0, ePixelFormat, GL_FLOAT, pixels.data());
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
+    } else {
+
+      std::vector<char> pixels(width * height * channels);
+
+      for (unsigned y = 0; y < height; y++) {
+        TIFFReadScanline(data, &pixels[width * channels * y], y);
+      }
+
+      result->UploadTexture(width, height, pixels.data(), true, ePixelFormat);
+    }
 
     TIFFClose(data);
 

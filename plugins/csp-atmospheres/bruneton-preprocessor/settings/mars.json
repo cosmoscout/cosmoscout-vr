@@ -1,18 +1,29 @@
 {
-    "multiScatteringOrder": 10,
-    "sunDistance": 227900000000,
-    "minAltitude": 3385000,
-    "maxAltitude": 3469500,
-    "molecules": {
-        "phase": "plugins/csp-atmospheres/scattering-table-generator/output/mars_cosmoscout_molecules_cinematic_phase.csv",
-        "betaSca": "plugins/csp-atmospheres/scattering-table-generator/output/mars_cosmoscout_molecules_cinematic_scattering.csv",
-        "betaAbs": "plugins/csp-atmospheres/scattering-table-generator/output/mars_cosmoscout_molecules_cinematic_absorption.csv",
-        "density": "plugins/csp-atmospheres/scattering-table-generator/output/mars_cosmoscout_molecules_cinematic_density.csv"
-    },
-    "aerosols": {
-        "phase": "plugins/csp-atmospheres/scattering-table-generator/output/mars_cosmoscout_aerosols_cinematic_phase.csv",
-        "betaSca": "plugins/csp-atmospheres/scattering-table-generator/output/mars_cosmoscout_aerosols_cinematic_scattering.csv",
-        "betaAbs": "plugins/csp-atmospheres/scattering-table-generator/output/mars_cosmoscout_aerosols_cinematic_absorption.csv",
-        "density": "plugins/csp-atmospheres/scattering-table-generator/output/mars_cosmoscout_aerosols_cinematic_density.csv"
-    }
+  "multiScatteringOrder": 10,
+  "sunDistance": 227900000000,
+  "minAltitude": 3385000,
+  "maxAltitude": 3469500,
+  "stepSizeOpticalDepth": 2000,
+  "stepSizeSingleScattering": 2000,
+  "stepSizeMultiScattering": 2000,
+  "transmittanceTextureWidth": 512,
+  "transmittanceTextureHeight": 256,
+  "scatteringTextureRSize": 32,
+  "scatteringTextureMuSize": 128,
+  "scatteringTextureMuSSize": 32,
+  "scatteringTextureNuSize": 8,
+  "refraction": true,
+  "molecules": {
+    "phase": "plugins/csp-atmospheres/scattering-table-generator/output/mars_cosmoscout_molecules_cinematic_phase.csv",
+    "betaSca": "plugins/csp-atmospheres/scattering-table-generator/output/mars_cosmoscout_molecules_cinematic_scattering.csv",
+    "betaAbs": "plugins/csp-atmospheres/scattering-table-generator/output/mars_cosmoscout_molecules_cinematic_absorption.csv",
+    "density": "plugins/csp-atmospheres/scattering-table-generator/output/mars_cosmoscout_molecules_cinematic_density.csv"
+  },
+  "aerosols": {
+    "phase": "plugins/csp-atmospheres/scattering-table-generator/output/mars_cosmoscout_aerosols_cinematic_phase.csv",
+    "betaSca": "plugins/csp-atmospheres/scattering-table-generator/output/mars_cosmoscout_aerosols_cinematic_scattering.csv",
+    "betaAbs": "plugins/csp-atmospheres/scattering-table-generator/output/mars_cosmoscout_aerosols_cinematic_absorption.csv",
+    "density": "plugins/csp-atmospheres/scattering-table-generator/output/mars_cosmoscout_aerosols_cinematic_density.csv"
+  },
+  "ior": 3.383e-6
 }

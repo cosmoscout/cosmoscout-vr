@@ -61,6 +61,10 @@ struct Params {
   ScatteringComponent               mAerosols;
   std::optional<AbsorbingComponent> mOzone;
 
+  /// To compute the refraction of light in the atmosphere, the refractive index of the atmosphere
+  /// is needed. For increased precision, the refractive index is stored as n-1.
+  float mRefractiveIndex = 0.0002777F;
+
   /// The wavelength values, in nanometers, and sorted in increasing order, for which the
   /// phase functions and extinction coefficients in the atmosphere components are given.
   std::vector<float> mWavelengths;
@@ -69,22 +73,36 @@ struct Params {
   float mMinAltitude = 6371000.F;
   float mMaxAltitude = 6471000.F;
 
+  /// Refract the light when it travels through the atmosphere. This will produce an additional
+  /// look-up texture in the same parameter space as the transmittance texture. For each sample,
+  /// it contains the wavelength-dependent angular deviation of the light ray due to refraction.
+  cs::utils::DefaultProperty<bool> mRefraction{true};
+
   /// The average reflectance of the ground used during multiple scattering.
   cs::utils::DefaultProperty<float> mGroundAlbedo{0.1F};
 
   /// The number of multiple scattering events to precompute. Use zero for single-scattering only.
   cs::utils::DefaultProperty<int32_t> mMultiScatteringOrder{4};
 
-  /// The number of samples to evaluate when precomputing the optical depth.
+  /// The number of samples to evaluate when precomputing the optical depth. If refraction is used,
+  /// the algorithm uses a fixed step size instead of a fixed number of samples. So if mRefraction
+  /// is true, mStepSizeOpticalDepth (in meters) will be used instead of mSampleCountOpticalDepth.
   cs::utils::DefaultProperty<int32_t> mSampleCountOpticalDepth{500};
+  cs::utils::DefaultProperty<int32_t> mStepSizeOpticalDepth{10000};
 
   /// The number of samples to evaluate when precomputing the single scattering. Larger values
-  /// improve the sampling of thin atmospheric layers.
+  /// improve the sampling of thin atmospheric layers. If refraction is used, the algorithm uses a
+  /// fixed step size instead of a fixed number of samples. So if mRefraction is true,
+  /// mStepSizeSingleScattering (in meters) will be used instead of mSampleCountSingleScattering.
   cs::utils::DefaultProperty<int32_t> mSampleCountSingleScattering{50};
+  cs::utils::DefaultProperty<int32_t> mStepSizeSingleScattering{10000};
 
   /// The number of samples to evaluate when precomputing the multiple scattering. Larger values
-  /// tend to darken the horizon for thick atmospheres.
+  /// tend to darken the horizon for thick atmospheres. If refraction is used, the algorithm uses a
+  /// fixed step size instead of a fixed number of samples. So if mRefraction is true,
+  /// mStepSizeMultiScattering (in meters) will be used instead of mSampleCountMultiScattering.
   cs::utils::DefaultProperty<int32_t> mSampleCountMultiScattering{50};
+  cs::utils::DefaultProperty<int32_t> mStepSizeMultiScattering{10000};
 
   /// The number of samples to evaluate when precomputing the scattering density. Larger values
   /// spread out colors in the sky.

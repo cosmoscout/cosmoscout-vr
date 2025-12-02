@@ -22,7 +22,7 @@ int ozoneMode(std::vector<std::string> const& arguments) {
 
   bool        cPrintHelp     = false;
   std::string cOutput        = "ozone";
-  double      cNumberDensity = 5.374e18;
+  double      cNumberDensity = 4e18; // See https://amt.copernicus.org/articles/14/6057/2021/
   std::string cLambdas       = "";
   double      cMinLambda     = 0.36e-6;
   double      cMaxLambda     = 0.83e-6;
@@ -66,16 +66,18 @@ int ozoneMode(std::vector<std::string> const& arguments) {
   // Values from
   // http://www.iup.uni-bremen.de/gruppen/molspec/databases/referencespectra/o3spectra2011/index.html
   // for 233K, summed and averaged in each bin (e.g. the value for 360nm is the average of the
-  // original values for all wavelengths between 360 and 370nm). Values in m².
+  // original values for all wavelengths between 360 and 370nm). Values in m². The data has been
+  // updated as newer data became available on the website.
   const double              minLambda   = 0.36e-6;
   const double              maxLambda   = 0.83e-6;
-  const std::vector<double> absorptions = {1.18e-27, 2.182e-28, 2.818e-28, 6.636e-28, 1.527e-27,
-      2.763e-27, 5.52e-27, 8.451e-27, 1.582e-26, 2.316e-26, 3.669e-26, 4.924e-26, 7.752e-26,
-      9.016e-26, 1.48e-25, 1.602e-25, 2.139e-25, 2.755e-25, 3.091e-25, 3.5e-25, 4.266e-25,
-      4.672e-25, 4.398e-25, 4.701e-25, 5.019e-25, 4.305e-25, 3.74e-25, 3.215e-25, 2.662e-25,
-      2.238e-25, 1.852e-25, 1.473e-25, 1.209e-25, 9.423e-26, 7.455e-26, 6.566e-26, 5.105e-26,
-      4.15e-26, 4.228e-26, 3.237e-26, 2.451e-26, 2.801e-26, 2.534e-26, 1.624e-26, 1.465e-26,
-      2.078e-26, 1.383e-26, 7.105e-27};
+  const std::vector<double> absorptions = {1.18006e-27, 2.18205e-28, 2.81764e-28, 6.63629e-28,
+      1.52685e-27, 2.76259e-27, 5.51975e-27, 8.45102e-27, 1.58232e-26, 2.31555e-26, 3.66625e-26,
+      4.92413e-26, 7.76088e-26, 9.02900e-26, 1.48333e-25, 1.60547e-25, 2.14349e-25, 2.76161e-25,
+      3.09823e-25, 3.50934e-25, 4.27703e-25, 4.68477e-25, 4.40965e-25, 4.71385e-25, 5.03275e-25,
+      4.31623e-25, 3.74999e-25, 3.22324e-25, 2.66819e-25, 2.24367e-25, 1.85651e-25, 1.47571e-25,
+      1.21105e-25, 9.43730e-26, 7.46292e-26, 6.57117e-26, 5.10619e-26, 4.14823e-26, 4.22622e-26,
+      3.23257e-26, 2.44425e-26, 2.79549e-26, 2.52744e-26, 1.61447e-26, 1.45506e-26, 2.07028e-26,
+      1.37295e-26, 6.98672e-27};
 
   // Open the output file and write the CSV header.
   std::ofstream output(cOutput + "_absorption.csv");

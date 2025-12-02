@@ -37,35 +37,35 @@ GuiItem::GuiItem(std::string const& url, bool allowLocalFileAccess)
     , mIsRelPositionY(true)
     , mIsRelOffsetX(true)
     , mIsRelOffsetY(true) {
-  setDrawCallback([this](DrawEvent const& event) { return updateTexture(event); });
+
+  setDrawCallback([this](DrawEvent const& event) {
+    mPBOsNeedUpload = static_cast<uint8_t>(mTexturePBOs.size());
+
+    if (event.mResized) {
+      mTextureSizeX = event.mWidth;
+      mTextureSizeY = event.mHeight;
+
+      recreateBuffers();
+    }
+
+    return mPixels.data();
+  });
 
   setRequestKeyboardFocusCallback(
       [this](bool requested) { mIsKeyboardInputElementFocused = requested; });
 
-  glGenBuffers(1, &mTextureBuffer);
-  glBindBuffer(GL_TEXTURE_BUFFER, mTextureBuffer);
-  size_t bufferSize{4 * sizeof(uint8_t) * getWidth() * getHeight()};
+  mTextureSizeX = getWidth();
+  mTextureSizeY = getHeight();
 
-  GLbitfield flags = GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT;
-  glBufferStorage(GL_TEXTURE_BUFFER, bufferSize, nullptr, flags);
-  mBufferData = static_cast<uint8_t*>(glMapBufferRange(GL_TEXTURE_BUFFER, 0, bufferSize, flags));
-
-  glGenTextures(1, &mTexture);
-
-  glBindTexture(GL_TEXTURE_BUFFER, mTexture);
-  glTexBuffer(GL_TEXTURE_BUFFER, GL_RGBA8, mTextureBuffer);
-
-  glBindBuffer(GL_TEXTURE_BUFFER, 0);
-  glBindTexture(GL_TEXTURE_BUFFER, 0);
+  recreateBuffers();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 GuiItem::~GuiItem() {
-  glBindBuffer(GL_TEXTURE_BUFFER, mTextureBuffer);
-  glUnmapBuffer(GL_TEXTURE_BUFFER);
-  glDeleteBuffers(1, &mTextureBuffer);
+  glDeleteBuffers(2, &mTexturePBOs[0]);
   glDeleteTextures(1, &mTexture);
+
   // seems to be necessary as OnPaint can be called by some other thread even
   // if this object is already deleted
   setDrawCallback([](DrawEvent const& /*unused*/) { return nullptr; });
@@ -217,40 +217,68 @@ bool GuiItem::calculateMousePosition(int areaX, int areaY, int& x, int& y) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-uint8_t* GuiItem::updateTexture(DrawEvent const& event) {
-  if (event.mResized) {
-    glBindBuffer(GL_TEXTURE_BUFFER, mTextureBuffer);
-    glUnmapBuffer(GL_TEXTURE_BUFFER);
-    glBindBuffer(GL_TEXTURE_BUFFER, 0);
-
-    glDeleteBuffers(1, &mTextureBuffer);
-    glGenBuffers(1, &mTextureBuffer);
-    glBindBuffer(GL_TEXTURE_BUFFER, mTextureBuffer);
-
-    size_t     bufferSize{4 * sizeof(uint8_t) * event.mWidth * event.mHeight};
-    GLbitfield flags = GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT;
-    glBufferStorage(GL_TEXTURE_BUFFER, bufferSize, nullptr, flags);
-    mBufferData = static_cast<uint8_t*>(glMapBufferRange(GL_TEXTURE_BUFFER, 0, bufferSize, flags));
-
-    glBindTexture(GL_TEXTURE_BUFFER, mTexture);
-    glTexBuffer(GL_TEXTURE_BUFFER, GL_RGBA8, mTextureBuffer);
-
-    glBindBuffer(GL_TEXTURE_BUFFER, 0);
-    glBindTexture(GL_TEXTURE_BUFFER, 0);
-    mTextureSizeX = event.mWidth;
-    mTextureSizeY = event.mHeight;
-  }
-
-  return mBufferData;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
 void GuiItem::onAreaResize(int width, int height) {
   mAreaWidth  = width;
   mAreaHeight = height;
 
   updateSizes();
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+uint32_t GuiItem::getTexture() const {
+
+  // Copy the pixels buffer to the texture.
+  if (mPBOsNeedUpload > 0) {
+
+    glBindBuffer(GL_PIXEL_UNPACK_BUFFER, mTexturePBOs[mCurrentPBO]);
+    auto ptr = static_cast<uint8_t*>(glMapBufferRange(
+        GL_PIXEL_UNPACK_BUFFER, 0, 4 * mTextureSizeX * mTextureSizeY, GL_MAP_WRITE_BIT));
+    std::memcpy(ptr, mPixels.data(), 4 * mTextureSizeX * mTextureSizeY);
+    glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER);
+
+    glBindTexture(GL_TEXTURE_2D, mTexture);
+    glBindBuffer(GL_PIXEL_UNPACK_BUFFER,
+        mTexturePBOs[(mCurrentPBO + mTexturePBOs.size() - 1) % mTexturePBOs.size()]);
+    glTexSubImage2D(
+        GL_TEXTURE_2D, 0, 0, 0, mTextureSizeX, mTextureSizeY, GL_BGRA, GL_UNSIGNED_BYTE, 0);
+    glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
+    glBindTexture(GL_TEXTURE_2D, 0);
+
+    mCurrentPBO = (mCurrentPBO + 1) % mTexturePBOs.size();
+    mPBOsNeedUpload -= 1;
+  }
+
+  return mTexture;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void GuiItem::recreateBuffers() {
+
+  if (mTexture) {
+    glDeleteTextures(1, &mTexture);
+    glDeleteBuffers(2, &mTexturePBOs[0]);
+  }
+
+  for (size_t i = 0; i < mTexturePBOs.size(); ++i) {
+    glGenBuffers(1, &mTexturePBOs[i]);
+    glBindBuffer(GL_TEXTURE_BUFFER, mTexturePBOs[i]);
+    glBufferStorage(
+        GL_TEXTURE_BUFFER, 4 * mTextureSizeX * mTextureSizeY, nullptr, GL_MAP_WRITE_BIT);
+  }
+  glBindBuffer(GL_TEXTURE_BUFFER, 0);
+
+  glGenTextures(1, &mTexture);
+  glBindTexture(GL_TEXTURE_2D, mTexture);
+  glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA8, mTextureSizeX, mTextureSizeY);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+  glBindTexture(GL_TEXTURE_2D, 0);
+
+  mPixels.resize(4 * mTextureSizeX * mTextureSizeY);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -293,12 +321,6 @@ void GuiItem::updateSizes() {
   }
 
   resize(static_cast<int>(mSizeX), static_cast<int>(mSizeY));
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-uint32_t GuiItem::getTexture() const {
-  return mTexture;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -10,6 +10,7 @@
 #include "../../../src/cs-utils/filesystem.hpp"
 #include "../../../src/cs-utils/utils.hpp"
 #include "../../logger.hpp"
+#include "../../utils.hpp"
 #include "Metadata.hpp"
 
 #include <cassert>
@@ -18,7 +19,6 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <iostream>
 #include <memory>
-#include <tiffio.h>
 
 #include <glm/gtc/constants.hpp>
 
@@ -72,33 +72,38 @@ bool Model::init(
   }
 
   // Load the precomputed textures.
-  mPhaseTexture = std::get<0>(read2DTexture(settings.mDataDirectory + "/phase.tif"));
+  mPhaseTexture = std::get<0>(utils::read2DTexture(settings.mDataDirectory + "/phase.tif"));
 
   {
-    auto const [t, w, h]        = read2DTexture(settings.mDataDirectory + "/transmittance.tif");
-    mTransmittanceTexture       = t;
-    mTransmittanceTextureWidth  = w;
-    mTransmittanceTextureHeight = h;
+    auto const [t, s]     = utils::read2DTexture(settings.mDataDirectory + "/transmittance.tif");
+    mTransmittanceTexture = t;
+    mTransmittanceTextureWidth  = s.x;
+    mTransmittanceTextureHeight = s.y;
   }
 
   {
-    auto const [t, w, h]     = read2DTexture(settings.mDataDirectory + "/indirect_illuminance.tif");
+    auto const [t, s] = utils::read2DTexture(settings.mDataDirectory + "/indirect_illuminance.tif");
     mIrradianceTexture       = t;
-    mIrradianceTextureWidth  = w;
-    mIrradianceTextureHeight = h;
+    mIrradianceTextureWidth  = s.x;
+    mIrradianceTextureHeight = s.y;
   }
 
   {
-    auto const [t, w, h, d] = read3DTexture(settings.mDataDirectory + "/multiple_scattering.tif");
+    auto const [t, s] = utils::read3DTexture(settings.mDataDirectory + "/multiple_scattering.tif");
     mMultipleScatteringTexture = t;
     mScatteringTextureNuSize   = meta.mScatteringTextureNuSize;
-    mScatteringTextureMuSSize  = w / mScatteringTextureNuSize;
-    mScatteringTextureMuSize   = h;
-    mScatteringTextureRSize    = d;
+    mScatteringTextureMuSSize  = s.x / mScatteringTextureNuSize;
+    mScatteringTextureMuSize   = s.y;
+    mScatteringTextureRSize    = s.z;
   }
 
-  mSingleAerosolsScatteringTexture =
-      std::get<0>(read3DTexture(settings.mDataDirectory + "/single_aerosols_scattering.tif"));
+  mSingleAerosolsScatteringTexture = std::get<0>(
+      utils::read3DTexture(settings.mDataDirectory + "/single_aerosols_scattering.tif"));
+
+  if (meta.mRefraction) {
+    mThetaDeviationTexture =
+        std::get<0>(utils::read2DTexture(settings.mDataDirectory + "/theta_deviation.tif"));
+  }
 
   // Now create the shader. We load the common and model glsl files and concatenate them with the
   // some constants and the metadata.
@@ -111,6 +116,7 @@ bool Model::init(
   // clang-format off
   std::string shader =
     std::string("#version 330\n") +
+    "#define USE_REFRACTION "                   + cs::utils::toString(meta.mRefraction) + "\n" +
     "const int TRANSMITTANCE_TEXTURE_WIDTH = "  + cs::utils::toString(mTransmittanceTextureWidth) + ";\n" +
     "const int TRANSMITTANCE_TEXTURE_HEIGHT = " + cs::utils::toString(mTransmittanceTextureHeight) + ";\n" +
     "const int SCATTERING_TEXTURE_R_SIZE = "    + cs::utils::toString(mScatteringTextureRSize) + ";\n" +
@@ -167,93 +173,13 @@ GLuint Model::setUniforms(GLuint program, GLuint startTextureUnit) const {
   glUniform1i(
       glGetUniformLocation(program, "uSingleAerosolsScatteringTexture"), startTextureUnit + 4);
 
-  return startTextureUnit + 5;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-std::tuple<GLuint, int32_t, int32_t> Model::read2DTexture(std::string const& path) const {
-  auto* data = TIFFOpen(path.c_str(), "r");
-
-  if (!data) {
-    logger().error("Failed to open TIFF file '{}'", path);
-    return {0u, 0, 0};
+  if (mThetaDeviationTexture) {
+    glActiveTexture(GL_TEXTURE0 + startTextureUnit + 5);
+    glBindTexture(GL_TEXTURE_2D, mThetaDeviationTexture);
+    glUniform1i(glGetUniformLocation(program, "uThetaDeviationTexture"), startTextureUnit + 5);
   }
 
-  uint32_t width{};
-  uint32_t height{};
-
-  TIFFGetField(data, TIFFTAG_IMAGELENGTH, &height);
-  TIFFGetField(data, TIFFTAG_IMAGEWIDTH, &width);
-
-  std::vector<float> pixels(width * height * 3);
-
-  for (unsigned y = 0; y < height; y++) {
-    TIFFReadScanline(data, &pixels[width * 3 * y], y);
-  }
-
-  TIFFClose(data);
-
-  GLuint texture;
-  glGenTextures(1, &texture);
-  glActiveTexture(GL_TEXTURE0);
-  glBindTexture(GL_TEXTURE_2D, texture);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-  glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, width, height, 0, GL_RGB, GL_FLOAT, pixels.data());
-
-  return {texture, width, height};
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-std::tuple<GLuint, int32_t, int32_t, int32_t> Model::read3DTexture(std::string const& path) const {
-  auto* data = TIFFOpen(path.c_str(), "r");
-
-  if (!data) {
-    logger().error("Failed to open TIFF file '{}'", path);
-    return {0u, 0, 0, 0};
-  }
-
-  uint32_t width{};
-  uint32_t height{};
-  uint32_t depth{};
-
-  TIFFGetField(data, TIFFTAG_IMAGELENGTH, &height);
-  TIFFGetField(data, TIFFTAG_IMAGEWIDTH, &width);
-
-  do {
-    depth++;
-  } while (TIFFReadDirectory(data));
-
-  std::vector<float> pixels(width * height * depth * 3);
-
-  for (unsigned z = 0; z < depth; z++) {
-    TIFFSetDirectory(data, z);
-    for (unsigned y = 0; y < height; y++) {
-      TIFFReadScanline(data, &pixels[width * 3 * y + (3 * width * height * z)], y);
-    }
-  }
-
-  TIFFClose(data);
-
-  GLuint texture;
-  glGenTextures(1, &texture);
-  glActiveTexture(GL_TEXTURE0);
-  glBindTexture(GL_TEXTURE_3D, texture);
-  glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-  glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-  glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-  glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-  glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-  glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
-  glTexImage3D(
-      GL_TEXTURE_3D, 0, GL_RGB32F, width, height, depth, 0, GL_RGB, GL_FLOAT, pixels.data());
-
-  return {texture, width, height, depth};
+  return startTextureUnit + 6;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

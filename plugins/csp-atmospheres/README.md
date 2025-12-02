@@ -145,15 +145,21 @@ They are not physically based but provide some plausible results.
 The Bruneton model is significantly more advanced.
 It precomputes multiple scattering and is based on [this open-source implementation](https://github.com/ebruneton/precomputed_atmospheric_scattering) (see also the corresponding [Paper](https://inria.hal.science/inria-00288758/en)).
 
-Similar to the `CosmoScoutVR` model, the original implementation by Eric Bruneton uses Rayleigh scattering for molecules and the Cornette-Shanks phase function for aerosols.
-We generalized this implementation by loading phase functions, extinction coefficients, and particle density distributions from CSV files.
+We have significantly extended the original implementation to allow for more flexibility.
+See our paper [Physically Based Real-Time Rendering of Atmospheres using Mie Theory](https://onlinelibrary.wiley.com/doi/full/10.1111/cgf.15010) for more details.
+
+As a first change, we now load phase functions, extinction coefficients, and particle density distributions from CSV files.
 This allows us to simulate arbitrary particle types.
 In particular, we can now use Mie Theory to precompute the scattering behaviour of a wide variety of particle types, including for instance Martian dust.
+
+Next, our implementation can compute refraction.
+This allows for displaced horizons and the simulation of astronomical refraction.
+This is also used for computing light entering the eclipse shadows of celestial bodies.
 
 Another change to the original implementation is that we put the precomputation of the atmospheric scattering into a separate executable.
 This allows us to perform the preprocessing offline with a much higher fidelity than what would be possible during application startup.
 
-As a consequence to the changes mentioned above, **two preprocessing steps are required to use this model**.
+There are **two preprocessing steps are required to use this model**.
 
 #### Preprocessing Step 1: Precompute the Particle-Scattering CSV Tables
 
@@ -197,7 +203,7 @@ Once the multiple scattering textures are precomputed, the configuration for the
 </details>
 
 <details>
-<summary>Example Configuration for Mars (Realistic)</summary>
+<summary>Example Configuration for Mars</summary>
 
 ```javascript
 "Mars": {

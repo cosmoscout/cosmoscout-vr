@@ -50,7 +50,7 @@ class CSL_TOOLS_EXPORT MultiPointTool : public Tool {
   MultiPointTool(MultiPointTool&& other)      = delete;
 
   MultiPointTool& operator=(MultiPointTool const& other) = delete;
-  MultiPointTool& operator=(MultiPointTool&& other) = delete;
+  MultiPointTool& operator=(MultiPointTool&& other)      = delete;
 
   ~MultiPointTool() override;
 

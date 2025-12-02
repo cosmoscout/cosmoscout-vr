@@ -12,6 +12,8 @@
 #include "Plugin.hpp"
 
 #include <VistaKernel/GraphicsManager/VistaOpenGLDraw.h>
+#include <VistaOGLExt/VistaBufferObject.h>
+#include <VistaOGLExt/VistaVertexArrayObject.h>
 
 #include <glm/glm.hpp>
 #include <vector>
@@ -49,7 +51,7 @@ class PolygonTool : public IVistaOpenGLDraw, public csl::tools::MultiPointTool {
   PolygonTool(PolygonTool&& other)      = delete;
 
   PolygonTool& operator=(PolygonTool const& other) = delete;
-  PolygonTool& operator=(PolygonTool&& other) = delete;
+  PolygonTool& operator=(PolygonTool&& other)      = delete;
 
   ~PolygonTool() override;
 

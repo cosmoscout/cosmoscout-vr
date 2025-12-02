@@ -136,6 +136,26 @@ bool loadImpl(TileSourceWebMapService* source, BaseTileData* tile, TileId const&
       return false;
     }
 
+    bool isCompletelyWhiteTile = true;
+    // Iterate through pixel values and stop after one non-white pixel in tile
+    for (int i = 0; i < width * height; ++i) {
+      auto pixel = reinterpret_cast<uint8_t*>(data) + i * 4;
+      if (pixel[0] != 255 || pixel[1] != 255 || pixel[2] != 255 || pixel[3] != 255) {
+        isCompletelyWhiteTile = false;
+        break;
+      }
+    }
+    if (isCompletelyWhiteTile) {
+      logger().debug(
+          "Failed to parse tile data: File '{}' is completely white and most likely corrupt.",
+          *cacheFile);
+      source->markTileDataAsInvalid(*cacheFile);
+      if (boost::filesystem::remove(*cacheFile) == 0) {
+        logger().debug("Failed to remove tile data: File '{}'", *cacheFile);
+      }
+      return false;
+    }
+
     // The image data can be read. For some patches (those at the international date boundary)
     // two requests are made. For those, only half of the pixels contain valid data (above or below
     // the diagonal).
@@ -246,7 +266,7 @@ TileSourceWebMapService::TileSourceWebMapService(uint32_t resolution)
     return loadImpl<glm::u8vec4>(this, tileId);
   }
 
-  throw std::domain_error(fmt::format("Unsupported format: {}!", mFormat));
+  throw std::domain_error(fmt::format("Unsupported format: {}!", static_cast<int>(mFormat)));
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -392,6 +412,20 @@ std::optional<std::string> TileSourceWebMapService::loadData(TileId const& tileI
           "Failed to download tile data: Cannot open '{}' for writing!", cacheFile.str()));
     }
 
+    // Check if we already had an error with this tile cache file in the past
+    if (mLastTimeTileFailed.find(cacheFilePath) != mLastTimeTileFailed.end()) {
+      auto cooldownTime = std::chrono::seconds(3);
+      auto timeNow      = std::chrono::system_clock::now();
+      if (timeNow - mLastTimeTileFailed[cacheFilePath] < cooldownTime) {
+        logger().warn(
+            "Failed to download tile data: Waiting for '{}' to cool down", cacheFile.str());
+        // Sleep for the rest of the cooldown time (plus a little longer 500ms)
+        std::this_thread::sleep_until(
+            mLastTimeTileFailed[cacheFilePath] + cooldownTime + std::chrono::milliseconds(500));
+      }
+      mLastTimeTileFailed.erase(cacheFilePath);
+    }
+
     curlpp::Easy request;
     request.setOpt(curlpp::options::Url(url.str()));
     request.setOpt(curlpp::options::WriteStream(&out));
@@ -491,6 +525,12 @@ bool TileSourceWebMapService::isSame(TileSource const* other) const {
 
   return casted != nullptr && mUrl == casted->mUrl && mCache == casted->mCache &&
          mLayers == casted->mLayers && mFormat == casted->mFormat;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void TileSourceWebMapService::markTileDataAsInvalid(boost::filesystem::path const& TileDataPath) {
+  mLastTimeTileFailed[TileDataPath] = std::chrono::system_clock::now();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

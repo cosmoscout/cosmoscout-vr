@@ -4,21 +4,39 @@ SPDX-License-Identifier: MIT
 -->
 
 <div class="row">
-  <div class="col-5">
-    Display Options
-  </div>
+  <div class="col-5">Display Options</div>
 
   <div class="col-7">
     <label class="checklabel">
-      <input type="checkbox" data-callback="trajectories.setEnableSunFlare" checked />
+      <input
+        type="checkbox"
+        data-callback="trajectories.setEnableLDRFlares"
+        checked
+      />
       <i class="material-icons"></i>
-      <span>Sun Flare</span>
+      <span>Non-HDR Flares</span>
     </label>
   </div>
 
   <div class="col-7 offset-5">
     <label class="checklabel">
-      <input type="checkbox" data-callback="trajectories.setEnablePlanetMarks" checked />
+      <input
+        type="checkbox"
+        data-callback="trajectories.setEnableHDRFlares"
+        checked
+      />
+      <i class="material-icons"></i>
+      <span>HDR Flares</span>
+    </label>
+  </div>
+
+  <div class="col-7 offset-5">
+    <label class="checklabel">
+      <input
+        type="checkbox"
+        data-callback="trajectories.setEnableTrajectoryDots"
+        checked
+      />
       <i class="material-icons"></i>
       <span>Planet Marks</span>
     </label>
@@ -26,7 +44,11 @@ SPDX-License-Identifier: MIT
 
   <div class="col-7 offset-5">
     <label class="checklabel">
-      <input type="checkbox" data-callback="trajectories.setEnableTrajectories" checked />
+      <input
+        type="checkbox"
+        data-callback="trajectories.setEnableTrajectories"
+        checked
+      />
       <i class="material-icons"></i>
       <span>Trajectories</span>
     </label>

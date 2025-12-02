@@ -43,7 +43,7 @@ class CS_SCENE_EXPORT CelestialAnchor {
   CelestialAnchor(CelestialAnchor&& other)      = default;
 
   CelestialAnchor& operator=(CelestialAnchor const& other) = default;
-  CelestialAnchor& operator=(CelestialAnchor&& other) = default;
+  CelestialAnchor& operator=(CelestialAnchor&& other)      = default;
 
   virtual ~CelestialAnchor() = default;
 

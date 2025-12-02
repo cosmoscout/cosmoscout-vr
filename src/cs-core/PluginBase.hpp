@@ -40,7 +40,7 @@ class CS_CORE_EXPORT PluginBase {
   PluginBase(PluginBase&& other)      = delete;
 
   PluginBase& operator=(PluginBase const& other) = delete;
-  PluginBase& operator=(PluginBase&& other) = delete;
+  PluginBase& operator=(PluginBase&& other)      = delete;
 
   virtual ~PluginBase() = default;
 

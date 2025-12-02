@@ -36,7 +36,7 @@ class CS_SCENE_EXPORT CelestialObject : public CelestialAnchor {
   CelestialObject(CelestialObject&& other)      = default;
 
   CelestialObject& operator=(CelestialObject const& other) = default;
-  CelestialObject& operator=(CelestialObject&& other) = default;
+  CelestialObject& operator=(CelestialObject&& other)      = default;
 
   ~CelestialObject() override = default;
 

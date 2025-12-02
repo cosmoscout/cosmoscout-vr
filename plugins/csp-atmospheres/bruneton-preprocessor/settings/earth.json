@@ -1,22 +1,33 @@
 {
-    "multiScatteringOrder": 10,
-    "sunDistance": 149600000000,
-    "minAltitude": 6370900,
-    "maxAltitude": 6451000,
-    "molecules": {
-        "phase": "plugins/csp-atmospheres/scattering-table-generator/output/earth_cosmoscout_molecules_phase.csv",
-        "betaSca": "plugins/csp-atmospheres/scattering-table-generator/output/earth_cosmoscout_molecules_scattering.csv",
-        "betaAbs": "plugins/csp-atmospheres/scattering-table-generator/output/earth_cosmoscout_molecules_absorption.csv",
-        "density": "plugins/csp-atmospheres/scattering-table-generator/output/earth_cosmoscout_molecules_density.csv"
-    },
-    "aerosols": {
-        "phase": "plugins/csp-atmospheres/scattering-table-generator/output/earth_cosmoscout_aerosols_phase.csv",
-        "betaSca": "plugins/csp-atmospheres/scattering-table-generator/output/earth_cosmoscout_aerosols_scattering.csv",
-        "betaAbs": "plugins/csp-atmospheres/scattering-table-generator/output/earth_cosmoscout_aerosols_absorption.csv",
-        "density": "plugins/csp-atmospheres/scattering-table-generator/output/earth_cosmoscout_aerosols_density.csv"
-    },
-    "ozone": {
-        "betaAbs": "plugins/csp-atmospheres/scattering-table-generator/output/earth_cosmoscout_ozone_absorption.csv",
-        "density": "plugins/csp-atmospheres/scattering-table-generator/output/earth_cosmoscout_ozone_density.csv"
-    }
+  "multiScatteringOrder": 5,
+  "sunDistance": 149600000000,
+  "minAltitude": 6371000,
+  "maxAltitude": 6451000,
+  "stepSizeOpticalDepth": 2000,
+  "stepSizeSingleScattering": 2000,
+  "stepSizeMultiScattering": 4000,
+  "transmittanceTextureWidth": 512,
+  "transmittanceTextureHeight": 256,
+  "scatteringTextureRSize": 32,
+  "scatteringTextureMuSize": 64,
+  "scatteringTextureMuSSize": 32,
+  "scatteringTextureNuSize": 8,
+  "refraction": true,
+  "molecules": {
+    "phase": "plugins/csp-atmospheres/scattering-table-generator/output/earth_cosmoscout_molecules_phase.csv",
+    "betaSca": "plugins/csp-atmospheres/scattering-table-generator/output/earth_cosmoscout_molecules_scattering.csv",
+    "betaAbs": "plugins/csp-atmospheres/scattering-table-generator/output/earth_cosmoscout_molecules_absorption.csv",
+    "density": "plugins/csp-atmospheres/scattering-table-generator/output/earth_cosmoscout_molecules_density.csv"
+  },
+  "aerosols": {
+    "phase": "plugins/csp-atmospheres/scattering-table-generator/output/earth_cosmoscout_aerosols_phase.csv",
+    "betaSca": "plugins/csp-atmospheres/scattering-table-generator/output/earth_cosmoscout_aerosols_scattering.csv",
+    "betaAbs": "plugins/csp-atmospheres/scattering-table-generator/output/earth_cosmoscout_aerosols_absorption.csv",
+    "density": "plugins/csp-atmospheres/scattering-table-generator/output/earth_cosmoscout_aerosols_density.csv"
+  },
+  "ozone": {
+    "betaAbs": "plugins/csp-atmospheres/scattering-table-generator/output/earth_cosmoscout_ozone_absorption.csv",
+    "density": "plugins/csp-atmospheres/scattering-table-generator/output/earth_cosmoscout_ozone_density.csv"
+  },
+  "ior": 0.000277
 }

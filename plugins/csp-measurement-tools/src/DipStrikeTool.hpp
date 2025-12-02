@@ -11,6 +11,8 @@
 #include "../../csl-tools/src/MultiPointTool.hpp"
 
 #include <VistaKernel/GraphicsManager/VistaOpenGLDraw.h>
+#include <VistaOGLExt/VistaBufferObject.h>
+#include <VistaOGLExt/VistaVertexArrayObject.h>
 
 #include <glm/glm.hpp>
 #include <vector>
@@ -48,7 +50,7 @@ class DipStrikeTool : public IVistaOpenGLDraw, public csl::tools::MultiPointTool
   DipStrikeTool(DipStrikeTool&& other)      = delete;
 
   DipStrikeTool& operator=(DipStrikeTool const& other) = delete;
-  DipStrikeTool& operator=(DipStrikeTool&& other) = delete;
+  DipStrikeTool& operator=(DipStrikeTool&& other)      = delete;
 
   ~DipStrikeTool() override;
 

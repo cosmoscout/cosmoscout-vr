@@ -164,30 +164,18 @@ void PlanetShader::compile() {
   cs::utils::replaceString(
       mFragmentSource, "$ECLIPSE_SHADER_SNIPPET", mEclipseShadowReceiver->getShaderSnippet());
 
-  // Include the BRDFs together with their parameters and arguments.
-  Plugin::Settings::BRDF const& brdfHdr = mPluginSettings->mBodies[mObjectName].mBrdfHdr.get();
-  Plugin::Settings::BRDF const& brdfNonHdr =
-      mPluginSettings->mBodies[mObjectName].mBrdfNonHdr.get();
+  cs::core::Settings::Shading const& shading = mSettings->getShadingForBody(mObjectName);
 
-  // Iterate over all key-value pairs of the properties and inject the values.
-  std::string brdfHdrSource = cs::utils::filesystem::loadToString(brdfHdr.source);
-  for (auto const& kv : brdfHdr.properties) {
-    cs::utils::replaceString(brdfHdrSource, kv.first, std::to_string(kv.second));
-  }
-  std::string brdfNonHdrSource = cs::utils::filesystem::loadToString(brdfNonHdr.source);
-  for (auto const& kv : brdfNonHdr.properties) {
-    cs::utils::replaceString(brdfNonHdrSource, kv.first, std::to_string(kv.second));
-  }
+  std::string brdfHdrSnippet    = shading.pBrdfHdr.get().assembleShaderSnippet("BRDF_HDR");
+  std::string brdfNonHdrSnippet = shading.pBrdfNonHdr.get().assembleShaderSnippet("BRDF_NON_HDR");
+  float       avgLinearImgIntensity = shading.pAvgLinearImgIntensity.get();
 
   // Inject correct identifiers so the fragment shader can find the functions;
   // inject the functions in the fragment shader
-  cs::utils::replaceString(brdfHdrSource, "$BRDF", "BRDF_HDR");
-  cs::utils::replaceString(brdfNonHdrSource, "$BRDF", "BRDF_NON_HDR");
-  cs::utils::replaceString(mFragmentSource, "$BRDF_HDR", brdfHdrSource);
-  cs::utils::replaceString(mFragmentSource, "$BRDF_NON_HDR", brdfNonHdrSource);
-
-  cs::utils::replaceString(mFragmentSource, "$AVG_LINEAR_IMG_INTENSITY",
-      std::to_string(mPluginSettings->mBodies[mObjectName].mAvgLinearImgIntensity.get()));
+  cs::utils::replaceString(mFragmentSource, "$BRDF_HDR", brdfHdrSnippet);
+  cs::utils::replaceString(mFragmentSource, "$BRDF_NON_HDR", brdfNonHdrSnippet);
+  cs::utils::replaceString(
+      mFragmentSource, "$AVG_LINEAR_IMG_INTENSITY", std::to_string(avgLinearImgIntensity));
 
   cs::utils::replaceString(mVertexSource, "$LIGHTING_QUALITY",
       cs::utils::toString(mSettings->mGraphics.pLightingQuality.get()));

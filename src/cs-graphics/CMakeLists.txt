@@ -12,9 +12,16 @@ file(GLOB SOURCE_FILES *.cpp */*.cpp)
 # Header files are only added in order to make them available in your IDE.
 file(GLOB HEADER_FILES *.hpp */*.hpp)
 
+# Shader files are also only added in order to make them available in your IDE.
+set(RESOURCE_SHADER_DIR ${CMAKE_SOURCE_DIR}/resources/shaders/)
+file(GLOB SHADER_FILES ${RESOURCE_SHADER_DIR}* ${RESOURCE_SHADER_DIR}*/*)
+
+source_group("src/shaders" FILES ${SHADER_FILES})
+
 add_library(cs-graphics SHARED
   ${SOURCE_FILES}
   ${HEADER_FILES}
+  ${SHADER_FILES}
 )
 
 target_link_libraries(cs-graphics

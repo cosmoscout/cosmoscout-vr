@@ -8,6 +8,7 @@
 #include "Settings.hpp"
 
 #include "../cs-utils/convert.hpp"
+#include "../cs-utils/filesystem.hpp"
 #include "SolarSystem.hpp"
 #include "logger.hpp"
 
@@ -290,6 +291,32 @@ void to_json(nlohmann::json& j, Settings::EclipseShadowMap const& o) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void from_json(nlohmann::json const& j, Settings::BRDF& o) {
+  cs::core::Settings::deserialize(j, "source", o.mSource);
+  cs::core::Settings::deserialize(j, "properties", o.mProperties);
+}
+
+void to_json(nlohmann::json& j, Settings::BRDF const& o) {
+  cs::core::Settings::serialize(j, "source", o.mSource);
+  cs::core::Settings::serialize(j, "properties", o.mProperties);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void from_json(nlohmann::json const& j, Settings::Shading& o) {
+  Settings::deserialize(j, "brdfHdr", o.pBrdfHdr);
+  Settings::deserialize(j, "brdfNonHdr", o.pBrdfNonHdr);
+  Settings::deserialize(j, "avgLinearImgIntensity", o.pAvgLinearImgIntensity);
+}
+
+void to_json(nlohmann::json& j, Settings::Shading const& o) {
+  Settings::serialize(j, "brdfHdr", o.pBrdfHdr);
+  Settings::serialize(j, "brdfNonHdr", o.pBrdfNonHdr);
+  Settings::serialize(j, "avgLinearImgIntensity", o.pAvgLinearImgIntensity);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void from_json(nlohmann::json const& j, Settings::Graphics& o) {
   Settings::deserialize(j, "enableVsync", o.pEnableVsync);
   Settings::deserialize(j, "worldUIScale", o.pWorldUIScale);
@@ -317,13 +344,16 @@ void from_json(nlohmann::json const& j, Settings::Graphics& o) {
   Settings::deserialize(j, "ambientBrightness", o.pAmbientBrightness);
   Settings::deserialize(j, "ambientOcclusion", o.pAmbientOcclusion);
   Settings::deserialize(j, "glareIntensity", o.pGlareIntensity);
-  Settings::deserialize(j, "glareRadius", o.pGlareQuality);
+  Settings::deserialize(j, "glareQuality", o.pGlareQuality);
+  Settings::deserialize(j, "enable32BitGlare", o.pEnable32BitGlare);
   Settings::deserialize(j, "glareMode", o.pGlareMode);
   Settings::deserialize(j, "toneMappingMode", o.pToneMappingMode);
   Settings::deserialize(j, "enableBicubicGlareFiltering", o.pEnableBicubicGlareFilter);
   Settings::deserialize(j, "fixedSunDirection", o.pFixedSunDirection);
   Settings::deserialize(j, "eclipseShadowMaps", o.mEclipseShadowMaps);
   Settings::deserialize(j, "eclipseShadowMode", o.pEclipseShadowMode);
+  Settings::deserialize(j, "shading", o.mShading);
+  Settings::deserialize(j, "defaultShading", o.pDefaultShading);
 }
 
 void to_json(nlohmann::json& j, Settings::Graphics const& o) {
@@ -353,13 +383,16 @@ void to_json(nlohmann::json& j, Settings::Graphics const& o) {
   Settings::serialize(j, "ambientBrightness", o.pAmbientBrightness);
   Settings::serialize(j, "ambientOcclusion", o.pAmbientOcclusion);
   Settings::serialize(j, "glareIntensity", o.pGlareIntensity);
-  Settings::serialize(j, "glareRadius", o.pGlareQuality);
+  Settings::serialize(j, "glareQuality", o.pGlareQuality);
+  Settings::serialize(j, "enable32BitGlare", o.pEnable32BitGlare);
   Settings::serialize(j, "glareMode", o.pGlareMode);
   Settings::serialize(j, "toneMappingMode", o.pToneMappingMode);
   Settings::serialize(j, "enableBicubicGlareFiltering", o.pEnableBicubicGlareFilter);
   Settings::serialize(j, "fixedSunDirection", o.pFixedSunDirection);
   Settings::serialize(j, "eclipseShadowMaps", o.mEclipseShadowMaps);
   Settings::serialize(j, "eclipseShadowMode", o.pEclipseShadowMode);
+  Settings::serialize(j, "shading", o.mShading);
+  Settings::serialize(j, "defaultShading", o.pDefaultShading);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -491,6 +524,30 @@ std::string Settings::saveToJson() const {
   o << std::setw(2) << settings;
 
   return o.str();
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+std::string Settings::BRDF::assembleShaderSnippet(std::string const& functionName) const {
+  std::string snippet = cs::utils::filesystem::loadToString(mSource);
+
+  // Iterate over all key-value pairs of the properties and inject the values.
+  for (auto const& [key, value] : mProperties) {
+    cs::utils::replaceString(snippet, key, std::to_string(value));
+  }
+
+  cs::utils::replaceString(snippet, "$BRDF", functionName);
+  return snippet;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+Settings::Shading const& Settings::getShadingForBody(std::string const& body) const {
+  auto const& shadings         = mGraphics.mShading;
+  bool const  hasCustomShading = shadings.has_value() && shadings->find(body) != shadings->end();
+  Settings::Shading const& shading =
+      hasCustomShading ? shadings.value().at(body) : mGraphics.pDefaultShading.get();
+  return shading;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

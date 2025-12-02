@@ -37,7 +37,7 @@ class TileTextureArray {
   TileTextureArray(TileTextureArray&& other)      = delete;
 
   TileTextureArray& operator=(TileTextureArray const& other) = delete;
-  TileTextureArray& operator=(TileTextureArray&& other) = delete;
+  TileTextureArray& operator=(TileTextureArray&& other)      = delete;
 
   ~TileTextureArray();
 

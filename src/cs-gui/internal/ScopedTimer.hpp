@@ -23,7 +23,7 @@ class ScopedTimer {
   ScopedTimer(ScopedTimer&& other)      = default;
 
   ScopedTimer& operator=(ScopedTimer const& other) = default;
-  ScopedTimer& operator=(ScopedTimer&& other) = default;
+  ScopedTimer& operator=(ScopedTimer&& other)      = default;
 
  private:
   static double GetNow();

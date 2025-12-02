@@ -25,7 +25,7 @@ class TileNode {
   TileNode(TileNode&& other)      = default;
 
   TileNode& operator=(TileNode const& other) = delete;
-  TileNode& operator=(TileNode&& other) = default;
+  TileNode& operator=(TileNode&& other)      = default;
 
   /// Returns the tile data assigned to this. Can be null.
   std::shared_ptr<BaseTileData> const&              getTileData(TileDataType type) const;

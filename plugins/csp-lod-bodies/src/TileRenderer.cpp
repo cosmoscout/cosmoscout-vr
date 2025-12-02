@@ -278,7 +278,7 @@ void TileRenderer::renderTile(TileNode* node, UniformLocs const& locs) {
   // Convert tile corners to camera-relative coordinates in double precision.
   for (int i(0); i < 4; ++i) {
     corners.at(i)           = cs::utils::convert::toCartesian(cornersLngLat.at(i), mParams->mRadii,
-        averageHeight * static_cast<float>(mParams->mHeightScale));
+                  averageHeight * static_cast<float>(mParams->mHeightScale));
     cornersWorldSpace.at(i) = glm::fvec3(mMatM * glm::dvec4(corners.at(i), 1.0));
 
     normals.at(i)           = cs::utils::convert::lngLatToNormal(cornersLngLat.at(i));
