@@ -24,6 +24,8 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include <utility>
+#define _USE_MATH_DEFINES
+#include <math.h>
 
 namespace csp::satellites {
 
@@ -133,11 +135,16 @@ bool ViewPointer::Do() {
   glm::dmat4                satelliteTransform = satelliteObject->getObserverRelativeTransform();
   glm::dmat4                bodyTransform      = bodyObject->getObserverRelativeTransform();
   glm::dvec3                rayStart           = satelliteObject->getObserverRelativePosition();
+
+  double angleDeg = 15.;
+  double angleRad = angleDeg / 180. * M_PI;
+  double dx       = std::sqrt(((1. / std::cos(angleRad / 2.)) * (1. / std::cos(angleRad / 2.)) - 1.) / 2.);
+
   std::array<glm::dvec4, 4> rayDirs;
-  rayDirs[0] = glm::dvec4(0.1, 0.1, 1, 0);
-  rayDirs[1] = glm::dvec4(-0.1, 0.1, 1, 0);
-  rayDirs[2] = glm::dvec4(-0.1, -0.1, 1, 0);
-  rayDirs[3] = glm::dvec4(0.1, -0.1, 1, 0);
+  rayDirs[0] = glm::dvec4(dx, dx, 1, 0);
+  rayDirs[1] = glm::dvec4(-dx, dx, 1, 0);
+  rayDirs[2] = glm::dvec4(-dx, -dx, 1, 0);
+  rayDirs[3] = glm::dvec4(dx, -dx, 1, 0);
   std::vector<glm::vec3> vertices;
   vertices.emplace_back(rayStart);
   for (int i = 0; i < 4; i++) {

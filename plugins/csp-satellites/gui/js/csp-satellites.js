@@ -29,16 +29,27 @@
     }
 
     _resetDate() {
-        const time = CosmoScout.timeline._centerTime.toISOString();
+        const time = CosmoScout.timeline._centerTime;
         fetch(`${this._renderServer}/run-js`, {
             method: "POST",
-            body: `CosmoScout.callbacks.time.setDate("${time}")`
+            body: `CosmoScout.callbacks.time.setDate("${time.toISOString()}")`
         });
+        this._lastImageTime = time;
+        this._needImage = true;
+    }
+
+    _setFieldOfView(deg) {
+        const rad = deg / 180 * Math.PI;
+        const sensorDiagonal = 42;
+        const focalLength = sensorDiagonal / 2 / Math.tan(rad / 2);
+        fetch(`${this._renderServer}/run-js`, {
+            method: "POST",
+            body: `CosmoScout.callbacks.graphics.setFocalLength(${focalLength})`
+        });
+        this._needImage = true;
     }
 
     _fetchImage() {
-        this._resetDate();
-
         const params = new URLSearchParams();
         params.append("width", "200");
         params.append("height", "200");
@@ -47,10 +58,11 @@
         params.append("format", "png");
         fetch(`${this._renderServer}/capture?${params}`)
             .then(res => res.blob())
-            .then(blob => createImageBitmap(blob))
-            .then(image => {
-                this._viewCtx.drawImage(image, 0, 0);
-                this._needImage = true;
+            .then(blob => {
+                createImageBitmap(blob).then(image => {
+                    this._viewCtx.drawImage(image, 0, 0);
+                    this._imageInProgress = false;
+                });
             })
             .catch(e => console.error(`Error fetching satellite view: ${e}`));
     }
@@ -124,6 +136,7 @@
         // Set up state
         this._connectionEstablished = false;
         this._needImage = true;
+        this._imageInProgress = false;
         this._requestedSatellites = [];
         this._nextId = -11111;
 
@@ -155,8 +168,12 @@
     }
 
     update() {
-        if (this._connectionEstablished && this._needImage) {
+        if (!this._imageInProgress && this._lastImageTime != CosmoScout.timeline._centerTime) {
+            this._resetDate();
+        }
+        if (this._connectionEstablished && !this._imageInProgress && this._needImage) {
             this._needImage = false;
+            this._imageInProgress = true;
             this._fetchImage();
         }
         this._requestedSatellites.forEach(job => this._checkProcessStatus(job));
