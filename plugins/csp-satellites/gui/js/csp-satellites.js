@@ -23,9 +23,10 @@
         })
             .then(res => {
                 if (res.ok) {
-                    this._connectionEstablished = true;
+                    this._state = this._states["idle"];
                 }
-            });
+            })
+            .catch(e => console.error(`Error setting body: ${e}`));
     }
 
     _resetDate() {
@@ -33,7 +34,8 @@
         fetch(`${this._renderServer}/run-js`, {
             method: "POST",
             body: `CosmoScout.callbacks.time.setDate("${time.toISOString()}")`
-        });
+        })
+            .catch(e => console.error(`Error setting date: ${e}`));
         this._lastImageTime = time;
         this._needImage = true;
     }
@@ -45,7 +47,8 @@
         fetch(`${this._renderServer}/run-js`, {
             method: "POST",
             body: `CosmoScout.callbacks.graphics.setFocalLength(${focalLength})`
-        });
+        })
+            .catch(e => console.error(`Error setting field of view: ${e}`));
         this._needImage = true;
     }
 
@@ -58,7 +61,8 @@
         }).then(res => res.json())
             .then(res => {
                 console.log(JSON.stringify(res));
-            });
+            })
+            .catch(e => console.error(`Error checking for ship: ${e}`));
     }
 
     _fetchImage() {
@@ -71,9 +75,9 @@
         fetch(`${this._renderServer}/capture?${params}`)
             .then(res => res.blob())
             .then(blob => {
+                this._state = this._states["awaitShips"];
                 createImageBitmap(blob).then(image => {
                     this._viewCtx.drawImage(image, 0, 0);
-                    this._imageInProgress = false;
                 });
                 this._checkShips(blob);
             })
@@ -142,15 +146,22 @@
     }
 
     init() {
+        // State enums
+        this._states = {
+            "connecting": 0,
+            "idle": 1,
+            "awaitImage": 2,
+            "awaitShips": 3,
+        };
+
         // Set up server addresses
         this._renderServer = "http://localhost:9002";
         this._spiceServer = "http://localhost:8000";
         this._shipServer = "http://localhost:8001";
 
         // Set up state
-        this._connectionEstablished = false;
+        this._state = this._states["connecting"];
         this._needImage = true;
-        this._imageInProgress = false;
         this._requestedSatellites = [];
         this._nextId = -11111;
 
@@ -182,12 +193,13 @@
     }
 
     update() {
-        if (!this._imageInProgress && this._lastImageTime != CosmoScout.timeline._centerTime) {
+        // Set render server time if it changed since last image
+        if (this._state === this._states["idle"] && this._lastImageTime != CosmoScout.timeline._centerTime) {
             this._resetDate();
         }
-        if (this._connectionEstablished && !this._imageInProgress && this._needImage) {
+        if (this._state === this._states["idle"] && this._needImage) {
+            this._state = this._states["awaitImage"];
             this._needImage = false;
-            this._imageInProgress = true;
             this._fetchImage();
         }
         this._requestedSatellites.forEach(job => this._checkProcessStatus(job));
