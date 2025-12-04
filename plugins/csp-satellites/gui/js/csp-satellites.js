@@ -49,10 +49,22 @@
         this._needImage = true;
     }
 
+    _checkShips(imageBlob) {
+        const data = new FormData();
+        data.append("file", imageBlob);
+        fetch(`${this._shipServer}/processes/ships/execute`, {
+            method: "POST",
+            body: data,
+        }).then(res => res.json())
+            .then(res => {
+                console.log(JSON.stringify(res));
+            });
+    }
+
     _fetchImage() {
         const params = new URLSearchParams();
-        params.append("width", "200");
-        params.append("height", "200");
+        params.append("width", "320");
+        params.append("height", "320");
         params.append("gui", "false");
         params.append("delay", "0");
         params.append("format", "png");
@@ -63,6 +75,7 @@
                     this._viewCtx.drawImage(image, 0, 0);
                     this._imageInProgress = false;
                 });
+                this._checkShips(blob);
             })
             .catch(e => console.error(`Error fetching satellite view: ${e}`));
     }
@@ -132,6 +145,7 @@
         // Set up server addresses
         this._renderServer = "http://localhost:9002";
         this._spiceServer = "http://localhost:8000";
+        this._shipServer = "http://localhost:8001";
 
         // Set up state
         this._connectionEstablished = false;
