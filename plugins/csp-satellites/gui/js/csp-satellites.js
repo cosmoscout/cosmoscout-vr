@@ -58,32 +58,42 @@
     _requestSatellite() {
         const bodyId = (this._nextId++).toString();
         const name = this._nameInput.value;
+        const params = {
+            "id": bodyId,
+            "center": 399,
+            "frame": "J2000",
+            "MU": 398600,
+            "SMA": 6733,
+            "ECC": 0.03190221275591707,
+            "INC": 90.00014746268153,
+            "RAAN": 0.004,
+            "AOP": 270,
+            "M": 0,
+            "START": this._startDateDiv.value,
+            "END": this._endDateDiv.value,
+            "DELTA": 60,
+            "description": "This is a test"
+        };
+
         console.log(`Requesting satellite "${name}" (${bodyId})`);
-        fetch(`${this._spiceServer}/processes/position/execute`, {
+        const promisedPosition = fetch(`${this._spiceServer}/processes/position/execute`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
             },
-            body: JSON.stringify({
-                "id": bodyId,
-                "center": 399,
-                "frame": "J2000",
-                "MU": 398600,
-                "SMA": 6733,
-                "ECC": 0.03190221275591707,
-                "INC": 90.00014746268153,
-                "RAAN": 0.004,
-                "AOP": 270,
-                "M": 0,
-                "START": this._startDateDiv.value,
-                "END": this._endDateDiv.value,
-                "DELTA": 60,
-                "description": "This is a test"
-            }),
-        })
-            .then(res => res.json())
+            body: JSON.stringify(params),
+        }).then(res => res.json());
+        const promisedOrientation = fetch(`${this._spiceServer}/processes/orientation/execute`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(params),
+        }).then(res => res.json());
+        Promise.all([promisedPosition, promisedOrientation])
             .then(res => {
-                const id = res.output.bsp.replace(".bsp", "");
+                const [resPos, resOrient] = res;
+                const id = resPos.output.bsp.replace(".bsp", "");
                 this._requestedSatellites.push({
                     "bodyId": bodyId,
                     "jobId": id,
