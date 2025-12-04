@@ -60,7 +60,10 @@
             body: data,
         }).then(res => res.json())
             .then(res => {
-                console.log(JSON.stringify(res));
+                res.output.json[0].matches.forEach(match => {
+                    this._viewCtx.strokeRect(match[0] - match[2]/2, match[1] - match[3]/2, match[2], match[3]);
+                });
+                this._state = this._states["idle"];
             })
             .catch(e => console.error(`Error checking for ship: ${e}`));
     }
@@ -171,6 +174,7 @@
 
         this._viewCanvas = document.getElementById('satellite-view-canvas');
         this._viewCtx = this._viewCanvas.getContext("2d");
+        this._viewCtx.strokeStyle = "red";
 
         this._nameInput = document.getElementById("satellite-add-name");
         this._startDateDiv = document.getElementById("satellite-add-start-date");
