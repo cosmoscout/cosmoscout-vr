@@ -64,10 +64,11 @@ void main() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-ViewPointer::ViewPointer(
+ViewPointer::ViewPointer(Plugin::Settings::Satellite const& config,
     std::shared_ptr<cs::core::SolarSystem> solarSystem, std::string const& anchorName)
     : mSolarSystem(solarSystem)
-    , mAnchorName(anchorName) {
+    , mAnchorName(anchorName)
+    , mFieldOfView(config.mFieldOfView.get()) {
 
   mVAO.Bind();
   mVAO.EnableAttributeArray(0);
@@ -103,6 +104,8 @@ ViewPointer::ViewPointer(
   mGLNode.reset(pSG->NewOpenGLNode(pSG->GetRoot(), this));
   VistaOpenSGMaterialTools::SetSortKeyOnSubtree(
       mGLNode.get(), static_cast<int>(cs::utils::DrawOrder::eTransparentItems) - 1);
+
+  config.mFieldOfView.connect([this](double val) { mFieldOfView = val; });
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -110,11 +113,6 @@ ViewPointer::ViewPointer(
 ViewPointer::~ViewPointer() {
   VistaSceneGraph* pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
   pSG->GetRoot()->DisconnectChild(mGLNode.get());
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void ViewPointer::configure(Plugin::Settings const& settings) {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -129,16 +127,16 @@ bool ViewPointer::Do() {
 
   mShader.Bind();
 
-  auto                      satelliteObject    = mSolarSystem->getObject(mAnchorName);
-  auto                      bodyObject         = mSolarSystem->getObject(mBodyName);
-  auto                      bodyIntersectable  = bodyObject->getIntersectableObject();
-  glm::dmat4                satelliteTransform = satelliteObject->getObserverRelativeTransform();
-  glm::dmat4                bodyTransform      = bodyObject->getObserverRelativeTransform();
-  glm::dvec3                rayStart           = satelliteObject->getObserverRelativePosition();
+  auto       satelliteObject    = mSolarSystem->getObject(mAnchorName);
+  auto       bodyObject         = mSolarSystem->getObject(mBodyName);
+  auto       bodyIntersectable  = bodyObject->getIntersectableObject();
+  glm::dmat4 satelliteTransform = satelliteObject->getObserverRelativeTransform();
+  glm::dmat4 bodyTransform      = bodyObject->getObserverRelativeTransform();
+  glm::dvec3 rayStart           = satelliteObject->getObserverRelativePosition();
 
-  double angleDeg = 15.;
-  double angleRad = angleDeg / 180. * M_PI;
-  double dx       = std::sqrt(((1. / std::cos(angleRad / 2.)) * (1. / std::cos(angleRad / 2.)) - 1.) / 2.);
+  double angleRad = mFieldOfView / 180. * M_PI;
+  double dx =
+      std::sqrt(((1. / std::cos(angleRad / 2.)) * (1. / std::cos(angleRad / 2.)) - 1.) / 2.);
 
   std::array<glm::dvec4, 4> rayDirs;
   rayDirs[0] = glm::dvec4(dx, dx, 1, 0);
@@ -149,7 +147,7 @@ bool ViewPointer::Do() {
   vertices.emplace_back(rayStart);
   for (int i = 0; i < 4; i++) {
     glm::dvec4 rayDir = rayDirs[i];
-    rayDir = glm::normalize(satelliteTransform * rayDir);
+    rayDir            = glm::normalize(satelliteTransform * rayDir);
     glm::dvec3 intersection;
     if (!bodyIntersectable->getIntersection(rayStart, rayDir, intersection)) {
       intersection = rayStart + rayDir.xyz * mLastDist[i];

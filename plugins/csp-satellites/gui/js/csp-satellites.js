@@ -49,6 +49,7 @@
             body: `CosmoScout.callbacks.graphics.setFocalLength(${focalLength})`
         })
             .catch(e => console.error(`Error setting field of view: ${e}`));
+        CosmoScout.callbacks.satellites.setFieldOfView("VLEO", deg);
         this._needImage = true;
     }
 

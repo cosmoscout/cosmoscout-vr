@@ -37,11 +37,13 @@ namespace csp::satellites {
 void from_json(nlohmann::json const& j, Plugin::Settings::Satellite& o) {
   cs::core::Settings::deserialize(j, "modelFile", o.mModelFile);
   cs::core::Settings::deserialize(j, "environmentMap", o.mEnvironmentMap);
+  cs::core::Settings::deserialize(j, "fieldOfView", o.mFieldOfView);
 }
 
 void to_json(nlohmann::json& j, Plugin::Settings::Satellite const& o) {
   cs::core::Settings::serialize(j, "modelFile", o.mModelFile);
   cs::core::Settings::serialize(j, "environmentMap", o.mEnvironmentMap);
+  cs::core::Settings::serialize(j, "fieldOfView", o.mFieldOfView);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -90,6 +92,11 @@ void Plugin::init() {
       std::function([this](std::string json) {
         ExtraSatellite satellite = nlohmann::json::parse(json);
         downloadSatelliteKernel(std::move(satellite));
+      }));
+  mGuiManager->getGui()->registerCallback("satellites.setFieldOfView",
+      "Set the field of view for the given satellite.",
+      std::function([this](std::string satellite, double fov) {
+        mPluginSettings.mSatellites[satellite].mFieldOfView = fov;
       }));
 
   // Load settings.

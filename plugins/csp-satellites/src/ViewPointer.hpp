@@ -29,7 +29,8 @@ namespace csp::satellites {
 
 class ViewPointer : public IVistaOpenGLDraw {
  public:
-  ViewPointer(std::shared_ptr<cs::core::SolarSystem> solarSystem, std::string const& anchorName);
+  ViewPointer(Plugin::Settings::Satellite const& config,
+      std::shared_ptr<cs::core::SolarSystem> solarSystem, std::string const& anchorName);
 
   ViewPointer(ViewPointer const& other) = delete;
   ViewPointer(ViewPointer&& other)      = default;
@@ -38,9 +39,6 @@ class ViewPointer : public IVistaOpenGLDraw {
   ViewPointer& operator=(ViewPointer&& other) = delete;
 
   ~ViewPointer();
-
-  /// Configures the internal renderer according to the given values.
-  void configure(Plugin::Settings const&);
 
   /// Updates the offset of the grid according to the current settings
   void update();
@@ -63,6 +61,8 @@ class ViewPointer : public IVistaOpenGLDraw {
   unsigned int           mIndexCountLines;
   unsigned int           mIndexCountTriangles;
   std::array<double, 4>  mLastDist = {1., 1., 1., 1.};
+
+  double mFieldOfView;
 
   struct {
     uint32_t modelViewMatrix  = 0;

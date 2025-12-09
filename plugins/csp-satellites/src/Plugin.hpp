@@ -39,6 +39,9 @@ class Plugin : public cs::core::PluginBase {
 
       /// Path to the environment map. ".dds", ".ktx" and ".kmg" are allowed formats.
       std::string mEnvironmentMap;
+
+      /// Field of view of the satellite's camera in degrees.
+      cs::utils::DefaultProperty<double> mFieldOfView{10.};
     };
 
     std::map<std::string, Satellite> mSatellites;
