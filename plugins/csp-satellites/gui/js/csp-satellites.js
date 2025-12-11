@@ -41,7 +41,7 @@
     }
 
     _setFieldOfView(deg) {
-        const rad = deg / 180 * Math.PI;
+        const rad = parseFloat(deg) / 180 * Math.PI;
         const sensorDiagonal = 42;
         const focalLength = sensorDiagonal / 2 / Math.tan(rad / 2);
         fetch(`${this._renderServer}/run-js`, {
@@ -49,7 +49,7 @@
             body: `CosmoScout.callbacks.graphics.setFocalLength(${focalLength})`
         })
             .catch(e => console.error(`Error setting field of view: ${e}`));
-        CosmoScout.callbacks.satellites.setFieldOfView("VLEO", deg);
+        CosmoScout.callbacks.satellites.setFieldOfView("VLEO", parseFloat(deg));
         this._needImage = true;
     }
 
@@ -66,7 +66,10 @@
                 });
                 this._state = this._states["idle"];
             })
-            .catch(e => console.error(`Error checking for ship: ${e}`));
+            .catch(e => {
+                            console.error(`Error checking for ship: ${e}`);
+                            this._state = this._states["idle"];
+                        });
     }
 
     _fetchImage() {
@@ -189,6 +192,21 @@
             this._endDateDiv.value =
                 CosmoScout.state.simulationTime.toISOString().replace('T', ' ').slice(0, 19);
         };
+
+         // Init the slider
+        const slider = document.getElementById("satellite-view-fov");
+        noUiSlider.create(slider, {
+            start: [1],
+            range: {
+                'min': [0],
+                'max': [7]
+            },
+            step: 0.1
+        });
+
+        slider.noUiSlider.on('slide', function (values, handle, unencoded) {
+           CosmoScout.satellite._setFieldOfView(values[0]);
+        });
 
         this._resetObserver();
     }

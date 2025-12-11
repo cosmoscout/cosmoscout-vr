@@ -15,4 +15,22 @@ SPDX-License-Identifier: MIT
             <canvas id="satellite-view-canvas" width="320" height="320"></canvas>
         </div>
     </div>
+
+    <div class="row">
+        <div class="col-12">
+            <a class="btn glass block px-3" onclick="CosmoScout.satellite._resetObserver(); CosmoScout.satellite._resetDate(); CosmoScout.satellite._fetchImage(); ">
+            Sync Render Server
+            </a>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-6">
+            Field of View
+        </div>
+        <div class="col-6">
+            <div id="satellite-view-fov"></div>
+        </div>
+    </div>
 </div>
+
