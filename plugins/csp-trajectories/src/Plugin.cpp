@@ -19,6 +19,8 @@
 #include <VistaKernel/DisplayManager/VistaDisplayManager.h>
 #include <VistaKernel/VistaSystem.h>
 
+#include <glm/gtc/random.hpp>
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 EXPORT_FN cs::core::PluginBase* create() {
@@ -133,6 +135,20 @@ void Plugin::init() {
 
   // Load settings.
   onLoad();
+
+  mAllSettings->mObjects.onAdd().connect(
+      [this](std::string const& name, std::shared_ptr<const cs::scene::CelestialObject> const& object) {
+        Settings::Trajectory        trajectory;
+        Settings::Trajectory::Trail trail;
+        trail.mLength     = 0.06;
+        trail.mSamples    = 1000;
+        trail.mParent     = "EarthJ2000";
+        trajectory.mColor = glm::abs(glm::sphericalRand(1.));
+        trajectory.mTrail = trail;
+
+        mPluginSettings->mTrajectories[name] = trajectory;
+        createResources();
+      });
 
   logger().info("Loading done.");
 }
@@ -321,6 +337,18 @@ void Plugin::onLoad() {
   // Read settings from JSON.
   from_json(mAllSettings->mPlugins.at("csp-trajectories"), *mPluginSettings);
 
+  createResources();
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Plugin::onSave() {
+  mAllSettings->mPlugins["csp-trajectories"] = *mPluginSettings;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Plugin::createResources() {
   size_t ldrFlareCount   = 0;
   size_t hdrFlareCount   = 0;
   size_t dotCount        = 0;
@@ -421,12 +449,6 @@ void Plugin::onLoad() {
       ++trajectoryIndex;
     }
   }
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void Plugin::onSave() {
-  mAllSettings->mPlugins["csp-trajectories"] = *mPluginSettings;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

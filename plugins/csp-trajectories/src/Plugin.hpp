@@ -99,6 +99,8 @@ class Plugin : public cs::core::PluginBase {
   void onLoad();
   void onSave();
 
+  void createResources();
+
   std::shared_ptr<Settings>                  mPluginSettings = std::make_shared<Settings>();
   std::vector<std::unique_ptr<Trajectory>>   mTrajectories;
   std::vector<std::unique_ptr<DeepSpaceDot>> mTrajectoryDots;
