@@ -83,7 +83,7 @@
         params.append("width", "320");
         params.append("height", "320");
         params.append("gui", "false");
-        params.append("delay", "0");
+        params.append("delay", "10");
         params.append("format", "png");
         fetch(`${this._renderServer}/capture?${params}`)
             .then(res => res.blob())
@@ -99,20 +99,20 @@
 
     _requestSatellite() {
         const bodyId = (this._nextId++).toString();
-        const name = this._nameInput.value;
+        const name = this._inputs.name.value;
         const params = {
             "id": bodyId,
             "center": 399,
             "frame": "J2000",
             "MU": 398600,
-            "SMA": 6733,
-            "ECC": 0.03190221275591707,
-            "INC": 90.00014746268153,
-            "RAAN": 0.004,
-            "AOP": 270,
-            "M": 0,
-            "START": this._startDateDiv.value,
-            "END": this._endDateDiv.value,
+            "SMA": parseFloat(this._inputs.sma.value),
+            "ECC": parseFloat(this._inputs.ecc.value),
+            "INC": parseFloat(this._inputs.inc.value),
+            "RAAN": parseFloat(this._inputs.raan.value),
+            "AOP": parseFloat(this._inputs.aop.value),
+            "M": parseFloat(this._inputs.m.value),
+            "START": this._inputs["start-date"].value,
+            "END": this._inputs["end-date"].value,
             "DELTA": 60,
             "description": "This is a test"
         };
@@ -125,14 +125,14 @@
             },
             body: JSON.stringify(params),
         }).then(res => res.json());
-        const promisedOrientation = fetch(`${this._spiceServer}/processes/orientation/execute`, {
+        /*const promisedOrientation = fetch(`${this._spiceServer}/processes/orientation/execute`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
             },
             body: JSON.stringify(params),
-        }).then(res => res.json());
-        Promise.all([promisedPosition, promisedOrientation])
+        }).then(res => res.json());*/
+        Promise.all([promisedPosition/*, promisedOrientation*/])
             .then(res => {
                 const [resPos, resOrient] = res;
                 const id = resPos.output.bsp.replace(".bsp", "");
@@ -143,7 +143,8 @@
                     "existenceStart": this._startDateDiv.value,
                     "existenceEnd": this._endDateDiv.value,
                 });
-            });
+            })
+            .catch(e => console.error(`Error requesting satellite: ${e}`));
     }
 
     _checkProcessStatus(job) {
@@ -187,9 +188,10 @@
         this._viewCtx = this._viewCanvas.getContext("2d");
         this._viewCtx.strokeStyle = "red";
 
-        this._nameInput = document.getElementById("satellite-add-name");
-        this._startDateDiv = document.getElementById("satellite-add-start-date");
-        this._endDateDiv = document.getElementById("satellite-add-end-date");
+        this._inputs = {};
+        for (const input of ["name", "start-date", "end-date", "sma", "ecc", "inc", "raan", "aop", "m"]) {
+            this._inputs[input] = document.getElementById(`satellite-add-${input}`);
+        }
 
         document.querySelector("#satellite-add-start-date + div > button").onclick = () => {
             this._startDateDiv.value =
