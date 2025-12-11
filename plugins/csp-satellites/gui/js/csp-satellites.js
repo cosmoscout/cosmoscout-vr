@@ -14,7 +14,7 @@
      * @inheritDoc
      * @type {string}
      */
-    name = 'satellite';
+    name = 'satellites';
 
     _resetObserver() {
         fetch(`${this._renderServer}/run-js`, {
@@ -40,17 +40,23 @@
         this._needImage = true;
     }
 
-    _setFieldOfView(deg) {
-        const rad = parseFloat(deg) / 180 * Math.PI;
+    setFieldOfView(satellite, deg, emitCallback=true) {
+        const rad = deg / 180 * Math.PI;
         const sensorDiagonal = 42;
         const focalLength = sensorDiagonal / 2 / Math.tan(rad / 2);
-        fetch(`${this._renderServer}/run-js`, {
-            method: "POST",
-            body: `CosmoScout.callbacks.graphics.setFocalLength(${focalLength})`
-        })
-            .catch(e => console.error(`Error setting field of view: ${e}`));
-        CosmoScout.callbacks.satellites.setFieldOfView("VLEO", parseFloat(deg));
-        this._needImage = true;
+        if (satellite === this._activeSatellite) {
+            fetch(`${this._renderServer}/run-js`, {
+                method: "POST",
+                body: `CosmoScout.callbacks.graphics.setFocalLength(${focalLength})`
+            })
+                .catch(e => console.error(`Error setting field of view: ${e}`));
+            this._needImage = true;
+        }
+        if (emitCallback) {
+            CosmoScout.callbacks.satellites.setFieldOfView(satellite, deg);
+        } else {
+            this._fovSlider.noUiSlider.set([deg], false);
+        }
     }
 
     _checkShips(imageBlob) {
@@ -171,6 +177,7 @@
         this._needImage = true;
         this._requestedSatellites = [];
         this._nextId = -11111;
+        this._activeSatellite = "VLEO";
 
         // Init/Get various DOM elements
         this._viewDiv = CosmoScout.gui.loadTemplateContent('satellite-view-template');
@@ -194,8 +201,8 @@
         };
 
          // Init the slider
-        const slider = document.getElementById("satellite-view-fov");
-        noUiSlider.create(slider, {
+        this._fovSlider = document.getElementById("satellite-view-fov");
+        noUiSlider.create(this._fovSlider, {
             start: [1],
             range: {
                 'min': [0],
@@ -204,8 +211,8 @@
             step: 0.1
         });
 
-        slider.noUiSlider.on('slide', function (values, handle, unencoded) {
-           CosmoScout.satellite._setFieldOfView(values[0]);
+        this._fovSlider.noUiSlider.on('slide', (values, handle, unencoded) => {
+            CosmoScout.satellites.setFieldOfView(this._activeSatellite, parseFloat(unencoded));
         });
 
         this._resetObserver();

@@ -144,6 +144,11 @@ void Plugin::onLoad() {
   for (auto const& settings : mPluginSettings.mSatellites) {
     mSatellites.push_back(std::make_shared<Satellite>(
         settings.second, settings.first, mSceneGraph, mAllSettings, mSolarSystem));
+
+    settings.second.mFieldOfView.connectAndTouch([&](double fov) {
+      mGuiManager->getGui()->callJavascript(
+          "CosmoScout.satellites.setFieldOfView", settings.first, fov, false);
+    });
   }
 }
 
