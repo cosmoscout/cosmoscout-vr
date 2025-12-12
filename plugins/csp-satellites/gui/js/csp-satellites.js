@@ -97,9 +97,21 @@
             .catch(e => console.error(`Error fetching satellite view: ${e}`));
     }
 
+    _getBodyIdAndName() {
+        let bodyId;
+        let name;
+        if (this._inputs["satellite-id"].value == 0) {
+            bodyId = (this._nextId++).toString();
+            name = this._inputs.name.value;
+        } else {
+            bodyId = this._inputs["satellite-id"].value;
+            name = this._satellites[bodyId].name;
+        }
+        return [bodyId, name];
+    }
+
     _requestSatellite() {
-        const bodyId = (this._nextId++).toString();
-        const name = this._inputs.name.value;
+        const [bodyId, name] = this._getBodyIdAndName();
         const params = {
             "id": bodyId,
             "center": 399,
@@ -159,6 +171,14 @@
             });
     }
 
+    addSatellite(name, center, frame) {
+        this._satellites[center] = {
+            "name": name,
+            "frame": frame,
+        };
+        CosmoScout.gui.addDropdownValue("satellites.setSatellite", center, name, false);
+    }
+
     init() {
         // State enums
         this._states = {
@@ -179,6 +199,7 @@
         this._requestedSatellites = [];
         this._nextId = -11111;
         this._activeSatellite = "VLEO";
+        this._satellites = {};
 
         // Init/Get various DOM elements
         this._viewDiv = CosmoScout.gui.loadTemplateContent('satellite-view-template');
@@ -192,6 +213,7 @@
         for (const input of ["name", "start-date", "end-date", "sma", "ecc", "inc", "raan", "aop", "m"]) {
             this._inputs[input] = document.getElementById(`satellite-add-${input}`);
         }
+        this._inputs["satellite-id"] = document.querySelector(`[data-callback="satellites.setSatellite"]`);
 
         document.querySelector("#satellite-add-start-date + div > button").onclick = () => {
             this._inputs["start-date"].value =

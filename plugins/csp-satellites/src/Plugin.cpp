@@ -142,13 +142,7 @@ void Plugin::onLoad() {
   mPluginSettings = mAllSettings->mPlugins.at("csp-satellites");
 
   for (auto const& settings : mPluginSettings.mSatellites) {
-    mSatellites.push_back(std::make_shared<Satellite>(
-        settings.second, settings.first, mSceneGraph, mAllSettings, mSolarSystem));
-
-    settings.second.mFieldOfView.connectAndTouch([&](double fov) {
-      mGuiManager->getGui()->callJavascript(
-          "CosmoScout.satellites.setFieldOfView", settings.first, fov, false);
-    });
+    addSatellite(settings.first, settings.second);
   }
 }
 
@@ -188,25 +182,45 @@ void Plugin::loadSatelliteKernel() {
       failed = true;
     }
 
-    std::shared_ptr<cs::scene::CelestialObject> satellite =
-        std::make_shared<cs::scene::CelestialObject>(sat.bodyId, "J2000");
-    satellite->setExistenceAsStrings({sat.existenceStart, sat.existenceEnd});
-    satellite->setRadii(glm::dvec3{20});
-    satellite->setBodyCullingRadius(100.);
-    satellite->setOrbitCullingRadius(10000000.);
-    satellite->setIsCollidable(false);
-    mAllSettings->mObjects.insert(sat.bodyName, satellite);
+    if (mAllSettings->mObjects.find(sat.bodyName) == mAllSettings->mObjects.end()) {
+      std::shared_ptr<cs::scene::CelestialObject> satellite =
+          std::make_shared<cs::scene::CelestialObject>(sat.bodyId, "J2000");
+      satellite->setExistenceAsStrings({sat.existenceStart, sat.existenceEnd});
+      satellite->setRadii(glm::dvec3{20});
+      satellite->setBodyCullingRadius(100.);
+      satellite->setOrbitCullingRadius(10000000.);
+      satellite->setIsCollidable(false);
+      mAllSettings->mObjects.insert(sat.bodyName, satellite);
 
-    Plugin::Settings::Satellite satelliteSettings;
-    satelliteSettings.mModelFile      = "../share/resources/models/VLEO.glb";
-    satelliteSettings.mEnvironmentMap = "../share/resources/textures/marsEnvMap.dds";
-    mSatellites.push_back(std::make_shared<Satellite>(
-        satelliteSettings, sat.bodyName, mSceneGraph, mAllSettings, mSolarSystem));
+      Plugin::Settings::Satellite satelliteSettings;
+      satelliteSettings.mModelFile      = "../share/resources/models/VLEO.glb";
+      satelliteSettings.mEnvironmentMap = "../share/resources/textures/marsEnvMap.dds";
+
+      addSatellite(sat.bodyName, satelliteSettings);
+    } else {
+      // TODO Either recreate the CelestialObject with updated lifetime, or forbid changing it for
+      // existing satellites.
+    }
+    mPendingDownloads.clear();
+    if (failed) {
+      throw std::runtime_error("Loading satellite kernels failed!");
+    }
   }
-  mPendingDownloads.clear();
-  if (failed) {
-    throw std::runtime_error("Loading satellite kernels failed!");
-  }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Plugin::addSatellite(std::string const& name, Settings::Satellite const& settings) {
+  mSatellites.push_back(
+      std::make_shared<Satellite>(settings, name, mSceneGraph, mAllSettings, mSolarSystem));
+
+  settings.mFieldOfView.connectAndTouch([&](double fov) {
+    mGuiManager->getGui()->callJavascript("CosmoScout.satellites.setFieldOfView", name, fov, false);
+  });
+
+  mGuiManager->getGui()->callJavascript("CosmoScout.satellites.addSatellite", name,
+      mAllSettings->mObjects.at(name)->getCenterName(),
+      mAllSettings->mObjects.at(name)->getFrameName());
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -68,6 +68,8 @@ class Plugin : public cs::core::PluginBase {
   void downloadSatelliteKernel(ExtraSatellite&& satellite);
   /// Kernel download has finished, now load it into CosmoScout
   void loadSatelliteKernel();
+  /// Common code when loading initial list of satellites and when loading new satellite
+  void addSatellite(std::string const& name, Settings::Satellite const& settings);
 
   Settings                                mPluginSettings;
   std::vector<std::shared_ptr<Satellite>> mSatellites;
