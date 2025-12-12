@@ -140,8 +140,8 @@
                     "bodyId": bodyId,
                     "jobId": id,
                     "bodyName": name,
-                    "existenceStart": this._startDateDiv.value,
-                    "existenceEnd": this._endDateDiv.value,
+                    "existenceStart": this._inputs["start-date"].value,
+                    "existenceEnd": this._inputs["end-date"].value,
                 });
             })
             .catch(e => console.error(`Error requesting satellite: ${e}`));
@@ -194,11 +194,11 @@
         }
 
         document.querySelector("#satellite-add-start-date + div > button").onclick = () => {
-            this._startDateDiv.value =
+            this._inputs["start-date"].value =
                 CosmoScout.state.simulationTime.toISOString().replace('T', ' ').slice(0, 19);
         };
         document.querySelector("#satellite-add-end-date + div > button").onclick = () => {
-            this._endDateDiv.value =
+            this._inputs["end-date"].value =
                 CosmoScout.state.simulationTime.toISOString().replace('T', ' ').slice(0, 19);
         };
 
