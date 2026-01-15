@@ -6,13 +6,19 @@ function(add_microservice service_name service_dir)
     set(venv_dir "${CMAKE_INSTALL_FULL_BINDIR}/.venv-${service_name}")
     set(requirements_file "${service_dir}/requirements.txt")
 
+    if (WIN32)
+        set(pip_executable "${venv_dir}/Scripts/pip")
+    endif()
+    if (UNIX)
+        set(pip_executable "${venv_dir}/bin/pip")
+    endif()
     install(CODE "
         if(NOT EXISTS ${venv_dir}/pyvenv.cfg)
             execute_process(
                 COMMAND \"${Python3_EXECUTABLE}\" -m venv \"${venv_dir}\"
             )
             execute_process(
-                COMMAND \"${venv_dir}/Scripts/pip\" install -r \"${requirements_file}\"
+                COMMAND \"${pip_executable}\" install -r \"${requirements_file}\"
             )
         endif()
     ")

@@ -150,7 +150,7 @@ bool ViewPointer::Do() {
     rayDir            = glm::normalize(satelliteTransform * rayDir);
     glm::dvec3 intersection;
     if (!bodyIntersectable->getIntersection(rayStart, rayDir, intersection)) {
-      intersection = rayStart + rayDir.xyz * mLastDist[i];
+      intersection = rayStart + rayDir.xyz() * mLastDist[i];
     } else {
       intersection = bodyTransform * glm::dvec4(intersection, 1.);
       mLastDist[i] = glm::length(intersection - rayStart);
@@ -166,7 +166,6 @@ bool ViewPointer::Do() {
   std::array<GLfloat, 16> glMatMV{};
   std::array<GLfloat, 16> glMatP{};
 
-  glm::mat4 glMatM = glm::mat4(satelliteObject->getObserverRelativeTransform());
   glGetFloatv(GL_MODELVIEW_MATRIX, glMatMV.data());
   glGetFloatv(GL_PROJECTION_MATRIX, glMatP.data());
 

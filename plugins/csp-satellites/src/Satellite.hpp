@@ -52,9 +52,9 @@ class Satellite {
   std::unique_ptr<VistaTransformNode>       mAnchor;
   std::unique_ptr<cs::graphics::GltfLoader> mModel;
 
-  std::unique_ptr<ViewPointer> mViewPointer;
-
   std::string mObjectName;
+
+  std::unique_ptr<ViewPointer> mViewPointer;
 };
 } // namespace csp::satellites
 
