@@ -81,7 +81,6 @@ class TileSourceWebMapService : public TileSource {
  private:
   static std::mutex mFileSystemMutex;
 
-  cs::utils::ThreadPool mThreadPool;
   std::string           mUrl;
   std::string           mCache = "cache/img";
   std::string           mLayers;
@@ -91,6 +90,11 @@ class TileSourceWebMapService : public TileSource {
   // We keep track of the time a tile has had invalid data from the server.
   // This timestamp is used for a cooldown mechanism
   std::map<boost::filesystem::path, std::chrono::system_clock::time_point> mLastTimeTileFailed;
+
+  // Thread pool has to be the last member variable,
+  // as it must be destroyed first. Otherwise, ongoing threads
+  // may try to access other already destroyed members.
+  cs::utils::ThreadPool mThreadPool;
 };
 } // namespace csp::lodbodies
 
