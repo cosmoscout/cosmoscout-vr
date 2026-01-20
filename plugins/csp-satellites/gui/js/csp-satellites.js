@@ -25,6 +25,10 @@
                 if (res.ok) {
                     this._state = this._states["idle"];
                 }
+                // [1] Apparently our current CEF version leaks file descriptors for each fetch,
+                // unless the body of the response is handled in some way.
+                // Because of this we convert it to blob here and then just drop the response.
+                return res.blob();
             })
             .catch(e => console.error(`Error setting body: ${e}`));
     }
@@ -35,6 +39,7 @@
             method: "POST",
             body: `CosmoScout.callbacks.time.setDate("${time.toISOString()}")`
         })
+            .then(res => res.blob()) // See [1]
             .catch(e => console.error(`Error setting date: ${e}`));
         this._lastImageTime = time;
         this._needImage = true;
@@ -49,6 +54,7 @@
                 method: "POST",
                 body: `CosmoScout.callbacks.graphics.setFocalLength(${focalLength})`
             })
+                .then(res => res.blob()) // See [1]
                 .catch(e => console.error(`Error setting field of view: ${e}`));
             this._needImage = true;
         }
