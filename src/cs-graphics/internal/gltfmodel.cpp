@@ -1302,6 +1302,9 @@ VistaGltfNode::~VistaGltfNode() = default;
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool VistaGltfNode::Do() {
+  if (!mActive) {
+    return false;
+  }
   cs::utils::FrameStats::ScopedTimer             timer("VistaGltfNode");
   cs::utils::FrameStats::ScopedSamplesCounter    samplesCounter("VistaGltfNode");
   cs::utils::FrameStats::ScopedPrimitivesCounter primitivesCounter("VistaGltfNode");
@@ -1338,6 +1341,12 @@ bool VistaGltfNode::GetBoundingBox(VistaBoundingBox& bb) {
   }
 
   return true;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void VistaGltfNode::SetActive(bool active) {
+  mActive = active;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -35,7 +35,7 @@ class Plugin : public cs::core::PluginBase {
     /// The settings for a satellite.
     struct Satellite {
       /// Path to the model. ".glb" and ".gltf" are allowed formats.
-      std::string mModelFile;
+      cs::utils::Property<std::string> mModelFile;
 
       /// Path to the environment map. ".dds", ".ktx" and ".kmg" are allowed formats.
       std::string mEnvironmentMap;

@@ -31,17 +31,18 @@ Satellite::Satellite(Plugin::Settings::Satellite const& config, std::string obje
     : mSceneGraph(sceneGraph)
     , mSettings(std::move(settings))
     , mSolarSystem(solarSystem)
-    , mModel(std::make_unique<cs::graphics::GltfLoader>(config.mModelFile, config.mEnvironmentMap))
     , mObjectName(objectName)
     , mViewPointer(std::make_unique<ViewPointer>(config, solarSystem, objectName)) {
 
-  mModel->setLightIntensity(15.0);
-  mModel->setIBLIntensity(1.5);
-  mModel->setLightColor(1.0, 1.0, 1.0);
-
   mAnchor.reset(sceneGraph->NewTransformNode(sceneGraph->GetRoot()));
 
-  mModel->attachTo(sceneGraph, mAnchor.get());
+  addModel("../share/resources/models/VLEO_centered.glb", config.mEnvironmentMap);
+  addModel("../share/resources/models/VLEO_alt.glb", config.mEnvironmentMap);
+  config.mModelFile.connectAndTouch([this](std::string modelFile) {
+    for (auto& model : mModels) {
+      model.second->setActive(model.first == modelFile);
+    }
+  });
 
   VistaOpenSGMaterialTools::SetSortKeyOnSubtree(
       mAnchor.get(), static_cast<int>(cs::utils::DrawOrder::eOpaqueItems));
@@ -72,14 +73,28 @@ void Satellite::update() {
 
     auto sunDirection = glm::vec3(mSolarSystem->getSunDirection(transform[3]));
 
-    mModel->setLightDirection(sunDirection.x, sunDirection.y, sunDirection.z);
+    for (auto& model : mModels) {
+      model.second->setLightDirection(sunDirection.x, sunDirection.y, sunDirection.z);
 
-    if (mSettings->mGraphics.pEnableHDR.get()) {
-      mModel->setEnableHDR(true);
-      sunIlluminance = static_cast<float>(mSolarSystem->getSunIlluminance(transform[3]));
+      if (mSettings->mGraphics.pEnableHDR.get()) {
+        model.second->setEnableHDR(true);
+        sunIlluminance = static_cast<float>(mSolarSystem->getSunIlluminance(transform[3]));
+      }
+      model.second->setLightIntensity(sunIlluminance);
     }
-    mModel->setLightIntensity(sunIlluminance);
   }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Satellite::addModel(std::string const& modelFile, std::string const& envMapFile) {
+  mModels[modelFile] = std::make_unique<cs::graphics::GltfLoader>(modelFile, envMapFile);
+
+  mModels.at(modelFile)->setLightIntensity(15.0);
+  mModels.at(modelFile)->setIBLIntensity(1.5);
+  mModels.at(modelFile)->setLightColor(1.0, 1.0, 1.0);
+
+  mModels.at(modelFile)->attachTo(mSceneGraph, mAnchor.get());
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

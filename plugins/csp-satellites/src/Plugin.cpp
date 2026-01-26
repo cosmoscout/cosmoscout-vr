@@ -98,6 +98,12 @@ void Plugin::init() {
       std::function([this](std::string satellite, double fov) {
         mPluginSettings.mSatellites[satellite].mFieldOfView = fov;
       }));
+  mGuiManager->getGui()->registerCallback("satellites.setSatelliteModel",
+      "Set the model to be shown for a satellite.", std::function([this](std::string modelFile) {
+        for (auto& satelliteSetting : mPluginSettings.mSatellites) {
+          satelliteSetting.second.mModelFile.set(modelFile);
+        }
+      }));
 
   // Load settings.
   onLoad();

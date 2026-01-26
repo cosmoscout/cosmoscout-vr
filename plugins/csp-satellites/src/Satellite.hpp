@@ -46,11 +46,14 @@ class Satellite {
   void update();
 
  private:
+  void addModel(std::string const& mModelFile, std::string const& envMapFile);
+
   VistaSceneGraph*                          mSceneGraph;
   std::shared_ptr<cs::core::Settings>       mSettings;
   std::shared_ptr<cs::core::SolarSystem>    mSolarSystem;
   std::unique_ptr<VistaTransformNode>       mAnchor;
-  std::unique_ptr<cs::graphics::GltfLoader> mModel;
+
+  std::unordered_map<std::string, std::unique_ptr<cs::graphics::GltfLoader>> mModels;
 
   std::string mObjectName;
 

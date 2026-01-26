@@ -179,7 +179,10 @@ class VistaGltfNode : public IVistaOpenGLDraw {
   /// This method should return the bounding box of the OpenGL object you draw in the method Do().
   bool GetBoundingBox(VistaBoundingBox& bb) override;
 
+  void SetActive(bool active);
+
  private:
+  bool                        mActive;
   std::shared_ptr<GltfShared> mShared;
   std::string                 mName;
   int                         mMeshIndex;

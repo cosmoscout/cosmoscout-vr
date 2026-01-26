@@ -31,6 +31,7 @@ namespace cs::graphics {
 
 namespace internal {
 struct GltfShared;
+class VistaGltfNode;
 }
 
 /// If added to the scene graph, this will draw a Gltf 2.0 model.
@@ -62,6 +63,10 @@ class CS_GRAPHICS_EXPORT GltfLoader {
 
   /// Attaches the model to the VistaSceneGraph for rendering.
   bool attachTo(VistaSceneGraph* sg, VistaTransformNode* parent);
+
+  void setActive(bool active);
+
+  std::vector<internal::VistaGltfNode*> mNodes;
 
  private:
   std::shared_ptr<internal::GltfShared> mShared;

@@ -157,18 +157,20 @@ void apply_transform(VistaTransformNode& vista_transform, tinygltf::Node const& 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void build_node(VistaSceneGraph& sg, std::shared_ptr<internal::GltfShared> const& shared,
+void build_node(GltfLoader&                                  loader, VistaSceneGraph & sg,
+                std::shared_ptr<internal::GltfShared> const& shared,
     VistaTransformNode* parent, tinygltf::Node const& tinygltf_node) {
   VistaTransformNode* transform_node = sg.NewTransformNode(parent);
   if (tinygltf_node.mesh >= 0) {
     auto* draw = new internal::VistaGltfNode(tinygltf_node, shared);
+    loader.mNodes.push_back(draw);
     sg.NewOpenGLNode(transform_node, draw);
   }
 
   apply_transform(*transform_node, tinygltf_node);
   transform_node->SetName(tinygltf_node.name);
   for (int i : tinygltf_node.children) {
-    build_node(sg, shared, transform_node, shared->mTinyGltfModel.nodes[i]);
+    build_node(loader, sg, shared, transform_node, shared->mTinyGltfModel.nodes[i]);
   }
 }
 
@@ -184,9 +186,17 @@ bool GltfLoader::attachTo(VistaSceneGraph* pSG, VistaTransformNode* parent) {
                           : mShared->mTinyGltfModel.scenes.front();
 
   for (int i : scene.nodes) {
-    build_node(*pSG, mShared, parent, mShared->mTinyGltfModel.nodes[i]);
+    build_node(*this, *pSG, mShared, parent, mShared->mTinyGltfModel.nodes[i]);
   }
   return true;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void GltfLoader::setActive(bool active) {
+  for (auto* node : mNodes) {
+    node->SetActive(active);
+  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
