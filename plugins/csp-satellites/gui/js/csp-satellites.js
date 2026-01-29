@@ -6,6 +6,112 @@
 // SPDX-License-Identifier: MIT
 
 (() => {
+  const STATES = {
+    "connecting": 0,
+    "idle": 1,
+    "awaitImage": 2,
+    "awaitShips": 3,
+  };
+
+  /**
+   * Class managing a video + ship detection stream that is pushed from some remote server.
+   * I.e. the remote server continuously sends messages to us and we have to handle them as we get them.
+   */
+  class PushedStream {
+    state = STATES["connecting"];
+
+    constructor(drawCtx) {
+        this._drawCtx = drawCtx;
+    }
+  }
+
+  /**
+   * Class managing a video + ship detection stream that is pulled from some remote server.
+   * I.e. we are responsible for requesting a new image whenever necessary.
+   */
+  class PulledStream {
+    state = STATES["connecting"];
+
+    constructor(drawCtx) {
+        this._drawCtx = drawCtx;
+    }
+  }
+
+  /**
+   * Class managing the connection to and synchronization with a CosmoScout render server.
+   */
+  class RenderServer {
+    constructor(url) {
+        this._url = url;
+    }
+
+    /**
+     * Get a current image (as Blob) from the render server.
+     */
+    getImage() {
+        const params = new URLSearchParams();
+        params.append("width", "320");
+        params.append("height", "320");
+        params.append("gui", "false");
+        params.append("delay", "4");
+        params.append("format", "png");
+        return fetch(`${this._url}/capture?${params}`)
+            .then(res => res.blob());
+    }
+
+    /**
+     * Creates a default promise for fetches that don't return any meaningful results.
+     * Also makes sure that no file descriptors are leaked.
+     */
+    _handleEmptyResponse(fetchPromise, errorText) {
+        return new Promise((resolve, reject) => {
+            fetchPromise
+                .then(res => {
+                    if (res.ok) {
+                        resolve();
+                    } else {
+                        reject(`${errorText}: ${res}`);
+                    }
+                    // Apparently our current CEF version leaks file descriptors for each fetch,
+                    // unless the body of the response is handled in some way.
+                    // Because of this we convert it to blob here and then just drop the response.
+                    return res.blob();
+                })
+                .catch(e => reject(`${errorText}: ${e}`));
+        });
+    }
+
+    /**
+     * Reset the remote observer position to its default frame and position.
+     */
+    resetLocation() {
+        const promise = fetch(`${this._url}/run-js`, {
+            method: "POST",
+            body: 'CosmoScout.callbacks.navigation.setBodyFull("-10001", "VLEO_OFFSET", 0.1, 0.1, 0.1, 0, 1, 0, 0, 0)'
+        });
+        return this._handleEmptyResponse(promise, "Error setting observer location");
+    }
+
+    /**
+     * Sync the remote time to our time.
+     */
+    syncTime() {
+        const time = CosmoScout.timeline._centerTime;
+        return this.callSetter("time.setDate", `"${time.toISOString()}"`);
+    }
+
+    /**
+     * Set an arbitrary remote parameter to the given time value.
+     */
+    callSetter(parameter, value) {
+        const promise = fetch(`${this._url}/run-js`, {
+            method: "POST",
+            body: `CosmoScout.callbacks.${parameter}(${value})`
+        });
+        return this._handleEmptyResponse(promise, `Error setting ${parameter}`);
+    }
+  }
+
   /**
    * Satellite Api
    */
@@ -35,46 +141,12 @@
         });
     }
 
-    _resetObserver() {
-        fetch(`${this._renderServer}/run-js`, {
-            method: "POST",
-            body: 'CosmoScout.callbacks.navigation.setBodyFull("-10001", "VLEO_OFFSET", 0.1, 0.1, 0.1, 0, 1, 0, 0, 0)'
-        })
-            .then(res => {
-                if (res.ok) {
-                    this._state = this._states["idle"];
-                }
-                // [1] Apparently our current CEF version leaks file descriptors for each fetch,
-                // unless the body of the response is handled in some way.
-                // Because of this we convert it to blob here and then just drop the response.
-                return res.blob();
-            })
-            .catch(e => console.error(`Error setting body: ${e}`));
-    }
-
-    _resetDate() {
-        const time = CosmoScout.timeline._centerTime;
-        fetch(`${this._renderServer}/run-js`, {
-            method: "POST",
-            body: `CosmoScout.callbacks.time.setDate("${time.toISOString()}")`
-        })
-            .then(res => res.blob()) // See [1]
-            .catch(e => console.error(`Error setting date: ${e}`));
-        this._lastImageTime = time;
-        this._needImage = true;
-    }
-
     setFieldOfView(satellite, deg, emitCallback=true) {
         const rad = deg / 180 * Math.PI;
         const sensorDiagonal = 42;
         const focalLength = sensorDiagonal / 2 / Math.tan(rad / 2);
         if (satellite === this._activeSatellite) {
-            fetch(`${this._renderServer}/run-js`, {
-                method: "POST",
-                body: `CosmoScout.callbacks.graphics.setFocalLength(${focalLength})`
-            })
-                .then(res => res.blob()) // See [1]
-                .catch(e => console.error(`Error setting field of view: ${e}`));
+            this._renderServer.callSetter("graphics.setFocalLength", focalLength);
             this._needImage = true;
         }
         if (emitCallback) {
@@ -101,25 +173,6 @@
                             console.error(`Error checking for ship: ${e}`);
                             this._state = this._states["idle"];
                         });
-    }
-
-    _fetchImage() {
-        const params = new URLSearchParams();
-        params.append("width", "320");
-        params.append("height", "320");
-        params.append("gui", "false");
-        params.append("delay", "4");
-        params.append("format", "png");
-        fetch(`${this._renderServer}/capture?${params}`)
-            .then(res => res.blob())
-            .then(blob => {
-                this._state = this._states["awaitShips"];
-                createImageBitmap(blob).then(image => {
-                    this._viewCtx.drawImage(image, 0, 0);
-                });
-                this._checkShips(blob);
-            })
-            .catch(e => console.error(`Error fetching satellite view: ${e}`));
     }
 
     _getBodyIdAndName() {
@@ -217,11 +270,12 @@
         const hostA = "localhost";
         const hostB = "129.247.51.9";
         const hostC = "129.247.51.78";
-        this._renderServer = `http://${hostA}:9002`;
+        this._renderServerUrl = `http://${hostA}:9002`;
         this._spiceServer = `http://${hostA}:8000`;
         this._shipServer = `http://${hostA}:8001`;
 
         // Set up state
+        this._renderServer = new RenderServer(this._renderServerUrl);
         this._state = this._states["connecting"];
         this._needImage = true;
         this._requestedSatellites = [];
@@ -267,7 +321,9 @@
             CosmoScout.satellites.setFieldOfView(this._activeSatellite, parseFloat(unencoded));
         });
 
-        this._resetObserver();
+        this._renderServer.resetLocation()
+            .then(() => this._state = this._states["idle"])
+            .catch((e) => console.error(e));
     }
 
     deinit() {
@@ -277,12 +333,24 @@
     update() {
         // Set render server time if it changed since last image
         if (this._state === this._states["idle"] && this._lastImageTime != CosmoScout.timeline._centerTime) {
-            this._resetDate();
+            this._lastImageTime = CosmoScout.timeline._centerTime;
+            this._renderServer.syncTime();
+            this._needImage = true;
+                //.then(() => this._needImage = true)
+                //.catch((e) => console.error(e));
         }
         if (this._state === this._states["idle"] && this._needImage) {
             this._state = this._states["awaitImage"];
             this._needImage = false;
-            this._fetchImage();
+            this._renderServer.getImage()
+                .then((blob) => {
+                    this._state = this._states["awaitShips"];
+                    createImageBitmap(blob).then(image => {
+                        this._viewCtx.drawImage(image, 0, 0);
+                    });
+                    this._checkShips(blob);
+                })
+                .catch(e => console.error(`Error fetching satellite view: ${e}`));
         }
         this._requestedSatellites.forEach(job => this._checkProcessStatus(job));
         this._requestedSatellites = [];
