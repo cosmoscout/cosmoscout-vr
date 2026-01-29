@@ -16,6 +16,25 @@
      */
     name = 'satellites';
 
+    setSatelliteConfiguration(id) {
+        const models = [
+            "../share/resources/models/VLEO_centered.glb",
+            "../share/resources/models/VLEO_alt.glb",
+        ];
+        CosmoScout.callbacks.satellites.setSatelliteModel(models[id]);
+    }
+
+    updateDetection(imgB64, bboxs, inference_speed) {
+        const imgBytes = Uint8Array.from(atob(imgB64), c => c.charCodeAt(0));
+        const blob = new Blob([imgBytes], {type: "image/jpeg"});
+        createImageBitmap(blob).then((img) => {
+            this._viewCtx.drawImage(img, 0, 0);
+            bboxs.forEach(bbox => {
+                this._viewCtx.strokeRect(bbox[0], bbox[1], bbox[2], bbox[3]);
+            });
+        });
+    }
+
     _resetObserver() {
         fetch(`${this._renderServer}/run-js`, {
             method: "POST",
@@ -89,7 +108,7 @@
         params.append("width", "320");
         params.append("height", "320");
         params.append("gui", "false");
-        params.append("delay", "10");
+        params.append("delay", "4");
         params.append("format", "png");
         fetch(`${this._renderServer}/capture?${params}`)
             .then(res => res.blob())
@@ -195,9 +214,12 @@
         };
 
         // Set up server addresses
-        this._renderServer = "http://localhost:9002";
-        this._spiceServer = "http://localhost:8000";
-        this._shipServer = "http://localhost:8001";
+        const hostA = "localhost";
+        const hostB = "129.247.51.9";
+        const hostC = "129.247.51.78";
+        this._renderServer = `http://${hostA}:9002`;
+        this._spiceServer = `http://${hostA}:8000`;
+        this._shipServer = `http://${hostA}:8001`;
 
         // Set up state
         this._state = this._states["connecting"];
