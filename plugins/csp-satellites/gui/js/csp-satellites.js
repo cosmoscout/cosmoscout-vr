@@ -90,6 +90,16 @@
             },
             step: 0.1
         });
+
+        this.hide();
+    }
+
+    hide() {
+        this.window.style.display = "none";
+    }
+
+    show() {
+        this.window.style.display = "block";
     }
 
     hideControls() {
@@ -198,6 +208,7 @@
     }
 
     updateDetection(imgB64, bboxs, inference_speed) {
+        this._realView.show();
         const imgBytes = Uint8Array.from(atob(imgB64), c => c.charCodeAt(0));
         const blob = new Blob([imgBytes], {type: "image/jpeg"});
         this._realStream.drawImg(blob).then(() => {
@@ -402,6 +413,7 @@
             this._renderServer.getImage()
                 .then((blob) => {
                     this._state = this._states["awaitShips"];
+                    this._virtView.show();
                     this._virtStream.drawImg(blob);
                     this._checkShips(blob);
                 })
