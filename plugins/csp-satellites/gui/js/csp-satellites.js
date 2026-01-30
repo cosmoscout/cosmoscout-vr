@@ -14,14 +14,42 @@
   };
 
   /**
+   * Base class for managing a video + ship detection stream.
+   * Mainly takes care of creating a context and drawing to it.
+   */
+  class SatelliteStream {
+    constructor(canvas) {
+        this._drawCtx = canvas.getContext("2d");
+        this._drawCtx.strokeStyle = "red";
+    }
+
+    drawImg(blob) {
+        return new Promise((resolve, reject) => {
+            createImageBitmap(blob).then((img) => {
+                this._drawCtx.drawImage(img, 0, 0);
+                resolve();
+            });
+        });
+    }
+
+    drawRect(bbox, centered) {
+        if (centered) {
+            this._drawCtx.strokeRect(bbox[0] - bbox[2]/2, bbox[1] - bbox[3]/2, bbox[2], bbox[3]);
+        } else {
+            this._drawCtx.strokeRect(bbox[0], bbox[1], bbox[2], bbox[3]);
+        }
+    }
+  }
+
+  /**
    * Class managing a video + ship detection stream that is pushed from some remote server.
    * I.e. the remote server continuously sends messages to us and we have to handle them as we get them.
    */
-  class PushedStream {
+  class PushedStream extends SatelliteStream {
     state = STATES["connecting"];
 
-    constructor(drawCtx) {
-        this._drawCtx = drawCtx;
+    constructor(canvas) {
+        super(canvas);
     }
   }
 
@@ -29,11 +57,47 @@
    * Class managing a video + ship detection stream that is pulled from some remote server.
    * I.e. we are responsible for requesting a new image whenever necessary.
    */
-  class PulledStream {
+  class PulledStream extends SatelliteStream {
     state = STATES["connecting"];
 
-    constructor(drawCtx) {
-        this._drawCtx = drawCtx;
+    constructor(canvas) {
+        super(canvas);
+    }
+
+    pull() {
+
+    }
+  }
+
+  /**
+   * Class for managing a draggable window displaying a satellite view.
+   */
+  class ViewWindow {
+    constructor() {
+        this.window = CosmoScout.gui.loadTemplateContent("satellite-view-template");
+        document.getElementById("cosmoscout").appendChild(this.window);
+
+        this.canvas   = this.window.getElementsByClassName("satellite-view-canvas")[0];
+        this.controls = this.window.getElementsByClassName("satellite-view-controls")[0];
+        this.slider   = this.window.getElementsByClassName("satellite-view-fov")[0];
+
+        // Init the slider
+        noUiSlider.create(this.slider, {
+            start: [1],
+            range: {
+                "min": [0],
+                "max": [7]
+            },
+            step: 0.1
+        });
+    }
+
+    hideControls() {
+        this.controls.style.display = "none"
+    }
+
+    showControls() {
+        this.controls.style.display = "block"
     }
   }
 
@@ -122,6 +186,9 @@
      */
     name = 'satellites';
 
+    /**
+     * Externally used functions for push-style video stream.
+     */
     setSatelliteConfiguration(id) {
         const models = [
             "../share/resources/models/VLEO_centered.glb",
@@ -133,14 +200,16 @@
     updateDetection(imgB64, bboxs, inference_speed) {
         const imgBytes = Uint8Array.from(atob(imgB64), c => c.charCodeAt(0));
         const blob = new Blob([imgBytes], {type: "image/jpeg"});
-        createImageBitmap(blob).then((img) => {
-            this._viewCtx.drawImage(img, 0, 0);
+        this._realStream.drawImg(blob).then(() => {
             bboxs.forEach(bbox => {
-                this._viewCtx.strokeRect(bbox[0], bbox[1], bbox[2], bbox[3]);
+                this._realStream.drawRect(bbox, false);
             });
         });
     }
 
+    /**
+     * Internally used functions.
+     */
     setFieldOfView(satellite, deg, emitCallback=true) {
         const rad = deg / 180 * Math.PI;
         const sensorDiagonal = 42;
@@ -152,7 +221,7 @@
         if (emitCallback) {
             CosmoScout.callbacks.satellites.setFieldOfView(satellite, deg);
         } else {
-            this._fovSlider.noUiSlider.set([deg], false);
+            this._virtView.slider.noUiSlider.set([deg], false);
         }
     }
 
@@ -165,14 +234,14 @@
         }).then(res => res.json())
             .then(res => {
                 res.output.json[0].matches.forEach(match => {
-                    this._viewCtx.strokeRect(match[0] - match[2]/2, match[1] - match[3]/2, match[2], match[3]);
+                    this._virtStream.drawRect(match, true);
                 });
                 this._state = this._states["idle"];
             })
             .catch(e => {
-                            console.error(`Error checking for ship: ${e}`);
-                            this._state = this._states["idle"];
-                        });
+                console.error(`Error checking for ship: ${e}`);
+                this._state = this._states["idle"];
+            });
     }
 
     _getBodyIdAndName() {
@@ -284,12 +353,11 @@
         this._satellites = {};
 
         // Init/Get various DOM elements
-        this._viewDiv = CosmoScout.gui.loadTemplateContent('satellite-view-template');
-        document.getElementById('cosmoscout').appendChild(this._viewDiv);
-
-        this._viewCanvas = document.getElementById('satellite-view-canvas');
-        this._viewCtx = this._viewCanvas.getContext("2d");
-        this._viewCtx.strokeStyle = "red";
+        this._virtView = new ViewWindow();
+        this._realView = new ViewWindow();
+        this._realView.hideControls();
+        this._virtStream = new PulledStream(this._virtView.canvas);
+        this._realStream = new PushedStream(this._realView.canvas);
 
         this._inputs = {};
         for (const input of ["name", "start-date", "end-date", "sma", "ecc", "inc", "raan", "aop", "m"]) {
@@ -306,18 +374,7 @@
                 CosmoScout.state.simulationTime.toISOString().replace('T', ' ').slice(0, 19);
         };
 
-         // Init the slider
-        this._fovSlider = document.getElementById("satellite-view-fov");
-        noUiSlider.create(this._fovSlider, {
-            start: [1],
-            range: {
-                'min': [0],
-                'max': [7]
-            },
-            step: 0.1
-        });
-
-        this._fovSlider.noUiSlider.on('slide', (values, handle, unencoded) => {
+        this._virtView.slider.noUiSlider.on('slide', (values, handle, unencoded) => {
             CosmoScout.satellites.setFieldOfView(this._activeSatellite, parseFloat(unencoded));
         });
 
@@ -345,9 +402,7 @@
             this._renderServer.getImage()
                 .then((blob) => {
                     this._state = this._states["awaitShips"];
-                    createImageBitmap(blob).then(image => {
-                        this._viewCtx.drawImage(image, 0, 0);
-                    });
+                    this._virtStream.drawImg(blob);
                     this._checkShips(blob);
                 })
                 .catch(e => console.error(`Error fetching satellite view: ${e}`));

@@ -3,7 +3,7 @@ SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
 SPDX-License-Identifier: MIT
 -->
 
-<div id="satellite-view" class="draggable-window resizable-window auto-hide-header visible">
+<div class="draggable-window resizable-window auto-hide-header visible">
     <div class="window-wrapper">
         <div class="window-header">
             <span class="window-title"><i class="material-icons">map</i><span>VLEO View</span></span>
@@ -12,24 +12,26 @@ SPDX-License-Identifier: MIT
             </a>
         </div>
         <div class="window-content">
-            <canvas id="satellite-view-canvas" width="320" height="320"></canvas>
-        </div>
-    </div>
+            <canvas class="satellite-view-canvas" width="320" height="320"></canvas>
 
-    <div class="row">
-        <div class="col-12">
-            <a class="btn glass block px-3" onclick="CosmoScout.satellites._resetObserver(); CosmoScout.satellites._resetDate(); CosmoScout.satellites._fetchImage(); ">
-            Sync Render Server
-            </a>
-        </div>
-    </div>
-    
-    <div class="row">
-        <div class="col-6">
-            Field of View
-        </div>
-        <div class="col-6">
-            <div id="satellite-view-fov"></div>
+            <div class="satellite-view-controls container-fluid satellite-view-controls">
+                <div class="row">
+                    <div class="col-12">
+                        <a class="btn glass block px-3" onclick="CosmoScout.satellites._resetObserver(); CosmoScout.satellites._resetDate(); CosmoScout.satellites._fetchImage(); ">
+                            Sync Render Server
+                        </a>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-6">
+                        Field of View
+                    </div>
+                    <div class="col-6">
+                        <div class="satellite-view-fov"></div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
