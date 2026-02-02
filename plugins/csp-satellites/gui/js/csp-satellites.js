@@ -24,11 +24,8 @@
     }
 
     drawImg(blob) {
-        return new Promise((resolve, reject) => {
-            createImageBitmap(blob).then((img) => {
-                this._drawCtx.drawImage(img, 0, 0);
-                resolve();
-            });
+        return createImageBitmap(blob).then((img) => {
+            this._drawCtx.drawImage(img, 0, 0);
         });
     }
 
