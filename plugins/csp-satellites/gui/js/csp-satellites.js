@@ -112,6 +112,8 @@
    * Class managing the connection to and synchronization with a CosmoScout render server.
    */
   class RenderServer {
+    dirty = false;
+
     constructor(url) {
         this._url = url;
     }
@@ -120,6 +122,7 @@
      * Get a current image (as Blob) from the render server.
      */
     getImage() {
+        this.dirty = false;
         const params = new URLSearchParams();
         params.append("width", "320");
         params.append("height", "320");
@@ -160,7 +163,7 @@
             method: "POST",
             body: 'CosmoScout.callbacks.navigation.setBodyFull("-10001", "VLEO_OFFSET", 0.1, 0.1, 0.1, 0, 1, 0, 0, 0)'
         });
-        return this._handleEmptyResponse(promise, "Error setting observer location");
+        return this._handleEmptyResponse(promise, "Error setting observer location").then(() => this.dirty = true);
     }
 
     /**
@@ -179,7 +182,7 @@
             method: "POST",
             body: `CosmoScout.callbacks.${parameter}(${value})`
         });
-        return this._handleEmptyResponse(promise, `Error setting ${parameter}`);
+        return this._handleEmptyResponse(promise, `Error setting ${parameter}`).then(() => this.dirty = true);
     }
   }
 
@@ -224,7 +227,6 @@
         const focalLength = sensorDiagonal / 2 / Math.tan(rad / 2);
         if (satellite === this._activeSatellite) {
             this._renderServer.callSetter("graphics.setFocalLength", focalLength);
-            this._needImage = true;
         }
         if (emitCallback) {
             CosmoScout.callbacks.satellites.setFieldOfView(satellite, deg);
@@ -236,19 +238,13 @@
     _checkShips(imageBlob) {
         const data = new FormData();
         data.append("file", imageBlob);
-        fetch(`${this._shipServer}/processes/ships/execute`, {
+        return fetch(`${this._shipServer}/processes/ships/execute`, {
             method: "POST",
             body: data,
-        }).then(res => res.json())
-            .then(res => {
-                res.output.json[0].matches.forEach(match => {
-                    this._virtStream.drawRect(match, true);
-                });
-                this._state = this._states["idle"];
-            })
+        })
+            .then(res => res.json())
             .catch(e => {
                 console.error(`Error checking for ship: ${e}`);
-                this._state = this._states["idle"];
             });
     }
 
@@ -354,7 +350,6 @@
         // Set up state
         this._renderServer = new RenderServer(this._renderServerUrl);
         this._state = this._states["connecting"];
-        this._needImage = true;
         this._requestedSatellites = [];
         this._nextId = -11111;
         this._activeSatellite = "VLEO";
@@ -400,21 +395,26 @@
         if (this._state === this._states["idle"] && this._lastImageTime != CosmoScout.timeline._centerTime) {
             this._lastImageTime = CosmoScout.timeline._centerTime;
             this._renderServer.syncTime();
-            this._needImage = true;
-                //.then(() => this._needImage = true)
-                //.catch((e) => console.error(e));
         }
-        if (this._state === this._states["idle"] && this._needImage) {
+        // Start pipeline if render server is dirty (i.e. there was some local change which invalidated the last received image)
+        if (this._state === this._states["idle"] && this._renderServer.dirty) {
             this._state = this._states["awaitImage"];
-            this._needImage = false;
             this._renderServer.getImage()
                 .then((blob) => {
                     this._state = this._states["awaitShips"];
                     this._virtView.show();
-                    this._virtStream.drawImg(blob);
-                    this._checkShips(blob);
+                    return Promise.all([
+                        this._virtStream.drawImg(blob),
+                        this._checkShips(blob),
+                    ]);
                 })
-                .catch(e => console.error(`Error fetching satellite view: ${e}`));
+                .then(([_, ships]) => {
+                    ships.output.json[0].matches.forEach(match => {
+                        this._virtStream.drawRect(match, true);
+                    });
+                })
+                .catch(e => console.error(`Error during virt view pipeline: ${e}`))
+                .finally(() => this._state = this._states["idle"]);
         }
         this._requestedSatellites.forEach(job => this._checkProcessStatus(job));
         this._requestedSatellites = [];
