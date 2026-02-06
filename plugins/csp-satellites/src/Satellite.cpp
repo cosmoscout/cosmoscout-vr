@@ -32,7 +32,7 @@ Satellite::Satellite(Plugin::Settings::Satellite const& config, std::string obje
     , mSettings(std::move(settings))
     , mSolarSystem(solarSystem)
     , mObjectName(objectName)
-    , mViewPointer(std::make_unique<ViewPointer>(config, solarSystem, objectName)) {
+    , mViewPointer(std::make_unique<ViewPointer>(config, solarSystem, config.mCameraObject)) {
 
   mAnchor.reset(sceneGraph->NewTransformNode(sceneGraph->GetRoot()));
 

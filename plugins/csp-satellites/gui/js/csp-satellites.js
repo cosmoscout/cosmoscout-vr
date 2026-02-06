@@ -161,7 +161,7 @@
     resetLocation() {
         const promise = fetch(`${this._url}/run-js`, {
             method: "POST",
-            body: 'CosmoScout.callbacks.navigation.setBodyFull("-10001", "VLEO_OFFSET", 0.1, 0.1, 0.1, 0, 1, 0, 0, 0)'
+            body: 'CosmoScout.callbacks.navigation.setBodyFull("-10001002", "VLEO_CAM", 0.1, 0.1, 0.1, 0, 1, 0, 0, 0)'
         });
         return this._handleEmptyResponse(promise, "Error setting observer location").then(() => this.dirty = true);
     }

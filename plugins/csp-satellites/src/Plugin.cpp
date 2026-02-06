@@ -38,12 +38,14 @@ void from_json(nlohmann::json const& j, Plugin::Settings::Satellite& o) {
   cs::core::Settings::deserialize(j, "modelFile", o.mModelFile);
   cs::core::Settings::deserialize(j, "environmentMap", o.mEnvironmentMap);
   cs::core::Settings::deserialize(j, "fieldOfView", o.mFieldOfView);
+  cs::core::Settings::deserialize(j, "cameraObject", o.mCameraObject);
 }
 
 void to_json(nlohmann::json& j, Plugin::Settings::Satellite const& o) {
   cs::core::Settings::serialize(j, "modelFile", o.mModelFile);
   cs::core::Settings::serialize(j, "environmentMap", o.mEnvironmentMap);
   cs::core::Settings::serialize(j, "fieldOfView", o.mFieldOfView);
+  cs::core::Settings::serialize(j, "cameraObject", o.mCameraObject);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

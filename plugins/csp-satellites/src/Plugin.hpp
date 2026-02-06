@@ -42,6 +42,9 @@ class Plugin : public cs::core::PluginBase {
 
       /// Field of view of the satellite's camera in degrees.
       cs::utils::DefaultProperty<double> mFieldOfView{10.};
+
+      /// Name of the CosmoScout object that the camera cone should be attached to.
+      std::string mCameraObject;
     };
 
     std::map<std::string, Satellite> mSatellites;
