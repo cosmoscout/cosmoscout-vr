@@ -38,6 +38,8 @@ Satellite::Satellite(Plugin::Settings::Satellite const& config, std::string obje
 
   addModel("../share/resources/models/VLEO_centered.glb", config.mEnvironmentMap);
   addModel("../share/resources/models/VLEO_alt.glb", config.mEnvironmentMap);
+  addModel("../share/resources/models/IdeatoOrbit-rev01.glb", config.mEnvironmentMap);
+  addModel("../share/resources/models/IdeatoOrbit-rev01_double.glb", config.mEnvironmentMap);
   config.mModelFile.connectAndTouch([this](std::string modelFile) {
     for (auto& model : mModels) {
       model.second->setActive(model.first == modelFile);
