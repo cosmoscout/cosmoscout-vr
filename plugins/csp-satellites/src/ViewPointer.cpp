@@ -153,6 +153,7 @@ bool ViewPointer::Do() {
       intersection = rayStart + rayDir.xyz() * mLastDist[i];
     } else {
       intersection = bodyTransform * glm::dvec4(intersection, 1.);
+      intersection = rayStart + (intersection - rayStart) * 0.999;
       mLastDist[i] = glm::length(intersection - rayStart);
     }
     vertices.emplace_back(intersection);
@@ -177,7 +178,6 @@ bool ViewPointer::Do() {
   // Draw
   glPushAttrib(GL_ENABLE_BIT | GL_BLEND | GL_DEPTH_BUFFER_BIT);
   glDisable(GL_CULL_FACE);
-  glDisable(GL_DEPTH_TEST);
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
   glDepthMask(false);
