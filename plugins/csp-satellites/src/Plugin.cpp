@@ -194,17 +194,20 @@ void Plugin::loadSatelliteKernel() {
       std::shared_ptr<cs::scene::CelestialObject> satellite =
           std::make_shared<cs::scene::CelestialObject>(sat.bodyId, "J2000");
       satellite->setExistenceAsStrings({sat.existenceStart, sat.existenceEnd});
-      satellite->setRadii(glm::dvec3{20});
+      satellite->setRadii(glm::dvec3{0.1});
       satellite->setBodyCullingRadius(100.);
       satellite->setOrbitCullingRadius(10000000.);
       satellite->setIsCollidable(false);
       mAllSettings->mObjects.insert(sat.bodyName, satellite);
 
       Plugin::Settings::Satellite satelliteSettings;
-      satelliteSettings.mModelFile      = "../share/resources/models/VLEO.glb";
+      satelliteSettings.mModelFile      = "../share/resources/models/VLEO_alt.glb";
       satelliteSettings.mEnvironmentMap = "../share/resources/textures/marsEnvMap.dds";
+      satelliteSettings.mFieldOfView    = 1.2;
+      satelliteSettings.mCameraObject   = sat.bodyName;
 
-      addSatellite(sat.bodyName, satelliteSettings);
+      mPluginSettings.mSatellites[sat.bodyName] = satelliteSettings;
+      addSatellite(sat.bodyName, mPluginSettings.mSatellites[sat.bodyName]);
     } else {
       // TODO Either recreate the CelestialObject with updated lifetime, or forbid changing it for
       // existing satellites.
