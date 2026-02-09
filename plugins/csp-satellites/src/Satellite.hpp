@@ -28,6 +28,14 @@ class VistaTransformNode;
 
 namespace csp::satellites {
 
+struct SatelliteModel {
+  std::unique_ptr<cs::graphics::GltfLoader> mRenderer;
+  bool                                      mHasCamera;
+
+  SatelliteModel() = default;
+  SatelliteModel(std::string const& modelFile, std::string const& envMapFile, bool hasCamera);
+};
+
 /// A single satellite within the Solar System.
 class Satellite {
  public:
@@ -39,21 +47,21 @@ class Satellite {
   Satellite(Satellite&& other)      = default;
 
   Satellite& operator=(Satellite const& other) = delete;
-  Satellite& operator=(Satellite&& other)      = delete;
+  Satellite& operator=(Satellite&& other) = delete;
 
   ~Satellite();
 
   void update();
 
  private:
-  void addModel(std::string const& mModelFile, std::string const& envMapFile);
+  void addModel(std::string const& mModelFile, std::string const& envMapFile, bool hasCamera);
 
-  VistaSceneGraph*                          mSceneGraph;
-  std::shared_ptr<cs::core::Settings>       mSettings;
-  std::shared_ptr<cs::core::SolarSystem>    mSolarSystem;
-  std::unique_ptr<VistaTransformNode>       mAnchor;
+  VistaSceneGraph*                       mSceneGraph;
+  std::shared_ptr<cs::core::Settings>    mSettings;
+  std::shared_ptr<cs::core::SolarSystem> mSolarSystem;
+  std::unique_ptr<VistaTransformNode>    mAnchor;
 
-  std::unordered_map<std::string, std::unique_ptr<cs::graphics::GltfLoader>> mModels;
+  std::unordered_map<std::string, SatelliteModel> mModels;
 
   std::string mObjectName;
 

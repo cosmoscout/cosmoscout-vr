@@ -46,7 +46,11 @@ class ViewPointer : public IVistaOpenGLDraw {
   bool Do() override;
   bool GetBoundingBox(VistaBoundingBox& bb) override;
 
+  void setActive(bool active);
+
  private:
+  bool mActive;
+
   std::shared_ptr<cs::core::SolarSystem> mSolarSystem;
   std::string                            mAnchorName;
   std::string                            mBodyName = "Earth";

@@ -66,7 +66,8 @@ void main() {
 
 ViewPointer::ViewPointer(Plugin::Settings::Satellite const& config,
     std::shared_ptr<cs::core::SolarSystem> solarSystem, std::string const& anchorName)
-    : mSolarSystem(solarSystem)
+    : mActive(false)
+    , mSolarSystem(solarSystem)
     , mAnchorName(anchorName)
     , mFieldOfView(config.mFieldOfView.get()) {
 
@@ -123,6 +124,10 @@ void ViewPointer::update() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool ViewPointer::Do() {
+  if (!mActive) {
+    return false;
+  }
+
   cs::utils::FrameStats::ScopedTimer timer("Satellite-ViewPointer");
 
   mShader.Bind();
@@ -203,6 +208,12 @@ bool ViewPointer::Do() {
 
 bool ViewPointer::GetBoundingBox(VistaBoundingBox& bb) {
   return false;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void ViewPointer::setActive(bool active) {
+  mActive = active;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

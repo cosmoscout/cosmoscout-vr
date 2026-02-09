@@ -25,6 +25,13 @@ namespace csp::satellites {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+SatelliteModel::SatelliteModel(std::string const& modelFile, std::string const& envMapFile, bool hasCamera)
+    : mRenderer(std::make_unique<cs::graphics::GltfLoader>(modelFile, envMapFile))
+    , mHasCamera(hasCamera) {
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 Satellite::Satellite(Plugin::Settings::Satellite const& config, std::string objectName,
     VistaSceneGraph* sceneGraph, std::shared_ptr<cs::core::Settings> settings,
     std::shared_ptr<cs::core::SolarSystem> solarSystem)
@@ -36,13 +43,16 @@ Satellite::Satellite(Plugin::Settings::Satellite const& config, std::string obje
 
   mAnchor.reset(sceneGraph->NewTransformNode(sceneGraph->GetRoot()));
 
-  addModel("../share/resources/models/VLEO_centered.glb", config.mEnvironmentMap);
-  addModel("../share/resources/models/VLEO_alt.glb", config.mEnvironmentMap);
-  addModel("../share/resources/models/IdeatoOrbit-rev01.glb", config.mEnvironmentMap);
-  addModel("../share/resources/models/IdeatoOrbit-rev01_double.glb", config.mEnvironmentMap);
+  addModel("../share/resources/models/VLEO_centered.glb", config.mEnvironmentMap, false);
+  addModel("../share/resources/models/VLEO_alt.glb", config.mEnvironmentMap, true);
+  addModel("../share/resources/models/IdeatoOrbit-rev01.glb", config.mEnvironmentMap, false);
+  addModel("../share/resources/models/IdeatoOrbit-rev01_double.glb", config.mEnvironmentMap, true);
   config.mModelFile.connectAndTouch([this](std::string modelFile) {
     for (auto& model : mModels) {
-      model.second->setActive(model.first == modelFile);
+      model.second.mRenderer->setActive(model.first == modelFile);
+      if (model.first == modelFile) {
+        mViewPointer->setActive(model.second.mHasCamera);
+      }
     }
   });
 
@@ -76,27 +86,27 @@ void Satellite::update() {
     auto sunDirection = glm::vec3(mSolarSystem->getSunDirection(transform[3]));
 
     for (auto& model : mModels) {
-      model.second->setLightDirection(sunDirection.x, sunDirection.y, sunDirection.z);
+      model.second.mRenderer->setLightDirection(sunDirection.x, sunDirection.y, sunDirection.z);
 
       if (mSettings->mGraphics.pEnableHDR.get()) {
-        model.second->setEnableHDR(true);
+        model.second.mRenderer->setEnableHDR(true);
         sunIlluminance = static_cast<float>(mSolarSystem->getSunIlluminance(transform[3]));
       }
-      model.second->setLightIntensity(sunIlluminance);
+      model.second.mRenderer->setLightIntensity(sunIlluminance);
     }
   }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Satellite::addModel(std::string const& modelFile, std::string const& envMapFile) {
-  mModels[modelFile] = std::make_unique<cs::graphics::GltfLoader>(modelFile, envMapFile);
+void Satellite::addModel(std::string const& modelFile, std::string const& envMapFile, bool hasCamera) {
+  mModels[modelFile] = SatelliteModel(modelFile, envMapFile, hasCamera);
 
-  mModels.at(modelFile)->setLightIntensity(15.0);
-  mModels.at(modelFile)->setIBLIntensity(1.5);
-  mModels.at(modelFile)->setLightColor(1.0, 1.0, 1.0);
+  mModels.at(modelFile).mRenderer->setLightIntensity(15.0);
+  mModels.at(modelFile).mRenderer->setIBLIntensity(1.5);
+  mModels.at(modelFile).mRenderer->setLightColor(1.0, 1.0, 1.0);
 
-  mModels.at(modelFile)->attachTo(mSceneGraph, mAnchor.get());
+  mModels.at(modelFile).mRenderer->attachTo(mSceneGraph, mAnchor.get());
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
