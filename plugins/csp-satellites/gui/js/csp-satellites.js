@@ -359,6 +359,10 @@
         this._activeSatellite = "VLEO";
         this._satellites = {};
         this._randomNames = ["Foo", "Bar", "Baz", "Alpha", "Beta", "Gamma", "Delta", "Epsilon", "Zeta", "Eta", "Theta", "Iota", "Kappa", "Lambda", "Mu", "Nu", "Xi", "Omicron", "Pi", "Rho", "Sigma", "Tau", "Upsilon", "Phi", "Chi", "Psi", "Omega"];
+        //TODO Find a more sensible spot to force upper case frame names
+        for (let i = 0; i < this._randomNames.length; i++) {
+            this._randomNames[i] = this._randomNames[i].toUpperCase();
+        }
 
         // Init/Get various DOM elements
         this._virtView = new ViewWindow();
