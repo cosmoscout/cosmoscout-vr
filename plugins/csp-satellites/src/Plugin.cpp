@@ -63,7 +63,8 @@ void to_json(nlohmann::json& j, Plugin::Settings const& o) {
 void from_json(nlohmann::json const& j, Plugin::ExtraSatellite& o) {
   cs::core::Settings::deserialize(j, "bodyName", o.bodyName);
   cs::core::Settings::deserialize(j, "bodyId", o.bodyId);
-  cs::core::Settings::deserialize(j, "jobId", o.jobId);
+  cs::core::Settings::deserialize(j, "posJobId", o.posJobId);
+  cs::core::Settings::deserialize(j, "orientJobId", o.orientJobId);
   cs::core::Settings::deserialize(j, "existenceStart", o.existenceStart);
   cs::core::Settings::deserialize(j, "existenceEnd", o.existenceEnd);
 }
@@ -93,7 +94,7 @@ void Plugin::init() {
       "Succesfully requested data for a new satellite, now load it into the plugin.",
       std::function([this](std::string json) {
         ExtraSatellite satellite = nlohmann::json::parse(json);
-        downloadSatelliteKernel(std::move(satellite));
+        downloadSatelliteKernels(std::move(satellite));
       }));
   mGuiManager->getGui()->registerCallback("satellites.setFieldOfView",
       "Set the field of view for the given satellite.",
@@ -162,14 +163,23 @@ void Plugin::onSave() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Plugin::downloadSatelliteKernel(ExtraSatellite&& satellite) {
+std::string Plugin::downloadKernel(
+    std::string const& jobId, std::string const& type, std::string const& extension) {
   std::stringstream downloadPath;
-  downloadPath << "http://localhost:8000/jobs/" << satellite.jobId << "/result/bsp";
+  downloadPath << "http://localhost:8000/jobs/" << jobId << "/result/" << type;
   std::stringstream localPath;
-  localPath << "./spice_out/" << satellite.jobId << ".bsp";
+  localPath << "./spice_out/" << jobId << extension;
   mDownloader.download(downloadPath.str(), localPath.str());
+  return localPath.str();
+}
 
-  satellite.kernelPaths["SPK"] = localPath.str();
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Plugin::downloadSatelliteKernels(ExtraSatellite&& satellite) {
+  satellite.kernelPaths["SPK"] = downloadKernel(satellite.posJobId, "bsp", ".bsp");
+  satellite.kernelPaths["CK"] = downloadKernel(satellite.orientJobId, "ck", ".bck");
+  satellite.kernelPaths["SCLK"] = downloadKernel(satellite.orientJobId, "tc", ".tsc");
+  satellite.kernelPaths["FK"]   = downloadKernel(satellite.orientJobId, "fk", ".tf");
   mPendingDownloads.push_back(satellite);
 }
 
@@ -180,6 +190,9 @@ void Plugin::loadSatelliteKernel() {
   for (ExtraSatellite const& sat : mPendingDownloads) {
     // Load the spice kernels.
     furnsh_c(sat.kernelPaths.at("SPK").c_str());
+    furnsh_c(sat.kernelPaths.at("CK").c_str());
+    furnsh_c(sat.kernelPaths.at("SCLK").c_str());
+    furnsh_c(sat.kernelPaths.at("FK").c_str());
 
     if (failed_c()) {
       int32_t const maxSpiceErrorLength = 320;
@@ -192,7 +205,7 @@ void Plugin::loadSatelliteKernel() {
 
     if (mAllSettings->mObjects.find(sat.bodyName) == mAllSettings->mObjects.end()) {
       std::shared_ptr<cs::scene::CelestialObject> satellite =
-          std::make_shared<cs::scene::CelestialObject>(sat.bodyId, "J2000");
+          std::make_shared<cs::scene::CelestialObject>(sat.bodyId, sat.bodyName);
       satellite->setExistenceAsStrings({sat.existenceStart, sat.existenceEnd});
       satellite->setRadii(glm::dvec3{0.1});
       satellite->setBodyCullingRadius(100.);

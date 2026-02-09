@@ -265,6 +265,7 @@
         const [bodyId, name] = this._getBodyIdAndName();
         const params = {
             "id": bodyId,
+            "name": name,
             "center": 399,
             "frame": "J2000",
             "MU": 398600,
@@ -281,27 +282,46 @@
         };
 
         console.log(`Requesting satellite "${name}" (${bodyId})`);
-        const promisedPosition = fetch(`${this._spiceServer}/processes/position/execute`, {
+        const comboPromise = fetch(`${this._spiceServer}/processes/position/execute`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(params),
+        })
+            .then(res => {
+                const promisedOrientation = fetch(`${this._spiceServer}/processes/orientation/execute`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify(params),
+                }).then(res => res.json());
+                return Promise.all([res.json(), promisedOrientation]);
+            });
+        /*const promisedPosition = fetch(`${this._spiceServer}/processes/position/execute`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
             },
             body: JSON.stringify(params),
         }).then(res => res.json());
-        /*const promisedOrientation = fetch(`${this._spiceServer}/processes/orientation/execute`, {
+        const promisedOrientation = fetch(`${this._spiceServer}/processes/orientation/execute`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
             },
             body: JSON.stringify(params),
         }).then(res => res.json());*/
-        Promise.all([promisedPosition/*, promisedOrientation*/])
+        comboPromise
             .then(res => {
                 const [resPos, resOrient] = res;
-                const id = resPos.output.bsp.replace(".bsp", "");
+                const posId = resPos.output.bsp.replace(".bsp", "");
+                const orientId = resOrient.output.ck.replace(".bck", "");
                 this._requestedSatellites.push({
                     "bodyId": bodyId,
-                    "jobId": id,
+                    "posJobId": posId,
+                    "orientJobId": orientId,
                     "bodyName": name,
                     "existenceStart": this._inputs["start-date"].value,
                     "existenceEnd": this._inputs["end-date"].value,
@@ -311,7 +331,8 @@
     }
 
     _checkProcessStatus(job) {
-        fetch(`${this._spiceServer}/jobs/${job.jobId}`)
+        //TODO Check both job statuses
+        fetch(`${this._spiceServer}/jobs/${job.orientJobId}`)
             .then(res => res.json())
             .then(res => {
                 if (res.status == "running") {
