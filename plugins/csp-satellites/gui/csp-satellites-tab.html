@@ -41,7 +41,15 @@ SPDX-License-Identifier: MIT
         Name
     </div>
     <div class="col-7">
-        <input type="text" placeholder="Satellite Name" class="form-control" id="satellite-add-name" />
+        <div class="input-group">
+            <input type="text" placeholder="Satellite Name" class="form-control" id="satellite-add-name" />
+            <div class="input-group-append">
+                <button class="btn glass fix-rounded-right" type="button" data-toggle="tooltip"
+                        title="Random">
+                    <i class="material-icons">shuffle</i>
+                </button>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -79,7 +87,7 @@ SPDX-License-Identifier: MIT
         Semi-Major Axis
     </div>
     <div class="col-7">
-        <input type="number" placeholder="SMA" class="form-control" id="satellite-add-sma" value="6733" />
+        <input type="number" placeholder="SMA" class="form-control" id="satellite-add-sma" value="6733" step="100" />
     </div>
 </div>
 <!-- Eccentricity -->
@@ -88,7 +96,7 @@ SPDX-License-Identifier: MIT
         Eccentricity
     </div>
     <div class="col-7">
-        <input type="number" placeholder="ECC" class="form-control" id="satellite-add-ecc" value="0.03190221275591707" />
+        <input type="number" placeholder="ECC" class="form-control" id="satellite-add-ecc" value="0.03190221275591707" step="0.01" />
     </div>
 </div>
 <!-- Inclination -->
@@ -97,7 +105,7 @@ SPDX-License-Identifier: MIT
         Inclination
     </div>
     <div class="col-7">
-        <input type="number" placeholder="INC" class="form-control" id="satellite-add-inc" value="90.00014746268153" />
+        <input type="number" placeholder="INC" class="form-control" id="satellite-add-inc" value="90.00014746268153" step="5" />
     </div>
 </div>
 <!-- Right ascension of the ascending node -->

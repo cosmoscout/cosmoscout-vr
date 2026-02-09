@@ -323,6 +323,10 @@
     }
 
     addSatellite(name, center, frame) {
+        const nameIndex = this._randomNames.indexOf(name);
+        if (nameIndex > -1) {
+            this._randomNames.splice(nameIndex, 1);
+        }
         this._satellites[center] = {
             "name": name,
             "frame": frame,
@@ -354,6 +358,7 @@
         this._nextId = -11111;
         this._activeSatellite = "VLEO";
         this._satellites = {};
+        this._randomNames = ["Foo", "Bar", "Baz", "Alpha", "Beta", "Gamma", "Delta", "Epsilon", "Zeta", "Eta", "Theta", "Iota", "Kappa", "Lambda", "Mu", "Nu", "Xi", "Omicron", "Pi", "Rho", "Sigma", "Tau", "Upsilon", "Phi", "Chi", "Psi", "Omega"];
 
         // Init/Get various DOM elements
         this._virtView = new ViewWindow();
@@ -369,12 +374,17 @@
         this._inputs["satellite-id"] = document.querySelector(`[data-callback="satellites.setSatellite"]`);
 
         document.querySelector("#satellite-add-start-date + div > button").onclick = () => {
-            this._inputs["start-date"].value =
-                CosmoScout.state.simulationTime.toISOString().replace('T', ' ').slice(0, 19);
+            const time = new Date(CosmoScout.state.simulationTime);
+            time.setMonth(time.getMonth() - 1);
+            this._inputs["start-date"].value = time.toISOString().replace('T', ' ').slice(0, 19);
         };
         document.querySelector("#satellite-add-end-date + div > button").onclick = () => {
-            this._inputs["end-date"].value =
-                CosmoScout.state.simulationTime.toISOString().replace('T', ' ').slice(0, 19);
+            const time = new Date(CosmoScout.state.simulationTime);
+            time.setMonth(time.getMonth() + 1);
+            this._inputs["end-date"].value = time.toISOString().replace('T', ' ').slice(0, 19);
+        };
+        document.querySelector("#satellite-add-name + div > button").onclick = () => {
+            this._inputs["name"].value = this._randomNames[Math.floor(Math.random() * this._randomNames.length)];
         };
 
         this._virtView.slider.noUiSlider.on('slide', (values, handle, unencoded) => {
