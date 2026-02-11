@@ -398,6 +398,14 @@
         }
         this._inputs["satellite-id"] = document.querySelector(`[data-callback="satellites.setSatellite"]`);
 
+        document.querySelector(`[data-callback="satellites.setSatelliteModel"]`).addEventListener("change", (e) => {
+            const val = e.target.value;
+            if (val == "../share/resources/models/VLEO_centered.glb" || val == "../share/resources/models/IdeatoOrbit-rev01.glb") {
+                this._virtView.hide();
+            } else {
+                this._virtView.show();
+            }
+        });
         document.querySelector("#satellite-add-start-date + div > button").onclick = () => {
             const time = new Date(CosmoScout.state.simulationTime);
             time.setMonth(time.getMonth() - 1);
@@ -437,7 +445,7 @@
             this._renderServer.getImage()
                 .then((blob) => {
                     this._state = this._states["awaitShips"];
-                    this._virtView.show();
+                    //this._virtView.show();
                     return Promise.all([
                         this._virtStream.drawImg(blob),
                         this._checkShips(blob),
