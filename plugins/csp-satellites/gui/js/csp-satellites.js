@@ -203,6 +203,8 @@
         const models = [
             "../share/resources/models/VLEO_centered.glb",
             "../share/resources/models/VLEO_alt.glb",
+            "../share/resources/models/IdeatoOrbit-rev01.glb",
+            "../share/resources/models/IdeatoOrbit-rev01_double.glb",
         ];
         CosmoScout.callbacks.satellites.setSatelliteModel(models[id]);
     }
