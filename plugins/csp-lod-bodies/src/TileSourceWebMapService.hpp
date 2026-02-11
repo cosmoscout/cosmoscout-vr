@@ -80,6 +80,7 @@ class TileSourceWebMapService : public TileSource {
 
  private:
   static std::mutex mFileSystemMutex;
+  std::mutex        mLastTimeFailedMutex;
 
   std::string           mUrl;
   std::string           mCache = "cache/img";

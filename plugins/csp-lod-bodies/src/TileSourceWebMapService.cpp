@@ -413,17 +413,20 @@ std::optional<std::string> TileSourceWebMapService::loadData(TileId const& tileI
     }
 
     // Check if we already had an error with this tile cache file in the past
-    if (mLastTimeTileFailed.find(cacheFilePath) != mLastTimeTileFailed.end()) {
-      auto cooldownTime = std::chrono::seconds(3);
-      auto timeNow      = std::chrono::system_clock::now();
-      if (timeNow - mLastTimeTileFailed[cacheFilePath] < cooldownTime) {
-        logger().warn(
-            "Failed to download tile data: Waiting for '{}' to cool down", cacheFile.str());
-        // Sleep for the rest of the cooldown time (plus a little longer 500ms)
-        std::this_thread::sleep_until(
-            mLastTimeTileFailed[cacheFilePath] + cooldownTime + std::chrono::milliseconds(500));
+    {
+      std::unique_lock lock(mLastTimeFailedMutex);
+      if (mLastTimeTileFailed.find(cacheFilePath) != mLastTimeTileFailed.end()) {
+        auto cooldownTime = std::chrono::seconds(3);
+        auto timeNow      = std::chrono::system_clock::now();
+        if (timeNow - mLastTimeTileFailed[cacheFilePath] < cooldownTime) {
+          logger().warn(
+              "Failed to download tile data: Waiting for '{}' to cool down", cacheFile.str());
+          // Sleep for the rest of the cooldown time (plus a little longer 500ms)
+          std::this_thread::sleep_until(
+              mLastTimeTileFailed[cacheFilePath] + cooldownTime + std::chrono::milliseconds(500));
+        }
+        mLastTimeTileFailed.erase(cacheFilePath);
       }
-      mLastTimeTileFailed.erase(cacheFilePath);
     }
 
     curlpp::Easy request;
@@ -530,6 +533,7 @@ bool TileSourceWebMapService::isSame(TileSource const* other) const {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void TileSourceWebMapService::markTileDataAsInvalid(boost::filesystem::path const& TileDataPath) {
+  std::unique_lock lock(mLastTimeFailedMutex);
   mLastTimeTileFailed[TileDataPath] = std::chrono::system_clock::now();
 }
 
