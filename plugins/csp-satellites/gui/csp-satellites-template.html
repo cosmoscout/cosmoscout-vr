@@ -17,7 +17,7 @@ SPDX-License-Identifier: MIT
             <div class="satellite-view-controls container-fluid satellite-view-controls">
                 <div class="row">
                     <div class="col-12">
-                        <a class="btn glass block px-3" onclick="CosmoScout.satellites._resetObserver(); CosmoScout.satellites._resetDate(); CosmoScout.satellites._fetchImage(); ">
+                        <a class="btn glass block px-3" onclick="CosmoScout.satellites._renderServer.resetLocation(); CosmoScout.satellites._renderServer.syncTime(); CosmoScout.satellites._state = CosmoScout.satellites._states['idle']; ">
                             Sync Render Server
                         </a>
                     </div>
