@@ -43,14 +43,14 @@ void TileNode::setTileData(std::shared_ptr<BaseTileData> tile) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-TileNode* TileNode::getChild(int childIdx) const {
-  return mChildren.at(childIdx).get();
+std::shared_ptr<TileNode> TileNode::getChild(int childIdx) const {
+  return mChildren.at(childIdx);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void TileNode::setChild(int childIdx, TileNode* child) {
-  mChildren.at(childIdx).reset(child);
+void TileNode::setChild(int childIdx, std::shared_ptr<TileNode> child) {
+  mChildren.at(childIdx) = child;
 
   if (child) {
     child->mParent = this;

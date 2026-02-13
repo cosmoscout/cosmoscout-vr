@@ -13,19 +13,19 @@ namespace csp::lodbodies {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-TileNode* TileQuadTree::getRoot(int idx) const {
-  return mRoots.at(idx).get();
+std::shared_ptr<TileNode> TileQuadTree::getRoot(int idx) const {
+  return mRoots.at(idx);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void TileQuadTree::setRoot(int idx, TileNode* root) {
-  mRoots.at(idx).reset(root);
+void TileQuadTree::setRoot(int idx, std::shared_ptr<TileNode> root) {
+  mRoots.at(idx) = root;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool insertNode(TileQuadTree* tree, TileNode* node) {
+bool insertNode(TileQuadTree* tree, std::shared_ptr<TileNode> node) {
   bool          result = true;
   TileId const& tileId = node->getTileId();
 
@@ -34,7 +34,7 @@ bool insertNode(TileQuadTree* tree, TileNode* node) {
 
     tree->setRoot(HEALPix::getRootIdx(tileId), node);
   } else {
-    TileNode* parent = tree->getRoot(HEALPix::getRootIdx(tileId));
+    std::shared_ptr<TileNode> parent = tree->getRoot(HEALPix::getRootIdx(tileId));
 
     for (int i = 1; i < tileId.level() && parent; ++i) {
       parent = parent->getChild(HEALPix::getChildIdxAtLevel(tileId, i));
@@ -55,7 +55,7 @@ bool insertNode(TileQuadTree* tree, TileNode* node) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool removeNode(TileQuadTree* tree, TileNode* node) {
+bool removeNode(TileQuadTree* tree, std::shared_ptr<TileNode> node) {
   bool      result = false;
   TileNode* parent = node->getParent();
 

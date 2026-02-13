@@ -66,7 +66,7 @@ bool LODVisitor::preTraverse() {
   // Get minimum height of all base patches (needed for radius of proxy culling sphere).
   auto minHeight(std::numeric_limits<float>::max());
   for (int i(0); i < TileQuadTree::sNumRoots; ++i) {
-    auto* tile = mTreeMgr->getTree()->getRoot(i);
+    auto* tile = mTreeMgr->getTree()->getRoot(i).get();
     minHeight  = std::min(minHeight, tile->getMinMaxPyramid()->getMin());
   }
 

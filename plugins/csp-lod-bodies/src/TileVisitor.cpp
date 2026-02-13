@@ -24,7 +24,7 @@ TileVisitor::TileVisitor(TileQuadTree* tree)
 void TileVisitor::visit() {
   if (preTraverse()) {
     for (int i = 0; i < TileQuadTree::sNumRoots; ++i) {
-      TileNode* root = mTree->getRoot(i);
+      TileNode* root = mTree->getRoot(i).get();
       visitRoot(root);
     }
   }
@@ -38,7 +38,7 @@ void TileVisitor::visitRoot(TileNode* root) {
 
   if (preVisitRoot(root)) {
     for (int i = 0; i < 4; ++i) {
-      TileNode* child = root ? root->getChild(i) : nullptr;
+      TileNode* child = root ? root->getChild(i).get() : nullptr;
 
       if (child) {
         visitLevel(child);
@@ -54,7 +54,7 @@ void TileVisitor::visitRoot(TileNode* root) {
 void TileVisitor::visitLevel(TileNode* node) {
   if (preVisit(node)) {
     for (int i = 0; i < 4; ++i) {
-      TileNode* child = node ? node->getChild(i) : nullptr;
+      TileNode* child = node ? node->getChild(i).get() : nullptr;
 
       if (child) {
         visitLevel(child);

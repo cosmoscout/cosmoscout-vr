@@ -52,7 +52,7 @@ std::size_t const preAllocIONodeCount = 200;
 struct TreeManager::AgeLess {
   explicit AgeLess(int frame);
 
-  bool operator()(TileNode const* lhs, TileNode const* rhs) const;
+  bool operator()(std::shared_ptr<TileNode> const& lhs, std::shared_ptr<TileNode> const& rhs) const;
 
   int mFrame;
 };
@@ -66,7 +66,7 @@ TreeManager::AgeLess::AgeLess(int frame)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool TreeManager::AgeLess::operator()(TileNode const* lhs, TileNode const* rhs) const {
+bool TreeManager::AgeLess::operator()(std::shared_ptr<TileNode> const& lhs, std::shared_ptr<TileNode> const& rhs) const {
   // sort by age (frames since last use), in case of a tie use
   // tile level - this ensure that child nodes are always sorted
   // after parent nodes
@@ -84,7 +84,7 @@ bool TreeManager::AgeLess::operator()(TileNode const* lhs, TileNode const* rhs) 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /* explicit */
-TreeManager::NodeAge::NodeAge(TileNode* node, int frame)
+TreeManager::NodeAge::NodeAge(std::shared_ptr<TileNode> node, int frame)
     : mNode(node)
     , mFrame(frame) {
 }
@@ -125,7 +125,7 @@ void TreeManager::request(std::vector<TileId> const& tileIds) {
 
   for (auto const& tileId : tileIds) {
     if (mPendingTiles.count(tileId) == 0) {
-      mPendingTiles[tileId] = new TileNode(tileId);
+      mPendingTiles[tileId] = std::make_shared<TileNode>(tileId);
 
       for (auto const& src : mTileDataSources.mChannels) {
         if (src) {
@@ -171,7 +171,7 @@ void TreeManager::clear() {
     mPendingTiles.clear();
   }
 
-  for (auto* node : mNodes) {
+  for (std::shared_ptr<TileNode> node : mNodes) {
     releaseResources(node);
   }
 
@@ -193,7 +193,7 @@ void TreeManager::onDataLoaded(TileId const& tileId, std::shared_ptr<BaseTileDat
     return;
   }
 
-  TileNode* node{};
+  std::shared_ptr<TileNode> node{};
 
   {
     std::unique_lock<std::mutex> lck(mPendingMtx);
@@ -236,7 +236,7 @@ void TreeManager::onDataLoaded(TileId const& tileId, std::shared_ptr<BaseTileDat
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void TreeManager::onNodeInserted(TileNode* node) {
+void TreeManager::onNodeInserted(std::shared_ptr<TileNode> node) {
   if (node->getParent()) {
     TileNode* parent = node->getParent();
     assert(parent != nullptr);
@@ -256,7 +256,7 @@ void TreeManager::onNodeInserted(TileNode* node) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void TreeManager::releaseResources(TileNode* node) {
+void TreeManager::releaseResources(std::shared_ptr<TileNode> node) {
   for (auto const& res : mGLResources->mChannels) {
     auto data = node->getTileData(res->getDataType());
     if (data) {
@@ -273,7 +273,7 @@ void TreeManager::prune() {
   int count = 0;
 
   while (!mNodes.empty()) {
-    TileNode* node = mNodes.back();
+    std::shared_ptr<TileNode> node = mNodes.back();
 
     // remove unnused nodes, but never root nodes
     if (node->getAge(mFrameCount) > maxNodeAge && node->getLevel() > 0) {
@@ -300,7 +300,7 @@ void TreeManager::prune() {
 void TreeManager::merge() {
   // exchange mLoadedNodes and mergeNodes so the lock need not be held
   // for the duration of the whole merge
-  std::vector<TileNode*> mergeNodes;
+  std::vector<std::shared_ptr<TileNode>> mergeNodes;
   {
     std::unique_lock<std::mutex> lck(mLoadedMtx);
 
@@ -334,7 +334,7 @@ void TreeManager::merge() {
   // tree. If that fails and the nodes age exceeds maxUnmergedAge, it is
   // discarded.
   for (std::size_t i = 0; i < mUnmergedNodes.size();) {
-    TileNode* node = mUnmergedNodes[i].mNode;
+    std::shared_ptr<TileNode> node = mUnmergedNodes[i].mNode;
 
     if (insertNode(&mTree, node)) {
       // insert succeeded, remove from pending and unmerged and
@@ -347,8 +347,6 @@ void TreeManager::merge() {
       // node is waiting for too long to be merged - discard it
       mPendingTiles.erase(node->getTileId());
       mUnmergedNodes.erase(mUnmergedNodes.begin() + i);
-
-      delete node; // NOLINT(cppcoreguidelines-owning-memory): TODO where does it get created?
     } else {
       ++i;
     }

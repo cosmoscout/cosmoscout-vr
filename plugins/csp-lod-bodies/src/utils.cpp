@@ -44,7 +44,7 @@ double getHeight(
   relative1 = HEALPix::convertBaseLngLat2XY(rootIndex, lngLat);
 
   // Get the right root
-  TileNode* parent = planet->getTileRenderer().getTreeManager()->getTree()->getRoot(rootIndex);
+  TileNode* parent = planet->getTileRenderer().getTreeManager()->getTree()->getRoot(rootIndex).get();
 
   // Check if parent is valid
   if (parent == nullptr) {
@@ -85,7 +85,7 @@ double getHeight(
     }
 
     // Get the new Child
-    child = parent->getChild(childIndex);
+    child = parent->getChild(childIndex).get();
 
     // Child is unavailable and precision is "HeightSamplePrecision::eActual"
     if (child == nullptr && precision == HeightSamplePrecision::eActual) {
@@ -107,7 +107,7 @@ double getHeight(
       // planet->getTileRenderer().getTreeManager()->merge();
       planet->getTileRenderer().getTreeManager()->update();
 
-      child = parent->getChild(childIndex);
+      child = parent->getChild(childIndex).get();
     }
   }
 
@@ -200,7 +200,7 @@ bool intersectPlanet(
   std::multimap<double, TileNode*> intersected_tiles;
   for (int rootIndex = 0; rootIndex < 12; ++rootIndex) {
 
-    TileNode* root_node = planet->getTileRenderer().getTreeManager()->getTree()->getRoot(rootIndex);
+    TileNode* root_node = planet->getTileRenderer().getTreeManager()->getTree()->getRoot(rootIndex).get();
 
     if (root_node == nullptr) {
       return false;
@@ -361,7 +361,7 @@ bool intersectPlanet(
       // Check all children for intersection
       for (int childIndex = 0; childIndex < 4; ++childIndex) {
         /* Get the new Child */
-        child = parent->getChild(childIndex);
+        child = parent->getChild(childIndex).get();
         if (child == nullptr) {
           continue;
         }

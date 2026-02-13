@@ -75,9 +75,9 @@ class TreeManager {
 
   /// Tracks a node and the frame it was loaded in - for nodes that can not immediately be merged.
   struct NodeAge {
-    explicit NodeAge(TileNode* node, int frame);
+    explicit NodeAge(std::shared_ptr<TileNode> node, int frame);
 
-    TileNode* mNode;
+    std::shared_ptr<TileNode> mNode;
     int       mFrame;
   };
 
@@ -86,10 +86,10 @@ class TreeManager {
 
   /// Helper function to handle processing after node is successfully inserted into the managed
   /// TileQuadTree.
-  void onNodeInserted(TileNode* node);
+  void onNodeInserted(std::shared_ptr<TileNode> node);
 
   /// Helper function to free resources associated with node.
-  void releaseResources(TileNode* node);
+  void releaseResources(std::shared_ptr<TileNode> node);
 
   /// Remove nodes from the managed TileQuadTree that have not been used for a number of frames.
   /// Sort tiles by age (frames since last use, see TreeManager::AgeLess for details) and
@@ -104,14 +104,14 @@ class TreeManager {
   void merge();
 
   std::shared_ptr<GLResources> mGLResources;
-  std::vector<TileNode*>       mNodes;
+  std::vector<std::shared_ptr<TileNode>>       mNodes;
 
   TileQuadTree             mTree;
   PerDataType<TileSource*> mTileDataSources;
 
-  std::unordered_map<TileId, TileNode*> mPendingTiles;
+  std::unordered_map<TileId, std::shared_ptr<TileNode>> mPendingTiles;
   std::vector<NodeAge>                  mUnmergedNodes;
-  std::vector<TileNode*>                mLoadedNodes;
+  std::vector<std::shared_ptr<TileNode>>                mLoadedNodes;
 
   std::mutex mSourcesMtx;
   std::mutex mLoadedMtx;

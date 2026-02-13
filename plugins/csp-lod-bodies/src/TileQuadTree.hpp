@@ -18,28 +18,28 @@ class TileQuadTree {
   static int const sNumRoots = 12;
 
   /// Returns the TileNode that is the root of the tree idx.
-  TileNode* getRoot(int idx) const;
+  std::shared_ptr<TileNode> getRoot(int idx) const;
 
   /// Gives up ownership and returns the TileNode that is the root of the tree idx.
   /// It is now the callers responsibility to correctly dispose of the node.
-  TileNode* releaseRoot(int idx);
+  std::shared_ptr<TileNode> releaseRoot(int idx);
 
   /// Sets the TileNode that is the root of tree idx. Exclusive ownership of the node is taken by
   /// this.
-  void setRoot(int idx, TileNode* root);
+  void setRoot(int idx, std::shared_ptr<TileNode> root);
 
  private:
-  std::array<std::unique_ptr<TileNode>, 12> mRoots;
+  std::array<std::shared_ptr<TileNode>, 12> mRoots;
 };
 
 /// Inserts node into tree and returns true if it succeeded, false otherwise. Insertion can fail if
 /// not all parents of node are currently in tree.
-bool insertNode(TileQuadTree* tree, TileNode* node);
+bool insertNode(TileQuadTree* tree, std::shared_ptr<TileNode> node);
 
 /// Removes node from tree and returns true if it succeeded, false otherwise. If true is returned
 /// the object pointed to by node does NOT exist any longer. Removal can fail if node does not have
 /// a valid parent and is not a root.
-bool removeNode(TileQuadTree* tree, TileNode* node);
+bool removeNode(TileQuadTree* tree, std::shared_ptr<TileNode> node);
 
 } // namespace csp::lodbodies
 

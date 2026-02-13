@@ -35,11 +35,11 @@ class TileNode {
   void setTileData(std::shared_ptr<BaseTileData> tile);
 
   /// Returns the child at childIdx (must be in [0, 3]).
-  TileNode* getChild(int childIdx) const;
+  std::shared_ptr<TileNode> getChild(int childIdx) const;
 
   /// Sets the child at childIdx (must be in [0, 3]). If there is already a child at childIdx it is
   /// destroyed and replaced.
-  void setChild(int childIdx, TileNode* child);
+  void setChild(int childIdx, std::shared_ptr<TileNode> child);
 
   TileNode* getParent() const;
 
@@ -71,7 +71,7 @@ class TileNode {
  private:
   TileId                                   mTileId{};
   TileNode*                                mParent{nullptr};
-  std::array<std::unique_ptr<TileNode>, 4> mChildren;
+  std::array<std::shared_ptr<TileNode>, 4> mChildren;
 
   // The actual data for the tile node is stored here. It uses a shared pointer as it is also stored
   // in the upload queue of the TileTextureArray.
