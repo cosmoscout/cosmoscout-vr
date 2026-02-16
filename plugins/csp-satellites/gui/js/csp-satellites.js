@@ -200,13 +200,8 @@
      * Externally used functions for push-style video stream.
      */
     setSatelliteConfiguration(id) {
-        const models = [
-            "../share/resources/models/VLEO_centered.glb",
-            "../share/resources/models/VLEO_alt.glb",
-            "../share/resources/models/IdeatoOrbit-rev01.glb",
-            "../share/resources/models/IdeatoOrbit-rev01_double.glb",
-        ];
-        CosmoScout.callbacks.satellites.setSatelliteModel(models[id]);
+        const file = this._satelliteModels[id].file;
+        CosmoScout.callbacks.satellites.setSatelliteModel(file);
     }
 
     updateDetection(imgB64, bboxs, inference_speed) {
@@ -366,6 +361,16 @@
             "awaitShips": 3,
         };
 
+        // List of available satellite models
+        this._satelliteModels = [
+            { "name": "Core", "file": "../share/resources/models/IdeatoOrbit-rev01_central.glb", "cam": false },
+            { "name": "Core + Cam", "file": "../share/resources/models/IdeatoOrbit-rev01_camera.glb", "cam": true },
+            { "name": "Core + GPU", "file": "../share/resources/models/IdeatoOrbit-rev01_jetson.glb", "cam": false },
+            { "name": "Core + Cam + GPU", "file": "../share/resources/models/IdeatoOrbit-rev01_all.glb", "cam": true },
+            { "name": "Dummy", "file": "../share/resources/models/VLEO_centered.glb", "cam": false },
+            { "name": "Dummy + Cam", "file": "../share/resources/models/VLEO_alt.glb", "cam": true },
+        ];
+
         // Set up server addresses
         const hostA = "localhost";
         const hostB = "129.247.51.9";
@@ -402,12 +407,17 @@
 
         document.querySelector(`[data-callback="satellites.setSatelliteModel"]`).addEventListener("change", (e) => {
             const val = e.target.value;
-            if (val == "../share/resources/models/VLEO_centered.glb" || val == "../share/resources/models/IdeatoOrbit-rev01.glb") {
-                this._virtView.hide();
-            } else {
+            const model = this._satelliteModels.find(m => m.file == val);
+            if (model.cam) {
                 this._virtView.show();
+            } else {
+                this._virtView.hide();
             }
         });
+        for (const model of this._satelliteModels) {
+            CosmoScout.gui.addDropdownValue("satellites.setSatelliteModel", model.file, model.name, false);
+        }
+
         document.querySelector("#satellite-add-start-date + div > button").onclick = () => {
             const time = new Date(CosmoScout.state.simulationTime);
             time.setMonth(time.getMonth() - 1);

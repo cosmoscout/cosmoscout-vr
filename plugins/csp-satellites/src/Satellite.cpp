@@ -45,8 +45,10 @@ Satellite::Satellite(Plugin::Settings::Satellite const& config, std::string obje
 
   addModel("../share/resources/models/VLEO_centered.glb", config.mEnvironmentMap, false);
   addModel("../share/resources/models/VLEO_alt.glb", config.mEnvironmentMap, true);
-  addModel("../share/resources/models/IdeatoOrbit-rev01.glb", config.mEnvironmentMap, false);
-  addModel("../share/resources/models/IdeatoOrbit-rev01_double.glb", config.mEnvironmentMap, true);
+  addModel("../share/resources/models/IdeatoOrbit-rev01_central.glb", config.mEnvironmentMap, false);
+  addModel("../share/resources/models/IdeatoOrbit-rev01_camera.glb", config.mEnvironmentMap, true);
+  addModel("../share/resources/models/IdeatoOrbit-rev01_jetson.glb", config.mEnvironmentMap, false);
+  addModel("../share/resources/models/IdeatoOrbit-rev01_all.glb", config.mEnvironmentMap, true);
   config.mModelFile.connectAndTouch([this](std::string modelFile) {
     for (auto& model : mModels) {
       model.second.mRenderer->setActive(model.first == modelFile);
