@@ -367,8 +367,8 @@ class TimelineApi extends IApi {
 
       const currentValue = parseFloat(this._timeSpeedSlider.noUiSlider.get());
       const nextValue    = currentValue - 0.1;
-      if (nextValue > -1 && nextValue < 1) {
-        this._timeSpeedSlider.noUiSlider.set(-1);
+      if (nextValue > -0.9 && nextValue < 0.9) {
+        this._timeSpeedSlider.noUiSlider.set(-0.9);
       } else {
         this._timeSpeedSlider.noUiSlider.set(nextValue);
       }
@@ -382,8 +382,8 @@ class TimelineApi extends IApi {
 
       const currentValue = parseFloat(this._timeSpeedSlider.noUiSlider.get());
       const nextValue    = currentValue + 0.1;
-      if (nextValue > -1 && nextValue < 1) {
-        this._timeSpeedSlider.noUiSlider.set(1);
+      if (nextValue > -0.9 && nextValue < 0.9) {
+        this._timeSpeedSlider.noUiSlider.set(0.9);
       } else {
         this._timeSpeedSlider.noUiSlider.set(nextValue);
       }
@@ -479,8 +479,8 @@ class TimelineApi extends IApi {
       noUiSlider.create(this._timeSpeedSlider, {
         range: {
           'min': [-2],
-          '18%': [-1, 2],
-          '82%': [1],
+          '18%': [-0.9],
+          '82%': [0.9],
           'max': [2],
         },
         start: 1,
