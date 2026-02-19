@@ -21,6 +21,50 @@ namespace csp::coordinatearrows {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+static const char* SHADER_VERT = R"(
+#version 330
+
+// inputs
+layout(location = 0) in vec3 inPosition;
+layout(location = 1) in float inAge;
+
+// uniforms
+uniform mat4 uMatModelView;
+uniform mat4 uMatProjection;
+
+// outputs
+out float fAge;
+
+void main()
+{
+    fAge = inAge;
+    vec4 pos = uMatModelView * vec4(inPosition.xyz, 1);
+    gl_Position = uMatProjection * pos;
+})";
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static const char* SHADER_FRAG = R"(
+#version 330
+
+// inputs
+in float fAge;
+
+// uniforms
+uniform vec4 cStartColor;
+uniform vec4 cEndColor;
+
+// outputs
+layout(location = 0) out vec4 vOutColor;
+
+void main()
+{
+  if (fAge < 0.0 || fAge > 1.0) discard;
+  vOutColor = mix(cStartColor, cEndColor, fAge);
+})";
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 Arrows::Arrows(std::shared_ptr<Plugin::Settings> pluginSettings,
     std::shared_ptr<cs::core::SolarSystem>               solarSystem)
     : mPluginSettings(std::move(pluginSettings))
