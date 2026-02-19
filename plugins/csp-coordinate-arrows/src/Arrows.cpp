@@ -21,22 +21,22 @@ namespace csp::coordinatearrows {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-Arrows::Arrows(/*std::shared_ptr<Plugin::Settings> pluginSettings,
+Arrows::Arrows(std::shared_ptr<Plugin::Settings> pluginSettings,
     std::shared_ptr<cs::core::SolarSystem>               solarSystem)
     : mPluginSettings(std::move(pluginSettings))
-    , mSolarSystem(std::move(solarSystem)*/) {
+    , mSolarSystem(std::move(solarSystem)) {
     // Add to scenegraph.
-    /*VistaSceneGraph* pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
+    VistaSceneGraph* pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
     mGLNode.reset(pSG->NewOpenGLNode(pSG->GetRoot(), this));
     VistaOpenSGMaterialTools::SetSortKeyOnSubtree(
-    mGLNode.get(), static_cast<int>(cs::utils::DrawOrder::eTransparentItems) - 1);*/
+    mGLNode.get(), static_cast<int>(cs::utils::DrawOrder::eTransparentItems) - 1);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 Arrows::~Arrows() {
-    /*VistaSceneGraph* pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
-    pSG->GetRoot()->DisconnectChild(mGLNode.get());*/
+    VistaSceneGraph* pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
+    pSG->GetRoot()->DisconnectChild(mGLNode.get());
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -47,27 +47,27 @@ void Arrows::update(double tTime) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-/*void Arrows::setTargetName(std::string objectName) {
+void Arrows::setTargetName(std::string objectName) {
   mTargetName = std::move(objectName);
-}*/
+}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-/*void Arrows::setParentName(std::string objectName) {
-  mParentName = std::move(objectName);
-}*/
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-/*std::string const& Arrows::getTargetName() const {
+std::string const& Arrows::getTargetName() const {
   return mTargetName;
-}*/
+}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-/*std::string const& Arrows::getParentName() const {
+void Arrows::setParentName(std::string objectName) {
+  mParentName = std::move(objectName);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+std::string const& Arrows::getParentName() const {
   return mParentName;
-}*/
+}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -85,6 +85,7 @@ bool Arrows::GetBoundingBox(VistaBoundingBox& /*bb*/) {
 
 void Arrows::setEnabled(bool value) {
     mEnabled = std::move(value);
+    logger().info("Arrows are enabled: {}", mEnabled);
 }
 
 } // namespace csp::coordinatearows

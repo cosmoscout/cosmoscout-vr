@@ -52,12 +52,15 @@ void Plugin::init() {
   mGuiManager->addSettingsSectionToSideBarFromHTML(
       "Coordinate Arrows", "label_off", "../share/resources/gui/coordinate-arrows-settings.html");
 
-  mGuiManager->getGui()->registerCallback("coordinate-arrows.enableArrows",
+  mGuiManager->getGui()->registerCallback("coordinateArrows.enableArrows",
     "Enables or disables the rendering of the arrows.",
-    std::function([this](bool value) { mPluginSettings->mEnableArrows = value; }));
-  /*mPluginSettings->mEnableArrows.connectAndTouch([this](bool value) {
-    mGuiManager->setCheckboxValue("coordinate-arrows.enableArrows", enable);
-  });*/
+    std::function([this](bool value) {
+      logger().info("Toggled enable button (WIP).");
+      mPluginSettings->mEnableArrows = value;
+    }));
+  mPluginSettings->mEnableArrows.connectAndTouch([this](bool value) {
+    mGuiManager->setCheckboxValue("coordinateArrows.enableArrows", true);
+  });
 
   // Load settings
   onLoad();
@@ -89,8 +92,7 @@ void Plugin::deInit() {
 void Plugin::onLoad() {
   // Read settings from JSON.
   from_json(mAllSettings->mPlugins.at("csp-coordinate-arrows"), *mPluginSettings);
-  auto arrows = std::make_shared<Arrows>();
-  //auto arrows = std::make_shared<Arrows>(mAllSettings, mSolarSystem);
+  auto arrows = std::make_shared<Arrows>(mPluginSettings, mSolarSystem);
   arrows->setEnabled(true);
 }
 

@@ -20,8 +20,8 @@ namespace csp::coordinatearrows {
 
 class Arrows : public IVistaOpenGLDraw {
  public:
-  Arrows(/*std::shared_ptr<Plugin::Settings> pluginSettings,
-    std::shared_ptr<cs::core::SolarSystem>   solarSystem*/);
+  Arrows(std::shared_ptr<Plugin::Settings> pluginSettings,
+    std::shared_ptr<cs::core::SolarSystem>   solarSystem);
 
   Arrows(Arrows const& other) = delete;
   Arrows(Arrows&& other)      = delete;
@@ -35,12 +35,12 @@ class Arrows : public IVistaOpenGLDraw {
   void update(double tTime);
 
   // The arrows visualize the orientation of this object.
-  //void setTargetName(std::string objectName);
-  //std::string const& getTargetname() const;
+  void setTargetName(std::string objectName);
+  std::string const& getTargetName() const;
 
   // The arrows are drawn relative to this object.
-  //void setParentName(std::string objectname);
-  //std::string const& getParentname() const;
+  void setParentName(std::string objectname);
+  std::string const& getParentName() const;
 
   bool Do() override;
   bool GetBoundingBox(VistaBoundingBox& bb) override;
@@ -50,6 +50,8 @@ class Arrows : public IVistaOpenGLDraw {
  private:
   std::shared_ptr<Plugin::Settings> mPluginSettings;
   std::shared_ptr<cs::core::SolarSystem> mSolarSystem;
+
+  std::unique_ptr<VistaOpenGLNode> mGLNode;
 
   std::string mTargetName;
   std::string mParentName;
