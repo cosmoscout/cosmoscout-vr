@@ -25,6 +25,7 @@
 #include "../cs-utils/utils.hpp"
 #include "GetSelectionStateNode.hpp"
 #include "ObserverNavigationNode.hpp"
+#include "TimeControlNode.hpp"
 #include "logger.hpp"
 #include "x11utils.hpp"
 
@@ -121,6 +122,8 @@ bool Application::Init(VistaSystem* pVistaSystem) {
   VdfnNodeFactory* pNodeFactory = VdfnNodeFactory::GetSingleton();
   pNodeFactory->SetNodeCreator( // NOLINTNEXTLINE: TODO is this a memory leak?
       "ObserverNavigationNode", new ObserverNavigationNodeCreate(mSolarSystem.get()));
+  pNodeFactory->SetNodeCreator( // NOLINTNEXTLINE: TODO is this a memory leak?
+      "TimeControlNode", new TimeControlNodeCreate(mSettings.get()));
   pNodeFactory->SetNodeCreator( // NOLINTNEXTLINE: TODO is this a memory leak?
       "GetSelectionStateNode", new GetSelectionStateNodeCreate(mInputManager.get()));
 

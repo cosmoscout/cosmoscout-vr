@@ -1,0 +1,55 @@
+<!--
+SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
+SPDX-License-Identifier: MIT
+-->
+
+<?xml version="1.0" encoding="utf-8"?>
+<module>
+    <nodespace></nodespace>
+    <graph>
+
+        <!-- time input -->
+        <node name="timer" type="Timer" />
+
+        <!-- spacenavigator input -->
+        <node name="spacenavigator" type="DriverSensor">
+            <param name="sensor_index" value="0" />
+            <param name="driver" value="SPACENAVIGATOR" />
+        </node>
+        <node name="project_spacenav" type="HistoryProject">
+            <param name="project">POSITION, ORIENTATION</param>
+        </node>
+        <node name="sampling_mode" type="ConstantValue[int]">
+            <param name="value" value="0" />
+        </node>
+        <node name="decompose" type="Decompose3DVector" />
+
+        <node name="tmp" type="ConstantValue[float]">
+            <param name="value" value="0.1" />
+        </node>
+
+        <!-- magic scaling number is 1/350, which is the range of values given by the space navigator -->
+        <node name="scale_factor" type="ConstantValue[float]">
+            <param name="value" value="0.01" />
+        </node>
+        <node name="scale_translation" type="Multiply[float,VistaVector3D]" />
+
+        <!-- observer output -->
+        <node name="time_control" type="TimeControlNode" />
+
+    </graph>
+    <edges>
+
+        <edge fromnode="spacenavigator" tonode="project_spacenav" fromport="history" toport="history" />
+        <edge fromnode="sampling_mode" tonode="project_spacenav" fromport="value" toport="sampling_mode" />
+        <edge fromnode="scale_factor" tonode="scale_translation" fromport="value" toport="first" />
+        <edge fromnode="project_spacenav" tonode="scale_translation" fromport="POSITION" toport="second" />
+
+        <edge fromnode="scale_translation" tonode="decompose" fromport="out" toport="in" />
+        <edge fromnode="decompose" tonode="time_control" fromport="x" toport="sim_speed" />
+
+        <!-- <edge fromnode="tmp" tonode="time_control" fromport="value" toport="sim_speed" /> -->
+        <edge fromnode="timer" tonode="time_control" fromport="time" toport="time" />
+
+    </edges>
+</module>
