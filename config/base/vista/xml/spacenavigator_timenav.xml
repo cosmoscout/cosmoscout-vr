@@ -17,22 +17,33 @@ SPDX-License-Identifier: MIT
             <param name="driver" value="SPACENAVIGATOR" />
         </node>
         <node name="project_spacenav" type="HistoryProject">
-            <param name="project">POSITION, ORIENTATION</param>
+            <param name="project">POSITION, ORIENTATION, BUTTON_1, BUTTON_2</param>
         </node>
         <node name="sampling_mode" type="ConstantValue[int]">
             <param name="value" value="0" />
         </node>
-        <node name="decompose" type="Decompose3DVector" />
 
-        <node name="tmp" type="ConstantValue[float]">
+        <!-- buttons -->
+        <node name="play_toggle" type="Toggle">
+            <param name="mode" value="on_change_to_true" />
+        </node>
+        <node name="speed_convert" type="TypeConvert[bool,float]" />
+        <node name="speed_const" type="ConstantValue[float]">
             <param name="value" value="0.1" />
         </node>
+        <node name="speed_mult" type="Multiply[float]" />
 
         <!-- magic scaling number is 1/350, which is the range of values given by the space navigator -->
         <node name="scale_factor" type="ConstantValue[float]">
             <param name="value" value="0.01" />
         </node>
         <node name="scale_translation" type="Multiply[float,VistaVector3D]" />
+        <node name="euler_rotation" type="QuaternionToEuler" />
+        <node name="negate_rotation" type="Negate[float]" />
+
+        <!-- Finale preparation -->
+        <node name="decompose" type="Decompose3DVector" />
+        <node name="sum_speed" type="Add[float]" />
 
         <!-- observer output -->
         <node name="time_control" type="TimeControlNode" />
@@ -40,15 +51,32 @@ SPDX-License-Identifier: MIT
     </graph>
     <edges>
 
+        <!-- driver input handling -->
         <edge fromnode="spacenavigator" tonode="project_spacenav" fromport="history" toport="history" />
         <edge fromnode="sampling_mode" tonode="project_spacenav" fromport="value" toport="sampling_mode" />
         <edge fromnode="scale_factor" tonode="scale_translation" fromport="value" toport="first" />
         <edge fromnode="project_spacenav" tonode="scale_translation" fromport="POSITION" toport="second" />
 
-        <edge fromnode="scale_translation" tonode="decompose" fromport="out" toport="in" />
-        <edge fromnode="decompose" tonode="time_control" fromport="x" toport="sim_speed" />
+        <!-- 6DOF to 1DOF mapping -->
+        <!-- shift left-right to control time -->
+        <!--
+            <edge fromnode="scale_translation" tonode="decompose" fromport="out" toport="in" />
+            <edge fromnode="decompose" tonode="sum_speed" fromport="x" toport="first" />
+        -->
+        <!-- tilt left-right to control time -->
+        <edge fromnode="project_spacenav" tonode="euler_rotation" fromport="ORIENTATION" toport="quaternion" />
+        <edge fromnode="euler_rotation" tonode="decompose" fromport="out" toport="in" />
+        <edge fromnode="decompose" tonode="negate_rotation" fromport="z" toport="in" />
+        <edge fromnode="negate_rotation" tonode="sum_speed" fromport="out" toport="first" />
 
-        <!-- <edge fromnode="tmp" tonode="time_control" fromport="value" toport="sim_speed" /> -->
+        <!-- speed scaling -->
+        <edge fromnode="project_spacenav" tonode="play_toggle" fromport="BUTTON_1" toport="toggle" />
+        <edge fromnode="play_toggle" tonode="speed_convert" fromport="out" toport="in" />
+        <edge fromnode="speed_convert" tonode="speed_mult" fromport="out" toport="first" />
+        <edge fromnode="speed_const" tonode="speed_mult" fromport="value" toport="second" />
+        <edge fromnode="speed_mult" tonode="sum_speed" fromport="out" toport="second" />
+        <edge fromnode="sum_speed" tonode="time_control" fromport="out" toport="sim_speed" />
+
         <edge fromnode="timer" tonode="time_control" fromport="time" toport="time" />
 
     </edges>
