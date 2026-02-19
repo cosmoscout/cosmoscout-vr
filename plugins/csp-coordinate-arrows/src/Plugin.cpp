@@ -7,8 +7,13 @@
 
 #include "Plugin.hpp"
 
-#include "../../../src/cs-core/GuiManager.hpp"
+#include "Arrows.hpp"
 #include "logger.hpp"
+
+#include "../../../src/cs-core/GuiManager.hpp"
+
+#include <VistaKernel/DisplayManager/VistaDisplayManager.h>
+#include <VistaKernel/VistaSystem.h>
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -44,11 +49,17 @@ void Plugin::init() {
       [this]() { mAllSettings->mPlugins["csp-coordinate-arrows"] = *mPluginSettings; });
 
   mGuiManager->executeJavascriptFile("../share/resources/gui/js/csp-coordinate-arrows.js");
-  mGuiManager->addPluginTabToSideBarFromHTML(
-      "Coordinate Arrows", "label_off", "../share/resources/gui/coordinate-arrows-tab.html");
   mGuiManager->addSettingsSectionToSideBarFromHTML(
       "Coordinate Arrows", "label_off", "../share/resources/gui/coordinate-arrows-settings.html");
 
+  mGuiManager->getGui()->registerCallback("coordinate-arrows.enableArrows",
+    "Enables or disables the rendering of the arrows.",
+    std::function([this](bool value) { mPluginSettings->mEnableArrows = value; }));
+  /*mPluginSettings->mEnableArrows.connectAndTouch([this](bool value) {
+    mGuiManager->setCheckboxValue("coordinate-arrows.enableArrows", enable);
+  });*/
+
+  // Load settings
   onLoad();
 
   logger().info("Loading done.");
@@ -78,6 +89,9 @@ void Plugin::deInit() {
 void Plugin::onLoad() {
   // Read settings from JSON.
   from_json(mAllSettings->mPlugins.at("csp-coordinate-arrows"), *mPluginSettings);
+  auto arrows = std::make_shared<Arrows>();
+  //auto arrows = std::make_shared<Arrows>(mAllSettings, mSolarSystem);
+  arrows->setEnabled(true);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

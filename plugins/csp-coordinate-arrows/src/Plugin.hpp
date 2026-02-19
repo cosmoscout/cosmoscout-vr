@@ -11,14 +11,20 @@
 #include "../../../src/cs-core/PluginBase.hpp"
 #include "../../../src/cs-core/Settings.hpp"
 
+#include <VistaKernel/GraphicsManager/VistaOpenGLNode.h>
+#include <optional>
 #include <memory>
 
 namespace csp::coordinatearrows {
 
+class Arrows;
+
 /// Your plugin description here!
 class Plugin : public cs::core::PluginBase {
  public:
-  struct Settings {};
+  struct Settings {
+    cs::utils::DefaultProperty<bool> mEnableArrows{true};
+  };
 
   void init() override;
   void deInit() override;
