@@ -18,10 +18,12 @@ endif()
 # 2. Define Files used in this Plugin Here (Did not use GLOB becasue it created ghost files which compiler missed)
 set(SOURCE_FILES
   src/Plugin.cpp
+  src/logger.cpp
 )
 
 set(HEADER_FILES
   src/Plugin.hpp
+  src/logger.hpp
 )
 
 # 3. Create Target
