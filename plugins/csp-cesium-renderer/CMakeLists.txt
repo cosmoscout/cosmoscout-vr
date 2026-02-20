@@ -19,11 +19,13 @@ endif()
 set(SOURCE_FILES
   src/Plugin.cpp
   src/logger.cpp
+  src/CesiumUtils.cpp
 )
 
 set(HEADER_FILES
   src/Plugin.hpp
   src/logger.hpp
+  src/CesiumUtils.hpp
 )
 
 # 3. Create Target
@@ -52,3 +54,97 @@ source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}" FILES
 install(TARGETS csp-cesium-renderer DESTINATION "share/plugins")
 
 
+# Cesium Native paths
+set(CESIUM_NATIVE_DIR "C:/Dev/CesiumSDK/cesium-native/dist")
+set(CESIUM_VCPKG_DIR  "C:/Dev/CesiumSDK/cesium-native/build/vcpkg_installed/x64-windows-static-md-1434")
+
+# Cesium include paths (SYSTEM = suppress warnings from their headers)
+target_include_directories(csp-cesium-renderer SYSTEM PRIVATE
+  ${CESIUM_NATIVE_DIR}/include
+  ${CESIUM_VCPKG_DIR}/include
+)
+
+# Cesium Native libraries (dependency order: highest → lowest)
+target_link_libraries(csp-cesium-renderer PRIVATE
+  # -- Top-level: what YOUR code directly calls --
+  ${CESIUM_NATIVE_DIR}/lib/Cesium3DTilesSelection.lib
+  ${CESIUM_NATIVE_DIR}/lib/CesiumCurl.lib
+
+  # -- Mid-level: pulled in by the above --
+  ${CESIUM_NATIVE_DIR}/lib/Cesium3DTilesContent.lib
+  ${CESIUM_NATIVE_DIR}/lib/Cesium3DTilesReader.lib
+  ${CESIUM_NATIVE_DIR}/lib/Cesium3DTilesWriter.lib
+  ${CESIUM_NATIVE_DIR}/lib/Cesium3DTiles.lib
+  ${CESIUM_NATIVE_DIR}/lib/CesiumRasterOverlays.lib
+  ${CESIUM_NATIVE_DIR}/lib/CesiumQuantizedMeshTerrain.lib
+  ${CESIUM_NATIVE_DIR}/lib/CesiumVectorData.lib
+  ${CESIUM_NATIVE_DIR}/lib/CesiumClientCommon.lib
+  ${CESIUM_NATIVE_DIR}/lib/CesiumIonClient.lib
+  ${CESIUM_NATIVE_DIR}/lib/CesiumITwinClient.lib
+  ${CESIUM_NATIVE_DIR}/lib/CesiumGltfContent.lib
+  ${CESIUM_NATIVE_DIR}/lib/CesiumGltfReader.lib
+  ${CESIUM_NATIVE_DIR}/lib/CesiumGltfWriter.lib
+  ${CESIUM_NATIVE_DIR}/lib/CesiumGltf.lib
+  ${CESIUM_NATIVE_DIR}/lib/CesiumJsonReader.lib
+  ${CESIUM_NATIVE_DIR}/lib/CesiumJsonWriter.lib
+  ${CESIUM_NATIVE_DIR}/lib/CesiumGeospatial.lib
+  ${CESIUM_NATIVE_DIR}/lib/CesiumGeometry.lib
+  ${CESIUM_NATIVE_DIR}/lib/CesiumAsync.lib
+  ${CESIUM_NATIVE_DIR}/lib/CesiumUtility.lib
+)
+
+
+# vcpkg transitive dependencies (required by Cesium's static libs)
+target_link_libraries(csp-cesium-renderer PRIVATE
+  ${CESIUM_VCPKG_DIR}/lib/async++.lib
+  ${CESIUM_VCPKG_DIR}/lib/draco.lib
+  ${CESIUM_VCPKG_DIR}/lib/s2.lib
+  ${CESIUM_VCPKG_DIR}/lib/libcurl.lib
+  ${CESIUM_VCPKG_DIR}/lib/libssl.lib
+  ${CESIUM_VCPKG_DIR}/lib/libcrypto.lib
+  ${CESIUM_VCPKG_DIR}/lib/sqlite3.lib
+  ${CESIUM_VCPKG_DIR}/lib/tinyxml2.lib
+  ${CESIUM_VCPKG_DIR}/lib/ada.lib
+  ${CESIUM_VCPKG_DIR}/lib/meshoptimizer.lib
+  ${CESIUM_VCPKG_DIR}/lib/libmodpbase64.lib
+  ${CESIUM_VCPKG_DIR}/lib/ktx.lib
+  ${CESIUM_VCPKG_DIR}/lib/spz.lib
+  ${CESIUM_VCPKG_DIR}/lib/libwebp.lib
+  ${CESIUM_VCPKG_DIR}/lib/libwebpdecoder.lib
+  ${CESIUM_VCPKG_DIR}/lib/libsharpyuv.lib
+  ${CESIUM_VCPKG_DIR}/lib/blend2d.lib
+  ${CESIUM_VCPKG_DIR}/lib/asmjit.lib
+  ${CESIUM_VCPKG_DIR}/lib/fmt.lib
+  ${CESIUM_VCPKG_DIR}/lib/spdlog.lib
+  ${CESIUM_VCPKG_DIR}/lib/zlib.lib
+  ${CESIUM_VCPKG_DIR}/lib/zlibstatic-ng.lib
+  ${CESIUM_VCPKG_DIR}/lib/zstd.lib
+  ${CESIUM_VCPKG_DIR}/lib/brotlidec.lib
+  ${CESIUM_VCPKG_DIR}/lib/brotlicommon.lib
+  ${CESIUM_VCPKG_DIR}/lib/brotlienc.lib
+  ${CESIUM_VCPKG_DIR}/lib/jpeg.lib
+  ${CESIUM_VCPKG_DIR}/lib/turbojpeg.lib
+  ${CESIUM_VCPKG_DIR}/lib/astcenc-avx2-static.lib
+)
+
+target_link_libraries(csp-cesium-renderer PRIVATE
+  ws2_32 crypt32 wldap32 normaliz bcrypt userenv
+)
+
+target_compile_definitions(csp-cesium-renderer PRIVATE
+  GLM_FORCE_XYZW_ONLY
+  GLM_FORCE_EXPLICIT_CTOR
+  GLM_FORCE_INTRINSICS
+  GLM_ENABLE_EXPERIMENTAL
+)
+
+if(MSVC)
+  target_compile_options(csp-cesium-renderer PRIVATE /utf-8 /Zc:__cplusplus /bigobj)
+endif()
+
+set_target_properties(csp-cesium-renderer PROPERTIES UNITY_BUILD OFF)
+
+set_target_properties(csp-cesium-renderer PROPERTIES
+  CXX_STANDARD 20
+  CXX_STANDARD_REQUIRED ON
+)
