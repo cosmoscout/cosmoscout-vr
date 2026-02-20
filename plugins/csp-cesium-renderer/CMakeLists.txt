@@ -128,7 +128,7 @@ target_link_libraries(csp-cesium-renderer PRIVATE
 )
 
 target_link_libraries(csp-cesium-renderer PRIVATE
-  ws2_32 crypt32 wldap32 normaliz bcrypt userenv
+  ws2_32 crypt32 wldap32 normaliz bcrypt userenv iphlpapi secur32
 )
 
 target_compile_definitions(csp-cesium-renderer PRIVATE

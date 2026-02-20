@@ -6,8 +6,15 @@
 // SPDX-License-Identifier: MIT
 
 #include "Plugin.hpp"
+#include "CesiumUtils.hpp"
 #include "logger.hpp"
-#include <iostream>
+
+// Cesium headers
+#include <CesiumAsync/AsyncSystem.h>
+#include <CesiumCurl/CurlAssetAccessor.h>
+#include <CesiumUtility/CreditSystem.h>
+#include <Cesium3DTilesContent/registerAllTileContentTypes.h>
+#include <Cesium3DTilesSelection/TilesetExternals.h>
 
 
 // ------------------------------------------------------------------------------------------------ //
@@ -29,12 +36,31 @@ EXPORT_FN void destroy(cs::core::PluginBase* pluginBase) {
 namespace csp::cesiumrenderer {
 
 void Plugin::init() {
-  std::cout << ">>> CSP-CESIUM-RENDERER INIT CALLED <<<" << std::endl;
-  logger().info("Loading plugin...");
+    logger().info("Starting Cesium Engine Initialization...");
 
-  // Future code will go here
+    // 1. The Binary Parser Fix 
+    Cesium3DTilesContent::registerAllTileContentTypes();
 
-  logger().info("Loading done.");
+    // 2. Instantiate our Custom system
+    auto taskProcessor   = std::make_shared<CosmoScoutTaskProcessor>();
+    mAsyncSystem  = std::make_shared<CesiumAsync::AsyncSystem>(taskProcessor);
+    mCreditSystem = std::make_shared<CesiumUtility::CreditSystem>();
+    auto prepareRenderer = std::make_shared<StubPrepareRendererResources>();
+
+    // 3. The 404 Fix: Create Network Downloader with Custom User-Agent
+    CesiumCurl::CurlAssetAccessorOptions accessorOptions;
+    accessorOptions.userAgent = "CosmoScout Cesium Renderer";
+    auto assetAccessor = std::make_shared<CesiumCurl::CurlAssetAccessor>(accessorOptions);
+
+    // 4. Assemble the Engine Core
+    Cesium3DTilesSelection::TilesetExternals externals{
+        assetAccessor,       // pAssetAccessor
+        prepareRenderer,     // pPrepareRendererResources
+        *mAsyncSystem,       // asyncSystem (dereferenced — struct takes by VALUE)
+        mCreditSystem        // pCreditSystem
+    };
+
+    logger().info("Cesium Externals Assembled Successfully!");
 }
 
 void Plugin::deInit() {

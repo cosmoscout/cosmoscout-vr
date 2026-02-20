@@ -9,14 +9,26 @@
 #define CSP_CESIUM_RENDERER_PLUGIN_HPP
 
 #include "../../../src/cs-core/PluginBase.hpp"
+#include <memory>  
+
+namespace CesiumAsync {
+class AsyncSystem;
+}
+namespace CesiumUtility {
+class CreditSystem;
+}
 
 namespace csp::cesiumrenderer {
 
 class Plugin : public cs::core::PluginBase {
 public:
   void init() override;
-void deInit() override;
-void update() override;
+  void deInit() override;
+  void update() override;
+
+private:
+  std::shared_ptr<CesiumAsync::AsyncSystem>    mAsyncSystem;
+  std::shared_ptr<CesiumUtility::CreditSystem> mCreditSystem;
   
 };
 
