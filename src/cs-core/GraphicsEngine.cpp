@@ -80,7 +80,7 @@ GraphicsEngine::GraphicsEngine(std::shared_ptr<core::Settings> settings)
 
   auto* pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
 
-  mSettings->mGraphics.pEnableVsync.connect([](bool value) {
+  mSettings->mGraphics.pEnableVsync.connectAndTouch([](bool value) {
     GetVistaSystem()
         ->GetDisplayManager()
         ->GetWindows()
