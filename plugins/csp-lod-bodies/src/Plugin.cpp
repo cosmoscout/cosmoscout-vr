@@ -8,6 +8,7 @@
 #include "Plugin.hpp"
 
 #include "LodBody.hpp"
+#include "TileId.hpp"
 #include "logger.hpp"
 
 #include "../../../src/cs-core/GuiManager.hpp"
@@ -300,6 +301,18 @@ void Plugin::init() {
             setElevationSource(body, name);
           }
         }
+      }));
+
+  mGuiManager->getGui()->registerCallback("lodBodies.cacheImg",
+      "Caches all tiles for the current image channel.",
+      std::function([this]() {
+        this->cacheImgDataset();
+      }));
+
+  mGuiManager->getGui()->registerCallback("lodBodies.cacheDem",
+      "Caches all tiles for the current elevation channel.",
+      std::function([this]() {
+        this->cacheDemDataset();
       }));
 
   mActiveObjectConnection = mSolarSystem->pActiveObject.connectAndTouch(
@@ -625,6 +638,57 @@ void Plugin::setElevationSource(
 
   mGuiManager->getGui()->callJavascript(
       "CosmoScout.lodBodies.setElevationDataCopyright", dataset->second.mCopyright);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void cacheTile(std::shared_ptr<TileSource>& source, TileId id, int maxLevel, TileId tileOfInterest, int extendedMaxLevel) {
+  //source->loadTileAsync(id, [](TileId id, std::shared_ptr<BaseTileData> data) {});
+  source->loadTile(id);
+  if (id == tileOfInterest) {
+    maxLevel = extendedMaxLevel;
+  }
+  if (id.level() == 3) {
+    logger().trace("3 - {}/{}", id.patchIdx(), 12*4*4*4);
+  }
+  if (id.level() == 6) {
+    logger().trace("6 - {}/{}", id.patchIdx() - tileOfInterest.patchIdx()*4*4*4, 4*4*4);
+  }
+  if (id.level() == 9) {
+    logger().trace("9 - {}/{}", id.patchIdx() - tileOfInterest.patchIdx()*4*4*4*4*4*4, 4*4*4*4*4*4);
+  }
+  if (id.level() < maxLevel) {
+    for (int i = 0; i < 4; i++) {
+      TileId childId = HEALPix::getChildTileId(id, i);
+      cacheTile(source, childId, maxLevel, tileOfInterest, extendedMaxLevel);
+    }
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void cacheDataset(std::shared_ptr<TileSource>& source) {
+  for (int baseTile = 0; baseTile < 12; baseTile++) {
+    TileId id(0, baseTile);
+    TileId germany(3, 174);
+    cacheTile(source, id, 4, germany, 9);
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Plugin::cacheImgDataset() {
+  auto body = std::dynamic_pointer_cast<LodBody>(mSolarSystem->pActiveObject.get()->getSurface());
+  std::shared_ptr<TileSource> source = body->getIMGtileSource();
+  cacheDataset(source);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Plugin::cacheDemDataset() {
+  auto body = std::dynamic_pointer_cast<LodBody>(mSolarSystem->pActiveObject.get()->getSurface());
+  std::shared_ptr<TileSource> source = body->getDEMtileSource();
+  cacheDataset(source);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -140,6 +140,9 @@ class Plugin : public cs::core::PluginBase {
   void setImageSource(std::shared_ptr<LodBody> const& body, std::string const& name) const;
   void setElevationSource(std::shared_ptr<LodBody> const& body, std::string const& name) const;
 
+  void cacheImgDataset();
+  void cacheDemDataset();
+
   std::shared_ptr<Settings>                       mPluginSettings = std::make_shared<Settings>();
   std::shared_ptr<GLResources>                    mGLResources;
   std::map<std::string, std::shared_ptr<LodBody>> mLodBodies;
