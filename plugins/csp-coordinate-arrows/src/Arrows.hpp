@@ -14,7 +14,14 @@
 
 #include <VistaBase/VistaColor.h>
 #include <VistaKernel/GraphicsManager/VistaOpenGLDraw.h>
+#include <VistaOGLExt/VistaBufferObject.h>
+#include <VistaOGLExt/VistaGLSLShader.h>
+#include <VistaOGLExt/VistaVertexArrayObject.h>
+
+#include <glm/glm.hpp>
+#include <glm/gtc/quaternion.hpp>
 #include <memory>
+#include <vector>
 
 namespace csp::coordinatearrows {
 
@@ -48,6 +55,8 @@ class Arrows : public IVistaOpenGLDraw {
   void setEnabled(bool value);
 
  private:
+  void createShader();
+
   std::shared_ptr<Plugin::Settings> mPluginSettings;
   std::shared_ptr<cs::core::SolarSystem> mSolarSystem;
 
@@ -56,10 +65,23 @@ class Arrows : public IVistaOpenGLDraw {
   std::string mTargetName;
   std::string mParentName;
 
+  std::unique_ptr<VistaGLSLShader>        mShader;
+  std::unique_ptr<VistaVertexArrayObject> mVAO;
+  std::unique_ptr<VistaBufferObject>      mVBO;
+
+  glm::vec4 mColor;
+
+  struct {
+    uint32_t color = 0;
+    uint32_t modelViewMatrix  = 0;
+    uint32_t projectionMatrix = 0;
+  } mUniforms;
+
   std::vector<glm::dvec4> mPointsXArrow;
   std::vector<glm::dvec4> mPointsYArrow;
   std::vector<glm::dvec4> mPointsZArrow;
   double mArrowLength;
+  double mArrowWidth;
 
   bool mEnabled;
 

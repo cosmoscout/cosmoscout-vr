@@ -16,6 +16,9 @@
 #include <VistaKernel/GraphicsManager/VistaTransformNode.h>
 #include <VistaKernel/VistaSystem.h>
 #include <VistaKernelOpenSGExt/VistaOpenSGMaterialTools.h>
+#include <VistaOGLExt/VistaBufferObject.h>
+#include <VistaOGLExt/VistaGLSLShader.h>
+#include <VistaOGLExt/VistaVertexArrayObject.h>
 
 namespace csp::coordinatearrows {
 
@@ -58,7 +61,8 @@ void main()
 Arrows::Arrows(std::shared_ptr<Plugin::Settings> pluginSettings,
     std::shared_ptr<cs::core::SolarSystem>               solarSystem)
     : mPluginSettings(std::move(pluginSettings))
-    , mSolarSystem(std::move(solarSystem)) {
+    , mSolarSystem(std::move(solarSystem)),
+    mColor(1.F, 1.F, 1.F, 1.F) {
     // Add to scenegraph.
     VistaSceneGraph* pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
     mGLNode.reset(pSG->NewOpenGLNode(pSG->GetRoot(), this));
@@ -106,7 +110,27 @@ std::string const& Arrows::getParentName() const {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool Arrows::Do() {
-    return true;
+  // Create shader
+  createShader();
+
+  return true;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Arrows::createShader() {
+  mShader = std::make_unique<VistaGLSLShader>();
+
+  std::string sVert(SHADER_VERT);
+  std::string sFrag(SHADER_FRAG);
+
+  mShader->InitVertexShaderFromString(sVert);
+  mShader->InitFragmentShaderFromString(sFrag);
+  mShader->Link();
+
+  mUniforms.color       = mShader->GetUniformLocation("cColor");
+  mUniforms.modelViewMatrix  = mShader->GetUniformLocation("uMatModelView");
+  mUniforms.projectionMatrix = mShader->GetUniformLocation("uMatProjection");
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
