@@ -125,6 +125,44 @@ target_link_libraries(csp-cesium-renderer PRIVATE
   ${CESIUM_VCPKG_DIR}/lib/jpeg.lib
   ${CESIUM_VCPKG_DIR}/lib/turbojpeg.lib
   ${CESIUM_VCPKG_DIR}/lib/astcenc-avx2-static.lib
+    # Abseil libraries (required by s2.lib)
+  ${CESIUM_VCPKG_DIR}/lib/absl_base.lib
+  ${CESIUM_VCPKG_DIR}/lib/absl_spinlock_wait.lib
+  ${CESIUM_VCPKG_DIR}/lib/absl_strings.lib
+  ${CESIUM_VCPKG_DIR}/lib/absl_strings_internal.lib
+  ${CESIUM_VCPKG_DIR}/lib/absl_int128.lib
+  ${CESIUM_VCPKG_DIR}/lib/absl_throw_delegate.lib
+  ${CESIUM_VCPKG_DIR}/lib/absl_raw_logging_internal.lib
+  ${CESIUM_VCPKG_DIR}/lib/absl_log_severity.lib
+  ${CESIUM_VCPKG_DIR}/lib/absl_log_internal_message.lib
+  ${CESIUM_VCPKG_DIR}/lib/absl_log_internal_check_op.lib
+  ${CESIUM_VCPKG_DIR}/lib/absl_log_internal_nullguard.lib
+  ${CESIUM_VCPKG_DIR}/lib/absl_log_internal_format.lib
+  ${CESIUM_VCPKG_DIR}/lib/absl_log_internal_globals.lib
+  ${CESIUM_VCPKG_DIR}/lib/absl_log_internal_log_sink_set.lib
+  ${CESIUM_VCPKG_DIR}/lib/absl_log_globals.lib
+  ${CESIUM_VCPKG_DIR}/lib/absl_log_sink.lib
+  ${CESIUM_VCPKG_DIR}/lib/absl_str_format_internal.lib
+  ${CESIUM_VCPKG_DIR}/lib/absl_strerror.lib
+  ${CESIUM_VCPKG_DIR}/lib/absl_time.lib
+  ${CESIUM_VCPKG_DIR}/lib/absl_time_zone.lib
+  ${CESIUM_VCPKG_DIR}/lib/absl_civil_time.lib
+  ${CESIUM_VCPKG_DIR}/lib/absl_examine_stack.lib
+  ${CESIUM_VCPKG_DIR}/lib/absl_stacktrace.lib
+  ${CESIUM_VCPKG_DIR}/lib/absl_symbolize.lib
+  ${CESIUM_VCPKG_DIR}/lib/absl_debugging_internal.lib
+  ${CESIUM_VCPKG_DIR}/lib/absl_demangle_internal.lib
+  ${CESIUM_VCPKG_DIR}/lib/absl_malloc_internal.lib
+  ${CESIUM_VCPKG_DIR}/lib/absl_synchronization.lib
+  ${CESIUM_VCPKG_DIR}/lib/absl_graphcycles_internal.lib
+  ${CESIUM_VCPKG_DIR}/lib/absl_kernel_timeout_internal.lib
+  ${CESIUM_VCPKG_DIR}/lib/absl_log_internal_proto.lib
+  ${CESIUM_VCPKG_DIR}/lib/absl_log_internal_structured_proto.lib
+  ${CESIUM_VCPKG_DIR}/lib/absl_leak_check.lib
+  ${CESIUM_VCPKG_DIR}/lib/absl_city.lib
+  ${CESIUM_VCPKG_DIR}/lib/absl_hash.lib
+  ${CESIUM_VCPKG_DIR}/lib/absl_low_level_hash.lib
+
 )
 
 target_link_libraries(csp-cesium-renderer PRIVATE
