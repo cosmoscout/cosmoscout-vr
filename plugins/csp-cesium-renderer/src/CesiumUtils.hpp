@@ -13,6 +13,7 @@
 #undef task
 #endif
 
+#include <GL/glew.h>
 #include <CesiumAsync/ITaskProcessor.h>
 #include <Cesium3DTilesSelection/IPrepareRendererResources.h>
 #include <vector>
@@ -24,9 +25,17 @@ namespace csp::cesiumrenderer {
     // This struct carries extracted mesh data from the CPU worker thread
     // to the main (GPU) thread. It lives on the heap and is passed as void*.
     struct CesiumRenderData {
-        std::vector<float>    vertices; // Interleaved: [Px,Py,Pz, Nx,Ny,Nz, ...]
-        std::vector<uint32_t> indices;  // Triangle indices (always uint32_t)
-    };
+    std::vector<float>    vertices; // Interleaved: [Px,Py,Pz, Nx,Ny,Nz, ...]
+    std::vector<uint32_t> indices;  // Triangle indices (always uint32_t)
+
+    // GPU handles (filled by prepareInMainThread, cleaned by free)
+    GLuint vao = 0;  // Vertex Array Object — the "recipe card"
+    GLuint vbo = 0;  // Vertex Buffer Object — vertex data in VRAM
+    GLuint ebo = 0;  // Element Buffer Object — index data in VRAM
+
+    // How many indices to draw (saved before we clear the CPU vector)
+    uint32_t indexCount = 0;
+};
 
     // 1. THE TASK PROCESSOR
     class CosmoScoutTaskProcessor : public CesiumAsync::ITaskProcessor {
