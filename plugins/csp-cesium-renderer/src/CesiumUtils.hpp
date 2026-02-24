@@ -15,8 +15,18 @@
 
 #include <CesiumAsync/ITaskProcessor.h>
 #include <Cesium3DTilesSelection/IPrepareRendererResources.h>
+#include <vector>
+#include <cstdint>
 
 namespace csp::cesiumrenderer {
+
+        // 0. CPU-SIDE RENDER DATA CONTAINER
+    // This struct carries extracted mesh data from the CPU worker thread
+    // to the main (GPU) thread. It lives on the heap and is passed as void*.
+    struct CesiumRenderData {
+        std::vector<float>    vertices; // Interleaved: [Px,Py,Pz, Nx,Ny,Nz, ...]
+        std::vector<uint32_t> indices;  // Triangle indices (always uint32_t)
+    };
 
     // 1. THE TASK PROCESSOR
     class CosmoScoutTaskProcessor : public CesiumAsync::ITaskProcessor {
