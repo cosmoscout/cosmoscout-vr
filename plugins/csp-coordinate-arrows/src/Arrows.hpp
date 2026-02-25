@@ -42,11 +42,7 @@ class Arrows : public IVistaOpenGLDraw {
   void update(double tTime);
 
   // The arrows visualize the orientation of this object.
-  void setTargetName(std::string objectName);
-  std::string const& getTargetName() const;
-
-  // The arrows are drawn relative to this object.
-  void setParentName(std::string objectname);
+  void setParentName(std::string objectName);
   std::string const& getParentName() const;
 
   bool Do() override;
@@ -62,7 +58,6 @@ class Arrows : public IVistaOpenGLDraw {
 
   std::unique_ptr<VistaOpenGLNode> mGLNode;
 
-  std::string mTargetName;
   std::string mParentName;
 
   std::unique_ptr<VistaGLSLShader>        mShader;

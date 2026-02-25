@@ -11,6 +11,7 @@
 #include "logger.hpp"
 
 #include "../../../src/cs-core/GuiManager.hpp"
+#include "../../../src/cs-core/SolarSystem.hpp"
 
 #include <VistaKernel/DisplayManager/VistaDisplayManager.h>
 #include <VistaKernel/VistaSystem.h>
@@ -34,9 +35,21 @@ namespace csp::coordinatearrows {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void from_json(nlohmann::json const& j, Plugin::Settings& o) {
+  cs::core::Settings::deserialize(j, "arrows", o.mArrows);
 }
 
 void to_json(nlohmann::json& j, Plugin::Settings const& o) {
+  cs::core::Settings::serialize(j, "arrows", o.mArrows);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void from_json(nlohmann::json const& j, Plugin::Settings::Arrows& o) {
+
+}
+
+void to_json(nlohmann::json& j, Plugin::Settings::Arrows const& o) {
+
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -92,8 +105,13 @@ void Plugin::deInit() {
 void Plugin::onLoad() {
   // Read settings from JSON.
   from_json(mAllSettings->mPlugins.at("csp-coordinate-arrows"), *mPluginSettings);
-  auto arrows = std::make_shared<Arrows>(mPluginSettings, mSolarSystem);
-  arrows->setEnabled(true);
+  
+  for (auto const& settings : mPluginSettings->mArrows) {
+    auto arrows = std::make_shared<Arrows>(mPluginSettings, mSolarSystem);
+    arrows->setParentName(settings.first);
+    mArrows.emplace(settings.first, arrows);
+    logger().info("Arrows have been added.");
+  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

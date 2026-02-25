@@ -14,6 +14,7 @@
 #include <VistaKernel/GraphicsManager/VistaOpenGLNode.h>
 #include <optional>
 #include <memory>
+#include <map>
 
 namespace csp::coordinatearrows {
 
@@ -23,6 +24,13 @@ class Arrows;
 class Plugin : public cs::core::PluginBase {
  public:
   struct Settings {
+    // Settings for a group of arrows.
+    struct Arrows {};
+
+    // All groups of arrows with their name as key.
+    std::map<std::string, Arrows> mArrows;
+
+    // Enables/Disables the all arrows.
     cs::utils::DefaultProperty<bool> mEnableArrows{true};
   };
 
@@ -34,6 +42,7 @@ class Plugin : public cs::core::PluginBase {
   void onLoad();
 
   std::shared_ptr<Settings> mPluginSettings = std::make_shared<Settings>();
+  std::map<std::string, std::shared_ptr<Arrows>> mArrows;
 
   int mOnLoadConnection = -1;
   int mOnSaveConnection = -1;

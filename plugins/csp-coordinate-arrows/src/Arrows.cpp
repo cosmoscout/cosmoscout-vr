@@ -68,6 +68,7 @@ Arrows::Arrows(std::shared_ptr<Plugin::Settings> pluginSettings,
     mGLNode.reset(pSG->NewOpenGLNode(pSG->GetRoot(), this));
     VistaOpenSGMaterialTools::SetSortKeyOnSubtree(
     mGLNode.get(), static_cast<int>(cs::utils::DrawOrder::eTransparentItems) - 1);
+    logger().info("Added arrows to scene graph.");
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -85,18 +86,6 @@ void Arrows::update(double tTime) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Arrows::setTargetName(std::string objectName) {
-  mTargetName = std::move(objectName);
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-std::string const& Arrows::getTargetName() const {
-  return mTargetName;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
 void Arrows::setParentName(std::string objectName) {
   mParentName = std::move(objectName);
 }
@@ -110,8 +99,16 @@ std::string const& Arrows::getParentName() const {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool Arrows::Do() {
+  auto parent = mSolarSystem->getObject(mParentName);
+
+  if (!parent || !parent->getIsBodyVisible()) {
+    return true;
+  }
+
+  logger().info("Drawing arrows.");
   // Create shader
-  createShader();
+  //createShader();
+  
 
   return true;
 }
