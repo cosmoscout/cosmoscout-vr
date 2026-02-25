@@ -63,12 +63,33 @@ Arrows::Arrows(std::shared_ptr<Plugin::Settings> pluginSettings,
     : mPluginSettings(std::move(pluginSettings))
     , mSolarSystem(std::move(solarSystem)),
     mColor(1.F, 1.F, 1.F, 1.F) {
+
     // Add to scenegraph.
     VistaSceneGraph* pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
     mGLNode.reset(pSG->NewOpenGLNode(pSG->GetRoot(), this));
     VistaOpenSGMaterialTools::SetSortKeyOnSubtree(
     mGLNode.get(), static_cast<int>(cs::utils::DrawOrder::eTransparentItems) - 1);
     logger().info("Added arrows to scene graph.");
+
+    // Make line vertices for test
+    float lineVertices[] = {
+      0.0f, 0.0f, 0.0f, 0.0f,
+      1.0f, 1.0f, 1.0f, 1.0f
+    };
+
+    mVBO = std::make_unique<VistaBufferObject>();
+    mVAO = std::make_unique<VistaVertexArrayObject>();
+
+    mVAO->Bind();
+
+    mVBO->Bind(GL_ARRAY_BUFFER);
+    mVBO->BufferData(sizeof(lineVertices), lineVertices, GL_DYNAMIC_DRAW);
+
+    mVAO->EnableAttributeArray(0);
+    mVAO->SpecifyAttributeArrayFloat(0, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec4), 0, mVBO.get());
+
+    mVAO->Release();
+    mVBO->Release();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -110,14 +131,13 @@ bool Arrows::Do() {
   createShader();
 
 
-  /*glPushAttrib(GL_ENABLE_BIT | GL_COLOR_BUFFER_BIT | GL_LINE_BIT);
+  glPushAttrib(GL_ENABLE_BIT | GL_COLOR_BUFFER_BIT | GL_LINE_BIT);
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
   glEnable(GL_LINE_SMOOTH);
   glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
   glDepthMask(GL_FALSE);
-  //glLineWidth(mArrowWidth);
-  glLineWidth(100);
+  glLineWidth(mArrowWidth);
 
   mVAO->Bind();
   mShader->Bind();
@@ -134,12 +154,12 @@ bool Arrows::Do() {
   glUniformMatrix4fv(mUniforms.projectionMatrix, 1, GL_FALSE, glMatP.data());
 
   //glDrawArrays(GL_LINE_STRIP, 0, mPointCount);
-  glDrawArrays(GL_LINE_STRIP, 0, 100);
+  //glDrawArrays(GL_LINE_STRIP, 0, 100);
 
   mShader->Release();
   mVAO->Release();
 
-  glPopAttrib();*/
+  glPopAttrib();
   
 
   return true;
