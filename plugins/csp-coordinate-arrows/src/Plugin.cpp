@@ -68,7 +68,6 @@ void Plugin::init() {
   mGuiManager->getGui()->registerCallback("coordinateArrows.enableArrows",
     "Enables or disables the rendering of the arrows.",
     std::function([this](bool value) {
-      logger().info("Toggled enable button (WIP).");
       mPluginSettings->mEnableArrows = value;
     }));
   mPluginSettings->mEnableArrows.connectAndTouch([this](bool value) {

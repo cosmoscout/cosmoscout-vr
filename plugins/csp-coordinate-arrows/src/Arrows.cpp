@@ -101,7 +101,7 @@ std::string const& Arrows::getParentName() const {
 bool Arrows::Do() {
   auto parent = mSolarSystem->getObject(mParentName);
 
-  if (!parent || !parent->getIsBodyVisible()) {
+  if ((!parent || !parent->getIsBodyVisible()) || (!mPluginSettings->mEnableArrows.get())) {
     return true;
   }
 
@@ -134,13 +134,6 @@ void Arrows::createShader() {
 
 bool Arrows::GetBoundingBox(VistaBoundingBox& /*bb*/) {
   return false;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void Arrows::setEnabled(bool value) {
-    mEnabled = std::move(value);
-    logger().info("Arrows are enabled: {}", mEnabled);
 }
 
 } // namespace csp::coordinatearows

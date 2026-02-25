@@ -48,8 +48,6 @@ class Arrows : public IVistaOpenGLDraw {
   bool Do() override;
   bool GetBoundingBox(VistaBoundingBox& bb) override;
 
-  void setEnabled(bool value);
-
  private:
   void createShader();
 
@@ -77,9 +75,6 @@ class Arrows : public IVistaOpenGLDraw {
   std::vector<glm::dvec4> mPointsZArrow;
   double mArrowLength;
   double mArrowWidth;
-
-  bool mEnabled;
-
 };
 
 } // namespace csp::coordinatearrows
