@@ -53,7 +53,7 @@ layout(location = 0) out vec4 vOutColor;
 
 void main()
 {
-  vOutColor = cColor
+  vOutColor = cColor;
 })";
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -107,7 +107,39 @@ bool Arrows::Do() {
 
   logger().info("Drawing arrows.");
   // Create shader
-  //createShader();
+  createShader();
+
+
+  /*glPushAttrib(GL_ENABLE_BIT | GL_COLOR_BUFFER_BIT | GL_LINE_BIT);
+  glEnable(GL_BLEND);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+  glEnable(GL_LINE_SMOOTH);
+  glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
+  glDepthMask(GL_FALSE);
+  //glLineWidth(mArrowWidth);
+  glLineWidth(100);
+
+  mVAO->Bind();
+  mShader->Bind();
+
+  // Set colors of arrows.
+  mShader->SetUniform(mUniforms.color, mColor[0], mColor[1], mColor[2], mColor[3]);
+
+  // get modelview and projection matrices
+  std::array<GLfloat, 16> glMatMV{};
+  std::array<GLfloat, 16> glMatP{};
+  glGetFloatv(GL_MODELVIEW_MATRIX, glMatMV.data());
+  glGetFloatv(GL_PROJECTION_MATRIX, glMatP.data());
+  glUniformMatrix4fv(mUniforms.modelViewMatrix, 1, GL_FALSE, glMatMV.data());
+  glUniformMatrix4fv(mUniforms.projectionMatrix, 1, GL_FALSE, glMatP.data());
+
+  //glDrawArrays(GL_LINE_STRIP, 0, mPointCount);
+  glDrawArrays(GL_LINE_STRIP, 0, 100);
+
+  mShader->Release();
+  mVAO->Release();
+
+  glPopAttrib();*/
   
 
   return true;
