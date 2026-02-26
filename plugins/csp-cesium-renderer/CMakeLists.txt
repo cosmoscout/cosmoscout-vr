@@ -20,12 +20,14 @@ set(SOURCE_FILES
   src/Plugin.cpp
   src/logger.cpp
   src/CesiumUtils.cpp
+  src/CesiumTilesetRenderer.cpp
 )
 
 set(HEADER_FILES
   src/Plugin.hpp
   src/logger.hpp
   src/CesiumUtils.hpp
+  src/CesiumTilesetRenderer.hpp
 )
 
 # 3. Create Target

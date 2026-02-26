@@ -70,6 +70,9 @@ void Plugin::init() {
         "main/1.0/TilesetWithDiscreteLOD/tileset.json";
     mTileset = std::make_unique<Cesium3DTilesSelection::Tileset>(externals, testUrl);
     logger().info("Cesium Externals Assembled. Tileset Created!");
+
+    mRenderer = std::make_unique<CesiumTilesetRenderer>(mTileset.get(), mSolarSystem);
+
 }
 
 void Plugin::deInit() {
@@ -78,6 +81,7 @@ void Plugin::deInit() {
   // Destroy the tileset FIRST — it may have in-flight async operations.
   // reset() calls the Tileset destructor, which cancels pending downloads
   // and unloads all tile content from memory.
+  mRenderer.reset();
   mTileset.reset();
 
   logger().info("Unloading done.");
