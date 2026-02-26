@@ -51,9 +51,15 @@ class CesiumTilesetRenderer : public IVistaOpenGLDraw { // cesiumtileset rendere
   GLuint mShaderProgram = 0; //storing shader id 
 
   // Cached uniform locations
-  GLint mLocModelMatrix      = -1; // where is earth 
-  GLint mLocViewMatrix       = -1; // where is camera
-  GLint mLocProjectionMatrix = -1; // feld of view
+  GLint mLocModelMatrix      = -1;
+  GLint mLocViewMatrix       = -1;
+  GLint mLocProjectionMatrix = -1;
+  GLint mLocNormalMatrix     = -1;
+  GLint mLocBaseColorTexture = -1;
+  GLint mLocHasTexture       = -1;
+  GLint mLocLightDir         = -1;
+  GLint mLocCameraPos        = -1;
+
 
   // Shader source code (defined as static constants in the .cpp)
   static const char* CESIUM_VERT;  // shader language glsl , calculates math for 3d points

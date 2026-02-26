@@ -24,6 +24,8 @@
 // GLM for matrix math
 #include <glm/gtc/type_ptr.hpp> // for matrix math
 #include <glm/gtx/transform.hpp> 
+#include <glm/gtc/matrix_inverse.hpp>  // for glm::inverseTranspose
+
 
 // Cesium tile access
 #include <Cesium3DTilesSelection/Tile.h>
@@ -42,20 +44,28 @@ const char* CesiumTilesetRenderer::CESIUM_VERT = R"(
 uniform mat4 u_ModelMatrix;
 uniform mat4 u_ViewMatrix;
 uniform mat4 u_ProjectionMatrix;
+uniform mat3 u_NormalMatrix;
 
 layout(location = 0) in vec3 a_Position;
 layout(location = 1) in vec3 a_Normal;
+layout(location = 2) in vec2 a_UV;
+layout(location = 3) in vec4 a_Color;
 
 out vec3 v_Normal;
 out vec3 v_Position;
+out vec2 v_UV;
+out vec4 v_Color;
 
 void main() {
     vec4 worldPos = u_ModelMatrix * vec4(a_Position, 1.0);
     v_Position    = worldPos.xyz;
-    v_Normal      = mat3(u_ModelMatrix) * a_Normal;
+    v_Normal      = u_NormalMatrix * a_Normal;
+    v_UV          = a_UV;
+    v_Color       = a_Color;
     gl_Position   = u_ProjectionMatrix * u_ViewMatrix * worldPos;
 }
 )";
+
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -65,32 +75,88 @@ const char* CesiumTilesetRenderer::CESIUM_FRAG = R"(
 
 in vec3 v_Normal;
 in vec3 v_Position;
+in vec2 v_UV;
+in vec4 v_Color;
+
+uniform sampler2D u_BaseColorTexture;
+uniform bool  u_HasTexture;
+uniform vec3  u_LightDir;
+uniform vec3  u_CameraPos;
 
 layout(location = 0) out vec3 oColor;
 
-void main() {
-    // Basic Lambertian: use normal to compute a simple light direction
-    vec3 lightDir = normalize(vec3(1.0, 1.0, 1.0));
-    vec3 N        = normalize(v_Normal);
-    float diffuse = max(dot(N, lightDir), 0.0);
+const float PI = 3.14159265359;
 
-    // Ambient baseline so shadowed areas aren't pitch black
+// --- sRGB to Linear conversion (glTF base color textures are sRGB) ---
+vec3 sRGBtoLinear(vec3 srgb) {
+    return pow(srgb, vec3(2.2));
+}
+
+// --- GGX Normal Distribution Function (microfacet roughness) ---
+float D_GGX(float NdotH, float roughness) {
+    float a  = roughness * roughness;
+    float a2 = a * a;
+    float denom = NdotH * NdotH * (a2 - 1.0) + 1.0;
+    return a2 / (PI * denom * denom);
+}
+
+// --- Schlick Fresnel approximation ---
+vec3 F_Schlick(float cosTheta, vec3 F0) {
+    return F0 + (1.0 - F0) * pow(1.0 - cosTheta, 5.0);
+}
+
+void main() {
+    // 1. Get the base color
+    vec3 baseColor;
+    if (u_HasTexture) {
+        baseColor = sRGBtoLinear(texture(u_BaseColorTexture, v_UV).rgb);
+    } else {
+        baseColor = v_Color.rgb;  // Per-vertex color from material baseColorFactor
+    }
+
+    // 2. Prepare vectors
+    vec3 N = normalize(v_Normal);
+    vec3 L = normalize(u_LightDir);
+    vec3 viewVec = u_CameraPos - v_Position;
+    float viewLen = length(viewVec);
+    vec3 V = (viewLen > 0.001) ? (viewVec / viewLen) : vec3(0.0, 0.0, 1.0);
+
+    vec3 H = normalize(L + V);
+
+    // 3. Dot products (clamped to avoid negative lighting)
+    float NdotL = max(dot(N, L), 0.0);
+    float NdotH = max(dot(N, H), 0.0);
+    float VdotH = max(dot(V, H), 0.0);
+
+    // 4. PBR parameters (hardcoded for terrain/buildings)
+    float roughness = 0.7;
+    vec3  F0 = vec3(0.04);  // Dielectric reflectance (non-metal)
+
+    // 5. Specular: Cook-Torrance microfacet BRDF (simplified)
+    float D = D_GGX(NdotH, roughness);
+    vec3  F = F_Schlick(VdotH, F0);
+    vec3  specular = D * F * 0.25;
+
+    // 6. Diffuse: Lambertian
+    vec3 diffuse = baseColor / PI;
+
+    // 7. Combine: light contribution
+    vec3 lightColor = vec3(1.0, 0.98, 0.95);
     float ambient = 0.15;
 
-    // THE OPTIMIZATION TRAP FIX:
-    // GPU compilers are aggressive optimizers. If u_ModelMatrix is not
-    // "visibly" used in the fragment shader, the compiler may decide
-    // that u_ModelMatrix is dead code and DELETE it from the program.
-    // This would cause glGetUniformLocation("u_ModelMatrix") to return -1
-    // on the CPU side, silently breaking our entire rendering.
-    // By adding a mathematically insignificant amount of v_Position
-    // (which depends on u_ModelMatrix), we force the compiler to keep it.
-    ambient += v_Position.x * 0.000000001;
+    vec3 color = baseColor * ambient
+               + lightColor * NdotL * (diffuse + specular);
 
-    // NEON YELLOW — visible from 8,000 km orbit
-    oColor = vec3(1.0, 1.0, 0.0) * (diffuse + ambient);
+    // 8. HDR OUTPUT SCALING
+    // CosmoScout uses HDR rendering with physical luminance values.
+    // The tone mapper expects values in the tens of thousands.
+    // Without this scale, our 0-1 output appears near-black after tone mapping.
+    color *= 10000.0;
+
+    oColor = color;
 }
 )";
+
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // HELPER: Compile a single shader stage                                                          //
@@ -146,9 +212,18 @@ CesiumTilesetRenderer::CesiumTilesetRenderer( // initialize lost
       mLocModelMatrix      = glGetUniformLocation(mShaderProgram, "u_ModelMatrix");
       mLocViewMatrix       = glGetUniformLocation(mShaderProgram, "u_ViewMatrix");
       mLocProjectionMatrix = glGetUniformLocation(mShaderProgram, "u_ProjectionMatrix");
+      mLocNormalMatrix     = glGetUniformLocation(mShaderProgram, "u_NormalMatrix");
+      mLocBaseColorTexture = glGetUniformLocation(mShaderProgram, "u_BaseColorTexture");
+      mLocHasTexture       = glGetUniformLocation(mShaderProgram, "u_HasTexture");
+      mLocLightDir         = glGetUniformLocation(mShaderProgram, "u_LightDir");
+      mLocCameraPos        = glGetUniformLocation(mShaderProgram, "u_CameraPos");
+
       logger().info("Cesium shader compiled and linked successfully.");
-      logger().info("  u_ModelMatrix loc={}, u_ViewMatrix loc={}, u_ProjectionMatrix loc={}",
-          mLocModelMatrix, mLocViewMatrix, mLocProjectionMatrix);
+      logger().info("  Uniform locations: Model={}, View={}, Proj={}, Normal={}, Tex={}, HasTex={}, Light={}, Cam={}",
+          mLocModelMatrix, mLocViewMatrix, mLocProjectionMatrix,
+          mLocNormalMatrix, mLocBaseColorTexture, mLocHasTexture,
+          mLocLightDir, mLocCameraPos);
+
     }
   }
 
@@ -190,6 +265,15 @@ bool CesiumTilesetRenderer::Do() {
   // Upload view/projection once per frame
   glUniformMatrix4fv(mLocViewMatrix, 1, GL_FALSE, glMatV.data());
   glUniformMatrix4fv(mLocProjectionMatrix, 1, GL_FALSE, glMatP.data());
+
+  // Upload light direction and camera position (once per frame)
+  glm::vec3 lightDir = glm::normalize(glm::vec3(1.0f, 1.0f, 1.0f));
+  glUniform3fv(mLocLightDir, 1, glm::value_ptr(lightDir));
+
+  // Camera is at the origin in observer-relative rendering
+  glm::vec3 camPos(0.0f, 0.0f, 0.0f);
+  glUniform3fv(mLocCameraPos, 1, glm::value_ptr(camPos));
+
 
   // 4. Get the Base Model Matrix (Earth relative to Observer)
   glm::dmat4 observerToEarth = earth->getObserverRelativeTransform();
@@ -235,9 +319,26 @@ bool CesiumTilesetRenderer::Do() {
 
     glUniformMatrix4fv(mLocModelMatrix, 1, GL_FALSE, glm::value_ptr(modelMatrix));
 
+    // 7b. Compute and upload the normal matrix (inverse-transpose of model matrix)
+    glm::dmat3 normalMatrixD = glm::dmat3(glm::inverseTranspose(tileToObserver));
+    glm::mat3  normalMatrix  = glm::mat3(normalMatrixD);
+
+    glUniformMatrix3fv(mLocNormalMatrix, 1, GL_FALSE, glm::value_ptr(normalMatrix));
+
+    // 7c. Bind texture (if this tile has one)
+    if (pData->textureId != 0) {
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, pData->textureId);
+        glUniform1i(mLocBaseColorTexture, 0);  // Use texture unit 0
+        glUniform1i(mLocHasTexture, 1);        // true
+    } else {
+        glUniform1i(mLocHasTexture, 0);        // false
+    }
+
     // 8. Bind the tile's VAO and draw!
     glBindVertexArray(pData->vao);
     glDrawElements(GL_TRIANGLES, pData->indexCount, GL_UNSIGNED_INT, nullptr);
+
 
     tilesDrawn++;
   }

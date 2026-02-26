@@ -66,8 +66,9 @@ void Plugin::init() {
     };
   // 5. Create the Test Tileset
     std::string testUrl =
-        "https://raw.githubusercontent.com/CesiumGS/3d-tiles-samples/"
-        "main/1.0/TilesetWithDiscreteLOD/tileset.json";
+        "https://bertt.github.io/cesium_3dtiles_samples/samples/b3dm/tileset.json";
+
+
     mTileset = std::make_unique<Cesium3DTilesSelection::Tileset>(externals, testUrl);
     logger().info("Cesium Externals Assembled. Tileset Created!");
 
