@@ -40,8 +40,10 @@ SPDX-License-Identifier: MIT
         <node name="scale_translation" type="Multiply[float,VistaVector3D]" />
         <node name="euler_rotation" type="QuaternionToEuler" />
         <node name="negate_rotation" type="Negate[float]" />
+        <node name="scale_rotation1" type="Multiply[float]" />
+        <node name="scale_rotation2" type="Multiply[float]" />
 
-        <!-- Finale preparation -->
+        <!-- final preparation -->
         <node name="decompose" type="Decompose3DVector" />
         <node name="sum_speed" type="Add[float]" />
 
@@ -67,7 +69,11 @@ SPDX-License-Identifier: MIT
         <edge fromnode="project_spacenav" tonode="euler_rotation" fromport="ORIENTATION" toport="quaternion" />
         <edge fromnode="euler_rotation" tonode="decompose" fromport="out" toport="in" />
         <edge fromnode="decompose" tonode="negate_rotation" fromport="z" toport="in" />
-        <edge fromnode="negate_rotation" tonode="sum_speed" fromport="out" toport="first" />
+        <edge fromnode="negate_rotation" tonode="scale_rotation1" fromport="out" toport="first" />
+        <edge fromnode="negate_rotation" tonode="scale_rotation1" fromport="out" toport="second" />
+        <edge fromnode="negate_rotation" tonode="scale_rotation2" fromport="out" toport="first" />
+        <edge fromnode="scale_rotation1" tonode="scale_rotation2" fromport="out" toport="second" />
+        <edge fromnode="scale_rotation2" tonode="sum_speed" fromport="out" toport="first" />
 
         <!-- speed scaling -->
         <edge fromnode="project_spacenav" tonode="play_toggle" fromport="BUTTON_1" toport="toggle" />
@@ -75,8 +81,8 @@ SPDX-License-Identifier: MIT
         <edge fromnode="speed_convert" tonode="speed_mult" fromport="out" toport="first" />
         <edge fromnode="speed_const" tonode="speed_mult" fromport="value" toport="second" />
         <edge fromnode="speed_mult" tonode="sum_speed" fromport="out" toport="second" />
-        <edge fromnode="sum_speed" tonode="time_control" fromport="out" toport="sim_speed" />
 
+        <edge fromnode="sum_speed" tonode="time_control" fromport="out" toport="sim_speed" />
         <edge fromnode="timer" tonode="time_control" fromport="time" toport="time" />
 
     </edges>
