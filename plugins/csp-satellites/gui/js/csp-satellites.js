@@ -224,6 +224,7 @@
         const focalLength = sensorDiagonal / 2 / Math.tan(rad / 2);
         if (satellite === this._activeSatellite) {
             this._renderServer.callSetter("graphics.setFocalLength", focalLength);
+            this._tableVis.callSetter("graphics.setFocalLength", focalLength);
         }
         if (emitCallback) {
             CosmoScout.callbacks.satellites.setFieldOfView(satellite, deg);
@@ -376,11 +377,13 @@
         const hostB = "129.247.51.9";
         const hostC = "129.247.51.78";
         this._renderServerUrl = `http://${hostA}:9002`;
+        this._tableVisUrl = `http://${hostA}:9004`;
         this._spiceServer = `http://${hostA}:8000`;
         this._shipServer = `http://${hostA}:8001`;
 
         // Set up state
         this._renderServer = new RenderServer(this._renderServerUrl);
+        this._tableVis = new RenderServer(this._tableVisUrl);
         this._state = this._states["connecting"];
         this._requestedSatellites = [];
         this._nextId = -11111;
@@ -439,6 +442,7 @@
         this._renderServer.resetLocation()
             .then(() => this._state = this._states["idle"])
             .catch((e) => console.error(e));
+        this._tableVis.resetLocation();
     }
 
     deinit() {
@@ -450,6 +454,7 @@
         if (this._state === this._states["idle"] && this._lastImageTime != CosmoScout.timeline._centerTime) {
             this._lastImageTime = CosmoScout.timeline._centerTime;
             this._renderServer.syncTime();
+            this._tableVis.syncTime();
         }
         // Start pipeline if render server is dirty (i.e. there was some local change which invalidated the last received image)
         if (this._state === this._states["idle"] && this._renderServer.dirty) {
