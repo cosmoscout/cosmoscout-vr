@@ -464,13 +464,15 @@
                     this._state = this._states["awaitShips"];
                     //this._virtView.show();
                     return Promise.all([
-                        this._virtStream.drawImg(blob),
+                        blob,
                         this._checkShips(blob),
                     ]);
                 })
-                .then(([_, ships]) => {
-                    ships.output.json[0].matches.forEach(match => {
-                        this._virtStream.drawRect(match, true);
+                .then(([blob, ships]) => {
+                    this._virtStream.drawImg(blob).then(_ => {
+                        ships.output.json[0].matches.forEach(match => {
+                            this._virtStream.drawRect(match, true);
+                        });
                     });
                 })
                 .catch(e => console.error(`Error during virt view pipeline: ${e}`))
