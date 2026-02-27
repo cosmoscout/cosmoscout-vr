@@ -9,6 +9,7 @@
 
 #include "LodBody.hpp"
 #include "TileId.hpp"
+#include "HEALPix.hpp"
 #include "logger.hpp"
 
 #include "../../../src/cs-core/GuiManager.hpp"
