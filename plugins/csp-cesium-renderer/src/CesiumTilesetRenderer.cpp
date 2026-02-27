@@ -5,8 +5,8 @@
 // SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
 // SPDX-License-Identifier: MIT
 
-#include "CesiumTilesetRenderer.hpp"  
-#include "CesiumUtils.hpp" 
+#include "CesiumTilesetRenderer.hpp"
+#include "CesiumUtils.hpp"
 #include "logger.hpp"
 
 // CosmoScout core headers
@@ -15,17 +15,16 @@
 #include "../../../src/cs-utils/utils.hpp"
 
 // ViSTA headers for scene graph hookup
-#include <VistaKernel/GraphicsManager/VistaSceneGraph.h> // <> for exgternal library 
 #include <VistaKernel/GraphicsManager/VistaGroupNode.h>
+#include <VistaKernel/GraphicsManager/VistaSceneGraph.h> // <> for exgternal library
 #include <VistaKernel/VistaSystem.h>
 #include <VistaKernelOpenSGExt/VistaOpenSGMaterialTools.h>
 #include <VistaMath/VistaBoundingBox.h>
 
 // GLM for matrix math
-#include <glm/gtc/type_ptr.hpp> // for matrix math
-#include <glm/gtx/transform.hpp> 
-#include <glm/gtc/matrix_inverse.hpp>  // for glm::inverseTranspose
-
+#include <glm/gtc/matrix_inverse.hpp> // for glm::inverseTranspose
+#include <glm/gtc/type_ptr.hpp>       // for matrix math
+#include <glm/gtx/transform.hpp>
 
 // Cesium tile access
 #include <Cesium3DTilesSelection/Tile.h>
@@ -37,7 +36,7 @@ namespace csp::cesiumrenderer {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // SHADER SOURCE CODE                                                                             //
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-// static const char* is used to store the shader source code in the .cpp file 
+// static const char* is used to store the shader source code in the .cpp file
 const char* CesiumTilesetRenderer::CESIUM_VERT = R"( 
 #version 430
 
@@ -66,10 +65,9 @@ void main() {
 }
 )";
 
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-//fragment shader for every pxl, 
+// fragment shader for every pxl,
 const char* CesiumTilesetRenderer::CESIUM_FRAG = R"(
 #version 430
 
@@ -157,12 +155,11 @@ void main() {
 }
 )";
 
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // HELPER: Compile a single shader stage                                                          //
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static GLuint compileShader(GLenum type, const char* source) { // 
+static GLuint compileShader(GLenum type, const char* source) { //
   GLuint shader = glCreateShader(type);
   glShaderSource(shader, 1, &source, nullptr);
   glCompileShader(shader);
@@ -184,20 +181,20 @@ static GLuint compileShader(GLenum type, const char* source) { //
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 CesiumTilesetRenderer::CesiumTilesetRenderer( // initialize lost
-    Cesium3DTilesSelection::Tileset* pTileset,
-    std::shared_ptr<cs::core::SolarSystem> pSolarSystem)
+    Cesium3DTilesSelection::Tileset* pTileset, std::shared_ptr<cs::core::SolarSystem> pSolarSystem)
     : mTileset(pTileset)
     , mSolarSystem(std::move(pSolarSystem)) { // takes psolar and puts it into msolar
 
   // ---- 1. COMPILE AND LINK THE SHADER PROGRAM ----
-  GLuint vert = compileShader(GL_VERTEX_SHADER, CESIUM_VERT); 
+  GLuint vert = compileShader(GL_VERTEX_SHADER, CESIUM_VERT);
   GLuint frag = compileShader(GL_FRAGMENT_SHADER, CESIUM_FRAG);
 
   if (vert && frag) {
-    mShaderProgram = glCreateProgram(); //creates new empty container and gives back new id and stores it 
+    mShaderProgram =
+        glCreateProgram(); // creates new empty container and gives back new id and stores it
     glAttachShader(mShaderProgram, vert); // attaches the vertex shader to the program
     glAttachShader(mShaderProgram, frag); // attaches the fragment shader to the program
-    glLinkProgram(mShaderProgram); // links the program together
+    glLinkProgram(mShaderProgram);        // links the program together
 
     GLint linked = 0;
     glGetProgramiv(mShaderProgram, GL_LINK_STATUS, &linked); // manage link failure
@@ -219,11 +216,10 @@ CesiumTilesetRenderer::CesiumTilesetRenderer( // initialize lost
       mLocCameraPos        = glGetUniformLocation(mShaderProgram, "u_CameraPos");
 
       logger().info("Cesium shader compiled and linked successfully.");
-      logger().info("  Uniform locations: Model={}, View={}, Proj={}, Normal={}, Tex={}, HasTex={}, Light={}, Cam={}",
-          mLocModelMatrix, mLocViewMatrix, mLocProjectionMatrix,
-          mLocNormalMatrix, mLocBaseColorTexture, mLocHasTexture,
-          mLocLightDir, mLocCameraPos);
-
+      logger().info("  Uniform locations: Model={}, View={}, Proj={}, Normal={}, Tex={}, "
+                    "HasTex={}, Light={}, Cam={}",
+          mLocModelMatrix, mLocViewMatrix, mLocProjectionMatrix, mLocNormalMatrix,
+          mLocBaseColorTexture, mLocHasTexture, mLocLightDir, mLocCameraPos);
     }
   }
 
@@ -274,7 +270,6 @@ bool CesiumTilesetRenderer::Do() {
   glm::vec3 camPos(0.0f, 0.0f, 0.0f);
   glUniform3fv(mLocCameraPos, 1, glm::value_ptr(camPos));
 
-
   // 4. Get the Base Model Matrix (Earth relative to Observer)
   glm::dmat4 observerToEarth = earth->getObserverRelativeTransform();
 
@@ -305,10 +300,12 @@ bool CesiumTilesetRenderer::Do() {
 
     // Get the render content (our CesiumRenderData pointer)
     auto* pRenderContent = pTile->getContent().getRenderContent();
-    if (!pRenderContent) continue;
+    if (!pRenderContent)
+      continue;
 
     auto* pData = static_cast<CesiumRenderData*>(pRenderContent->getRenderResources());
-    if (!pData || pData->vao == 0) continue;
+    if (!pData || pData->vao == 0)
+      continue;
 
     // 7. Compute per-tile model matrix:
     //    observerToEarth places Earth relative to camera
@@ -316,6 +313,19 @@ bool CesiumTilesetRenderer::Do() {
     //    megaScale inflates the geometry so we can see it from 8,000 km
     glm::dmat4 tileToObserver = observerToEarth * pTile->getTransform() * megaScale;
     glm::mat4  modelMatrix    = glm::mat4(tileToObserver);
+
+    // --- DIAGNOSTIC: Log tile ECEF → Lat/Lon (once) ---
+    static bool tileLoggedOnce = false;
+    if (!tileLoggedOnce) {
+      auto   tileXform = pTile->getTransform();
+      double tx = tileXform[3][0], ty = tileXform[3][1], tz = tileXform[3][2];
+      double tr   = std::sqrt(tx * tx + ty * ty + tz * tz);
+      double tLat = std::asin(tz / tr) * 180.0 / 3.14159265;
+      double tLon = std::atan2(ty, tx) * 180.0 / 3.14159265;
+      logger().info("[DIAG] Tile ECEF: ({:.0f}, {:.0f}, {:.0f}) = Lat {:.2f}, Lon {:.2f}", tx, ty,
+          tz, tLat, tLon);
+      tileLoggedOnce = true;
+    }
 
     glUniformMatrix4fv(mLocModelMatrix, 1, GL_FALSE, glm::value_ptr(modelMatrix));
 
@@ -327,25 +337,26 @@ bool CesiumTilesetRenderer::Do() {
 
     // 7c. Bind texture (if this tile has one)
     if (pData->textureId != 0) {
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, pData->textureId);
-        glUniform1i(mLocBaseColorTexture, 0);  // Use texture unit 0
-        glUniform1i(mLocHasTexture, 1);        // true
+      glActiveTexture(GL_TEXTURE0);
+      glBindTexture(GL_TEXTURE_2D, pData->textureId);
+      glUniform1i(mLocBaseColorTexture, 0); // Use texture unit 0
+      glUniform1i(mLocHasTexture, 1);       // true
     } else {
-        glUniform1i(mLocHasTexture, 0);        // false
+      glUniform1i(mLocHasTexture, 0); // false
     }
 
     // 8. Bind the tile's VAO and draw!
     glBindVertexArray(pData->vao);
     glDrawElements(GL_TRIANGLES, pData->indexCount, GL_UNSIGNED_INT, nullptr);
 
-
     tilesDrawn++;
   }
 
   // 9. Restore GL state
-  if (cullEnabled)  glEnable(GL_CULL_FACE);
-  if (blendEnabled) glEnable(GL_BLEND);
+  if (cullEnabled)
+    glEnable(GL_CULL_FACE);
+  if (blendEnabled)
+    glEnable(GL_BLEND);
   glBindVertexArray(0);
   glUseProgram(0);
 
@@ -355,8 +366,8 @@ bool CesiumTilesetRenderer::Do() {
     if (tilesDrawn > 0) {
       logger().info("Drawing {} Cesium tiles.", tilesDrawn);
     } else if (!tiles.empty()) {
-      logger().warn("Cesium has {} tiles selected, but 0 reached draw! Check tile states.",
-          tiles.size());
+      logger().warn(
+          "Cesium has {} tiles selected, but 0 reached draw! Check tile states.", tiles.size());
     }
   }
 
@@ -384,8 +395,3 @@ bool CesiumTilesetRenderer::GetBoundingBox(VistaBoundingBox& /*bb*/) {
 }
 
 } // namespace csp::cesiumrenderer
-
-
-
-
-

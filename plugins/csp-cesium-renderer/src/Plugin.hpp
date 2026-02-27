@@ -9,10 +9,9 @@
 #define CSP_CESIUM_RENDERER_PLUGIN_HPP
 
 #include "../../../src/cs-core/PluginBase.hpp"
-#include <memory>  
-#include <Cesium3DTilesSelection/Tileset.h>
 #include "CesiumTilesetRenderer.hpp"
-
+#include <Cesium3DTilesSelection/Tileset.h>
+#include <memory>
 
 namespace CesiumAsync {
 class AsyncSystem;
@@ -24,17 +23,16 @@ class CreditSystem;
 namespace csp::cesiumrenderer {
 
 class Plugin : public cs::core::PluginBase {
-public:
+ public:
   void init() override;
   void deInit() override;
   void update() override;
 
-private:
-  std::shared_ptr<CesiumAsync::AsyncSystem>    mAsyncSystem;
-  std::shared_ptr<CesiumUtility::CreditSystem> mCreditSystem;
+ private:
+  std::shared_ptr<CesiumAsync::AsyncSystem>        mAsyncSystem;
+  std::shared_ptr<CesiumUtility::CreditSystem>     mCreditSystem;
   std::unique_ptr<Cesium3DTilesSelection::Tileset> mTileset;
-  std::unique_ptr<CesiumTilesetRenderer> mRenderer;
-  
+  std::unique_ptr<CesiumTilesetRenderer>           mRenderer;
 };
 
 } // namespace csp::cesiumrenderer

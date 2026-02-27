@@ -8,7 +8,6 @@
 
 #include "../../../src/cs-utils/logger.hpp"
 
-
 namespace csp::cesiumrenderer {
 
 spdlog::logger& logger() {
