@@ -224,7 +224,7 @@ StubPrepareRendererResources::prepareInLoadThread(const CesiumAsync::AsyncSystem
       }
 
     } // end for each primitive
-  } // end for each mesh
+  }   // end for each mesh
 
   logger().info("[Cesium] CPU Thread: Extracted {} vertices, {} indices.",
       renderData->vertices.size() / 12, renderData->indices.size());
