@@ -405,6 +405,7 @@
         this._realView.hideControls();
         this._virtStream = new PulledStream(this._virtView.canvas);
         this._realStream = new PushedStream(this._realView.canvas);
+        //this._realStream = new PulledStream(this._realView.canvas);
 
         this._inputs = {};
         for (const input of ["name", "start-date", "end-date", "sma", "ecc", "inc", "raan", "aop", "m"]) {
@@ -417,8 +418,10 @@
             const model = this._satelliteModels.find(m => m.file == val);
             if (model.cam) {
                 this._virtView.show();
+                //this._realView.show();
             } else {
                 this._virtView.hide();
+                //this._realView.hide();
             }
         });
         for (const model of this._satelliteModels) {
@@ -478,6 +481,11 @@
                             this._virtStream.drawRect(match, true);
                         });
                     });
+                    //this._realStream.drawImg(blob, false).then(_ => {
+                    //    ships.output.json[0].matches.forEach(match => {
+                    //        this._realStream.drawRect(match, true);
+                    //    });
+                    //});
                 })
                 .catch(e => console.error(`Error during virt view pipeline: ${e}`))
                 .finally(() => this._state = this._states["idle"]);
