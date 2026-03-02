@@ -23,9 +23,13 @@
         this._drawCtx.strokeStyle = "red";
     }
 
-    drawImg(blob) {
+    drawImg(blob, crop) {
         return createImageBitmap(blob).then((img) => {
-            this._drawCtx.drawImage(img, 0, 0);
+            if (crop) {
+                this._drawCtx.drawImage(img, 250, 50, 200, 200, 0, 0, 320, 320);
+            } else {
+                this._drawCtx.drawImage(img, 0, 0, 320, 320);
+            }
         });
     }
 
@@ -208,7 +212,7 @@
         this._realView.show();
         const imgBytes = Uint8Array.from(atob(imgB64), c => c.charCodeAt(0));
         const blob = new Blob([imgBytes], {type: "image/jpeg"});
-        this._realStream.drawImg(blob).then(() => {
+        this._realStream.drawImg(blob, true).then(() => {
             bboxs.forEach(bbox => {
                 this._realStream.drawRect(bbox, false);
             });
@@ -469,7 +473,7 @@
                     ]);
                 })
                 .then(([blob, ships]) => {
-                    this._virtStream.drawImg(blob).then(_ => {
+                    this._virtStream.drawImg(blob, false).then(_ => {
                         ships.output.json[0].matches.forEach(match => {
                             this._virtStream.drawRect(match, true);
                         });
