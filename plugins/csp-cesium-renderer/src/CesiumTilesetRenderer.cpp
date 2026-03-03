@@ -276,14 +276,13 @@ bool CesiumTilesetRenderer::Do() {
   // 4. Get the Base Model Matrix (Earth relative to Observer)
   glm::dmat4 observerToEarth = earth->getObserverRelativeTransform();
 
-
   // 5. Save and set GL state for our draw
   GLboolean cullEnabled  = glIsEnabled(GL_CULL_FACE);
   GLboolean blendEnabled = glIsEnabled(GL_BLEND);
   glDisable(GL_CULL_FACE);
   glDisable(GL_BLEND);
-  glEnable(GL_POLYGON_OFFSET_FILL);   // Bias Cesium depth slightly closer to camera
-  glPolygonOffset(-1.0f, -1.0f);     // so it draws in front of the Earth surface
+  glEnable(GL_POLYGON_OFFSET_FILL); // Bias Cesium depth slightly closer to camera
+  glPolygonOffset(-1.0f, -1.0f);    // so it draws in front of the Earth surface
 
   // 6. Get the list of tiles Cesium wants us to render
   const auto& result = mTileset->getDefaultViewGroup().getViewUpdateResult();
@@ -317,7 +316,6 @@ bool CesiumTilesetRenderer::Do() {
     glm::dmat4 tileToObserver = observerToEarth * pTile->getTransform();
     glm::mat4  modelMatrix    = glm::mat4(tileToObserver);
 
-
     glUniformMatrix4fv(mLocModelMatrix, 1, GL_FALSE, glm::value_ptr(modelMatrix));
 
     // 7b. Compute and upload the normal matrix (inverse-transpose of model matrix)
@@ -348,7 +346,7 @@ bool CesiumTilesetRenderer::Do() {
     glEnable(GL_CULL_FACE);
   if (blendEnabled)
     glEnable(GL_BLEND);
-  glDisable(GL_POLYGON_OFFSET_FILL);  // Restore default polygon offset state
+  glDisable(GL_POLYGON_OFFSET_FILL); // Restore default polygon offset state
   glBindVertexArray(0);
   glUseProgram(0);
 
