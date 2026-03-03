@@ -231,7 +231,7 @@ CesiumTilesetRenderer::CesiumTilesetRenderer( // initialize lost
   VistaSceneGraph* pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
   mGLNode.reset(pSG->NewOpenGLNode(pSG->GetRoot(), this));
   VistaOpenSGMaterialTools::SetSortKeyOnSubtree(
-      mGLNode.get(), static_cast<int>(cs::utils::DrawOrder::ePlanets));
+      mGLNode.get(), static_cast<int>(cs::utils::DrawOrder::eOpaqueItems));
 
   logger().info("CesiumTilesetRenderer attached to ViSTA scene graph.");
 }
@@ -248,6 +248,9 @@ bool CesiumTilesetRenderer::Do() {
   }
 
   cs::utils::FrameStats::ScopedTimer timer("Cesium Tileset Rendering");
+
+  static int frameCounter = 0;
+  frameCounter++;
 
   // 2. Activate our shader program
   glUseProgram(mShaderProgram);
@@ -273,14 +276,14 @@ bool CesiumTilesetRenderer::Do() {
   // 4. Get the Base Model Matrix (Earth relative to Observer)
   glm::dmat4 observerToEarth = earth->getObserverRelativeTransform();
 
-  // THE MEGA-SCALE HACK: 10,000x scale so tiny glTF tiles are visible from orbit
-  glm::dmat4 megaScale = glm::scale(glm::dmat4(1.0), glm::dvec3(10000.0));
 
   // 5. Save and set GL state for our draw
   GLboolean cullEnabled  = glIsEnabled(GL_CULL_FACE);
   GLboolean blendEnabled = glIsEnabled(GL_BLEND);
   glDisable(GL_CULL_FACE);
   glDisable(GL_BLEND);
+  glEnable(GL_POLYGON_OFFSET_FILL);   // Bias Cesium depth slightly closer to camera
+  glPolygonOffset(-1.0f, -1.0f);     // so it draws in front of the Earth surface
 
   // 6. Get the list of tiles Cesium wants us to render
   const auto& result = mTileset->getDefaultViewGroup().getViewUpdateResult();
@@ -307,25 +310,13 @@ bool CesiumTilesetRenderer::Do() {
     if (!pData || pData->vao == 0)
       continue;
 
-    // 7. Compute per-tile model matrix:
-    //    observerToEarth places Earth relative to camera
-    //    pTile->getTransform() places this tile relative to Earth (ECEF)
-    //    megaScale inflates the geometry so we can see it from 8,000 km
-    glm::dmat4 tileToObserver = observerToEarth * pTile->getTransform() * megaScale;
+    // 7. Compute per-tile model matrix (observer-relative):
+    //    pTile->getTransform() places this tile in ECEF (64-bit)
+    //    observerToEarth transforms ECEF → observer-relative (64-bit)
+    //    The cast to mat4 is safe because the result contains small relative values.
+    glm::dmat4 tileToObserver = observerToEarth * pTile->getTransform();
     glm::mat4  modelMatrix    = glm::mat4(tileToObserver);
 
-    // --- DIAGNOSTIC: Log tile ECEF → Lat/Lon (once) ---
-    static bool tileLoggedOnce = false;
-    if (!tileLoggedOnce) {
-      auto   tileXform = pTile->getTransform();
-      double tx = tileXform[3][0], ty = tileXform[3][1], tz = tileXform[3][2];
-      double tr   = std::sqrt(tx * tx + ty * ty + tz * tz);
-      double tLat = std::asin(tz / tr) * 180.0 / 3.14159265;
-      double tLon = std::atan2(ty, tx) * 180.0 / 3.14159265;
-      logger().info("[DIAG] Tile ECEF: ({:.0f}, {:.0f}, {:.0f}) = Lat {:.2f}, Lon {:.2f}", tx, ty,
-          tz, tLat, tLon);
-      tileLoggedOnce = true;
-    }
 
     glUniformMatrix4fv(mLocModelMatrix, 1, GL_FALSE, glm::value_ptr(modelMatrix));
 
@@ -357,12 +348,12 @@ bool CesiumTilesetRenderer::Do() {
     glEnable(GL_CULL_FACE);
   if (blendEnabled)
     glEnable(GL_BLEND);
+  glDisable(GL_POLYGON_OFFSET_FILL);  // Restore default polygon offset state
   glBindVertexArray(0);
   glUseProgram(0);
 
   // 10. Throttled diagnostic logging (every 100 frames)
-  static int frameCounter = 0;
-  if (frameCounter++ % 100 == 0) {
+  if (frameCounter % 100 == 0) {
     if (tilesDrawn > 0) {
       logger().info("Drawing {} Cesium tiles.", tilesDrawn);
     } else if (!tiles.empty()) {

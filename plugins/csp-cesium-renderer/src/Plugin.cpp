@@ -19,7 +19,6 @@
 
 // CosmoScout headers for the Math Bridge
 #include "../../../src/cs-core/SolarSystem.hpp"
-#include "../../../src/cs-core/TimeControl.hpp"
 
 // ------------------------------------------------------------------------------------------------
 // // (DLL EXPORTS)                                                                    //
@@ -98,19 +97,14 @@ void Plugin::update() {
   auto&      observer        = mSolarSystem->getObserver();
   glm::dvec3 camPositionECEF = observer.getPosition();
 
-  // --- DIAGNOSTIC: Track position over time ---
-  static int frameCount = 0;
-  frameCount++;
-
-  // Log first 5 frames to see if position changes during init
-  if (frameCount <= 5 || frameCount == 100 || frameCount == 500) {
-    double cr   = glm::length(camPositionECEF);
-    double cLat = std::asin(camPositionECEF.z / cr) * 180.0 / 3.14159265;
-    double cLon = std::atan2(camPositionECEF.y, camPositionECEF.x) * 180.0 / 3.14159265;
-    logger().info("[DIAG] Frame {} | ObsPos: ({:.0f}, {:.0f}, {:.0f}) | Lat {:.2f}, Lon {:.2f}, "
-                  "Alt {:.0f} km",
-        frameCount, camPositionECEF.x, camPositionECEF.y, camPositionECEF.z, cLat, cLon,
-        (cr - 6371000.0) / 1000.0);
+  // Guard: Skip Cesium updates while the observer is still flying to Earth.
+  // On startup, CosmoScout animates the observer from the Solar System Barycenter
+  // (~1 AU away) to Earth orbit. During this ~8-second transit, the position is
+  // meaningless for Cesium's LOD system. We wait until the camera is within
+  // 100,000 km of Earth's center (well beyond geostationary orbit at 42,164 km).
+  double camDistFromEarthCenter = glm::length(camPositionECEF);
+  if (camDistFromEarthCenter > 1e8) { // > 100,000 km — still in transit
+    return;
   }
 
   // Camera direction and up in ECEF.
