@@ -11,8 +11,11 @@
 #include <CesiumGltf/AccessorView.h>
 #include <CesiumGltf/Image.h>
 #include <CesiumGltf/Material.h>
+#include <CesiumGltf/Node.h>
 #include <CesiumGltf/Texture.h>
 #include <GL/glew.h>
+#include <glm/gtc/quaternion.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
 #include <thread>
 
@@ -44,6 +47,8 @@ StubPrepareRendererResources::prepareInLoadThread(const CesiumAsync::AsyncSystem
   auto* renderData = new CesiumRenderData();
 
   // --- STEP C: Loop over every mesh and every primitive ---
+  // NOTE: cesium-native already bakes the glTF node transforms into
+  // pTile->getTransform(), so we extract raw mesh positions directly.
   for (const CesiumGltf::Mesh& mesh : pModel->meshes) {
     for (const CesiumGltf::MeshPrimitive& primitive : mesh.primitives) {
 

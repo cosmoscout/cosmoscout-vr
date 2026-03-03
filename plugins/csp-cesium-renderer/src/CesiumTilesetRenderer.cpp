@@ -148,9 +148,9 @@ void main() {
 
     // 8. HDR OUTPUT SCALING
     // CosmoScout uses HDR rendering with physical luminance values.
-    // The tone mapper expects values in the tens of thousands.
-    // Without this scale, our 0-1 output appears near-black after tone mapping.
-    color *= 10000.0;
+    // Without the atmosphere, we use a moderate value.
+    // Tune this: too dark? increase. Too bright? decrease.
+    color *= 5000.0;
 
     oColor = color;
 }
@@ -280,10 +280,11 @@ bool CesiumTilesetRenderer::Do() {
   // 5. Save and set GL state for our draw
   GLboolean cullEnabled  = glIsEnabled(GL_CULL_FACE);
   GLboolean blendEnabled = glIsEnabled(GL_BLEND);
-  glDisable(GL_CULL_FACE);
+  GLboolean depthEnabled = glIsEnabled(GL_DEPTH_TEST);
+  glEnable(GL_DEPTH_TEST);  // MUST be on — CosmoScout may disable between draws
+  glDepthFunc(GL_LESS);
+  glDisable(GL_CULL_FACE);  // Google tiles may have mixed winding
   glDisable(GL_BLEND);
-  glEnable(GL_POLYGON_OFFSET_FILL); // Bias Cesium depth slightly closer to camera
-  glPolygonOffset(-1.0f, -1.0f);    // so it draws in front of the Earth surface
 
   // 6. Get the list of tiles Cesium wants us to render
   const auto& result = mTileset->getDefaultViewGroup().getViewUpdateResult();
@@ -347,7 +348,8 @@ bool CesiumTilesetRenderer::Do() {
     glEnable(GL_CULL_FACE);
   if (blendEnabled)
     glEnable(GL_BLEND);
-  glDisable(GL_POLYGON_OFFSET_FILL); // Restore default polygon offset state
+  if (!depthEnabled)
+    glDisable(GL_DEPTH_TEST);
   glBindVertexArray(0);
   glUseProgram(0);
 

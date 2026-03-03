@@ -16,6 +16,8 @@
 #include <CesiumAsync/AsyncSystem.h>
 #include <CesiumCurl/CurlAssetAccessor.h>
 #include <CesiumUtility/CreditSystem.h>
+#include <Cesium3DTilesSelection/TilesetLoadFailureDetails.h>
+
 
 // CosmoScout headers for the Math Bridge
 #include "../../../src/cs-core/SolarSystem.hpp"
@@ -64,11 +66,30 @@ void Plugin::init() {
       *mAsyncSystem,   // asyncSystem (dereferenced — struct takes by VALUE)
       mCreditSystem    // pCreditSystem
   };
-  // 5. Create the Test Tileset
-  std::string testUrl = "https://bertt.github.io/cesium_3dtiles_samples/samples/b3dm/tileset.json";
+  //5 TilesetOptions — Memory & LOD Configuration
+  Cesium3DTilesSelection::TilesetOptions options;
+  options.maximumCachedBytes           = 256LL * 1024 * 1024;  // 256 MB cache limit
+  options.maximumSimultaneousTileLoads = 20;                    // concurrent downloads
+  options.maximumScreenSpaceError      = 16.0;                  // LOD threshold (pixels)
+  options.forbidHoles                  = false;                 // faster loading
+  options.preloadAncestors             = true;                  // smooth zoom-out
+  options.preloadSiblings              = true;                  // smooth panning
 
-  mTileset = std::make_unique<Cesium3DTilesSelection::Tileset>(externals, testUrl);
-  logger().info("Cesium Externals Assembled. Tileset Created!");
+  // ── Error Callback — Graceful failure instead of crash ──
+  options.loadErrorCallback = [](const Cesium3DTilesSelection::TilesetLoadFailureDetails& details) {
+    logger().error("[Cesium] Load FAILED — type: {}, HTTP status: {}, message: {}",
+        static_cast<int>(details.type), details.statusCode, details.message);
+  };
+
+  // ── Cesium Ion Authentication ──
+  int64_t     ionAssetID = 2275207;  // Google Photorealistic 3D Tiles
+  std::string ionToken   = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiI1ZDhhZDZmYi1hYmJhLTRhM2ItODgxNy0wYTBkZjRkNzkwNGIiLCJpZCI6MzkyMzEwLCJpYXQiOjE3NzI1NDM3NDV9.ccVmFT4Ly-_LRLverWw_VETQX-W_Ok1S7EGZIiIDZ_o";
+
+  mTileset = std::make_unique<Cesium3DTilesSelection::Tileset>(
+      externals, ionAssetID, ionToken, options);
+
+  logger().info("Cesium Ion Tileset Created (Asset {}). Streaming will begin on first update.", ionAssetID);
+
 
   mRenderer = std::make_shared<CesiumTilesetRenderer>(mTileset.get(), mSolarSystem);
 
