@@ -70,13 +70,31 @@ void Plugin::init() {
   mTileset = std::make_unique<Cesium3DTilesSelection::Tileset>(externals, testUrl);
   logger().info("Cesium Externals Assembled. Tileset Created!");
 
-  mRenderer = std::make_unique<CesiumTilesetRenderer>(mTileset.get(), mSolarSystem);
+  mRenderer = std::make_shared<CesiumTilesetRenderer>(mTileset.get(), mSolarSystem);
+
+  // Register our renderer as the Earth's terrain surface and intersectable object.
+  // This tells CosmoScout's collision, measurement, and ground-following systems
+  // to query OUR geometry for height data and ray intersections.
+  auto earth = mSolarSystem->getObject("Earth");
+  if (earth) {
+    earth->setSurface(mRenderer);
+    earth->setIntersectableObject(mRenderer);
+    logger().info("Registered as CelestialSurface for Earth.");
+  }
 }
 
 void Plugin::deInit() {
   logger().info("Unloading plugin...");
 
-  // Destroy the tileset FIRST — it may have in-flight async operations.
+  // Unregister from CosmoScout FIRST — remove our surface and intersectable
+  // references so the engine doesn't call getHeight() on a destroyed object.
+  auto earth = mSolarSystem->getObject("Earth");
+  if (earth) {
+    earth->setSurface(nullptr);
+    earth->setIntersectableObject(nullptr);
+  }
+
+  // Destroy the tileset — it may have in-flight async operations.
   // reset() calls the Tileset destructor, which cancels pending downloads
   // and unloads all tile content from memory.
   mRenderer.reset();

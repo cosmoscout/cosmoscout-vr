@@ -8,6 +8,8 @@
 #ifndef CSP_CESIUM_RENDERER_CESIUM_TILESET_RENDERER_HPP
 #define CSP_CESIUM_RENDERER_CESIUM_TILESET_RENDERER_HPP
 
+#include "../../../src/cs-scene/CelestialSurface.hpp"
+#include "../../../src/cs-scene/IntersectableObject.hpp"
 #include <GL/glew.h>                                     // talks to graphics card
 #include <VistaKernel/GraphicsManager/VistaOpenGLDraw.h> // talks to vista
 #include <VistaKernel/GraphicsManager/VistaOpenGLNode.h> // talks to vistas scengraph nodes
@@ -25,9 +27,18 @@ namespace csp::cesiumrenderer {
 /// Renders Cesium 3D Tiles geometry using a basic Lambertian shader.
 /// Hooks into the ViSTA scene graph via IVistaOpenGLDraw so the engine
 /// calls our Do() method every frame during the render pass.
-class CesiumTilesetRenderer
-    : public IVistaOpenGLDraw { // cesiumtileset renderer is a vistaopendraw object
+class CesiumTilesetRenderer : public cs::scene::CelestialSurface,
+                              public cs::scene::IntersectableObject,
+                              public IVistaOpenGLDraw {
+  // cesiumtileset renderer is a vistaopendraw object
  public:
+  // CelestialSurface interface
+  double getHeight(glm::dvec2 lngLat) const override;
+
+  // IntersectableObject interface
+  bool getIntersection(
+      glm::dvec3 const& rayPos, glm::dvec3 const& rayDir, glm::dvec3& pos) const override;
+
   CesiumTilesetRenderer(Cesium3DTilesSelection::Tileset* pTileset, // to get 3d data from cesium
       std::shared_ptr<cs::core::SolarSystem> pSolarSystem); // shared pointer to figure out loctn
 

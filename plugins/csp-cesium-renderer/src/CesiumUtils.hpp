@@ -18,6 +18,7 @@
 #include <GL/glew.h>
 #include <cstddef> // for std::byte
 #include <cstdint>
+#include <glm/glm.hpp>
 #include <vector>
 
 namespace csp::cesiumrenderer {
@@ -44,6 +45,11 @@ struct CesiumRenderData {
 
   // How many indices to draw (saved before we clear the CPU vector)
   uint32_t indexCount = 0;
+
+  // CPU-side copies retained for getHeight() / getIntersection() queries.
+  // Only positions + indices are kept — normals, UVs, colors are discarded.
+  std::vector<glm::vec3> cpuPositions; // Tile-local space positions
+  std::vector<uint32_t>  cpuIndices;   // Triangle index list
 };
 
 // 1. THE TASK PROCESSOR

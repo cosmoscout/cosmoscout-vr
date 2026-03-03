@@ -32,7 +32,7 @@ class Plugin : public cs::core::PluginBase {
   std::shared_ptr<CesiumAsync::AsyncSystem>        mAsyncSystem;
   std::shared_ptr<CesiumUtility::CreditSystem>     mCreditSystem;
   std::unique_ptr<Cesium3DTilesSelection::Tileset> mTileset;
-  std::unique_ptr<CesiumTilesetRenderer>           mRenderer;
+  std::shared_ptr<CesiumTilesetRenderer>           mRenderer;
 };
 
 } // namespace csp::cesiumrenderer
