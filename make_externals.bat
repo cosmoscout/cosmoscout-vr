@@ -97,7 +97,7 @@ IF NOT EXIST glew-2.2.0-win32.zip (
 )
 
 cd "%BUILD_DIR%/glew/extracted"
-cmake -E tar xfvj ../glew-2.2.0-win32.zip
+cmake -E tar xfj ../glew-2.2.0-win32.zip
 cd ..
 
 cmake -E copy_directory "%BUILD_DIR%/glew/extracted/glew-2.2.0/include"         "%INSTALL_DIR%/include" || goto :error
@@ -347,7 +347,7 @@ IF NOT EXIST cspice.zip (
 )
 
 cd "%BUILD_DIR%/cspice/extracted"
-cmake -E tar xfvj ../cspice.zip -- cspice/src/cspice cspice/include
+cmake -E tar xfj ../cspice.zip -- cspice/src/cspice cspice/include
 cd cspice
 
 echo project(cspice C) > "CMakeLists.txt"
@@ -375,22 +375,6 @@ rem cef ------------------------------------------------------------------------
 :cef
 
 echo.
-echo Downloading bzip2 ...
-echo.
-
-cmake -E make_directory "%BUILD_DIR%/cef/bzip2" && cd "%BUILD_DIR%/cef"
-
-IF NOT EXIST bzip2.zip (
-  curl.exe https://netcologne.dl.sourceforge.net/project/gnuwin32/bzip2/1.0.5/bzip2-1.0.5-bin.zip --output bzip2.zip
-) else (
-  echo File 'bzip2.zip' already exists, no download required.
-)
-
-cd "%BUILD_DIR%/cef/bzip2"
-cmake -E tar xfvj ../bzip2.zip
-cd ..
-
-echo.
 echo Downloading, building and installing cef (this may take some time) ...
 echo.
 
@@ -398,16 +382,14 @@ set CEF_DIR=cef_binary_88.1.6+g4fe33a1+chromium-88.0.4324.96_windows64_minimal
 
 cmake -E make_directory "%BUILD_DIR%/cef/extracted" && cd "%BUILD_DIR%/cef"
 
-IF NOT EXIST cef.tar (
+IF NOT EXIST cef.tar.bz2 (
   curl.exe https://cef-builds.spotifycdn.com/cef_binary_88.1.6%%2Bg4fe33a1%%2Bchromium-88.0.4324.96_windows64_minimal.tar.bz2 --output cef.tar.bz2
-  cd "%BUILD_DIR%/cef/extracted"
-  "%BUILD_DIR%/cef/bzip2/bin/bunzip2.exe" -v ../cef.tar.bz2
 ) else (
-  echo File 'cef.tar' already exists, no download required.
+  echo File 'cef.tar.bz2' already exists, no download required.
 )
 
 cd "%BUILD_DIR%/cef/extracted"
-cmake -E tar xfvj ../cef.tar
+cmake -E tar xfj ../cef.tar.bz2
 
 rem We don't want the example applications.
 cmake -E remove_directory %CEF_DIR%/tests
