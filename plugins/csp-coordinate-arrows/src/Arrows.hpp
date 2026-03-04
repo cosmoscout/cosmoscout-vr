@@ -74,7 +74,7 @@ class Arrows : public IVistaOpenGLDraw {
   std::vector<glm::dvec4> mPointsYArrow;
   std::vector<glm::dvec4> mPointsZArrow;
   double mArrowLength = 1000;
-  GLfloat mArrowWidth = 100;
+  GLfloat mArrowWidth = 1000;
 };
 
 } // namespace csp::coordinatearrows

@@ -108,8 +108,10 @@ void Plugin::onLoad() {
   for (auto const& settings : mPluginSettings->mArrows) {
     auto arrows = std::make_shared<Arrows>(mPluginSettings, mSolarSystem);
     arrows->setParentName(settings.first);
+    logger().info("Settings first name: {}", settings.first);
     mArrows.emplace(settings.first, arrows);
     logger().info("Arrows have been added.");
+    
   }
 }
 

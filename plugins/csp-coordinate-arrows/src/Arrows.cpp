@@ -62,7 +62,7 @@ Arrows::Arrows(std::shared_ptr<Plugin::Settings> pluginSettings,
     std::shared_ptr<cs::core::SolarSystem>               solarSystem)
     : mPluginSettings(std::move(pluginSettings))
     , mSolarSystem(std::move(solarSystem)),
-    mColor(1.F, 1.F, 1.F, 1.F) {
+    mColor(1.F, 0.F, 1.F, 1.F) {
 
     // Add to scenegraph.
     VistaSceneGraph* pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
@@ -73,8 +73,9 @@ Arrows::Arrows(std::shared_ptr<Plugin::Settings> pluginSettings,
 
     // Make line vertices for test
     float lineVertices[] = {
-      0.0f, 0.0f, 0.0f, 0.0f,
-      1.0f, 1.0f, 1.0f, 1.0f
+      0.1f, 0.1f, 0.1f, 
+      0.1f, 0.1f, 0.9f,
+      0.9f, 0.9f, 0.9f
     };
 
     mVBO = std::make_unique<VistaBufferObject>();
@@ -86,7 +87,7 @@ Arrows::Arrows(std::shared_ptr<Plugin::Settings> pluginSettings,
     mVBO->BufferData(sizeof(lineVertices), lineVertices, GL_DYNAMIC_DRAW);
 
     mVAO->EnableAttributeArray(0);
-    mVAO->SpecifyAttributeArrayFloat(0, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec4), 0, mVBO.get());
+    mVAO->SpecifyAttributeArrayFloat(0, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), 0, mVBO.get());
 
     mVAO->Release();
     mVBO->Release();
@@ -120,11 +121,11 @@ std::string const& Arrows::getParentName() const {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool Arrows::Do() {
-  auto parent = mSolarSystem->getObject(mParentName);
+  /*auto parent = mSolarSystem->getObject(mParentName);
 
   if ((!parent || !parent->getIsBodyVisible()) || (!mPluginSettings->mEnableArrows.get())) {
     return true;
-  }
+  }*/
 
   logger().info("Drawing arrows.");
   // Create shader
@@ -139,7 +140,6 @@ bool Arrows::Do() {
   glDepthMask(GL_FALSE);
   glLineWidth(mArrowWidth);
 
-  mVAO->Bind();
   mShader->Bind();
 
   // Set colors of arrows.
@@ -153,8 +153,10 @@ bool Arrows::Do() {
   glUniformMatrix4fv(mUniforms.modelViewMatrix, 1, GL_FALSE, glMatMV.data());
   glUniformMatrix4fv(mUniforms.projectionMatrix, 1, GL_FALSE, glMatP.data());
 
+  mVAO->Bind();
+
   //glDrawArrays(GL_LINE_STRIP, 0, mPointCount);
-  //glDrawArrays(GL_LINE_STRIP, 0, 100);
+  glDrawArrays(GL_TRIANGLES, 0, 1);
 
   mShader->Release();
   mVAO->Release();
