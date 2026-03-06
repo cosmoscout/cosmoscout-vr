@@ -18,7 +18,7 @@
 
 namespace csp::coordinatearrows {
 
-class Arrows;
+class Arrow;
 
 /// Your plugin description here!
 class Plugin : public cs::core::PluginBase {
@@ -42,7 +42,7 @@ class Plugin : public cs::core::PluginBase {
   void onLoad();
 
   std::shared_ptr<Settings> mPluginSettings = std::make_shared<Settings>();
-  std::map<std::string, std::shared_ptr<Arrows>> mArrows;
+  std::map<std::string, std::shared_ptr<Arrow>> mArrows;
 
   int mOnLoadConnection = -1;
   int mOnSaveConnection = -1;

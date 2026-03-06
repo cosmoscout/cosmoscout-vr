@@ -5,8 +5,8 @@
 // SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
 // SPDX-License-Identifier: MIT
 
-#ifndef CSP_COORDINATE_ARROWS_ARROWS_HPP
-#define CSP_COORDINATE_ARROWS_ARROWS_HPP
+#ifndef CSP_COORDINATE_ARROWS_ARROW_HPP
+#define CSP_COORDINATE_ARROWS_ARROW_HPP
 
 #include "Plugin.hpp"
 
@@ -25,23 +25,23 @@
 
 namespace csp::coordinatearrows {
 
-class Arrows : public IVistaOpenGLDraw {
+class Arrow : public IVistaOpenGLDraw {
  public:
-  Arrows(std::shared_ptr<Plugin::Settings> pluginSettings,
+  Arrow(std::shared_ptr<Plugin::Settings> pluginSettings,
     std::shared_ptr<cs::core::SolarSystem>   solarSystem);
 
-  Arrows(Arrows const& other) = delete;
-  Arrows(Arrows&& other)      = delete;
+  Arrow(Arrow const& other) = delete;
+  Arrow(Arrow&& other)      = delete;
 
-  Arrows& operator=(Arrows const& other) = delete;
-  Arrows& operator=(Arrows&& other)      = delete;
+  Arrow& operator=(Arrow const& other) = delete;
+  Arrow& operator=(Arrow&& other)      = delete;
 
-  ~Arrows() override;
+  ~Arrow() override;
 
   // This is called by the Plugin.
   void update(double tTime);
 
-  // The arrows visualize the orientation of this object.
+  // The arrow visualize the orientation of this object.
   void setParentName(std::string objectName);
   std::string const& getParentName() const;
 

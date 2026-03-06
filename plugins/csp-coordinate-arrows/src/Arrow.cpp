@@ -5,7 +5,7 @@
 // SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
 // SPDX-License-Identifier: MIT
 
-#include "Arrows.hpp"
+#include "Arrow.hpp"
 
 #include "../../../src/cs-core/SolarSystem.hpp"
 #include "../../../src/cs-utils/FrameStats.hpp"
@@ -19,6 +19,8 @@
 #include <VistaOGLExt/VistaBufferObject.h>
 #include <VistaOGLExt/VistaGLSLShader.h>
 #include <VistaOGLExt/VistaVertexArrayObject.h>
+
+#include <glm/gtc/type_ptr.hpp>
 
 namespace csp::coordinatearrows {
 
@@ -58,24 +60,23 @@ void main()
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-Arrows::Arrows(std::shared_ptr<Plugin::Settings> pluginSettings,
+Arrow::Arrow(std::shared_ptr<Plugin::Settings> pluginSettings,
     std::shared_ptr<cs::core::SolarSystem>               solarSystem)
     : mPluginSettings(std::move(pluginSettings))
     , mSolarSystem(std::move(solarSystem)),
-    mColor(1.F, 0.F, 1.F, 1.F) {
+    mColor(0.F, 1.F, 1.F, 1.F) {
 
     // Add to scenegraph.
     VistaSceneGraph* pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
     mGLNode.reset(pSG->NewOpenGLNode(pSG->GetRoot(), this));
     VistaOpenSGMaterialTools::SetSortKeyOnSubtree(
     mGLNode.get(), static_cast<int>(cs::utils::DrawOrder::eTransparentItems) - 1);
-    logger().info("Added arrows to scene graph.");
+    logger().info("Added arrow to scene graph.");
 
     // Make line vertices for test
     float lineVertices[] = {
-      0.1f, 0.1f, 0.1f, 
-      0.1f, 0.1f, 0.9f,
-      0.9f, 0.9f, 0.9f
+      0.0f, 0.0f, 0.0f, 
+      1.0f, 0.0f, 0.0f
     };
 
     mVBO = std::make_unique<VistaBufferObject>();
@@ -95,81 +96,83 @@ Arrows::Arrows(std::shared_ptr<Plugin::Settings> pluginSettings,
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-Arrows::~Arrows() {
+Arrow::~Arrow() {
     VistaSceneGraph* pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
     pSG->GetRoot()->DisconnectChild(mGLNode.get());
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Arrows::update(double tTime) {
+void Arrow::update(double tTime) {
     return;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Arrows::setParentName(std::string objectName) {
+void Arrow::setParentName(std::string objectName) {
   mParentName = std::move(objectName);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::string const& Arrows::getParentName() const {
+std::string const& Arrow::getParentName() const {
   return mParentName;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool Arrows::Do() {
-  /*auto parent = mSolarSystem->getObject(mParentName);
+bool Arrow::Do() {
+  auto parent = mSolarSystem->getObject(mParentName);
 
   if ((!parent || !parent->getIsBodyVisible()) || (!mPluginSettings->mEnableArrows.get())) {
     return true;
-  }*/
+  }
 
-  logger().info("Drawing arrows.");
+  // logger().info("Drawing arrow.");
   // Create shader
   createShader();
 
-
-  glPushAttrib(GL_ENABLE_BIT | GL_COLOR_BUFFER_BIT | GL_LINE_BIT);
-  glEnable(GL_BLEND);
-  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-  glEnable(GL_LINE_SMOOTH);
-  glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
-  glDepthMask(GL_FALSE);
-  glLineWidth(mArrowWidth);
-
-  mShader->Bind();
-
-  // Set colors of arrows.
-  mShader->SetUniform(mUniforms.color, mColor[0], mColor[1], mColor[2], mColor[3]);
-
-  // get modelview and projection matrices
+  // Get modelview and projection matrices
   std::array<GLfloat, 16> glMatMV{};
   std::array<GLfloat, 16> glMatP{};
   glGetFloatv(GL_MODELVIEW_MATRIX, glMatMV.data());
   glGetFloatv(GL_PROJECTION_MATRIX, glMatP.data());
-  glUniformMatrix4fv(mUniforms.modelViewMatrix, 1, GL_FALSE, glMatMV.data());
+
+  // Make matrix relative to object
+  auto matMV = glm::make_mat4x4(glMatMV.data()) * glm::mat4(parent->getObserverRelativeTransform());
+
+  glPushAttrib(GL_ENABLE_BIT | GL_COLOR_BUFFER_BIT | GL_LINE_BIT);
+  glEnable(GL_BLEND);
+  glDepthMask(GL_FALSE);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+  glEnable(GL_LINE_SMOOTH);
+  glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
+  glLineWidth(mArrowWidth);
+
+  mShader->Bind();
+
+  // Set uniforms
+  glUniformMatrix4fv(mUniforms.modelViewMatrix, 1, GL_FALSE, glm::value_ptr(matMV));
   glUniformMatrix4fv(mUniforms.projectionMatrix, 1, GL_FALSE, glMatP.data());
+  mShader->SetUniform(mUniforms.color, mColor[0], mColor[1], mColor[2], mColor[3]);
 
   mVAO->Bind();
 
-  //glDrawArrays(GL_LINE_STRIP, 0, mPointCount);
-  glDrawArrays(GL_TRIANGLES, 0, 1);
+  // Draw arrow
+  glDrawArrays(GL_LINE_STRIP, 0, 2);
 
+  // Cleanup
   mShader->Release();
   mVAO->Release();
 
   glPopAttrib();
   
-
   return true;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Arrows::createShader() {
+void Arrow::createShader() {
   mShader = std::make_unique<VistaGLSLShader>();
 
   std::string sVert(SHADER_VERT);
@@ -186,8 +189,8 @@ void Arrows::createShader() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool Arrows::GetBoundingBox(VistaBoundingBox& /*bb*/) {
+bool Arrow::GetBoundingBox(VistaBoundingBox& /*bb*/) {
   return false;
 }
 
-} // namespace csp::coordinatearows
+} // namespace csp::coordinatearrows

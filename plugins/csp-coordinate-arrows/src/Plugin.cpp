@@ -7,7 +7,7 @@
 
 #include "Plugin.hpp"
 
-#include "Arrows.hpp"
+#include "Arrow.hpp"
 #include "logger.hpp"
 
 #include "../../../src/cs-core/GuiManager.hpp"
@@ -106,12 +106,11 @@ void Plugin::onLoad() {
   from_json(mAllSettings->mPlugins.at("csp-coordinate-arrows"), *mPluginSettings);
   
   for (auto const& settings : mPluginSettings->mArrows) {
-    auto arrows = std::make_shared<Arrows>(mPluginSettings, mSolarSystem);
-    arrows->setParentName(settings.first);
+    auto arrow = std::make_shared<Arrow>(mPluginSettings, mSolarSystem);
+    arrow->setParentName(settings.first);
     logger().info("Settings first name: {}", settings.first);
-    mArrows.emplace(settings.first, arrows);
+    mArrows.emplace(settings.first, arrow);
     logger().info("Arrows have been added.");
-    
   }
 }
 
