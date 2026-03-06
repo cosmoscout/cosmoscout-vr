@@ -106,11 +106,23 @@ void Plugin::onLoad() {
   from_json(mAllSettings->mPlugins.at("csp-coordinate-arrows"), *mPluginSettings);
   
   for (auto const& settings : mPluginSettings->mArrows) {
-    auto arrow = std::make_shared<Arrow>(mPluginSettings, mSolarSystem);
-    arrow->setParentName(settings.first);
-    logger().info("Settings first name: {}", settings.first);
-    mArrows.emplace(settings.first, arrow);
-    logger().info("Arrows have been added.");
+    std::vector<float> directionFromOriginX = {1.0f, 0.0f, 0.0f};
+    glm::vec4 colorX(1.0f, 0.0f, 0.0f, 1.0f);
+    std::vector<float> directionFromOriginY = {0.0f, 1.0f, 0.0f};
+    glm::vec4 colorY(0.0f, 1.0f, 0.0f, 1.0f);
+    std::vector<float> directionFromOriginZ = {0.0f, 0.0f, 1.0f};
+    glm::vec4 colorZ(0.0f, 0.0f, 1.0f, 1.0f);
+
+    auto arrowX = std::make_shared<Arrow>(mPluginSettings, mSolarSystem, directionFromOriginX, colorX);
+    arrowX->setParentName(settings.first);
+    auto arrowY = std::make_shared<Arrow>(mPluginSettings, mSolarSystem, directionFromOriginY, colorY);
+    arrowY->setParentName(settings.first);
+    auto arrowZ = std::make_shared<Arrow>(mPluginSettings, mSolarSystem, directionFromOriginZ, colorZ);
+    arrowZ->setParentName(settings.first);
+
+    std::vector<std::shared_ptr<Arrow>> arrowGroup = {arrowX, arrowY, arrowZ};
+
+    mArrows.emplace(settings.first, arrowGroup);
   }
 }
 

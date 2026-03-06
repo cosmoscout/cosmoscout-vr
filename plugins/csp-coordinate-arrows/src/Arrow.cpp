@@ -60,24 +60,27 @@ void main()
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-Arrow::Arrow(std::shared_ptr<Plugin::Settings> pluginSettings,
-    std::shared_ptr<cs::core::SolarSystem>               solarSystem)
-    : mPluginSettings(std::move(pluginSettings))
-    , mSolarSystem(std::move(solarSystem)),
-    mColor(0.F, 1.F, 1.F, 1.F) {
+Arrow::Arrow(std::shared_ptr<Plugin::Settings>  pluginSettings,
+    std::shared_ptr<cs::core::SolarSystem>      solarSystem,
+    const std::vector<float>&                         directionFromOrigin,
+    const glm::vec4&                                  color
+  ) :
+      mPluginSettings(std::move(pluginSettings)),
+      mSolarSystem(std::move(solarSystem)),
+      mColor(color)
+  {
 
     // Add to scenegraph.
     VistaSceneGraph* pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
     mGLNode.reset(pSG->NewOpenGLNode(pSG->GetRoot(), this));
     VistaOpenSGMaterialTools::SetSortKeyOnSubtree(
-    mGLNode.get(), static_cast<int>(cs::utils::DrawOrder::eTransparentItems) - 1);
+    mGLNode.get(), static_cast<int>(cs::utils::DrawOrder::eTransparentItems) + 1);
     logger().info("Added arrow to scene graph.");
 
-    // Make line vertices for test
-    float lineVertices[] = {
-      0.0f, 0.0f, 0.0f, 
-      1.0f, 0.0f, 0.0f
-    };
+    // Create the vertices of the line by adding direction vertex to origin vertex.
+    std::vector<float> lineVertices = {0.0f, 0.0f, 0.0f};
+    lineVertices.reserve(lineVertices.size() + directionFromOrigin.size());
+    lineVertices.insert(lineVertices.end(), directionFromOrigin.begin(), directionFromOrigin.end());
 
     mVBO = std::make_unique<VistaBufferObject>();
     mVAO = std::make_unique<VistaVertexArrayObject>();
@@ -85,7 +88,7 @@ Arrow::Arrow(std::shared_ptr<Plugin::Settings> pluginSettings,
     mVAO->Bind();
 
     mVBO->Bind(GL_ARRAY_BUFFER);
-    mVBO->BufferData(sizeof(lineVertices), lineVertices, GL_DYNAMIC_DRAW);
+    mVBO->BufferData(sizeof(lineVertices), lineVertices.data(), GL_DYNAMIC_DRAW);
 
     mVAO->EnableAttributeArray(0);
     mVAO->SpecifyAttributeArrayFloat(0, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), 0, mVBO.get());

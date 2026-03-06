@@ -42,7 +42,7 @@ class Plugin : public cs::core::PluginBase {
   void onLoad();
 
   std::shared_ptr<Settings> mPluginSettings = std::make_shared<Settings>();
-  std::map<std::string, std::shared_ptr<Arrow>> mArrows;
+  std::map<std::string, std::vector<std::shared_ptr<Arrow>>> mArrows;
 
   int mOnLoadConnection = -1;
   int mOnSaveConnection = -1;
