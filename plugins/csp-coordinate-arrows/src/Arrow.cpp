@@ -150,6 +150,7 @@ bool Arrow::Do() {
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
   glEnable(GL_LINE_SMOOTH);
   glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
+  glDisable(GL_DEPTH_TEST);   // Makes lines visible through walls.
   glLineWidth(mArrowWidth);
 
   mShader->Bind();
@@ -165,6 +166,7 @@ bool Arrow::Do() {
   glDrawArrays(GL_LINE_STRIP, 0, 2);
 
   // Cleanup
+  glEnable(GL_DEPTH_TEST);
   mShader->Release();
   mVAO->Release();
 
