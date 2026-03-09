@@ -12,15 +12,20 @@
 // Cesium headers
 #include <Cesium3DTilesContent/registerAllTileContentTypes.h>
 #include <Cesium3DTilesSelection/TilesetExternals.h>
+#include <Cesium3DTilesSelection/TilesetLoadFailureDetails.h>
 #include <Cesium3DTilesSelection/ViewState.h>
 #include <CesiumAsync/AsyncSystem.h>
 #include <CesiumCurl/CurlAssetAccessor.h>
 #include <CesiumUtility/CreditSystem.h>
-#include <Cesium3DTilesSelection/TilesetLoadFailureDetails.h>
-
 
 // CosmoScout headers for the Math Bridge
 #include "../../../src/cs-core/SolarSystem.hpp"
+
+// ViSTA headers for real viewport/projection extraction
+#include <VistaKernel/DisplayManager/VistaDisplayManager.h>
+#include <VistaKernel/DisplayManager/VistaProjection.h>
+#include <VistaKernel/DisplayManager/VistaViewport.h>
+#include <VistaKernel/VistaSystem.h>
 
 // ------------------------------------------------------------------------------------------------
 // // (DLL EXPORTS)                                                                    //
@@ -66,14 +71,15 @@ void Plugin::init() {
       *mAsyncSystem,   // asyncSystem (dereferenced — struct takes by VALUE)
       mCreditSystem    // pCreditSystem
   };
-  //5 TilesetOptions — Memory & LOD Configuration
+  // 5 TilesetOptions — Memory & LOD Configuration
   Cesium3DTilesSelection::TilesetOptions options;
-  options.maximumCachedBytes           = 256LL * 1024 * 1024;  // 256 MB cache limit
-  options.maximumSimultaneousTileLoads = 20;                    // concurrent downloads
-  options.maximumScreenSpaceError      = 16.0;                  // LOD threshold (pixels)
-  options.forbidHoles                  = false;                 // faster loading
-  options.preloadAncestors             = true;                  // smooth zoom-out
-  options.preloadSiblings              = true;                  // smooth panning
+  options.maximumCachedBytes                          = 256LL * 1024 * 1024; // 256 MB cache limit
+  options.maximumSimultaneousTileLoads                = 20;                  // concurrent downloads
+  options.maximumScreenSpaceError                     = 16.0;  // LOD threshold (pixels)
+  options.forbidHoles                                 = false; // faster loading
+  options.preloadAncestors                            = true;  // smooth zoom-out
+  options.preloadSiblings                             = true;  // smooth panning
+  options.contentOptions.generateMissingNormalsSmooth = true;  // generate normals if absent
 
   // ── Error Callback — Graceful failure instead of crash ──
   options.loadErrorCallback = [](const Cesium3DTilesSelection::TilesetLoadFailureDetails& details) {
@@ -82,14 +88,16 @@ void Plugin::init() {
   };
 
   // ── Cesium Ion Authentication ──
-  int64_t     ionAssetID = 2275207;  // Google Photorealistic 3D Tiles
-  std::string ionToken   = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiI1ZDhhZDZmYi1hYmJhLTRhM2ItODgxNy0wYTBkZjRkNzkwNGIiLCJpZCI6MzkyMzEwLCJpYXQiOjE3NzI1NDM3NDV9.ccVmFT4Ly-_LRLverWw_VETQX-W_Ok1S7EGZIiIDZ_o";
+  int64_t     ionAssetID = 2275207; // Google Photorealistic 3D Tiles
+  std::string ionToken   = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9."
+                           "eyJqdGkiOiI1ZDhhZDZmYi1hYmJhLTRhM2ItODgxNy0wYTBkZjRkNzkwNGIiLCJpZCI6MzkyM"
+                           "zEwLCJpYXQiOjE3NzI1NDM3NDV9.ccVmFT4Ly-_LRLverWw_VETQX-W_Ok1S7EGZIiIDZ_o";
 
-  mTileset = std::make_unique<Cesium3DTilesSelection::Tileset>(
-      externals, ionAssetID, ionToken, options);
+  mTileset =
+      std::make_unique<Cesium3DTilesSelection::Tileset>(externals, ionAssetID, ionToken, options);
 
-  logger().info("Cesium Ion Tileset Created (Asset {}). Streaming will begin on first update.", ionAssetID);
-
+  logger().info(
+      "Cesium Ion Tileset Created (Asset {}). Streaming will begin on first update.", ionAssetID);
 
   mRenderer = std::make_shared<CesiumTilesetRenderer>(mTileset.get(), mSolarSystem);
 
@@ -165,10 +173,21 @@ void Plugin::update() {
   glm::dvec3 camUpECEF        = glm::normalize(glm::transpose(rot) * glm::dvec3(0.0, 1.0, 0.0));
 
   // 7. Package the ECEF camera into a Cesium ViewState
-  //    Hardcoded placeholders for now — will query CosmoScout's GraphicsEngine later.
-  glm::dvec2 viewportSize(1920.0, 1080.0);
-  double     hFov = glm::radians(45.0);                     // horizontal field of view
-  double     vFov = glm::radians(45.0 * (1080.0 / 1920.0)); // maintain aspect ratio
+  //    Extract REAL viewport size and FOV from ViSTA's display manager.
+  //    This is critical: Cesium uses these for frustum culling, SSE, and LOD refinement.
+  VistaViewport* pViewport = GetVistaSystem()->GetDisplayManager()->GetViewports().begin()->second;
+  int            sizeX = 1920, sizeY = 1080; // fallback if query fails
+  pViewport->GetViewportProperties()->GetSize(sizeX, sizeY);
+  glm::dvec2 viewportSize(sizeX, sizeY);
+
+  // Extract real FOV from ViSTA's projection plane extents.
+  // ViSTA uses SetProjPlaneExtents(left, right, bottom, top) with midpoint at z=-1,
+  // so FOV = 2 * atan(halfExtent / projDistance). projDistance = 1.0 by default.
+  double left = -0.5, right = 0.5, bottom = -0.5, top = 0.5;
+  auto*  pProjProps = pViewport->GetProjection()->GetProjectionProperties();
+  pProjProps->GetProjPlaneExtents(left, right, bottom, top);
+  double hFov = 2.0 * std::atan((right - left) / 2.0);
+  double vFov = 2.0 * std::atan((top - bottom) / 2.0);
 
   Cesium3DTilesSelection::ViewState viewState(camPositionECEF, // position (ECEF meters)
       camDirectionECEF,                                        // look direction (ECEF)

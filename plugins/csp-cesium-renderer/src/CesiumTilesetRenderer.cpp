@@ -72,15 +72,12 @@ void main() {
 const char* CesiumTilesetRenderer::CESIUM_FRAG = R"(
 #version 430
 
-in vec3 v_Normal;
-in vec3 v_Position;
 in vec2 v_UV;
 in vec4 v_Color;
 
 uniform sampler2D u_BaseColorTexture;
 uniform bool  u_HasTexture;
-uniform vec3  u_LightDir;
-uniform vec3  u_CameraPos;
+uniform float u_SunIlluminance;
 
 layout(location = 0) out vec3 oColor;
 
@@ -91,68 +88,25 @@ vec3 sRGBtoLinear(vec3 srgb) {
     return pow(srgb, vec3(2.2));
 }
 
-// --- GGX Normal Distribution Function (microfacet roughness) ---
-float D_GGX(float NdotH, float roughness) {
-    float a  = roughness * roughness;
-    float a2 = a * a;
-    float denom = NdotH * NdotH * (a2 - 1.0) + 1.0;
-    return a2 / (PI * denom * denom);
-}
-
-// --- Schlick Fresnel approximation ---
-vec3 F_Schlick(float cosTheta, vec3 F0) {
-    return F0 + (1.0 - F0) * pow(1.0 - cosTheta, 5.0);
-}
-
 void main() {
-    // 1. Get the base color
+    // Google Photorealistic 3D Tiles are PHOTOGRAMMETRY.
+    // Textures already contain baked lighting (sunlight, shadows, AO).
+    // We do NOT apply PBR lighting — just pass through the base color
+    // with HDR scaling for CosmoScout's tone mapper.
+
     vec3 baseColor;
     if (u_HasTexture) {
         baseColor = sRGBtoLinear(texture(u_BaseColorTexture, v_UV).rgb);
     } else {
-        baseColor = v_Color.rgb;  // Per-vertex color from material baseColorFactor
+        baseColor = v_Color.rgb;
     }
 
-    // 2. Prepare vectors
-    vec3 N = normalize(v_Normal);
-    vec3 L = normalize(u_LightDir);
-    vec3 viewVec = u_CameraPos - v_Position;
-    float viewLen = length(viewVec);
-    vec3 V = (viewLen > 0.001) ? (viewVec / viewLen) : vec3(0.0, 0.0, 1.0);
-
-    vec3 H = normalize(L + V);
-
-    // 3. Dot products (clamped to avoid negative lighting)
-    float NdotL = max(dot(N, L), 0.0);
-    float NdotH = max(dot(N, H), 0.0);
-    float VdotH = max(dot(V, H), 0.0);
-
-    // 4. PBR parameters (hardcoded for terrain/buildings)
-    float roughness = 0.7;
-    vec3  F0 = vec3(0.04);  // Dielectric reflectance (non-metal)
-
-    // 5. Specular: Cook-Torrance microfacet BRDF (simplified)
-    float D = D_GGX(NdotH, roughness);
-    vec3  F = F_Schlick(VdotH, F0);
-    vec3  specular = D * F * 0.25;
-
-    // 6. Diffuse: Lambertian
-    vec3 diffuse = baseColor / PI;
-
-    // 7. Combine: light contribution
-    vec3 lightColor = vec3(1.0, 0.98, 0.95);
-    float ambient = 0.15;
-
-    vec3 color = baseColor * ambient
-               + lightColor * NdotL * (diffuse + specular);
-
-    // 8. HDR OUTPUT SCALING
-    // CosmoScout uses HDR rendering with physical luminance values.
-    // Without the atmosphere, we use a moderate value.
-    // Tune this: too dark? increase. Too bright? decrease.
-    color *= 5000.0;
-
-    oColor = color;
+    // HDR scaling for photogrammetry:
+    // These are pre-lit photos, NOT raw albedo. The baked lighting already
+    // encodes the BRDF response. We scale to match CosmoScout's HDR range.
+    // Factor: sunIlluminance * avgAlbedo / PI, where avgAlbedo ~ 0.06
+    // for photogrammetry (pre-baked textures appear darker in linear space).
+    oColor = baseColor * u_SunIlluminance * 0.06 / PI;
 }
 )";
 
@@ -215,6 +169,7 @@ CesiumTilesetRenderer::CesiumTilesetRenderer( // initialize lost
       mLocHasTexture       = glGetUniformLocation(mShaderProgram, "u_HasTexture");
       mLocLightDir         = glGetUniformLocation(mShaderProgram, "u_LightDir");
       mLocCameraPos        = glGetUniformLocation(mShaderProgram, "u_CameraPos");
+      mLocSunIlluminance   = glGetUniformLocation(mShaderProgram, "u_SunIlluminance");
 
       logger().info("Cesium shader compiled and linked successfully.");
       logger().info("  Uniform locations: Model={}, View={}, Proj={}, Normal={}, Tex={}, "
@@ -266,24 +221,29 @@ bool CesiumTilesetRenderer::Do() {
   glUniformMatrix4fv(mLocViewMatrix, 1, GL_FALSE, glMatV.data());
   glUniformMatrix4fv(mLocProjectionMatrix, 1, GL_FALSE, glMatP.data());
 
-  // Upload light direction and camera position (once per frame)
-  glm::vec3 lightDir = glm::normalize(glm::vec3(1.0f, 1.0f, 1.0f));
-  glUniform3fv(mLocLightDir, 1, glm::value_ptr(lightDir));
+  // Upload light direction from CosmoScout SolarSystem (matches csp-simple-bodies pattern)
+  glm::dmat4 observerToEarth = earth->getObserverRelativeTransform();
+  glm::dvec3 earthPos        = glm::dvec3(observerToEarth[3]);
+
+  // Upload physically-correct sun illuminance (CosmoScout's HDR system)
+  float sunIlluminance = static_cast<float>(mSolarSystem->getSunIlluminance(earthPos));
+  glUniform1f(mLocSunIlluminance, sunIlluminance);
 
   // Camera is at the origin in observer-relative rendering
-  glm::vec3 camPos(0.0f, 0.0f, 0.0f);
-  glUniform3fv(mLocCameraPos, 1, glm::value_ptr(camPos));
-
-  // 4. Get the Base Model Matrix (Earth relative to Observer)
-  glm::dmat4 observerToEarth = earth->getObserverRelativeTransform();
+  // (u_LightDir and u_CameraPos are no longer used — photogrammetry shader is unlit)
 
   // 5. Save and set GL state for our draw
+  //    CosmoScout uses reverse-Z depth (GL_GEQUAL) and flipped winding (GL_CW).
+  //    The projection flips triangle winding, so SetupGLNode sets GL_CW = front.
+  //    Rather than fighting the winding convention, just disable face culling.
+  GLint     prevDepthFunc;
   GLboolean cullEnabled  = glIsEnabled(GL_CULL_FACE);
   GLboolean blendEnabled = glIsEnabled(GL_BLEND);
-  GLboolean depthEnabled = glIsEnabled(GL_DEPTH_TEST);
-  glEnable(GL_DEPTH_TEST);  // MUST be on — CosmoScout may disable between draws
-  glDepthFunc(GL_LESS);
-  glDisable(GL_CULL_FACE);  // Google tiles may have mixed winding
+
+  glGetIntegerv(GL_DEPTH_FUNC, &prevDepthFunc);
+
+  glDepthFunc(GL_GEQUAL);  // CosmoScout's reverse-Z: near=1.0, far=0.0
+  glDisable(GL_CULL_FACE); // Disable culling — avoids winding order conflicts
   glDisable(GL_BLEND);
 
   // 6. Get the list of tiles Cesium wants us to render
@@ -291,6 +251,17 @@ bool CesiumTilesetRenderer::Do() {
   const auto& tiles  = result.tilesToRenderThisFrame;
 
   uint32_t tilesDrawn = 0;
+
+  // Periodic diagnostic logging (every 500 frames)
+  static int diagCounter = 0;
+  if (diagCounter % 500 == 0 && !tiles.empty()) {
+    auto&  observer = mSolarSystem->getObserver();
+    double camDist  = glm::length(observer.getPosition());
+    double scale    = observer.getScale();
+    logger().warn("[DIAG] SunIll={:.0f}, CamDist={:.0f}m, Scale={:.3e}, TilesSelected={}",
+        sunIlluminance, camDist, scale, tiles.size());
+  }
+  diagCounter++;
 
   for (auto const& pTilePointer : tiles) {
     const auto* pTile = pTilePointer.get();
@@ -312,11 +283,20 @@ bool CesiumTilesetRenderer::Do() {
       continue;
 
     // 7. Compute per-tile model matrix (observer-relative):
-    //    pTile->getTransform() places this tile in ECEF (64-bit)
-    //    observerToEarth transforms ECEF → observer-relative (64-bit)
+    //    pData->tileTransform is the CORRECTED tile-to-ECEF transform
+    //    (with applyRtcCenter + applyGltfUpAxisTransform already applied).
+    //    observerToEarth transforms ECEF → observer-relative (64-bit).
     //    The cast to mat4 is safe because the result contains small relative values.
-    glm::dmat4 tileToObserver = observerToEarth * pTile->getTransform();
+    glm::dmat4 tileToObserver = observerToEarth * pData->tileTransform;
     glm::mat4  modelMatrix    = glm::mat4(tileToObserver);
+
+    // Periodic tile diagnostic (first valid tile, every 500 frames)
+    if ((diagCounter - 1) % 500 == 0 && tilesDrawn == 0) {
+      logger().warn(
+          "[DIAG] Tile0 mat diag=({:.6f},{:.6f},{:.6f},{:.6f}), col3=({:.4f},{:.4f},{:.4f})",
+          modelMatrix[0][0], modelMatrix[1][1], modelMatrix[2][2], modelMatrix[3][3],
+          modelMatrix[3][0], modelMatrix[3][1], modelMatrix[3][2]);
+    }
 
     glUniformMatrix4fv(mLocModelMatrix, 1, GL_FALSE, glm::value_ptr(modelMatrix));
 
@@ -343,13 +323,12 @@ bool CesiumTilesetRenderer::Do() {
     tilesDrawn++;
   }
 
-  // 9. Restore GL state
+  // 9. Restore GL state PERFECTLY — failing to do so corrupts the tone mapper
+  glDepthFunc(prevDepthFunc); // CRITICAL: restore reverse-Z depth function
   if (cullEnabled)
-    glEnable(GL_CULL_FACE);
+    glEnable(GL_CULL_FACE); // Restore face culling if it was on
   if (blendEnabled)
     glEnable(GL_BLEND);
-  if (!depthEnabled)
-    glDisable(GL_DEPTH_TEST);
   glBindVertexArray(0);
   glUseProgram(0);
 

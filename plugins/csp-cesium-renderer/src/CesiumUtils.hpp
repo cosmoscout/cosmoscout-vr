@@ -46,6 +46,10 @@ struct CesiumRenderData {
   // How many indices to draw (saved before we clear the CPU vector)
   uint32_t indexCount = 0;
 
+  // Corrected tile-to-ECEF transform (with RTC center + up-axis applied).
+  // The renderer uses this instead of raw pTile->getTransform().
+  glm::dmat4 tileTransform{1.0};
+
   // CPU-side copies retained for getHeight() / getIntersection() queries.
   // Only positions + indices are kept — normals, UVs, colors are discarded.
   std::vector<glm::vec3> cpuPositions; // Tile-local space positions

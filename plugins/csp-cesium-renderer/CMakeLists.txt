@@ -66,13 +66,13 @@ target_include_directories(csp-cesium-renderer SYSTEM PRIVATE
   ${CESIUM_VCPKG_DIR}/include
 )
 
-# Cesium Native libraries (dependency order: highest → lowest)
+# Cesium Native libraries 
 target_link_libraries(csp-cesium-renderer PRIVATE
-  # -- Top-level: what YOUR code directly calls --
+  #  what YOUR code directly calls --
   ${CESIUM_NATIVE_DIR}/lib/Cesium3DTilesSelection.lib
   ${CESIUM_NATIVE_DIR}/lib/CesiumCurl.lib
 
-  # -- Mid-level: pulled in by the above --
+  # -- Mid-level
   ${CESIUM_NATIVE_DIR}/lib/Cesium3DTilesContent.lib
   ${CESIUM_NATIVE_DIR}/lib/Cesium3DTilesReader.lib
   ${CESIUM_NATIVE_DIR}/lib/Cesium3DTilesWriter.lib

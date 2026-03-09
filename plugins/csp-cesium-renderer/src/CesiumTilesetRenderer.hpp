@@ -74,6 +74,7 @@ class CesiumTilesetRenderer : public cs::scene::CelestialSurface,
   GLint mLocHasTexture       = -1;
   GLint mLocLightDir         = -1;
   GLint mLocCameraPos        = -1;
+  GLint mLocSunIlluminance   = -1;
 
   // Shader source code (defined as static constants in the .cpp)
   static const char* CESIUM_VERT; // shader language glsl , calculates math for 3d points
