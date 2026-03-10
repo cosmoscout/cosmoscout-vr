@@ -70,11 +70,9 @@ class Arrow : public IVistaOpenGLDraw {
     uint32_t color = 0;
     uint32_t modelViewMatrix  = 0;
     uint32_t projectionMatrix = 0;
+    uint32_t scaleFactor = 0;
   } mUniforms;
 
-  std::vector<glm::dvec4> mPointsXArrow;
-  std::vector<glm::dvec4> mPointsYArrow;
-  std::vector<glm::dvec4> mPointsZArrow;
   double mArrowLength = 1000;
   GLfloat mArrowWidth = 1000;
 };

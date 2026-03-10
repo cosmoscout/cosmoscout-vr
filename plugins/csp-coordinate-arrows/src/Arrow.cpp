@@ -35,10 +35,12 @@ layout(location = 0) in vec3 inPosition;
 // uniforms
 uniform mat4 uMatModelView;
 uniform mat4 uMatProjection;
+uniform float uScaleFactor;
 
 void main()
 {
-    vec4 pos = uMatModelView * vec4(inPosition.xyz, 1);
+    vec3 stretchedArrow = vec3(inPosition.xyz) * uScaleFactor;
+    vec4 pos = uMatModelView * vec4(stretchedArrow.xyz, 1);
     gl_Position = uMatProjection * pos;
 })";
 
@@ -144,6 +146,9 @@ bool Arrow::Do() {
   // Make matrix relative to object
   auto matMV = glm::make_mat4x4(glMatMV.data()) * glm::mat4(parent->getObserverRelativeTransform());
 
+  //glm::vec3 observerRelative = parent->getObserverRelativePosition();
+  //float dist = glm::length(observerRelative);
+
   glPushAttrib(GL_ENABLE_BIT | GL_COLOR_BUFFER_BIT | GL_LINE_BIT);
   glEnable(GL_BLEND);
   glDepthMask(GL_FALSE);
@@ -159,6 +164,9 @@ bool Arrow::Do() {
   glUniformMatrix4fv(mUniforms.modelViewMatrix, 1, GL_FALSE, glm::value_ptr(matMV));
   glUniformMatrix4fv(mUniforms.projectionMatrix, 1, GL_FALSE, glMatP.data());
   mShader->SetUniform(mUniforms.color, mColor[0], mColor[1], mColor[2], mColor[3]);
+  mShader->SetUniform(mUniforms.scaleFactor, 10.0f * /*dist*/);
+
+  //logger().info("Observer Distance: {} with vector {}, {}, {}", dist, observerRelative.x, observerRelative.y, observerRelative.z);
 
   mVAO->Bind();
 
@@ -190,6 +198,7 @@ void Arrow::createShader() {
   mUniforms.color       = mShader->GetUniformLocation("cColor");
   mUniforms.modelViewMatrix  = mShader->GetUniformLocation("uMatModelView");
   mUniforms.projectionMatrix = mShader->GetUniformLocation("uMatProjection");
+  mUniforms.scaleFactor = mShader->GetUniformLocation("uScaleFactor");
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
