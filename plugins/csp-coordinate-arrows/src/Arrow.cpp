@@ -164,7 +164,7 @@ bool Arrow::Do() {
   glUniformMatrix4fv(mUniforms.modelViewMatrix, 1, GL_FALSE, glm::value_ptr(matMV));
   glUniformMatrix4fv(mUniforms.projectionMatrix, 1, GL_FALSE, glMatP.data());
   mShader->SetUniform(mUniforms.color, mColor[0], mColor[1], mColor[2], mColor[3]);
-  mShader->SetUniform(mUniforms.scaleFactor, 10.0f * /*dist*/);
+  mShader->SetUniform(mUniforms.scaleFactor, 10.0f /*dist*/);
 
   //logger().info("Observer Distance: {} with vector {}, {}, {}", dist, observerRelative.x, observerRelative.y, observerRelative.z);
 
