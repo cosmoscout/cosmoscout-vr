@@ -375,8 +375,8 @@ bool Atmosphere::Do() {
     mHDRBuffer->bind();
   }
 
-  auto depthBuffer = mGraphicsEngine->getCurrentDepthBufferAsTexture(false);
-  auto colorBuffer = mGraphicsEngine->getCurrentColorBufferAsTexture(false);
+  auto depthBuffer = mGraphicsEngine->getCurrentDepthBufferAsTexture(true);
+  auto colorBuffer = mGraphicsEngine->getCurrentColorBufferAsTexture(true);
   depthBuffer->Bind(GL_TEXTURE0);
   colorBuffer->Bind(GL_TEXTURE1);
 
