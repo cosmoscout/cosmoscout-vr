@@ -45,11 +45,11 @@ void to_json(nlohmann::json& j, Plugin::Settings const& o) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void from_json(nlohmann::json const& j, Plugin::Settings::Arrows& o) {
-
+  cs::core::Settings::deserialize(j, "width", o.mWidth);
 }
 
 void to_json(nlohmann::json& j, Plugin::Settings::Arrows const& o) {
-
+  cs::core::Settings::serialize(j, "width", o.mWidth);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -113,11 +113,13 @@ void Plugin::onLoad() {
     std::vector<float> directionFromOriginZ = {0.0f, 0.0f, 1.0f};
     glm::vec4 colorZ(0.0f, 0.0f, 1.0f, 1.0f);
 
-    auto arrowX = std::make_shared<Arrow>(mPluginSettings, mSolarSystem, directionFromOriginX, colorX);
+    logger().info("Arrow width for this one is {}", settings.second.mWidth);
+
+    auto arrowX = std::make_shared<Arrow>(mPluginSettings, mSolarSystem, directionFromOriginX, colorX, settings.second.mWidth);
     arrowX->setParentName(settings.first);
-    auto arrowY = std::make_shared<Arrow>(mPluginSettings, mSolarSystem, directionFromOriginY, colorY);
+    auto arrowY = std::make_shared<Arrow>(mPluginSettings, mSolarSystem, directionFromOriginY, colorY, settings.second.mWidth);
     arrowY->setParentName(settings.first);
-    auto arrowZ = std::make_shared<Arrow>(mPluginSettings, mSolarSystem, directionFromOriginZ, colorZ);
+    auto arrowZ = std::make_shared<Arrow>(mPluginSettings, mSolarSystem, directionFromOriginZ, colorZ, settings.second.mWidth);
     arrowZ->setParentName(settings.first);
 
     std::vector<std::shared_ptr<Arrow>> arrowGroup = {arrowX, arrowY, arrowZ};

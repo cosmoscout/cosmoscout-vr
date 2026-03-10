@@ -64,12 +64,14 @@ void main()
 
 Arrow::Arrow(std::shared_ptr<Plugin::Settings>  pluginSettings,
     std::shared_ptr<cs::core::SolarSystem>      solarSystem,
-    const std::vector<float>&                         directionFromOrigin,
-    const glm::vec4&                                  color
+    const std::vector<float>&                   directionFromOrigin,
+    const glm::vec4&                            color,
+    float                            width
   ) :
       mPluginSettings(std::move(pluginSettings)),
       mSolarSystem(std::move(solarSystem)),
-      mColor(color)
+      mColor(color),
+      mWidth(width)
   {
 
     // Add to scenegraph.
@@ -156,7 +158,7 @@ bool Arrow::Do() {
   glEnable(GL_LINE_SMOOTH);
   glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
   glDisable(GL_DEPTH_TEST);   // Makes lines visible through walls.
-  glLineWidth(mArrowWidth);
+  glLineWidth(mWidth);
 
   mShader->Bind();
 

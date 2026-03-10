@@ -30,7 +30,8 @@ class Arrow : public IVistaOpenGLDraw {
   Arrow(std::shared_ptr<Plugin::Settings>   pluginSettings,
     std::shared_ptr<cs::core::SolarSystem>  solarSystem,
     const std::vector<float>&                     directionFromOrigin,
-    const glm::vec4&                              color
+    const glm::vec4&                              color,
+    float                            width
   );
 
   Arrow(Arrow const& other) = delete;
@@ -57,6 +58,7 @@ class Arrow : public IVistaOpenGLDraw {
   std::shared_ptr<Plugin::Settings> mPluginSettings;
   std::shared_ptr<cs::core::SolarSystem> mSolarSystem;
   glm::vec4 mColor;
+  float mWidth;
 
   std::unique_ptr<VistaOpenGLNode> mGLNode;
 
@@ -72,9 +74,6 @@ class Arrow : public IVistaOpenGLDraw {
     uint32_t projectionMatrix = 0;
     uint32_t scaleFactor = 0;
   } mUniforms;
-
-  double mArrowLength = 1000;
-  GLfloat mArrowWidth = 1000;
 };
 
 } // namespace csp::coordinatearrows

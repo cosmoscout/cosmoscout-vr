@@ -25,7 +25,9 @@ class Plugin : public cs::core::PluginBase {
  public:
   struct Settings {
     // Settings for a group of arrows.
-    struct Arrows {};
+    struct Arrows {
+      float mWidth;
+    };
 
     // All groups of arrows with their name as key.
     std::map<std::string, Arrows> mArrows;
