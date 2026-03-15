@@ -801,7 +801,9 @@
     "csp-animated-giant-planets": {
       "bodies": {
         "Jupiter": {
-          "texture": "../share/resources/textures/jupiter.jpg"
+          "texture": "../share/resources/textures/jupiter.jpg",
+          "animation": "../share/resources/textures/jupiter-animated/",
+          "timePerFrame": 18000
         }
       }
     },

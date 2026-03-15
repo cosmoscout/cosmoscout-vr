@@ -40,6 +40,12 @@ class Plugin : public cs::core::PluginBase {
         double mOuterRadius;
       };
       std::optional<Ring> mRing;
+
+      /// The path to the animation textures. the textures should be named 'frame-0.jpg', 'frame-1.jpg', ...
+      std::optional<std::string> mAnimation;
+
+      /// The real time in seconds between two frames of the animation.
+      std::optional<float> mTimePerFrame;
     };
 
     std::map<std::string, SimpleBody> mSimpleBodies;

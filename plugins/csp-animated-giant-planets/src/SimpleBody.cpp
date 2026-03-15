@@ -9,6 +9,7 @@
 
 #include "../../../src/cs-core/Settings.hpp"
 #include "../../../src/cs-core/SolarSystem.hpp"
+#include "../../../src/cs-core/TimeControl.hpp"
 #include "../../../src/cs-graphics/TextureLoader.hpp"
 #include "../../../src/cs-utils/FrameStats.hpp"
 #include "../../../src/cs-utils/filesystem.hpp"
@@ -23,6 +24,7 @@
 
 #include <glm/gtc/type_ptr.hpp>
 #include <utility>
+#include <filesystem>
 
 namespace csp::animatedgiantplanets {
 
@@ -94,6 +96,11 @@ uniform float uSunIlluminance;
 #ifdef HAS_RING
   uniform sampler2D uRingTexture;
   uniform vec2 uRingRadii;
+#endif
+
+#ifdef IS_ANIMATED
+  uniform sampler2D uNextTexture;
+  uniform float uFrameFadeWeight;
 #endif
 
 ECLIPSE_SHADER_SNIPPET
@@ -179,6 +186,12 @@ $BRDF_NON_HDR
 void main() {
     oColor = texture(uSurfaceTexture, vTexCoords).rgb;
 
+#ifdef IS_ANIMATED
+  // Fades the color from the current and next texture to achieve a smooth transition between the frames of the animation.
+  vec3 nextColor = texture(uNextTexture, vTexCoords).rgb;
+  oColor = mix(oColor, nextColor, uFrameFadeWeight);
+#endif
+
     // Needed for the BRDFs.
     vec3 N = normalize(vNormal);
     vec3 L = normalize(vSunDirection);
@@ -220,9 +233,11 @@ void main() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 SimpleBody::SimpleBody(std::shared_ptr<cs::core::Settings> settings,
-    std::shared_ptr<cs::core::SolarSystem>                 solarSystem)
+    std::shared_ptr<cs::core::SolarSystem>                 solarSystem,
+    std::shared_ptr<cs::core::TimeControl>                 timeControl)
     : mSettings(std::move(settings))
     , mSolarSystem(std::move(solarSystem))
+    , mTimeControl(std::move(timeControl))
     , mEclipseShadowReceiver(mSettings, mSolarSystem, false) {
 
   // For rendering the sphere, we create a 2D-grid which is warped into a sphere in the vertex
@@ -303,6 +318,30 @@ void SimpleBody::configure(Plugin::Settings::SimpleBody const& settings) {
     mShaderDirty = true;
   }
 
+  if (mSimpleBodySettings.mAnimation != settings.mAnimation) {
+    // Set animation path.
+    mAnimation = *settings.mAnimation;
+
+    // Set settings for animation frames if the directory exists.
+    if (std::filesystem::exists(mAnimation) && std::filesystem::is_directory(mAnimation)) {
+      auto dir = std::filesystem::directory_iterator(mAnimation);
+
+      // Set max frames by counting files in directory.
+      mMaxFrames = static_cast<int>(std::distance(begin(dir), end(dir)));
+
+      // Load all the animation frames. If empty, nothing happens and the body is rendered without animation.
+      mAnimationTextures.reserve(mMaxFrames);
+      for (int i = 1; i <= mMaxFrames; ++i) {
+        mAnimationTextures.emplace_back(
+            cs::graphics::TextureLoader::loadFromFile(mAnimation + "frame-" + std::to_string(i) + ".jpg"));
+      }
+    }
+  }
+
+  if (mSimpleBodySettings.mTimePerFrame != settings.mTimePerFrame) {
+    mTimePerFrame = *settings.mTimePerFrame;
+  }
+
   mSimpleBodySettings = settings;
 }
 
@@ -363,6 +402,49 @@ double SimpleBody::getHeight(glm::dvec2 /*lngLat*/) const {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void SimpleBody::computeFrame() {
+  // Get how much time passed since the last frame and calculate the fraction of time passed.
+  double timeSinceLastFrame = mTimeControl->pSimulationTime.get() - mLastTime;
+  mFrameFadeWeight = timeSinceLastFrame / mTimePerFrame;
+  
+  // If enough time has passed into the future, update the animation frames and resets the fade weight and the last time the frame was switched.
+  if (timeSinceLastFrame >= mTimePerFrame) {
+    mLastTime = mTimeControl->pSimulationTime.get();
+    mFrameFadeWeight = 0.0;
+
+    // If the current or next frame is the last one, loop back to the first one.
+    if (mCurrentFrame + 1 > mMaxFrames) {
+      mCurrentFrame = 1;
+    } else {
+      mCurrentFrame++;
+    }
+    if (mNextFrame + 1 > mMaxFrames) {
+      mNextFrame = 1;
+    } else {
+      mNextFrame++;
+  }
+
+  // If enough time has passed into the past, update the animation frames and resets the fade weight and the last time the frame was switched.
+  } else if (timeSinceLastFrame <= -mTimePerFrame) {
+    mLastTime = mTimeControl->pSimulationTime.get();
+    mFrameFadeWeight = 1.0;
+
+    // If the current or next frame is the first one, loop back to the last one.
+    if (mCurrentFrame - 1 < 1) {
+        mCurrentFrame = mMaxFrames;
+      } else {
+        mCurrentFrame--;
+      }
+    if (mNextFrame - 1 < 1) {
+      mNextFrame = mMaxFrames;
+    } else {
+      mNextFrame--;
+    }
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void SimpleBody::update() {
 
   auto parent = mSolarSystem->getObject(mObjectName);
@@ -371,6 +453,11 @@ void SimpleBody::update() {
     cs::utils::FrameStats::ScopedTimer timer(
         "Update " + parent->getCenterName(), cs::utils::FrameStats::TimerMode::eCPU);
     mEclipseShadowReceiver.update(*parent);
+  }
+
+  // If animation textures exist, compute the current frame based on the simulation time.
+  if (mMaxFrames > 0) {
+    computeFrame();
   }
 }
 
@@ -381,6 +468,12 @@ bool SimpleBody::Do() {
 
   if (!parent || !parent->getIsBodyVisible()) {
     return true;
+  }
+
+  // If animation textures exist, bind the current and next texture from the animation sequence.
+  if (mMaxFrames > 0) {
+    mTexture = mAnimationTextures[mCurrentFrame - 1]; 
+    mNextTexture = mAnimationTextures[mNextFrame - 1];
   }
 
   cs::utils::FrameStats::ScopedTimer timer("Draw " + parent->getCenterName());
@@ -405,6 +498,11 @@ bool SimpleBody::Do() {
 
     if (mSimpleBodySettings.mRing) {
       defines += "#define HAS_RING\n";
+    }
+
+    // If animation textures exist, IS_ANIMATED is defined to enable the animation code in the shader.
+    if (mMaxFrames > 0) {
+      defines += "#define IS_ANIMATED\n";
     }
 
     std::string vert = defines + SPHERE_VERT;
@@ -442,6 +540,12 @@ bool SimpleBody::Do() {
     if (mSimpleBodySettings.mRing) {
       mUniforms.ringTexture = mShader.GetUniformLocation("uRingTexture");
       mUniforms.ringRadii   = mShader.GetUniformLocation("uRingRadii");
+    }
+
+    // If animation textures exist, we get the uniform locations for the next texture and the frame fade weight.
+    if (mMaxFrames > 0) {
+      mUniforms.nextTexture    = mShader.GetUniformLocation("uNextTexture");
+      mUniforms.frameFadeWeight = mShader.GetUniformLocation("uFrameFadeWeight");
     }
 
     // We bind the eclipse shadow map to texture unit 2.
@@ -517,6 +621,13 @@ bool SimpleBody::Do() {
     mRingTexture->Bind(GL_TEXTURE1);
   }
 
+  // If animation textures exist, set the current and next texture from the animation sequence and the frame fade weight in the shader.
+  if (mMaxFrames > 0) {
+    mShader.SetUniform(mUniforms.nextTexture, 2);
+    mNextTexture->Bind(GL_TEXTURE2);
+    mShader.SetUniform(mUniforms.frameFadeWeight, static_cast<float>(mFrameFadeWeight));
+  }
+
   // Initialize eclipse shadow-related uniforms and textures.
   mEclipseShadowReceiver.preRender();
 
@@ -534,6 +645,11 @@ bool SimpleBody::Do() {
 
   if (mSimpleBodySettings.mRing) {
     mRingTexture->Unbind();
+  }
+
+  // If animation textures exist, we additionally unbind the next texture as cleanup.
+  if (mMaxFrames > 0) {
+    mNextTexture->Unbind();
   }
 
   mShader.Release();

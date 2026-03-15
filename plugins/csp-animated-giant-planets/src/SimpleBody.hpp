@@ -37,7 +37,8 @@ class SimpleBody : public cs::scene::CelestialSurface,
                    public IVistaOpenGLDraw {
  public:
   SimpleBody(std::shared_ptr<cs::core::Settings> settings,
-      std::shared_ptr<cs::core::SolarSystem>     solarSystem);
+      std::shared_ptr<cs::core::SolarSystem>     solarSystem,
+      std::shared_ptr<cs::core::TimeControl>    timeControl);
 
   SimpleBody(SimpleBody const& other) = delete;
   SimpleBody(SimpleBody&& other)      = default;
@@ -70,13 +71,14 @@ class SimpleBody : public cs::scene::CelestialSurface,
  private:
   std::shared_ptr<cs::core::Settings>    mSettings;
   std::shared_ptr<cs::core::SolarSystem> mSolarSystem;
+  std::shared_ptr<cs::core::TimeControl> mTimeControl;
 
   std::string mObjectName;
 
   std::unique_ptr<VistaOpenGLNode> mGLNode;
 
   Plugin::Settings::SimpleBody  mSimpleBodySettings;
-  std::unique_ptr<VistaTexture> mTexture;
+  std::shared_ptr<VistaTexture> mTexture;
   VistaGLSLShader               mShader;
   VistaVertexArrayObject        mSphereVAO;
   VistaBufferObject             mSphereVBO;
@@ -102,10 +104,35 @@ class SimpleBody : public cs::scene::CelestialSurface,
     uint32_t radii             = 0;
     uint32_t ringTexture       = 0;
     uint32_t ringRadii         = 0;
+    uint32_t nextTexture       = 0;
+    uint32_t frameFadeWeight   = 0;
   } mUniforms;
 
   static const char* SPHERE_VERT;
   static const char* SPHERE_FRAG;
+
+  // Computes the current frame of the animation and the fade weight between the current and next frame based on the simulation time and mTimePerFrame.
+  void computeFrame();
+
+  // Implementation for the texture animation.
+  int mMaxFrames = 0;
+  int mCurrentFrame = 0;
+  int mNextFrame = 1;
+
+  // Last time the texture was switched to connect it to the simulation time.
+  double mLastTime = -1;
+  // The time in seconds between two frames of the animation to enable realism.
+  float mTimePerFrame = 1;
+
+  // Fade weight between 0.0 and 1.0 to enable smooth fading between two frames of the animation.
+  double mFrameFadeWeight = 0.0;
+
+  // Pointer to the next texture in the sequence to make fading possible.
+  std::shared_ptr<VistaTexture> mNextTexture;
+
+  // Animation path and pointer to all loaded textures.
+  std::string mAnimation;
+  std::vector<std::shared_ptr<VistaTexture>> mAnimationTextures;
 };
 
 } // namespace csp::animatedgiantplanets

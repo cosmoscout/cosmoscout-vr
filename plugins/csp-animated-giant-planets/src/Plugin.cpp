@@ -51,12 +51,16 @@ void from_json(nlohmann::json const& j, Plugin::Settings::SimpleBody& o) {
   cs::core::Settings::deserialize(j, "texture", o.mTexture);
   cs::core::Settings::deserialize(j, "primeMeridianInCenter", o.mPrimeMeridianInCenter);
   cs::core::Settings::deserialize(j, "ring", o.mRing);
+  cs::core::Settings::deserialize(j, "animation", o.mAnimation);
+  cs::core::Settings::deserialize(j, "timePerFrame", o.mTimePerFrame);
 }
 
 void to_json(nlohmann::json& j, Plugin::Settings::SimpleBody const& o) {
   cs::core::Settings::serialize(j, "texture", o.mTexture);
   cs::core::Settings::serialize(j, "primeMeridianInCenter", o.mPrimeMeridianInCenter);
   cs::core::Settings::serialize(j, "ring", o.mRing);
+  cs::core::Settings::serialize(j, "animation", o.mAnimation);
+  cs::core::Settings::serialize(j, "timePerFrame", o.mTimePerFrame);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -140,7 +144,7 @@ void Plugin::onLoad() {
       continue;
     }
 
-    auto simpleBody = std::make_shared<SimpleBody>(mAllSettings, mSolarSystem);
+    auto simpleBody = std::make_shared<SimpleBody>(mAllSettings, mSolarSystem, mTimeControl);
     simpleBody->setObjectName(settings.first);
     simpleBody->configure(settings.second);
 
