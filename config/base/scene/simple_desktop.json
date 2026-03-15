@@ -798,6 +798,13 @@
       }
     },
     "csp-measurement-tools": {},
+    "csp-animated-giant-planets": {
+      "bodies": {
+        "Jupiter": {
+          "texture": "../share/resources/textures/jupiter.jpg"
+        }
+      }
+    },
     "csp-simple-bodies": {
       "bodies": {
         "Sun": {
@@ -829,9 +836,6 @@
         },
         "Vesta": {
           "texture": "../share/resources/textures/vesta.jpg"
-        },
-        "Jupiter": {
-          "texture": "../share/resources/textures/jupiter.jpg"
         },
         "Io": {
           "texture": "../share/resources/textures/io.jpg"
