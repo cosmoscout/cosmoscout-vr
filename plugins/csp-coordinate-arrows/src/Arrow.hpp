@@ -31,7 +31,8 @@ class Arrow : public IVistaOpenGLDraw {
     std::shared_ptr<cs::core::SolarSystem>  solarSystem,
     const std::vector<float>&                     directionFromOrigin,
     const glm::vec4&                              color,
-    float                            width
+    float                                   width,
+    float                                   size
   );
 
   Arrow(Arrow const& other) = delete;
@@ -59,6 +60,7 @@ class Arrow : public IVistaOpenGLDraw {
   std::shared_ptr<cs::core::SolarSystem> mSolarSystem;
   glm::vec4 mColor;
   float mWidth;
+  float mSize;
 
   std::unique_ptr<VistaOpenGLNode> mGLNode;
 
@@ -72,7 +74,6 @@ class Arrow : public IVistaOpenGLDraw {
     uint32_t color = 0;
     uint32_t modelViewMatrix  = 0;
     uint32_t projectionMatrix = 0;
-    uint32_t scaleFactor = 0;
   } mUniforms;
 };
 

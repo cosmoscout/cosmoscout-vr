@@ -11,6 +11,7 @@
 #include "../../../src/cs-utils/FrameStats.hpp"
 #include "logger.hpp"
 
+#include <GL/glew.h>
 #include <VistaKernel/GraphicsManager/VistaGraphicsManager.h>
 #include <VistaKernel/GraphicsManager/VistaSceneGraph.h>
 #include <VistaKernel/GraphicsManager/VistaTransformNode.h>
@@ -21,6 +22,9 @@
 #include <VistaOGLExt/VistaVertexArrayObject.h>
 
 #include <glm/gtc/type_ptr.hpp>
+#include <glm/gtx/component_wise.hpp>
+#include <glm/gtx/norm.hpp>
+#include <utility>
 
 namespace csp::coordinatearrows {
 
@@ -35,12 +39,10 @@ layout(location = 0) in vec3 inPosition;
 // uniforms
 uniform mat4 uMatModelView;
 uniform mat4 uMatProjection;
-uniform float uScaleFactor;
 
 void main()
 {
-    vec3 stretchedArrow = vec3(inPosition.xyz) * uScaleFactor;
-    vec4 pos = uMatModelView * vec4(stretchedArrow.xyz, 1);
+    vec4 pos = uMatModelView * vec4(inPosition.xyz, 1);
     gl_Position = uMatProjection * pos;
 })";
 
@@ -66,12 +68,14 @@ Arrow::Arrow(std::shared_ptr<Plugin::Settings>  pluginSettings,
     std::shared_ptr<cs::core::SolarSystem>      solarSystem,
     const std::vector<float>&                   directionFromOrigin,
     const glm::vec4&                            color,
-    float                            width
+    float                                       width,
+    float                                       size
   ) :
       mPluginSettings(std::move(pluginSettings)),
       mSolarSystem(std::move(solarSystem)),
       mColor(color),
-      mWidth(width)
+      mWidth(width),
+      mSize(size)
   {
 
     // Add to scenegraph.
@@ -135,21 +139,34 @@ bool Arrow::Do() {
     return true;
   }
 
-  // logger().info("Drawing arrow.");
   // Create shader
   createShader();
 
-  // Get modelview and projection matrices
-  std::array<GLfloat, 16> glMatMV{};
+  // Get distance to observer and compute scale.
+  glm::dvec3 observerRelative = parent->getObserverRelativePosition();
+  double distanceToObserver = glm::length(observerRelative);
+  double scale = distanceToObserver * mSize;
+  logger().info("Scale is {}", scale);
+
+  // Get observer relative transform and extract the upper left 3x3 matrix.
+  auto matMV = parent->getObserverRelativeTransform();
+  glm::vec3 xAxis = glm::vec3(matMV[0]);
+  glm::vec3 yAxis = glm::vec3(matMV[1]);
+  glm::vec3 zAxis = glm::vec3(matMV[2]);
+
+  // Reset the scale of the upper left 3x3 matrix and apply own scale.
+  xAxis = glm::normalize(xAxis) * static_cast<float>(scale);
+  yAxis = glm::normalize(yAxis) * static_cast<float>(scale);
+  zAxis = glm::normalize(zAxis) * static_cast<float>(scale);
+
+  // Inject the changed uper left 3x3 matrix into the whole of the 4x4 matrix.
+  matMV[0] = glm::vec4(xAxis, 0.0f);
+  matMV[1] = glm::vec4(yAxis, 0.0f);
+  matMV[2] = glm::vec4(zAxis, 0.0f);
+
+  // Get projection matrix.
   std::array<GLfloat, 16> glMatP{};
-  glGetFloatv(GL_MODELVIEW_MATRIX, glMatMV.data());
   glGetFloatv(GL_PROJECTION_MATRIX, glMatP.data());
-
-  // Make matrix relative to object
-  auto matMV = glm::make_mat4x4(glMatMV.data()) * glm::mat4(parent->getObserverRelativeTransform());
-
-  //glm::vec3 observerRelative = parent->getObserverRelativePosition();
-  //float dist = glm::length(observerRelative);
 
   glPushAttrib(GL_ENABLE_BIT | GL_COLOR_BUFFER_BIT | GL_LINE_BIT);
   glEnable(GL_BLEND);
@@ -163,12 +180,9 @@ bool Arrow::Do() {
   mShader->Bind();
 
   // Set uniforms
-  glUniformMatrix4fv(mUniforms.modelViewMatrix, 1, GL_FALSE, glm::value_ptr(matMV));
+  glUniformMatrix4fv(mUniforms.modelViewMatrix, 1, GL_FALSE, glm::value_ptr(glm::highp_mat4(matMV)));
   glUniformMatrix4fv(mUniforms.projectionMatrix, 1, GL_FALSE, glMatP.data());
   mShader->SetUniform(mUniforms.color, mColor[0], mColor[1], mColor[2], mColor[3]);
-  mShader->SetUniform(mUniforms.scaleFactor, 10.0f /*dist*/);
-
-  //logger().info("Observer Distance: {} with vector {}, {}, {}", dist, observerRelative.x, observerRelative.y, observerRelative.z);
 
   mVAO->Bind();
 
@@ -200,7 +214,6 @@ void Arrow::createShader() {
   mUniforms.color       = mShader->GetUniformLocation("cColor");
   mUniforms.modelViewMatrix  = mShader->GetUniformLocation("uMatModelView");
   mUniforms.projectionMatrix = mShader->GetUniformLocation("uMatProjection");
-  mUniforms.scaleFactor = mShader->GetUniformLocation("uScaleFactor");
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
