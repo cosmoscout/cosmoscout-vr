@@ -46,6 +46,8 @@ uniform sampler2D uNoiseTexture2D;
 uniform sampler2D uCloudTypeTexture;
 uniform float     uTestUniform;
 
+uniform bool uNewRayMarchTransmittanceImpl;
+
 // outputs
 layout(location = 0) out vec3 oColor;
 
@@ -633,7 +635,8 @@ float henyeyGreenstein(vec3 r1, vec3 r2, float g){
 // Calculate light intensity at each step along the raymarch through the cloud.
 // raymarchTransmittance(...) = L(raymarch step pos., ray from sun to raymarch step) = Integral over extinction (lost light due to fading)
 // and incoming light from sun and the environment.
-float raymarchTransmittance(vec3 rayOrigin, vec3 rayDir, vec2 interval, vec3 cam_pos, int samples=10, bool jitter=true) {
+
+float old_raymarchTransmittance(vec3 rayOrigin, vec3 rayDir, vec2 interval, vec3 cam_pos, int samples=10, bool jitter=true) {
   if(interval.y < 0){ // Is intersection with cloud layer behind the camera?
     return 1.;
   }
@@ -679,16 +682,68 @@ float raymarchTransmittance(vec3 rayOrigin, vec3 rayDir, vec2 interval, vec3 cam
   return path_transmittance;
 }
 
+// Start at a step P along the ray and shoot a ray toward the sun pos. S to calculate the incoming light intensity.
+// The light at the step inside the cloud is
+//      Li(P) = lightAtPoint(P) = exp(-Li(rayCloudExitPos) * rayCloudExitPosDensity) * sunLightColor.
+// We then find the total light intensity along the ray P->S by integrating Li(P, (P - S)) from P to S.
+// This is done via Riemann sums, calculating Li at N fixed steps along the P->S ray and summing the results:
+//      sum(k = 1 to N) Li(P +  (stepSize * k) * (P - S))
+int MAX_LI_STEPS = 10;
+float BASE_LI_STEP_SIZE = 0.1;//float((CUMULONIMBUS_END_HEIGHT - CUMULONIMBUS_START_HEIGHT) / MAX_LI_STEPS);
+float ABSORPTION_COEFF = 0.5;
+float SCATTER_COEFF = 0.5;
+float EXTINCTION_COEFF = ABSORPTION_COEFF + SCATTER_COEFF;
+
+// pos = Current sample pos
+// sunDir = Direction toward the sun (assumed to be infinitely far away in order to use same dir. for all calculations)
+// camPos = Needed in density computation for LOD textures
+float lightAtPoint(vec3 pos, vec3 sunDir, vec3 camPos, out float originDensity) {
+  // Shoot a ray toward the sun. Sample the light intensity (via cloud density, scattering, etc.).
+  // First, find the (parametric) distance of the ray travelled inside the cloud:
+  vec2 rayCloudIntersect = intersectSphere(pos, sunDir, PLANET_RADIUS + CUMULONIMBUS_END_HEIGHT);
+  float tRayExitClouds = rayCloudIntersect.y; // We assume the ray always starts inside the cloud layer (hence cloudInterval.x is behind the camera).
+  // tRayExitClouds = distance that ray is inside clouds
+  if (tRayExitClouds < 0) { // Are clouds behind the camera?
+    return 1.0;
+  }
+
+  float stepSize = BASE_LI_STEP_SIZE; // dx
+  float tCurrStep = stepSize;
+  vec3 samplePos = pos;
+
+  originDensity = getCloudDensity(pos, camPos, true).x;
+  float totalDensity = originDensity;
+
+  // The light intensity is the exponential function of the integral of the cloud density times some constants along the ray.
+  // Thus, by sampling at constant steps along the ray, we can first sum all the density values and exploit exp(d_1) * exp(d_2) * ... = exp(d_1 + d_2 + ...)
+  // to calculate the final Riemann sum in the end.
+  while (tCurrStep <= tRayExitClouds) {
+    samplePos = pos + tCurrStep * sunDir;
+    // Sum up densities along the sun ray, retrieving the optical depth along this path.
+    totalDensity += getCloudDensity(samplePos, camPos).x;
+    tCurrStep += stepSize;
+  }
+
+  float attenuation = exp(-totalDensity
+    //* BASE_DENSITY * uCloudDensityMultiplier // Physical constants
+    * stepSize // dx
+    * EXTINCTION_COEFF
+  );
+  return attenuation;
+}
+
+float raymarchTransmittance(vec3 rayOrigin, vec3 rayDir, vec2 interval, vec3 cam_pos, int samples=10, bool jitter=true) {
+  #if NEW_RAYMARCH_TRANSMITTANCE_IMPL
+    float originalDensity;
+    return lightAtPoint(rayOrigin, rayDir, cam_pos, originalDensity);
+  #else
+    return old_raymarchTransmittance(rayOrigin, rayDir, interval, cam_pos, samples, jitter);
+  #endif
+}
+
 // The function where all the integration happens
 // uses adaptive step sizes to bring performance to an acceptable level
-
-// PARAMETERS:
-// interval = Coefficients of ray at which
-//      rayOrigin + interval.x * rayDir = 1st intersection,
-//      rayOrigin + interval.y * rayDir = 2nd intersection,
-// with the cloud box.
-// path_transmittance = ?
-vec4 raymarchInterval(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, vec2 interval, out vec3 path_transmittance){
+vec4 raymarchInterval(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, vec2 interval, out vec3 path_transmittance) {
   // Ray intersects cloud box behind the camera (ignore).
   if(interval.y < 0){
     path_transmittance = vec3(1);
@@ -924,57 +979,8 @@ vec4 raymarchInterval(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, vec2 interval, o
 
 // ------------ NEW RAYMARCH ALGORITHM ------------
 
-// Start at a step P along the ray and shoot a ray toward the sun pos. S to calculate the incoming light intensity.
-// The light at the step inside the cloud is
-//      Li(P) = lightAtPoint(P) = exp(-Li(rayCloudExitPos) * rayCloudExitPosDensity) * sunLightColor.
-// We then find the total light intensity along the ray P->S by integrating Li(P, (P - S)) from P to S.
-// This is done via Riemann sums, calculating Li at N fixed steps along the P->S ray and summing the results:
-//      sum(k = 1 to N) Li(P +  (stepSize * k) * (P - S))
-int MAX_LI_STEPS = 10;
-float BASE_LI_STEP_SIZE = float((CUMULONIMBUS_END_HEIGHT - CUMULONIMBUS_START_HEIGHT) / MAX_LI_STEPS);
-
-// pos = Current sample pos
-// sunDir = Direction toward the sun (assumed to be infinitely far away in order to use same dir. for all calculations)
-// camPos = Needed in density computation for LOD textures
-float lightAtPoint(vec3 pos, vec3 sunDir, vec3 camPos) {
-  // Shoot a ray toward the sun. Sample the light intensity (via cloud density, scattering, etc.).
-  // First, find the (parametric) distance of the ray travelled inside the cloud:
-  vec2 rayCloudIntersect = intersectSphere(pos, sunDir, PLANET_RADIUS + CUMULONIMBUS_END_HEIGHT);
-  float tRayExitClouds = rayCloudIntersect.y; // We assume the ray always starts inside the cloud layer (hence cloudInterval.x is diametric).
-  if (tRayExitClouds < 0) { // Are clouds behind the camera?
-    return 1.0;
-  }
-
-  float densityCoefficient = BASE_DENSITY * uCloudDensityMultiplier * (1 + uCloudAbsorption);
-  float totalExtinctionCoeff = getCloudDensity(pos, camPos).x; // Initial value
-
-  int maxSteps = MAX_LI_STEPS * int(CLOUD_QUALITY);
-  float tRayStep = 0.0;
-  float transmittance = 1.0;
-  int steps = 0;
-  // Go along the ray and calculate integtral via Riemann sum along step intervals [tRayStep, tRayStep + BASE_LI_STEP_SIZE]
-  while (steps < maxSteps && tRayStep <= tRayExitClouds) {
-
-    // tRayStep = remap(tRayStep, 0, 1, 0, interval.y);
-    // Set constant step sizes along the ray to avoid artifacts. After the cloud boundary is reached, then stop.
-    steps += 1;
-    tRayStep += BASE_LI_STEP_SIZE; // Scaled correctly?
-
-    float cloudExitDistance = tRayExitClouds - tRayStep; // = dx (segment length )
-    vec3 samplePos = pos + tRayStep * sunDir;
-    
-    float extinctionCoeff = getCloudDensity(samplePos, camPos, false).x;
-    float sampleExtinction = exp(-(extinctionCoeff + totalExtinctionCoeff) * densityCoefficient * cloudExitDistance); // Original multiplies cloudExitDistance by 0.5
-    totalExtinctionCoeff = extinctionCoeff;
-
-    transmittance *= sampleExtinction;
-  }
-
-  return transmittance;
-}
-
 int MAX_RAYMARCH_STEPS = 10;
-float BASE_RAYMARCH_STEP_SIZE = float((CUMULONIMBUS_END_HEIGHT - CUMULONIMBUS_START_HEIGHT) / MAX_RAYMARCH_STEPS);
+float BASE_RAYMARCH_STEP_SIZE = 0.1; //float((CUMULONIMBUS_END_HEIGHT - CUMULONIMBUS_START_HEIGHT) / MAX_RAYMARCH_STEPS);
 bool RAYMARCH_STEP_JITTER = false;
 float RAYMARCH_JITTER_FORCE = 0.5;
 
@@ -982,37 +988,123 @@ float RAYMARCH_JITTER_FORCE = 0.5;
 // The ray stops when the light attenuation approaches 1.0 or when the ray exists the cloud layer.
 // interval = Interval of ray going through cloud layer
 // (Original impl.) pathTransmittance = ?
-vec3 raymarch(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, vec3 camPos, vec2 interval) {
-  if (interval.y < 0) { // Are clouds behind the camera?
-    return vec3(1.0);
-  }
-  
+vec3 raymarch(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, vec2 interval, out float transparency) {
+  // if (interval.y < 0) { // Are clouds behind the camera?
+  //   return vec3(1.0);
+  // }
   float tRayEnterCloud = interval.x;
   vec3 startPos = rayOrigin + tRayEnterCloud * rayDir;
 
-  // float dist = interval.y - interval.x;
-  // float startPosDensity = getCloudDensity(startPos, camPos, true).x;
-  float tRayStep = 0.0;
   vec3 color = vec3(1.0);
-  for (int i = 0; i < MAX_RAYMARCH_STEPS; i++) {
-    float nextStep = BASE_RAYMARCH_STEP_SIZE * float(i) * CLOUD_QUALITY;
+  transparency = 1.0;
+  float phase = henyeyGreenstein(sunDir, -rayDir, .99);
+
+  int maxSteps = int(MAX_RAYMARCH_STEPS * CLOUD_QUALITY);
+  float tRayStep = 0.0;
+  for (int i = 0; i < maxSteps; i++) {
     // Add some noise to the step size to avoid color banding.
     // Color banding (cloud colors forming staircase patterns) occurs, when all steps (and all rays) sample cloud colors in the same intervals.
     // As the cloud color is not continuous but discretely approximated, the differences in color become more visible as multiple rays leave
-    // cutoffs between each step. Noise generation comes with its own problems, but the result is more visually pleasing. 
-    if (RAYMARCH_STEP_JITTER) { 
+    // cutoffs between each step.
+    float stepSize = BASE_RAYMARCH_STEP_SIZE;
+    if (RAYMARCH_STEP_JITTER) {
       float randVal = hash33(startPos).x; // \in [0, 1]
       randVal = remap(randVal, 0, 1, -RAYMARCH_JITTER_FORCE, RAYMARCH_JITTER_FORCE);
-      nextStep += BASE_RAYMARCH_STEP_SIZE * randVal;
+      stepSize *= randVal;
     }
-    tRayStep += nextStep;
+
+    tRayStep += stepSize;
     vec3 samplePos = startPos + tRayStep * rayDir;
 
-    float sampleTransmittance = lightAtPoint(samplePos, sunDir, camPos);
+    float originDensity;
+    float sampleAttenuation = lightAtPoint(samplePos, sunDir, rayOrigin, originDensity);
+    float sampleTransparency = exp(-stepSize * originDensity * EXTINCTION_COEFF);
+    transparency *= sampleTransparency;
+
+    color *= sampleAttenuation // Light intensity (= light ray transmission from the sun)
+      * stepSize // dx
+      * phase // Atmospheric effects
+      * transparency
+      * originDensity; // Cloud density at sample position
   }
 
   return color;
 }
+
+bool rayIntersectsSphere(vec2 intersectInterval) {
+  return intersectInterval.x > intersectInterval.y;
+}
+
+// Calculate where the ray intersects the cloud layer (defined by two spheres of radii CUMULONIMBUS_START_HEIGHT, CUMULONIMBUS_END_HEIGHT)
+// to optimise sampling positions along the raymarch.
+void getCloudLayerIntersects(vec3 rayOrigin, vec3 rayDir, out vec2 firstInterval, out vec2 secondInterval) {
+  float cloudLayerMaxHeight = PLANET_RADIUS + CUMULONIMBUS_END_HEIGHT;
+  float cloudLayerMinHeight = PLANET_RADIUS + CUMULONIMBUS_START_HEIGHT;
+  vec2 cloudMaxIntersect = intersectSphere(rayOrigin, rayDir, cloudLayerMaxHeight);
+  vec2 cloudMinIntersect = intersectSphere(rayOrigin, rayDir, cloudLayerMinHeight);
+
+  bool rayIntersectsCloudTop = rayIntersectsSphere(cloudMaxIntersect);
+  bool rayIntersectsCloudBottom = rayIntersectsSphere(cloudMinIntersect);
+  bool rayIntersectsPlanet = rayIntersectsSphere(intersectPlanetsphere(rayOrigin, rayDir));
+
+  float startHeight = length(rayOrigin);
+  bool aboveClouds = startHeight > cloudLayerMaxHeight;
+  bool insideClouds = !aboveClouds && startHeight >= cloudLayerMinHeight;
+  bool belowClouds = !insideClouds && startHeight < cloudLayerMinHeight;
+
+  firstInterval = vec2(-1.0, 0.0);
+  secondInterval = vec2(-1.0, 0.0);
+  if (aboveClouds) {
+    if (!rayIntersectsCloudTop) { // Ray shoots past the clouds into space
+        return;
+    } else if (rayIntersectsCloudBottom) { // Ray goes down through cloud floor
+        firstInterval = vec2(cloudMaxIntersect.x, cloudMinIntersect.x);
+        if (!rayIntersectsPlanet) { // If ray shoots past planet, it must pierce the clouds again
+          secondInterval = vec2(cloudMinIntersect.y, cloudMaxIntersect.y);
+        }
+    }
+  } else if (insideClouds) {
+    if (!rayIntersectsCloudBottom) { // Ray points upwards to space
+      firstInterval = vec2(0.0, cloudMaxIntersect.y);
+    } else {
+      firstInterval = vec2(0.0, cloudMinIntersect.x);
+      if (!rayIntersectsPlanet) {
+        // Ray shoots through cloud floor past the planet back into the cloud layer, hence piercing both cloud bottom and top
+        secondInterval = vec2(cloudMinIntersect.y, cloudMaxIntersect.y);
+      }
+    }
+  } else if (belowClouds) {
+    if (rayIntersectsPlanet) { // Camera looks at planet below the clouds, thus not seeing any
+      return;
+    } else { // Camera looks up into the clouds 
+      firstInterval = vec2(cloudMinIntersect.x, cloudMaxIntersect.y);
+    }
+  }
+}
+
+vec4 getCloudColorFromRay(vec3 rayOrigin, vec3 rayDir, vec3 sunDir) {
+  vec2 firstInterval, secondInterval;
+  getCloudLayerIntersects(rayOrigin, rayDir, firstInterval, secondInterval);
+
+  float firstTransparency;
+  vec3 firstColor = raymarch(rayOrigin, rayDir, sunDir, firstInterval, firstTransparency);
+
+  float secondTransparency;
+  vec3 secondColor = raymarch(rayOrigin, rayDir, sunDir, secondInterval, secondTransparency);
+
+  float transparency = firstTransparency * secondTransparency;
+  return vec4(firstColor * secondColor, transparency);
+}
+
+// ------------------------------------------------
+
+// bool NEW_RAYMARCH_IMPL = true;
+
+// vec4 raymarchInterval(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, vec2 interval, out vec3 path_transmittance){
+//   if (NEW_RAYMARCH_IMPL) {
+//     raymarch(rayOrigin, rayDir, sunDir, interval, path_transmittance);
+//   }  
+// }
 
 // ------------------------------------------------
 
@@ -1161,22 +1253,6 @@ vec4 getCloudColor(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, float surfaceDistan
   return vec4(0, 100000, 0, 1);
 }
 
-// ------------- NEW COLOR CALCULATION -------------
-
-// bool isIntersectVisible(vec2 intersectInterval) {
-//   return intersectInterval.y > intersec
-// }
-
-// vec4 getVolCloudColor(vec3 rayOrigin, vec3 rayDir) {
-//   float cloudLayerMaxHeight = PLANET_RADIUS + CUMULONIMBUS_END_HEIGHT;
-//   float cloudLayerMinHeight = PLANET_RADIUS + CUMULONIMBUS_START_HEIGHT;
-//   vec2 cloudMinIntersect = intersectSphere(rayOrigin, rayDir, cloudLayerMinHeight);
-//   vec2 cloudLayerMaxIntersect = intersectSphere(rayOrigin, rayDir, cloudLayerMaxHeight);
-// }
-
-// -------------------------------
-
-
 // cloud density function for the standard cosmoscout cloud system
 float getCloudDensityDefault(vec3 rayOrigin, vec3 rayDir, float tIntersection){
   vec3 position  = rayOrigin + rayDir * tIntersection;
@@ -1286,7 +1362,8 @@ float getCloudShadow(vec3 rayOrigin, vec3 rayDir) {
   // Reduce cloud opacity when end point is very close to planet surface.
   float fac = clamp(abs(intersections.y) / fadeWidth, 0, 1);
   vec3 position  = rayOrigin + rayDir * intersections.y;
-  #if OLD_CLOUDS
+  #if 
+  
   return 1.0 - getCloudDensityDefault(rayOrigin, rayDir, intersections.y) * fac;
   #else
   topAltitude = PLANET_RADIUS + CUMULONIMBUS_END_HEIGHT;
@@ -1757,13 +1834,17 @@ void main() {
     vec3 transmittance;
     vec4 cloudColor = getCloudColor(vsIn.rayOrigin, rayDir, uSunDir, surfaceDistance, transmittance);
     cloudColor.rgb *= eclipseShadow;
-    
 
+    // vec4 cloudColor = getCloudColorFromRay(vsIn.rayOrigin, rayDir, uSunDir);
+    // cloudColor.rgb *= eclipseShadow;
+    // float transparency = cloudColor.a; // = transmittance
+    
 #if !ENABLE_HDR
     cloudColor.rgb = tonemap(cloudColor.rgb / uSunInfo.y);
 #endif
 
-    oColor = oColorOld * transmittance + cloudColor.rgb;
+    oColor = oColorOld * transmittance + cloudColor.rgb; //oColorOld * transmittance + cloudColor.rgb;
+    // oColor = oColorOld * transparency + cloudColor.rgb;
   }
 #endif
 #endif

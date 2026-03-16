@@ -47,28 +47,30 @@ void storeShaderInfoLog(std::string shaderName, GLuint shaderId) {
   glGetShaderiv(shaderId, GL_COMPILE_STATUS, &iCompileSuccess);
 
   if (iCompileSuccess != GL_TRUE) {
-    int iLogSize;
-    glGetShaderiv(shaderId, GL_INFO_LOG_LENGTH, &iLogSize);
+    vstr::errp() << "Failed to compile '" << shaderName << "'." << std::endl;
+  }
 
-    if (iLogSize > 0) {
-      vstr::debug() << "Writing shader info log to shader-log.txt..." << std::endl;
+  int iLogSize;
+  glGetShaderiv(shaderId, GL_INFO_LOG_LENGTH, &iLogSize);
 
-      char* sLog = new char[iLogSize];
-      glGetShaderInfoLog(shaderId, iLogSize, NULL, sLog);
-      
-      std::ofstream logFile;
-      logFile.open ("shader-log.txt", std::ios::in | std::ios::trunc);
-      if (logFile.is_open()) {
-        logFile << "Failed to compile shader program: " << std::endl;
-        logFile << shaderName << " (ID = " << shaderId << ")" << std::endl;
-        logFile << sLog << std::endl << std::endl;
-        logFile.close();
-      } else {
-        vstr::errp() << "Failed to write shader info log." << std::endl;
-      }
+  if (iLogSize > 0) {
+    vstr::debug() << "Writing shader info log to shader-log.txt..." << std::endl;
 
-      delete[] sLog;
+    char* sLog = new char[iLogSize];
+    glGetShaderInfoLog(shaderId, iLogSize, NULL, sLog);
+    
+    std::ofstream logFile;
+    logFile.open ("shader-log.txt", std::ios::in | std::ios::trunc);
+    if (logFile.is_open()) {
+      logFile << "Failed to compile shader program: " << std::endl;
+      logFile << shaderName << " (ID = " << shaderId << ")" << std::endl;
+      logFile << sLog << std::endl << std::endl;
+      logFile.close();
+    } else {
+      vstr::errp() << "Failed to write shader info log." << std::endl;
     }
+
+    delete[] sLog;
   }
 }
 
@@ -312,6 +314,8 @@ void Atmosphere::createShader(ShaderType type, VistaGLSLShader& shader, Uniforms
   cs::utils::replaceString(
       sFrag, "ECLIPSE_SHADER_SNIPPET", mEclipseShadowReceiver->getShaderSnippet());
 
+  cs::utils::replaceString(sFrag, "NEW_RAYMARCH_TRANSMITTANCE_IMPL", std::to_string(mSettings.mNewRaymarchTransmittanceImpl.get()));
+
   shader.InitVertexShaderFromString(sVert);
   storeShaderInfoLog("csp-atmosphere.vert", shader.GetVertexShader(0));
   shader.InitFragmentShaderFromString(sFrag);
@@ -357,7 +361,6 @@ void Atmosphere::createShader(ShaderType type, VistaGLSLShader& shader, Uniforms
   uniforms.cloudRangeMax             = shader.GetUniformLocation("CLOUD_TYPE_RANGE_END");
   uniforms.cloudTypeMin              = shader.GetUniformLocation("CLOUD_TYPE_MIN");
   uniforms.cloudTypeMax              = shader.GetUniformLocation("CLOUD_TYPE_MAX");
-
 
   // We bind the eclipse shadow map to texture unit 3. The color and depth buffer are bound to 0 and
   // 1, 2 is used for the cloud map, 3 is used for the limb luminance texture.

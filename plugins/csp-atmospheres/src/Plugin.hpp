@@ -72,6 +72,8 @@ class Plugin : public cs::core::PluginBase {
       cs::utils::DefaultProperty<float> mCloudLFRepetitionScale{5000.f};
       cs::utils::DefaultProperty<float> mCloudHFRepetitionScale{1231.f};
 
+      cs::utils::DefaultProperty<float> mNewRaymarchTransmittanceImpl{false};
+
       /// If this is set to true, the plugin will save a fish-eye view of the sky to a file one
       /// the preprocessing is done.
       cs::utils::DefaultProperty<bool> mRenderSkydome{false};

@@ -88,6 +88,8 @@ void from_json(nlohmann::json const& j, Plugin::Settings::Atmosphere& o) {
   cs::core::Settings::deserialize(j, "cloudRangeMax", o.mCloudRangeMax);
   cs::core::Settings::deserialize(j, "cloudTypeMin", o.mCloudTypeMin);
   cs::core::Settings::deserialize(j, "cloudTypeMax", o.mCloudTypeMax);
+
+  cs::core::Settings::deserialize(j, "newRaymarchTransmittanceImpl", o.mNewRaymarchTransmittanceImpl);
 }
 
 void to_json(nlohmann::json& j, Plugin::Settings::Atmosphere const& o) {
@@ -120,6 +122,8 @@ void to_json(nlohmann::json& j, Plugin::Settings::Atmosphere const& o) {
   cs::core::Settings::serialize(j, "cloudRangeMax", o.mCloudRangeMax);
   cs::core::Settings::serialize(j, "cloudTypeMin", o.mCloudTypeMin);
   cs::core::Settings::serialize(j, "cloudTypeMax", o.mCloudTypeMax);
+
+  cs::core::Settings::serialize(j, "newRaymarchTransmittanceImpl", o.mNewRaymarchTransmittanceImpl);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -376,6 +380,17 @@ void Plugin::init() {
         }
       }));
 
+  mGuiManager->getGui()->registerCallback("atmosphere.setNewRaymarchTransmittanceImpl",
+      "Enables or disables new raymarch transmittance algorithm for advanced cloud rendering.",
+      std::function([this](bool enable) {
+        if (!mActiveAtmosphere.empty()) {
+          auto& settings           = mPluginSettings->mAtmospheres.at(mActiveAtmosphere);
+          settings.mNewRaymarchTransmittanceImpl = enable;
+          mAtmospheres.at(mActiveAtmosphere)->configure(settings);
+        }
+      }));
+
+
   // Load settings.
   onLoad();
 
@@ -416,6 +431,8 @@ void Plugin::deInit() {
   mGuiManager->getGui()->unregisterCallback("atmosphere.setCloudRangeMax");
   mGuiManager->getGui()->unregisterCallback("atmosphere.setCloudTypeMin");
   mGuiManager->getGui()->unregisterCallback("atmosphere.setCloudTypeMax");
+
+  mGuiManager->getGui()->unregisterCallback("atmosphere.setNewRaymarchTransmittanceImpl");
 
   mSolarSystem->pActiveObject.disconnect(mActiveObjectConnection);
   mAllSettings->onLoad().disconnect(mOnLoadConnection);
