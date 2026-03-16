@@ -733,12 +733,12 @@ float lightAtPoint(vec3 pos, vec3 sunDir, vec3 camPos, out float originDensity) 
 }
 
 float raymarchTransmittance(vec3 rayOrigin, vec3 rayDir, vec2 interval, vec3 cam_pos, int samples=10, bool jitter=true) {
-  #if NEW_RAYMARCH_TRANSMITTANCE_IMPL
+#if NEW_RAYMARCH_TRANSMITTANCE_IMPL
     float originalDensity;
     return lightAtPoint(rayOrigin, rayDir, cam_pos, originalDensity);
-  #else
+#else
     return old_raymarchTransmittance(rayOrigin, rayDir, interval, cam_pos, samples, jitter);
-  #endif
+#endif
 }
 
 // The function where all the integration happens

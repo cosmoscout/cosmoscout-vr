@@ -296,8 +296,11 @@ void Atmosphere::createShader(ShaderType type, VistaGLSLShader& shader, Uniforms
   if(mSettings.mEnableClouds.get() && !mCloudTexture){
     logger().warn("No cloud texture in config but clouds are enabled");
   }
-  cs::utils::replaceString(
-    sFrag, "OLD_CLOUDS", std::to_string(!mSettings.mAdvancedClouds.get() || !(mCloudTypeTexture) || !(mCloudTexture)));
+
+  auto old_clouds = std::to_string(!mSettings.mAdvancedClouds.get() || !(mCloudTypeTexture) || !(mCloudTexture));
+  vstr::debug() << "Set old clouds bool = " << old_clouds << std::endl;
+  cs::utils::replaceString(sFrag, "OLD_CLOUDS", old_clouds);
+
   if(mSettings.mAdvancedClouds.get() && !mCloudTypeTexture){
     logger().warn("No cloud type texture in config but advanced clouds activated");
   }
@@ -314,7 +317,11 @@ void Atmosphere::createShader(ShaderType type, VistaGLSLShader& shader, Uniforms
   cs::utils::replaceString(
       sFrag, "ECLIPSE_SHADER_SNIPPET", mEclipseShadowReceiver->getShaderSnippet());
 
-  cs::utils::replaceString(sFrag, "NEW_RAYMARCH_TRANSMITTANCE_IMPL", std::to_string(mSettings.mNewRaymarchTransmittanceImpl.get()));
+  // For debugging purposes
+  auto implString = std::to_string(mSettings.mNewRaymarchTransmittanceImpl.get());
+  vstr::debug() << "Set raymarch transmittance implementation bool = " << implString << std::endl;
+
+  cs::utils::replaceString(sFrag, "NEW_RAYMARCH_TRANSMITTANCE_IMPL", implString);
 
   shader.InitVertexShaderFromString(sVert);
   storeShaderInfoLog("csp-atmosphere.vert", shader.GetVertexShader(0));
