@@ -405,7 +405,6 @@ void Plugin::init() {
         }
       }));
 
-
   // Load settings.
   onLoad();
 

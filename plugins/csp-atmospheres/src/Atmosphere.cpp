@@ -268,6 +268,12 @@ void Atmosphere::configure(Plugin::Settings::Atmosphere const& settings) {
       mShaderDirty = true;
     }
 
+    // Recreate shader if raymarch algorithm selection changed
+    if (mSettings.mNewRaymarchTransmittanceImpl != settings.mNewRaymarchTransmittanceImpl ||
+        mSettings.mNewRaymarchImpl != settings.mNewRaymarchImpl) {
+      mShaderDirty = true;
+    }
+
     mSettings = settings;
 
     if (mSettings.mRenderSkydome.get()) {
@@ -315,10 +321,8 @@ void Atmosphere::createShader(ShaderType type, VistaGLSLShader& shader, Uniforms
       sFrag, "ECLIPSE_SHADER_SNIPPET", mEclipseShadowReceiver->getShaderSnippet());
 
   // For debugging purposes
-  auto implString = std::to_string(mSettings.mNewRaymarchTransmittanceImpl.get());
-  vstr::debug() << "Set raymarch transmittance implementation bool = " << implString << std::endl;
-
-  cs::utils::replaceString(sFrag, "NEW_RAYMARCH_TRANSMITTANCE_IMPL", implString);
+  cs::utils::replaceString(sFrag, "NEW_RAYMARCH_TRANSMITTANCE_IMPL", std::to_string(mSettings.mNewRaymarchTransmittanceImpl.get()));
+  cs::utils::replaceString(sFrag, "NEW_RAYMARCH_IMPL", std::to_string(mSettings.mNewRaymarchImpl.get()));
 
   shader.InitVertexShaderFromString(sVert);
   storeShaderInfoLog("csp-atmosphere.vert", shader.GetVertexShader(0));

@@ -688,7 +688,7 @@ float old_raymarchTransmittance(vec3 rayOrigin, vec3 rayDir, vec2 interval, vec3
 // We then find the total light intensity along the ray P->S by integrating Li(P, (P - S)) from P to S.
 // This is done via Riemann sums, calculating Li at N fixed steps along the P->S ray and summing the results:
 //      sum(k = 1 to N) Li(P +  (stepSize * k) * (P - S))
-int MAX_LI_STEPS = 10;
+int MAX_LI_STEPS = 5;
 float BASE_LI_STEP_SIZE = 0.1;//float((CUMULONIMBUS_END_HEIGHT - CUMULONIMBUS_START_HEIGHT) / MAX_LI_STEPS);
 float ABSORPTION_COEFF = 0.5;
 float SCATTER_COEFF = 0.5;
@@ -697,19 +697,22 @@ float EXTINCTION_COEFF = ABSORPTION_COEFF + SCATTER_COEFF;
 // pos = Current sample pos
 // sunDir = Direction toward the sun (assumed to be infinitely far away in order to use same dir. for all calculations)
 // camPos = Needed in density computation for LOD textures
-float lightAtPoint(vec3 pos, vec3 sunDir, vec3 camPos, out float originDensity) {
+float lightAtPoint(vec3 pos, vec3 sunDir, vec2 interval, vec3 camPos, out float originDensity) {
   // Shoot a ray toward the sun. Sample the light intensity (via cloud density, scattering, etc.).
   // First, find the (parametric) distance of the ray travelled inside the cloud:
-  vec2 rayCloudIntersect = intersectSphere(pos, sunDir, PLANET_RADIUS + CUMULONIMBUS_END_HEIGHT);
-  float tRayExitClouds = rayCloudIntersect.y; // We assume the ray always starts inside the cloud layer (hence cloudInterval.x is behind the camera).
-  // tRayExitClouds = distance that ray is inside clouds
-  if (tRayExitClouds < 0) { // Are clouds behind the camera?
+  // vec2 rayCloudIntersect = intersectSphere(pos, sunDir, PLANET_RADIUS + CUMULONIMBUS_END_HEIGHT);
+  
+  // Line 947 in shader compiler
+
+  // New implementation: interval along which function samples light intensity is given via parameter:
+  float tRayExit = interval.y; // We assume the ray always starts inside the cloud layer (hence cloudInterval.x is behind the camera).
+  if (tRayExit < 0) { // Are clouds behind the camera?
     return 1.0;
   }
 
-  float stepSize = BASE_LI_STEP_SIZE; // dx
+  float stepSize = BASE_LI_STEP_SIZE; // = dx
   float tCurrStep = stepSize;
-  vec3 samplePos = pos;
+  vec3 samplePos = pos + interval.x * sunDir;
 
   originDensity = getCloudDensity(pos, camPos, true).x;
   float totalDensity = originDensity;
@@ -718,7 +721,7 @@ float lightAtPoint(vec3 pos, vec3 sunDir, vec3 camPos, out float originDensity) 
   // Thus, by sampling at constant steps along the ray, we can first sum all the density values and exploit exp(d_1) * exp(d_2) * ... = exp(d_1 + d_2 + ...)
   // to calculate the final Riemann sum in the end.
   int steps = 0;
-  while (tCurrStep <= tRayExitClouds && steps < MAX_LI_STEPS) {
+  while (tCurrStep <= tRayExit && steps < MAX_LI_STEPS) {
     samplePos = pos + tCurrStep * sunDir;
     // Sum up densities along the sun ray, retrieving the optical depth along this path.
     totalDensity += getCloudDensity(samplePos, camPos).x;
@@ -737,7 +740,7 @@ float lightAtPoint(vec3 pos, vec3 sunDir, vec3 camPos, out float originDensity) 
 float raymarchTransmittance(vec3 rayOrigin, vec3 rayDir, vec2 interval, vec3 cam_pos, int samples=10, bool jitter=true) {
 #if NEW_RAYMARCH_TRANSMITTANCE_IMPL
     float originalDensity;
-    return lightAtPoint(rayOrigin, rayDir, cam_pos, originalDensity);
+    return lightAtPoint(rayOrigin, rayDir, interval, cam_pos, originalDensity);
 #else
     return old_raymarchTransmittance(rayOrigin, rayDir, interval, cam_pos, samples, jitter);
 #endif
@@ -989,20 +992,28 @@ float RAYMARCH_JITTER_FORCE = 0.5;
 // Forward raymarch: shoot ray through cloud layer and sample color from density, light in-scattering, etc.
 // The ray stops when the light attenuation approaches 1.0 or when the ray exists the cloud layer.
 // interval = Interval of ray going through cloud layer
-// (Original impl.) pathTransmittance = ?
-vec3 raymarch(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, vec2 interval, out float transparency) {
+// (Original impl.) pathTransmittance = transparency (basically, light that shines through the clouds due to density < 1)
+vec3 raymarch(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, vec2 interval, out vec3 transparency) {
   // if (interval.y < 0) { // Are clouds behind the camera?
   //   return vec3(1.0);
   // }
   float tRayEnterCloud = interval.x;
   vec3 startPos = rayOrigin + tRayEnterCloud * rayDir;
 
-  vec3 color = vec3(1.0);
-  transparency = 1.0;
+  vec3 color = vec3(0.0);
+  transparency = vec3(1.0);
+
+  // Apply initial atmosphere luminance
+  // vec3 atmosphereTransparency;
+  // vec3 skyIlluminance = GetSkyLuminanceToPoint(startPos, rayOrigin, sunDir, atmosphereTransparency);
+  // transparency *= atmosphereTransparency;
+  // color += skyIlluminance * atmosphereTransparency;
+
   float phase = henyeyGreenstein(sunDir, -rayDir, .99);
 
   int maxSteps = int(MAX_RAYMARCH_STEPS * CLOUD_QUALITY);
   float tRayStep = 0.0;
+  vec3 samplePos = rayOrigin;
   for (int i = 0; i < maxSteps; i++) {
     // Add some noise to the step size to avoid color banding.
     // Color banding (cloud colors forming staircase patterns) occurs, when all steps (and all rays) sample cloud colors in the same intervals.
@@ -1016,29 +1027,39 @@ vec3 raymarch(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, vec2 interval, out float
     }
 
     tRayStep += stepSize;
-    vec3 samplePos = startPos + tRayStep * rayDir;
+    samplePos += tRayStep * rayDir;
 
-    float originDensity;
-    float sampleAttenuation = lightAtPoint(samplePos, sunDir, rayOrigin, originDensity);
-    float sampleTransparency = exp(-stepSize * originDensity * EXTINCTION_COEFF);
-    transparency *= sampleTransparency;
+    vec2 cloudIntersectInterval = intersectSphere(samplePos, sunDir, PLANET_RADIUS + CUMULONIMBUS_END_HEIGHT);
+    vec2 visibleCloudInterval = vec2(0.0, cloudIntersectInterval.y);
 
-    color *= sampleAttenuation // Light intensity (= light ray transmission from the sun)
+    float samplePosDensity;
+    float sampleAttenuation = lightAtPoint(samplePos, sunDir, visibleCloudInterval, rayOrigin, samplePosDensity);
+    float sampleTransparency = exp(-stepSize * samplePosDensity * EXTINCTION_COEFF);
+    transparency *= vec3(sampleTransparency);
+
+    color += sampleAttenuation // Light intensity (= light ray transmission from the sun)
       * stepSize // dx
       * phase // Atmospheric effects
       * transparency
-      * originDensity; // Cloud density at sample position
+      * samplePosDensity; // Cloud density at sample position
   }
+
+  // Apply final sky illuminance at exit pos
+  // vec3 finalAtmosphereTransparency;
+  // vec3 finalSkyIlluminance = GetSkyLuminanceToPoint(samplePos, rayOrigin, sunDir, finalAtmosphereTransparency);
+  // transparency *= finalAtmosphereTransparency;
+  // color += finalSkyIlluminance * finalAtmosphereTransparency;
 
   return color;
 }
 
-vec4 raymarchInterval(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, vec2 interval, out vec3 path_transmittance) {
+vec4 raymarchInterval(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, vec2 interval, out vec3 pathTransmittance) {
 #if NEW_RAYMARCH_IMPL
-  return raymarch(rayOrigin, rayDir, sunDir, interval);
+  vec3 color = raymarch(rayOrigin, rayDir, sunDir, interval, pathTransmittance);
+  return vec4(color, pathTransmittance.x);
 #else
-  vec3 pathTransmittance;
-  return old_raymarchInterval(rayOrigin, rayDir, sunDir, interval, out pathTransmittance);
+  return old_raymarchInterval(rayOrigin, rayDir, sunDir, interval, pathTransmittance);
+#endif
 }
 
 bool rayIntersectsSphere(vec2 intersectInterval) {
@@ -1092,18 +1113,18 @@ void getCloudLayerIntersects(vec3 rayOrigin, vec3 rayDir, out vec2 firstInterval
   }
 }
 
-vec4 getCloudColorFromRay(vec3 rayOrigin, vec3 rayDir, vec3 sunDir) {
+vec4 getCloudColorFromRay(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, vec3 transparency) {
   vec2 firstInterval, secondInterval;
   getCloudLayerIntersects(rayOrigin, rayDir, firstInterval, secondInterval);
 
-  float firstTransparency;
+  vec3 firstTransparency;
   vec3 firstColor = raymarch(rayOrigin, rayDir, sunDir, firstInterval, firstTransparency);
 
-  float secondTransparency;
+  vec3 secondTransparency;
   vec3 secondColor = raymarch(rayOrigin, rayDir, sunDir, secondInterval, secondTransparency);
 
-  float transparency = firstTransparency * secondTransparency;
-  return vec4(firstColor * secondColor, transparency);
+  transparency = firstTransparency * secondTransparency;
+  return vec4(firstColor * secondColor, transparency.x);
 }
 
 // ------------------------------------------------
@@ -1845,9 +1866,9 @@ void main() {
     vec4 cloudColor = getCloudColor(vsIn.rayOrigin, rayDir, uSunDir, surfaceDistance, transmittance);
     cloudColor.rgb *= eclipseShadow;
 
-    // vec4 cloudColor = getCloudColorFromRay(vsIn.rayOrigin, rayDir, uSunDir);
+    // vec3 transparency;
+    // vec4 cloudColor = getCloudColorFromRay(vsIn.rayOrigin, rayDir, uSunDir, transparency);
     // cloudColor.rgb *= eclipseShadow;
-    // float transparency = cloudColor.a; // = transmittance
 #if !ENABLE_HDR
     cloudColor.rgb = tonemap(cloudColor.rgb / uSunInfo.y);
 #endif

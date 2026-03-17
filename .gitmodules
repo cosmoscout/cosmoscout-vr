@@ -11,6 +11,13 @@
 [submodule "externals/opensg-1.8"]
 	path = externals/opensg-1.8
 	url = https://github.com/cosmoscout/opensg-1.8.git
+
+# Should not be required anymore but .\make_externals.bat throws error without c-ares submodule
+[submodule "externals/c-ares"]
+	path = externals/c-ares
+	url = https://github.com/cosmoscout/c-ares.git
+
+
 [submodule "externals/curl"]
 	path = externals/curl
 	url = https://github.com/cosmoscout/curl.git

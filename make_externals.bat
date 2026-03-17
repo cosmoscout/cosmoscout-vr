@@ -35,6 +35,7 @@ IF NOT errorlevel 1 (
 )
 
 set COSMOSCOUT_DEBUG_BUILD=true
+
 rem Check if ComoScout VR debug build is enabled with "set COSMOSCOUT_DEBUG_BUILD=true".
 IF "%COSMOSCOUT_DEBUG_BUILD%"=="true" (
   echo CosmoScout VR debug build is enabled!
