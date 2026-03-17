@@ -717,11 +717,13 @@ float lightAtPoint(vec3 pos, vec3 sunDir, vec3 camPos, out float originDensity) 
   // The light intensity is the exponential function of the integral of the cloud density times some constants along the ray.
   // Thus, by sampling at constant steps along the ray, we can first sum all the density values and exploit exp(d_1) * exp(d_2) * ... = exp(d_1 + d_2 + ...)
   // to calculate the final Riemann sum in the end.
-  while (tCurrStep <= tRayExitClouds) {
+  int steps = 0;
+  while (tCurrStep <= tRayExitClouds && steps < MAX_LI_STEPS) {
     samplePos = pos + tCurrStep * sunDir;
     // Sum up densities along the sun ray, retrieving the optical depth along this path.
     totalDensity += getCloudDensity(samplePos, camPos).x;
     tCurrStep += stepSize;
+    steps += 1;
   }
 
   float attenuation = exp(-totalDensity
@@ -743,7 +745,7 @@ float raymarchTransmittance(vec3 rayOrigin, vec3 rayDir, vec2 interval, vec3 cam
 
 // The function where all the integration happens
 // uses adaptive step sizes to bring performance to an acceptable level
-vec4 raymarchInterval(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, vec2 interval, out vec3 path_transmittance) {
+vec4 old_raymarchInterval(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, vec2 interval, out vec3 path_transmittance) {
   // Ray intersects cloud box behind the camera (ignore).
   if(interval.y < 0){
     path_transmittance = vec3(1);
@@ -1029,6 +1031,14 @@ vec3 raymarch(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, vec2 interval, out float
   }
 
   return color;
+}
+
+vec4 raymarchInterval(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, vec2 interval, out vec3 path_transmittance) {
+#if NEW_RAYMARCH_IMPL
+  return raymarch(rayOrigin, rayDir, sunDir, interval);
+#else
+  vec3 pathTransmittance;
+  return old_raymarchInterval(rayOrigin, rayDir, sunDir, interval, out pathTransmittance);
 }
 
 bool rayIntersectsSphere(vec2 intersectInterval) {
@@ -1362,8 +1372,8 @@ float getCloudShadow(vec3 rayOrigin, vec3 rayDir) {
   // Reduce cloud opacity when end point is very close to planet surface.
   float fac = clamp(abs(intersections.y) / fadeWidth, 0, 1);
   vec3 position  = rayOrigin + rayDir * intersections.y;
-  #if 
-  
+
+  #if OLD_CLOUDS
   return 1.0 - getCloudDensityDefault(rayOrigin, rayDir, intersections.y) * fac;
   #else
   topAltitude = PLANET_RADIUS + CUMULONIMBUS_END_HEIGHT;
@@ -1838,7 +1848,6 @@ void main() {
     // vec4 cloudColor = getCloudColorFromRay(vsIn.rayOrigin, rayDir, uSunDir);
     // cloudColor.rgb *= eclipseShadow;
     // float transparency = cloudColor.a; // = transmittance
-    
 #if !ENABLE_HDR
     cloudColor.rgb = tonemap(cloudColor.rgb / uSunInfo.y);
 #endif

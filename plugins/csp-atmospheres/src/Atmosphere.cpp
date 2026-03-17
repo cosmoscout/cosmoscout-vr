@@ -296,10 +296,7 @@ void Atmosphere::createShader(ShaderType type, VistaGLSLShader& shader, Uniforms
   if(mSettings.mEnableClouds.get() && !mCloudTexture){
     logger().warn("No cloud texture in config but clouds are enabled");
   }
-
-  auto old_clouds = std::to_string(!mSettings.mAdvancedClouds.get() || !(mCloudTypeTexture) || !(mCloudTexture));
-  vstr::debug() << "Set old clouds bool = " << old_clouds << std::endl;
-  cs::utils::replaceString(sFrag, "OLD_CLOUDS", old_clouds);
+  cs::utils::replaceString(sFrag, "OLD_CLOUDS", std::to_string(!mSettings.mAdvancedClouds.get() || !(mCloudTypeTexture) || !(mCloudTexture)));
 
   if(mSettings.mAdvancedClouds.get() && !mCloudTypeTexture){
     logger().warn("No cloud type texture in config but advanced clouds activated");

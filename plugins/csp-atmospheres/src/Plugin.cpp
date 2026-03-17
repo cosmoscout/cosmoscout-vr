@@ -90,6 +90,7 @@ void from_json(nlohmann::json const& j, Plugin::Settings::Atmosphere& o) {
   cs::core::Settings::deserialize(j, "cloudTypeMax", o.mCloudTypeMax);
 
   cs::core::Settings::deserialize(j, "newRaymarchTransmittanceImpl", o.mNewRaymarchTransmittanceImpl);
+  cs::core::Settings::deserialize(j, "newRaymarchImpl", o.mNewRaymarchImpl);
 }
 
 void to_json(nlohmann::json& j, Plugin::Settings::Atmosphere const& o) {
@@ -124,6 +125,7 @@ void to_json(nlohmann::json& j, Plugin::Settings::Atmosphere const& o) {
   cs::core::Settings::serialize(j, "cloudTypeMax", o.mCloudTypeMax);
 
   cs::core::Settings::serialize(j, "newRaymarchTransmittanceImpl", o.mNewRaymarchTransmittanceImpl);
+  cs::core::Settings::serialize(j, "newRaymarchImpl", o.mNewRaymarchImpl);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -171,6 +173,9 @@ void Plugin::init() {
                 "atmosphere.setAdvancedClouds", settings.mAdvancedClouds.get());
             mGuiManager->setSliderValue(
                 "atmosphere.setCloudAltitude", settings.mCloudAltitude.get());
+
+            mGuiManager->setCheckboxValue("atmosphere.setNewRaymarchTransmittanceImpl", settings.mNewRaymarchTransmittanceImpl.get());
+            mGuiManager->setCheckboxValue("atmosphere.setNewRaymarchImpl", settings.mNewRaymarchImpl.get());
           }
         }
       });
@@ -390,6 +395,16 @@ void Plugin::init() {
         }
       }));
 
+  mGuiManager->getGui()->registerCallback("atmosphere.setNewRaymarchImpl",
+      "Enables or disables new raymarch algorithm for advanced cloud rendering.",
+      std::function([this](bool enable) {
+        if (!mActiveAtmosphere.empty()) {
+          auto& settings           = mPluginSettings->mAtmospheres.at(mActiveAtmosphere);
+          settings.mNewRaymarchImpl = enable;
+          mAtmospheres.at(mActiveAtmosphere)->configure(settings);
+        }
+      }));
+
 
   // Load settings.
   onLoad();
@@ -433,6 +448,7 @@ void Plugin::deInit() {
   mGuiManager->getGui()->unregisterCallback("atmosphere.setCloudTypeMax");
 
   mGuiManager->getGui()->unregisterCallback("atmosphere.setNewRaymarchTransmittanceImpl");
+  mGuiManager->getGui()->unregisterCallback("atmosphere.setNewRaymarchImpl");
 
   mSolarSystem->pActiveObject.disconnect(mActiveObjectConnection);
   mAllSettings->onLoad().disconnect(mOnLoadConnection);
