@@ -386,7 +386,7 @@ cd "%BUILD_DIR%/cef/
 
 cmake %CMAKE_FLAGS% -DCMAKE_BUILD_TYPE=%BUILD_TYPE% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%"^
       -DCMAKE_UNITY_BUILD=%UNITY_BUILD% -DCEF_RUNTIME_LIBRARY_FLAG=/MD -DCEF_DEBUG_INFO_FLAG=""^
-      "%BUILD_DIR%/cef/extracted/%CEF_DIR%" || goto :error
+      -DCEF_COMPILER_DEFINES_DEBUG="_HAS_ITERATOR_DEBUGGING=1" "%BUILD_DIR%/cef/extracted/%CEF_DIR%" || goto :error
 
 cmake --build . --config %BUILD_TYPE% --parallel %NUMBER_OF_PROCESSORS% || goto :error
 
