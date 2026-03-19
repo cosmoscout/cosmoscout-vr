@@ -89,7 +89,7 @@ void from_json(nlohmann::json const& j, Plugin::Settings::Atmosphere& o) {
   cs::core::Settings::deserialize(j, "cloudTypeMin", o.mCloudTypeMin);
   cs::core::Settings::deserialize(j, "cloudTypeMax", o.mCloudTypeMax);
 
-  cs::core::Settings::deserialize(j, "newRaymarchTransmittanceImpl", o.mNewRaymarchTransmittanceImpl);
+  cs::core::Settings::deserialize(j, "experimentalCloudFeatures", o.mExperimentalCloudFeatures);
   cs::core::Settings::deserialize(j, "newRaymarchImpl", o.mNewRaymarchImpl);
 }
 
@@ -124,7 +124,7 @@ void to_json(nlohmann::json& j, Plugin::Settings::Atmosphere const& o) {
   cs::core::Settings::serialize(j, "cloudTypeMin", o.mCloudTypeMin);
   cs::core::Settings::serialize(j, "cloudTypeMax", o.mCloudTypeMax);
 
-  cs::core::Settings::serialize(j, "newRaymarchTransmittanceImpl", o.mNewRaymarchTransmittanceImpl);
+  cs::core::Settings::serialize(j, "experimentalCloudFeatures", o.mExperimentalCloudFeatures);
   cs::core::Settings::serialize(j, "newRaymarchImpl", o.mNewRaymarchImpl);
 }
 
@@ -174,7 +174,7 @@ void Plugin::init() {
             mGuiManager->setSliderValue(
                 "atmosphere.setCloudAltitude", settings.mCloudAltitude.get());
 
-            mGuiManager->setCheckboxValue("atmosphere.setNewRaymarchTransmittanceImpl", settings.mNewRaymarchTransmittanceImpl.get());
+            mGuiManager->setCheckboxValue("atmosphere.setNewRaymarchTransmittanceImpl", settings.mExperimentalCloudFeatures.get());
             mGuiManager->setCheckboxValue("atmosphere.setNewRaymarchImpl", settings.mNewRaymarchImpl.get());
           }
         }
@@ -385,12 +385,12 @@ void Plugin::init() {
         }
       }));
 
-  mGuiManager->getGui()->registerCallback("atmosphere.setNewRaymarchTransmittanceImpl",
-      "Enables or disables new raymarch transmittance algorithm for advanced cloud rendering.",
+  mGuiManager->getGui()->registerCallback("atmosphere.setExperimentalCloudFeatures",
+      "Enables or disables experimental features for advanced cloud rendering.",
       std::function([this](bool enable) {
         if (!mActiveAtmosphere.empty()) {
           auto& settings           = mPluginSettings->mAtmospheres.at(mActiveAtmosphere);
-          settings.mNewRaymarchTransmittanceImpl = enable;
+          settings.mExperimentalCloudFeatures = enable;
           mAtmospheres.at(mActiveAtmosphere)->configure(settings);
         }
       }));

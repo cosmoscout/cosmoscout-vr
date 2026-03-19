@@ -636,7 +636,9 @@ float henyeyGreenstein(vec3 r1, vec3 r2, float g){
 // raymarchTransmittance(...) = L(raymarch step pos., ray from sun to raymarch step) = Integral over extinction (lost light due to fading)
 // and incoming light from sun and the environment.
 
-float old_raymarchTransmittance(vec3 rayOrigin, vec3 rayDir, vec2 interval, vec3 cam_pos, int samples=10, bool jitter=true) {
+int MAX_TRANSMITTANCE_SAMPLES = 10;
+
+float old_raymarchTransmittance(vec3 rayOrigin, vec3 rayDir, vec2 interval, vec3 cam_pos, int samples, bool jitter=true) {
   if(interval.y < 0){ // Is intersection with cloud layer behind the camera?
     return 1.;
   }
@@ -645,9 +647,11 @@ float old_raymarchTransmittance(vec3 rayOrigin, vec3 rayDir, vec2 interval, vec3
   float MAXIMUM_DIST_BETWEEN_SAMPLES = 1000;
   float interval_length = interval.y - interval.x;
 
-  float last_extinction = getCloudDensity(rayOrigin, cam_pos).x * BASE_DENSITY * uCloudDensityMultiplier * (1+uCloudAbsorption);
+  float densityCoeff = BASE_DENSITY * uCloudDensityMultiplier * (1+uCloudAbsorption);
+  float last_extinction = getCloudDensity(rayOrigin, cam_pos).x * densityCoeff;
   vec3 position = rayOrigin;
-  for(int i = 1; i <= samples * CLOUD_QUALITY; ++i){
+  int maxSamples = min(int(float(samples) * CLOUD_QUALITY), MAX_TRANSMITTANCE_SAMPLES);
+  for(int i = 1; i <= maxSamples; ++i){
     // float dist_to_cam = length(rayOrigin - cam_pos);
 
     // What is jitter doing?
@@ -668,9 +672,8 @@ float old_raymarchTransmittance(vec3 rayOrigin, vec3 rayDir, vec2 interval, vec3
       // (cam_pos needed to calculate observer distance when applying texture LOD, improves performance)
       float local_density = getCloudDensity(position, cam_pos, false).x;
 
-      // Scatter = (sort of like) reflection of light at point
-      float scatter_coefficient = local_density * BASE_DENSITY * uCloudDensityMultiplier;
-      float extinction = scatter_coefficient * (1+uCloudAbsorption);
+      // Scatter = (sort of like) reflection of light at point (In-scatter => reflection toward point)
+      float extinction = local_density * densityCoeff;
       float clamped_dist = clamp(dist, 0, MAXIMUM_DIST_BETWEEN_SAMPLES);
 
       // exp(tau(r_i, r_i+1)), r_i, r_i+1 segment start/end along ray from sun to step pos.
@@ -679,6 +682,7 @@ float old_raymarchTransmittance(vec3 rayOrigin, vec3 rayDir, vec2 interval, vec3
       last_extinction = extinction;
     }
   }
+
   return path_transmittance;
 }
 
@@ -697,15 +701,9 @@ float EXTINCTION_COEFF = ABSORPTION_COEFF + SCATTER_COEFF;
 // pos = Current sample pos
 // sunDir = Direction toward the sun (assumed to be infinitely far away in order to use same dir. for all calculations)
 // camPos = Needed in density computation for LOD textures
-float lightAtPoint(vec3 pos, vec3 sunDir, vec2 interval, vec3 camPos, out float originDensity) {
+float lightAtPoint(vec3 pos, vec3 sunDir, vec2 interval, vec3 camPos, int samples = 10, float density = -1.0) {
   // Shoot a ray toward the sun. Sample the light intensity (via cloud density, scattering, etc.).
-  // First, find the (parametric) distance of the ray travelled inside the cloud:
-  // vec2 rayCloudIntersect = intersectSphere(pos, sunDir, PLANET_RADIUS + CUMULONIMBUS_END_HEIGHT);
-  
-  // Line 947 in shader compiler
-
-  // New implementation: interval along which function samples light intensity is given via parameter:
-  float tRayExit = interval.y; // We assume the ray always starts inside the cloud layer (hence cloudInterval.x is behind the camera).
+  float tRayExit = interval.y; // We assume the ray always starts inside the cloud layer (hence interval.x is behind the camera).
   if (tRayExit < 0) { // Are clouds behind the camera?
     return 1.0;
   }
@@ -713,23 +711,22 @@ float lightAtPoint(vec3 pos, vec3 sunDir, vec2 interval, vec3 camPos, out float 
   float stepSize = BASE_LI_STEP_SIZE; // = dx
   float tCurrStep = stepSize;
   vec3 samplePos = pos + interval.x * sunDir;
-
-  originDensity = getCloudDensity(pos, camPos, true).x;
-  float totalDensity = originDensity;
+  density = density < 0.0 ? getCloudDensity(pos, camPos).x : density;
 
   // The light intensity is the exponential function of the integral of the cloud density times some constants along the ray.
   // Thus, by sampling at constant steps along the ray, we can first sum all the density values and exploit exp(d_1) * exp(d_2) * ... = exp(d_1 + d_2 + ...)
   // to calculate the final Riemann sum in the end.
   int steps = 0;
-  while (tCurrStep <= tRayExit && steps < MAX_LI_STEPS) {
-    samplePos = pos + tCurrStep * sunDir;
-    // Sum up densities along the sun ray, retrieving the optical depth along this path.
-    totalDensity += getCloudDensity(samplePos, camPos).x;
-    tCurrStep += stepSize;
+  while (tCurrStep <= tRayExit && steps < samples) {
     steps += 1;
+    samplePos += stepSize * sunDir;
+    // Sum up densities along the sun ray, retrieving the optical depth along this path.
+    density += getCloudDensity(samplePos, camPos, false).x;
+
+    tCurrStep += stepSize;
   }
 
-  float attenuation = exp(-totalDensity
+  float attenuation = exp(-density
     //* BASE_DENSITY * uCloudDensityMultiplier // Physical constants
     * stepSize // dx
     * EXTINCTION_COEFF
@@ -739,12 +736,13 @@ float lightAtPoint(vec3 pos, vec3 sunDir, vec2 interval, vec3 camPos, out float 
 
 float raymarchTransmittance(vec3 rayOrigin, vec3 rayDir, vec2 interval, vec3 cam_pos, int samples=10, bool jitter=true) {
 #if NEW_RAYMARCH_TRANSMITTANCE_IMPL
-    float originalDensity;
-    return lightAtPoint(rayOrigin, rayDir, interval, cam_pos, originalDensity);
+    return lightAtPoint(rayOrigin, rayDir, interval, cam_pos, samples);
 #else
     return old_raymarchTransmittance(rayOrigin, rayDir, interval, cam_pos, samples, jitter);
 #endif
 }
+
+int SAMPLE_TRANSMITTANCE_STRIDE = 3;
 
 // The function where all the integration happens
 // uses adaptive step sizes to bring performance to an acceptable level
@@ -794,6 +792,12 @@ vec4 old_raymarchInterval(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, vec2 interva
   float quality_multiplier = 1 / CLOUD_QUALITY;
   float small_step = 200 / interval_length;
   float big_step = 1000 / interval_length;
+
+  // Idea: sample transmittance to sun only every couple steps and interpolate the sampled values in between
+  float currSampledTransmittance = 1.0;
+  float nextSampledTransmittance = 1.0;
+  float leftTransmittanceEdge = 1.0;
+  float rightTransmittanceEdge = 1.0;
 
   //===== BEGIN OF RAY MARCHING LOOP ======
   
@@ -857,11 +861,16 @@ vec4 old_raymarchInterval(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, vec2 interva
     if(in_cloud || encounter_cloud){
       float jitter_multiplier = remap(hash33(position).x, 0, 1, 1 - JITTER_INTENSITY * .5, 1 + JITTER_INTENSITY * .5);
       float close_up_multiplier = remap(t_now, 0, MID_DISTANCE, .1, 1);
-      step_size = small_step* jitter_multiplier * close_up_multiplier;
+      step_size = small_step * jitter_multiplier * close_up_multiplier;
     }else{
       step_size = min(big_step, .02 * quality_multiplier);
     }
-    step_size = step_size * quality_multiplier;
+    step_size *= quality_multiplier;
+
+// #if EXPERIMENTAL_CLOUD_FEATURES
+//     // Increase step size with every step
+//     step_size += samples_taken > 100 ? float(samples_taken) * small_step / CLOUD_QUALITY : 0;
+// #endif
     progress += step_size;
 
     progress = clamp(progress, 0, 1);
@@ -886,7 +895,7 @@ vec4 old_raymarchInterval(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, vec2 interva
       local_incoming = vec3(144809.5,129443.421875,127098.6484375) * incoming_transmittance;
 
       if(local_density > 0){
-        if(!encounter_cloud){
+        if(!encounter_cloud){ // Just encountered a cloud, recalculate prev steps (?)
           encounter_cloud = true;
           progress -= step_size;
           continue;
@@ -912,15 +921,31 @@ vec4 old_raymarchInterval(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, vec2 interva
         float transmittance_along_segment = exp(-sigma_e * sdist);
         vec3 direct_incoming = local_incoming;
 
-        // get transmittance through clouds
+        // Every n steps, calculate transmittance through clouds at (curr + n)-th step and interpolate values in between
+        int transmittance_samples = int(remap(path_transmittance.r, 0, 1, 2, MAX_TRANSMITTANCE_SAMPLES));
         vec2 top_intersection = intersectSphere(position, sunDir, PLANET_RADIUS + CUMULONIMBUS_END_HEIGHT);
+        float sampledInTransmittance;
+#if EXPERIMENTAL_CLOUD_FEATURES
+        int transmittanceStepMod = samples_taken % SAMPLE_TRANSMITTANCE_STRIDE;
+        if (samples_taken > SAMPLE_TRANSMITTANCE_STRIDE * 2 && transmittanceStepMod == 0) {
+          currSampledTransmittance = nextSampledTransmittance;
+          
+          // Evaluate transmittance at next position in the future
+          vec3 nextPosition = position += rayDir * step_size;
+          nextSampledTransmittance = SECONDARY_RAYS ? raymarchTransmittance(nextPosition, sunDir, vec2(0, top_intersection.y), rayOrigin, transmittance_samples) : 1.0;
 
-        // 10 = min_new, 2 = max_new ?
-        int transmittance_samples = int(remap(path_transmittance.r, 0, 1, 10, 2));
-        //                                        raymarchTransmittance(vec3 rayOrigin, vec3 rayDir, vec2 interval, vec3 camPos, int samples)
-        // Calculate in_transmittance = light intensity at 'position' by shooting ray position + t * sunDir, with rayOrigin (camera pos.) as origin
-        float in_transmittance = SECONDARY_RAYS ? raymarchTransmittance(position, sunDir, vec2(0, top_intersection.y), rayOrigin, transmittance_samples) : 1;
-        direct_incoming *= in_transmittance;
+          leftTransmittanceEdge = min(currSampledTransmittance, nextSampledTransmittance);
+          rightTransmittanceEdge = max(currSampledTransmittance, nextSampledTransmittance);
+          sampledInTransmittance = smoothstep(leftTransmittanceEdge, rightTransmittanceEdge, transmittanceStepMod / SAMPLE_TRANSMITTANCE_STRIDE);
+        } else {
+            currSampledTransmittance = SECONDARY_RAYS ? raymarchTransmittance(position, sunDir, vec2(0, top_intersection.y), rayOrigin, transmittance_samples) : 1.0;
+            sampledInTransmittance = currSampledTransmittance;
+        }
+#else
+        sampledInTransmittance = SECONDARY_RAYS ? raymarchTransmittance(position, sunDir, vec2(0, top_intersection.y), rayOrigin, transmittance_samples) : 1.0;
+#endif
+        // get transmittance through clouds
+        direct_incoming *= sampledInTransmittance;
 
         // multiscattering approximation like in Nubis
         float ms_volume = remap(scatter_coefficient * dist, .1, 1.0, 0.0, 1.0);
@@ -984,8 +1009,8 @@ vec4 old_raymarchInterval(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, vec2 interva
 
 // ------------ NEW RAYMARCH ALGORITHM ------------
 
-int MAX_RAYMARCH_STEPS = 10;
-float BASE_RAYMARCH_STEP_SIZE = 0.1; //float((CUMULONIMBUS_END_HEIGHT - CUMULONIMBUS_START_HEIGHT) / MAX_RAYMARCH_STEPS);
+int MAX_RAYMARCH_STEPS = 100;
+// float BASE_RAYMARCH_STEP_SIZE = (CUMULONIMBUS_END_HEIGHT - CUMULONIMBUS_START_HEIGHT) / float(MAX_RAYMARCH_STEPS);
 bool RAYMARCH_STEP_JITTER = false;
 float RAYMARCH_JITTER_FORCE = 0.5;
 
@@ -993,70 +1018,79 @@ float RAYMARCH_JITTER_FORCE = 0.5;
 // The ray stops when the light attenuation approaches 1.0 or when the ray exists the cloud layer.
 // interval = Interval of ray going through cloud layer
 // (Original impl.) pathTransmittance = transparency (basically, light that shines through the clouds due to density < 1)
-vec3 raymarch(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, vec2 interval, out vec3 transparency) {
-  // if (interval.y < 0) { // Are clouds behind the camera?
-  //   return vec3(1.0);
-  // }
+vec3 raymarch(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, vec2 interval, out vec3 transmittance) {
   float tRayEnterCloud = interval.x;
+  float tRayExitCloud = interval.y;
+  float intervalLen = tRayExitCloud - tRayEnterCloud;
+
+  float stepSize = intervalLen / (MAX_RAYMARCH_STEPS * CLOUD_QUALITY);
   vec3 startPos = rayOrigin + tRayEnterCloud * rayDir;
-
-  vec3 color = vec3(0.0);
-  transparency = vec3(1.0);
-
-  // Apply initial atmosphere luminance
-  // vec3 atmosphereTransparency;
-  // vec3 skyIlluminance = GetSkyLuminanceToPoint(startPos, rayOrigin, sunDir, atmosphereTransparency);
-  // transparency *= atmosphereTransparency;
-  // color += skyIlluminance * atmosphereTransparency;
-
-  float phase = henyeyGreenstein(sunDir, -rayDir, .99);
-
-  int maxSteps = int(MAX_RAYMARCH_STEPS * CLOUD_QUALITY);
+  int steps = 0;
   float tRayStep = 0.0;
-  vec3 samplePos = rayOrigin;
-  for (int i = 0; i < maxSteps; i++) {
-    // Add some noise to the step size to avoid color banding.
-    // Color banding (cloud colors forming staircase patterns) occurs, when all steps (and all rays) sample cloud colors in the same intervals.
-    // As the cloud color is not continuous but discretely approximated, the differences in color become more visible as multiple rays leave
-    // cutoffs between each step.
-    float stepSize = BASE_RAYMARCH_STEP_SIZE;
-    if (RAYMARCH_STEP_JITTER) {
+  vec3 samplePos = startPos;
+
+  // bool enterCloud = false;
+  float phase = henyeyGreenstein(sunDir, -rayDir, .99);
+  float enterDensity = getCloudDensity(startPos, rayOrigin).x; // Redundant call only for inCloud/scatterCoeff
+  bool inCloud = enterDensity > 1e-5;
+
+  float scatterCoeff = exp(enterDensity * BASE_DENSITY * uCloudDensityMultiplier);
+  vec3 inscattering = vec3(0.0);
+  transmittance = vec3(1.0);
+
+  while (tRayStep < tRayExitCloud && steps <= MAX_RAYMARCH_STEPS) {
+    steps += 1;
+
+    // Check if actually inside a cloud structure
+    float density = getCloudDensity(samplePos, rayOrigin, false).x; // Whats the y-component for?
+    if (density.x > 1e-5) {
+      // enterCloud = !inCloud;
+      if (!inCloud) { // We just encountered a cloud: calculate atmospheric luminance and transmittance
+        vec3 atmosphericTransmittance;
+        vec3 atmosphericScattering = GetSkyLuminanceToPoint(startPos, samplePos, sunDir, atmosphericTransmittance);
+        inscattering += transmittance * atmosphericScattering;
+        transmittance *= atmosphericTransmittance;
+      }
+      inCloud = true;
+    } else {
+      // enterCloud = false;
+      inCloud = false;
+    }
+
+    if (inCloud) {
+      // To begin, get the light received through the atmosphere model.
+      vec3 incomingTransmittance;
+      vec3 incomingScattering = GetSkyLuminance(samplePos, sunDir, sunDir, incomingTransmittance);
+      incomingScattering *= 10000; // Apparently needs a rescale to have any weight on the result
+
+      // Next, shoot a ray toward the sun to integrate the total light received at the current sample point.
+      vec2 sunRayInsideCloudsInterval = intersectSphere(samplePos, sunDir, PLANET_RADIUS + CUMULONIMBUS_END_HEIGHT);
+      float incomingCloudTransmittance = lightAtPoint(samplePos, sunDir, interval, rayOrigin, 10, density);
+      // Scale the light received through the atmosphere with the light absorbed/out-scattered due to clouds in the way.
+      incomingTransmittance *= incomingCloudTransmittance;
+
+      // Inscattering increases from transmittance along cloud ray, sun ray, the atmosphere phase times step size (= dx)
+      inscattering += transmittance * incomingTransmittance * phase * stepSize;
+      transmittance *= exp(-density * stepSize * scatterCoeff); // Sample transmittance along the cloud ray
+    }
+
+    // Calculate next step size along the ray
+    if (inCloud && RAYMARCH_STEP_JITTER) {
       float randVal = hash33(startPos).x; // \in [0, 1]
       randVal = remap(randVal, 0, 1, -RAYMARCH_JITTER_FORCE, RAYMARCH_JITTER_FORCE);
       stepSize *= randVal;
     }
-
+    stepSize = pow(stepSize, 2); // Increase step size quadratically as samples further back are less visible
     tRayStep += stepSize;
-    samplePos += tRayStep * rayDir;
-
-    vec2 cloudIntersectInterval = intersectSphere(samplePos, sunDir, PLANET_RADIUS + CUMULONIMBUS_END_HEIGHT);
-    vec2 visibleCloudInterval = vec2(0.0, cloudIntersectInterval.y);
-
-    float samplePosDensity;
-    float sampleAttenuation = lightAtPoint(samplePos, sunDir, visibleCloudInterval, rayOrigin, samplePosDensity);
-    float sampleTransparency = exp(-stepSize * samplePosDensity * EXTINCTION_COEFF);
-    transparency *= vec3(sampleTransparency);
-
-    color += sampleAttenuation // Light intensity (= light ray transmission from the sun)
-      * stepSize // dx
-      * phase // Atmospheric effects
-      * transparency
-      * samplePosDensity; // Cloud density at sample position
+    samplePos += rayDir * stepSize;
   }
 
-  // Apply final sky illuminance at exit pos
-  // vec3 finalAtmosphereTransparency;
-  // vec3 finalSkyIlluminance = GetSkyLuminanceToPoint(samplePos, rayOrigin, sunDir, finalAtmosphereTransparency);
-  // transparency *= finalAtmosphereTransparency;
-  // color += finalSkyIlluminance * finalAtmosphereTransparency;
-
-  return color;
+  return inscattering;
 }
 
 vec4 raymarchInterval(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, vec2 interval, out vec3 pathTransmittance) {
 #if NEW_RAYMARCH_IMPL
-  vec3 color = raymarch(rayOrigin, rayDir, sunDir, interval, pathTransmittance);
-  return vec4(color, pathTransmittance.x);
+  return vec4(raymarch(rayOrigin, rayDir, sunDir, interval, pathTransmittance), pathTransmittance.r);
 #else
   return old_raymarchInterval(rayOrigin, rayDir, sunDir, interval, pathTransmittance);
 #endif
@@ -1113,29 +1147,19 @@ void getCloudLayerIntersects(vec3 rayOrigin, vec3 rayDir, out vec2 firstInterval
   }
 }
 
-vec4 getCloudColorFromRay(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, vec3 transparency) {
+vec4 getCloudColorFromRay(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, vec3 transmittance) {
   vec2 firstInterval, secondInterval;
   getCloudLayerIntersects(rayOrigin, rayDir, firstInterval, secondInterval);
 
-  vec3 firstTransparency;
-  vec3 firstColor = raymarch(rayOrigin, rayDir, sunDir, firstInterval, firstTransparency);
+  vec3 firstTransmittance;
+  vec3 firstInscatter = raymarch(rayOrigin, rayDir, sunDir, firstInterval, firstTransmittance);
 
-  vec3 secondTransparency;
-  vec3 secondColor = raymarch(rayOrigin, rayDir, sunDir, secondInterval, secondTransparency);
+  vec3 secondTransmittance;
+  vec3 secondInscatter = raymarch(rayOrigin, rayDir, sunDir, secondInterval, secondTransmittance);
 
-  transparency = firstTransparency * secondTransparency;
-  return vec4(firstColor * secondColor, transparency.x);
+  transmittance = firstTransmittance * secondTransmittance;
+  return vec4(firstInscatter + secondInscatter, transmittance.x);
 }
-
-// ------------------------------------------------
-
-// bool NEW_RAYMARCH_IMPL = true;
-
-// vec4 raymarchInterval(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, vec2 interval, out vec3 path_transmittance){
-//   if (NEW_RAYMARCH_IMPL) {
-//     raymarch(rayOrigin, rayDir, sunDir, interval, path_transmittance);
-//   }  
-// }
 
 // ------------------------------------------------
 
@@ -1397,11 +1421,8 @@ float getCloudShadow(vec3 rayOrigin, vec3 rayDir) {
   #if OLD_CLOUDS
   return 1.0 - getCloudDensityDefault(rayOrigin, rayDir, intersections.y) * fac;
   #else
-  topAltitude = PLANET_RADIUS + CUMULONIMBUS_END_HEIGHT;
-  thickness = CUMULONIMBUS_END_HEIGHT - CUMULONIMBUS_START_HEIGHT;
-
-  vec2 topIntersections = intersectSphere(rayOrigin, rayDir, topAltitude);
-  vec2 lowIntersections = intersectSphere(rayOrigin, rayDir, topAltitude - thickness);
+  vec2 topIntersections = intersectSphere(rayOrigin, rayDir, PLANET_RADIUS + CUMULONIMBUS_END_HEIGHT);
+  vec2 lowIntersections = intersectSphere(rayOrigin, rayDir, PLANET_RADIUS + CUMULONIMBUS_START_HEIGHT);
   vec2 interval = vec2(lowIntersections.y, topIntersections.y);
   int transmittance_samples = int(remap(interval.y - interval.x, 10000, 100000, 50, 100));
   float transmittance = raymarchTransmittance(rayOrigin, rayDir, interval, rayOrigin, transmittance_samples, false);
