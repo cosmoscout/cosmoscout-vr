@@ -742,7 +742,7 @@ float raymarchTransmittance(vec3 rayOrigin, vec3 rayDir, vec2 interval, vec3 cam
 #endif
 }
 
-int SAMPLE_TRANSMITTANCE_STRIDE = 3;
+int SAMPLE_TRANSMITTANCE_STRIDE = 4;
 
 // The function where all the integration happens
 // uses adaptive step sizes to bring performance to an acceptable level
@@ -927,19 +927,21 @@ vec4 old_raymarchInterval(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, vec2 interva
         float sampledInTransmittance;
 #if EXPERIMENTAL_CLOUD_FEATURES
         int transmittanceStepMod = samples_taken % SAMPLE_TRANSMITTANCE_STRIDE;
-        if (samples_taken > SAMPLE_TRANSMITTANCE_STRIDE * 2 && transmittanceStepMod == 0) {
+        if (transmittanceStepMod == 0) {
           currSampledTransmittance = nextSampledTransmittance;
           
           // Evaluate transmittance at next position in the future
           vec3 nextPosition = position += rayDir * step_size;
-          nextSampledTransmittance = SECONDARY_RAYS ? raymarchTransmittance(nextPosition, sunDir, vec2(0, top_intersection.y), rayOrigin, transmittance_samples) : 1.0;
-
-          leftTransmittanceEdge = min(currSampledTransmittance, nextSampledTransmittance);
-          rightTransmittanceEdge = max(currSampledTransmittance, nextSampledTransmittance);
-          sampledInTransmittance = smoothstep(leftTransmittanceEdge, rightTransmittanceEdge, transmittanceStepMod / SAMPLE_TRANSMITTANCE_STRIDE);
+          nextSampledTransmittance = SECONDARY_RAYS ? raymarchTransmittance(nextPosition, sunDir, vec2(0, top_intersection.y), rayOrigin, transmittance_samples) : 1.0;          
+          sampledInTransmittance = nextSampledTransmittance;
         } else {
-            currSampledTransmittance = SECONDARY_RAYS ? raymarchTransmittance(position, sunDir, vec2(0, top_intersection.y), rayOrigin, transmittance_samples) : 1.0;
-            sampledInTransmittance = currSampledTransmittance;
+          // Hermite:
+          // leftTransmittanceEdge = min(currSampledTransmittance, nextSampledTransmittance);
+          // rightTransmittanceEdge = max(currSampledTransmittance, nextSampledTransmittance);
+          // sampledInTransmittance = smoothstep(leftTransmittanceEdge, rightTransmittanceEdge, transmittanceStepMod / SAMPLE_TRANSMITTANCE_STRIDE);
+
+          // Linear:
+          sampledInTransmittance = mix(currSampledTransmittance, nextSampledTransmittance, transmittanceStepMod / SAMPLE_TRANSMITTANCE_STRIDE);
         }
 #else
         sampledInTransmittance = SECONDARY_RAYS ? raymarchTransmittance(position, sunDir, vec2(0, top_intersection.y), rayOrigin, transmittance_samples) : 1.0;
