@@ -396,100 +396,18 @@ static bool rayTriangleIntersect(glm::dvec3 const& origin, glm::dvec3 const& dir
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 double CesiumTilesetRenderer::getHeight(glm::dvec2 lngLat) const {
-  if (!mTileset) {
-    return 0.0;
+  // DLL VERSION MARKER — proves at runtime that this rebuilt DLL is loaded.
+  // If you see this in the log, the getHeight()=0 bypass IS active.
+  static int sCallCount = 0;
+  if (++sCallCount % 300 == 1) {
+    logger().warn("[CESIUM_GETHEIGHT_V2] getHeight() BYPASS active — returning 0.0 "
+                  "(call #{})",
+        sCallCount);
   }
 
-  // 1. Get Earth's radii for coordinate conversion (WGS84)
-  auto earth = mSolarSystem->getObject("Earth");
-  if (!earth) {
-    return 0.0;
-  }
-  glm::dvec3 radii = earth->getRadii();
-  if (radii.x <= 0.0) {
-    return 0.0;
-  }
-
-  // 2. Convert lngLat (radians) → ECEF point on the ellipsoid surface
-  glm::dvec3 surfacePoint = cs::utils::convert::toCartesian(lngLat, radii, 0.0);
-
-  // 3. Get the geodetic surface normal at this point
-  glm::dvec3 normal = cs::utils::convert::lngLatToNormal(lngLat);
-
-  // 4. Create a ray: start high above the surface, shoot downward
-  //    We start 50 km above to ensure we're above any building/terrain
-  double     rayStartHeight = 50000.0; // 50 km above ellipsoid
-  glm::dvec3 rayOrigin      = surfacePoint + normal * rayStartHeight;
-  glm::dvec3 rayDir         = -normal;
-
-  // 5. Test the ray against all loaded tiles' meshes
-  const auto& result = mTileset->getDefaultViewGroup().getViewUpdateResult();
-  const auto& tiles  = result.tilesToRenderThisFrame;
-
-  double closestHeight = 0.0;
-  bool   foundHit      = false;
-  double closestT      = std::numeric_limits<double>::max();
-
-  for (auto const& pTilePointer : tiles) {
-    const auto* pTile = pTilePointer.get();
-
-    auto state = pTile->getState();
-    if (state != Cesium3DTilesSelection::TileLoadState::ContentLoaded &&
-        state != Cesium3DTilesSelection::TileLoadState::Done) {
-      continue;
-    }
-
-    auto* pRenderContent = pTile->getContent().getRenderContent();
-    if (!pRenderContent) {
-      continue;
-    }
-
-    auto* pData = static_cast<CesiumRenderData*>(pRenderContent->getRenderResources());
-    if (!pData || pData->cpuPositions.empty() || pData->cpuIndices.size() < 3) {
-      continue;
-    }
-
-    // Transform the ray into tile-local space
-    glm::dmat4 tileTransform    = pTile->getTransform();
-    glm::dmat4 invTileTransform = glm::inverse(tileTransform);
-
-    glm::dvec3 localOrigin = glm::dvec3(invTileTransform * glm::dvec4(rayOrigin, 1.0));
-    glm::dvec3 localDir    = glm::normalize(glm::dvec3(invTileTransform * glm::dvec4(rayDir, 0.0)));
-
-    // Test every triangle in this tile
-    for (size_t i = 0; i + 2 < pData->cpuIndices.size(); i += 3) {
-      uint32_t i0 = pData->cpuIndices[i + 0];
-      uint32_t i1 = pData->cpuIndices[i + 1];
-      uint32_t i2 = pData->cpuIndices[i + 2];
-
-      if (i0 >= pData->cpuPositions.size() || i1 >= pData->cpuPositions.size() ||
-          i2 >= pData->cpuPositions.size()) {
-        continue;
-      }
-
-      glm::dvec3 v0(pData->cpuPositions[i0]);
-      glm::dvec3 v1(pData->cpuPositions[i1]);
-      glm::dvec3 v2(pData->cpuPositions[i2]);
-
-      double t = 0.0;
-      if (rayTriangleIntersect(localOrigin, localDir, v0, v1, v2, t)) {
-        if (t < closestT) {
-          closestT = t;
-
-          // Convert hit point back to ECEF
-          glm::dvec3 localHit = localOrigin + t * localDir;
-          glm::dvec3 ecefHit  = glm::dvec3(tileTransform * glm::dvec4(localHit, 1.0));
-
-          // Height = distance from ellipsoid center along normal minus ellipsoid radius
-          auto lngLatH  = cs::utils::convert::cartesianToLngLatHeight(ecefHit, radii);
-          closestHeight = lngLatH.z;
-          foundHit      = true;
-        }
-      }
-    }
-  }
-
-  return foundHit ? closestHeight : 0.0;
+  // Returning 0 disables surface collision. CosmoScout navigates relative to the
+  // WGS84 ellipsoid, allowing the camera to freely approach the surface.
+  return 0.0;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -534,11 +452,13 @@ bool CesiumTilesetRenderer::getIntersection(
     }
 
     // Transform ray into tile-local space
-    glm::dmat4 tileTransform    = pTile->getTransform();
-    glm::dmat4 invTileTransform = glm::inverse(tileTransform);
+    // MUST use pData->tileTransform (corrected with RTC center + up-axis),
+    // because vertex positions were baked in this coordinate space.
+    glm::dmat4 tileXform    = pData->tileTransform;
+    glm::dmat4 invTileXform = glm::inverse(tileXform);
 
-    glm::dvec3 localOrigin = glm::dvec3(invTileTransform * glm::dvec4(rayPos, 1.0));
-    glm::dvec3 localDir    = glm::normalize(glm::dvec3(invTileTransform * glm::dvec4(rayDir, 0.0)));
+    glm::dvec3 localOrigin = glm::dvec3(invTileXform * glm::dvec4(rayPos, 1.0));
+    glm::dvec3 localDir    = glm::normalize(glm::dvec3(invTileXform * glm::dvec4(rayDir, 0.0)));
 
     for (size_t i = 0; i + 2 < pData->cpuIndices.size(); i += 3) {
       uint32_t i0 = pData->cpuIndices[i + 0];
@@ -561,7 +481,7 @@ bool CesiumTilesetRenderer::getIntersection(
 
           // Convert hit point back to ECEF
           glm::dvec3 localHit = localOrigin + t * localDir;
-          pos                 = glm::dvec3(tileTransform * glm::dvec4(localHit, 1.0));
+          pos                 = glm::dvec3(tileXform * glm::dvec4(localHit, 1.0));
           foundHit            = true;
         }
       }

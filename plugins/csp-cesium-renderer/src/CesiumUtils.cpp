@@ -1,3 +1,10 @@
+////////////////////////////////////////////////////////////////////////////////////////////////////
+//                               This file is part of CosmoScout VR                               //
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
+// SPDX-License-Identifier: MIT
+
 #include "CesiumUtils.hpp"
 #include "logger.hpp"
 #include <CesiumAsync/AsyncSystem.h>
@@ -263,13 +270,36 @@ StubPrepareRendererResources::prepareInLoadThread(const CesiumAsync::AsyncSystem
 
   // --- STEP C: Compute CORRECTED root transform ---
   // 'transform' is the tile-to-ECEF matrix from Cesium's selection algorithm.
-  // We must apply two additional corrections that Cesium expects the renderer to handle:
+  // We must apply three corrections that the renderer needs:
   //   1. applyRtcCenter: adds the RTC_CENTER offset (for tiles using relative positioning)
-  //   2. applyGltfUpAxisTransform: corrects Y-up → Z-up axis mismatch
+  //   2. applyGltfUpAxisTransform: corrects Y-up → Z-up axis mismatch (per 3D Tiles spec)
+  //   3. ECEF → CosmoScout axis permutation (see below)
   glm::dmat4 rootTransform = transform;
   rootTransform = CesiumGltfContent::GltfUtilities::applyRtcCenter(*pModel, rootTransform);
   rootTransform =
       CesiumGltfContent::GltfUtilities::applyGltfUpAxisTransform(*pModel, rootTransform);
+
+  // --- STEP C2: ECEF → CosmoScout-GLM axis permutation ---
+  // CosmoScout's core engine swizzles ALL SPICE coordinates when converting to its internal
+  // GLM rendering frame (see CelestialAnchor.cpp lines 99 and 110):
+  //   GLM.x = SPICE-Y  (90° East longitude)
+  //   GLM.y = SPICE-Z  (North Pole)
+  //   GLM.z = SPICE-X  (Prime Meridian, 0° longitude)
+  //
+  // Cesium tiles output standard ECEF where X=Prime Meridian, Y=90°E, Z=North.
+  // Without this correction, the Earth mesh appears rotated because the North Pole axis
+  // (ECEF-Z) lands on CosmoScout's Z-axis (Prime Meridian) instead of Y-axis (North).
+  //
+  // The permutation matrix maps: ECEF(X,Y,Z) → GLM(Y,Z,X)
+  //   Column 0: ECEF-X (Prime Meridian) → GLM-Z  → (0, 0, 1)
+  //   Column 1: ECEF-Y (90° East)       → GLM-X  → (1, 0, 0)
+  //   Column 2: ECEF-Z (North Pole)     → GLM-Y  → (0, 1, 0)
+  static const glm::dmat4 ecefToCosmoScout(0.0, 0.0, 1.0, 0.0, // col 0: ECEF-X → GLM-Z
+      1.0, 0.0, 0.0, 0.0,                                      // col 1: ECEF-Y → GLM-X
+      0.0, 1.0, 0.0, 0.0,                                      // col 2: ECEF-Z → GLM-Y
+      0.0, 0.0, 0.0, 1.0                                       // col 3: no translation
+  );
+  rootTransform = ecefToCosmoScout * rootTransform;
 
   // Store the corrected transform for the renderer to use (64-bit, composed with
   // observerToEarth in the draw loop for observer-relative precision).

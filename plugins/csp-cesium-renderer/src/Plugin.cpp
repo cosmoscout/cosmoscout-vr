@@ -20,6 +20,7 @@
 
 // CosmoScout headers for the Math Bridge
 #include "../../../src/cs-core/SolarSystem.hpp"
+#include "../../../src/cs-utils/convert.hpp"
 
 // ViSTA headers for real viewport/projection extraction
 #include <VistaKernel/DisplayManager/VistaDisplayManager.h>
@@ -139,10 +140,13 @@ void Plugin::update() {
   mAsyncSystem->dispatchMainThreadTasks();
 
   // --- Convert CosmoScout's camera to Cesium's ECEF frame ---
-  // Since observer.center='Earth' and observer.frame='IAU_Earth',
-  // observer.getPosition() IS directly the camera ECEF position in meters!
-  auto&      observer        = mSolarSystem->getObserver();
-  glm::dvec3 camPositionECEF = observer.getPosition();
+  // observer.getPosition() returns the camera position in CosmoScout's swizzled GLM frame
+  // (GLM-X=90°E, GLM-Y=North, GLM-Z=PrimeMeridian — see CelestialAnchor.cpp:99-110).
+  // Cesium expects standard ECEF (X=PrimeMeridian, Y=90°E, Z=North).
+  // The inverse permutation: ECEF(X,Y,Z) = GLM(Z,X,Y)
+  auto&      observer = mSolarSystem->getObserver();
+  glm::dvec3 glmPos   = observer.getPosition();
+  glm::dvec3 camPositionECEF(glmPos.z, glmPos.x, glmPos.y);
 
   // Guard: Skip Cesium updates while the observer is still flying to Earth.
   // On startup, CosmoScout animates the observer from the Solar System Barycenter
@@ -155,7 +159,8 @@ void Plugin::update() {
   }
 
   // Camera direction and up in ECEF.
-  // Use the rotation from getObserverRelativeTransform to extract the observer orientation.
+  // Extract orientation from the observer-relative transform, then convert the
+  // resulting GLM-frame vectors to ECEF with the same (Z,X,Y) permutation.
   auto earth = mSolarSystem->getObject("Earth");
   if (!earth)
     return;
@@ -169,8 +174,12 @@ void Plugin::update() {
   } else {
     rot = glm::dmat3(1.0);
   }
-  glm::dvec3 camDirectionECEF = glm::normalize(glm::transpose(rot) * glm::dvec3(0.0, 0.0, -1.0));
-  glm::dvec3 camUpECEF        = glm::normalize(glm::transpose(rot) * glm::dvec3(0.0, 1.0, 0.0));
+  // Compute direction/up in CosmoScout's GLM frame first
+  glm::dvec3 glmDir = glm::normalize(glm::transpose(rot) * glm::dvec3(0.0, 0.0, -1.0));
+  glm::dvec3 glmUp  = glm::normalize(glm::transpose(rot) * glm::dvec3(0.0, 1.0, 0.0));
+  // Apply inverse permutation: ECEF(X,Y,Z) = GLM(Z,X,Y)
+  glm::dvec3 camDirectionECEF(glmDir.z, glmDir.x, glmDir.y);
+  glm::dvec3 camUpECEF(glmUp.z, glmUp.x, glmUp.y);
 
   // 7. Package the ECEF camera into a Cesium ViewState
   //    Extract REAL viewport size and FOV from ViSTA's display manager.
@@ -178,7 +187,20 @@ void Plugin::update() {
   VistaViewport* pViewport = GetVistaSystem()->GetDisplayManager()->GetViewports().begin()->second;
   int            sizeX = 1920, sizeY = 1080; // fallback if query fails
   pViewport->GetViewportProperties()->GetSize(sizeX, sizeY);
-  glm::dvec2 viewportSize(sizeX, sizeY);
+
+  // CosmoScout's observer scale magnifies the view: Scale=0.2 means the world appears 5× bigger
+  // (1/0.2 = 5). Each pixel therefore covers 1/5th the physical area. For Cesium's SSE formula
+  // (SSE = geoError × viewportH / (dist × 2 × tan(vFov/2))), this magnification is equivalent
+  // to having a proportionally larger viewport. This is exactly what csp-lod-bodies does
+  // implicitly — its LODVisitor extracts the camera from the modelview matrix which has the
+  // scale baked in (LODVisitor.cpp:62). We replicate this by scaling the viewport.
+  // IMPORTANT: Only enlarge the viewport when Scale < 1.0 (magnified/close-up view).
+  // At Scale >= 1.0 (orbit/far view), the physical viewport correctly represents the screen —
+  // the camera IS physically far away and Cesium's SSE is naturally correct.
+  // Without this clamp, orbital Scale=2.7M would produce a sub-pixel viewport → 0 LOD.
+  double     scaleFactor = std::max(std::min(observer.getScale(), 1.0), 0.001);
+  glm::dvec2 viewportSize(
+      static_cast<double>(sizeX) / scaleFactor, static_cast<double>(sizeY) / scaleFactor);
 
   // Extract real FOV from ViSTA's projection plane extents.
   // ViSTA uses SetProjPlaneExtents(left, right, bottom, top) with midpoint at z=-1,
@@ -189,10 +211,27 @@ void Plugin::update() {
   double hFov = 2.0 * std::atan((right - left) / 2.0);
   double vFov = 2.0 * std::atan((top - bottom) / 2.0);
 
-  Cesium3DTilesSelection::ViewState viewState(camPositionECEF, // position (ECEF meters)
+  // --- Diagnostic V3: Replicate EXACT updateSceneScale() math ---
+  // Uses cartesianToLngLatHeight for true geodetic altitude (not rough maxRadius approximation).
+  static int sFrameCount = 0;
+  if (++sFrameCount % 300 == 1) {
+    auto   diagRadii = earth->getRadii();
+    auto   diagLLH   = cs::utils::convert::cartesianToLngLatHeight(camPositionECEF, diagRadii);
+    double geodeticH = diagLLH.z;                           // True geodetic height above ellipsoid
+    bool   collision = geodeticH < 0.5 && true;             // Earth mIsCollidable=true by default
+    double scrollDisplacement = 0.48 * observer.getScale(); // per-frame scroll movement
+    logger().warn("[CESIUM_DIAG_V3] Scale={:.4e}, GeodeticH={:.2f}m, Collision={}, "
+                  "ScrollDisp={:.2f}m, ScaleFactor={:.4e}, Viewport={:.0f}x{:.0f}",
+        observer.getScale(), geodeticH, collision ? "YES" : "no", scrollDisplacement, scaleFactor,
+        viewportSize.x, viewportSize.y);
+  }
+
+  // Pass the RAW observer ECEF position to Cesium — no position hacks.
+  // The viewport scaling above already handles LOD magnification.
+  Cesium3DTilesSelection::ViewState viewState(camPositionECEF, // position (raw ECEF)
       camDirectionECEF,                                        // look direction (ECEF)
       camUpECEF,                                               // up direction (ECEF)
-      viewportSize,                                            // viewport in pixels
+      viewportSize,                                            // viewport (scale-adjusted pixels)
       hFov,                                                    // horizontal FOV (radians)
       vFov                                                     // vertical FOV (radians)
   );
