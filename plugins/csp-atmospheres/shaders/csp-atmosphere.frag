@@ -736,6 +736,7 @@ float lightAtPoint(vec3 pos, vec3 sunDir, vec2 interval, vec3 camPos, int sample
 }
 
 int SAMPLE_TRANSMITTANCE_STRIDE = 2;
+float MIN_REMAINING_TRANSMITTANCE = 0.01;//0.001;
 
 // The function where all the integration happens
 // uses adaptive step sizes to bring performance to an acceptable level
@@ -776,9 +777,10 @@ vec4 raymarchInterval(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, vec2 interval, o
   float start_density = density_struct.x;
   bool in_cloud = start_density > 0;
   bool encounter_cloud = false;
-  float in_cloud_counter = 0;
+  int in_cloud_counter = 0;
   float last_scatter_coefficient = start_density * BASE_DENSITY * uCloudDensityMultiplier;
-  int samples_taken = 0;
+  //int samples_taken = 0;
+  int sample_iterations = 0;
   float maximum_density = 0;
   float model_density = density_struct.y;
 
@@ -792,15 +794,16 @@ vec4 raymarchInterval(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, vec2 interval, o
 
   //===== BEGIN OF RAY MARCHING LOOP ======
   // TODO: Add seperate samples count for transmittance interpolation algo
-  while(progress < 1 && samples_taken < MAXIMUM_SAMPLES && path_transmittance.r > .001){
-    samples_taken += 1;
+
+  while(progress < 1 && sample_iterations < MAXIMUM_SAMPLES && path_transmittance.r > .001){
+    sample_iterations += 1;
     float t_now = remap(progress, 0, 1, interval.x, interval.y);
     vec3 position = rayOrigin + rayDir * t_now;
 
     //===== BEGIN OF STEP SIZE CONTROL =====
 
     /// Skipping regions that are guaranteed to be free of clouds
-    // Bad performance outweighs benefits
+    // Bad performance outweighs benefits?
     // #if EXPERIMENTAL_CLOUD_FEATURES
     // bool skipped = false;
     // if(!in_cloud){
@@ -880,6 +883,7 @@ vec4 raymarchInterval(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, vec2 interval, o
     //===== END OF STEP SIZE CONTROL =====
     //===== BEGIN OF SCATTERING INTEGRATION =====
     float scatter_coefficient = 0;
+    // Check if there is a cloud-free interval we can skip
     if(!CumuloNimbusGuaranteedFree(position)){
       density_struct = getCloudDensity(position, rayOrigin);
       float local_density = density_struct.x;
@@ -893,6 +897,7 @@ vec4 raymarchInterval(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, vec2 interval, o
       // the transmittance from the atmosphere model seems fine though
       local_incoming = vec3(144809.5,129443.421875,127098.6484375) * incoming_transmittance;
 
+      // If too much distance was skipped, rewind to last step. (Repetition of last loop iteration is costly. Reconsider?)
       if(local_density > 0){
         if(!encounter_cloud){ // Just encountered a cloud, recalculate prev step
           encounter_cloud = true;
@@ -909,41 +914,47 @@ vec4 raymarchInterval(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, vec2 interval, o
           path_transmittance *= atmo_transmittance;
         }
         in_cloud = true;
-        in_cloud_counter +=1;
+        in_cloud_counter += 1;
         t_cloudfree_start = t_now;
 
-        // clamp to keep segment lengths reasonable to not break the lighting model
+        // clamp to keep segment lengths reasonable to not break the lighting model.
         float sdist = clamp(dist, 0, MAXIMUM_DIST_BETWEEN_SAMPLES);
-        // extinction coefficient. 
-        // Important to use midpoint for accurate Hillaire integration trick to work
+        // extinction coefficient
+        // Important to use midpoint for accurate Hillaire integration trick to work.
         float sigma_e = (scatter_coefficient + last_scatter_coefficient) / 2 * (1 + uCloudAbsorption);
         float transmittance_along_segment = exp(-sigma_e * sdist);
         vec3 direct_incoming = local_incoming;
 
-        // Every n steps, calculate transmittance through clouds at (curr + n)-th step and interpolate values in between
+        // Every n steps, calculate transmittance through clouds at (curr + n)-th step and interpolate values in between.
         int transmittance_samples = int(remap(path_transmittance.r, 0, 1, 2, MAX_TRANSMITTANCE_SAMPLES));
         vec2 top_intersection = intersectSphere(position, sunDir, PLANET_RADIUS + CUMULONIMBUS_END_HEIGHT);
         float sampledInTransmittance;
 #if EXPERIMENTAL_CLOUD_FEATURES
-        int transmittanceStepMod = samples_taken % SAMPLE_TRANSMITTANCE_STRIDE;
+        // Calculate the next time a transmittance sample is computed.
+        // The counter with which this mod operation is conducted was previously the total samples_taken increment.
+        int transmittanceStepMod = in_cloud_counter % SAMPLE_TRANSMITTANCE_STRIDE;
         if (transmittanceStepMod == 0) {
           currSampledTransmittance = nextSampledTransmittance;
           
-          // Evaluate transmittance at next position in the future
+          // Evaluate transmittance at next position in the future.
           vec3 nextPosition = position += rayDir * step_size;
           // getCloudDensity(rayOrigin, cam_pos).x
           nextSampledTransmittance = SECONDARY_RAYS ? raymarchTransmittance(nextPosition, sunDir, vec2(0, top_intersection.y), rayOrigin, transmittance_samples, local_density) : 1.0;          
           sampledInTransmittance = nextSampledTransmittance;
         } else {
           // Hermite:
-          // leftTransmittanceEdge = min(currSampledTransmittance, nextSampledTransmittance);
-          // rightTransmittanceEdge = max(currSampledTransmittance, nextSampledTransmittance);
+          float leftTransmittanceEdge = min(currSampledTransmittance, nextSampledTransmittance);
+          float rightTransmittanceEdge = max(currSampledTransmittance, nextSampledTransmittance);
 
-          // float x = transmittanceStepMod / SAMPLE_TRANSMITTANCE_STRIDE; //remap(transmittanceStepMod, 0, SAMPLE_TRANSMITTANCE_STRIDE - 1, 0, 1);
-          // sampledInTransmittance = smoothstep(leftTransmittanceEdge, rightTransmittanceEdge, x);
+          // Relative position inside interpolation interval.
+          float t = transmittanceStepMod / SAMPLE_TRANSMITTANCE_STRIDE;
+          // smoothstep doesnt allow left edge >= right edge, so if edges are swapped, evaluate backwards.
+          t = leftTransmittanceEdge >= rightTransmittanceEdge ? 1 - t : t; //remap(transmittanceStepMod, 0, SAMPLE_TRANSMITTANCE_STRIDE - 1, 0, 1);
+          float tInterpolated = smoothstep(leftTransmittanceEdge, rightTransmittanceEdge, t);
+          sampledInTransmittance = remap(tInterpolated, 0, 1, currSampledTransmittance, nextSampledTransmittance);
 
           // Linear:
-          sampledInTransmittance = mix(currSampledTransmittance, nextSampledTransmittance, transmittanceStepMod / SAMPLE_TRANSMITTANCE_STRIDE);
+          // sampledInTransmittance = mix(currSampledTransmittance, nextSampledTransmittance, transmittanceStepMod / SAMPLE_TRANSMITTANCE_STRIDE);
         }
 #else
         sampledInTransmittance = SECONDARY_RAYS ? raymarchTransmittance(position, sunDir, vec2(0, top_intersection.y), rayOrigin, transmittance_samples, local_density) : 1.0;
@@ -978,18 +989,25 @@ vec4 raymarchInterval(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, vec2 interval, o
     t_last = t_now;
     last_scatter_coefficient = scatter_coefficient;
     // terminate ray early when there is almost no transmittance left
-    if (path_transmittance.r < .001){
+    float rem_transmittance_threshold;
+    #if EXPERIMENTAL_CLOUD_FEATURES
+    rem_transmittance_threshold = MIN_REMAINING_TRANSMITTANCE;
+    #else
+    rem_transmittance_threshold = 0.001; // Old value
+    #endif
+    if (path_transmittance.r < rem_transmittance_threshold){
       return vec4(inscattering_acc, path_transmittance.r);
     }
     // useful when working on adaptive step sizes to ensure that a step is always taken => fewer crashes during development
     progress += minimum_progress;
+    //samples_taken += 1;
   }
 
   //===== END OF RAY MARCHING LOOP =====
 
-  float skipped_fraction = skipped_distance / interval_length;
+  // float skipped_fraction = skipped_distance / interval_length;
   //return vec4(skipped_fraction, 1-skipped_fraction, 0, 1)*10000;
-  float sample_ratio = float(samples_taken) / float(MAXIMUM_SAMPLES);
+  // float sample_ratio = float(samples_taken) / float(MAXIMUM_SAMPLES);
   //return vec4(sample_ratio, 1-sample_ratio, 0, 1)*10000;
   //return vec4(maximum_density, 1-maximum_density, 0, 1)*10000;
   //if(samples_taken == MAXIMUM_SAMPLES){
