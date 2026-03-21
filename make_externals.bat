@@ -34,7 +34,7 @@ IF NOT errorlevel 1 (
    set USING_NINJA=false
 )
 
-set COSMOSCOUT_DEBUG_BUILD=true
+@REM set COSMOSCOUT_DEBUG_BUILD=true
 
 rem Check if ComoScout VR debug build is enabled with "set COSMOSCOUT_DEBUG_BUILD=true".
 IF "%COSMOSCOUT_DEBUG_BUILD%"=="true" (
