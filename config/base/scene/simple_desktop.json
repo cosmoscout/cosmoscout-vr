@@ -803,7 +803,7 @@
         "Jupiter": {
           "texture": "../share/resources/textures/jupiter.jpg",
           "animation": "../share/resources/textures/jupiter-animated/",
-          "timePerFrame": 18000
+          "timePerFrame": 210419
         }
       }
     },
