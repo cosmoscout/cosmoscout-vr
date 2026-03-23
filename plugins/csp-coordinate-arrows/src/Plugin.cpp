@@ -108,26 +108,75 @@ void Plugin::onLoad() {
   from_json(mAllSettings->mPlugins.at("csp-coordinate-arrows"), *mPluginSettings);
   
   for (auto const& settings : mPluginSettings->mArrows) {
-    std::vector<float> directionFromOriginX = {1.0f, 0.0f, 0.0f};
+    float angleX = 0.0f;
+    glm::dvec3 rotAxisX(1.0f, 0.0f, 0.0f);
     glm::vec4 colorX(1.0f, 0.0f, 0.0f, 1.0f);
-    std::vector<float> directionFromOriginY = {0.0f, 1.0f, 0.0f};
+    float angleY = 90.0f;
+    glm::dvec3 rotAxisY(0.0f, 0.0f, 1.0f);
     glm::vec4 colorY(0.0f, 1.0f, 0.0f, 1.0f);
-    std::vector<float> directionFromOriginZ = {0.0f, 0.0f, 1.0f};
+    float angleZ = -90.0f;
+    glm::dvec3 rotAxisZ(0.0f, 1.0f, 0.0f);
     glm::vec4 colorZ(0.0f, 0.0f, 1.0f, 1.0f);
+
+    std::vector<float> lineVertices = createArrowVertices();
 
     logger().info("Arrow width for this one is {}", settings.second.mWidth);
 
-    auto arrowX = std::make_shared<Arrow>(mPluginSettings, mSolarSystem, directionFromOriginX, colorX, settings.second.mWidth, settings.second.mSize);
+    auto arrowX = std::make_shared<Arrow>(mPluginSettings, mSolarSystem, lineVertices, rotAxisX, angleX, colorX, settings.second.mWidth, settings.second.mSize);
     arrowX->setParentName(settings.first);
-    auto arrowY = std::make_shared<Arrow>(mPluginSettings, mSolarSystem, directionFromOriginY, colorY, settings.second.mWidth, settings.second.mSize);
+    auto arrowY = std::make_shared<Arrow>(mPluginSettings, mSolarSystem, lineVertices, rotAxisY, angleY, colorY, settings.second.mWidth, settings.second.mSize);
     arrowY->setParentName(settings.first);
-    auto arrowZ = std::make_shared<Arrow>(mPluginSettings, mSolarSystem, directionFromOriginZ, colorZ, settings.second.mWidth, settings.second.mSize);
+    auto arrowZ = std::make_shared<Arrow>(mPluginSettings, mSolarSystem, lineVertices, rotAxisZ, angleZ, colorZ, settings.second.mWidth, settings.second.mSize);
     arrowZ->setParentName(settings.first);
 
     std::vector<std::shared_ptr<Arrow>> arrowGroup = {arrowX, arrowY, arrowZ};
 
     mArrows.emplace(settings.first, arrowGroup);
   }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+std::vector<float> Plugin::createArrowVertices() {
+  std::vector<float> vertices;
+
+  /*const int SEGMENTS = 16;
+  const float PI = 3.141592653f;
+
+  float shaftRadius = 10.02f;
+  float shaftLength = 10.08f;
+  float coneRadius = 10.06f;
+  float coneLength = 10.02f;
+
+  // Shaft cylinder as arrowtrail
+  for (int i = 0; i < SEGMENTS; i++) {
+    float angle1 = (float)i / SEGMENTS * 2.0f * PI;
+    float angle2 = (float)(i + 1) / SEGMENTS * 2.0f * PI;
+
+    float x1 = cos(angle1) * shaftRadius;
+    float x2 = cos(angle2) * shaftRadius;
+    float z1 = sin(angle1) * shaftRadius;
+    float z2 = sin(angle2) * shaftRadius;
+
+    // two triangles
+    vertices.insert(vertices.end(), {x1, 0.0f, z1, x2, 0.0f, z2, x1, shaftLength, z1});
+    vertices.insert(vertices.end(), {x2, 0.0f, z2, x2, shaftLength, z2, x1, shaftLength, z1});
+  }
+
+  // Cone as arrowhead
+  for (int i = 0; i < SEGMENTS; i++) {
+    float angle1 = (float)i / SEGMENTS * 2.0f * PI;
+    float angle2 = (float)(i + 1) / SEGMENTS * 2.0f * PI;
+
+    float x1 = cos(angle1) * coneRadius;
+    float x2 = cos(angle2) * coneRadius;
+
+    float z1 = sin(angle1) * coneRadius;
+    float z2 = sin(angle2) * coneRadius;
+  }*/
+
+  vertices = {0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f};
+  return vertices;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -29,8 +29,10 @@ class Arrow : public IVistaOpenGLDraw {
  public:
   Arrow(std::shared_ptr<Plugin::Settings>   pluginSettings,
     std::shared_ptr<cs::core::SolarSystem>  solarSystem,
-    const std::vector<float>&                     directionFromOrigin,
-    const glm::vec4&                              color,
+    std::vector<float>                      arrowVertices,
+    const glm::dvec3                        rotAxis,
+    const float                             rotAngle,
+    const glm::vec4&                        color,
     float                                   width,
     float                                   size
   );
@@ -61,6 +63,10 @@ class Arrow : public IVistaOpenGLDraw {
   glm::vec4 mColor;
   float mWidth;
   float mSize;
+  
+  int mVertexCount;
+  glm::dvec3 mRotAxis;
+  float mRotAngle;
 
   std::unique_ptr<VistaOpenGLNode> mGLNode;
 

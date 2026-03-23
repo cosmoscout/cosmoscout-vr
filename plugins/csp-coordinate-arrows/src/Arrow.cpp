@@ -66,13 +66,17 @@ void main()
 
 Arrow::Arrow(std::shared_ptr<Plugin::Settings>  pluginSettings,
     std::shared_ptr<cs::core::SolarSystem>      solarSystem,
-    const std::vector<float>&                   directionFromOrigin,
+    std::vector<float>                          arrowVertices,
+    const glm::dvec3                            rotAxis,
+    const float                                 rotAngle,
     const glm::vec4&                            color,
     float                                       width,
     float                                       size
   ) :
       mPluginSettings(std::move(pluginSettings)),
       mSolarSystem(std::move(solarSystem)),
+      mRotAxis(rotAxis),
+      mRotAngle(rotAngle),
       mColor(color),
       mWidth(width),
       mSize(size)
@@ -85,18 +89,17 @@ Arrow::Arrow(std::shared_ptr<Plugin::Settings>  pluginSettings,
     mGLNode.get(), static_cast<int>(cs::utils::DrawOrder::eTransparentItems) + 1);
     logger().info("Added arrow to scene graph.");
 
-    // Create the vertices of the line by adding direction vertex to origin vertex.
-    std::vector<float> lineVertices = {0.0f, 0.0f, 0.0f};
-    lineVertices.reserve(lineVertices.size() + directionFromOrigin.size());
-    lineVertices.insert(lineVertices.end(), directionFromOrigin.begin(), directionFromOrigin.end());
+    // Remember vertex count fo arrow model.
+    mVertexCount = static_cast<int>(arrowVertices.size() / 3);
 
+    // Create VBO and VAO from given vertices.
     mVBO = std::make_unique<VistaBufferObject>();
     mVAO = std::make_unique<VistaVertexArrayObject>();
 
     mVAO->Bind();
 
     mVBO->Bind(GL_ARRAY_BUFFER);
-    mVBO->BufferData(sizeof(lineVertices), lineVertices.data(), GL_DYNAMIC_DRAW);
+    mVBO->BufferData(sizeof(arrowVertices), arrowVertices.data(), GL_DYNAMIC_DRAW);
 
     mVAO->EnableAttributeArray(0);
     mVAO->SpecifyAttributeArrayFloat(0, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), 0, mVBO.get());
@@ -164,6 +167,9 @@ bool Arrow::Do() {
   matMV[1] = glm::vec4(yAxis, 0.0f);
   matMV[2] = glm::vec4(zAxis, 0.0f);
 
+  // Rotate arrow depending on the coordinate axis.
+  matMV = glm::rotate(matMV, static_cast<double>(glm::radians(mRotAngle)), mRotAxis);
+
   // Get projection matrix.
   std::array<GLfloat, 16> glMatP{};
   glGetFloatv(GL_PROJECTION_MATRIX, glMatP.data());
@@ -187,7 +193,7 @@ bool Arrow::Do() {
   mVAO->Bind();
 
   // Draw arrow
-  glDrawArrays(GL_LINE_STRIP, 0, 2);
+  glDrawArrays(GL_LINE_STRIP, 0, mVertexCount);
 
   // Cleanup
   glEnable(GL_DEPTH_TEST);

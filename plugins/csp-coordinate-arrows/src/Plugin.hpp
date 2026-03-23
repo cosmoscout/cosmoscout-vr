@@ -43,6 +43,7 @@ class Plugin : public cs::core::PluginBase {
 
  private:
   void onLoad();
+  std::vector<float> createArrowVertices();
 
   std::shared_ptr<Settings> mPluginSettings = std::make_shared<Settings>();
   std::map<std::string, std::vector<std::shared_ptr<Arrow>>> mArrows;
