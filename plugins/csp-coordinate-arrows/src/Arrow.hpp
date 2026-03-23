@@ -54,7 +54,7 @@ class Arrow : public IVistaOpenGLDraw {
 
   bool Do() override;
   bool GetBoundingBox(VistaBoundingBox& bb) override;
-//lol
+
  private:
   void createShader();
 
