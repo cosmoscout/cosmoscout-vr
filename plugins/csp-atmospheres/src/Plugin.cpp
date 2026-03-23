@@ -90,6 +90,8 @@ void from_json(nlohmann::json const& j, Plugin::Settings::Atmosphere& o) {
   cs::core::Settings::deserialize(j, "cloudTypeMax", o.mCloudTypeMax);
 
   cs::core::Settings::deserialize(j, "experimentalCloudFeatures", o.mExperimentalCloudFeatures);
+  cs::core::Settings::deserialize(j, "interpolateTransmittance", o.mInterpolateTransmittance);
+  cs::core::Settings::deserialize(j, "interpolationStrideScale", o.mInterpolationStrideScale);
   cs::core::Settings::deserialize(j, "newRaymarchImpl", o.mNewRaymarchImpl);
 }
 
@@ -125,6 +127,8 @@ void to_json(nlohmann::json& j, Plugin::Settings::Atmosphere const& o) {
   cs::core::Settings::serialize(j, "cloudTypeMax", o.mCloudTypeMax);
 
   cs::core::Settings::serialize(j, "experimentalCloudFeatures", o.mExperimentalCloudFeatures);
+  cs::core::Settings::serialize(j, "interpolateTransmittance", o.mInterpolateTransmittance);
+  cs::core::Settings::serialize(j, "interpolationStrideScale", o.mInterpolationStrideScale);
   cs::core::Settings::serialize(j, "newRaymarchImpl", o.mNewRaymarchImpl);
 }
 
@@ -174,7 +178,9 @@ void Plugin::init() {
             mGuiManager->setSliderValue(
                 "atmosphere.setCloudAltitude", settings.mCloudAltitude.get());
 
-            mGuiManager->setCheckboxValue("atmosphere.setNewRaymarchTransmittanceImpl", settings.mExperimentalCloudFeatures.get());
+            mGuiManager->setCheckboxValue("atmosphere.setExperimentalCloudFeatures", settings.mExperimentalCloudFeatures.get());
+            mGuiManager->setCheckboxValue("atmosphere.setInterpolateTransmittance", settings.mInterpolateTransmittance.get());
+            mGuiManager->setSliderValue("atmosphere.setInterpolationStrideScale", settings.mInterpolationStrideScale.get());
             mGuiManager->setCheckboxValue("atmosphere.setNewRaymarchImpl", settings.mNewRaymarchImpl.get());
           }
         }
@@ -395,6 +401,26 @@ void Plugin::init() {
         }
       }));
 
+  mGuiManager->getGui()->registerCallback("atmosphere.setInterpolateTransmittance",
+      "Enables or disables the experimental feature to compute transmittance only every couple steps and interpolate inbetween.",
+      std::function([this](bool enable) {
+        if (!mActiveAtmosphere.empty()) {
+          auto& settings           = mPluginSettings->mAtmospheres.at(mActiveAtmosphere);
+          settings.mInterpolateTransmittance = enable;
+          mAtmospheres.at(mActiveAtmosphere)->configure(settings);
+        }
+      }));
+
+  mGuiManager->getGui()->registerCallback("atmosphere.setInterpolationStrideScale",
+      "Set the interval at which transmittance along the raymarch is calculated (everything inbetween is interpolated).",
+      std::function([this](double value) {
+        if (!mActiveAtmosphere.empty()) {
+          auto& settings                   = mPluginSettings->mAtmospheres.at(mActiveAtmosphere);
+          settings.mInterpolationStrideScale = static_cast<int>(value);
+          mAtmospheres.at(mActiveAtmosphere)->configure(settings);
+        }
+      }));
+
   mGuiManager->getGui()->registerCallback("atmosphere.setNewRaymarchImpl",
       "Enables or disables new raymarch algorithm for advanced cloud rendering.",
       std::function([this](bool enable) {
@@ -446,7 +472,9 @@ void Plugin::deInit() {
   mGuiManager->getGui()->unregisterCallback("atmosphere.setCloudTypeMin");
   mGuiManager->getGui()->unregisterCallback("atmosphere.setCloudTypeMax");
 
-  mGuiManager->getGui()->unregisterCallback("atmosphere.setNewRaymarchTransmittanceImpl");
+  mGuiManager->getGui()->unregisterCallback("atmosphere.setExperimentalCloudFeatures");
+  mGuiManager->getGui()->unregisterCallback("atmosphere.setInterpolateTransmittance");
+  mGuiManager->getGui()->unregisterCallback("atmosphere.setInterpolationStrideScale");
   mGuiManager->getGui()->unregisterCallback("atmosphere.setNewRaymarchImpl");
 
   mSolarSystem->pActiveObject.disconnect(mActiveObjectConnection);

@@ -84,6 +84,8 @@ class Atmosphere : public IVistaOpenGLDraw {
     uint32_t cloudRangeMax             = 0;
     uint32_t cloudTypeMin              = 0;
     uint32_t cloudTypeMax              = 0;
+    
+    uint32_t cloudInterpolationStrideScale = 0;
 
     // Only used by the panorama shader.
     uint32_t atmoPanoUniforms = 0;

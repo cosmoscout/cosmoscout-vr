@@ -269,7 +269,8 @@ void Atmosphere::configure(Plugin::Settings::Atmosphere const& settings) {
     }
 
     // Recreate shader if raymarch algorithm selection changed
-    if (mSettings.mExperimentalCloudFeatures != settings.mExperimentalCloudFeatures||
+    if (mSettings.mExperimentalCloudFeatures != settings.mExperimentalCloudFeatures ||
+        mSettings.mInterpolateTransmittance != settings.mInterpolateTransmittance ||
         mSettings.mNewRaymarchImpl != settings.mNewRaymarchImpl) {
       mShaderDirty = true;
     }
@@ -322,6 +323,7 @@ void Atmosphere::createShader(ShaderType type, VistaGLSLShader& shader, Uniforms
 
   // For debugging purposes
   cs::utils::replaceString(sFrag, "EXPERIMENTAL_CLOUD_FEATURES", std::to_string(mSettings.mExperimentalCloudFeatures.get()));
+  cs::utils::replaceString(sFrag, "INTERPOLATE_TRANSMITTANCE", std::to_string(mSettings.mInterpolateTransmittance.get()));
   cs::utils::replaceString(sFrag, "NEW_RAYMARCH_IMPL", std::to_string(mSettings.mNewRaymarchImpl.get()));
 
   shader.InitVertexShaderFromString(sVert);
@@ -369,6 +371,8 @@ void Atmosphere::createShader(ShaderType type, VistaGLSLShader& shader, Uniforms
   uniforms.cloudRangeMax             = shader.GetUniformLocation("CLOUD_TYPE_RANGE_END");
   uniforms.cloudTypeMin              = shader.GetUniformLocation("CLOUD_TYPE_MIN");
   uniforms.cloudTypeMax              = shader.GetUniformLocation("CLOUD_TYPE_MAX");
+
+  uniforms.cloudInterpolationStrideScale = shader.GetUniformLocation("TRANSMITTANCE_INTERPOLATION_STRIDE");
 
   // We bind the eclipse shadow map to texture unit 3. The color and depth buffer are bound to 0 and
   // 1, 2 is used for the cloud map, 3 is used for the limb luminance texture.
@@ -574,6 +578,8 @@ bool Atmosphere::Do() {
     mAtmoShader.SetUniform(mAtmoUniforms.cloudRangeMax, mSettings.mCloudRangeMax.get());
     mAtmoShader.SetUniform(mAtmoUniforms.cloudTypeMin, mSettings.mCloudTypeMin.get());
     mAtmoShader.SetUniform(mAtmoUniforms.cloudTypeMax, mSettings.mCloudTypeMax.get());
+
+    mAtmoShader.SetUniform(mAtmoUniforms.cloudInterpolationStrideScale, mSettings.mInterpolationStrideScale.get());
   }
 
   if (mSettings.mEnableLimbLuminance.get() && mLimbLuminanceTexture) {
@@ -650,7 +656,7 @@ bool Atmosphere::Do() {
 bool Atmosphere::GetBoundingBox(VistaBoundingBox& bb) {
   float extend = static_cast<float>(std::max(std::max(mRadii[0], mRadii[1]), mRadii[2]));
 
-  // Boundingbox is computed by translation an edge points
+  // Bounding box is computed by translation an edge points
   std::array<float, 3> const fMin = {-extend, -extend, -extend};
   std::array<float, 3> const fMax = {extend, extend, extend};
 

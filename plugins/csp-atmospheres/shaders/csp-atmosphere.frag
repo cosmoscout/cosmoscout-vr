@@ -472,6 +472,9 @@ bool SECONDARY_RAYS = true;
 uniform float uCloudLFRepetitionScale = 5000;
 uniform float uCloudHFRepetitionScale = 1190;
 
+float MIN_REMAINING_TRANSMITTANCE = 0.01;//0.001;
+uniform int TRANSMITTANCE_INTERPOLATION_STRIDE = 1;
+
 // get the cloud type at these texture coordinates
 // adds high frequency noises to the values from the cloud texture to replace coarse
 // bilinear interpolation artifacts with smaller artifacts that are harder to notice
@@ -694,9 +697,6 @@ float raymarchTransmittance(vec3 rayOrigin, vec3 rayDir, vec2 interval, vec3 cam
 // This is done via Riemann sums, calculating Li at N fixed steps along the P->S ray and summing the results:
 //      sum(k = 1 to N) Li(P +  (stepSize * k) * (P - S))
 
-int SAMPLE_TRANSMITTANCE_STRIDE = 6;
-float MIN_REMAINING_TRANSMITTANCE = 0.01;//0.001;
-
 // The function where all the integration happens
 // uses adaptive step sizes to bring performance to an acceptable level
 vec4 raymarchInterval(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, vec2 interval, out vec3 path_transmittance) {
@@ -754,7 +754,7 @@ vec4 raymarchInterval(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, vec2 interval, o
   //===== BEGIN OF RAY MARCHING LOOP ======
   // TODO: Add seperate samples count for transmittance interpolation algo
 
-  while(progress < 1 && sample_iterations < MAXIMUM_SAMPLES && path_transmittance.r > .001){
+  while(progress < 1 && sample_iterations < MAXIMUM_SAMPLES && path_transmittance.r > MIN_REMAINING_TRANSMITTANCE){
     sample_iterations += 1;
     float t_now = remap(progress, 0, 1, interval.x, interval.y);
     vec3 position = rayOrigin + rayDir * t_now;
@@ -888,15 +888,15 @@ vec4 raymarchInterval(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, vec2 interval, o
         int transmittance_samples = int(remap(path_transmittance.r, 0, 1, 2, MAX_TRANSMITTANCE_SAMPLES));
         vec2 top_intersection = intersectSphere(position, sunDir, PLANET_RADIUS + CUMULONIMBUS_END_HEIGHT);
         float sampledInTransmittance;
-#if EXPERIMENTAL_CLOUD_FEATURES
+#if INTERPOLATE_TRANSMITTANCE
         // Calculate the next time a transmittance sample is computed.
         // The counter with which this mod operation is conducted was previously the total samples_taken increment.
-        int transmittanceStepMod = in_cloud_counter % SAMPLE_TRANSMITTANCE_STRIDE;
+        int transmittanceStepMod = in_cloud_counter % TRANSMITTANCE_INTERPOLATION_STRIDE;
         if (transmittanceStepMod == 0) {
           currSampledTransmittance = nextSampledTransmittance;
           
-          // Evaluate transmittance at next position in the future.
-          vec3 nextPosition = position += rayDir * step_size;
+          // Go forward to position at end of the stride and calculate the transmittance there.
+          vec3 nextPosition = position += rayDir * step_size * TRANSMITTANCE_INTERPOLATION_STRIDE;
           // getCloudDensity(rayOrigin, cam_pos).x
           nextSampledTransmittance = SECONDARY_RAYS ? raymarchTransmittance(nextPosition, sunDir, vec2(0, top_intersection.y), rayOrigin, transmittance_samples, local_density) : 1.0;          
           sampledInTransmittance = nextSampledTransmittance;
@@ -906,14 +906,14 @@ vec4 raymarchInterval(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, vec2 interval, o
           float rightTransmittanceEdge = max(currSampledTransmittance, nextSampledTransmittance);
 
           // Relative position inside interpolation interval.
-          float t = transmittanceStepMod / SAMPLE_TRANSMITTANCE_STRIDE;
+          float t = transmittanceStepMod / TRANSMITTANCE_INTERPOLATION_STRIDE;
           // smoothstep doesnt allow left edge >= right edge, so if edges are swapped, evaluate backwards.
-          t = leftTransmittanceEdge >= rightTransmittanceEdge ? 1 - t : t; //remap(transmittanceStepMod, 0, SAMPLE_TRANSMITTANCE_STRIDE - 1, 0, 1);
+          t = leftTransmittanceEdge >= rightTransmittanceEdge ? 1 - t : t; //remap(transmittanceStepMod, 0, TRANSMITTANCE_INTERPOLATION_STRIDE - 1, 0, 1);
           float tInterpolated = smoothstep(leftTransmittanceEdge, rightTransmittanceEdge, t);
           sampledInTransmittance = remap(tInterpolated, 0, 1, currSampledTransmittance, nextSampledTransmittance);
 
           // Linear:
-          // sampledInTransmittance = mix(currSampledTransmittance, nextSampledTransmittance, transmittanceStepMod / SAMPLE_TRANSMITTANCE_STRIDE);
+          // sampledInTransmittance = mix(currSampledTransmittance, nextSampledTransmittance, transmittanceStepMod / TRANSMITTANCE_INTERPOLATION_STRIDE);
         }
 #else
         sampledInTransmittance = SECONDARY_RAYS ? raymarchTransmittance(position, sunDir, vec2(0, top_intersection.y), rayOrigin, transmittance_samples, local_density) : 1.0;
