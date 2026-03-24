@@ -46,8 +46,6 @@ uniform sampler2D uNoiseTexture2D;
 uniform sampler2D uCloudTypeTexture;
 uniform float     uTestUniform;
 
-uniform bool uNewRayMarchTransmittanceImpl;
-
 // outputs
 layout(location = 0) out vec3 oColor;
 
@@ -512,6 +510,8 @@ vec4 GetVerticalProfile(vec3 position){
 
 // What exactly is calculated here?
 // => Determine extinction of light at a point in a cumulo-nimbus cloud layer to calculate color for raymarching.
+// First component is density (cut off at minimum uCloudCutoff)
+// Second component is actual density without cutoff
 vec2 getCumuloNimbusDensity(vec3 position, vec3 cam_pos, bool high_res = true){
   vec4 cloudConfig = GetVerticalProfile(position);
   float cloudBase = cloudConfig.r;
@@ -559,6 +559,9 @@ vec2 getCumuloNimbusDensity(vec3 position, vec3 cam_pos, bool high_res = true){
 
   float h = length(position) - PLANET_RADIUS;
   float height_factor = exp(-h / 8000);
+  // uCloudCutoff determines the minimum density of a cloud. If < cutoff, density is set to zero,
+  // hence uCloudCutoff sets the boundaries of the clouds.
+  // cloudConfig.a = cloudBase (The higher the cloud, the thinner it becomes.
   return vec2(cloudDensity > uCloudCutoff ? height_factor * cloudConfig.a : 0, cloudDensity);
 }
 
@@ -738,7 +741,7 @@ vec4 raymarchInterval(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, vec2 interval, o
   bool encounter_cloud = false;
   int in_cloud_counter = 0;
   float last_scatter_coefficient = start_density * BASE_DENSITY * uCloudDensityMultiplier;
-  //int samples_taken = 0;
+  int samples_taken = 0;
   int sample_iterations = 0;
   float maximum_density = 0;
   float model_density = density_struct.y;
@@ -775,9 +778,9 @@ vec4 raymarchInterval(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, vec2 interval, o
     // }
     // #endif
 
-    // Produces noise unfortunately (potentially due to the jitter? maybe test without/ experiment with jitter values)
-    // #if EXPERIMENTAL_CLOUD_FEATURES
-    // float distance_in_interval = t_now - interval.x;
+    // Produces bad results unfortunately
+// #if EXPERIMENTAL_CLOUD_FEATURES
+//     float distance_in_interval = t_now - interval.x;
 
 //     //// step size is increased when transmittance is low
 //     float low_transmittance_multiplier = remap(path_transmittance.r, .5, 0, 1, 3);
@@ -790,31 +793,37 @@ vec4 raymarchInterval(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, vec2 interval, o
 //     short_domain_multiplier = remap(t_now, 0, MID_DISTANCE, short_domain_multiplier, 1);
 
 //     float close_to_camera_multiplier = remap(t_now, 0, HD_CLOSE_DISTANCE, .02, 1);
-//     //close_to_camera_multiplier = 1;
+//     close_to_camera_multiplier = 1;
     
 //     float near_cloud_multiplier = remap(model_density, .5 * uCloudCutoff, uCloudCutoff, 1, .2);
 //     near_cloud_multiplier = remap(t_now, 0, HD_CLOSE_DISTANCE, near_cloud_multiplier, 1);
 //     near_cloud_multiplier = remap(path_transmittance.r, 1, 0.2, near_cloud_multiplier, 1);
 
-    // float jitter_multiplier = remap(hash33(position).x, 0, 1, 1 - JITTER_INTENSITY * .25, 1 + JITTER_INTENSITY * .25);
-    // jitter_multiplier = SAMPLE_JITTER ? remap(t_now, -100000, FAR_DISTANCE, 1, jitter_multiplier) : 1;
+//     float jitter_multiplier = remap(hash33(position).x, 0, 1, 1 - JITTER_INTENSITY * .25, 1 + JITTER_INTENSITY * .25);
+//     jitter_multiplier = SAMPLE_JITTER ? remap(t_now, -100000, FAR_DISTANCE, 1, jitter_multiplier) : 1;
 
-    // // there are two parameterized intervals with different functions for the step size as a function of distance from camera
-    // // Note that discontinuities in this function are a VERY BAD idea and give weird artifacts
-    // float step = CLOSE_STEP;
-    // float relevant_distance = remap(t_now, 0, 200000, distance_in_interval, distance_in_interval * .5 + t_now * .5);
-    // relevant_distance = distance_in_interval;
-    // if(relevant_distance < MID_DISTANCE){
-    //  step = remap(relevant_distance, 0, MID_DISTANCE, CLOSE_STEP, MID_STEP);
-    // }else{
-    //  step = remap(relevant_distance, MID_DISTANCE, FAR_DISTANCE, MID_STEP, FAR_STEP);
-    // }
-    // step = min(step, interval_length / 20);
+//     // there are two parameterized intervals with different functions for the step size as a function of distance from camera
+//     // Note that discontinuities in this function are a VERY BAD idea and give weird artifacts
+//     float step = CLOSE_STEP;
+//     float relevant_distance = remap(t_now, 0, 200000, distance_in_interval, distance_in_interval * .5 + t_now * .5);
+//     relevant_distance = distance_in_interval;
+//     if(relevant_distance < MID_DISTANCE){
+//      step = remap(relevant_distance, 0, MID_DISTANCE, CLOSE_STEP, MID_STEP);
+//     }else{
+//      step = remap(relevant_distance, MID_DISTANCE, FAR_DISTANCE, MID_STEP, FAR_STEP);
+//     }
+//     step = min(step, interval_length / 20);
 
-    // step /= interval_length;
-    // progress += step * jitter_multiplier;
-    //   //* low_transmittance_multiplier * samples_taken_multiplier * short_domain_multiplier * near_cloud_multiplier * close_to_camera_multiplier * quality_multiplier;
-    // #endif
+//     step /= interval_length;
+//     progress += step
+//       * jitter_multiplier
+//       * low_transmittance_multiplier
+//       * samples_taken_multiplier
+//       * short_domain_multiplier
+//       * near_cloud_multiplier
+//       * close_to_camera_multiplier
+//       * quality_multiplier;
+// #endif
 
     float step_size = 0;
     // When entering cloud, adds a random initial step (?) to reduce color banding (artifact due to linear step size increases).
@@ -900,6 +909,7 @@ vec4 raymarchInterval(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, vec2 interval, o
           // getCloudDensity(rayOrigin, cam_pos).x
           nextSampledTransmittance = SECONDARY_RAYS ? raymarchTransmittance(nextPosition, sunDir, vec2(0, top_intersection.y), rayOrigin, transmittance_samples, local_density) : 1.0;          
           sampledInTransmittance = nextSampledTransmittance;
+          samples_taken += 1;
         } else {
           // Hermite:
           float leftTransmittanceEdge = min(currSampledTransmittance, nextSampledTransmittance);
@@ -917,6 +927,7 @@ vec4 raymarchInterval(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, vec2 interval, o
         }
 #else
         sampledInTransmittance = SECONDARY_RAYS ? raymarchTransmittance(position, sunDir, vec2(0, top_intersection.y), rayOrigin, transmittance_samples, local_density) : 1.0;
+        samples_taken += 1;
 #endif
         // get transmittance through clouds
         direct_incoming *= sampledInTransmittance;
@@ -949,11 +960,11 @@ vec4 raymarchInterval(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, vec2 interval, o
     last_scatter_coefficient = scatter_coefficient;
     // terminate ray early when there is almost no transmittance left
     float rem_transmittance_threshold;
-    #if EXPERIMENTAL_CLOUD_FEATURES
+#if EXPERIMENTAL_CLOUD_FEATURES
     rem_transmittance_threshold = MIN_REMAINING_TRANSMITTANCE;
-    #else
+#else
     rem_transmittance_threshold = 0.001; // Old value
-    #endif
+#endif
     if (path_transmittance.r < rem_transmittance_threshold){
       return vec4(inscattering_acc, path_transmittance.r);
     }
