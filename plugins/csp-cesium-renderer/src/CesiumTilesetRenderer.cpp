@@ -317,8 +317,11 @@ bool CesiumTilesetRenderer::Do() {
     }
 
     // 8. Bind the tile's VAO and draw!
-    glBindVertexArray(pData->vao);
-    glDrawElements(GL_TRIANGLES, pData->indexCount, GL_UNSIGNED_INT, nullptr);
+    {
+      cs::utils::FrameStats::ScopedTimer drawTimer("Cesium GPU Draw");
+      glBindVertexArray(pData->vao);
+      glDrawElements(GL_TRIANGLES, pData->indexCount, GL_UNSIGNED_INT, nullptr);
+    }
 
     tilesDrawn++;
   }

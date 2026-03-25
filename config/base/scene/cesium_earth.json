@@ -755,7 +755,13 @@
     }
   },
   "plugins": {
-    "csp-cesium-renderer": {},
+    "csp-cesium-renderer": {
+      "ionAssetId": 2275207,
+      "ionToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiI1ZDhhZDZmYi1hYmJhLTRhM2ItODgxNy0wYTBkZjRkNzkwNGIiLCJpZCI6MzkyMzEwLCJpYXQiOjE3NzI1NDM3NDV9.ccVmFT4Ly-_LRLverWw_VETQX-W_Ok1S7EGZIiIDZ_o",
+      "cacheSizeMB": 256,
+      "maxConcurrentDownloads": 20,
+      "maxScreenSpaceError": 16.0
+    },
     "csp-timings": {},
     "csp-stars": {
       "celestialGridTexture": "../share/resources/textures/celestial_grid.png",

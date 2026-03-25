@@ -7,6 +7,9 @@
 
 #include "CesiumUtils.hpp"
 #include "logger.hpp"
+
+// CosmoScout FrameStats for benchmarking timers
+#include "../../../src/cs-utils/FrameStats.hpp"
 #include <CesiumAsync/AsyncSystem.h>
 #include <CesiumGltf/AccessorView.h>
 #include <CesiumGltf/Image.h>
@@ -265,6 +268,11 @@ StubPrepareRendererResources::prepareInLoadThread(const CesiumAsync::AsyncSystem
 
   logger().info("[Cesium] CPU Thread: Model found! Meshes: {}", pModel->meshes.size());
 
+  // ── Benchmarking: measure CPU-side glTF extraction time ──
+  // NOTE: FrameStats::ScopedTimer is MAIN-THREAD-ONLY (writes to shared QueryPool).
+  // This function runs on a background thread, so we use std::chrono instead.
+  auto cpuParseStart = std::chrono::high_resolution_clock::now();
+
   // --- STEP B: Create our render data container on the heap ---
   auto* renderData = new CesiumRenderData();
 
@@ -331,6 +339,13 @@ StubPrepareRendererResources::prepareInLoadThread(const CesiumAsync::AsyncSystem
   logger().info("[Cesium] CPU Thread: Extracted {} vertices, {} indices.",
       renderData->vertices.size() / 12, renderData->indices.size());
 
+  // ── Log CPU parsing time for benchmarking ──
+  auto cpuParseEnd = std::chrono::high_resolution_clock::now();
+  auto cpuParseMs =
+      std::chrono::duration_cast<std::chrono::microseconds>(cpuParseEnd - cpuParseStart).count() /
+      1000.0;
+  logger().info("[Cesium] CPU Parsing took {:.2f} ms.", cpuParseMs);
+
   return asyncSystem.createResolvedFuture(Cesium3DTilesSelection::TileLoadResultAndRenderResources{
       std::move(tileLoadResult),
       renderData // Passed as void* — Cesium stores this for us
@@ -347,6 +362,10 @@ void* StubPrepareRendererResources::prepareInMainThread(
   if (!pData || pData->vertices.empty()) {
     return nullptr;
   }
+
+  // ── Benchmarking: measure OpenGL buffer upload time ──
+  cs::utils::FrameStats::ScopedTimer timer(
+      "Cesium VRAM Upload", cs::utils::FrameStats::TimerMode::eCPU);
 
   // Save the index count BEFORE we clear the vectors later.
   pData->indexCount = static_cast<uint32_t>(pData->indices.size());
