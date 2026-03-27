@@ -164,16 +164,17 @@ void Atmosphere::configure(Plugin::Settings::Atmosphere const& settings) {
         mCloudTexture = cs::graphics::TextureLoader::loadFromFile(settings.mCloudTexture.value());
 
         auto start_time = std::chrono::high_resolution_clock::now();
-        int resx, resy, resz, channels;
+        const int resx = 32, resy = 32, resz = 32, channels = 3;
         // higher 3d texture resolutions are more expensive and are not guaranteed to be supported on all systems
-        resx = 32;
-        resy = 32;
-        resz = 32;
-        int resz2, resy2;
-        resz2 = 256;
-        resy2 = 256;
-        channels = 3;
-        std::vector<float> cpu_noise3D(resx * resy * resz * channels, 0);
+        // resx = 32;
+        // resy = 32;
+        // resz = 32;
+        const int resz2 = 256, resy2 = 256;
+        // resz2 = 256;
+        // resy2 = 256;
+        // channels = 3;
+        int noise_texture_size = resx * resy * resz * channels;
+        std::vector<float> cpu_noise3D(noise_texture_size, 0);
         std::vector<float> cpu_noise2D(resz2 * resy2 * channels, 0);
         for(int i = 0; i < resz; i++){
           float u = (float)i / (resz - 1);
@@ -187,21 +188,35 @@ void Atmosphere::configure(Plugin::Settings::Atmosphere const& settings) {
             }
           }
         }
+
         for(int i = 0; i < resz2; i++){
           float u = (float)i / (resz2 - 1);
           for(int j = 0; j < resy2; j++){
             float v = (float)j / (resy2- 1);
-            cpu_noise2D[(i * resz2 + j) * channels] = Tileable3dNoise::PerlinNoise(glm::vec3(u, v, 2), 100, 10);
-            cpu_noise2D[(i * resz2 + j) * channels + 1] = Tileable3dNoise::PerlinNoise(glm::vec3(u, v, 2), 500, 10);
-            cpu_noise2D[(i * resz2 + j) * channels + 2] = Tileable3dNoise::WorleyNoise(glm::vec3(u, v, 2), 60);
+            cpu_noise2D[(i * resz2 + j) * channels] = Tileable3dNoise::PerlinNoise(glm::vec3(u, v, 0), 100, 10);
+            cpu_noise2D[(i * resz2 + j) * channels + 1] = Tileable3dNoise::PerlinNoise(glm::vec3(u, v, 0), 500, 10);
+            cpu_noise2D[(i * resz2 + j) * channels + 2] = Tileable3dNoise::WorleyNoise(glm::vec3(u, v, 0), 60);
           }
         }
-
 
         auto end_time = std::chrono::high_resolution_clock::now();
         auto interval = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time);
         logger().info("generating noise texture on CPU took "  +std::to_string(interval.count()) + "ms");
 
+        // Store noise in PNG file
+        
+        // std::vector<float> sample_noise(resz2 * resy2 * channels, 0);
+        // for(int i = 0; i < resz2; i++){
+        //   float u = (float)i / (resz2 - 1);
+        //   for(int j = 0; j < resy2; j++){
+        //     float v = (float)j / (resy2- 1);
+        //     sample_noise[(i * resz2 + j) * channels] = Tileable3dNoise::PerlinNoise(glm::vec3(u, v, 2), 5, 5);
+        //     sample_noise[(i * resz2 + j) * channels + 1] = Tileable3dNoise::PerlinNoise(glm::vec3(u, v, 2), 3, 10);
+        //     sample_noise[(i * resz2 + j) * channels + 2] = Tileable3dNoise::WorleyNoise(glm::vec3(u, v, 2), 7);
+        //   }
+        // }
+
+        // stbi_write_png("img/noise2d.png", resz2, resy2, 3, sample_noise.data(), resy2 * channels);
 
         glGenTextures(1, &mNoiseTexture);
         glActiveTexture(GL_TEXTURE0);
@@ -223,6 +238,14 @@ void Atmosphere::configure(Plugin::Settings::Atmosphere const& settings) {
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, resz2, resy2, 0, GL_RGB, GL_FLOAT, cpu_noise2D.data());
+
+        // std::vector<BVHObject> bvhObjs();
+        // for (size_t i = 0; i < noise_texture_size / channels; i++) {
+        //   // For every texel in the noise texture, check the density and create a BVH object if dense enough.
+        //   BVHObject obj();
+        // }
+        
+        // bvh = std::make_unique<BVH>();
       } else {
         mCloudTexture.reset();
       }

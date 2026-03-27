@@ -83,3 +83,52 @@ void BVH::Build() {
     UpdateNodeBounds(BVH_ROOT_NODE_INDEX);
     Subdivide(BVH_ROOT_NODE_INDEX);
 }
+// ---------------------
+// --- BVH Generator ---
+// ---------------------
+
+int BVHGenerator::GetIndexFromPos(glm::ivec3 pos) {
+    return pos.x * dimensions.x + pos.y * dimensions.y + pos.z;
+}
+
+glm::vec3 BVHGenerator::GetNoise(glm::ivec3 pos) {
+    int index = GetIndexFromPos(pos);
+    glm::vec3 noise(0.0f);
+    noise.x = noiseTexture[index];
+    noise.y = noiseTexture[index + 1];
+    noise.z = noiseTexture[index + 2];
+    return noise;
+}
+
+float BVHGenerator::GetDensity(glm::ivec3 pos) {
+    // glm::vec3 val = GetNoise(pos);
+    // float lr_worley_noise = (1 - val.b) * .8 + val.r * .2;
+    // float lr_whispy_noise = val.r * .2 + val.g * .8;
+    // using the formula from Andrew Schneider's SIGGRAPH presentations on Nubis
+
+    return 1.0; // TODO
+}
+
+BVHObject BVHGenerator::GenerateBVHObject(glm::ivec3 pos) {
+    float density = GetDensity(pos);
+    if (density > densityCutoff) { // This cell's density is tangible enough to be seen and taken into account for the raymarch.
+    }
+    throw;
+}
+
+std::vector<BVHObject> BVHGenerator::GenerateBVHObjectsFromNoise() {
+    throw;
+}
+
+BVHGenerator::BVHGenerator(glm::ivec3 dimensions, float *noiseTexture, float *noise2DTexture,
+    float coverageExp, float densityCoeff, float densityCutoff) {
+    this->dimensions = dimensions;
+    this->noiseTexture = noiseTexture;
+    this->coverageExp = coverageExp;
+    this->densityCoeff = densityCoeff;
+    this->densityCutoff = densityCutoff;
+}
+
+BVH GenerateBVH() {
+    throw;
+}

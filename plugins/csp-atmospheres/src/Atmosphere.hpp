@@ -13,6 +13,8 @@
 #include <VistaKernel/GraphicsManager/VistaOpenGLDraw.h>
 #include <VistaOGLExt/VistaGLSLShader.h>
 
+#include "BVH.hpp"
+
 namespace cs::core {
 class SolarSystem;
 class GraphicsEngine;
@@ -132,6 +134,7 @@ class Atmosphere : public IVistaOpenGLDraw {
   Uniforms        mAtmoUniforms;
 
   std::unique_ptr<ModelBase> mModel;
+  // std::unique_ptr<BVH> bvh;
 };
 
 } // namespace csp::atmospheres

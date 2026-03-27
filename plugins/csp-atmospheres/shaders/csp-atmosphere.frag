@@ -473,6 +473,24 @@ uniform float uCloudHFRepetitionScale = 1190;
 float MIN_REMAINING_TRANSMITTANCE = 0.01;//0.001;
 uniform int TRANSMITTANCE_INTERPOLATION_STRIDE = 1;
 
+struct BVHNode {
+  vec3 aabbMin;
+  vec3 aabbMax;
+  uint leftFirst;
+  uint objCount;
+};
+
+layout (std140, binding = 0) uniform bvh {
+  // Array size of 1024 leads to errors
+  BVHNode nodes[512];
+  int objIndices[512];
+  int treeSize;
+  int objCount;
+};
+
+// uniform BVHNode bvhNodes[];
+// uniform int bvhObjIndices[];
+
 // get the cloud type at these texture coordinates
 // adds high frequency noises to the values from the cloud texture to replace coarse
 // bilinear interpolation artifacts with smaller artifacts that are harder to notice
@@ -509,15 +527,18 @@ vec4 GetVerticalProfile(vec3 position){
 // get the density of clouds at a position in 3d space
 
 // What exactly is calculated here?
-// => Determine extinction of light at a point in a cumulo-nimbus cloud layer to calculate color for raymarching.
-// First component is density (cut off at minimum uCloudCutoff)
+// First component is visual density (cut off at the minimum uCloudCutoff)
 // Second component is actual density without cutoff
+// HINT: Cloud density has a huge effect on performance (via uCloudCutoff and also uCloudDensityMulitplier in raymarchInterval())
+// as it directly controls visibility, and hence the amount of raymarch samples computed.
 vec2 getCumuloNimbusDensity(vec3 position, vec3 cam_pos, bool high_res = true){
   vec4 cloudConfig = GetVerticalProfile(position);
   float cloudBase = cloudConfig.r;
   float erosionStrength = cloudConfig.g;
   float hfStrength = cloudConfig.b;
   float cameraDist = length(cam_pos - position);
+  // noiseTexture2D accessed in spherical coordinates
+  // getLngLat = spherical coords
   vec4 noise2Dl = textureLod(uNoiseTexture2D, getLngLat(position) * 1, 0);
   vec4 noise2D = textureLod(uNoiseTexture2D, getLngLat(position) * 5, 0);
 
@@ -528,7 +549,7 @@ vec2 getCumuloNimbusDensity(vec3 position, vec3 cam_pos, bool high_res = true){
   if(cameraDist < LF_END_DISTANCE){
     vec4 lfNoises = textureLod(uNoiseTexture, position / uCloudLFRepetitionScale, 0);
     // blend between worley and perlin noises using a noise at a different frequency to reduce repetition
-    float lr_worley_noise = (1 - lfNoises.b) * .8 + lfNoises.r * .2;
+    float lr_worley_noise = (1 - lfNoises.b) * .8 + lfNoises.r * .2; 
     float lr_whispy_noise = lfNoises.r * .2 + lfNoises.g * .8;
     float blended_lf_noise = mix(lr_worley_noise, lr_whispy_noise, noise2Dl.r);
     // when camDist is in the fade out range, the noise is mixed with 0.5
@@ -754,19 +775,17 @@ vec4 raymarchInterval(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, vec2 interval, o
   float currSampledTransmittance = 1.0;
   float nextSampledTransmittance = 1.0;
 
-  vec3 currSampledSkyLuminance = vec3(1.0);
-  vec3 currSampledSkyTransmittance = vec3(1.0);
-  vec3 nextSampledSkyLuminance = vec3(1.0);
-  vec3 nextSampledSkyTransmittance = vec3(1.0);
+  // vec3 currSampledSkyLuminance = vec3(1.0);
+  // vec3 currSampledSkyTransmittance = vec3(1.0);
+  // vec3 nextSampledSkyLuminance = vec3(1.0);
+  // vec3 nextSampledSkyTransmittance = vec3(1.0);
 
-  vec3 currSampledAtmoLuminance = vec3(1.0);
-  vec3 currSampledAtmoTransmittance = vec3(1.0);
-  vec3 nextSampledAtmoLuminance = vec3(1.0);
-  vec3 nextSampledAtmoTransmittance = vec3(1.0);
+  // vec3 currSampledAtmoLuminance = vec3(1.0);
+  // vec3 currSampledAtmoTransmittance = vec3(1.0);
+  // vec3 nextSampledAtmoLuminance = vec3(1.0);
+  // vec3 nextSampledAtmoTransmittance = vec3(1.0);
 
   //===== BEGIN OF RAY MARCHING LOOP ======
-  // TODO: Add seperate samples count for transmittance interpolation algo
-
   while(progress < 1 && sample_iterations < MAXIMUM_SAMPLES && path_transmittance.r > MIN_REMAINING_TRANSMITTANCE){
     sample_iterations += 1;
     float t_now = remap(progress, 0, 1, interval.x, interval.y);

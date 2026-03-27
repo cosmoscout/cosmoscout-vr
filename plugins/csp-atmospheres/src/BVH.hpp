@@ -98,4 +98,23 @@ public:
     void Build();
 };
 
+class BVHGenerator {
+private:
+    glm::ivec3 dimensions;
+    float *noiseTexture;
+    float *noise2DTexture;
+    float coverageExp, densityCoeff, densityCutoff;
+
+    int GetIndexFromPos(glm::ivec3 pos);
+    glm::vec3 GetNoise(glm::ivec3 pos);
+    float GetDensity(glm::ivec3 pos);
+    BVHObject GenerateBVHObject(glm::ivec3 pos);
+    std::vector<BVHObject> GenerateBVHObjectsFromNoise();
+
+public:
+    BVHGenerator(glm::ivec3 dimensions, float *noiseTexture, float *noise2DTexture,
+        float coverageExp, float densityCoeff, float densityCutoff);
+    BVH GenerateBVH();
+};
+
 #endif
