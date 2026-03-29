@@ -1,28 +1,15 @@
 #include "Tree.hpp"
+#include <cmath>
 
 Tree::Tree(glm::uvec3 dimensions, unsigned int maxDepth) {
     this->dimensions = dimensions;
     this->usedNodes = 0;
-    costData = std::vector<float>();
 
     unsigned int N = (int)pow(2, maxDepth) - 1;
-    nodes = std::make_unique<TreeNode[]>(N);
+    nodes = std::make_unique()<TreeNode[]>(N);
 }
 
-void Tree::GenerateCostData(std::vector<float> noise, std::vector<float> noise2d) {
-    for (size_t i = 0; i < dimensions.x; i++) {
-        for (size_t j = 0; j < dimensions.y; j++) {
-            for (size_t k = 0; k < dimensions.z; k++) {
-                glm::uvec3 pos(i, j, k);
-                unsigned int index = GetIndexFromPos(pos);
-                float cost = GetCost(noise, noise2d, index);
-                costData[index] = cost;
-            }
-        }
-    }
-}
-
-void Tree::Build() {
+void Tree::Build(std::vector<float> noise, std::vector<float> noise2d) {
     unsigned int currNodeIndex = 0;
     unsigned int currDepth = 0;
     auto &rootNode = nodes[currNodeIndex];
@@ -35,9 +22,9 @@ void Tree::Build() {
     leftChildNode.depth = currDepth;
     rightChildNode.depth = currDepth;
 
-    // Calculate split position between nodes
-    // Compute new bounding boxes
-    // TODO
+    // Calculate new bounding boxes of 8 child nodes
+    // Compute density at (aabbMax - aabbMin) * 0.5 (centre of bounding box) to sample density in the node
+    // If density is very large/ very low/ max depth reached, abort.
 }
 
 unsigned int Tree::GetIndexFromPos(glm::uvec3 pos) const {
