@@ -43,7 +43,7 @@ uniform sampler3D uLimbLuminanceTexture;
 uniform vec3      uShadowCoordinates;
 uniform sampler3D uNoiseTexture;
 uniform sampler2D uNoiseTexture2D;
-uniform sampler2D uCloudTypeTexture;
+uniform sampler2D uCloudTypeTexture; // Where is this uniform set?!
 uniform float     uTestUniform;
 
 // outputs
@@ -473,24 +473,6 @@ uniform float uCloudHFRepetitionScale = 1190;
 float MIN_REMAINING_TRANSMITTANCE = 0.01;//0.001;
 uniform int TRANSMITTANCE_INTERPOLATION_STRIDE = 1;
 
-struct BVHNode {
-  vec3 aabbMin;
-  vec3 aabbMax;
-  uint leftFirst;
-  uint objCount;
-};
-
-layout (std140, binding = 0) uniform bvh {
-  // Array size of 1024 leads to errors
-  BVHNode nodes[512];
-  int objIndices[512];
-  int treeSize;
-  int objCount;
-};
-
-// uniform BVHNode bvhNodes[];
-// uniform int bvhObjIndices[];
-
 // get the cloud type at these texture coordinates
 // adds high frequency noises to the values from the cloud texture to replace coarse
 // bilinear interpolation artifacts with smaller artifacts that are harder to notice
@@ -511,6 +493,7 @@ vec4 GetLocalCloudType(vec2 texCoords){
 vec4 GetVerticalProfile(vec3 position){
   vec2 lngLat = getLngLat(position);
   vec2 texCoords = vec2(lngLat.x / (2 * PI) + 0.5, 1.0 - lngLat.y / PI + 0.5);
+  // uCloudTexture = earth-clouds.jpg (black and white)
   float density = remap(textureLod(uCloudTexture, texCoords, 2).r, 0, CLOUD_COVER_MAX, 0, 1);
   vec4 hcomp_with_noise = GetLocalCloudType(texCoords);
   float cloudType = hcomp_with_noise.r;
@@ -549,13 +532,13 @@ vec2 getCumuloNimbusDensity(vec3 position, vec3 cam_pos, bool high_res = true){
   if(cameraDist < LF_END_DISTANCE){
     vec4 lfNoises = textureLod(uNoiseTexture, position / uCloudLFRepetitionScale, 0);
     // blend between worley and perlin noises using a noise at a different frequency to reduce repetition
-    float lr_worley_noise = (1 - lfNoises.b) * .8 + lfNoises.r * .2; 
+    float lr_worley_noise = (1 - lfNoises.b) * .8 + lfNoises.r * .2;
     float lr_whispy_noise = lfNoises.r * .2 + lfNoises.g * .8;
     float blended_lf_noise = mix(lr_worley_noise, lr_whispy_noise, noise2Dl.r);
     // when camDist is in the fade out range, the noise is mixed with 0.5
     blended_lf_noise = mix(blended_lf_noise, .5, remap(cameraDist, LF_FADE_DISTANCE, LF_END_DISTANCE, 0, 1)) * .5 + .5 * noise2D.r;
     // using the formula from Andrew Schneider's SIGGRAPH presentations on Nubis
-    cloudDensity = clamp(lfInfluence * blended_lf_noise - (lfInfluence - cloudDensity), 0, 1);
+    cloudDensity = clamp(lfInfluence * blended_lf_noise - (lfInfluence - cloudDensity), 0, 1); // clamp(x, 0, 1) = saturate(x) (slide 34/207)
     
     if(high_res && cameraDist < HF_END_DISTANCE){
       vec4 hf_noises = textureLod(uNoiseTexture, position / uCloudHFRepetitionScale, 0);

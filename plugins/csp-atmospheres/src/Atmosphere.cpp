@@ -464,6 +464,7 @@ bool Atmosphere::Do() {
   if (mShaderDirty || mEclipseShadowReceiver->needsRecompilation()) {
     if (mSettings.mCloudTypeTexture.has_value()) {
       mCloudTypeTexture = cs::graphics::TextureLoader::loadFromFile(mSettings.mCloudTypeTexture.value());
+
       mCloudTypeTexture->SetWrapS(GL_CLAMP);
       mCloudTypeTexture->SetWrapT(GL_CLAMP);
     }else{
@@ -473,7 +474,7 @@ bool Atmosphere::Do() {
     mShaderDirty = false;
   }
 
-  // save current lighting and meterial state of the OpenGL state machine --------------------------
+  // save current lighting and material state of the OpenGL state machine --------------------------
   glPushAttrib(GL_LIGHTING_BIT | GL_ENABLE_BIT);
   glDisable(GL_LIGHTING);
   glDisable(GL_DEPTH_TEST);

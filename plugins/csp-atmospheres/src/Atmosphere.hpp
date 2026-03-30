@@ -13,8 +13,6 @@
 #include <VistaKernel/GraphicsManager/VistaOpenGLDraw.h>
 #include <VistaOGLExt/VistaGLSLShader.h>
 
-#include "BVH.hpp"
-
 namespace cs::core {
 class SolarSystem;
 class GraphicsEngine;
@@ -26,6 +24,50 @@ class HDRBuffer;
 } // namespace cs::graphics
 
 namespace csp::atmospheres {
+
+struct Uniforms {
+  uint32_t sunDir                    = 0;
+  uint32_t sunInfo                   = 0;
+  uint32_t time                      = 0;
+  uint32_t depthBuffer               = 0;
+  uint32_t colorBuffer               = 0;
+  uint32_t waterLevel                = 0;
+  uint32_t cloudTexture              = 0;
+  uint32_t cloudTypeTexture          = 0;
+  uint32_t noiseTexture2D            = 0;
+  uint32_t cloudAltitude             = 0;
+  uint32_t limbLuminanceTexture      = 0;
+  uint32_t inverseModelViewMatrix    = 0;
+  uint32_t inverseProjectionMatrix   = 0;
+  uint32_t scaleMatrix               = 0;
+  uint32_t modelMatrix               = 0;
+  uint32_t modelViewProjectionMatrix = 0;
+  uint32_t shadowCoordinates         = 0;
+  uint32_t noiseTexture              = 0;
+  uint32_t cloudDensityMultiplier    = 0;
+  uint32_t cloudAbsorption           = 0;
+  uint32_t coverageExponent          = 0;
+  uint32_t cloudCutoff               = 0;
+  uint32_t cloudLFRepetitionScale    = 0;
+  uint32_t cloudHFRepetitionScale    = 0;
+
+  uint32_t cloudQuality              = 0;
+  uint32_t cloudMaxSamples           = 0;
+  uint32_t cloudJitter               = 0;
+  uint32_t cloudTypeExponent         = 0;
+  uint32_t cloudRangeMin             = 0;
+  uint32_t cloudRangeMax             = 0;
+  uint32_t cloudTypeMin              = 0;
+  uint32_t cloudTypeMax              = 0;
+  
+  uint32_t cloudInterpolationStrideScale = 0;
+
+  // Only used by the panorama shader.
+  uint32_t atmoPanoUniforms = 0;
+
+  // Only used by the skydome shader.
+  uint32_t sunElevation = 0;
+};
 
 class ModelBase;
 
@@ -52,50 +94,6 @@ class Atmosphere : public IVistaOpenGLDraw {
   bool GetBoundingBox(VistaBoundingBox& bb) override;
 
  private:
-  struct Uniforms {
-    uint32_t sunDir                    = 0;
-    uint32_t sunInfo                   = 0;
-    uint32_t time                      = 0;
-    uint32_t depthBuffer               = 0;
-    uint32_t colorBuffer               = 0;
-    uint32_t waterLevel                = 0;
-    uint32_t cloudTexture              = 0;
-    uint32_t cloudTypeTexture          = 0;
-    uint32_t noiseTexture2D            = 0;
-    uint32_t cloudAltitude             = 0;
-    uint32_t limbLuminanceTexture      = 0;
-    uint32_t inverseModelViewMatrix    = 0;
-    uint32_t inverseProjectionMatrix   = 0;
-    uint32_t scaleMatrix               = 0;
-    uint32_t modelMatrix               = 0;
-    uint32_t modelViewProjectionMatrix = 0;
-    uint32_t shadowCoordinates         = 0;
-    uint32_t noiseTexture              = 0;
-    uint32_t cloudDensityMultiplier    = 0;
-    uint32_t cloudAbsorption           = 0;
-    uint32_t coverageExponent          = 0;
-    uint32_t cloudCutoff               = 0;
-    uint32_t cloudLFRepetitionScale    = 0;
-    uint32_t cloudHFRepetitionScale    = 0;
-
-    uint32_t cloudQuality              = 0;
-    uint32_t cloudMaxSamples           = 0;
-    uint32_t cloudJitter               = 0;
-    uint32_t cloudTypeExponent         = 0;
-    uint32_t cloudRangeMin             = 0;
-    uint32_t cloudRangeMax             = 0;
-    uint32_t cloudTypeMin              = 0;
-    uint32_t cloudTypeMax              = 0;
-    
-    uint32_t cloudInterpolationStrideScale = 0;
-
-    // Only used by the panorama shader.
-    uint32_t atmoPanoUniforms = 0;
-
-    // Only used by the skydome shader.
-    uint32_t sunElevation = 0;
-  };
-
   enum class ShaderType { eAtmosphere, eSkyDome };
 
   void createShader(ShaderType type, VistaGLSLShader& shader, Uniforms& uniforms) const;
@@ -111,8 +109,8 @@ class Atmosphere : public IVistaOpenGLDraw {
   std::unique_ptr<VistaOpenGLNode>                 mAtmosphereNode;
   std::shared_ptr<cs::graphics::HDRBuffer>         mHDRBuffer;
   std::shared_ptr<cs::core::EclipseShadowReceiver> mEclipseShadowReceiver;
-  std::unique_ptr<VistaTexture>                    mCloudTexture;
-  std::unique_ptr<VistaTexture>                    mCloudTypeTexture;
+  std::unique_ptr<VistaTexture>                    mCloudTexture;     // earth-clouds.jpg
+  std::unique_ptr<VistaTexture>                    mCloudTypeTexture; // cloudTop.png
   GLuint                                           mNoiseTexture = 0;
   GLuint                                           mNoiseTexture2D = 0;
   GLuint                                           mLimbLuminanceTexture = 0;
@@ -134,7 +132,6 @@ class Atmosphere : public IVistaOpenGLDraw {
   Uniforms        mAtmoUniforms;
 
   std::unique_ptr<ModelBase> mModel;
-  // std::unique_ptr<BVH> bvh;
 };
 
 } // namespace csp::atmospheres
