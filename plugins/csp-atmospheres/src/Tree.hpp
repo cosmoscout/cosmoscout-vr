@@ -25,13 +25,13 @@ struct TreeNode {
     glm::vec3 aabbMin, aabbMax;
     // Octree children-count is static (=8), so either firstChildIndex or density is occupied
     unsigned int firstChildIndex; // firstChildIndex > 0 => branch node
-    float val; // firstChildIndex == 0 => leaf node, so val is well-defined
+    float density; // firstChildIndex == 0 => leaf node, so val is well-defined
 
     TreeNode() {
         aabbMin = glm::vec3(0.0);
         aabbMax = glm::vec3(0.0);
         firstChildIndex = 0;
-        val = -0.0f;
+        density = -0.0f;
     }
 
     bool IsLeaf() const {
@@ -136,6 +136,14 @@ static glm::vec4 GetLocalCloudType(glm::vec2 texCoords, CloudProperties &propert
       return glm::vec4(Remap(pow(cloudType, (float)properties.uniforms.cloudTypeExponent),
         (float)properties.uniforms.cloudRangeMin, (float)properties.uniforms.cloudRangeMax, (float)properties.uniforms.cloudTypeMin,
         (float)properties.uniforms.cloudTypeMax), perlinSample.y, perlinSample.z, perlinSample.w);
+}
+
+glm::vec4 GetVerticalProfile(glm::vec3 position) {
+    throw;
+}
+
+glm::vec2 getCumuloNimbusDensity(glm::vec3 position, glm::vec3 cam_pos, bool high_res = true) {
+    throw;
 }
 
 #endif

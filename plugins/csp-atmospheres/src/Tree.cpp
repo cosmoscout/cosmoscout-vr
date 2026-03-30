@@ -88,7 +88,7 @@ void Tree::UpdateBounds(unsigned int index, unsigned int relChildIndex) {
     if (usedNodeIndex + 8 >= maxNodeCount) { // Is leaf node? (cannot use node.IsLeaf(), as node.leftChildNode hasnt been set yet)
         // Sample density at the centre of current node.
         // (Or: calculate the average in the corners?)
-        node.val = GetDensity(centre);
+        node.density = GetDensity(centre);
     }
 }
 
