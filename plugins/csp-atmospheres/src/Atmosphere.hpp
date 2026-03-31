@@ -13,6 +13,9 @@
 #include <VistaKernel/GraphicsManager/VistaOpenGLDraw.h>
 #include <VistaOGLExt/VistaGLSLShader.h>
 
+#include "utils.hpp"
+#include "Tree.hpp"
+
 namespace cs::core {
 class SolarSystem;
 class GraphicsEngine;
@@ -24,51 +27,6 @@ class HDRBuffer;
 } // namespace cs::graphics
 
 namespace csp::atmospheres {
-
-struct Uniforms {
-  uint32_t sunDir                    = 0;
-  uint32_t sunInfo                   = 0;
-  uint32_t time                      = 0;
-  uint32_t depthBuffer               = 0;
-  uint32_t colorBuffer               = 0;
-  uint32_t waterLevel                = 0;
-  uint32_t cloudTexture              = 0;
-  uint32_t cloudTypeTexture          = 0;
-  uint32_t noiseTexture2D            = 0;
-  uint32_t cloudAltitude             = 0;
-  uint32_t limbLuminanceTexture      = 0;
-  uint32_t inverseModelViewMatrix    = 0;
-  uint32_t inverseProjectionMatrix   = 0;
-  uint32_t scaleMatrix               = 0;
-  uint32_t modelMatrix               = 0;
-  uint32_t modelViewProjectionMatrix = 0;
-  uint32_t shadowCoordinates         = 0;
-  uint32_t noiseTexture              = 0;
-  uint32_t cloudDensityMultiplier    = 0;
-  uint32_t cloudAbsorption           = 0;
-  uint32_t coverageExponent          = 0;
-  uint32_t cloudCutoff               = 0;
-  uint32_t cloudLFRepetitionScale    = 0;
-  uint32_t cloudHFRepetitionScale    = 0;
-
-  uint32_t cloudQuality              = 0;
-  uint32_t cloudMaxSamples           = 0;
-  uint32_t cloudJitter               = 0;
-  uint32_t cloudTypeExponent         = 0;
-  uint32_t cloudRangeMin             = 0;
-  uint32_t cloudRangeMax             = 0;
-  uint32_t cloudTypeMin              = 0;
-  uint32_t cloudTypeMax              = 0;
-  
-  uint32_t cloudInterpolationStrideScale = 0;
-
-  // Only used by the panorama shader.
-  uint32_t atmoPanoUniforms = 0;
-
-  // Only used by the skydome shader.
-  uint32_t sunElevation = 0;
-};
-
 class ModelBase;
 
 /// This class draws a configurable atmosphere. It will be attached to the celestial object
@@ -96,7 +54,7 @@ class Atmosphere : public IVistaOpenGLDraw {
  private:
   enum class ShaderType { eAtmosphere, eSkyDome };
 
-  void createShader(ShaderType type, VistaGLSLShader& shader, Uniforms& uniforms) const;
+  void createShader(ShaderType type, VistaGLSLShader& shader, utils::Uniforms& uniforms) const;
   void updateShaders();
 
   void renderSkyDome(std::string const& name) const;
@@ -109,6 +67,10 @@ class Atmosphere : public IVistaOpenGLDraw {
   std::unique_ptr<VistaOpenGLNode>                 mAtmosphereNode;
   std::shared_ptr<cs::graphics::HDRBuffer>         mHDRBuffer;
   std::shared_ptr<cs::core::EclipseShadowReceiver> mEclipseShadowReceiver;
+
+  std::vector<float>                               mNoiseData;
+  std::vector<float>                               mNoiseData2D;
+
   std::unique_ptr<VistaTexture>                    mCloudTexture;     // earth-clouds.jpg
   std::unique_ptr<VistaTexture>                    mCloudTypeTexture; // cloudTop.png
   GLuint                                           mNoiseTexture = 0;
@@ -120,6 +82,9 @@ class Atmosphere : public IVistaOpenGLDraw {
   double                       mSceneScale                     = 1.0;
   Plugin::Settings::Atmosphere mSettings;
 
+  
+  double                        mPlanetRadius;
+
   int mEnableHDRConnection = -1;
 
   bool       mShaderDirty    = true;
@@ -129,9 +94,12 @@ class Atmosphere : public IVistaOpenGLDraw {
   double     mTime           = 0.0;
 
   VistaGLSLShader mAtmoShader;
-  Uniforms        mAtmoUniforms;
+  utils::Uniforms        mAtmoUniforms;
 
   std::unique_ptr<ModelBase> mModel;
+
+  // Octree for 3D cloud raymarcher
+  std::unique_ptr<Tree> mCloudOctree;
 };
 
 } // namespace csp::atmospheres

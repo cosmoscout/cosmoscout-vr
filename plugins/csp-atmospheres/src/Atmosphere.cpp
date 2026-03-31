@@ -158,33 +158,35 @@ void Atmosphere::configure(Plugin::Settings::Atmosphere const& settings) {
       }
     }
 
+    const int resx = 32, resy = 32, resz = 32, channels = 3;
+    glm::uvec3 noiseDataDim(resx, resy, resz);
+    const int resz2 = 256, resy2 = 256;
+    glm::uvec2 noiseData2DDim(resz2, resy2);
     // Reload the cloud texture if required.
     if (mSettings.mCloudTexture != settings.mCloudTexture) {
       if (settings.mCloudTexture.has_value() && !settings.mCloudTexture.value().empty()) {
         mCloudTexture = cs::graphics::TextureLoader::loadFromFile(settings.mCloudTexture.value());
-
         auto start_time = std::chrono::high_resolution_clock::now();
-        const int resx = 32, resy = 32, resz = 32, channels = 3;
         // higher 3d texture resolutions are more expensive and are not guaranteed to be supported on all systems
         // resx = 32;
         // resy = 32;
         // resz = 32;
-        const int resz2 = 256, resy2 = 256;
         // resz2 = 256;
         // resy2 = 256;
         // channels = 3;
         int noise_texture_size = resx * resy * resz * channels;
-        std::vector<float> cpu_noise3D(noise_texture_size, 0);
-        std::vector<float> cpu_noise2D(resz2 * resy2 * channels, 0);
+        mNoiseData = std::vector<float>(noise_texture_size, 0);
+        mNoiseData2D = std::vector<float>(resz2 * resy2 * channels, 0);
+
         for(int i = 0; i < resz; i++){
           float u = (float)i / (resz - 1);
           for(int j = 0; j < resy; j++){
             float v = (float)j / (resy- 1);
             for(int k = 0; k < resx; k++){
               float w = (float)k / (resx - 1);
-              cpu_noise3D[(i * resy * resx + j * resx + k) * channels] = Tileable3dNoise::PerlinNoise(glm::vec3(u, v, w), 5, 5);
-              cpu_noise3D[(i * resy * resx + j * resx + k) * channels + 1] = Tileable3dNoise::PerlinNoise(glm::vec3(u, v, w), 3, 10);
-              cpu_noise3D[(i * resy * resx + j * resx + k) * channels + 2] = Tileable3dNoise::WorleyNoise(glm::vec3(u, v, w), 7);
+              mNoiseData[(i * resy * resx + j * resx + k) * channels] = Tileable3dNoise::PerlinNoise(glm::vec3(u, v, w), 5, 5);
+              mNoiseData[(i * resy * resx + j * resx + k) * channels + 1] = Tileable3dNoise::PerlinNoise(glm::vec3(u, v, w), 3, 10);
+              mNoiseData[(i * resy * resx + j * resx + k) * channels + 2] = Tileable3dNoise::WorleyNoise(glm::vec3(u, v, w), 7);
             }
           }
         }
@@ -193,9 +195,9 @@ void Atmosphere::configure(Plugin::Settings::Atmosphere const& settings) {
           float u = (float)i / (resz2 - 1);
           for(int j = 0; j < resy2; j++){
             float v = (float)j / (resy2- 1);
-            cpu_noise2D[(i * resz2 + j) * channels] = Tileable3dNoise::PerlinNoise(glm::vec3(u, v, 0), 100, 10);
-            cpu_noise2D[(i * resz2 + j) * channels + 1] = Tileable3dNoise::PerlinNoise(glm::vec3(u, v, 0), 500, 10);
-            cpu_noise2D[(i * resz2 + j) * channels + 2] = Tileable3dNoise::WorleyNoise(glm::vec3(u, v, 0), 60);
+            mNoiseData2D[(i * resz2 + j) * channels] = Tileable3dNoise::PerlinNoise(glm::vec3(u, v, 0), 100, 10);
+            mNoiseData2D[(i * resz2 + j) * channels + 1] = Tileable3dNoise::PerlinNoise(glm::vec3(u, v, 0), 500, 10);
+            mNoiseData2D[(i * resz2 + j) * channels + 2] = Tileable3dNoise::WorleyNoise(glm::vec3(u, v, 0), 60);
           }
         }
 
@@ -227,7 +229,7 @@ void Atmosphere::configure(Plugin::Settings::Atmosphere const& settings) {
         glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
-        glTexImage3D(GL_TEXTURE_3D, 0, GL_RGB, resx, resy, resz, 0, GL_RGB, GL_FLOAT, cpu_noise3D.data());
+        glTexImage3D(GL_TEXTURE_3D, 0, GL_RGB, resx, resy, resz, 0, GL_RGB, GL_FLOAT, mNoiseData.data());
         
         glGenTextures(1, &mNoiseTexture2D);
         glActiveTexture(GL_TEXTURE0);
@@ -237,15 +239,7 @@ void Atmosphere::configure(Plugin::Settings::Atmosphere const& settings) {
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, resz2, resy2, 0, GL_RGB, GL_FLOAT, cpu_noise2D.data());
-
-        // std::vector<BVHObject> bvhObjs();
-        // for (size_t i = 0; i < noise_texture_size / channels; i++) {
-        //   // For every texel in the noise texture, check the density and create a BVH object if dense enough.
-        //   BVHObject obj();
-        // }
-        
-        // bvh = std::make_unique<BVH>();
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, resz2, resy2, 0, GL_RGB, GL_FLOAT, mNoiseData2D.data());
       } else {
         mCloudTexture.reset();
       }
@@ -278,6 +272,8 @@ void Atmosphere::configure(Plugin::Settings::Atmosphere const& settings) {
     // Recreate the shader if required.
     if (mRadii != radii) {
       mRadii       = radii;
+      mPlanetRadius = mRadii[0] + mSettings.mBottomAltitude.get();
+      
       mShaderDirty = true;
     }
 
@@ -303,12 +299,44 @@ void Atmosphere::configure(Plugin::Settings::Atmosphere const& settings) {
     if (mSettings.mRenderSkydome.get()) {
       renderSkyDome(mObjectName);
     }
+
+    CloudProperties properties;
+    properties.uniforms = mAtmoUniforms;
+    properties.noise = mNoiseData.data();
+    properties.noiseDim = noiseDataDim;
+    properties.noise2d = mNoiseData2D.data();
+    properties.noise2dDim = noiseData2DDim;
+    
+    int cloudDataWidth, cloudDataHeight;
+    glBindTexture(GL_TEXTURE_2D, mCloudTexture->GetId());
+    glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &cloudDataWidth);
+    glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &cloudDataHeight);
+    glm::uvec2 cloudDim(cloudDataWidth, cloudDataHeight);
+    properties.cloudDim = cloudDim;
+
+    std::vector<float> cloudData(cloudDataWidth * cloudDataHeight * 4);
+    glGetTexImage(mCloudTexture->GetId(), 0, GL_RGBA8, GL_UNSIGNED_BYTE, cloudData.data());
+    properties.cloud = cloudData;
+
+    int cloudTypeDataWidth, cloudTypeDataHeight;
+    glBindTexture(GL_TEXTURE_2D, mCloudTypeTexture->GetId());
+    glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &cloudTypeDataWidth);
+    glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &cloudTypeDataHeight);
+    glm::uvec2 cloudTypeDim(cloudTypeDataWidth, cloudTypeDataHeight);
+    properties.cloudTypeDim = cloudTypeDim;
+
+    std::vector<float> cloudTypeData(cloudTypeDataWidth * cloudTypeDataHeight * 4);
+    glGetTexImage(mCloudTypeTexture->GetId(), 0, GL_RGBA8, GL_UNSIGNED_BYTE, cloudTypeData.data());
+    properties.cloudType = cloudTypeData;
+
+    properties.planetRadius = (float)mPlanetRadius;
+    mCloudOctree = std::make_unique<Tree>(noiseDataDim, 3, std::move(properties));
   }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Atmosphere::createShader(ShaderType type, VistaGLSLShader& shader, Uniforms& uniforms) const {
+void Atmosphere::createShader(ShaderType type, VistaGLSLShader& shader, utils::Uniforms& uniforms) const {
   shader = VistaGLSLShader();
 
   auto sVert =
@@ -317,8 +345,7 @@ void Atmosphere::createShader(ShaderType type, VistaGLSLShader& shader, Uniforms
       cs::utils::filesystem::loadToString("../share/resources/shaders/csp-atmosphere.frag");
 
   cs::utils::replaceString(sFrag, "SKYDOME_MODE", type == ShaderType::eSkyDome ? "1" : "0");
-  cs::utils::replaceString(
-      sFrag, "PLANET_RADIUS", std::to_string(mRadii[0] + mSettings.mBottomAltitude.get()));
+  cs::utils::replaceString(sFrag, "PLANET_RADIUS", std::to_string(mPlanetRadius));
   cs::utils::replaceString(
       sFrag, "ATMOSPHERE_RADIUS", std::to_string(mRadii[0] + mSettings.mTopAltitude));
   cs::utils::replaceString(
@@ -695,7 +722,7 @@ void Atmosphere::renderSkyDome(std::string const& name) const {
   const int SIZE = 512;
 
   VistaGLSLShader shader;
-  Uniforms        uniforms;
+  utils::Uniforms        uniforms;
   createShader(ShaderType::eSkyDome, shader, uniforms);
 
   GLuint texture;
