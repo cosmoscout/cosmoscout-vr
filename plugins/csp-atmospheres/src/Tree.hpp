@@ -78,15 +78,47 @@ namespace csp::atmospheres {
         void Build();
     };
 
+    static glm::vec2 RollOverVector(glm::vec2 pos, const glm::uvec2 &dimensions) {
+        glm::ivec2 intPart(0);
+        intPart.x = (int)round(pos.x);
+        intPart.y = (int)round(pos.y);
+
+        glm::ivec2 intPartRolledOver;
+        intPartRolledOver.x = intPart.x % dimensions.x;
+        intPartRolledOver.y = intPart.y % dimensions.y;
+
+        glm::vec2 decimalRemainder = (glm::vec2)intPart - pos;
+        return (glm::vec2)intPartRolledOver + decimalRemainder;
+    }
+
+    static glm::vec3 RollOverVector3D(glm::vec3 pos, const glm::uvec3 &dimensions) {
+        glm::ivec3 intPart(0);
+        intPart.x = (int)round(pos.x);
+        intPart.y = (int)round(pos.y);
+        intPart.z = (int)round(pos.z);
+
+        glm::ivec3 intPartRolledOver;
+        intPartRolledOver.x = intPart.x % dimensions.x;
+        intPartRolledOver.y = intPart.y % dimensions.y;
+        intPartRolledOver.z = intPart.z % dimensions.z;
+
+        glm::vec3 decimalRemainder = (glm::vec3)intPart - pos;
+        return (glm::vec3)intPartRolledOver + decimalRemainder;
+    }
+
     static unsigned int GetIndexFromPos(glm::vec2 pos, const glm::uvec2 &dimensions) {
+        // Simulate a GL_REPEAT texture (when texture is read out of bounds.
+        // When texture is read out of bounds, repeat the texture so that read position is inside texture.
+        pos = RollOverVector(pos, dimensions);
         return (int)pos.x * dimensions.x + (int)pos.y * dimensions.y;
     }
 
     static unsigned int GetIndexFrom3DPos(glm::vec3 pos, const glm::uvec3 &dimensions) {
+        pos = RollOverVector3D(pos, dimensions);
         return (int)pos.x * dimensions.x + (int)pos.y * dimensions.y + (int)pos.z * dimensions.z;
     }
 
-    static glm::vec3 GetPosFromIndex(unsigned int index, const glm::uvec3 &dimensions) {
+    static glm::vec3 Get3DPosFromIndex(unsigned int index, const glm::uvec3 &dimensions) {
         glm::uvec3 pos;
         pos.x = index % dimensions.x;
         pos.y = int(index / dimensions.x) % dimensions.y;
@@ -166,21 +198,21 @@ namespace csp::atmospheres {
     float LF_END_DISTANCE = 2000000.0f;
 
     glm::vec4 GetVerticalProfile(glm::vec3 position, CloudProperties &properties) {
-    glm::vec2 lngLat = GetSphericalCoords(position);
-    glm::vec2 texCoords = glm::vec2(lngLat.x / (2.0f * PI) + 0.5f, 1.0f - lngLat.y / PI + 0.5f);
-    // uCloudTexture = earth-clouds.jpg (black and white)
-    // In shader: textureLod(..., 2) call with LOD level 2
-    float density = Remap(GetTexture(properties.cloud.data(), properties.cloudDim, texCoords).r, 0, CLOUD_COVER_MAX, 0, 1);
-    glm::vec4 hcomp_with_noise = GetLocalCloudType(texCoords, properties);
-    float cloudType = hcomp_with_noise.r;
-    glm::vec3 noiseSample(hcomp_with_noise.g, hcomp_with_noise.b, hcomp_with_noise.a);
-    float endHeight = CUMULONIMBUS_END_HEIGHT * (1.0f - CLOUD_HEIGHT_VARIATION * noiseSample.g);
-    float topAltitude = properties.planetRadius + endHeight;
-    float thickness = endHeight - CUMULONIMBUS_START_HEIGHT;
-    // "progress" in cloud from bottom to top in range 0 to 1
-    float height_in_cloud = Remap(length(position), properties.planetRadius + CUMULONIMBUS_START_HEIGHT, topAltitude, 0.0f, 1.0f);
-    glm::vec4 cloudConfig = GetTexture(properties.cloudType.data(), properties.cloudTypeDim, glm::vec2(cloudType, 1.0f - height_in_cloud));
-    return glm::vec4(cloudConfig.r * density * .95f, cloudConfig.g, cloudConfig.b, cloudConfig.a);
+        glm::vec2 lngLat = GetSphericalCoords(position);
+        glm::vec2 texCoords = glm::vec2(lngLat.x / (2.0f * PI) + 0.5f, 1.0f - lngLat.y / PI + 0.5f);
+        // uCloudTexture = earth-clouds.jpg (black and white)
+        // In shader: textureLod(..., 2) call with LOD level 2
+        float density = Remap(GetTexture(properties.cloud.data(), properties.cloudDim, texCoords).r, 0, CLOUD_COVER_MAX, 0, 1);
+        glm::vec4 hcomp_with_noise = GetLocalCloudType(texCoords, properties);
+        float cloudType = hcomp_with_noise.r;
+        glm::vec3 noiseSample(hcomp_with_noise.g, hcomp_with_noise.b, hcomp_with_noise.a);
+        float endHeight = CUMULONIMBUS_END_HEIGHT * (1.0f - CLOUD_HEIGHT_VARIATION * noiseSample.g);
+        float topAltitude = properties.planetRadius + endHeight;
+        float thickness = endHeight - CUMULONIMBUS_START_HEIGHT;
+        // "progress" in cloud from bottom to top in range 0 to 1
+        float height_in_cloud = Remap(length(position), properties.planetRadius + CUMULONIMBUS_START_HEIGHT, topAltitude, 0.0f, 1.0f);
+        glm::vec4 cloudConfig = GetTexture(properties.cloudType.data(), properties.cloudTypeDim, glm::vec2(cloudType, 1.0f - height_in_cloud));
+        return glm::vec4(cloudConfig.r * density * .95f, cloudConfig.g, cloudConfig.b, cloudConfig.a);
     }
 
     glm::vec2 GetCumuloNimbusDensity(glm::vec3 position, CloudProperties &properties) {
@@ -229,7 +261,7 @@ namespace csp::atmospheres {
             cloudDensity = 0;
         }
 
-        float h = length(position) - properties.planetRadius;
+        float h = glm::length(position) - properties.planetRadius;
         float height_factor = exp(-h / 8000);
         // uCloudCutoff determines the minimum density of a cloud. If < cutoff, density is set to zero,
         // hence uCloudCutoff sets the boundaries of the clouds.
@@ -238,12 +270,12 @@ namespace csp::atmospheres {
     }
 
     glm::vec2 GetCloudDensity(glm::vec3 position, CloudProperties &properties){
-    glm::vec2 acc(0);
-    float height = glm::length(position) - properties.planetRadius;
-    if(height > CUMULONIMBUS_START_HEIGHT && height < CUMULONIMBUS_END_HEIGHT){
-        acc += GetCumuloNimbusDensity(position, properties);
-    }
-    return acc;
+        glm::vec2 acc(0.0f);
+        float height = glm::length(position) - properties.planetRadius;
+        if(height > CUMULONIMBUS_START_HEIGHT && height < CUMULONIMBUS_END_HEIGHT){
+            acc += GetCumuloNimbusDensity(position, properties);
+        }
+        return acc;
     }
 }
 
