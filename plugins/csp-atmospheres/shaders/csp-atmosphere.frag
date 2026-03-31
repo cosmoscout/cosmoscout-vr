@@ -46,6 +46,17 @@ uniform sampler2D uNoiseTexture2D;
 uniform sampler2D uCloudTypeTexture; // Where is this uniform set?!
 uniform float     uTestUniform;
 
+// struct TreeNode {
+//   vec3 aabbMin;
+//   vec3 aabbMax;
+//   uint firstChildIndex;
+//   float density;
+// };
+
+// // Octree generated on the CPU, stored in a sequential array
+// const uint TREE_MAX_NODES = 512;
+// layout(location = 1) in TreeNode[TREE_MAX_NODES] cloudNodes;
+
 // outputs
 layout(location = 0) out vec3 oColor;
 

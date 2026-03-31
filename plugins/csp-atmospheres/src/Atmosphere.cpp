@@ -300,37 +300,40 @@ void Atmosphere::configure(Plugin::Settings::Atmosphere const& settings) {
       renderSkyDome(mObjectName);
     }
 
-    CloudProperties properties;
-    properties.uniforms = mAtmoUniforms;
-    properties.noise = mNoiseData.data();
-    properties.noiseDim = noiseDataDim;
-    properties.noise2d = mNoiseData2D.data();
-    properties.noise2dDim = noiseData2DDim;
-    
-    int cloudDataWidth, cloudDataHeight;
-    glBindTexture(GL_TEXTURE_2D, mCloudTexture->GetId());
-    glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &cloudDataWidth);
-    glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &cloudDataHeight);
-    glm::uvec2 cloudDim(cloudDataWidth, cloudDataHeight);
-    properties.cloudDim = cloudDim;
+    if (mNoiseData.size() > 0 && mNoiseData2D.size() > 0 && mCloudTexture && mCloudTypeTexture) {
+      CloudProperties properties;
+      properties.uniforms = mAtmoUniforms;
+      properties.noise = mNoiseData.data();
+      properties.noiseDim = noiseDataDim;
+      properties.noise2d = mNoiseData2D.data();
+      properties.noise2dDim = noiseData2DDim;
+      
+      int cloudDataWidth, cloudDataHeight;
+      glBindTexture(GL_TEXTURE_2D, mCloudTexture->GetId());
+      glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &cloudDataWidth);
+      glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &cloudDataHeight);
+      glm::uvec2 cloudDim(cloudDataWidth, cloudDataHeight);
+      properties.cloudDim = cloudDim;
 
-    std::vector<float> cloudData(cloudDataWidth * cloudDataHeight * 4);
-    glGetTexImage(mCloudTexture->GetId(), 0, GL_RGBA8, GL_UNSIGNED_BYTE, cloudData.data());
-    properties.cloud = cloudData;
+      std::vector<float> cloudData(cloudDataWidth * cloudDataHeight * 4);
+      glGetTexImage(mCloudTexture->GetId(), 0, GL_RGBA8, GL_UNSIGNED_BYTE, cloudData.data());
+      properties.cloud = cloudData;
 
-    int cloudTypeDataWidth, cloudTypeDataHeight;
-    glBindTexture(GL_TEXTURE_2D, mCloudTypeTexture->GetId());
-    glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &cloudTypeDataWidth);
-    glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &cloudTypeDataHeight);
-    glm::uvec2 cloudTypeDim(cloudTypeDataWidth, cloudTypeDataHeight);
-    properties.cloudTypeDim = cloudTypeDim;
+      int cloudTypeDataWidth, cloudTypeDataHeight;
+      glBindTexture(GL_TEXTURE_2D, mCloudTypeTexture->GetId());
+      glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &cloudTypeDataWidth);
+      glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &cloudTypeDataHeight);
+      glm::uvec2 cloudTypeDim(cloudTypeDataWidth, cloudTypeDataHeight);
+      properties.cloudTypeDim = cloudTypeDim;
 
-    std::vector<float> cloudTypeData(cloudTypeDataWidth * cloudTypeDataHeight * 4);
-    glGetTexImage(mCloudTypeTexture->GetId(), 0, GL_RGBA8, GL_UNSIGNED_BYTE, cloudTypeData.data());
-    properties.cloudType = cloudTypeData;
+      std::vector<float> cloudTypeData(cloudTypeDataWidth * cloudTypeDataHeight * 4);
+      glGetTexImage(mCloudTypeTexture->GetId(), 0, GL_RGBA8, GL_UNSIGNED_BYTE, cloudTypeData.data());
+      properties.cloudType = cloudTypeData;
 
-    properties.planetRadius = (float)mPlanetRadius;
-    mCloudOctree = std::make_unique<Tree>(noiseDataDim, 3, std::move(properties));
+      properties.planetRadius = (float)mPlanetRadius;
+
+      mCloudOctree = std::make_unique<Tree>(noiseDataDim, 3, std::move(properties));
+    }
   }
 }
 

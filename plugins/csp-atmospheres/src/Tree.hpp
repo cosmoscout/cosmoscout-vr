@@ -76,6 +76,10 @@ namespace csp::atmospheres {
     public:
         Tree(glm::uvec3 dimensions, unsigned int maxDepth, CloudProperties properties);
         void Build();
+
+        unsigned int GetGeneratedNodes() const {
+            return usedNodeIndex; // all used node indices
+        }
     };
 
     static glm::vec2 RollOverVector(glm::vec2 pos, const glm::uvec2 &dimensions) {
@@ -129,7 +133,7 @@ namespace csp::atmospheres {
     static glm::vec4 GetTexture(const float *data2d, glm::uvec2 &dimensions, glm::vec2 texCoords) {
         unsigned int index = GetIndexFromPos(texCoords, dimensions);
         glm::vec4 texel(0.0);
-        for (int i = 0; i < 3; i++) {
+        for (int i = 0; i < 4; i++) {
             texel[i] = data2d[index + i];
         }
         return texel;
