@@ -43,19 +43,23 @@ uniform sampler3D uLimbLuminanceTexture;
 uniform vec3      uShadowCoordinates;
 uniform sampler3D uNoiseTexture;
 uniform sampler2D uNoiseTexture2D;
-uniform sampler2D uCloudTypeTexture; // Where is this uniform set?!
+uniform sampler2D uCloudTypeTexture;
 uniform float     uTestUniform;
 
-// struct TreeNode {
-//   vec3 aabbMin;
-//   vec3 aabbMax;
-//   uint firstChildIndex;
-//   float density;
-// };
+// Octree node
+// Total struct size must be a multiple of sizeof(vec4) = 16 for std140 alignment.
+struct TreeNode {
+  vec3 aabbMin;           // 3 * 4 bytes (vec3 is treated as vec4 by GLSL)
+  vec3 aabbMax;           // 3 * 4 bytes
+  uint firstChildIndex;   // 1 * 4 bytes
+  float density;          // 1 * 4 bytes
+}; // = 32 bytes
 
-// // Octree generated on the CPU, stored in a sequential array
-// const uint TREE_MAX_NODES = 512;
-// layout(location = 1) in TreeNode[TREE_MAX_NODES] cloudNodes;
+// Octree generated on the CPU, stored in a sequential array
+const uint TREE_MAX_NODES = 512;
+layout(std140, binding = 0) readonly cloudTree {
+  TreeNode nodes[TREE_MAX_NODES];
+};
 
 // outputs
 layout(location = 0) out vec3 oColor;

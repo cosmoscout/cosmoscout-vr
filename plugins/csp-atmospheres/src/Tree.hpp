@@ -69,7 +69,8 @@ namespace csp::atmospheres {
 
         // Calculates cloud density at the given index.
         float GetDensity(glm::vec3 pos);
-
+        // Calculates average density throughout the node (basically the cost function for decision to subdivide).
+        float GetAverageDensity(unsigned int index);
         void Subdivide(unsigned int index, unsigned int depth);
         void UpdateBounds(unsigned int index, unsigned int relChildIndex);
 
@@ -77,7 +78,11 @@ namespace csp::atmospheres {
         Tree(glm::uvec3 dimensions, unsigned int maxDepth, CloudProperties properties);
         void Build();
 
-        unsigned int GetGeneratedNodes() const {
+        TreeNode *GetNodes() const {
+            return &nodes[0];
+        }
+
+        unsigned int GetUsedNodeCount() const {
             return usedNodeIndex; // all used node indices
         }
     };

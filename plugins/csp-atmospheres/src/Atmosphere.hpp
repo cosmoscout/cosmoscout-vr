@@ -59,6 +59,8 @@ class Atmosphere : public IVistaOpenGLDraw {
 
   void renderSkyDome(std::string const& name) const;
 
+  void BuildOctree();
+
   std::shared_ptr<Plugin::Settings>                mPluginSettings;
   std::shared_ptr<cs::core::Settings>              mAllSettings;
   std::shared_ptr<cs::core::SolarSystem>           mSolarSystem;
@@ -76,7 +78,10 @@ class Atmosphere : public IVistaOpenGLDraw {
   GLuint                                           mNoiseTexture = 0;
   GLuint                                           mNoiseTexture2D = 0;
   GLuint                                           mLimbLuminanceTexture = 0;
+  GLuint                                           mCloudTreeBuffer = 0;
 
+  const int resx = 32, resy = 32, resz = 32, channels = 3;
+  const int resz2 = 256, resy2 = 256;
   glm::dvec3                   mRadii                          = glm::dvec3(1.0, 1.0, 1.0);
   glm::dmat4                   mObserverRelativeTransformation = glm::dmat4(1.0);
   double                       mSceneScale                     = 1.0;
@@ -99,7 +104,7 @@ class Atmosphere : public IVistaOpenGLDraw {
   std::unique_ptr<ModelBase> mModel;
 
   // Octree for 3D cloud raymarcher
-  std::unique_ptr<Tree> mCloudOctree;
+  std::unique_ptr<Tree> mCloudTree;
 };
 
 } // namespace csp::atmospheres

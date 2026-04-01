@@ -24,17 +24,18 @@ namespace csp::atmospheres {
         rootNode.aabbMax = (glm::vec3)dimensions; // Set dimensions as max bounds for root node.
         
         unsigned int depth = 0;
+        usedNodeIndex = 0;
         Subdivide(ROOT_NODE_INDEX, depth);
-        // Calculate new bounding boxes of 8 child nodes
-        // Compute density at (aabbMax - aabbMin) * 0.5 (centre of bounding box) to sample density in the node.
-        // If density is very large/ very low/ max depth reached, abort.
     }
 
     void Tree::Subdivide(unsigned int index, unsigned int depth) {
         if (depth >= maxDepth) // If level of depth has been reached, stop subdivision process.
             return;
-        
+        if (GetAverageDensity(index) <= 1e-4) // If average density throughout the node is too small, stop subdividing.
+            return;
+
         depth += 1;
+        // Decide if node should be subdivided
         auto &node = nodes[index];
         // Nodes are stored sequentially, so children of current node are the next 8 nodes in the nodes-array.
         node.firstChildIndex = usedNodeIndex + 1;
@@ -46,7 +47,6 @@ namespace csp::atmospheres {
     }
 
     void Tree::UpdateBounds(unsigned int index, unsigned int relChildIndex) {
-        // Add break-condition if density is very large/ very low?
         auto &node = nodes[index];
         auto &parent = nodes[index];
 
@@ -67,12 +67,12 @@ namespace csp::atmospheres {
 
         //           top
         //    -----------------m  
-        //   /               / |
-        //  /               /  |
+        //   /|              / |
+        //  / |             /  |
         // ----------------/   |
-        // |   |           |   |
-        // |   |    x      |   |
-        // |   |-----------|---| back
+        // |  |            |   |
+        // |  |     x      |   |
+        // |  |------------|---| back
         // |  /            |  /
         // | /             | /
         // n---------------|/ right
@@ -93,16 +93,36 @@ namespace csp::atmospheres {
 
         node.aabbMin += boundsTransformation;
         node.aabbMax += boundsTransformation;
-
-        if (usedNodeIndex + 8 >= maxNodeCount) { // Is leaf node? (cannot use node.IsLeaf(), as node.leftChildNode hasnt been set yet)
-            // Sample density at the centre of current node.
-            // (Or: calculate the average in the corners?)
-            node.density = GetDensity(centre);
-        }
     }
 
     float Tree::GetDensity(glm::vec3 pos) {
         glm::vec2 density = GetCloudDensity(pos, properties);
         return density.x; // First component: with cutoff (actual visible density)
+    }
+
+    float Tree::GetAverageDensity(unsigned int index) {
+        auto &node = nodes[index];
+
+        const unsigned int DENSITY_SAMPLE_COUNT = 9;
+        float densitySamples[DENSITY_SAMPLE_COUNT] = {};
+        glm::vec3 densitySampleLocations[DENSITY_SAMPLE_COUNT];
+        // Sample density at node corners and the centre.
+        // Subdivide if average density is above cutoff.
+        densitySampleLocations[0] = node.aabbMin;
+        densitySampleLocations[1] = node.aabbMax;
+        densitySampleLocations[2] = glm::vec3(node.aabbMin.x, node.aabbMin.x, node.aabbMax.z); // LL
+        densitySampleLocations[3] = glm::vec3(node.aabbMin.x, node.aabbMax.y, node.aabbMax.z); // UL
+        densitySampleLocations[4] = glm::vec3(node.aabbMax.x, node.aabbMin.y, node.aabbMax.z); // LR
+        densitySampleLocations[5] = glm::vec3(node.aabbMax.x, node.aabbMax.y, node.aabbMin.z); // UR
+        densitySampleLocations[6] = glm::vec3(node.aabbMax.x, node.aabbMax.y, node.aabbMin.z); // UM
+        densitySampleLocations[7] = glm::vec3(node.aabbMax.x, node.aabbMin.y, node.aabbMax.z); // LM
+        densitySampleLocations[8] = node.aabbMax - node.aabbMin; // Centre
+
+        float densitySum = 0.0f;
+        for (size_t i = 0; i < DENSITY_SAMPLE_COUNT; i++) {
+            densitySum += GetDensity(densitySampleLocations[i]);
+        }
+
+        return densitySum / DENSITY_SAMPLE_COUNT;
     }
 }
