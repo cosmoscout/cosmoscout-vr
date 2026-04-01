@@ -57,7 +57,7 @@ struct TreeNode {
 
 // Octree generated on the CPU, stored in a sequential array
 const uint TREE_MAX_NODES = 512;
-layout(std140, binding = 0) readonly cloudTree {
+layout(std140, binding = 0) uniform cloudTree {
   TreeNode nodes[TREE_MAX_NODES];
 };
 
