@@ -146,6 +146,10 @@ bool Arrow::Do() {
 //    return true;
 //  }
 
+  if ((!mPluginSettings->mEnableArrows.get())) {
+    return true;
+  }
+
   // Create shader
   createShader();
 
