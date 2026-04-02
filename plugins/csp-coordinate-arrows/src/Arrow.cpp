@@ -71,19 +71,18 @@ void main()
 
 Arrow::Arrow(std::shared_ptr<Plugin::Settings>  pluginSettings,
     std::shared_ptr<cs::core::SolarSystem>      solarSystem,
-    std::shared_ptr<std::vector<float>>         arrowVertices,
+    std::shared_ptr<cs::graphics::ObjLoader>    arrowModel,
     const glm::dvec3                            rotAxis,
     const float                                 rotAngle,
     const glm::vec4&                            color,
-    float                                       width,
     float                                       size
   ) :
       mPluginSettings(std::move(pluginSettings)),
       mSolarSystem(std::move(solarSystem)),
+      //mArrowModel(std::move(arrowModel)),
       mRotAxis(rotAxis),
       mRotAngle(rotAngle),
       mColor(color),
-      mWidth(width),
       mSize(size)
   {
 
@@ -95,7 +94,7 @@ Arrow::Arrow(std::shared_ptr<Plugin::Settings>  pluginSettings,
     logger().info("Added arrow to scene graph.");
 
     // Remember vertex count fo arrow model.
-    mVertexCount = static_cast<int>(arrowVertices->size() / 3);
+    mVertexCount = static_cast<int>(arrowModel->getVertices().get()->size() / 3);
 
     // Create VBO and VAO from given vertices.
     mVBO = std::make_unique<VistaBufferObject>();
@@ -104,7 +103,7 @@ Arrow::Arrow(std::shared_ptr<Plugin::Settings>  pluginSettings,
     mVAO->Bind();
 
     mVBO->Bind(GL_ARRAY_BUFFER);
-    mVBO->BufferData(arrowVertices->size() * sizeof(float), arrowVertices->data(), GL_DYNAMIC_DRAW);
+    mVBO->BufferData(arrowModel->getVertices().get()->size() * sizeof(float), arrowModel->getVertices().get()->data(), GL_DYNAMIC_DRAW);
 
     mVAO->EnableAttributeArray(0);
     mVAO->SpecifyAttributeArrayFloat(0, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), 0, mVBO.get());
@@ -186,7 +185,6 @@ bool Arrow::Do() {
   glEnable(GL_LINE_SMOOTH);
   glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
   glDisable(GL_DEPTH_TEST);   // Makes lines visible through walls.
-  glLineWidth(mWidth);
 
   mShader->Bind();
 

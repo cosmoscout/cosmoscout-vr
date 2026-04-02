@@ -20,13 +20,13 @@ namespace csp::coordinatearrows {
 
 class Arrow;
 
-/// Your plugin description here!
+/// Plugin that shows the orientation of objects by visualizing their coordinate systems
+/// similar to modelling software like Blender.
 class Plugin : public cs::core::PluginBase {
  public:
   struct Settings {
     // Settings for a group of arrows.
     struct Arrows {
-      float mWidth;
       float mSize;
     };
 

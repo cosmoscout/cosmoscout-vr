@@ -11,6 +11,7 @@
 #include "Plugin.hpp"
 
 #include "../../../src/cs-scene/CelestialObject.hpp"
+#include "../../../src/cs-graphics/ObjLoader.hpp"
 
 #include <VistaBase/VistaColor.h>
 #include <VistaKernel/GraphicsManager/VistaOpenGLDraw.h>
@@ -27,14 +28,13 @@ namespace csp::coordinatearrows {
 
 class Arrow : public IVistaOpenGLDraw {
  public:
-  Arrow(std::shared_ptr<Plugin::Settings>   pluginSettings,
-    std::shared_ptr<cs::core::SolarSystem>  solarSystem,
-    std::shared_ptr<std::vector<float>>     arrowVertices,
-    const glm::dvec3                        rotAxis,
-    const float                             rotAngle,
-    const glm::vec4&                        color,
-    float                                   width,
-    float                                   size
+  Arrow(std::shared_ptr<Plugin::Settings>     pluginSettings,
+    std::shared_ptr<cs::core::SolarSystem>    solarSystem,
+    std::shared_ptr<cs::graphics::ObjLoader>  arrowModel,
+    const glm::dvec3                          rotAxis,
+    const float                               rotAngle,
+    const glm::vec4&                          color,
+    float                                     size
   );
 
   Arrow(Arrow const& other) = delete;
@@ -48,7 +48,7 @@ class Arrow : public IVistaOpenGLDraw {
   // This is called by the Plugin.
   void update(double tTime);
 
-  // The arrow visualize the orientation of this object.
+  // The arrow visualizes the orientation of this object.
   void setParentName(std::string objectName);
   std::string const& getParentName() const;
 
@@ -60,11 +60,14 @@ class Arrow : public IVistaOpenGLDraw {
 
   std::shared_ptr<Plugin::Settings> mPluginSettings;
   std::shared_ptr<cs::core::SolarSystem> mSolarSystem;
+
+  std::shared_ptr<cs::graphics::ObjLoader> mArrowModel;
+
+  int mVertexCount;
+
   glm::vec4 mColor;
-  float mWidth;
   float mSize;
   
-  int mVertexCount;
   glm::dvec3 mRotAxis;
   float mRotAngle;
 

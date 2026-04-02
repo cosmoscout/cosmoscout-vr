@@ -46,12 +46,10 @@ void to_json(nlohmann::json& j, Plugin::Settings const& o) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void from_json(nlohmann::json const& j, Plugin::Settings::Arrows& o) {
-  cs::core::Settings::deserialize(j, "width", o.mWidth);
   cs::core::Settings::deserialize(j, "size", o.mSize);
 }
 
 void to_json(nlohmann::json& j, Plugin::Settings::Arrows const& o) {
-  cs::core::Settings::serialize(j, "width", o.mWidth);
   cs::core::Settings::serialize(j, "size", o.mSize);
 }
 
@@ -107,28 +105,39 @@ void Plugin::deInit() {
 void Plugin::onLoad() {
   // Read settings from JSON.
   from_json(mAllSettings->mPlugins.at("csp-coordinate-arrows"), *mPluginSettings);
-  cs::graphics::ObjLoader objLoader = cs::graphics::ObjLoader("../share/resources/models/arrow.obj");
+  std::shared_ptr<cs::graphics::ObjLoader> arrowModel = std::make_shared<cs::graphics::ObjLoader>("../share/resources/models/arrow.obj");
   
+  // Adds a group of arrows for every object stated in settings.
   for (auto const& settings : mPluginSettings->mArrows) {
+
+    // Define the angles and axis the base arrow model is rotated.
+    // Base model faces positive x-direction and is thus not rotated for visualizing the X-axis.
+
+    // Dont rotate the base model and make it red.
     float angleX = 0.0f;
     glm::dvec3 rotAxisX(1.0f, 0.0f, 0.0f);
     glm::vec4 colorX(1.0f, 0.0f, 0.0f, 1.0f);
+
+    // Rotate the base model to make it face the Y-axis and make it green.
     float angleY = 90.0f;
     glm::dvec3 rotAxisY(0.0f, 0.0f, 1.0f);
     glm::vec4 colorY(0.0f, 1.0f, 0.0f, 1.0f);
+
+    // Rotate the base model to make it face the Z-axis and make it blue.
     float angleZ = -90.0f;
     glm::dvec3 rotAxisZ(0.0f, 1.0f, 0.0f);
     glm::vec4 colorZ(0.0f, 0.0f, 1.0f, 1.0f);
 
-    logger().info("Arrow width for this one is {}", settings.second.mWidth);
-
-    auto arrowX = std::make_shared<Arrow>(mPluginSettings, mSolarSystem, objLoader.getVertices(), rotAxisX, angleX, colorX, settings.second.mWidth, settings.second.mSize);
+    // Creates the arrows for the X, Y and Z-axis and sets them to the visualize the object stated in settings.
+    auto arrowX = std::make_shared<Arrow>(mPluginSettings, mSolarSystem, arrowModel, rotAxisX, angleX, colorX, settings.second.mSize * 0.1f);
     arrowX->setParentName(settings.first);
-    auto arrowY = std::make_shared<Arrow>(mPluginSettings, mSolarSystem, objLoader.getVertices(), rotAxisY, angleY, colorY, settings.second.mWidth, settings.second.mSize);
+    auto arrowY = std::make_shared<Arrow>(mPluginSettings, mSolarSystem, arrowModel, rotAxisY, angleY, colorY, settings.second.mSize * 0.1f);
     arrowY->setParentName(settings.first);
-    auto arrowZ = std::make_shared<Arrow>(mPluginSettings, mSolarSystem, objLoader.getVertices(), rotAxisZ, angleZ, colorZ, settings.second.mWidth, settings.second.mSize);
+    auto arrowZ = std::make_shared<Arrow>(mPluginSettings, mSolarSystem, arrowModel, rotAxisZ, angleZ, colorZ, settings.second.mSize * 0.1f);
     arrowZ->setParentName(settings.first);
 
+    // Sumarizes the arrows of the three axises in a vector as "a group of arrows",
+    // representing the whole coordinate visualiztion for an object.
     std::vector<std::shared_ptr<Arrow>> arrowGroup = {arrowX, arrowY, arrowZ};
 
     mArrows.emplace(settings.first, arrowGroup);

@@ -16,6 +16,7 @@
 
 namespace cs::graphics {
 
+// Can be used to load .obj files and stores the data for later use.
 class CS_GRAPHICS_EXPORT ObjLoader {
  public:
   ObjLoader(const std::string& objFilePath);
@@ -28,6 +29,7 @@ class CS_GRAPHICS_EXPORT ObjLoader {
 
   ~ObjLoader() = default;
 
+  // Returns the stored vertices data of the .obj file, directly usable with gl draw arrays.
   std::shared_ptr<std::vector<float>> getVertices();
 
  private:

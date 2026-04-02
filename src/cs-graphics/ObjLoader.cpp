@@ -28,6 +28,8 @@ std::shared_ptr<std::vector<float>> ObjLoader::getVertices() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void ObjLoader::initData(const std::string& objFilePath) {
+
+  // Open the .obj file.
   std::ifstream file(objFilePath);
   if (!file.is_open()) {
     std::string msg("Failed to load .obj: ");
@@ -40,15 +42,20 @@ void ObjLoader::initData(const std::string& objFilePath) {
   std::vector<TempVertex> tempVertices;
   std::string line;
 
+  // Read every line in the file.
   while (std::getline(file, line)) {
     std::stringstream ss(line);
     std::string lineHeader;
     ss >> lineHeader;
 
+    // Reads the vertex lines and remember the vertices in the line in the TempVertex struct.
     if (lineHeader == "v") {
       TempVertex v;
       ss >> v.x >> v.y >> v.z;
       tempVertices.push_back(v);
+
+    // Read the faces lines representing the vertex indices and writes the vertexes at these
+    // indices in the final vertex array returned in correct order.
     } else if (lineHeader =="f") {
       std::string vertexStr;
     
@@ -62,8 +69,10 @@ void ObjLoader::initData(const std::string& objFilePath) {
     }
   }
     
+  // Close the read file again.
   file.close();
-    
+  
+  // Set the read vertices in this object.
   mVertices = std::make_shared<std::vector<float>>(vertices);
 }
 
