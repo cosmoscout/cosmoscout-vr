@@ -28,6 +28,9 @@ class Plugin : public cs::core::PluginBase {
     // Settings for a group of arrows.
     struct Arrows {
       float mSize;
+      bool mShowX;
+      bool mShowY;
+      bool mShowZ;
     };
 
     // All groups of arrows with their name as key.

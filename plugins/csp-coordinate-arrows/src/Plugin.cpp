@@ -47,10 +47,16 @@ void to_json(nlohmann::json& j, Plugin::Settings const& o) {
 
 void from_json(nlohmann::json const& j, Plugin::Settings::Arrows& o) {
   cs::core::Settings::deserialize(j, "size", o.mSize);
+  cs::core::Settings::deserialize(j, "showX", o.mShowX);
+  cs::core::Settings::deserialize(j, "showY", o.mShowY);
+  cs::core::Settings::deserialize(j, "showZ", o.mShowZ);
 }
 
 void to_json(nlohmann::json& j, Plugin::Settings::Arrows const& o) {
   cs::core::Settings::serialize(j, "size", o.mSize);
+  cs::core::Settings::serialize(j, "showX", o.mShowX);
+  cs::core::Settings::serialize(j, "showY", o.mShowY);
+  cs::core::Settings::serialize(j, "showZ", o.mShowZ);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -128,18 +134,28 @@ void Plugin::onLoad() {
     glm::dvec3 rotAxisZ(0.0f, 1.0f, 0.0f);
     glm::vec4 colorZ(0.0f, 0.0f, 1.0f, 1.0f);
 
-    // Creates the arrows for the X, Y and Z-axis and sets them to the visualize the object stated in settings.
-    auto arrowX = std::make_shared<Arrow>(mPluginSettings, mSolarSystem, arrowModel, rotAxisX, angleX, colorX, settings.second.mSize * 0.1f);
-    arrowX->setParentName(settings.first);
-    auto arrowY = std::make_shared<Arrow>(mPluginSettings, mSolarSystem, arrowModel, rotAxisY, angleY, colorY, settings.second.mSize * 0.1f);
-    arrowY->setParentName(settings.first);
-    auto arrowZ = std::make_shared<Arrow>(mPluginSettings, mSolarSystem, arrowModel, rotAxisZ, angleZ, colorZ, settings.second.mSize * 0.1f);
-    arrowZ->setParentName(settings.first);
-
     // Sumarizes the arrows of the three axises in a vector as "a group of arrows",
     // representing the whole coordinate visualiztion for an object.
-    std::vector<std::shared_ptr<Arrow>> arrowGroup = {arrowX, arrowY, arrowZ};
-
+    std::vector<std::shared_ptr<Arrow>> arrowGroup;
+    logger().info("-------------------PFEILE NOCH NICHT ERSTELLT!!!!!");
+    // Creates the arrows for the X, Y and Z-axis and sets them to the visualize the object stated in settings.
+    if (settings.second.mShowX) {
+      logger().info("-------------------BIN JETZT HIER!!");
+      auto arrowX = std::make_shared<Arrow>(mPluginSettings, mSolarSystem, arrowModel, rotAxisX, angleX, colorX, settings.second.mSize * 0.1f);
+      arrowX->setParentName(settings.first);
+      arrowGroup.push_back(arrowX);
+    }
+    if (settings.second.mShowY) {
+      auto arrowY = std::make_shared<Arrow>(mPluginSettings, mSolarSystem, arrowModel, rotAxisY, angleY, colorY, settings.second.mSize * 0.1f);
+      arrowY->setParentName(settings.first);
+      arrowGroup.push_back(arrowY);
+    }
+    if (settings.second.mShowZ) {
+      auto arrowZ = std::make_shared<Arrow>(mPluginSettings, mSolarSystem, arrowModel, rotAxisZ, angleZ, colorZ, settings.second.mSize * 0.1f);
+      arrowZ->setParentName(settings.first);
+      arrowGroup.push_back(arrowZ);
+    }
+ 
     mArrows.emplace(settings.first, arrowGroup);
   }
 }
