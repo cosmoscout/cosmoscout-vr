@@ -153,7 +153,7 @@ bool Arrow::Do() {
   glm::dvec3 observerRelative = parent->getObserverRelativePosition();
   double distanceToObserver = glm::length(observerRelative);
   double scale = distanceToObserver * mSize;
-  logger().info("Scale is {} and distance is {}", scale, distanceToObserver);
+  //logger().info("Scale is {} and distance is {}", scale, distanceToObserver);
 
   // Get observer relative transform and extract the upper left 3x3 matrix.
   auto matMV = parent->getObserverRelativeTransform();
