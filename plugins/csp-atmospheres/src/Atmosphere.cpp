@@ -296,8 +296,10 @@ void Atmosphere::configure(Plugin::Settings::Atmosphere const& settings) {
       renderSkyDome(mObjectName);
     }
 
-    if (mNoiseData.size() > 0 && mNoiseData2D.size() > 0 && mCloudTexture && mCloudTypeTexture) {
+    if (mNoiseData.size() > 0 && mNoiseData2D.size() > 0 && mCloudTexture && mCloudTypeTexture && !mCloudTree) {
+      vstr::debug() << "Building octree from noise data and cloud textures..." << std::endl;
       BuildOctree();
+      vstr::debug() << "Octree size = " << this->mCloudTree->GetUsedNodeCount() << std::endl;
     }
   }
 }
@@ -753,6 +755,7 @@ void Atmosphere::renderSkyDome(std::string const& name) const {
 
 void Atmosphere::BuildOctree() {
   CloudProperties properties;
+  properties.cloudLayerHeight = 3500.0f;
   properties.uniforms = mAtmoUniforms;
 
   glm::uvec3 noiseDataDim(resx, resy, resz);
@@ -785,7 +788,16 @@ void Atmosphere::BuildOctree() {
   properties.cloudType = cloudTypeData;
 
   properties.planetRadius = (float)mPlanetRadius;
-  mCloudTree = std::make_unique<Tree>(noiseDataDim, 3, std::move(properties));
+  VistaBoundingBox box;
+  GetBoundingBox(box);
+  float minx, miny, minz;
+  float maxx, maxy, maxz;
+  box.m_v3Min.GetValues(minx, miny, minz);
+  box.m_v3Max.GetValues(maxx, maxy, maxz);
+  glm::vec3 minBounds(minx, miny, minz);
+  glm::vec3 maxBounds(maxx, maxy, maxz);
+  glm::vec3 cloudLayerSize = glm::vec3(1.0f) * properties.cloudLayerHeight;
+  mCloudTree = std::make_unique<Tree>(minBounds - cloudLayerSize, maxBounds + cloudLayerSize, 2, std::move(properties));
   mCloudTree->Build();
 
   // If no uniform buffer object exists, create one

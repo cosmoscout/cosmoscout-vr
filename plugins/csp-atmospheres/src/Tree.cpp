@@ -9,30 +9,36 @@
 #include <cmath>
 
 namespace csp::atmospheres {
-    Tree::Tree(glm::uvec3 dimensions, unsigned int maxDepth, CloudProperties properties) {
-        this->dimensions = dimensions;
+    const unsigned int ROOT_NODE_INDEX = 0;
+
+    Tree::Tree(glm::vec3 totalBoundsMin, glm::vec3 totalBoundsMax, unsigned int maxDepth, CloudProperties properties) {
         this->maxDepth = maxDepth;
         usedNodeIndex = 0;
-        maxNodeCount = (int)pow(8, maxDepth) + 1; // Per level of depth, each node subdivides into 8 child nodes, plus the root node.
+        for (size_t i = 0; i < maxDepth; i++) {
+            usedNodeIndex += (int)pow(8, i);
+        }
         this->properties = std::move(properties); // Correct usage of std::move?
         nodes = std::make_unique<TreeNode[]>(maxNodeCount);
+        
+        // Configure total bounds of the root node.
+        auto &rootNode = nodes[ROOT_NODE_INDEX];
+        rootNode.aabbMin = totalBoundsMin;
+        rootNode.aabbMax = totalBoundsMax;
     }
 
-    void Tree::Build() {
-        const unsigned int ROOT_NODE_INDEX = 0;
-        auto &rootNode = nodes[ROOT_NODE_INDEX];
-        rootNode.aabbMax = (glm::vec3)dimensions; // Set dimensions as max bounds for root node.
-        
+    void Tree::Build() {        
         unsigned int depth = 0;
-        usedNodeIndex = 0;
+        usedNodeIndex = 1;
         Subdivide(ROOT_NODE_INDEX, depth);
     }
 
     void Tree::Subdivide(unsigned int index, unsigned int depth) {
         if (depth >= maxDepth) // If level of depth has been reached, stop subdivision process.
             return;
-        if (GetAverageDensity(index) <= 1e-4) // If average density throughout the node is too small, stop subdividing.
-            return;
+
+        vstr::debug() << "Octree node " << index << " (depth = " << depth << ") avg density = " << GetAverageDensity(index) << std::endl;
+        // if (GetAverageDensity(index) <= 1e-4) // If average density throughout the node is too small, stop subdividing.
+        //     return;
 
         depth += 1;
         // Decide if node should be subdivided
@@ -53,7 +59,7 @@ namespace csp::atmospheres {
         glm::vec3 parentExtends = parent.aabbMax - parent.aabbMin;
         glm::vec3 centre = parentExtends * 0.5f;
 
-        // First, scale the node bounds.
+        // First, scale the node bounds so that the bounding box has the right size.
         node.aabbMax = node.aabbMin + centre;
 
         glm::vec3 boundsTransformation(0.0);
@@ -66,7 +72,7 @@ namespace csp::atmospheres {
         bool top = relChildIndex / 4 >= 1; // Upper nodes
 
         //           top
-        //    -----------------m  
+        //    -----------------m
         //   /|              / |
         //  / |             /  |
         // ----------------/   |
@@ -117,6 +123,13 @@ namespace csp::atmospheres {
         densitySampleLocations[6] = glm::vec3(node.aabbMax.x, node.aabbMax.y, node.aabbMin.z); // UM
         densitySampleLocations[7] = glm::vec3(node.aabbMax.x, node.aabbMin.y, node.aabbMax.z); // LM
         densitySampleLocations[8] = node.aabbMax - node.aabbMin; // Centre
+
+        // vstr::debug() << "Densities in node " << index << ": ";
+        // for (size_t i = 0; i < DENSITY_SAMPLE_COUNT; i++) {
+        //     float density = GetDensity(densitySampleLocations[i]);
+        //     vstr::debug() << density << ", ";
+        // }
+        // vstr::debug() << std::endl;
 
         float densitySum = 0.0f;
         for (size_t i = 0; i < DENSITY_SAMPLE_COUNT; i++) {

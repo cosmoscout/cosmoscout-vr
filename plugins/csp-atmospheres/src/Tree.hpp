@@ -13,6 +13,7 @@
 #include <algorithm>
 #include <vector>
 #include <math.h>
+#include "VistaBase/VistaStreamUtils.h"
 
 #include "utils.hpp"
 
@@ -47,7 +48,7 @@ namespace csp::atmospheres {
 
     struct CloudProperties {
         utils::Uniforms uniforms;
-        float planetRadius;
+        float planetRadius, cloudLayerHeight;
         float *noise, *noise2d;
         std::vector<float> cloud, cloudType;
         glm::uvec3 noiseDim;
@@ -62,7 +63,6 @@ namespace csp::atmospheres {
 
     class Tree {
     private:
-        glm::uvec3 dimensions;
         unsigned int maxDepth, maxNodeCount, usedNodeIndex;
         CloudProperties properties;
         std::unique_ptr<TreeNode[]> nodes;
@@ -75,7 +75,7 @@ namespace csp::atmospheres {
         void UpdateBounds(unsigned int index, unsigned int relChildIndex);
 
     public:
-        Tree(glm::uvec3 dimensions, unsigned int maxDepth, CloudProperties properties);
+        Tree(glm::vec3 totalBoundsMin, glm::vec3 totalBoundsMax, unsigned int maxDepth, CloudProperties properties);
         void Build();
 
         TreeNode *GetNodes() const {

@@ -245,17 +245,20 @@ bool intersectAabbSlab(vec3 rayOrigin, vec3 rayDir, vec3 aabbMin, vec3 aabbMax, 
 
 const double TREE_NODE_DENSITY_CUTOFF = 0.25f;
 
-bool treeNodeRaycast(vec3 rayOrigin, vec3 rayDirNorm, vec3 rayDirInvNorm, int treeNodeIndex, out double tRayHit) {
+bool treeNodeRaycast(vec3 rayOrigin, vec3 rayDirNorm, vec3 rayDirInvNorm, uint treeNodeIndex, out double tRayHit) {
+  tRayHit = 0;
+  return false;
   TreeNode node = nodes[treeNodeIndex];
-  for (int i = 0; i < 8; i++) {
-    TreeNode childNode = nodes[node.firstChildIndex + i];
+  for (uint i = 0; i < 8; i++) {
+    uint currIndex = node.firstChildIndex + i;
+    TreeNode childNode = nodes[currIndex];
     double tRayHit;
-    if (intersectAabbSlab(rayOrigin, rayDirNorm, rayDirInvNorm, childNode.aabbMin, childNode.aabbMax, tRayHit)) {
+    if (intersectAabbSlabOptimised(rayOrigin, rayDirNorm, rayDirInvNorm, childNode.aabbMin, childNode.aabbMax, tRayHit)) {
       // Stop traversal if node with critical density is found.
       if (childNode.density >= TREE_NODE_DENSITY_CUTOFF) {
         return true;
       }
-      treeNodeRaycast(rayOrigin);
+      treeNodeRaycast(rayOrigin, rayDirNorm, rayDirInvNorm, currIndex, tRayHit);
     }
   }
 
@@ -777,19 +780,20 @@ vec4 raymarchInterval(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, vec2 interval, o
     return defaultLight;
   }
 
-  double tRayHit;
-  if (!treeRaycast(rayOrigin, rayDir, tRayHit)) {
+  double tRayHitDouble; // = interval.x;
+  if (!treeRaycast(rayOrigin, rayDir, tRayHitDouble)) {
     return defaultLight;
   }
+  float tRayHit = float(tRayHitDouble);
 
   // t values are parameters for rayOrigin + t * rayDir
-  float t_last = interval.x;
+  float t_last = interval.x;//tRayHit; // float t_last = interval.x;
   // progress is in [0, 1]
   float progress = 0;
   vec3 inscattering_acc = vec3(0.);
   path_transmittance = vec3(1);
 
-  float interval_length = interval.y - interval.x;
+  float interval_length = interval.y - tRayHit;
   // tracked for debugging
   float skipped_distance = 0;
 
@@ -805,10 +809,10 @@ vec4 raymarchInterval(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, vec2 interval, o
   // track the start of the current cloud-free part of the interval. 
   // Inscattering from the atmosphere is added only when a cloud is encountered to reduce atmo model evaluations
   // DO NOT evaluate the atmosphere model for very short intervals
-  float t_cloudfree_start = interval.x;
+  float t_cloudfree_start = tRayHit;
 
   // Actual density function: getCumuloNimbusDensity
-  vec2 density_struct = getCloudDensity(rayOrigin + rayDir * interval.x, rayOrigin);
+  vec2 density_struct = getCloudDensity(rayOrigin + rayDir * t_cloudfree_start, rayOrigin);
   float start_density = density_struct.x;
   bool in_cloud = start_density > 0;
   bool encounter_cloud = false;
@@ -840,7 +844,7 @@ vec4 raymarchInterval(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, vec2 interval, o
   //===== BEGIN OF RAY MARCHING LOOP ======
   while(progress < 1 && sample_iterations < MAXIMUM_SAMPLES && path_transmittance.r > MIN_REMAINING_TRANSMITTANCE){
     sample_iterations += 1;
-    float t_now = remap(progress, 0, 1, interval.x, interval.y);
+    float t_now = remap(progress, 0, 1, tRayHit, interval.y);
     vec3 position = rayOrigin + rayDir * t_now;
 
     //===== BEGIN OF STEP SIZE CONTROL =====
@@ -925,7 +929,7 @@ vec4 raymarchInterval(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, vec2 interval, o
     progress += step_size;
 
     progress = clamp(progress, 0, 1);
-    t_now = remap(progress, 0, 1, interval.x, interval.y);
+    t_now = remap(progress, 0, 1, tRayHit, interval.y);
     float dist = t_now - t_last;
     position = rayOrigin + rayDir * t_now;
 
