@@ -57,7 +57,7 @@ struct TreeNode {
 
 // Octree generated on the CPU, stored in a sequential array
 const uint TREE_MAX_NODES = 512;
-layout(std140, binding = 0) uniform cloudTree {
+layout(std140, binding = 1) uniform cloudTree {
   TreeNode nodes[TREE_MAX_NODES];
 };
 
@@ -220,8 +220,56 @@ float sRGBtoLinear(float c) {
 
 // -------------------------------------------------------------------------------------------------
 
+bool intersectAabbSlabOptimised(vec3 rayOrigin, vec3 rayDirNorm, vec3 rayDirInvNorm, vec3 aabbMin, vec3 aabbMax, out double tRayHit) {  
+  double tx1 = (aabbMin.x - rayOrigin.x) * rayDirInvNorm.x;
+  double tx2 = (aabbMax.x - rayOrigin.x) * rayDirInvNorm.x;
+
+  double tMin = min(tx1, tx2);
+  double tMax = max(tx1, tx2);
+
+  double ty1 = (aabbMin.y - rayOrigin.y) * rayDirInvNorm.y;
+  double ty2 = (aabbMax.y - rayOrigin.y) * rayDirInvNorm.y;
+
+  tMin = min(tMin, min(ty1, ty2));
+  tMax = max(tMax, max(ty1, ty2));
+
+  tRayHit = tMin;
+  return tMax >= tMin;
+}
+
+bool intersectAabbSlab(vec3 rayOrigin, vec3 rayDir, vec3 aabbMin, vec3 aabbMax, out double tRayHit) {
+  vec3 rayDirNorm = rayDir / length(rayDir);
+  vec3 rayDirInvNorm = 1 / rayDirNorm;
+  return intersectAabbSlabOptimised(rayOrigin, rayDir, rayDirInvNorm, aabbMin, aabbMax, tRayHit);
+}
+
+const double TREE_NODE_DENSITY_CUTOFF = 0.25f;
+
+bool treeNodeRaycast(vec3 rayOrigin, vec3 rayDirNorm, vec3 rayDirInvNorm, int treeNodeIndex, out double tRayHit) {
+  TreeNode node = nodes[treeNodeIndex];
+  for (int i = 0; i < 8; i++) {
+    TreeNode childNode = nodes[node.firstChildIndex + i];
+    double tRayHit;
+    if (intersectAabbSlab(rayOrigin, rayDirNorm, rayDirInvNorm, childNode.aabbMin, childNode.aabbMax, tRayHit)) {
+      // Stop traversal if node with critical density is found.
+      if (childNode.density >= TREE_NODE_DENSITY_CUTOFF) {
+        return true;
+      }
+      treeNodeRaycast(rayOrigin);
+    }
+  }
+
+  return false;
+}
+
+bool treeRaycast(vec3 rayOrigin, vec3 rayDir, out double tRayHit) {
+  vec3 rayDirNorm = rayDir / length(rayDir);
+  vec3 rayDirInvNorm = 1 / rayDirNorm;
+  return treeNodeRaycast(rayOrigin, rayDirNorm, rayDirInvNorm, 0, tRayHit);
+}
+
 // Compute intersections of a ray with a sphere. Two T parameters are returned -- if no intersection
-// is found, the first will be larger than the second. The T parameters can be nagative. In this
+// is found, the first will be larger than the second. The T parameters can be negative. In this
 // case, the intersections are behind the origin (in negative ray direction).
 
 // Computes intersection of ray relative to celestial object position, so if ray intersects a sphere centered at the celestial object.
@@ -723,9 +771,15 @@ float raymarchTransmittance(vec3 rayOrigin, vec3 rayDir, vec2 interval, vec3 cam
 // uses adaptive step sizes to bring performance to an acceptable level
 vec4 raymarchInterval(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, vec2 interval, out vec3 path_transmittance) {
   // Ray intersects cloud box behind the camera (ignore).
+  vec4 defaultLight = vec4(0, 0, 0, 1);
   if(interval.y < 0){
     path_transmittance = vec3(1);
-    return vec4(0, 0, 0, 1);
+    return defaultLight;
+  }
+
+  double tRayHit;
+  if (!treeRaycast(rayOrigin, rayDir, tRayHit)) {
+    return defaultLight;
   }
 
   // t values are parameters for rayOrigin + t * rayDir

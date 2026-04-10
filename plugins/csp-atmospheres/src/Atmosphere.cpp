@@ -793,7 +793,8 @@ void Atmosphere::BuildOctree() {
     glGenBuffers(1, &mCloudTreeBuffer);
   }
   glBindBuffer(GL_UNIFORM_BUFFER, mCloudTreeBuffer);
-  glBindBufferBase(GL_UNIFORM_BUFFER, 0, mCloudTreeBuffer);
+  // Binding point in shader is 1
+  glBindBufferBase(GL_UNIFORM_BUFFER, 1, mCloudTreeBuffer);
   // Pass nodes to buffer
   GLuint treeSize = sizeof(TreeNode) * mCloudTree->GetUsedNodeCount();
   glBufferData(GL_UNIFORM_BUFFER, treeSize, mCloudTree->GetNodes(), GL_STATIC_DRAW);
