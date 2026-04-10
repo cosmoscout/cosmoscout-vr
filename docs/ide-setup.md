@@ -21,7 +21,6 @@ Below you find some instructions on how to setup your preferred IDE for CosmoSco
 ### Prerequisites
 
 - Be sure to build the externals, as specified in the [installation](install.md) guide.
-- On Windows ensure that `BOOST_ROOT` is registered as an environment variable. 
 
 ### Configure CMake Profiles
 
@@ -179,12 +178,7 @@ We will discuss these files in the following.
         "$gcc"
       ],
       "windows": {
-        "command": "cmake --preset windows-vs-release-config; cmake --build --preset windows-vs-release-build",
-        "options": {
-          "env": {
-            "BOOST_ROOT": "C:\\local\\boost_1_69_0"
-          }
-        }
+        "command": "cmake --preset windows-vs-release-config; cmake --build --preset windows-vs-release-build"
       }
     },
     {
@@ -201,12 +195,7 @@ We will discuss these files in the following.
         "$gcc"
       ],
       "windows": {
-        "command": "cmake --preset windows-make-debug-config; cmake --build --preset windows-make-debug-build",
-        "options": {
-          "env": {
-            "BOOST_ROOT": "C:\\local\\boost_1_69_0"
-          }
-        }
+        "command": "cmake --preset windows-make-debug-config; cmake --build --preset windows-make-debug-build"
       }
     },
     {
@@ -291,8 +280,6 @@ We will discuss these files in the following.
   ]
 }
 ```
-
-If you are on Windows, you may have to replace the `"BOOST_ROOT"` environment variable in this file.
 
 With this file in place, you can press `Ctrl+Shift+P` and select `Tasks: Run Task`. Now you can first select `Make Externals (Release)`, then `Make (Release)` and later `Run CosmoScout VR`.
 

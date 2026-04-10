@@ -186,7 +186,7 @@ int iorMode(std::vector<std::string> const& arguments) {
              totalVolume;
     }
 
-    output << fmt::format("{},{}", lambda, ior - 1.0) << std::endl;
+    output << std::format("{},{}", lambda, ior - 1.0) << std::endl;
   }
 
   return 0;

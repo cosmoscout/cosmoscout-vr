@@ -31,8 +31,8 @@ std::string NodeFactory::getSocketSource() const {
   // This JavaScript code registers new rete socket types and adds custom CSS style snippets to the
   // web page to color the sockets.
   for (auto const& s : mSockets) {
-    source += fmt::format("CosmoScout.socketTypes['{0}'] = new Rete.Socket('{0}');\n", s.first);
-    source += fmt::format("addSocketStyle('{}', '{}');\n", s.first, s.second);
+    source += std::format("CosmoScout.socketTypes['{0}'] = new Rete.Socket('{0}');\n", s.first);
+    source += std::format("addSocketStyle('{}', '{}');\n", s.first, s.second);
   }
 
   return source;
@@ -73,7 +73,7 @@ std::string NodeFactory::getRegisterSource() const {
   // This sets up the required code for registering the rete components.
   for (auto const& f : mNodeCreateFuncs) {
     source += "{\n";
-    source += fmt::format("const component = new {}Component();\n", f.first);
+    source += std::format("const component = new {}Component();\n", f.first);
     source += "CosmoScout.nodeEditor.register(component);\n";
     source += "}\n";
   }

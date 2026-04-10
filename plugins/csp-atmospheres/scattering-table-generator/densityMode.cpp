@@ -201,7 +201,7 @@ int densityMode(std::vector<std::string> const& arguments) {
   // Now write a density value for each altitude.
   auto densities = sampleDensities(densitySettings, cAltitudeSamples, cMinAltitude, cMaxAltitude);
   for (auto density : densities) {
-    output << fmt::format("{}", density) << std::endl;
+    output << std::format("{}", density) << std::endl;
   }
 
   return 0;

@@ -199,7 +199,7 @@ void Plugin::onAddBookmark(std::shared_ptr<const cs::scene::CelestialObject> con
       p      = cs::utils::convert::toDegrees(p);
       auto c = bookmark.mColor.value_or(glm::vec3(0.8F, 0.8F, 1.0F)) * 255.F;
       mGuiManager->getGui()->callJavascript("CosmoScout.minimap.addBookmark", bookmarkID,
-          fmt::format("rgb({}, {}, {})", c.r, c.g, c.b), p.x, p.y);
+          std::format("rgb({}, {}, {})", c.r, c.g, c.b), p.x, p.y);
     }
   }
 }

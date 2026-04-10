@@ -63,10 +63,10 @@ bool Model::init(
   cs::utils::replaceString(sFrag, "HEIGHT_R", cs::utils::toString(settings.mRayleighHeight));
   cs::utils::replaceString(sFrag, "HEIGHT_M", cs::utils::toString(settings.mMieHeight));
   cs::utils::replaceString(sFrag, "BETA_R",
-      fmt::format("vec3({}, {}, {})", settings.mRayleighScattering[0],
+      std::format("vec3({}, {}, {})", settings.mRayleighScattering[0],
           settings.mRayleighScattering[1], settings.mRayleighScattering[2]));
   cs::utils::replaceString(sFrag, "BETA_M",
-      fmt::format("vec3({}, {}, {})", settings.mMieScattering[0], settings.mMieScattering[1],
+      std::format("vec3({}, {}, {})", settings.mMieScattering[0], settings.mMieScattering[1],
           settings.mMieScattering[2]));
   cs::utils::replaceString(
       sFrag, "PRIMARY_RAY_STEPS", cs::utils::toString(settings.mPrimaryRaySteps));

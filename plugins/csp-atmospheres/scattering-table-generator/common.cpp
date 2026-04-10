@@ -19,11 +19,11 @@ void addLambdaFlags(cs::utils::CommandLine& commandLine, std::string* lambdas, d
     double* maxLambda, int32_t* lambdaSamples) {
 
   commandLine.addArgument({"--min-lambda"}, minLambda,
-      fmt::format("The minimum wavelength in m (default: {})", *minLambda));
+      std::format("The minimum wavelength in m (default: {})", *minLambda));
   commandLine.addArgument({"--max-lambda"}, maxLambda,
-      fmt::format("The maximum wavelength in m (default: {})", *maxLambda));
+      std::format("The maximum wavelength in m (default: {})", *maxLambda));
   commandLine.addArgument({"--lambda-samples"}, lambdaSamples,
-      fmt::format("The number of wavelengths to compute (default: {})", *lambdaSamples));
+      std::format("The number of wavelengths to compute (default: {})", *lambdaSamples));
   commandLine.addArgument({"--lambdas"}, lambdas,
       "A comma-separated list of wavelengths in m. If provided, --min-lambda, --max-lambda, and "
       "--lambda-samples are ignored.");

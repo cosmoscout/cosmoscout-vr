@@ -45,27 +45,12 @@ struct Bounds {
   }
 };
 
-/// Struct for the duration of the WMS time step.
-/// Ideally only one of the members should be non-zero.
-struct Duration {
-  int                              mYears        = 0;
-  int                              mMonths       = 0;
-  boost::posix_time::time_duration mTimeDuration = boost::posix_time::seconds(0);
-
-  /// Checks whether the object represents a non-zero duration.
-  bool isDuration() const;
-
-  inline bool operator==(const Duration& rhs) const {
-    return mYears == rhs.mYears && mMonths == rhs.mMonths && mTimeDuration == rhs.mTimeDuration;
-  }
-};
-
 /// Struct of timeintervals of the data set.
 struct TimeInterval {
-  boost::posix_time::ptime mStartTime;      ///< The beginning of the interval.
-  boost::posix_time::ptime mEndTime;        ///< The end of the interval.
-  std::string              mFormat;         ///< The string format of time values.
-  Duration                 mSampleDuration; ///< The duration of one sample in WMS interval.
+  std::chrono::utc_clock::time_point mStartTime;    ///< The beginning of the interval.
+  std::chrono::utc_clock::time_point mEndTime;      ///< The end of the interval.
+  std::chrono::utc_clock::duration mSampleDuration; ///< The duration of one sample in WMS interval.
+  std::string                      mFormat;         ///< The string format of time values.
 
   inline bool operator==(const TimeInterval& rhs) const {
     return mStartTime == rhs.mStartTime && mEndTime == rhs.mEndTime && mFormat == rhs.mFormat &&
@@ -90,16 +75,17 @@ struct TimeInterval {
 namespace utils {
 
 /// Create formatted date, time string from time value.
-std::string timeToString(std::string const& format, boost::posix_time::ptime time);
+std::string timeToString(std::string const& format, std::chrono::utc_clock::time_point time);
 
 /// Match years, months, days, etc. in regex input string and calculate duration.
-void matchDuration(std::string const& input, std::regex const& re, Duration& duration);
+void matchDuration(
+    std::string const& input, std::regex const& re, std::chrono::utc_clock::duration& duration);
 
 /// Determine interval duration from string regex.
-void timeDuration(std::string const& isoString, Duration& duration);
+void timeDuration(std::string const& isoString, std::chrono::utc_clock::duration& duration);
 
 /// Convert date from string to time.
-void convertIsoDate(std::string& date, boost::posix_time::ptime& time);
+void convertIsoDate(std::string& date, std::chrono::utc_clock::time_point& time);
 
 /// Parse time intervals from string.
 void parseIsoString(std::string const& isoString, std::vector<TimeInterval>& timeIntervals);
@@ -107,14 +93,8 @@ void parseIsoString(std::string const& isoString, std::vector<TimeInterval>& tim
 /// Check whether the given time is inside one of the time intervals.
 /// Then calculate the start time of the current sample if it is in the interval.
 /// If the time is in an interval, the 'foundInterval' parameter will be set to it.
-bool timeInIntervals(boost::posix_time::ptime& time, std::vector<TimeInterval> const& timeIntervals,
-    TimeInterval& foundInterval);
-
-/// Adds the interval duration to the given time.
-/// The duration can be either in years, months or in time_duration.
-/// Adds the interval multiple times, if it is specified (e.g. for pre-fetch).
-boost::posix_time::ptime addDurationToTime(
-    boost::posix_time::ptime time, Duration const& duration, int multiplier = 1);
+bool timeInIntervals(std::chrono::utc_clock::time_point& time,
+    std::vector<TimeInterval> const& timeIntervals, TimeInterval& foundInterval);
 
 /// Tries to get the value contained in a XML element.
 /// Starts at baseElement and then descends into the children given as childPath.

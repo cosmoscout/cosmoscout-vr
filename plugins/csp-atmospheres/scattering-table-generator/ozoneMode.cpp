@@ -35,7 +35,7 @@ int ozoneMode(std::vector<std::string> const& arguments) {
       "The absorption data will be written to <name>_absorption.csv (default: \"" + cOutput +
           "\").");
   args.addArgument({"--number-density"}, &cNumberDensity,
-      fmt::format("The peak number of particles per m³ (default: {}).", cNumberDensity));
+      std::format("The peak number of particles per m³ (default: {}).", cNumberDensity));
   common::addLambdaFlags(args, &cLambdas, &cMinLambda, &cMaxLambda, &cLambdaSamples);
   args.addArgument({"-h", "--help"}, &cPrintHelp, "Show this help message.");
 
@@ -87,7 +87,7 @@ int ozoneMode(std::vector<std::string> const& arguments) {
   // wavelength using linear interpolation.
   for (double lambda : lambdas) {
     double absorption = common::interpolate(absorptions, minLambda, maxLambda, lambda);
-    output << fmt::format("{},{}", lambda, absorption * cNumberDensity) << std::endl;
+    output << std::format("{},{}", lambda, absorption * cNumberDensity) << std::endl;
   }
 
   return 0;

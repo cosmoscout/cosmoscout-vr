@@ -10,7 +10,7 @@
 
 #include "cs_utils_export.hpp"
 
-#include <boost/filesystem.hpp>
+#include <filesystem>
 #include <regex>
 #include <set>
 #include <string>
@@ -19,10 +19,10 @@
 namespace cs::utils::filesystem {
 
 /// Creates all required directories for @param path if they do not exist
-CS_UTILS_EXPORT void createDirectoryRecursively(boost::filesystem::path const& path,
-    boost::filesystem::perms permissions = boost::filesystem::perms::owner_all |
-                                           boost::filesystem::perms::group_read |
-                                           boost::filesystem::perms::others_read);
+CS_UTILS_EXPORT void createDirectoryRecursively(std::filesystem::path const& path,
+    std::filesystem::perms permissions = std::filesystem::perms::owner_all |
+                                         std::filesystem::perms::group_read |
+                                         std::filesystem::perms::others_read);
 
 /// Lists all files in the given directory. The returned paths are relative to the given directory,
 /// forward slashes are used as separators independent from the operating system.

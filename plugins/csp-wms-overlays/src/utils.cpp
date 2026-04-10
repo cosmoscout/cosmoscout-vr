@@ -12,13 +12,10 @@
 #include "../../../src/cs-utils/logger.hpp"
 #include "../../../src/cs-utils/utils.hpp"
 
+#include <array>
+#include <format>
+
 namespace csp::wmsoverlays {
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-bool Duration::isDuration() const {
-  return mYears + mMonths + mTimeDuration.total_seconds() != 0;
-}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -26,25 +23,20 @@ namespace utils {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::string timeToString(std::string const& format, boost::posix_time::ptime time) {
-  std::stringstream sstr;
-  // Delete is called by the std::locale constructor.
-  auto* facet = new boost::posix_time::time_facet();
-  facet->format(format.c_str());
-  sstr.imbue(std::locale(std::locale::classic(), facet));
-  sstr << time;
-
-  return sstr.str();
+std::string timeToString(std::string const& format, std::chrono::utc_clock::time_point time) {
+  auto value = std::chrono::time_point_cast<std::chrono::milliseconds>(time);
+  return std::vformat("{:" + format + "}", std::make_format_args(value));
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void matchDuration(std::string const& input, std::regex const& re, Duration& duration) {
+void matchDuration(
+    std::string const& input, std::regex const& re, std::chrono::utc_clock::duration& duration) {
   std::smatch match;
   std::regex_search(input, match, re);
 
   if (match.empty()) {
-    spdlog::debug("Pattern does not match!");
+    logger().debug("Pattern does not match!");
     return;
   }
 
@@ -58,22 +50,18 @@ void matchDuration(std::string const& input, std::regex const& re, Duration& dur
     }
   }
 
-  duration.mYears        = vec[0];                                 // years
-  duration.mMonths       = vec[1];                                 // months
-  duration.mTimeDuration = boost::posix_time::hours(24 * vec[2]) + // days
-                           boost::posix_time::hours(vec[3]) +      // hours
-                           boost::posix_time::minutes(vec[4]) +    // minutes
-                           boost::posix_time::seconds(vec[5]);     // seconds
+  duration = std::chrono::years(vec[0]) + std::chrono::months(vec[1]) + std::chrono::days(vec[2]) +
+             std::chrono::hours(vec[3]) + std::chrono::minutes(vec[4]) +
+             std::chrono::seconds(vec[5]);
 
-  if (!duration.isDuration()) {
-    spdlog::debug("Input is not valid!");
-    return;
+  if (duration.count() == 0) {
+    logger().debug("Input is not valid!");
   }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void timeDuration(std::string const& isoString, Duration& duration) {
+void timeDuration(std::string const& isoString, std::chrono::utc_clock::duration& duration) {
   std::regex rshort("^((?!T).)*$");
 
   // Check if isoString matches rshort.
@@ -90,42 +78,8 @@ void timeDuration(std::string const& isoString, Duration& duration) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void convertIsoDate(std::string& date, boost::posix_time::ptime& time) {
-  if (date.find('T') != std::string::npos) {
-    if (std::regex_match(date, std::regex("[+\\-][0-9]{2}:?([0-9]{2})?$"))) {
-      logger().warn(
-          "Time '{}' is not given in UTC but uses an offset. The offset will be ignored!");
-    }
-
-    // Remove timezone from date string.
-    // For now UTC offsets are not supported and will be ignored.
-    date = std::regex_replace(date, std::regex("(Z$|[+\\-][0-9]{2}:?([0-9]{2})?$)"), "");
-  }
-
-  date.erase(
-      std::remove_if(date.begin(), date.end(), [](unsigned char x) { return std::ispunct(x); }),
-      date.end());
-
-  std::size_t pos        = date.find('T');
-  std::string dateSubStr = date.substr(0, pos);
-  std::string timeSubStr = "T";
-
-  if (pos != std::string::npos) {
-    timeSubStr = date.substr(pos);
-  }
-
-  if (dateSubStr.size() == 4) {
-    // Only year given, append month
-    dateSubStr.append("01");
-  }
-  if (dateSubStr.size() == 6) {
-    // Only year and month given, append day
-    dateSubStr.append("01");
-  }
-
-  dateSubStr.resize(8, '0');
-  timeSubStr.resize(7, '0');
-  time = boost::posix_time::from_iso_string(dateSubStr + timeSubStr);
+void convertIsoDate(std::string& date, std::chrono::utc_clock::time_point& time) {
+  time = cs::utils::convert::time::toUTC(date);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -145,14 +99,14 @@ void parseIsoString(std::string const& isoString, std::vector<TimeInterval>& tim
     std::getline(timeRange_stringstream, endDate, '/');
     std::getline(timeRange_stringstream, duration, '/');
 
-    TimeInterval             tmp;
-    boost::posix_time::ptime start;
-    boost::posix_time::ptime end;
+    TimeInterval                       tmp;
+    std::chrono::utc_clock::time_point start;
+    std::chrono::utc_clock::time_point end;
     convertIsoDate(startDate, start);
 
     // Check format of startData
-    std::array<std::string, 7> formatParts = {"%Y", "-%m", "-%d", "T%H", ":%M", ":%S", ".%f"};
-    std::array<std::string, 7> partLengths = {"4", "2", "2", "2", "2", "2", "1,3"};
+    std::array<std::string, 6> formatParts = {"%Y", "-%m", "-%d", "T%H", ":%M", ":%S"};
+    std::array<std::string, 6> partLengths = {"4", "2", "2", "2", "2", "2"};
     std::smatch                result;
     // Initialize result to complete startDate string
     std::regex_search(startDate, result, std::regex("^"));
@@ -165,7 +119,7 @@ void parseIsoString(std::string const& isoString, std::vector<TimeInterval>& tim
       } else {
         if (i == 0) {
           // No year found, using default format
-          tmp.mFormat = "%Y-%m-%dT%H:%M:%S.%fZ";
+          tmp.mFormat = "%Y-%m-%dT%H:%M:%SZ";
         }
         break;
       }
@@ -181,17 +135,15 @@ void parseIsoString(std::string const& isoString, std::vector<TimeInterval>& tim
     } else {
       timeDuration(duration, tmp.mSampleDuration);
 
-      // If end date is set to currect, select it according to the time format.
+      // If end date is set to current, select it according to the time format.
       if (endDate == "current") {
+        auto now = std::chrono::utc_clock::now();
         if (tmp.mFormat == "%Y") {
-          end = boost::posix_time::ptime(boost::gregorian::date(
-              boost::posix_time::microsec_clock::universal_time().date().year(), 1, 1));
+          end = std::chrono::floor<std::chrono::years>(now);
         } else if (tmp.mFormat == "%Y-%m") {
-          end = boost::posix_time::ptime(boost::gregorian::date(
-              boost::posix_time::microsec_clock::universal_time().date().year(),
-              boost::posix_time::microsec_clock::universal_time().date().month(), 1));
+          end = std::chrono::floor<std::chrono::months>(now);
         } else {
-          end = boost::posix_time::microsec_clock::universal_time();
+          end = now;
         }
       } else {
         convertIsoDate(endDate, end);
@@ -206,79 +158,25 @@ void parseIsoString(std::string const& isoString, std::vector<TimeInterval>& tim
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool timeInIntervals(boost::posix_time::ptime& time, std::vector<TimeInterval> const& timeIntervals,
-    TimeInterval& foundInterval) {
-  // Check each interval whether the given time is inside or not..
-  for (auto interval = timeIntervals.rbegin(); interval != timeIntervals.rend(); interval++) {
-    // In order to check if there is data for the current time, the length of the WMS interval
-    // (duration of one sample) is added to the current interval.
-    boost::posix_time::ptime intervalEndTime =
-        addDurationToTime(interval->mEndTime, interval->mSampleDuration);
+bool timeInIntervals(std::chrono::utc_clock::time_point& time,
+    std::vector<TimeInterval> const& timeIntervals, TimeInterval& foundInterval) {
+  for (const auto& interval : timeIntervals) {
+    // Check if time is within the interval
+    if (time >= interval.mStartTime && time < interval.mEndTime) {
+      // Calculate the number of samples since the start of the interval
+      auto elapsed       = time - interval.mStartTime;
+      auto samplesPassed = elapsed / interval.mSampleDuration;
 
-    // Sample time of the current time is inside the time interval.
-    if (interval->mStartTime <= time && intervalEndTime > time) {
+      // Snap the time to the start of the current sample
+      time = interval.mStartTime + samplesPassed * interval.mSampleDuration;
 
-      // Find the last sample time before the current time.
-      if (interval->mSampleDuration.mYears != 0) {
-        // Sample rate is in years.
-
-        // Substract years when sample rate is more than one year.
-        int year = time.date().year() - ((time.date().year() - interval->mStartTime.date().year()) %
-                                            interval->mSampleDuration.mYears);
-
-        // Construct a new time for sample start time.
-        time = boost::posix_time::ptime(boost::gregorian::date(year, 1, 1));
-      } else if (interval->mSampleDuration.mMonths != 0) {
-        // Sample rate is in months.
-
-        // Substract months when sample rate is more than one month.
-        int month =
-            time.date().month() - ((time.date().month() - interval->mStartTime.date().month()) %
-                                      interval->mSampleDuration.mMonths);
-        int year = time.date().year();
-
-        // When month is in the previous year.
-        if (month > time.date().month()) {
-          year -= 1;
-        }
-
-        // Construct a new time for sample start time.
-        time = boost::posix_time::ptime(boost::gregorian::date(year, month, 1));
-      } else {
-        // Sample rate is in days or time.
-
-        // Necessary when sample rate is more than 1 day.
-        if (interval->mSampleDuration.mTimeDuration.total_seconds() > 0) {
-          time -=
-              boost::posix_time::seconds((time - interval->mStartTime).total_seconds() %
-                                         interval->mSampleDuration.mTimeDuration.total_seconds());
-        }
-      }
-
-      foundInterval = *interval;
+      // Set the found interval
+      foundInterval = interval;
 
       return true;
     }
   }
-
-  // Time is not in any of the intervals.
   return false;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-boost::posix_time::ptime addDurationToTime(
-    boost::posix_time::ptime time, Duration const& duration, int multiplier) {
-
-  // Check which unit the interval contatins.
-  if (duration.mYears != 0) {
-    return time + boost::gregorian::years(multiplier * duration.mYears);
-  }
-  if (duration.mMonths != 0) {
-    return time + boost::gregorian::months(multiplier * duration.mMonths);
-  } else {
-    return time + duration.mTimeDuration * multiplier;
-  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

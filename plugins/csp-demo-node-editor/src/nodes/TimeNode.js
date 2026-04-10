@@ -29,7 +29,7 @@ class TimeComponent extends Rete.Component {
     node.addOutput(output)
 
     // Add the time display. The name parameter must be unique amongst all controls of this
-    // node. The TextDisplayControl class is defined in the controls folder.
+    // node. The TextDisplayControl class is defined in the controls' folder.
     let control = new TextDisplayControl('display');
     node.addControl(control);
 

@@ -295,7 +295,8 @@ void SimpleBody::configure(Plugin::Settings::SimpleBody const& settings) {
     mTexture = cs::graphics::TextureLoader::loadFromFile(settings.mTexture);
   }
 
-  if (settings.mRing && mSimpleBodySettings.mRing->mTexture != settings.mRing->mTexture) {
+  if (settings.mRing && (!mSimpleBodySettings.mRing ||
+                            mSimpleBodySettings.mRing->mTexture != settings.mRing->mTexture)) {
     mRingTexture = cs::graphics::TextureLoader::loadFromFile(settings.mRing->mTexture);
   }
 

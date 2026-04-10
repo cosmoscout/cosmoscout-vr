@@ -10,6 +10,7 @@
 #include "../cs-gui/GuiItem.hpp"
 #include "../cs-gui/ScreenSpaceGuiArea.hpp"
 #include "../cs-gui/WorldSpaceGuiArea.hpp"
+#include "../cs-scene/IntersectableObject.hpp"
 #include "../cs-utils/utils.hpp"
 #include "GuiManager.hpp"
 #include "logger.hpp"
@@ -17,7 +18,6 @@
 #include <VistaDataFlowNet/VdfnNode.h>
 #include <VistaDataFlowNet/VdfnObjectRegistry.h>
 #include <VistaDataFlowNet/VdfnPort.h>
-#include <VistaKernel/DisplayManager/SDL2WindowImp/VistaSDL2WindowingToolkit.h>
 #include <VistaKernel/DisplayManager/VistaDisplayManager.h>
 #include <VistaKernel/DisplayManager/VistaDisplaySystem.h>
 #include <VistaKernel/DisplayManager/VistaProjection.h>
@@ -33,7 +33,6 @@
 #include <VistaKernel/InteractionManager/VistaInteractionEvent.h>
 #include <VistaKernel/InteractionManager/VistaInteractionManager.h>
 #include <VistaKernel/VistaSystem.h>
-#include <VistaKernelOpenSGExt/VistaOpenSGMaterialTools.h>
 
 namespace cs::core {
 
@@ -45,7 +44,7 @@ InputManager::InputManager(std::shared_ptr<Settings> settings)
   // Tell the user what's going on.
   logger().debug("Creating InputManager.");
 
-  mClickTime = boost::posix_time::microsec_clock::universal_time();
+  mClickTime = std::chrono::steady_clock::now();
 
   auto* pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
 
@@ -548,12 +547,11 @@ void InputManager::HandleEvent(VistaEvent* pEvent) {
             }
 
             if (!port->GetValue()) {
-              auto t    = boost::posix_time::microsec_clock::universal_time();
+              auto t    = std::chrono::steady_clock::now();
               auto diff = (t - mClickTime);
 
-              int32_t const doubleClickTimeMillis = 200;
-              if (diff < boost::posix_time::time_duration(
-                             boost::posix_time::millisec(doubleClickTimeMillis))) {
+              std::chrono::milliseconds doubleClickTime{200};
+              if (diff < doubleClickTime) {
                 sOnDoubleClick.emit();
               }
               mClickTime = t;

@@ -298,14 +298,6 @@ void GraphicsEngine::update(glm::vec3 const& sunDirection) {
     pAverageLuminance = mToneMappingNode->getLastAverageLuminance();
     pMaximumLuminance = mToneMappingNode->getLastMaximumLuminance();
   }
-
-  for (auto& viewport : mDepthBuffers) {
-    viewport.second.mDirty = true;
-  }
-
-  for (auto& viewport : mColorBuffers) {
-    viewport.second.mDirty = true;
-  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

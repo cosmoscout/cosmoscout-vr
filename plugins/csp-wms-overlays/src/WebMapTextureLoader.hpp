@@ -13,9 +13,8 @@
 
 #include "../../../src/cs-utils/ThreadPool.hpp"
 
-#include <boost/filesystem.hpp>
-
 #include <array>
+#include <filesystem>
 #include <map>
 
 namespace csp::wmsoverlays {
@@ -60,7 +59,7 @@ class WebMapTextureLoader {
       WebMapService const& wms, WebMapLayer const& layer, Request const& request);
 
   /// Saves a binary stream of a texture file to the given path.
-  void saveTextureToFile(boost::filesystem::path const& file, std::stringstream const& data);
+  void saveTextureToFile(std::filesystem::path const& file, std::stringstream const& data);
 
   /// Loads WMS texture from a file using stbi.
   static std::optional<WebMapTexture> loadTextureFromFile(std::string const& fileName);
@@ -69,7 +68,7 @@ class WebMapTextureLoader {
   static std::optional<WebMapTexture> loadTextureFromStream(std::stringstream const& stream);
 
   /// Constructs a path for loading/saving the texture requested with the given parameters.
-  boost::filesystem::path getCachePath(WebMapService const& wms, WebMapLayer const& layer,
+  std::filesystem::path getCachePath(WebMapService const& wms, WebMapLayer const& layer,
       Request const& request, std::string const& mapCache);
 
   /// Constructs a request URL for the given parameters.
