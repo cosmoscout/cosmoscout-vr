@@ -50,32 +50,8 @@ namespace csp::atmospheres {
         auto &node = nodes[index];
         // Nodes are stored sequentially, so children of current node are the next 8 nodes in the nodes-array.
         node.firstChildIndex = usedNodeIndex + 1;
-        for (int i = 0; i < 8; i++) {
-            unsigned int currNodeIndex = ++usedNodeIndex;
-            UpdateBounds(currNodeIndex, i);
-            Subdivide(currNodeIndex, depth);
-        }
-    }
 
-    void Tree::UpdateBounds(unsigned int index, unsigned int relChildIndex) {
-        auto &node = nodes[index];
-        auto &parent = nodes[index - 1];
-
-        glm::vec3 parentExtends = parent.aabbMax - parent.aabbMin;
-        glm::vec3 centre = parentExtends * 0.5f;
-
-        // First, scale the node bounds so that the bounding box has the right size.
-        node.aabbMax = parent.aabbMin + centre;
-
-        glm::vec3 boundsTransformation = parent.aabbMin;
-        // int horizontalMode = relChildIndex % 4; // Front left, right, back left, right
-        // int verticalOrder = relChildIndex / 4; // Upper, lower level
-
-        // According to the relative position inside the parent node, transform the child node along each axis.
-        bool right = relChildIndex % 2 == 1; // Rightward nodes
-        bool back = relChildIndex == 2 || relChildIndex == 3 || relChildIndex == 6 || relChildIndex == 7; // Backward nodes
-        bool top = relChildIndex / 4 >= 1; // Upper nodes
-
+        // Update children node bounds
         //           top
         //    -----------------m
         //   /|              / |
@@ -92,19 +68,33 @@ namespace csp::atmospheres {
         // m = aabbMax
         // x = centre of node
 
-        if (right) {
-            boundsTransformation.x = centre.x; // += glm::vec3(centre.x, 0.0, 0.0);
-        }
-        if (back) {
-            boundsTransformation.z = centre.z; // += glm::vec3(0.0, 0.0, centre.z);
-        }
-        if (top) {
-            boundsTransformation.y = centre.y; // += glm::vec3(0.0, centre.y, 0.0);
-        }
+        glm::vec3 centre = (node.aabbMax - node.aabbMin) * 0.5f;
+        glm::vec3 newMinBounds[8];
+        // Bottom
+        newMinBounds[0] = node.aabbMin;
+        newMinBounds[1] = glm::vec3(centre.x, node.aabbMin.y, node.aabbMin.z);
+        newMinBounds[2] = glm::vec3(node.aabbMin.x, centre.y, node.aabbMin.z);
+        newMinBounds[3] = glm::vec3(centre.x, centre.y, node.aabbMin.z);
+        // Top level
+        newMinBounds[4] = glm::vec3(node.aabbMin.x, node.aabbMax.y, centre.z);
+        newMinBounds[5] = glm::vec3(centre.x, node.aabbMin.y, centre.z);
+        newMinBounds[6] = glm::vec3(node.aabbMin.x, centre.y, centre.z);
+        newMinBounds[7] = glm::vec3(centre.x, centre.y, centre.z);
 
-        node.aabbMin = boundsTransformation;
-        node.aabbMax += node.aabbMin - boundsTransformation;
-        // vstr::debug() << "Node " << index << " (rel = " << relChildIndex << ") new bounds = " << glm::to_string(node.aabbMin) << ", " << glm::to_string(node.aabbMax) << std::endl;
+        // vstr::debug() << "Node bounds = " << glm::to_string(node.aabbMin) << ", " << glm::to_string(node.aabbMax) << std::endl;
+
+        for (int i = 0; i < 8; i++) {
+            unsigned int currNodeIndex = ++usedNodeIndex;
+            
+            auto &childNode = nodes[currNodeIndex];
+            auto &newAabbMin = newMinBounds[i];
+            childNode.aabbMin = newAabbMin;
+            childNode.aabbMax = newAabbMin + centre;
+
+            Subdivide(currNodeIndex, depth);
+            // if (depth == maxDepth)
+            //     vstr::debug() << "Node " << currNodeIndex << " bounds = " << glm::to_string(childNode.aabbMin) << ", " << glm::to_string(childNode.aabbMax) << std::endl;
+        }
     }
 
     float Tree::GetDensity(glm::vec3 pos) {
@@ -115,34 +105,24 @@ namespace csp::atmospheres {
     float Tree::GetAverageDensity(unsigned int index) {
         auto &node = nodes[index];
 
-        const unsigned int DENSITY_SAMPLE_COUNT = 9;
-        float densitySamples[DENSITY_SAMPLE_COUNT] = {};
-        glm::vec3 densitySampleLocations[DENSITY_SAMPLE_COUNT];
-        // Sample density at node corners and the centre.
-        // Subdivide if average density is above cutoff.
-        densitySampleLocations[0] = node.aabbMin;
-        densitySampleLocations[1] = node.aabbMax;
-        densitySampleLocations[2] = glm::vec3(node.aabbMin.x, node.aabbMin.x, node.aabbMax.z); // LL
-        densitySampleLocations[3] = glm::vec3(node.aabbMin.x, node.aabbMax.y, node.aabbMax.z); // UL
-        densitySampleLocations[4] = glm::vec3(node.aabbMax.x, node.aabbMin.y, node.aabbMax.z); // LR
-        densitySampleLocations[5] = glm::vec3(node.aabbMax.x, node.aabbMax.y, node.aabbMin.z); // UR
-        densitySampleLocations[6] = glm::vec3(node.aabbMax.x, node.aabbMax.y, node.aabbMin.z); // UM
-        densitySampleLocations[7] = glm::vec3(node.aabbMax.x, node.aabbMin.y, node.aabbMax.z); // LM
-        densitySampleLocations[8] = node.aabbMax - node.aabbMin; // Centre
+        const unsigned int DENSITY_SAMPLES = 10;
+        glm::vec3 mainExtends = node.aabbMax - node.aabbMin;
 
-        // vstr::debug() << "Densities in node " << index << ": ";
-        // for (size_t i = 0; i < DENSITY_SAMPLE_COUNT; i++) {
-        //     float density = GetDensity(densitySampleLocations[i]);
-        //     vstr::debug() << density << ", ";
-        // }
-        // vstr::debug() << std::endl;
+        glm::vec3 upperLeft = glm::vec3(node.aabbMin.x, node.aabbMax.y, node.aabbMax.z); // UL
+        glm::vec3 lowerRight = glm::vec3(node.aabbMax.x, node.aabbMin.y, node.aabbMin.z); // LR
+        glm::vec3 altExtends = upperLeft - lowerRight;
 
-        float densitySum = 0.0f;
-        for (size_t i = 0; i < DENSITY_SAMPLE_COUNT; i++) {
-            float density = GetDensity(densitySampleLocations[i]);
-            densitySum += density;
+        float totalDensity = 0.0;
+        unsigned int totalSamples = 0;
+        for (size_t i = 1; i < DENSITY_SAMPLES; i++) {
+            float i_f = (float)i;
+            float coeff = float(i_f / DENSITY_SAMPLES);
+            glm::vec3 samplePos = node.aabbMin + coeff * mainExtends;
+            glm::vec3 samplePos2 = lowerRight + coeff * altExtends;
+            totalDensity += GetDensity(samplePos) + GetDensity(samplePos2);
+            totalSamples += 2;            
         }
 
-        return densitySum / DENSITY_SAMPLE_COUNT;
+        return totalDensity / (DENSITY_SAMPLES - 1);
     }
 }

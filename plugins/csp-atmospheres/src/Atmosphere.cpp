@@ -755,7 +755,7 @@ void Atmosphere::renderSkyDome(std::string const& name) const {
 
 void Atmosphere::BuildOctree() {
   CloudProperties properties;
-  properties.cloudLayerHeight = 5000.0f;
+  properties.cloudLayerHeight = 50000.0f;
   properties.uniforms = mAtmoUniforms;
 
   glm::uvec3 noiseDataDim(resx, resy, resz);

@@ -292,8 +292,8 @@ namespace csp::atmospheres {
 
         if(height > CUMULONIMBUS_START_HEIGHT && height < CUMULONIMBUS_END_HEIGHT) {
             acc += GetCumuloNimbusDensity(position, properties);
-            vstr::debug() << "Density = " << acc.y << std::endl;
-        } else if (height < 100000) {
+            vstr::debug() << "Density at " << glm::to_string(position) << "= " << acc.y << std::endl;
+        } else if (height < 1000) {
             vstr::debug() << "Position is " << std::min(height - CUMULONIMBUS_START_HEIGHT, height - CUMULONIMBUS_END_HEIGHT)
                 << " away from cloud layer" << std::endl;
         }
