@@ -755,7 +755,7 @@ void Atmosphere::renderSkyDome(std::string const& name) const {
 
 void Atmosphere::BuildOctree() {
   CloudProperties properties;
-  properties.cloudLayerHeight = 50000.0f;
+  properties.cloudLayerHeight = 5000.0f;
   properties.uniforms = mAtmoUniforms;
 
   glm::uvec3 noiseDataDim(resx, resy, resz);
@@ -799,7 +799,7 @@ void Atmosphere::BuildOctree() {
   // vstr::debug() << "Planet radius = " << mPlanetRadius << ", aabb = " << glm::to_string(minBounds) << " --> " << glm::to_string(maxBounds) << std::endl;
 
   glm::vec3 cloudLayerSize = glm::vec3(1.0f) * properties.cloudLayerHeight;
-  mCloudTree = std::make_unique<Tree>(minBounds - cloudLayerSize, maxBounds + cloudLayerSize, 6, std::move(properties));
+  mCloudTree = std::make_unique<Tree>(minBounds - cloudLayerSize, maxBounds + cloudLayerSize, 7, std::move(properties));
   mCloudTree->Build();
 
   // If no uniform buffer object exists, create one

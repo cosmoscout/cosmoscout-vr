@@ -41,8 +41,8 @@ namespace csp::atmospheres {
             return;
         
         float avgDensity = GetAverageDensity(index);
-        // if (depth == maxDepth - 1)
-        //     vstr::debug() << "Average density at index " << index << " = " << avgDensity << std::endl;
+        if (depth == maxDepth - 1 && avgDensity < 1.0f && avgDensity > 0.0f)
+            vstr::debug() << "Average density at index " << index << " = " << avgDensity << std::endl;
         // if (avgDensity <= 1e-3)
         //     return;
 
@@ -105,12 +105,16 @@ namespace csp::atmospheres {
     float Tree::GetAverageDensity(unsigned int index) {
         auto &node = nodes[index];
 
-        const unsigned int DENSITY_SAMPLES = 10;
+        const unsigned int DENSITY_SAMPLES = 100;
         glm::vec3 mainExtends = node.aabbMax - node.aabbMin;
 
         glm::vec3 upperLeft = glm::vec3(node.aabbMin.x, node.aabbMax.y, node.aabbMax.z); // UL
         glm::vec3 lowerRight = glm::vec3(node.aabbMax.x, node.aabbMin.y, node.aabbMin.z); // LR
         glm::vec3 altExtends = upperLeft - lowerRight;
+
+        // TODO: as the octree splits 8 times along the same extends every subdivision iteration,
+        // the average density along the same 4 diagonals will be calculated again and again.
+        // Instead, sample along random points inside the cubes? Or along lines parallel to the coordinate axes?
 
         float totalDensity = 0.0;
         unsigned int totalSamples = 0;
@@ -120,9 +124,9 @@ namespace csp::atmospheres {
             glm::vec3 samplePos = node.aabbMin + coeff * mainExtends;
             glm::vec3 samplePos2 = lowerRight + coeff * altExtends;
             totalDensity += GetDensity(samplePos) + GetDensity(samplePos2);
-            totalSamples += 2;            
+            totalSamples += 2;
         }
 
-        return totalDensity / (DENSITY_SAMPLES - 1);
+        return totalDensity / totalSamples;
     }
 }

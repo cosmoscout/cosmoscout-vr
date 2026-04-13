@@ -228,14 +228,14 @@ namespace csp::atmospheres {
 
     glm::vec2 GetCumuloNimbusDensity(glm::vec3 position, CloudProperties &properties) {
         glm::vec4 cloudConfig = GetVerticalProfile(position, properties);
-        vstr::debug() << "Vertical profile = " << glm::to_string(cloudConfig) << std::endl;
+        // vstr::debug() << "Vertical profile = " << glm::to_string(cloudConfig) << std::endl;
         float cloudBase = cloudConfig.r;
         float erosionStrength = cloudConfig.g;
         float hfStrength = cloudConfig.b;
         // noiseTexture2D accessed in spherical coordinates
         // getLngLat = spherical coords
         glm::vec4 noise2Dl = GetTexture(properties.noise2d, properties.noise2dDim, GetSphericalCoords(position) * 1.0f);
-        vstr::debug() << "2D noise = " << glm::to_string(noise2Dl) << std::endl;
+        // vstr::debug() << "2D noise = " << glm::to_string(noise2Dl) << std::endl;
         glm::vec4 noise2D = GetTexture(properties.noise2d, properties.noise2dDim, GetSphericalCoords(position) * 5.0f);
 
         float cloudDensity = (float)pow(cloudBase, properties.uniforms.coverageExponent);
@@ -244,7 +244,7 @@ namespace csp::atmospheres {
         float hfInfluence = hfStrength;
         // if(cameraDist < LF_END_DISTANCE){
         glm::vec4 lfNoises = GetTexture3D(properties.noise, properties.noiseDim, position *  (1.0f / properties.uniforms.cloudLFRepetitionScale));
-        vstr::debug() << "3D noise = " << glm::to_string(lfNoises) << std::endl;
+        // vstr::debug() << "3D noise = " << glm::to_string(lfNoises) << std::endl;
 
         // blend between worley and perlin noises using a noise at a different frequency to reduce repetition
         float lr_worley_noise = (1.0f - lfNoises.b) * .8f + lfNoises.r * .2f;
@@ -287,17 +287,10 @@ namespace csp::atmospheres {
     glm::vec2 GetCloudDensity(glm::vec3 position, CloudProperties &properties) {
         glm::vec2 acc(0.0f);
         float height = abs(glm::length(position) - properties.planetRadius);
-        // vstr::debug() << "Calculating density at " << glm::to_string(position) <<
-        //     ", if " << CUMULONIMBUS_START_HEIGHT << " < height = " << height << " < " << CUMULONIMBUS_END_HEIGHT;
-
         if(height > CUMULONIMBUS_START_HEIGHT && height < CUMULONIMBUS_END_HEIGHT) {
             acc += GetCumuloNimbusDensity(position, properties);
-            vstr::debug() << "Density at " << glm::to_string(position) << "= " << acc.y << std::endl;
-        } else if (height < 1000) {
-            vstr::debug() << "Position is " << std::min(height - CUMULONIMBUS_START_HEIGHT, height - CUMULONIMBUS_END_HEIGHT)
-                << " away from cloud layer" << std::endl;
+            vstr::debug() << "Density = " << acc.x << std::endl;
         }
-        // vstr::debug() << std::endl;
         return acc;
     }
 }
