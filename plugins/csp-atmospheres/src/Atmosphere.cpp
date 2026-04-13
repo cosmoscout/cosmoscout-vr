@@ -267,7 +267,7 @@ void Atmosphere::configure(Plugin::Settings::Atmosphere const& settings) {
 
     // Recreate the shader if required.
     if (mRadii != radii) {
-      mRadii       = radii;
+      mRadii        = radii;
       mPlanetRadius = mRadii[0] + mSettings.mBottomAltitude.get();
       
       mShaderDirty = true;
@@ -755,7 +755,7 @@ void Atmosphere::renderSkyDome(std::string const& name) const {
 
 void Atmosphere::BuildOctree() {
   CloudProperties properties;
-  properties.cloudLayerHeight = 3500.0f;
+  properties.cloudLayerHeight = 5000.0f;
   properties.uniforms = mAtmoUniforms;
 
   glm::uvec3 noiseDataDim(resx, resy, resz);
@@ -773,7 +773,7 @@ void Atmosphere::BuildOctree() {
   properties.cloudDim = cloudDim;
 
   std::vector<float> cloudData(cloudDataWidth * cloudDataHeight * 4);
-  glGetTexImage(mCloudTexture->GetId(), 0, GL_RGBA8, GL_UNSIGNED_BYTE, cloudData.data());
+  glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, cloudData.data());
   properties.cloud = cloudData;
 
   int cloudTypeDataWidth, cloudTypeDataHeight;
@@ -784,7 +784,7 @@ void Atmosphere::BuildOctree() {
   properties.cloudTypeDim = cloudTypeDim;
 
   std::vector<float> cloudTypeData(cloudTypeDataWidth * cloudTypeDataHeight * 4);
-  glGetTexImage(mCloudTypeTexture->GetId(), 0, GL_RGBA8, GL_UNSIGNED_BYTE, cloudTypeData.data());
+  glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, cloudTypeData.data());
   properties.cloudType = cloudTypeData;
 
   properties.planetRadius = (float)mPlanetRadius;
@@ -796,8 +796,10 @@ void Atmosphere::BuildOctree() {
   box.m_v3Max.GetValues(maxx, maxy, maxz);
   glm::vec3 minBounds(minx, miny, minz);
   glm::vec3 maxBounds(maxx, maxy, maxz);
+  // vstr::debug() << "Planet radius = " << mPlanetRadius << ", aabb = " << glm::to_string(minBounds) << " --> " << glm::to_string(maxBounds) << std::endl;
+
   glm::vec3 cloudLayerSize = glm::vec3(1.0f) * properties.cloudLayerHeight;
-  mCloudTree = std::make_unique<Tree>(minBounds - cloudLayerSize, maxBounds + cloudLayerSize, 2, std::move(properties));
+  mCloudTree = std::make_unique<Tree>(minBounds - cloudLayerSize, maxBounds + cloudLayerSize, 6, std::move(properties));
   mCloudTree->Build();
 
   // If no uniform buffer object exists, create one
