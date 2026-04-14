@@ -108,9 +108,17 @@ namespace csp::atmospheres {
         const unsigned int DENSITY_SAMPLES = 100;
         glm::vec3 mainExtends = node.aabbMax - node.aabbMin;
 
-        glm::vec3 upperLeft = glm::vec3(node.aabbMin.x, node.aabbMax.y, node.aabbMax.z); // UL
-        glm::vec3 lowerRight = glm::vec3(node.aabbMax.x, node.aabbMin.y, node.aabbMin.z); // LR
-        glm::vec3 altExtends = upperLeft - lowerRight;
+        glm::vec3 upperLeftBack = glm::vec3(node.aabbMin.x, node.aabbMax.y, node.aabbMax.z); // UL
+        glm::vec3 lowerRightFront = glm::vec3(node.aabbMax.x, node.aabbMin.y, node.aabbMin.z); // LR
+        glm::vec3 mainCrossExtends = upperLeftBack - lowerRightFront;
+
+        glm::vec3 upperRightFront = glm::vec3(node.aabbMax.x, node.aabbMin.y, node.aabbMax.z);
+        glm::vec3 lowerLeftBack = glm::vec3(node.aabbMin.x, node.aabbMax.y, node.aabbMin.z);
+        glm::vec altExtends = upperRightFront - lowerLeftBack;
+
+        glm::vec3 upperLeftFront = glm::vec3(node.aabbMin.x, node.aabbMax.y, node.aabbMax.z);
+        glm::vec3 lowerRightBack = glm::vec3(node.aabbMax.x, node.aabbMax.y, node.aabbMin.z);
+        glm::vec3 altCrossExtends = upperLeftFront - lowerRightBack;
 
         // TODO: as the octree splits 8 times along the same extends every subdivision iteration,
         // the average density along the same 4 diagonals will be calculated again and again.
@@ -121,10 +129,12 @@ namespace csp::atmospheres {
         for (size_t i = 1; i < DENSITY_SAMPLES; i++) {
             float i_f = (float)i;
             float coeff = float(i_f / DENSITY_SAMPLES);
-            glm::vec3 samplePos = node.aabbMin + coeff * mainExtends;
-            glm::vec3 samplePos2 = lowerRight + coeff * altExtends;
-            totalDensity += GetDensity(samplePos) + GetDensity(samplePos2);
-            totalSamples += 2;
+            glm::vec3 mainSamplePos = node.aabbMin + coeff * mainExtends;
+            glm::vec3 mainCrossSamplePos = upperLeftBack + coeff * mainCrossExtends;
+            glm::vec3 altSamplePos = lowerRightBack + coeff * altExtends;
+            glm::vec3 altCrossSamplePos = upperLeftFront + coeff * altCrossExtends;
+            totalDensity += GetDensity(mainSamplePos) + GetDensity(mainCrossSamplePos) + GetDensity(altSamplePos) + GetDensity(altCrossSamplePos);
+            totalSamples += 4;
         }
 
         return totalDensity / totalSamples;

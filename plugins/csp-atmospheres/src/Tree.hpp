@@ -48,19 +48,28 @@ namespace csp::atmospheres {
         }
     };
 
+    struct CloudRenderSettings {
+        float cloudQuality = 1.0f;
+        float cloudTypeExponent = 1.0f;
+        float cloudRangeMin = 0.0f;
+        float cloudRangeMax = 1.0f;
+        float cloudTypeMin = 0.0f;
+        float cloudTypeMax = 1.0f;
+        float cloudDensityMultiplier = 1.0f;
+        float cloudAbsorption = 0.0f;
+        float cloudCoverageExponent = 1.0f;
+        float cloudCutoff = 0.1f;
+        float cloudLFRepetitionScale = 5000.0f;
+        float cloudHFRepetitionScale = 1231.0f;
+    };
+
     struct CloudProperties {
-        utils::Uniforms uniforms;
+        CloudRenderSettings renderSettings;
         float planetRadius, cloudLayerHeight;
         float *noise, *noise2d;
         std::vector<float> cloud, cloudType;
         glm::uvec3 noiseDim;
         glm::uvec2 noise2dDim, cloudDim, cloudTypeDim;
-
-        // CloudProperties(csp::atmospheres::Uniforms uniforms, std::vector<float> noise, std::vector<float> noise2d) {
-        //     this->uniforms = uniforms;
-        //     this->noise = noise;
-        //     this->noise2d = noise2d;
-        // }
     };
 
     class Tree {
@@ -117,16 +126,27 @@ namespace csp::atmospheres {
         return (glm::vec3)intPartRolledOver + decimalRemainder;
     }
 
-    static unsigned int GetIndexFromPos(glm::vec2 pos, const glm::uvec2 &dimensions) {
-        // Simulate a GL_REPEAT texture (when texture is read out of bounds.
+    enum IndexingMode {
+        Clamp,
+        Repeat
+    };
+
+    static unsigned int GetIndexFromPos(glm::vec2 pos, const glm::uvec2 &dimensions, IndexingMode indexing) {
+        // Simulate a GL_REPEAT texture.
         // When texture is read out of bounds, repeat the texture so that read position is inside texture.
-        pos = RollOverVector(pos, dimensions);
-        return (int)pos.x * dimensions.x + (int)pos.y * dimensions.y;
+        if (indexing == IndexingMode::Clamp)
+            pos = RollOverVector(pos, dimensions);
+        else if(indexing == IndexingMode::Repeat)
+            pos = glm::clamp(pos, glm::vec2(0.0f), (glm::vec2)dimensions);
+        return (int)pos.x + (int)pos.y * dimensions.x;
     }
 
-    static unsigned int GetIndexFrom3DPos(glm::vec3 pos, const glm::uvec3 &dimensions) {
-        pos = RollOverVector3D(pos, dimensions);
-        return (int)pos.x * dimensions.x + (int)pos.y * dimensions.y + (int)pos.z * dimensions.z;
+    static unsigned int GetIndexFrom3DPos(glm::vec3 pos, const glm::uvec3 &dimensions, IndexingMode indexing = IndexingMode::Repeat) {
+        if (indexing == IndexingMode::Clamp)
+            pos = RollOverVector3D(pos, dimensions);
+        else if(indexing == IndexingMode::Repeat)
+            pos = glm::clamp(pos, glm::vec3(0.0f), (glm::vec3)dimensions);
+        return (int)pos.x + (int)pos.y * dimensions.x + (int)pos.z * dimensions.x * dimensions.y;
     }
 
     static glm::vec3 Get3DPosFromIndex(unsigned int index, const glm::uvec3 &dimensions) {
@@ -137,8 +157,10 @@ namespace csp::atmospheres {
         return pos;
     }
 
-    static glm::vec4 GetTexture(const float *data2d, glm::uvec2 &dimensions, glm::vec2 texCoords) {
-        unsigned int index = GetIndexFromPos(texCoords, dimensions);
+    static glm::vec4 GetTexture(const float *data2d, glm::uvec2 &dimensions, glm::vec2 texCoords, IndexingMode indexing = IndexingMode::Repeat) {
+        unsigned int index = GetIndexFromPos(texCoords, dimensions, indexing);
+        // vstr::debug() << "Texture read: pos = " << glm::to_string(texCoords) << " -> index = " << index
+        //     << ", dim = " << glm::to_string(dimensions) << ", size = " << dimensions.x * dimensions.y << std::endl;
         glm::vec4 texel(0.0);
         for (int i = 0; i < 4; i++) {
             texel[i] = data2d[index + i];
@@ -146,8 +168,11 @@ namespace csp::atmospheres {
         return texel;
     }
 
-    static glm::vec4 GetTexture3D(const float *data, glm::uvec3 &dimensions, glm::vec3 texCoords) {
-        unsigned int index = GetIndexFrom3DPos(texCoords, dimensions);
+    static glm::vec4 GetTexture3D(const float *data, glm::uvec3 &dimensions, glm::vec3 texCoords, IndexingMode indexing = IndexingMode::Repeat) {
+        unsigned int index = GetIndexFrom3DPos(texCoords, dimensions, indexing);
+        // vstr::debug() << "Texture read: pos = " << glm::to_string(texCoords) << " -> index = " << index
+        //     << ", dim = " << glm::to_string(dimensions) << ", size = " << dimensions.x * dimensions.y * dimensions.z << std::endl;
+        
         glm::vec4 texel(0.0);
         for (int i = 0; i < 3; i++) {
             texel[i] = data[index + i];
@@ -185,14 +210,17 @@ namespace csp::atmospheres {
         float worleyNoise = worleySample.b;
         float perlinNoise = perlinSample.g;
         float cloudType = worleyNoise * 0.5f + perlinNoise * .5f;
-        return glm::vec4(Remap(pow(cloudType, (float)properties.uniforms.cloudTypeExponent),
-            (float)properties.uniforms.cloudRangeMin, (float)properties.uniforms.cloudRangeMax, (float)properties.uniforms.cloudTypeMin,
-            (float)properties.uniforms.cloudTypeMax), perlinSample.y, perlinSample.z, perlinSample.w);
+
+        float expCloudType = pow(cloudType, (float)properties.renderSettings.cloudTypeExponent);
+        float cloudTypeRemapped = Remap(expCloudType, 0.0f, 1.0f, 0.0f, 1.0f);
+            // (float)properties.uniforms.cloudRangeMin, (float)properties.uniforms.cloudRangeMax,
+            // (float)properties.uniforms.cloudTypeMin, (float)properties.uniforms.cloudTypeMax);
+        return glm::vec4(cloudTypeRemapped, perlinSample.y, perlinSample.z, perlinSample.w);
     }
 
     const float PI = 3.141592653589793f;
 
-    // cloud types are remapped from [0,1] so that all values above this become 1 
+    // cloud types are remapped from [0,1] so that all values above this become 1
     float CLOUD_COVER_MAX = .8f;
 
     // fraction of the cloud layer thickness by which the thickness is locally varying at high frequency
@@ -213,22 +241,30 @@ namespace csp::atmospheres {
         glm::vec2 texCoords = glm::vec2(lngLat.x / (2.0f * PI) + 0.5f, 1.0f - lngLat.y / PI + 0.5f);
         // uCloudTexture = earth-clouds.jpg (black and white)
         // In shader: textureLod(..., 2) call with LOD level 2
-        float density = Remap(GetTexture(properties.cloud.data(), properties.cloudDim, texCoords).r, 0, CLOUD_COVER_MAX, 0, 1);
+        float cloudCoverDensity = GetTexture(properties.cloud.data(), properties.cloudDim, texCoords).r;
+        // vstr::debug() << "GetVerticalProfile::cloudCoverDensity (tex call) = " << cloudCoverDensity << std::endl;
+        float density = Remap(cloudCoverDensity, 0.0f, CLOUD_COVER_MAX, 0.0f, 1.0f);
         glm::vec4 hcomp_with_noise = GetLocalCloudType(texCoords, properties);
+        // vstr::debug() << "GetVerticalProfile::local_cloud_type = " << glm::to_string(hcomp_with_noise) << std::endl;
+
         float cloudType = hcomp_with_noise.r;
         glm::vec3 noiseSample(hcomp_with_noise.g, hcomp_with_noise.b, hcomp_with_noise.a);
         float endHeight = CUMULONIMBUS_END_HEIGHT * (1.0f - CLOUD_HEIGHT_VARIATION * noiseSample.g);
         float topAltitude = properties.planetRadius + endHeight;
         float thickness = endHeight - CUMULONIMBUS_START_HEIGHT;
+
         // "progress" in cloud from bottom to top in range 0 to 1
         float height_in_cloud = Remap(length(position), properties.planetRadius + CUMULONIMBUS_START_HEIGHT, topAltitude, 0.0f, 1.0f);
-        glm::vec4 cloudConfig = GetTexture(properties.cloudType.data(), properties.cloudTypeDim, glm::vec2(cloudType, 1.0f - height_in_cloud));
+        glm::vec2 cloudTypeTexCoords = glm::vec2(cloudType, 1.0f - height_in_cloud);
+
+        glm::vec4 cloudConfig = GetTexture(properties.cloudType.data(), properties.cloudTypeDim, cloudTypeTexCoords, IndexingMode::Clamp);
+        // vstr::debug() << "GetVerticalProfile::cloudConfig = " << glm::to_string(cloudConfig) << std::endl;
         return glm::vec4(cloudConfig.r * density * .95f, cloudConfig.g, cloudConfig.b, cloudConfig.a);
     }
 
     glm::vec2 GetCumuloNimbusDensity(glm::vec3 position, CloudProperties &properties) {
         glm::vec4 cloudConfig = GetVerticalProfile(position, properties);
-        // vstr::debug() << "Vertical profile = " << glm::to_string(cloudConfig) << std::endl;
+        // vstr::debug() << "Cloud config (vert. profile) = " << glm::to_string(cloudConfig) << std::endl;
         float cloudBase = cloudConfig.r;
         float erosionStrength = cloudConfig.g;
         float hfStrength = cloudConfig.b;
@@ -238,32 +274,38 @@ namespace csp::atmospheres {
         // vstr::debug() << "2D noise = " << glm::to_string(noise2Dl) << std::endl;
         glm::vec4 noise2D = GetTexture(properties.noise2d, properties.noise2dDim, GetSphericalCoords(position) * 5.0f);
 
-        float cloudDensity = (float)pow(cloudBase, properties.uniforms.coverageExponent);
+        float cloudDensity = (float)pow(cloudBase, properties.renderSettings.cloudCoverageExponent);
 
         float lfInfluence = cloudConfig.g;
         float hfInfluence = hfStrength;
         // if(cameraDist < LF_END_DISTANCE){
-        glm::vec4 lfNoises = GetTexture3D(properties.noise, properties.noiseDim, position *  (1.0f / properties.uniforms.cloudLFRepetitionScale));
-        // vstr::debug() << "3D noise = " << glm::to_string(lfNoises) << std::endl;
+        glm::vec4 lfNoises = GetTexture3D(properties.noise, properties.noiseDim,
+            position * (1.0f / properties.renderSettings.cloudLFRepetitionScale));
+        // vstr::debug() << "3D lf noise = " << glm::to_string(lfNoises) << std::endl;
 
-        // blend between worley and perlin noises using a noise at a different frequency to reduce repetition
-        float lr_worley_noise = (1.0f - lfNoises.b) * .8f + lfNoises.r * .2f;
-        float lr_whispy_noise = lfNoises.r * .2f + lfNoises.g * .8f;
-        float blended_lf_noise = Mix(lr_worley_noise, lr_whispy_noise, noise2Dl.r);
-        // when camDist is in the fade out range, the noise is mixed with 0.5
-        // blended_lf_noise = mix(blended_lf_noise, .5, remap(cameraDist, LF_FADE_DISTANCE, LF_END_DISTANCE, 0, 1)) * .5 + .5 * noise2D.r;
-        // using the formula from Andrew Schneider's SIGGRAPH presentations on Nubis
-        cloudDensity = std::clamp(lfInfluence * blended_lf_noise - (lfInfluence - cloudDensity), 0.0f, 1.0f); // clamp(x, 0, 1) = saturate(x) (slide 34/207)
+        // // blend between worley and perlin noises using a noise at a different frequency to reduce repetition
+        // float lr_worley_noise = (1.0f - lfNoises.b) * .8f + lfNoises.r * .2f;
+        // float lr_whispy_noise = lfNoises.r * .2f + lfNoises.g * .8f;
+        // float blended_lf_noise = Mix(lr_worley_noise, lr_whispy_noise, noise2Dl.r);
+        // // when camDist is in the fade out range, the noise is mixed with 0.5
+        // // blended_lf_noise = mix(blended_lf_noise, .5, remap(cameraDist, LF_FADE_DISTANCE, LF_END_DISTANCE, 0, 1)) * .5 + .5 * noise2D.r;
+        // // using the formula from Andrew Schneider's SIGGRAPH presentations on Nubis
+        // cloudDensity = std::clamp(lfInfluence * blended_lf_noise - (lfInfluence - cloudDensity), 0.0f, 1.0f); // clamp(x, 0, 1) = saturate(x) (slide 34/207)
 
         // if(high_res && cameraDist < HF_END_DISTANCE){
-        //     glm::vec4 hf_noises = textureLod(uNoiseTexture, position / uCloudHFRepetitionScale, 0);
-        //     float hr_worley_noise = (1 - hf_noises.b) * .5 + lfNoises.r * .5;
-        //     float hr_whispy_noise = hf_noises.b * .3 + lfNoises.g * .7;
-        //     float blended_hf_noise = mix(hr_worley_noise, hr_whispy_noise, lfNoises.r);
-        //     blended_hf_noise = mix(blended_hf_noise, .5,  remap(cameraDist, HF_FADE_DISTANCE, HF_END_DISTANCE, 0, 1));
-        //     cloudDensity = clamp(hfInfluence * blended_hf_noise - (hfInfluence - cloudDensity), 0, 1);
+        glm::vec4 hf_noises = GetTexture3D(properties.noise, properties.noiseDim,
+            position * (1.0f / properties.renderSettings.cloudHFRepetitionScale));
+        // vstr::debug() << "3D hf noise = " << glm::to_string(hf_noises) << std::endl;
+
+        float hr_worley_noise = (1.0f - hf_noises.b) * .5f + lfNoises.r * .5f;
+        float hr_whispy_noise = hf_noises.b * .3f + lfNoises.g * .7f;
+        float blended_hf_noise = Mix(hr_worley_noise, hr_whispy_noise, lfNoises.r);
+        blended_hf_noise = Mix(blended_hf_noise, .5f,  1.0f); //Remap(cameraDist, HF_FADE_DISTANCE, HF_END_DISTANCE, 0, 1));
+        cloudDensity = std::clamp(hfInfluence * blended_hf_noise - (hfInfluence - cloudDensity), 0.0f, 1.0f);
+
         // }else{
-        cloudDensity = std::clamp(hfInfluence * .5f - (hfInfluence - cloudDensity), 0.0f, 1.0f);
+        // Old impl:
+        // cloudDensity = std::clamp(hfInfluence * .5f - (hfInfluence - cloudDensity), 0.0f, 1.0f);
         // }
         // }else{
         // // reduce density by assuming noise=0.5 
@@ -281,15 +323,18 @@ namespace csp::atmospheres {
         // uCloudCutoff determines the minimum density of a cloud. If < cutoff, density is set to zero,
         // hence uCloudCutoff sets the boundaries of the clouds.
         // cloudConfig.a = cloudBase (The higher the cloud, the thinner it becomes.
-        return glm::vec2(cloudDensity > properties.uniforms.cloudCutoff ? height_factor * cloudConfig.a : 0, cloudDensity);
+        return glm::vec2(cloudDensity > properties.renderSettings.cloudCutoff ? height_factor * cloudConfig.a : 0, cloudDensity);
     }
 
     glm::vec2 GetCloudDensity(glm::vec3 position, CloudProperties &properties) {
         glm::vec2 acc(0.0f);
         float height = abs(glm::length(position) - properties.planetRadius);
+        // vstr::debug() << "Calculating density at " << glm::to_string(position) << std::endl;
+        // vstr::debug() << "Height above ground = " << height << "m, dist to cloud layer = " << std::min(height - CUMULONIMBUS_START_HEIGHT, height - CUMULONIMBUS_END_HEIGHT) << "m" << std::endl;
         if(height > CUMULONIMBUS_START_HEIGHT && height < CUMULONIMBUS_END_HEIGHT) {
             acc += GetCumuloNimbusDensity(position, properties);
-            vstr::debug() << "Density = " << acc.x << std::endl;
+            if (acc.x > 0.0f)
+                vstr::debug() << "Density = " << acc.x << std::endl;
         }
         return acc;
     }
