@@ -42,7 +42,7 @@ namespace csp::atmospheres {
         
         float totalDensity = GetTotalDensity(index);
         if (totalDensity > 0.0f)
-            vstr::debug() << "Average density (i = " << index << ") at depth " << depth << " = " << totalDensity << std::endl;
+            vstr::debug() << "Total density (i = " << index << ") at depth " << depth << " = " << totalDensity << std::endl;
         // if (avgDensity <= 1e-3)
         //     return;
 

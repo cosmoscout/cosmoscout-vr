@@ -331,13 +331,18 @@ namespace csp::atmospheres {
         float h = abs(glm::length(position) - properties.planetRadius);
         float height_factor = exp(-h / 8000);
 
-        // vstr::debug() << "VerticalProfile().a = " << cloudConfig.a << ", height factor = e^(-" << h << "/8000) = "
-        //     << height_factor << ". Total = " << cloudConfig.a * height_factor << " > " << properties.renderSettings.cloudCutoff
-        //     << ", cloud density = " << cloudDensity << std::endl;
+        float total = cloudConfig.a * height_factor;
+        // if (total > 0.0f) {
+        // vstr::debug() << "VerticalProfile(" << glm::to_string(position) << ").a = " << cloudConfig.a << ", height factor = e^(-" << h << "/8000) = "
+        //     << height_factor << ". Total = " << total << ", cloud density = " << cloudDensity << " > "
+        //     << properties.renderSettings.cloudCutoff << std::endl;
+        // }
+
         // uCloudCutoff determines the minimum density of a cloud. If < cutoff, density is set to zero,
         // hence uCloudCutoff sets the boundaries of the clouds.
         // cloudConfig.a = cloudBase (The higher the cloud, the thinner it becomes).
-        return glm::vec2(cloudDensity > properties.renderSettings.cloudCutoff ? height_factor * cloudConfig.a : 0, cloudDensity);
+        // return glm::vec2(total, cloudDensity);
+        return glm::vec2(cloudDensity > properties.renderSettings.cloudCutoff ? total : 0, cloudDensity);
     }
 
     glm::vec2 GetCloudDensity(glm::vec3 position, CloudProperties &properties) {
@@ -347,7 +352,7 @@ namespace csp::atmospheres {
         // vstr::debug() << "Height above ground = " << height << "m, dist to cloud layer = " << std::min(height - CUMULONIMBUS_START_HEIGHT, height - CUMULONIMBUS_END_HEIGHT) << "m" << std::endl;
         if(height > CUMULONIMBUS_START_HEIGHT && height < CUMULONIMBUS_END_HEIGHT) {
             acc += GetCumuloNimbusDensity(position, properties);
-            // vstr::debug() << "Density = " << acc.x << std::endl;
+            // vstr::debug() << "Density = " << glm::to_string(acc) << std::endl;
         }
         return acc;
     }
