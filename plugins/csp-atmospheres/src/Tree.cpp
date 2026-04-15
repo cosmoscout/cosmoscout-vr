@@ -40,9 +40,9 @@ namespace csp::atmospheres {
         if (depth >= maxDepth) // If level of depth has been reached, stop subdivision process.
             return;
         
-        float avgDensity = GetAverageDensity(index);
-        if (depth == maxDepth - 1 && avgDensity < 1.0f && avgDensity > 0.0f)
-            vstr::debug() << "Average density at index " << index << " = " << avgDensity << std::endl;
+        float totalDensity = GetTotalDensity(index);
+        if (totalDensity > 0.0f)
+            vstr::debug() << "Average density (i = " << index << ") at depth " << depth << " = " << totalDensity << std::endl;
         // if (avgDensity <= 1e-3)
         //     return;
 
@@ -99,10 +99,10 @@ namespace csp::atmospheres {
 
     float Tree::GetDensity(glm::vec3 pos) {
         glm::vec2 density = GetCloudDensity(pos, properties);
-        return density.x; // First component: with cutoff (actual visible density)
+        return density.x;
     }
 
-    float Tree::GetAverageDensity(unsigned int index) {
+    float Tree::GetTotalDensity(unsigned int index) {
         auto &node = nodes[index];
 
         const unsigned int DENSITY_SAMPLES = 100;
@@ -137,6 +137,6 @@ namespace csp::atmospheres {
             totalSamples += 4;
         }
 
-        return totalDensity / totalSamples;
+        return totalDensity; // / totalSamples;
     }
 }

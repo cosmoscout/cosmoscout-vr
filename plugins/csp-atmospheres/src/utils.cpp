@@ -99,6 +99,27 @@ std::tuple<GLuint, glm::ivec3> read3DTexture(std::string const& path) {
   return {texture, {width, height, depth}};
 }
 
+std::vector<float> utils::readTexture(std::string const& path, int *width, int *height, int *channels) {
+  float *data = stbi_loadf(path.c_str(), width, height, channels, 0);
+  int size = *width * *height * *channels;
+
+  vstr::debug() << "Loading '" << path << "' with width = " << *width << ", height = " << *height
+    << ", channels = " << *channels << "." << std::endl;
+  // for (size_t i = 0; i < size; i += (int)(size / 5)) {
+  //   vstr::debug() << "(" << data[i] << "), ";
+  // }
+  // vstr::debug() << std::endl;
+
+  if (!data) {
+    vstr::err() << "Failed to load texture at '" << path << "'." << std::endl;
+  }
+
+  std::vector<float> dataVec(data, data + size);
+  stbi_image_free(data);
+
+  return dataVec;
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 } // namespace csp::atmospheres::utils

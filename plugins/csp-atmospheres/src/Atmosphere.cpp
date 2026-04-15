@@ -765,42 +765,15 @@ void Atmosphere::BuildOctree() {
   glm::uvec2 noiseData2DDim(resz2, resy2);
   properties.noise2dDim = noiseData2DDim;
   
-  int cloudDataWidth, cloudDataHeight;
-  glBindTexture(GL_TEXTURE_2D, mCloudTexture->GetId());
-  glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &cloudDataWidth);
-  glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &cloudDataHeight);
-  glm::uvec2 cloudDim(cloudDataWidth, cloudDataHeight);
-  properties.cloudDim = cloudDim;
-
-  std::vector<float> cloudData(cloudDataWidth * cloudDataHeight * 4);
-  vstr::debug() << "Cloud data uninit: ";
-  for (size_t i = 0; i < cloudData.size(); i += (int)(cloudData.size() / 16))
-  {
-    vstr::debug() << cloudData[i] << ", ";
-  }
-  vstr::debug() << std::endl;  
-
-  glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, cloudData.data());
+  int cloudWidth, cloudHeight, cloudChannels;
+  auto cloudData = utils::readTexture(mSettings.mCloudTexture.value(), &cloudWidth, &cloudHeight, &cloudChannels);
   properties.cloud = cloudData;
+  properties.cloudDim = glm::uvec2(cloudWidth, cloudHeight);
 
-  vstr::debug() << "Cloud data initialized: ";
-  for (size_t i = 0; i < cloudData.size(); i += (int)(cloudData.size() / 16))
-  {
-    vstr::debug() << cloudData[i] << ", ";
-  }
-  vstr::debug() << std::endl; 
-
-  int cloudTypeDataWidth, cloudTypeDataHeight;
-  glBindTexture(GL_TEXTURE_2D, mCloudTypeTexture->GetId());
-  glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &cloudTypeDataWidth);
-  glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &cloudTypeDataHeight);
-  glm::uvec2 cloudTypeDim(cloudTypeDataWidth, cloudTypeDataHeight);
-  properties.cloudTypeDim = cloudTypeDim;
-
-  std::vector<float> cloudTypeData(cloudTypeDataWidth * cloudTypeDataHeight * 4);
-  // TODO: image data is not properly read
-  glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, cloudTypeData.data());
+  int cloudTypeWidth, cloudTypeHeight, cloudTypeChannels;
+  auto cloudTypeData = utils::readTexture(mSettings.mCloudTypeTexture.value(), &cloudTypeWidth, &cloudTypeHeight, &cloudTypeChannels);
   properties.cloudType = cloudTypeData;
+  properties.cloudTypeDim = glm::uvec2(cloudTypeWidth, cloudTypeHeight);
 
   properties.planetRadius = (float)mPlanetRadius;
   VistaBoundingBox box;
@@ -814,7 +787,7 @@ void Atmosphere::BuildOctree() {
   // vstr::debug() << "Planet radius = " << mPlanetRadius << ", aabb = " << glm::to_string(minBounds) << " --> " << glm::to_string(maxBounds) << std::endl;
   glm::vec3 cloudLayerSize = glm::vec3(1.0f) * properties.cloudLayerHeight;
 
-  mCloudTree = std::make_unique<Tree>(minBounds - cloudLayerSize, maxBounds + cloudLayerSize, 6, std::move(properties));
+  mCloudTree = std::make_unique<Tree>(minBounds - cloudLayerSize, maxBounds + cloudLayerSize, 4, std::move(properties));
   mCloudTree->Build();
 
   // If no uniform buffer object exists, create one

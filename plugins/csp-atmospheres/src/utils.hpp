@@ -13,6 +13,9 @@
 #include <tuple>
 
 #include <glm/glm.hpp>
+#include <VistaBase/VistaStreamUtils.h>
+
+#include <stb_image.h>
 
 namespace csp::atmospheres::utils {
 
@@ -69,6 +72,8 @@ std::tuple<GLuint, glm::ivec2> read2DTexture(std::string const& path);
 // used for the single scattering texture. It returns a tuple containing the OpenGL texture handle
 // and size of the texture.
 std::tuple<GLuint, glm::ivec3> read3DTexture(std::string const& path);
+
+std::vector<float> readTexture(std::string const& path, int *width, int *height, int *channels);
 } // namespace csp::atmospheres::utils
 
 #endif // CSP_ATMOSPHERES_UTILS_HPP
