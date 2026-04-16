@@ -104,39 +104,53 @@ namespace csp::atmospheres {
 
     float Tree::GetTotalDensity(unsigned int index) {
         auto &node = nodes[index];
+        const unsigned int DENSITY_SAMPLES = 500;
 
-        const unsigned int DENSITY_SAMPLES = 100;
-        glm::vec3 mainExtends = node.aabbMax - node.aabbMin;
-
-        glm::vec3 upperLeftBack = glm::vec3(node.aabbMin.x, node.aabbMax.y, node.aabbMax.z); // UL
-        glm::vec3 lowerRightFront = glm::vec3(node.aabbMax.x, node.aabbMin.y, node.aabbMin.z); // LR
-        glm::vec3 mainCrossExtends = upperLeftBack - lowerRightFront;
-
-        glm::vec3 upperRightFront = glm::vec3(node.aabbMax.x, node.aabbMin.y, node.aabbMax.z);
-        glm::vec3 lowerLeftBack = glm::vec3(node.aabbMin.x, node.aabbMax.y, node.aabbMin.z);
-        glm::vec altExtends = upperRightFront - lowerLeftBack;
-
-        glm::vec3 upperLeftFront = glm::vec3(node.aabbMin.x, node.aabbMax.y, node.aabbMax.z);
-        glm::vec3 lowerRightBack = glm::vec3(node.aabbMax.x, node.aabbMax.y, node.aabbMin.z);
-        glm::vec3 altCrossExtends = upperLeftFront - lowerRightBack;
-
-        // TODO: as the octree splits 8 times along the same extends every subdivision iteration,
-        // the average density along the same 4 diagonals will be calculated again and again.
-        // Instead, sample along random points inside the cubes? Or along lines parallel to the coordinate axes?
-
-        float totalDensity = 0.0;
-        unsigned int totalSamples = 0;
-        for (size_t i = 1; i < DENSITY_SAMPLES; i++) {
-            float i_f = (float)i;
-            float coeff = float(i_f / DENSITY_SAMPLES);
-            glm::vec3 mainSamplePos = node.aabbMin + coeff * mainExtends;
-            glm::vec3 mainCrossSamplePos = upperLeftBack + coeff * mainCrossExtends;
-            glm::vec3 altSamplePos = lowerRightBack + coeff * altExtends;
-            glm::vec3 altCrossSamplePos = upperLeftFront + coeff * altCrossExtends;
-            totalDensity += GetDensity(mainSamplePos) + GetDensity(mainCrossSamplePos) + GetDensity(altSamplePos) + GetDensity(altCrossSamplePos);
-            totalSamples += 4;
+        // Sample at random positions inside the bounding box
+        float totalDensity = 0.0f;
+        for (size_t i = 0; i < DENSITY_SAMPLES; i++) {
+            glm::vec3 randomUnitPos = glm::vec3(rand(), rand(), rand()) * (1.0f / RAND_MAX);
+            glm::vec3 randomSamplePos = node.aabbMin + node.GetExtends() * randomUnitPos;
+            totalDensity += GetDensity(randomSamplePos);
         }
-
-        return totalDensity; // / totalSamples;
+        return totalDensity;
     }
+
+    // float Tree::GetTotalDensity(unsigned int index) {
+    //     auto &node = nodes[index];
+
+    //     const unsigned int DENSITY_SAMPLES = 500;
+    //     glm::vec3 mainExtends = node.aabbMax - node.aabbMin;
+
+    //     glm::vec3 upperLeftBack = glm::vec3(node.aabbMin.x, node.aabbMax.y, node.aabbMax.z); // UL
+    //     glm::vec3 lowerRightFront = glm::vec3(node.aabbMax.x, node.aabbMin.y, node.aabbMin.z); // LR
+    //     glm::vec3 mainCrossExtends = upperLeftBack - lowerRightFront;
+
+    //     glm::vec3 upperRightFront = glm::vec3(node.aabbMax.x, node.aabbMin.y, node.aabbMax.z);
+    //     glm::vec3 lowerLeftBack = glm::vec3(node.aabbMin.x, node.aabbMax.y, node.aabbMin.z);
+    //     glm::vec altExtends = upperRightFront - lowerLeftBack;
+
+    //     glm::vec3 upperLeftFront = glm::vec3(node.aabbMin.x, node.aabbMax.y, node.aabbMax.z);
+    //     glm::vec3 lowerRightBack = glm::vec3(node.aabbMax.x, node.aabbMax.y, node.aabbMin.z);
+    //     glm::vec3 altCrossExtends = upperLeftFront - lowerRightBack;
+
+    //     // TODO: as the octree splits 8 times along the same extends every subdivision iteration,
+    //     // the average density along the same 4 diagonals will be calculated again and again.
+    //     // Instead, sample along random points inside the cubes? Or along lines parallel to the coordinate axes?
+
+    //     float totalDensity = 0.0;
+    //     unsigned int totalSamples = 0;
+    //     for (size_t i = 1; i < DENSITY_SAMPLES; i++) {
+    //         float i_f = (float)i;
+    //         float coeff = float(i_f / DENSITY_SAMPLES);
+    //         glm::vec3 mainSamplePos = node.aabbMin + coeff * mainExtends;
+    //         glm::vec3 mainCrossSamplePos = upperLeftBack + coeff * mainCrossExtends;
+    //         glm::vec3 altSamplePos = lowerRightBack + coeff * altExtends;
+    //         glm::vec3 altCrossSamplePos = upperLeftFront + coeff * altCrossExtends;
+    //         totalDensity += GetDensity(mainSamplePos) + GetDensity(mainCrossSamplePos) + GetDensity(altSamplePos) + GetDensity(altCrossSamplePos);
+    //         totalSamples += 4;
+    //     }
+
+    //     return totalDensity; // / totalSamples;
+    // }
 }

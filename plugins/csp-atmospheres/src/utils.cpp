@@ -103,8 +103,8 @@ std::vector<float> utils::readTexture(std::string const& path, int *width, int *
   float *data = stbi_loadf(path.c_str(), width, height, channels, 0);
   int size = *width * *height * *channels;
 
-  // vstr::debug() << "Loading '" << path << "' with width = " << *width << ", height = " << *height
-  //   << ", channels = " << *channels << "." << std::endl;
+  vstr::debug() << "Loading '" << path << "' with width = " << *width << ", height = " << *height
+    << ", channels = " << *channels << "." << std::endl;
 
   if (!data) {
     vstr::err() << "Failed to load texture at '" << path << "'." << std::endl;

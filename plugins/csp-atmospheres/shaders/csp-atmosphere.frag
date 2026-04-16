@@ -606,7 +606,7 @@ vec2 getCumuloNimbusDensity(vec3 position, vec3 cam_pos, bool high_res = true){
     // using the formula from Andrew Schneider's SIGGRAPH presentations on Nubis
     cloudDensity = clamp(lfInfluence * blended_lf_noise - (lfInfluence - cloudDensity), 0, 1); // clamp(x, 0, 1) = saturate(x) (slide 34/207)
     
-    if(high_res && cameraDist < HF_END_DISTANCE){
+    if(high_res && cameraDist < HF_END_DISTANCE) {
       vec4 hf_noises = textureLod(uNoiseTexture, position / uCloudHFRepetitionScale, 0);
       float hr_worley_noise = (1 - hf_noises.b) * .5 + lfNoises.r * .5;
       float hr_whispy_noise = hf_noises.b * .3 + lfNoises.g * .7;
@@ -744,6 +744,7 @@ float raymarchTransmittance(vec3 rayOrigin, vec3 rayDir, vec2 interval, vec3 cam
     float dist = t_now - t_last;
     position = rayOrigin + rayDir * t_now;
 
+    // TODO: Implement octree raycast
     if(!CumuloNimbusGuaranteedFree(position)){
       // Calculate density at 3D point in cloud layer
       // (cam_pos needed to calculate observer distance when applying texture LOD, improves performance)
@@ -780,11 +781,11 @@ vec4 raymarchInterval(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, vec2 interval, o
     return defaultLight;
   }
 
-  double tRayHitDouble; // = interval.x;
-  if (!treeRaycast(rayOrigin, rayDir, tRayHitDouble)) {
+  double tRayHitD; // = interval.x;
+  if (!treeRaycast(rayOrigin, rayDir, tRayHitD)) {
     return defaultLight;
   }
-  float tRayHit = float(tRayHitDouble);
+  float tRayHit = float(tRayHitD);
 
   // t values are parameters for rayOrigin + t * rayDir
   float t_last = interval.x;//tRayHit; // float t_last = interval.x;
