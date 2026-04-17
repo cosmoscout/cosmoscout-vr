@@ -46,6 +46,8 @@ uniform sampler2D uNoiseTexture2D;
 uniform sampler2D uCloudTypeTexture;
 uniform float     uTestUniform;
 
+const float INFINITY = 1 / 0.;
+
 // Octree node
 // Total struct size must be a multiple of sizeof(vec4) = 16 for std140 alignment.
 struct TreeNode {
@@ -56,7 +58,7 @@ struct TreeNode {
 }; // = 32 bytes
 
 // Octree generated on the CPU, stored in a sequential array
-const uint TREE_MAX_NODES = 299593;
+const uint TREE_MAX_NODES = 1081; // theoretically UBOs only need to handle 16384 bytes max
 layout(std140, binding = 1) uniform cloudTree {
   TreeNode nodes[TREE_MAX_NODES];
 };
@@ -221,17 +223,15 @@ float sRGBtoLinear(float c) {
 // -------------------------------------------------------------------------------------------------
 
 bool intersectAabbSlabOptimised(vec3 rayOrigin, vec3 rayDirNorm, vec3 rayDirInvNorm, vec3 aabbMin, vec3 aabbMax, out double tRayHit) {  
-  double tx1 = (aabbMin.x - rayOrigin.x) * rayDirInvNorm.x;
-  double tx2 = (aabbMax.x - rayOrigin.x) * rayDirInvNorm.x;
-
-  double tMin = min(tx1, tx2);
-  double tMax = max(tx1, tx2);
-
-  double ty1 = (aabbMin.y - rayOrigin.y) * rayDirInvNorm.y;
-  double ty2 = (aabbMax.y - rayOrigin.y) * rayDirInvNorm.y;
-
-  tMin = min(tMin, min(ty1, ty2));
-  tMax = max(tMax, max(ty1, ty2));
+  double tMin = 0;
+  double tMax = INFINITY;
+  for (uint i = 0; i < 3; i++) {
+    double t1 = (aabbMin[i] - rayOrigin[i]) * rayDirInvNorm[i];
+    double t2 = (aabbMax[i] - rayOrigin[i]) * rayDirInvNorm[i];
+    
+    tMin = min(tMin, t1);
+    tMax = max(tMax, t2);
+  }
 
   tRayHit = tMin;
   return tMax >= tMin;
@@ -261,7 +261,6 @@ bool treeNodeRaycast(vec3 rayOrigin, vec3 rayDirNorm, vec3 rayDirInvNorm, uint t
       return treeNodeRaycast(rayOrigin, rayDirNorm, rayDirInvNorm, currIndex, tRayHit);
     }
   }
-
   return false;
 }
 
@@ -466,8 +465,6 @@ float remap(float v, float min_old, float max_old, float min_new, float max_new)
   float v_in_0_1 = (v - min_old) / (max_old - min_old);
   return clamp(v_in_0_1 * (max_new - min_new) + min_new, min(min_new, max_new), max(max_new, min_new));
 }
-
-float INFINITY = 1 / 0.;
 
 // heights between which clouds appear
 float CUMULONIMBUS_START_HEIGHT = 1500;

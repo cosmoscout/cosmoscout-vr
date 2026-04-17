@@ -73,6 +73,7 @@ namespace csp::atmospheres {
         auto &node = nodes[index];
         // Nodes are stored sequentially, so children of current node are the next 8 nodes in the nodes-array.
         node.firstChildIndex = usedNodeIndex + 1;
+        node.density = totalDensity;
 
         // Update children node bounds
         //           top
