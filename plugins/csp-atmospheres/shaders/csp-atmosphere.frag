@@ -56,7 +56,7 @@ struct TreeNode {
 }; // = 32 bytes
 
 // Octree generated on the CPU, stored in a sequential array
-const uint TREE_MAX_NODES = 512;
+const uint TREE_MAX_NODES = 299593;
 layout(std140, binding = 1) uniform cloudTree {
   TreeNode nodes[TREE_MAX_NODES];
 };
@@ -258,7 +258,7 @@ bool treeNodeRaycast(vec3 rayOrigin, vec3 rayDirNorm, vec3 rayDirInvNorm, uint t
       if (childNode.density >= TREE_NODE_DENSITY_CUTOFF) {
         return true;
       }
-      treeNodeRaycast(rayOrigin, rayDirNorm, rayDirInvNorm, currIndex, tRayHit);
+      return treeNodeRaycast(rayOrigin, rayDirNorm, rayDirInvNorm, currIndex, tRayHit);
     }
   }
 

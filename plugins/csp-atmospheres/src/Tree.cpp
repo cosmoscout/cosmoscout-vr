@@ -10,6 +10,7 @@
 
 namespace csp::atmospheres {
     const unsigned int ROOT_NODE_INDEX = 0;
+    const unsigned int BASE_DENSITY_SAMPLES = 10000;
 
     Tree::Tree(glm::vec3 totalBoundsMin, glm::vec3 totalBoundsMax, unsigned int maxDepth, CloudProperties properties) {
         this->maxDepth = maxDepth;
@@ -37,14 +38,36 @@ namespace csp::atmospheres {
     }
 
     void Tree::Subdivide(unsigned int index, unsigned int depth) {
-        if (depth >= maxDepth) // If level of depth has been reached, stop subdivision process.
+        // vstr::debug() << "Depth " << depth << "(i = " << index << "): aabb = "
+        //     << glm::to_string(nodes[index].aabbMin * 0.00001f) << ", "
+        //     << glm::to_string(nodes[index].aabbMax * 0.00001f) << std::endl;
+        // for (size_t i = 0; i < depth; i++)
+        // {
+        //     vstr::debug() << " ";
+        // }
+        // vstr::debug() << "[Depth = " << depth << "] index " << index << ": ";
+
+        if (depth >= maxDepth) { // If level of depth has been reached, stop subdivision process.
+            // vstr::debug() << "max depth reached. STOP" << std::endl;
             return;
+        }
         
-        float totalDensity = GetTotalDensity(index);
-        if (totalDensity > 0.0f)
-            vstr::debug() << "Total density (i = " << index << ") at depth " << depth << " = " << totalDensity << std::endl;
-        // if (avgDensity <= 1e-3)
-        //     return;
+        // float depthFactor = 1.0f / (depth + 1);
+        // unsigned int sampleCount = std::max(static_cast<unsigned int>(((float)BASE_DENSITY_SAMPLES) * depthFactor));
+        // vstr::debug() << "Running " << sampleCount << " samples on depth " << depth << std::endl;
+        float totalDensity = GetTotalDensity(index, BASE_DENSITY_SAMPLES * (depth + 1));
+        if (totalDensity <= 1e-3) {
+            // vstr::debug() << "zero density. STOP" << std::endl;
+            return;
+        }
+        //else {
+            // for (size_t i = 0; i < depth; i++)
+            // {
+            //     vstr::debug() << " ";
+            // }
+            // vstr::debug() << "[Depth = " << depth << "] index " << index << " = " << totalDensity << std::endl;
+            // vstr::debug() << " = " << totalDensity << std::endl;
+        //}
 
         depth += 1;
         auto &node = nodes[index];
@@ -69,17 +92,30 @@ namespace csp::atmospheres {
         // x = centre of node
 
         glm::vec3 centre = (node.aabbMax - node.aabbMin) * 0.5f;
-        glm::vec3 newMinBounds[8];
+        if (glm::length(centre) > 1e-4)
+            centre = node.aabbMin + centre;
+        glm::vec3 newMinBounds[8], newMaxBounds[8];
         // Bottom
         newMinBounds[0] = node.aabbMin;
         newMinBounds[1] = glm::vec3(centre.x, node.aabbMin.y, node.aabbMin.z);
         newMinBounds[2] = glm::vec3(node.aabbMin.x, centre.y, node.aabbMin.z);
         newMinBounds[3] = glm::vec3(centre.x, centre.y, node.aabbMin.z);
-        // Top level
-        newMinBounds[4] = glm::vec3(node.aabbMin.x, node.aabbMax.y, centre.z);
+        // Top
+        newMinBounds[4] = glm::vec3(node.aabbMin.x, node.aabbMin.y, centre.z);
         newMinBounds[5] = glm::vec3(centre.x, node.aabbMin.y, centre.z);
         newMinBounds[6] = glm::vec3(node.aabbMin.x, centre.y, centre.z);
-        newMinBounds[7] = glm::vec3(centre.x, centre.y, centre.z);
+        newMinBounds[7] = centre;
+
+        // Bottom
+        newMaxBounds[0] = centre;
+        newMaxBounds[1] = glm::vec3(node.aabbMax.x, centre.y, centre.z);
+        newMaxBounds[2] = glm::vec3(centre.x, node.aabbMax.y, centre.z);
+        newMaxBounds[3] = glm::vec3(node.aabbMax.x, node.aabbMax.y, centre.z);
+        // Top
+        newMaxBounds[4] = glm::vec3(centre.x, centre.y, node.aabbMax.z);
+        newMaxBounds[5] = glm::vec3(node.aabbMax.x, centre.y, node.aabbMax.z);
+        newMaxBounds[6] = glm::vec3(centre.x, node.aabbMax.y, node.aabbMax.z);
+        newMaxBounds[7] = node.aabbMax;
 
         // vstr::debug() << "Node bounds = " << glm::to_string(node.aabbMin) << ", " << glm::to_string(node.aabbMax) << std::endl;
 
@@ -87,9 +123,8 @@ namespace csp::atmospheres {
             unsigned int currNodeIndex = ++usedNodeIndex;
             
             auto &childNode = nodes[currNodeIndex];
-            auto &newAabbMin = newMinBounds[i];
-            childNode.aabbMin = newAabbMin;
-            childNode.aabbMax = newAabbMin + centre;
+            childNode.aabbMin = newMinBounds[i];
+            childNode.aabbMax = newMaxBounds[i];
 
             Subdivide(currNodeIndex, depth);
             // if (depth == maxDepth)
@@ -102,13 +137,12 @@ namespace csp::atmospheres {
         return density.x;
     }
 
-    float Tree::GetTotalDensity(unsigned int index) {
+    float Tree::GetTotalDensity(unsigned int index, unsigned int totalSamples = BASE_DENSITY_SAMPLES) {
         auto &node = nodes[index];
-        const unsigned int DENSITY_SAMPLES = 500;
 
         // Sample at random positions inside the bounding box
         float totalDensity = 0.0f;
-        for (size_t i = 0; i < DENSITY_SAMPLES; i++) {
+        for (size_t i = 0; i < totalSamples; i++) {
             glm::vec3 randomUnitPos = glm::vec3(rand(), rand(), rand()) * (1.0f / RAND_MAX);
             glm::vec3 randomSamplePos = node.aabbMin + node.GetExtends() * randomUnitPos;
             totalDensity += GetDensity(randomSamplePos);

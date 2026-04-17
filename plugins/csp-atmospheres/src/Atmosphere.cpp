@@ -790,7 +790,6 @@ void Atmosphere::BuildOctree() {
   // vstr::debug() << "Border pixel count = " << (cloudTypeWidth * 2 + cloudTypeHeight * 2 - 4) << std::endl;
   
   properties.planetRadius = (float)mPlanetRadius;
-  vstr::debug() << "Planet radius = " << mPlanetRadius << std::endl;
 
   VistaBoundingBox box;
   GetBoundingBox(box);
@@ -803,7 +802,7 @@ void Atmosphere::BuildOctree() {
   // vstr::debug() << "Planet radius = " << mPlanetRadius << ", aabb = " << glm::to_string(minBounds) << " --> " << glm::to_string(maxBounds) << std::endl;
   glm::vec3 cloudLayerSize = glm::vec3(1.0f) * properties.cloudLayerHeight;
 
-  mCloudTree = std::make_unique<Tree>(minBounds - cloudLayerSize, maxBounds + cloudLayerSize, 3, std::move(properties));
+  mCloudTree = std::make_unique<Tree>(minBounds - cloudLayerSize, maxBounds + cloudLayerSize, 5, std::move(properties));
   mCloudTree->Build();
 
   // If no uniform buffer object exists, create one
