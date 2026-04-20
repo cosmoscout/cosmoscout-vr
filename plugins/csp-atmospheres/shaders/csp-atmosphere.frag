@@ -58,7 +58,7 @@ struct TreeNode {
 }; // = 32 bytes
 
 // Octree generated on the CPU, stored in a sequential array
-const uint TREE_MAX_NODES = 1081; // theoretically UBOs only need to handle 16384 bytes max
+const uint TREE_MAX_NODES = 1081; // theoretically UBOs only need to handle 16384 bytes max (1081 is used node count for depth = 4)
 layout(std140, binding = 1) uniform cloudTree {
   TreeNode nodes[TREE_MAX_NODES];
 };
@@ -245,9 +245,22 @@ bool intersectAabbSlab(vec3 rayOrigin, vec3 rayDir, vec3 aabbMin, vec3 aabbMax, 
 
 const double TREE_NODE_DENSITY_CUTOFF = 0.25f;
 
+bool isTreeNodeLeaf(uint treeNodeIndex) {
+  return nodes[treeNodeIndex].firstChildIndex == 0;
+}
+
+// bool treeNodeRaycast(vec3 rayOrigin, vec3 rayDirNorm, vec3 rayDirInvNorm, uint treeNodeIndex, out double tRayHit) {
+//   tRayHit = 0;
+//   while (!isTreeNodeLeaf(treeNodeIndex)) {
+//     TreeNode node = nodes[treeNodeIndex];
+//     for (uint i = 0; i < 8; i++) {
+
+//     }
+//   }
+// }
+
 bool treeNodeRaycast(vec3 rayOrigin, vec3 rayDirNorm, vec3 rayDirInvNorm, uint treeNodeIndex, out double tRayHit) {
   tRayHit = 0;
-  return false;
   TreeNode node = nodes[treeNodeIndex];
   for (uint i = 0; i < 8; i++) {
     uint currIndex = node.firstChildIndex + i;
