@@ -41,14 +41,14 @@ namespace csp::atmospheres {
         // vstr::debug() << "Depth " << depth << "(i = " << index << "): aabb = "
         //     << glm::to_string(nodes[index].aabbMin * 0.00001f) << ", "
         //     << glm::to_string(nodes[index].aabbMax * 0.00001f) << std::endl;
-        // for (size_t i = 0; i < depth; i++)
-        // {
-        //     vstr::debug() << " ";
-        // }
-        // vstr::debug() << "[Depth = " << depth << "] index " << index << ": ";
+        for (size_t i = 0; i < depth; i++)
+        {
+            vstr::debug() << " ";
+        }
+        vstr::debug() << "[Depth = " << depth << "] index " << index << ": ";
 
         if (depth >= maxDepth) { // If level of depth has been reached, stop subdivision process.
-            // vstr::debug() << "max depth reached. STOP" << std::endl;
+            vstr::debug() << "max depth reached. STOP" << std::endl;
             return;
         }
         
@@ -57,17 +57,12 @@ namespace csp::atmospheres {
         // vstr::debug() << "Running " << sampleCount << " samples on depth " << depth << std::endl;
         float totalDensity = GetTotalDensity(index, BASE_DENSITY_SAMPLES * (depth + 1));
         if (totalDensity <= 1e-3) {
-            // vstr::debug() << "zero density. STOP" << std::endl;
+            vstr::debug() << "zero density. STOP" << std::endl;
             return;
         }
-        //else {
-            // for (size_t i = 0; i < depth; i++)
-            // {
-            //     vstr::debug() << " ";
-            // }
-            // vstr::debug() << "[Depth = " << depth << "] index " << index << " = " << totalDensity << std::endl;
-            // vstr::debug() << " = " << totalDensity << std::endl;
-        //}
+        else {
+            vstr::debug() << "density = " << totalDensity << std::endl;
+        }
 
         depth += 1;
         auto &node = nodes[index];

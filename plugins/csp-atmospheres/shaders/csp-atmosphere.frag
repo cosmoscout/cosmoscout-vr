@@ -222,7 +222,7 @@ float sRGBtoLinear(float c) {
 
 // -------------------------------------------------------------------------------------------------
 
-bool intersectAabbSlabOptimised(vec3 rayOrigin, vec3 rayDirNorm, vec3 rayDirInvNorm, vec3 aabbMin, vec3 aabbMax, out double tRayHit) {  
+bool intersectAabbSlabOpt(vec3 rayOrigin, vec3 rayDirNorm, vec3 rayDirInvNorm, vec3 aabbMin, vec3 aabbMax, out double tRayHit) {  
   double tMin = 0;
   double tMax = INFINITY;
   for (uint i = 0; i < 3; i++) {
@@ -237,50 +237,41 @@ bool intersectAabbSlabOptimised(vec3 rayOrigin, vec3 rayDirNorm, vec3 rayDirInvN
   return tMax >= tMin;
 }
 
-bool intersectAabbSlab(vec3 rayOrigin, vec3 rayDir, vec3 aabbMin, vec3 aabbMax, out double tRayHit) {
-  vec3 rayDirNorm = rayDir / length(rayDir);
-  vec3 rayDirInvNorm = 1 / rayDirNorm;
-  return intersectAabbSlabOptimised(rayOrigin, rayDir, rayDirInvNorm, aabbMin, aabbMax, tRayHit);
-}
+// bool intersectAabbSlab(vec3 rayOrigin, vec3 rayDir, vec3 aabbMin, vec3 aabbMax, out double tRayHit) {
+//   vec3 rayDirNorm = rayDir / length(rayDir);
+//   vec3 rayDirInvNorm = 1 / rayDirNorm;
+//   return intersectAabbSlabOpt(rayOrigin, rayDir, rayDirInvNorm, aabbMin, aabbMax, tRayHit);
+// }
 
-const double TREE_NODE_DENSITY_CUTOFF = 0.25f;
+const double TREE_NODE_DENSITY_CUTOFF = 1e-4;
 
 bool isTreeNodeLeaf(uint treeNodeIndex) {
   return nodes[treeNodeIndex].firstChildIndex == 0;
 }
 
-// bool treeNodeRaycast(vec3 rayOrigin, vec3 rayDirNorm, vec3 rayDirInvNorm, uint treeNodeIndex, out double tRayHit) {
-//   tRayHit = 0;
-//   while (!isTreeNodeLeaf(treeNodeIndex)) {
-//     TreeNode node = nodes[treeNodeIndex];
-//     for (uint i = 0; i < 8; i++) {
-
-//     }
-//   }
-// }
-
-bool treeNodeRaycast(vec3 rayOrigin, vec3 rayDirNorm, vec3 rayDirInvNorm, uint treeNodeIndex, out double tRayHit) {
-  tRayHit = 0;
-  TreeNode node = nodes[treeNodeIndex];
-  for (uint i = 0; i < 8; i++) {
-    uint currIndex = node.firstChildIndex + i;
-    TreeNode childNode = nodes[currIndex];
-    double tRayHit;
-    if (intersectAabbSlabOptimised(rayOrigin, rayDirNorm, rayDirInvNorm, childNode.aabbMin, childNode.aabbMax, tRayHit)) {
-      // Stop traversal if node with critical density is found.
-      if (childNode.density >= TREE_NODE_DENSITY_CUTOFF) {
-        return true;
-      }
-      return treeNodeRaycast(rayOrigin, rayDirNorm, rayDirInvNorm, currIndex, tRayHit);
-    }
-  }
-  return false;
-}
-
 bool treeRaycast(vec3 rayOrigin, vec3 rayDir, out double tRayHit) {
   vec3 rayDirNorm = rayDir / length(rayDir);
   vec3 rayDirInvNorm = 1 / rayDirNorm;
-  return treeNodeRaycast(rayOrigin, rayDirNorm, rayDirInvNorm, 0, tRayHit);
+
+  tRayHit = 0;
+  uint treeNodeIndex = 0;
+  while (treeNodeIndex < TREE_MAX_NODES) {
+    TreeNode node = nodes[treeNodeIndex];
+    if (intersectAabbSlabOpt(rayOrigin, rayDirNorm, rayDirInvNorm, node.aabbMin, node.aabbMax, tRayHit)) {
+      if (isTreeNodeLeaf(treeNodeIndex)) {
+        return node.density >= TREE_NODE_DENSITY_CUTOFF;
+      } else {
+        // Visit child nodes (depth-first)
+        treeNodeIndex += 1;
+        continue;
+      }
+    } else {
+      // Node not relevant, jump to next (1 node + 8 child nodes)
+      treeNodeIndex += 9;      
+      continue;
+    }
+  }
+  return false;
 }
 
 // Compute intersections of a ray with a sphere. Two T parameters are returned -- if no intersection
@@ -291,7 +282,7 @@ bool treeRaycast(vec3 rayOrigin, vec3 rayDir, out double tRayHit) {
 // Returns: coefficients [t_0, t_1], such that
 //              rayOrigin + t_0 * rayDir = First intersection,
 //              rayOrigin + t_1 * rayDir = Second intersection,
-// thus the difference vector being the raymarch interval inside the cloud. 
+// thus the difference vector being the raymarch interval inside the cloud.
 vec2 intersectSphere(vec3 rayOrigin, vec3 rayDir, float radius) {
   // We want to put a right triangle between sphere centre C (= [0, 0, 0], as all pos. are relative to observed celestial object), ray origin O
   // and the ray OD (line starting at O in direction of D). Then, we find the coefficient t_0, such that O + t_0 * D intersects the sphere:
@@ -786,8 +777,8 @@ float raymarchTransmittance(vec3 rayOrigin, vec3 rayDir, vec2 interval, vec3 cam
 vec4 raymarchInterval(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, vec2 interval, out vec3 path_transmittance) {
   // Ray intersects cloud box behind the camera (ignore).
   vec4 defaultLight = vec4(0, 0, 0, 1);
+  path_transmittance = vec3(1);
   if(interval.y < 0){
-    path_transmittance = vec3(1);
     return defaultLight;
   }
 
@@ -795,14 +786,16 @@ vec4 raymarchInterval(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, vec2 interval, o
   if (!treeRaycast(rayOrigin, rayDir, tRayHitD)) {
     return defaultLight;
   }
+  // else {
+  //   return vec4(1, 1, 0, 0.1);
+  // }
   float tRayHit = float(tRayHitD);
 
   // t values are parameters for rayOrigin + t * rayDir
-  float t_last = interval.x;//tRayHit; // float t_last = interval.x;
+  float t_last = tRayHit; // float t_last = interval.x;
   // progress is in [0, 1]
   float progress = 0;
   vec3 inscattering_acc = vec3(0.);
-  path_transmittance = vec3(1);
 
   float interval_length = interval.y - tRayHit;
   // tracked for debugging
@@ -855,7 +848,7 @@ vec4 raymarchInterval(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, vec2 interval, o
   //===== BEGIN OF RAY MARCHING LOOP ======
   while(progress < 1 && sample_iterations < MAXIMUM_SAMPLES && path_transmittance.r > MIN_REMAINING_TRANSMITTANCE){
     sample_iterations += 1;
-    float t_now = remap(progress, 0, 1, tRayHit, interval.y);
+    float t_now = remap(progress, 0, 1, t_last, interval.y);
     vec3 position = rayOrigin + rayDir * t_now;
 
     //===== BEGIN OF STEP SIZE CONTROL =====
@@ -874,7 +867,7 @@ vec4 raymarchInterval(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, vec2 interval, o
     // }
     // #endif
 
-    // Produces bad results unfortunately
+    // Produces ugly results
 // #if EXPERIMENTAL_CLOUD_FEATURES
 //     float distance_in_interval = t_now - interval.x;
 
