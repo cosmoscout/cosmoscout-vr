@@ -222,7 +222,7 @@ float sRGBtoLinear(float c) {
 
 // -------------------------------------------------------------------------------------------------
 
-bool intersectAabbSlabOpt(vec3 rayOrigin, vec3 rayDirNorm, vec3 rayDirInvNorm, vec3 aabbMin, vec3 aabbMax, out double tRayHit) {  
+bool intersectAabbSlab(vec3 rayOrigin, vec3 rayDirNorm, vec3 rayDirInvNorm, vec3 aabbMin, vec3 aabbMax, out vec2 tRayEntryExit) {  
   double tMin = 0;
   double tMax = INFINITY;
   for (uint i = 0; i < 3; i++) {
@@ -231,9 +231,12 @@ bool intersectAabbSlabOpt(vec3 rayOrigin, vec3 rayDirNorm, vec3 rayDirInvNorm, v
     
     tMin = min(tMin, t1);
     tMax = max(tMax, t2);
+
+    tRayEntryExit.x = float(max(tMin, t1));
+    tRayEntryExit.y = float(min(tMax, t2));
   }
 
-  tRayHit = tMin;
+  // tRayEntryExit = vec2(tMin, tMax);
   return tMax >= tMin;
 }
 
@@ -249,15 +252,15 @@ bool isTreeNodeLeaf(uint treeNodeIndex) {
   return nodes[treeNodeIndex].firstChildIndex == 0;
 }
 
-bool treeRaycast(vec3 rayOrigin, vec3 rayDir, out double tRayHit) {
+bool treeRaycast(vec3 rayOrigin, vec3 rayDir, out vec2 tRayEntryExit) {
   vec3 rayDirNorm = rayDir / length(rayDir);
   vec3 rayDirInvNorm = 1 / rayDirNorm;
 
-  tRayHit = 0;
+  tRayEntryExit = vec2(0);
   uint treeNodeIndex = 0;
   while (treeNodeIndex < TREE_MAX_NODES) {
     TreeNode node = nodes[treeNodeIndex];
-    if (intersectAabbSlabOpt(rayOrigin, rayDirNorm, rayDirInvNorm, node.aabbMin, node.aabbMax, tRayHit)) {
+    if (intersectAabbSlab(rayOrigin, rayDirNorm, rayDirInvNorm, node.aabbMin, node.aabbMax, tRayEntryExit)) {
       if (isTreeNodeLeaf(treeNodeIndex)) {
         return node.density >= TREE_NODE_DENSITY_CUTOFF;
       } else {
@@ -267,7 +270,7 @@ bool treeRaycast(vec3 rayOrigin, vec3 rayDir, out double tRayHit) {
       }
     } else {
       // Node not relevant, jump to next (1 node + 8 child nodes)
-      treeNodeIndex += 9;      
+      treeNodeIndex += 9;
       continue;
     }
   }
@@ -771,33 +774,21 @@ float raymarchTransmittance(vec3 rayOrigin, vec3 rayDir, vec2 interval, vec3 cam
 // We then find the total light intensity along the ray P->S by integrating Li(P, (P - S)) from P to S.
 // This is done via Riemann sums, calculating Li at N fixed steps along the P->S ray and summing the results:
 //      sum(k = 1 to N) Li(P +  (stepSize * k) * (P - S))
-
-// The function where all the integration happens
-// uses adaptive step sizes to bring performance to an acceptable level
 vec4 raymarchInterval(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, vec2 interval, out vec3 path_transmittance) {
   // Ray intersects cloud box behind the camera (ignore).
   vec4 defaultLight = vec4(0, 0, 0, 1);
   path_transmittance = vec3(1);
-  if(interval.y < 0){
+  if(interval.y < 0) {
     return defaultLight;
   }
-
-  double tRayHitD; // = interval.x;
-  if (!treeRaycast(rayOrigin, rayDir, tRayHitD)) {
-    return defaultLight;
-  }
-  // else {
-  //   return vec4(1, 1, 0, 0.1);
-  // }
-  float tRayHit = float(tRayHitD);
-
+  
   // t values are parameters for rayOrigin + t * rayDir
-  float t_last = tRayHit; // float t_last = interval.x;
+  float t_last = interval.x; // float t_last = interval.x;
   // progress is in [0, 1]
   float progress = 0;
   vec3 inscattering_acc = vec3(0.);
 
-  float interval_length = interval.y - tRayHit;
+  float interval_length = interval.y - interval.x;
   // tracked for debugging
   float skipped_distance = 0;
 
@@ -813,7 +804,7 @@ vec4 raymarchInterval(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, vec2 interval, o
   // track the start of the current cloud-free part of the interval. 
   // Inscattering from the atmosphere is added only when a cloud is encountered to reduce atmo model evaluations
   // DO NOT evaluate the atmosphere model for very short intervals
-  float t_cloudfree_start = tRayHit;
+  float t_cloudfree_start = interval.x;
 
   // Actual density function: getCumuloNimbusDensity
   vec2 density_struct = getCloudDensity(rayOrigin + rayDir * t_cloudfree_start, rayOrigin);
@@ -867,7 +858,7 @@ vec4 raymarchInterval(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, vec2 interval, o
     // }
     // #endif
 
-    // Produces ugly results
+    // Produces bad results
 // #if EXPERIMENTAL_CLOUD_FEATURES
 //     float distance_in_interval = t_now - interval.x;
 
@@ -933,7 +924,7 @@ vec4 raymarchInterval(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, vec2 interval, o
     progress += step_size;
 
     progress = clamp(progress, 0, 1);
-    t_now = remap(progress, 0, 1, tRayHit, interval.y);
+    t_now = remap(progress, 0, 1, interval.x, interval.y);
     float dist = t_now - t_last;
     position = rayOrigin + rayDir * t_now;
 
@@ -1108,7 +1099,7 @@ vec4 raymarchInterval(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, vec2 interval, o
     rem_transmittance_threshold = 0.001; // Old value
 #endif
 
-    if (path_transmittance.r <rem_transmittance_threshold){
+    if (path_transmittance.r < rem_transmittance_threshold){
       return vec4(inscattering_acc, path_transmittance.r);
     }
     // useful when working on adaptive step sizes to ensure that a step is always taken => fewer crashes during development
@@ -1216,6 +1207,91 @@ vec4 raymarchInterval(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, vec2 interval, o
 
 // ------------------------------------------------
 
+vec4 getCloudColorOct(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, float tSurfaceDistance, out vec3 transmittance) {
+  vec2 atmoIntersections = intersectAtmosphere(rayOrigin, rayDir);
+  bool hitSurface = tSurfaceDistance < atmoIntersections.y || intersectSphere(rayOrigin, rayDir, PLANET_RADIUS).y > 0;
+
+  vec2 tRayEntryExit = vec2(0);
+  vec2 tRayStartEnd = vec2(0);
+
+  vec3 totalTransmittance = vec3(0);
+  vec4 totalScatter = vec4(0);
+  uint sampleCount = 0;
+  vec3 currPos = rayOrigin;
+
+  while (treeRaycast(currPos, rayDir, tRayEntryExit) && sampleCount < 2) {
+    currPos = rayOrigin + rayDir * tRayEntryExit.y;
+    sampleCount += 1;
+
+    if (tRayStartEnd.x < 1e-4) // Save first point of entry, to potentially calculate amtosphere luminance if scattering is low enough
+      tRayStartEnd.x = tRayEntryExit.x;
+    tRayStartEnd.y = max(tRayStartEnd.y, tRayEntryExit.y);
+    
+    vec3 transmittance = vec3(1);
+    vec4 scatter = raymarchInterval(currPos, rayDir, sunDir, tRayEntryExit, transmittance);
+
+    totalTransmittance += transmittance;
+    totalScatter += scatter;
+
+    if (totalTransmittance.r < MIN_REMAINING_TRANSMITTANCE) { // Very little light received, so was raymarch aborted.
+      break;
+    }
+  }
+
+  if (totalScatter.x < 1e-6) { // Little cloud inscattering, so return standard inscattering from atmosphere
+    if (hitSurface) {
+      return vec4(GetSkyLuminanceToPoint(rayOrigin, rayOrigin + rayDir * tSurfaceDistance, sunDir, totalTransmittance), totalTransmittance);
+    } else {
+      return vec4(GetSkyLuminance(rayOrigin, rayDir, sunDir, transmittance), totalTransmittance.r);
+    }
+  }
+
+  vec3 transmittanceInFront;
+  vec3 scatterInFront = GetSkyLuminanceToPoint(rayOrigin, currPos, sunDir, transmittanceInFront);
+
+  if (totalScatter.x < 1e-6) {
+    vec3 transmittanceBehind = vec3(1);
+    vec3 scatterBehind = vec3(0);
+
+    if (hitSurface) {
+      if (tSurfaceDistance > tRayStartEnd.y) {
+        scatterBehind = GetSkyLuminanceToPoint(currPos, rayOrigin + rayDir * tSurfaceDistance, sunDir, transmittanceBehind);
+      }
+    } else {
+      scatterBehind = GetSkyLuminance(currPos, rayDir, sunDir, transmittanceBehind);
+    }
+
+    vec3 inScatter = scatterInFront + transmittanceInFront * (totalScatter.xyz + totalTransmittance * scatterBehind);
+    totalTransmittance = transmittanceInFront * totalTransmittance * transmittanceBehind;
+    transmittance = totalTransmittance;
+
+    return vec4(inScatter, transmittance.x);
+  } else {
+    vec3 transmittanceBehind = vec3(1);
+    vec3 inscatteringBehind = GetSkyLuminance(currPos, rayDir, sunDir, transmittanceBehind);
+    
+    transmittance = totalTransmittance * transmittanceInFront * transmittanceBehind;
+    vec3 inScatter = scatterInFront + transmittanceInFront * (totalScatter.xyz + totalTransmittance) + inscatteringBehind + transmittanceBehind;
+      // * (inscattering_between_intervals + transmittance_between_intervals * (scatter_data2.xyz + transmittance_int2 * inscattering_behind)));
+    return vec4(inScatter, transmittance.x);
+  }
+
+  return vec4(0, 100000, 0, 1);
+
+  // else{
+  //   vec3 transmittance_between_intervals = vec3(1);
+  //   vec3 inscattering_between_intervals = GetSkyLuminanceToPoint(rayOrigin + rayDir * interval1.y, rayOrigin + rayDir * interval2.x, sunDir, transmittance_between_intervals);
+  //   vec3 transmittance_behind = vec3(1);
+  //   vec3 inscattering_behind = GetSkyLuminance(rayOrigin + rayDir * interval2.y, rayDir, sunDir, transmittance_behind);
+
+  //   transmittance = transmittance_int1 * transmittance_between_intervals * transmittance_int2 * transmittance_behind;
+  //   vec3 inScatter = inscattering_before_int1 + transmittance_before_int1 * (scatter_data1.xyz + transmittance_int1 * (inscattering_between_intervals + transmittance_between_intervals * (scatter_data2.xyz + transmittance_int2 * inscattering_behind)));
+  //   return vec4(inScatter, transmittance.x);
+  // }
+
+  // return vec4(0, 100000, 0, 1);
+}
+
 // computes the cloud inscattered luminance in xyz and transmittance in alpha
 vec4 getCloudColor(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, float surfaceDistance, out vec3 transmittance) {
   float thickness = CUMULONIMBUS_END_HEIGHT - CUMULONIMBUS_START_HEIGHT;
@@ -1241,76 +1317,78 @@ vec4 getCloudColor(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, float surfaceDistan
   bool below = originHeight < lowAltitude;
 
   // Calculate the exact interval along which the ray passes through the cloud layer.
-  vec2 interval1 = vec2(0, -1);
+  vec2 interval1;
+  vec2 interval2 = vec2(0, -1);
+  if (treeRaycast(rayOrigin, rayDir, interval1))
+    treeRaycast(rayOrigin + rayDir * interval1.y, rayDir, interval2);
   // Edge case: if ray pierces cloud layer from above, leaves it below and then
   // enters again from below along the bend of the planet, we calculate this interval, too. 
-  vec2 interval2 = vec2(0, -1);
 
   // use infinity for no intersection to allow selecting other variables through min operation
   float lowXcorrected = lowIntersections.x < lowIntersections.y ? lowIntersections.x : INFINITY;
 
-  if(above){
-    interval1.x = topIntersections.x;
-    interval1.y = lowIntersections.x;
-    if(!hitsSurface){
-      if(hitBottom){
-        // ray exits the cloud layer at the bottom and reintersects it, creating a second interval
-        interval2.x = lowIntersections.y;
-        interval2.y = topIntersections.y;
-      }else{
-        // ray leaves the cloud layer on the upper side
-        interval1.y = topIntersections.y;
-      }
-    }else{
-      if(hitBottom){
-        interval1.y = min(surfaceDistance, lowXcorrected);
-      }else{
-        interval1.y = surfaceDistance;
-      }
-      if(!hitTop || surfaceDistance < topIntersections.x){
-        interval1.y = -1;
-      }
-    }
-  }else{
-    if(below){
-      if(lowIntersections.y > 0){
-        interval1.x = lowIntersections.y;
-        interval1.y = topIntersections.y;
-      }else{
+  // if(above){
+  //   interval1.x = topIntersections.x;
+  //   interval1.y = lowIntersections.x;
+  //   if(!hitsSurface){
+  //     if(hitBottom){
+  //       // ray exits the cloud layer at the bottom and reintersects it, creating a second interval
+  //       interval2.x = lowIntersections.y;
+  //       interval2.y = topIntersections.y;
+  //     }else{
+  //       // ray leaves the cloud layer on the upper side
+  //       interval1.y = topIntersections.y;
+  //     }
+  //   }else{
+  //     if(hitBottom){
+  //       interval1.y = min(surfaceDistance, lowXcorrected);
+  //     }else{
+  //       interval1.y = surfaceDistance;
+  //     }
+  //     if(!hitTop || surfaceDistance < topIntersections.x){
+  //       interval1.y = -1;
+  //     }
+  //   }
+  // }else{
+  //   if(below){
+  //     if(lowIntersections.y > 0){
+  //       interval1.x = lowIntersections.y;
+  //       interval1.y = topIntersections.y;
+  //     }else{
 
-      }
-    }else{
-      interval1.x = 0;
-      if(lowIntersections.y > 0){
-        interval1.y = lowIntersections.x;
-        // check for second interval
-        interval2.x = lowIntersections.y;
-        interval2.y = topIntersections.y;
-      }else{
-        interval1.y = topIntersections.y;
-      }
-    }
-  }
+  //     }
+  //   }else{
+  //     interval1.x = 0;
+  //     if(lowIntersections.y > 0){
+  //       interval1.y = lowIntersections.x;
+  //       // check for second interval
+  //       interval2.x = lowIntersections.y;
+  //       interval2.y = topIntersections.y;
+  //     }else{
+  //       interval1.y = topIntersections.y;
+  //     }
+  //   }
+  // }
 
-  if(interval1.y - interval1.x < 1){
-    interval1.y = -1;
-    interval1.x = 0;
-  }
+  // if(interval1.y - interval1.x < 1){
+  //   interval1.y = -1;
+  //   interval1.x = 0;
+  // }
 
-  interval1.y = min(interval1.y, surfaceDistance);
-  interval2.y = min(interval2.y, surfaceDistance);
+  // interval1.y = min(interval1.y, surfaceDistance);
+  // interval2.y = min(interval2.y, surfaceDistance);
 
-  if(interval1.y <= interval1.x){
-    interval1.y = -1;
-    interval1.x = 0;
-  }
+  // if(interval1.y <= interval1.x){
+  //   interval1.y = -1;
+  //   interval1.x = 0;
+  // }
 
-  //return vec4(interval1.y - interval1.x / 10000, 10000, 0, 1);
+  // //return vec4(interval1.y - interval1.x / 10000, 10000, 0, 1);
 
-  if(interval2.y < interval2.x){
-    interval2.y = -1;
-    interval2.x = 0;
-  }
+  // if(interval2.y < interval2.x){
+  //   interval2.y = -1;
+  //   interval2.x = 0;
+  // }
 
   vec3 transmittance_int1 = vec3(1);
   vec3 transmittance_int2 = vec3(1);
@@ -1319,7 +1397,7 @@ vec4 getCloudColor(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, float surfaceDistan
 
   // Previously: scatter_data1.a > 0.0001 but as scatter_data1.a = path_transmittance.r, this value designates the
   // remaining transmittance, which if very low, means little light was received and the raymarch was aborted hence.
-  if(scatter_data1.a > MIN_REMAINING_TRANSMITTANCE){ // scatter_data1.a = transmittance_int1.r (if < 0.001, then hardly any transmittance left)
+  if(scatter_data1.a > MIN_REMAINING_TRANSMITTANCE) { // scatter_data1.a = transmittance_int1.r (if < 0.001, then hardly any transmittance left)
     scatter_data2 = raymarchInterval(rayOrigin, rayDir, sunDir, interval2, transmittance_int2);
   }
   if(scatter_data1.x < 1e-6 && scatter_data2.x < 1e-6){

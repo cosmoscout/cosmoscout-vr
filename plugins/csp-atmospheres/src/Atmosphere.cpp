@@ -805,6 +805,22 @@ void Atmosphere::BuildOctree() {
   mCloudTree = std::make_unique<Tree>(minBounds - cloudLayerSize, maxBounds + cloudLayerSize, 4, std::move(properties));
   mCloudTree->Build();
 
+  glm::vec3 rayDir = maxBounds;
+  glm::vec3 rayDirNorm = rayDir / length(rayDir);
+  glm::vec3 rayDirInvNorm = 1.0f / rayDirNorm;
+
+  glm::vec2 tIntersections(0.0f);
+  glm::vec3 aabbMin = minBounds * 0.5f;
+  glm::vec3 aabbMax = maxBounds * 0.5f;
+  bool intersected = IntersectAabbSlab(glm::vec3(minBounds.x, 0.0f, 0.0f), glm::vec3(1.0f, 0.0f, 0.0f), rayDirInvNorm, aabbMin, aabbMax, tIntersections);
+  vstr::debug() << "Intersection with (" << glm::to_string(aabbMin) << ", " << glm::to_string(aabbMax) << "): "
+    << (intersected ? "yes" : "no") << ", at " << glm::to_string(tIntersections) << "." << std::endl;
+
+  glm::vec3 rayOrigin(minBounds  - cloudLayerSize);
+  bool raycastHit = TreeRaycast(mCloudTree.get(), glm::vec3(rayOrigin.x, 0, 0), glm::vec3(1.0f, 0.0f, 0.0f), tIntersections);
+  vstr::debug() << "Raycast against octree: " << (raycastHit ? "yes" : "no") << ", at "
+    << glm::to_string(tIntersections) << "." << std::endl;
+
   // If no uniform buffer object exists, create one
   if (mCloudTreeBuffer == 0) {
     glGenBuffers(1, &mCloudTreeBuffer);

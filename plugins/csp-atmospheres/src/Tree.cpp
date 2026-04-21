@@ -41,14 +41,19 @@ namespace csp::atmospheres {
         // vstr::debug() << "Depth " << depth << "(i = " << index << "): aabb = "
         //     << glm::to_string(nodes[index].aabbMin * 0.00001f) << ", "
         //     << glm::to_string(nodes[index].aabbMax * 0.00001f) << std::endl;
+#ifdef TREE_DEBUG_MODE
         for (size_t i = 0; i < depth; i++)
         {
             vstr::debug() << " ";
         }
         vstr::debug() << "[Depth = " << depth << "] index " << index << ": ";
+#endif
+
 
         if (depth >= maxDepth) { // If level of depth has been reached, stop subdivision process.
+#ifdef TREE_DEBUG_MODE
             vstr::debug() << "max depth reached. STOP" << std::endl;
+#endif
             return;
         }
         
@@ -57,11 +62,15 @@ namespace csp::atmospheres {
         // vstr::debug() << "Running " << sampleCount << " samples on depth " << depth << std::endl;
         float totalDensity = GetTotalDensity(index, BASE_DENSITY_SAMPLES * (depth + 1));
         if (totalDensity <= 1e-3) {
+#ifdef TREE_DEBUG_MODE
             vstr::debug() << "zero density. STOP" << std::endl;
+#endif
             return;
         }
         else {
+#ifdef TREE_DEBUG_MODE
             vstr::debug() << "density = " << totalDensity << std::endl;
+#endif
         }
 
         depth += 1;
