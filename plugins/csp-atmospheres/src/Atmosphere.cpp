@@ -802,7 +802,7 @@ void Atmosphere::BuildOctree() {
   // vstr::debug() << "Planet radius = " << mPlanetRadius << ", aabb = " << glm::to_string(minBounds) << " --> " << glm::to_string(maxBounds) << std::endl;
   glm::vec3 cloudLayerSize = glm::vec3(1.0f) * properties.cloudLayerHeight;
 
-  mCloudTree = std::make_unique<Tree>(minBounds - cloudLayerSize, maxBounds + cloudLayerSize, 4, std::move(properties));
+  mCloudTree = std::make_unique<Tree>(minBounds - cloudLayerSize, maxBounds + cloudLayerSize, 3, std::move(properties));
   mCloudTree->Build();
 
   glm::vec3 rayDir = maxBounds;
@@ -817,7 +817,7 @@ void Atmosphere::BuildOctree() {
     << (intersected ? "yes" : "no") << ", at " << glm::to_string(tIntersections) << "." << std::endl;
 
   glm::vec3 rayOrigin(minBounds  - cloudLayerSize);
-  bool raycastHit = TreeRaycast(mCloudTree.get(), glm::vec3(rayOrigin.x, 0, 0), glm::vec3(1.0f, 0.0f, 0.0f), tIntersections);
+  bool raycastHit = TreeRaycast(mCloudTree.get(), rayOrigin, maxBounds, tIntersections);
   vstr::debug() << "Raycast against octree: " << (raycastHit ? "yes" : "no") << ", at "
     << glm::to_string(tIntersections) << "." << std::endl;
 

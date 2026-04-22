@@ -8,7 +8,7 @@
 #ifndef CSP_TREE_BVH_HPP
 #define CSP_TREE_BVH_HPP
 
-// #define TREE_DEBUG_MODE
+#define TREE_DEBUG_MODE
 
 #include <glm/glm.hpp>
 #include <glm/gtx/string_cast.hpp>
@@ -417,28 +417,19 @@ namespace csp::atmospheres {
         return tMax >= tMin;
     }
 
-    bool TreeRaycast(const Tree *tree, const glm::vec3 &rayOrigin, const glm::vec3 &rayDir, glm::vec2 &tRayEntryExit) {
+    bool TreeRaycastNew(const Tree *tree, const glm::vec3 &rayOrigin, const glm::vec3 &rayDir, glm::vec2 &tRayEntryExit) {
         glm::vec3 rayDirNorm = rayDir / length(rayDir);
         glm::vec3 rayDirInvNorm = 1.0f / rayDirNorm;
 
         unsigned int treeNodeIndex = 0;
+        auto nodes = tree->GetNodes();
         while (treeNodeIndex < tree->GetUsedNodeCount()) {
-            TreeNode node = tree->GetNodes()[treeNodeIndex];
-            if (IntersectAabbSlab(rayOrigin, rayDirNorm, rayDirInvNorm, node.aabbMin, node.aabbMax, tRayEntryExit)) {
-                if (node.IsLeaf()) {
-                    return node.density >= 1e-4;
-                } else {
-                    // Visit child nodes (depth-first)
-                    treeNodeIndex += 1;
-                    continue;
-                }
+            auto &node = nodes[treeNodeIndex];
+            bool hitNode = IntersectAabbSlab(rayOrigin, rayDirNorm, rayDirInvNorm, node.aabbMin, node.aabbMax, tRayEntryExit);
+            if (hitNode) {
             } else {
-                // Node not relevant, jump to next (1 node + 8 child nodes)
-                treeNodeIndex += 9;
-                continue;
             }
         }
-        return false;
     }
 }
 
