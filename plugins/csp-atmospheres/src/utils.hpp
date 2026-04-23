@@ -11,6 +11,7 @@
 #include <GL/glew.h>
 #include <string>
 #include <tuple>
+#include <fstream>
 
 #include <glm/glm.hpp>
 #include <VistaBase/VistaStreamUtils.h>
@@ -74,6 +75,8 @@ std::tuple<GLuint, glm::ivec2> read2DTexture(std::string const& path);
 std::tuple<GLuint, glm::ivec3> read3DTexture(std::string const& path);
 
 std::vector<float> readTexture(std::string const& path, int *width, int *height, int *channels);
+
+void storeShaderInfoLog(std::string shaderName, GLuint shaderId);
 } // namespace csp::atmospheres::utils
 
 #endif // CSP_ATMOSPHERES_UTILS_HPP

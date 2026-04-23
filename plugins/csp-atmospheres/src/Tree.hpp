@@ -12,11 +12,13 @@
 
 #include <glm/glm.hpp>
 #include <glm/gtx/string_cast.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 #include <memory>
 #include <algorithm>
 #include <vector>
 #include <math.h>
+#include <cmath>
 #include <array>
 #include <VistaBase/VistaStreamUtils.h>
 #include <VistaOGLExt/VistaGLSLShader.h>
@@ -30,7 +32,7 @@ namespace csp::atmospheres {
 
     const std::array BOX_VERTS = {
         /*0*/ 0.001F, 0.001F, 0.001F, /*1*/ 0.001F, 0.001F, 0.999F, /*2*/ 0.001F, 0.999F, 0.001F, /*3*/ 0.001F, 0.999F, 0.999F,
-        /*4*/ 0.999F, 0.001F, 0.001F, /*5*/0.999F, 0.001F, 0.999F, /*6*/ 0.999F, 0.999F, 0.001F, /*7*/ 0.999F, 0.999F, 0.999F
+        /*4*/ 0.999F, 0.001F, 0.001F, /*5*/ 0.999F, 0.001F, 0.999F, /*6*/ 0.999F, 0.999F, 0.001F, /*7*/ 0.999F, 0.999F, 0.999F
     };
 
     const std::array BOX_INDICES = {
@@ -98,7 +100,7 @@ namespace csp::atmospheres {
 
         // Debug
         bool debugMode;
-        VistaGLSLShader debugShader;
+        std::unique_ptr<VistaGLSLShader> debugShader;
         std::unique_ptr<VistaBufferObject> vbo, ibo;
         std::unique_ptr<VistaVertexArrayObject> vao;
 

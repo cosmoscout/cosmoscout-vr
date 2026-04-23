@@ -116,6 +116,38 @@ std::vector<float> utils::readTexture(std::string const& path, int *width, int *
   return dataVec;
 }
 
+void storeShaderInfoLog(std::string shaderName, GLuint shaderId) {
+  GLint iCompileSuccess = 0;
+  glGetShaderiv(shaderId, GL_COMPILE_STATUS, &iCompileSuccess);
+
+  if (iCompileSuccess != GL_TRUE) {
+    vstr::errp() << "Failed to compile '" << shaderName << "'." << std::endl;
+  }
+
+  int iLogSize;
+  glGetShaderiv(shaderId, GL_INFO_LOG_LENGTH, &iLogSize);
+
+  if (iLogSize > 0) {
+    vstr::debug() << "Writing shader info log to shader-log.txt..." << std::endl;
+
+    char* sLog = new char[iLogSize];
+    glGetShaderInfoLog(shaderId, iLogSize, NULL, sLog);
+    
+    std::ofstream logFile;
+    logFile.open ("shader-log.txt", std::ios::in | std::ios::trunc);
+    if (logFile.is_open()) {
+      logFile << "Failed to compile shader program: " << std::endl;
+      logFile << shaderName << " (ID = " << shaderId << ")" << std::endl;
+      logFile << sLog << std::endl << std::endl;
+      logFile.close();
+    } else {
+      vstr::errp() << "Failed to write shader info log." << std::endl;
+    }
+
+    delete[] sLog;
+  }
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 } // namespace csp::atmospheres::utils

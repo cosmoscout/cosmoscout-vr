@@ -6,7 +6,6 @@
 // SPDX-License-Identifier: MIT
 
 #include "Tree.hpp"
-#include <cmath>
 
 namespace csp::atmospheres {
     const unsigned int ROOT_NODE_INDEX = 0;
@@ -31,7 +30,7 @@ namespace csp::atmospheres {
         rootNode.aabbMax = totalBoundsMax;
 
         debugMode = debug;
-        debugShader = VistaGLSLShader();
+        debugShader = std::make_unique<VistaGLSLShader>();
         vbo = std::make_unique<VistaBufferObject>();
         ibo = std::make_unique<VistaBufferObject>();
         vao = std::make_unique<VistaVertexArrayObject>();
@@ -162,10 +161,48 @@ namespace csp::atmospheres {
         return totalDensity;
     }
 
+    
+
+    const char *TREE_DEBUG_VERT_SHADER = R"(#version 400
+        layout (location = 0) in vec3 inPos;
+        out vec3 pos;
+
+        uniform mat4 modelViewMat;
+        uniform mat4 projMat;
+
+        uniform vec3 aabbMin;
+        uniform vec3 aabbMax;
+
+        const mat3 isoMat = mat3(
+                sqrt(3), -1, sqrt(2),
+                0, 2, sqrt(2),
+                -sqrt(3), -1, sqrt(2)
+            ); 
+
+        void main() {
+            vec3 projected = isoMat * (inPos * (aabbMax - aabbMin) + aabbMin);
+            projected /= 1000 * 1000 * 50;
+            projected.xy /= (2.0 + projected.z);
+            gl_Position = vec4(projected, 1);
+            // pos = posHom.xyz;
+            // gl_Position = projMat * posHom;
+        })";
+    const char *TREE_DEBUG_FRAG_SHADER = R"(#version 400
+        in vec3 pos;
+        out vec4 color;
+
+        uniform float density;
+
+        void main() {
+            color = vec4(1, 0, clamp(density, 0, 1), 1);
+            // gl_FragDepth = length(inPos);
+        })";
+
     void Tree::SetupDebug() {
-        debugShader.InitVertexShaderFromFile("../shaders/tree-debug.vert");
-        debugShader.InitFragmentShaderFromFile("../shaders/tree-debug.frag");
-        debugShader.Link();
+        debugShader->InitVertexShaderFromString(TREE_DEBUG_VERT_SHADER);
+        debugShader->InitFragmentShaderFromString(TREE_DEBUG_FRAG_SHADER);
+
+        debugShader->Link();
 
         vao->Bind();
         vao->EnableAttributeArray(0);
@@ -176,6 +213,10 @@ namespace csp::atmospheres {
 
         ibo->Bind(GL_ELEMENT_ARRAY_BUFFER);
         ibo->BufferData(BOX_INDICES.size() * sizeof(uint32_t), BOX_INDICES.data(), GL_STATIC_DRAW);
+
+        vao->Release();
+        vbo->Release();
+        ibo->Release();
     }
 
     void Tree::SetDebug(bool state) {
@@ -183,6 +224,38 @@ namespace csp::atmospheres {
     }
 
     void Tree::DrawDebug() {
+        glPushAttrib(GL_POLYGON_BIT);
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
+        if (debugMode) {
+            debugShader->Bind();
+            vao->Bind();
+
+            // Get model-view and projection matrices and set in shader
+            std::array<GLfloat, 16> modelViewArr{};
+            std::array<GLfloat, 16> projArr{};
+            glGetFloatv(GL_MODELVIEW_MATRIX, modelViewArr.data());
+            glGetFloatv(GL_PROJECTION_MATRIX, projArr.data());
+            glm::mat4 modelViewMat = glm::make_mat4(modelViewArr.data());
+            // vstr::debug() << "Modelview = " << glm::to_string(modelViewMat) << std::endl;
+            glm::mat4 projMat = glm::make_mat4(projArr.data());
+            // vstr::debug() << "Proj = " << glm::to_string(projMat) << std::endl;
+            glUniformMatrix4fv(debugShader->GetUniformLocation("modelViewMat"), 1, GL_FALSE, glm::value_ptr(modelViewMat));
+            glUniformMatrix4fv(debugShader->GetUniformLocation("projMat"), 1, GL_FALSE, glm::value_ptr(projMat));
+
+            for (size_t i = 0; i < GetUsedNodeCount(); i++) {
+                const auto &node = nodes[i];
+                debugShader->SetUniform(debugShader->GetUniformLocation("aabbMin"), node.aabbMin[0], node.aabbMin[1], node.aabbMin[2]);
+                debugShader->SetUniform(debugShader->GetUniformLocation("aabbMax"), node.aabbMax[0], node.aabbMax[1], node.aabbMax[2]);
+                debugShader->SetUniform(debugShader->GetUniformLocation("density"), node.density);
+
+                glDrawElements(GL_LINES, 24, GL_UNSIGNED_INT, 0);
+            }
+
+            debugShader->Release();
+            vao->Release();
+        }
+
+        glPopAttrib();
     }
 }
