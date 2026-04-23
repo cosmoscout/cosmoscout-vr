@@ -17,27 +17,39 @@
 #include <algorithm>
 #include <vector>
 #include <math.h>
-#include "VistaBase/VistaStreamUtils.h"
+#include <array>
+#include <VistaBase/VistaStreamUtils.h>
+#include <VistaOGLExt/VistaGLSLShader.h>
+#include <VistaOGLExt/VistaBufferObject.h>
+#include <VistaOGLExt/VistaVertexArrayObject.h>
 
 #include "utils.hpp"
 
 namespace csp::atmospheres {
     const float DEFAULT_DENSITY_CUTOFF = 1.0e-2f;
 
+    const std::array BOX_VERTS = {
+        /*0*/ 0.001F, 0.001F, 0.001F, /*1*/ 0.001F, 0.001F, 0.999F, /*2*/ 0.001F, 0.999F, 0.001F, /*3*/ 0.001F, 0.999F, 0.999F,
+        /*4*/ 0.999F, 0.001F, 0.001F, /*5*/0.999F, 0.001F, 0.999F, /*6*/ 0.999F, 0.999F, 0.001F, /*7*/ 0.999F, 0.999F, 0.999F
+    };
+
+    const std::array BOX_INDICES = {
+        0U, 1U, 0U, 2U, 0U, 4U, 1U, 3U, 1U, 5U, 2U, 3U, 2U, 6U, 3U, 7U, 4U, 5U, 4U, 6U, 5U, 7U, 6U, 7U
+    };
+
     static unsigned int GetIndexFromPos(glm::vec3 pos, glm::uvec3 &dimensions);
     static glm::vec3 GetPosFromIndex(unsigned int index, glm::uvec3 &dimensions);
 
     struct TreeNode {
-        // Index-based retrieval (3D noise texture stored as vector<float>)
         glm::vec3 aabbMin, aabbMax;
         // Octree children-count is static (=8), so either firstChildIndex or density is occupied
-        unsigned int firstChildIndex; // firstChildIndex > 0 => branch node
-        float density; // firstChildIndex == 0 => leaf node, so val is well-defined
+        unsigned int childrenCount; // childrenCount = 0 => leaf node
+        float density;
 
         TreeNode() {
             aabbMin = glm::vec3(0.0);
             aabbMax = glm::vec3(0.0);
-            firstChildIndex = 0;
+            childrenCount = 0;
             density = -0.0f;
         }
 
@@ -46,7 +58,7 @@ namespace csp::atmospheres {
         }
 
         bool IsLeaf() const {
-            return firstChildIndex == 0;
+            return childrenCount == 0;
         }
 
         bool HitRay(glm::vec3 origin, glm::vec3 dir, float densityCutoff = DEFAULT_DENSITY_CUTOFF) {
@@ -84,16 +96,27 @@ namespace csp::atmospheres {
         CloudProperties properties;
         std::unique_ptr<TreeNode[]> nodes;
 
+        // Debug
+        bool debugMode;
+        VistaGLSLShader debugShader;
+        std::unique_ptr<VistaBufferObject> vbo, ibo;
+        std::unique_ptr<VistaVertexArrayObject> vao;
+
         // Calculates cloud density at the given index.
         float GetDensity(glm::vec3 pos);
         // Calculates average density throughout the node (basically the cost function for decision to subdivide).
         float GetTotalDensity(unsigned int index, unsigned int totalSamples);
-        void Subdivide(unsigned int index, unsigned int depth);
+        unsigned int Subdivide(unsigned int index, unsigned int depth);
         void UpdateBounds(unsigned int index, unsigned int relChildIndex);
 
     public:
-        Tree(glm::vec3 totalBoundsMin, glm::vec3 totalBoundsMax, unsigned int maxDepth, CloudProperties properties);
+        Tree(glm::vec3 totalBoundsMin, glm::vec3 totalBoundsMax, unsigned int maxDepth, CloudProperties properties, bool debug);
         void Build();
+
+        // Debug
+        void SetupDebug();
+        void SetDebug(bool mode);
+        void DrawDebug();
 
         TreeNode *GetNodes() const {
             return &nodes[0];
@@ -401,23 +424,28 @@ namespace csp::atmospheres {
         const glm::vec3 &aabbMin, const glm::vec3 &aabbMax, glm::vec2 &tRayEntryExit) {
         float tMin = 0;
         float tMax = 1e10;
-        for (unsigned int i = 0; i < 3; i++) {
-            float t1 = (aabbMin[i] - rayOrigin[i]) * rayDirInvNorm[i];
-            float t2 = (aabbMax[i] - rayOrigin[i]) * rayDirInvNorm[i];
-            
-            tMin = std::min(tMin, t1);
-            tMax = std::max(tMax, t2);
+        
+        float tx1 = (aabbMin.x - rayOrigin.x) * rayDirInvNorm.x;
+        float tx2 = (aabbMax.x - rayOrigin.x) * rayDirInvNorm.x;
+        tMin = std::min(tx1, tx2);
+        tMax = std::max(tx1, tx2);
 
-            tRayEntryExit.x = std::max(tMin, t1);
-            tRayEntryExit.y = std::min(tMax, t2);
-        }
+        float ty1 = (aabbMin.y - rayOrigin.y) * rayDirInvNorm.y;
+        float ty2 = (aabbMax.y - rayOrigin.y) * rayDirInvNorm.y;
+        tMin = std::max(tMin, std::min(ty1, ty2));
+        tMax = std::min(tMax, std::max(ty1, ty2));
 
-        // tRayEntryExit.x = tMin;
-        // tRayEntryExit.y = tMax;
-        return tMax >= tMin;
+        float tz1 = (aabbMin.z - rayOrigin.z) * rayDirInvNorm.z;
+        float tz2 = (aabbMax.z - rayOrigin.z) * rayDirInvNorm.z;
+        tMin = std::max(tMin, std::min(tz1, tz2));
+        tMax = std::min(tMax, std::max(tz1, tz2));
+
+        tRayEntryExit.x = std::min(tMin, tMax);
+        tRayEntryExit.y = std::max(tMin, tMax);
+        return tMax >= std::max(0.0f, tMin);
     }
 
-    bool TreeRaycastNew(const Tree *tree, const glm::vec3 &rayOrigin, const glm::vec3 &rayDir, glm::vec2 &tRayEntryExit) {
+    bool TreeRaycast(const Tree *tree, const glm::vec3 &rayOrigin, const glm::vec3 &rayDir, glm::vec2 &tRayEntryExit) {
         glm::vec3 rayDirNorm = rayDir / length(rayDir);
         glm::vec3 rayDirInvNorm = 1.0f / rayDirNorm;
 
@@ -425,11 +453,26 @@ namespace csp::atmospheres {
         auto nodes = tree->GetNodes();
         while (treeNodeIndex < tree->GetUsedNodeCount()) {
             auto &node = nodes[treeNodeIndex];
+            vstr::debug() << "Raycast() check nodes[" << treeNodeIndex << "] with " << node.childrenCount << " children." << std::endl;
+
             bool hitNode = IntersectAabbSlab(rayOrigin, rayDirNorm, rayDirInvNorm, node.aabbMin, node.aabbMax, tRayEntryExit);
-            if (hitNode) {
+            bool isLeaf = node.IsLeaf();
+            bool criticalDensity = node.density > 0.0f;
+
+            if (hitNode && isLeaf && criticalDensity) {
+                return true;
+            }
+
+            vstr::debug() << " -> node " << (hitNode ? "hit" : "missed") << ". leaf = " << (isLeaf ? "yes" : "no") << ", density = " << node.density << ".";
+            if ((isLeaf || criticalDensity) && hitNode || (isLeaf && !hitNode)) {
+                vstr::debug() << " next node." << std::endl;
+                treeNodeIndex += 1;
             } else {
+                vstr::debug() << " jumping over " << node.childrenCount << " children." << std::endl;
+                treeNodeIndex += node.childrenCount; // Jump over all children
             }
         }
+        return false;
     }
 }
 

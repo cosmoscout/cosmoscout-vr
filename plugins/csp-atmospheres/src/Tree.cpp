@@ -12,7 +12,7 @@ namespace csp::atmospheres {
     const unsigned int ROOT_NODE_INDEX = 0;
     const unsigned int BASE_DENSITY_SAMPLES = 10000;
 
-    Tree::Tree(glm::vec3 totalBoundsMin, glm::vec3 totalBoundsMax, unsigned int maxDepth, CloudProperties properties) {
+    Tree::Tree(glm::vec3 totalBoundsMin, glm::vec3 totalBoundsMax, unsigned int maxDepth, CloudProperties properties, bool debug) {
         this->maxDepth = maxDepth;
         usedNodeIndex = 0;
 
@@ -29,6 +29,12 @@ namespace csp::atmospheres {
         auto &rootNode = nodes[ROOT_NODE_INDEX];
         rootNode.aabbMin = totalBoundsMin;
         rootNode.aabbMax = totalBoundsMax;
+
+        debugMode = debug;
+        debugShader = VistaGLSLShader();
+        vbo = std::make_unique<VistaBufferObject>();
+        ibo = std::make_unique<VistaBufferObject>();
+        vao = std::make_unique<VistaVertexArrayObject>();
     }
 
     void Tree::Build() {        
@@ -37,47 +43,46 @@ namespace csp::atmospheres {
         Subdivide(ROOT_NODE_INDEX, depth);
     }
 
-    void Tree::Subdivide(unsigned int index, unsigned int depth) {
+    unsigned int Tree::Subdivide(unsigned int index, unsigned int depth) {
         // vstr::debug() << "Depth " << depth << "(i = " << index << "): aabb = "
         //     << glm::to_string(nodes[index].aabbMin * 0.00001f) << ", "
         //     << glm::to_string(nodes[index].aabbMax * 0.00001f) << std::endl;
-#ifdef TREE_DEBUG_MODE
-        for (size_t i = 0; i < depth; i++)
-        {
-            vstr::debug() << " ";
+        if (debugMode) {
+            for (size_t i = 0; i < depth; i++)
+            {
+                vstr::debug() << " ";
+            }
+            vstr::debug() << "[Depth = " << depth << "] index " << index << ": ";
         }
-        vstr::debug() << "[Depth = " << depth << "] index " << index << ": ";
-#endif
 
+        auto &node = nodes[index];
 
-        if (depth >= maxDepth) { // If level of depth has been reached, stop subdivision process.
-#ifdef TREE_DEBUG_MODE
-            vstr::debug() << "max depth reached. STOP" << std::endl;
-#endif
-            return;
-        }
-        
-        // float depthFactor = 1.0f / (depth + 1);
-        // unsigned int sampleCount = std::max(static_cast<unsigned int>(((float)BASE_DENSITY_SAMPLES) * depthFactor));
-        // vstr::debug() << "Running " << sampleCount << " samples on depth " << depth << std::endl;
         float totalDensity = GetTotalDensity(index, BASE_DENSITY_SAMPLES * (depth + 1));
         if (totalDensity <= 1e-3) {
-#ifdef TREE_DEBUG_MODE
-            vstr::debug() << "zero density. STOP" << std::endl;
-#endif
-            return;
+            if (debugMode)
+                vstr::debug() << "zero density. STOP" << std::endl;
+
+                node.density = 0;
+            return 0;
         }
         else {
-#ifdef TREE_DEBUG_MODE
-            vstr::debug() << "density = " << totalDensity << std::endl;
-#endif
+            if (debugMode)
+                vstr::debug() << "density = " << totalDensity << ". ";
+
+                node.density = totalDensity;
         }
 
+        if (depth >= maxDepth) { // If level of depth has been reached, stop subdivision process.
+            if (debugMode)
+                vstr::debug() << "max depth reached. STOP" << std::endl;;
+
+            return 0;
+        }
+        if (debugMode)
+            vstr::debug() << std::endl;
+
         depth += 1;
-        auto &node = nodes[index];
         // Nodes are stored sequentially, so children of current node are the next 8 nodes in the nodes-array.
-        node.firstChildIndex = usedNodeIndex + 1;
-        node.density = totalDensity;
 
         // Update children node bounds
         //           top
@@ -123,7 +128,7 @@ namespace csp::atmospheres {
         newMaxBounds[7] = node.aabbMax;
 
         // vstr::debug() << "Node bounds = " << glm::to_string(node.aabbMin) << ", " << glm::to_string(node.aabbMax) << std::endl;
-
+        unsigned int children = 8;
         for (int i = 0; i < 8; i++) {
             unsigned int currNodeIndex = ++usedNodeIndex;
             
@@ -131,10 +136,12 @@ namespace csp::atmospheres {
             childNode.aabbMin = newMinBounds[i];
             childNode.aabbMax = newMaxBounds[i];
 
-            Subdivide(currNodeIndex, depth);
+            children += Subdivide(currNodeIndex, depth);
             // if (depth == maxDepth)
             //     vstr::debug() << "Node " << currNodeIndex << " bounds = " << glm::to_string(childNode.aabbMin) << ", " << glm::to_string(childNode.aabbMax) << std::endl;
         }
+        node.childrenCount = children;
+        return children;
     }
 
     float Tree::GetDensity(glm::vec3 pos) {
@@ -155,41 +162,27 @@ namespace csp::atmospheres {
         return totalDensity;
     }
 
-    // float Tree::GetTotalDensity(unsigned int index) {
-    //     auto &node = nodes[index];
+    void Tree::SetupDebug() {
+        debugShader.InitVertexShaderFromFile("../shaders/tree-debug.vert");
+        debugShader.InitFragmentShaderFromFile("../shaders/tree-debug.frag");
+        debugShader.Link();
 
-    //     const unsigned int DENSITY_SAMPLES = 500;
-    //     glm::vec3 mainExtends = node.aabbMax - node.aabbMin;
+        vao->Bind();
+        vao->EnableAttributeArray(0);
+        vao->SpecifyAttributeArrayFloat(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0, vbo.get());
 
-    //     glm::vec3 upperLeftBack = glm::vec3(node.aabbMin.x, node.aabbMax.y, node.aabbMax.z); // UL
-    //     glm::vec3 lowerRightFront = glm::vec3(node.aabbMax.x, node.aabbMin.y, node.aabbMin.z); // LR
-    //     glm::vec3 mainCrossExtends = upperLeftBack - lowerRightFront;
+        vbo->Bind(GL_ARRAY_BUFFER);
+        vbo->BufferData(BOX_VERTS.size() * sizeof(float), BOX_VERTS.data(), GL_STATIC_DRAW);
 
-    //     glm::vec3 upperRightFront = glm::vec3(node.aabbMax.x, node.aabbMin.y, node.aabbMax.z);
-    //     glm::vec3 lowerLeftBack = glm::vec3(node.aabbMin.x, node.aabbMax.y, node.aabbMin.z);
-    //     glm::vec altExtends = upperRightFront - lowerLeftBack;
+        ibo->Bind(GL_ELEMENT_ARRAY_BUFFER);
+        ibo->BufferData(BOX_INDICES.size() * sizeof(uint32_t), BOX_INDICES.data(), GL_STATIC_DRAW);
+    }
 
-    //     glm::vec3 upperLeftFront = glm::vec3(node.aabbMin.x, node.aabbMax.y, node.aabbMax.z);
-    //     glm::vec3 lowerRightBack = glm::vec3(node.aabbMax.x, node.aabbMax.y, node.aabbMin.z);
-    //     glm::vec3 altCrossExtends = upperLeftFront - lowerRightBack;
+    void Tree::SetDebug(bool state) {
+        debugMode = state;
+    }
 
-    //     // TODO: as the octree splits 8 times along the same extends every subdivision iteration,
-    //     // the average density along the same 4 diagonals will be calculated again and again.
-    //     // Instead, sample along random points inside the cubes? Or along lines parallel to the coordinate axes?
+    void Tree::DrawDebug() {
 
-    //     float totalDensity = 0.0;
-    //     unsigned int totalSamples = 0;
-    //     for (size_t i = 1; i < DENSITY_SAMPLES; i++) {
-    //         float i_f = (float)i;
-    //         float coeff = float(i_f / DENSITY_SAMPLES);
-    //         glm::vec3 mainSamplePos = node.aabbMin + coeff * mainExtends;
-    //         glm::vec3 mainCrossSamplePos = upperLeftBack + coeff * mainCrossExtends;
-    //         glm::vec3 altSamplePos = lowerRightBack + coeff * altExtends;
-    //         glm::vec3 altCrossSamplePos = upperLeftFront + coeff * altCrossExtends;
-    //         totalDensity += GetDensity(mainSamplePos) + GetDensity(mainCrossSamplePos) + GetDensity(altSamplePos) + GetDensity(altCrossSamplePos);
-    //         totalSamples += 4;
-    //     }
-
-    //     return totalDensity; // / totalSamples;
-    // }
+    }
 }

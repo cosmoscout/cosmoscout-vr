@@ -51,9 +51,9 @@ const float INFINITY = 1 / 0.;
 // Octree node
 // Total struct size must be a multiple of sizeof(vec4) = 16 for std140 alignment.
 struct TreeNode {
-  vec3 aabbMin;           // 3 * 4 bytes (vec3 is treated as vec4 by GLSL)
+  vec3 aabbMin;           // 3 * 4 bytes
+  uint childrenCount;      // 1 * 4 bytes
   vec3 aabbMax;           // 3 * 4 bytes
-  uint firstChildIndex;   // 1 * 4 bytes
   float density;          // 1 * 4 bytes
 }; // = 32 bytes
 
@@ -223,58 +223,58 @@ float sRGBtoLinear(float c) {
 // -------------------------------------------------------------------------------------------------
 
 bool intersectAabbSlab(vec3 rayOrigin, vec3 rayDirNorm, vec3 rayDirInvNorm, vec3 aabbMin, vec3 aabbMax, out vec2 tRayEntryExit) {  
-  double tMin = 0;
-  double tMax = INFINITY;
-  for (uint i = 0; i < 3; i++) {
-    double t1 = (aabbMin[i] - rayOrigin[i]) * rayDirInvNorm[i];
-    double t2 = (aabbMax[i] - rayOrigin[i]) * rayDirInvNorm[i];
+    float tMin = 0;
+    float tMax = INFINITY;
     
-    tMin = min(tMin, t1);
-    tMax = max(tMax, t2);
+    float tx1 = (aabbMin.x - rayOrigin.x) * rayDirInvNorm.x;
+    float tx2 = (aabbMax.x - rayOrigin.x) * rayDirInvNorm.x;
+    tMin = min(tx1, tx2);
+    tMax = max(tx1, tx2);
 
-    tRayEntryExit.x = float(max(tMin, t1));
-    tRayEntryExit.y = float(min(tMax, t2));
-  }
+    float ty1 = (aabbMin.y - rayOrigin.y) * rayDirInvNorm.y;
+    float ty2 = (aabbMax.y - rayOrigin.y) * rayDirInvNorm.y;
+    tMin = max(tMin, min(ty1, ty2));
+    tMax = min(tMax, max(ty1, ty2));
 
-  // tRayEntryExit = vec2(tMin, tMax);
-  return tMax >= tMin;
+    float tz1 = (aabbMin.z - rayOrigin.z) * rayDirInvNorm.z;
+    float tz2 = (aabbMax.z - rayOrigin.z) * rayDirInvNorm.z;
+    tMin = max(tMin, min(tz1, tz2));
+    tMax = min(tMax, max(tz1, tz2));
+
+    tRayEntryExit.x = min(tMin, tMax);
+    tRayEntryExit.y = max(tMin, tMax);
+    return tMax >= max(0.0f, tMin);
 }
 
-// bool intersectAabbSlab(vec3 rayOrigin, vec3 rayDir, vec3 aabbMin, vec3 aabbMax, out double tRayHit) {
-//   vec3 rayDirNorm = rayDir / length(rayDir);
-//   vec3 rayDirInvNorm = 1 / rayDirNorm;
-//   return intersectAabbSlabOpt(rayOrigin, rayDir, rayDirInvNorm, aabbMin, aabbMax, tRayHit);
-// }
-
-const double TREE_NODE_DENSITY_CUTOFF = 1e-4;
-
 bool isTreeNodeLeaf(uint treeNodeIndex) {
-  return nodes[treeNodeIndex].firstChildIndex == 0;
+  return nodes[treeNodeIndex].childrenCount == 0;
 }
 
 bool treeRaycast(vec3 rayOrigin, vec3 rayDir, out vec2 tRayEntryExit) {
-  vec3 rayDirNorm = rayDir / length(rayDir);
-  vec3 rayDirInvNorm = 1 / rayDirNorm;
+    vec3 rayDirNorm = rayDir / length(rayDir);
+    vec3 rayDirInvNorm = 1.0f / rayDirNorm;
 
-  tRayEntryExit = vec2(0);
-  uint treeNodeIndex = 0;
-  while (treeNodeIndex < TREE_MAX_NODES) {
-    TreeNode node = nodes[treeNodeIndex];
-    if (intersectAabbSlab(rayOrigin, rayDirNorm, rayDirInvNorm, node.aabbMin, node.aabbMax, tRayEntryExit)) {
-      if (isTreeNodeLeaf(treeNodeIndex)) {
-        return node.density >= TREE_NODE_DENSITY_CUTOFF;
-      } else {
-        // Visit child nodes (depth-first)
-        treeNodeIndex += 1;
-        continue;
-      }
-    } else {
-      // Node not relevant, jump to next (1 node + 8 child nodes)
-      treeNodeIndex += 9;
-      continue;
+    uint treeNodeIndex = 0;
+    uint totalNodeCount = nodes[0].childrenCount + 1; // Root node plus its number of child nodes
+    while (treeNodeIndex < totalNodeCount) {
+        TreeNode node = nodes[treeNodeIndex];
+
+        // Three conditions for a raycast to hit a node:
+        bool hitNode = intersectAabbSlab(rayOrigin, rayDirNorm, rayDirInvNorm, node.aabbMin, node.aabbMax, tRayEntryExit);
+        bool isLeaf = isTreeNodeLeaf(treeNodeIndex);
+        bool criticalDensity = node.density > 0.0f;
+
+        if (hitNode && isLeaf && criticalDensity) {
+            return true;
+        }
+
+        if ((isLeaf || criticalDensity) && hitNode || (isLeaf && !hitNode)) {
+            treeNodeIndex += 1;
+        } else {
+            treeNodeIndex += node.childrenCount; // Jump over all children
+        }
     }
-  }
-  return false;
+    return false;
 }
 
 // Compute intersections of a ray with a sphere. Two T parameters are returned -- if no intersection
