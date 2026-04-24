@@ -1407,11 +1407,11 @@ vec4 getCloudColor(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, float surfaceDistan
   if(scatter_data1.a > MIN_REMAINING_TRANSMITTANCE) { // scatter_data1.a = transmittance_int1.r (if < 0.001, then hardly any transmittance left)
     scatter_data2 = raymarchInterval(rayOrigin, rayDir, sunDir, interval2, transmittance_int2);
   }
-  if(scatter_data1.x < 1e-6 && scatter_data2.x < 1e-6){
+  if(scatter_data1.x < 1e-6 && scatter_data2.x < 1e-6) {
     // no significant inscattering from clouds. just return standard inscattering
-    if(hitsSurface){
+    if(hitsSurface) {
       return vec4(GetSkyLuminanceToPoint(rayOrigin, rayOrigin + surfaceDistance * rayDir, sunDir, transmittance), transmittance);
-    }else{
+    } else {
       return vec4(GetSkyLuminance(rayOrigin, rayDir, sunDir, transmittance), transmittance.r);
     }
   }

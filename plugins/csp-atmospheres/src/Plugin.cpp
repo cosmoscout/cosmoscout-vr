@@ -92,7 +92,7 @@ void from_json(nlohmann::json const& j, Plugin::Settings::Atmosphere& o) {
   cs::core::Settings::deserialize(j, "experimentalCloudFeatures", o.mExperimentalCloudFeatures);
   cs::core::Settings::deserialize(j, "interpolateTransmittance", o.mInterpolateTransmittance);
   cs::core::Settings::deserialize(j, "interpolationStrideScale", o.mInterpolationStrideScale);
-  cs::core::Settings::deserialize(j, "newRaymarchImpl", o.mNewRaymarchImpl);
+  cs::core::Settings::deserialize(j, "Octree", o.mOctree);
 }
 
 void to_json(nlohmann::json& j, Plugin::Settings::Atmosphere const& o) {
@@ -129,7 +129,7 @@ void to_json(nlohmann::json& j, Plugin::Settings::Atmosphere const& o) {
   cs::core::Settings::serialize(j, "experimentalCloudFeatures", o.mExperimentalCloudFeatures);
   cs::core::Settings::serialize(j, "interpolateTransmittance", o.mInterpolateTransmittance);
   cs::core::Settings::serialize(j, "interpolationStrideScale", o.mInterpolationStrideScale);
-  cs::core::Settings::serialize(j, "newRaymarchImpl", o.mNewRaymarchImpl);
+  cs::core::Settings::serialize(j, "Octree", o.mOctree);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -181,7 +181,7 @@ void Plugin::init() {
             mGuiManager->setCheckboxValue("atmosphere.setExperimentalCloudFeatures", settings.mExperimentalCloudFeatures.get());
             mGuiManager->setCheckboxValue("atmosphere.setInterpolateTransmittance", settings.mInterpolateTransmittance.get());
             mGuiManager->setSliderValue("atmosphere.setInterpolationStrideScale", settings.mInterpolationStrideScale.get());
-            mGuiManager->setCheckboxValue("atmosphere.setNewRaymarchImpl", settings.mNewRaymarchImpl.get());
+            mGuiManager->setCheckboxValue("atmosphere.setOctree", settings.mOctree.get());
           }
         }
       });
@@ -421,12 +421,12 @@ void Plugin::init() {
         }
       }));
 
-  mGuiManager->getGui()->registerCallback("atmosphere.setNewRaymarchImpl",
+  mGuiManager->getGui()->registerCallback("atmosphere.setOctree",
       "Enables or disables new raymarch algorithm for advanced cloud rendering.",
       std::function([this](bool enable) {
         if (!mActiveAtmosphere.empty()) {
           auto& settings           = mPluginSettings->mAtmospheres.at(mActiveAtmosphere);
-          settings.mNewRaymarchImpl = enable;
+          settings.mOctree = enable;
           mAtmospheres.at(mActiveAtmosphere)->configure(settings);
         }
       }));
@@ -475,7 +475,7 @@ void Plugin::deInit() {
   mGuiManager->getGui()->unregisterCallback("atmosphere.setExperimentalCloudFeatures");
   mGuiManager->getGui()->unregisterCallback("atmosphere.setInterpolateTransmittance");
   mGuiManager->getGui()->unregisterCallback("atmosphere.setInterpolationStrideScale");
-  mGuiManager->getGui()->unregisterCallback("atmosphere.setNewRaymarchImpl");
+  mGuiManager->getGui()->unregisterCallback("atmosphere.setOctree");
 
   mSolarSystem->pActiveObject.disconnect(mActiveObjectConnection);
   mAllSettings->onLoad().disconnect(mOnLoadConnection);

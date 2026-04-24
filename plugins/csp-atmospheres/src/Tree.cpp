@@ -161,7 +161,8 @@ namespace csp::atmospheres {
         return totalDensity;
     }
 
-    
+    // MV Matrix immer relativ zum Planeten der betrachtet wird. MV-Matrix: ObserverRelativeTransform
+    // https://github.com/cosmoscout/cosmoscout-vr/blob/d26a33b6b706126abf9faae8aa6056fcde1892ba/plugins/csp-simple-bodies/src/SimpleBody.cpp#L458 
 
     const char *TREE_DEBUG_VERT_SHADER = R"(#version 400
         layout (location = 0) in vec3 inPos;
@@ -180,12 +181,14 @@ namespace csp::atmospheres {
             ); 
 
         void main() {
-            vec3 projected = isoMat * (inPos * (aabbMax - aabbMin) + aabbMin);
-            projected /= 1000 * 1000 * 50;
-            projected.xy /= (1.0 + projected.z);
-            gl_Position = vec4(projected, 1);
-            // pos = posHom.xyz;
-            // gl_Position = projMat * posHom;
+            // vec3 projected = isoMat * (inPos * (aabbMax - aabbMin) + aabbMin);
+            // projected /= 1000 * 1000 * 50;
+            // projected.xy /= (1.0 + projected.z);
+            vec3 pos = inPos * (aabbMax - aabbMin) + aabbMin;
+            pos /= 1000000;
+            vec4 projPos = projMat * modelViewMat * vec4(pos, 1);
+            // projPos.xy /= (3 + projPos.z);
+            gl_Position = projPos;
         })";
     const char *TREE_DEBUG_FRAG_SHADER = R"(#version 400
         in vec3 pos;
@@ -195,7 +198,7 @@ namespace csp::atmospheres {
 
         void main() {
             color = vec4(1, density > 0.01 ? 1 : 0, clamp(density, 0, 1), 1);
-            // gl_FragDepth = length(inPos);
+            // gl_FragDepth = length(pos);
         })";
 
     void Tree::SetupDebug() {
@@ -223,7 +226,7 @@ namespace csp::atmospheres {
         debugMode = state;
     }
 
-    void Tree::DrawDebug() {
+    void Tree::DrawDebug(const glm::mat4 &modelViewMat, const glm::mat4 &projMat) {
         glPushAttrib(GL_POLYGON_BIT);
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
@@ -232,14 +235,14 @@ namespace csp::atmospheres {
             vao->Bind();
 
             // Get model-view and projection matrices and set in shader
-            std::array<GLfloat, 16> modelViewArr{};
-            std::array<GLfloat, 16> projArr{};
-            glGetFloatv(GL_MODELVIEW_MATRIX, modelViewArr.data());
-            glGetFloatv(GL_PROJECTION_MATRIX, projArr.data());
-            glm::mat4 modelViewMat = glm::make_mat4(modelViewArr.data());
-            // vstr::debug() << "Modelview = " << glm::to_string(modelViewMat) << std::endl;
-            glm::mat4 projMat = glm::make_mat4(projArr.data());
-            // vstr::debug() << "Proj = " << glm::to_string(projMat) << std::endl;
+            // std::array<GLfloat, 16> modelViewArr{};
+            // std::array<GLfloat, 16> projArr{};
+            // glGetFloatv(GL_MODELVIEW_MATRIX, modelViewArr.data());
+            // glGetFloatv(GL_PROJECTION_MATRIX, projArr.data());
+            // glm::mat4 modelViewMat = glm::make_mat4(modelViewArr.data());
+            // // vstr::debug() << "Modelview = " << glm::to_string(modelViewMat) << std::endl;
+            // glm::mat4 projMat = glm::make_mat4(projArr.data());
+            // // vstr::debug() << "Proj = " << glm::to_string(projMat) << std::endl;
             glUniformMatrix4fv(debugShader->GetUniformLocation("modelViewMat"), 1, GL_FALSE, glm::value_ptr(modelViewMat));
             glUniformMatrix4fv(debugShader->GetUniformLocation("projMat"), 1, GL_FALSE, glm::value_ptr(projMat));
 

@@ -253,7 +253,7 @@ void Atmosphere::configure(Plugin::Settings::Atmosphere const& settings) {
     // Recreate shader if raymarch algorithm selection changed
     if (mSettings.mExperimentalCloudFeatures != settings.mExperimentalCloudFeatures ||
         mSettings.mInterpolateTransmittance != settings.mInterpolateTransmittance ||
-        mSettings.mNewRaymarchImpl != settings.mNewRaymarchImpl) {
+        mSettings.mOctree != settings.mOctree) {
       mShaderDirty = true;
     }
 
@@ -264,9 +264,7 @@ void Atmosphere::configure(Plugin::Settings::Atmosphere const& settings) {
     }
 
     if (mNoiseData.size() > 0 && mNoiseData2D.size() > 0 && mCloudTexture && mCloudTypeTexture && !mCloudTree) {
-      vstr::debug() << "Building octree from noise data and cloud textures..." << std::endl;
       BuildOctree();
-      vstr::debug() << "Octree size = " << this->mCloudTree->GetUsedNodeCount() << std::endl;
     }
   }
 }
@@ -311,7 +309,7 @@ void Atmosphere::createShader(ShaderType type, VistaGLSLShader& shader, utils::U
   // For debugging purposes
   cs::utils::replaceString(sFrag, "EXPERIMENTAL_CLOUD_FEATURES", std::to_string(mSettings.mExperimentalCloudFeatures.get()));
   cs::utils::replaceString(sFrag, "INTERPOLATE_TRANSMITTANCE", std::to_string(mSettings.mInterpolateTransmittance.get()));
-  cs::utils::replaceString(sFrag, "NEW_RAYMARCH_IMPL", std::to_string(mSettings.mNewRaymarchImpl.get()));
+  cs::utils::replaceString(sFrag, "OCTREE", std::to_string(mSettings.mOctree.get()));
 
   shader.InitVertexShaderFromString(sVert);
   utils::storeShaderInfoLog("csp-atmosphere.vert", shader.GetVertexShader(0));
@@ -637,7 +635,7 @@ bool Atmosphere::Do() {
   glPopAttrib();
 
   // --- Render octree nodes wireframe ---
-  mCloudTree->DrawDebug();
+  mCloudTree->DrawDebug(matV, matP);
   // ---
 
   return true;
@@ -776,29 +774,29 @@ void Atmosphere::BuildOctree() {
   mCloudTree = std::make_unique<Tree>(minBounds - cloudLayerSize, maxBounds + cloudLayerSize, 4, std::move(properties), true);
   mCloudTree->Build();
   mCloudTree->SetupDebug();
-  vstr::debug() << "Built octree with size " << mCloudTree->GetUsedNodeCount() << "." << std::endl;
+  vstr::debug() << "3d_clouds: Built octree with size " << mCloudTree->GetUsedNodeCount() << "." << std::endl;
 
-  glm::vec3 rayOrigin(minBounds - cloudLayerSize);
-  glm::vec3 rayDir = glm::vec3(1.0f, 0.999f, 1.0f);
-  glm::vec3 rayDirNorm = rayDir / length(rayDir);
-  glm::vec3 rayDirInvNorm = 1.0f / rayDirNorm;
+  // glm::vec3 rayOrigin(minBounds - cloudLayerSize);
+  // glm::vec3 rayDir = glm::vec3(1.0f, 0.999f, 1.0f);
+  // glm::vec3 rayDirNorm = rayDir / length(rayDir);
+  // glm::vec3 rayDirInvNorm = 1.0f / rayDirNorm;
 
-  glm::vec2 tIntersections(0.0f);
-  glm::vec3 aabbMin(3191.568359f, 2393.676270f, 3191.568359f);
-  glm::vec3 aabbMax(3989.460449f, 3191.568359f, 3989.460449f);
-  bool intersected = IntersectAabbSlab(rayOrigin, rayDir, rayDirInvNorm, aabbMin, aabbMax, tIntersections);
-  vstr::debug() << "Intersection with (" << glm::to_string(aabbMin) << ", " << glm::to_string(aabbMax) << "): "
-    << (intersected ? "yes" : "no") << ", at " << glm::to_string(tIntersections) << "." << std::endl;
-  vstr::debug() << "Calc intersection points: x1 = "
-    << glm::to_string(rayOrigin + rayDirNorm * tIntersections.x) << ", x2 = "
-    << glm::to_string(rayOrigin + rayDirNorm * tIntersections.y) << "." << std::endl;
+  // glm::vec2 tIntersections(0.0f);
+  // glm::vec3 aabbMin(3191.568359f, 2393.676270f, 3191.568359f);
+  // glm::vec3 aabbMax(3989.460449f, 3191.568359f, 3989.460449f);
+  // bool intersected = IntersectAabbSlab(rayOrigin, rayDir, rayDirInvNorm, aabbMin, aabbMax, tIntersections);
+  // vstr::debug() << "Intersection with (" << glm::to_string(aabbMin) << ", " << glm::to_string(aabbMax) << "): "
+  //   << (intersected ? "yes" : "no") << ", at " << glm::to_string(tIntersections) << "." << std::endl;
+  // vstr::debug() << "Calc intersection points: x1 = "
+  //   << glm::to_string(rayOrigin + rayDirNorm * tIntersections.x) << ", x2 = "
+  //   << glm::to_string(rayOrigin + rayDirNorm * tIntersections.y) << "." << std::endl;
 
-  bool raycastHit = TreeRaycast(mCloudTree.get(), rayOrigin, rayDir, tIntersections);
-  vstr::debug() << "Raycast against octree: " << (raycastHit ? "yes" : "no") << ", at " << glm::to_string(tIntersections) << "." << std::endl;
-  auto rayHitEntry = rayOrigin + tIntersections.x * rayDirNorm;
-  auto rayHitExit = rayOrigin + tIntersections.y * rayDirNorm;
-  vstr::debug() << "Hit octree from " << glm::to_string(rayHitEntry) << " to " << glm::to_string(rayHitExit)
-    << ", diff = " << glm::to_string(rayHitExit - rayHitEntry) << "." << std::endl;
+  // bool raycastHit = TreeRaycast(mCloudTree.get(), rayOrigin, rayDir, tIntersections);
+  // vstr::debug() << "Raycast against octree: " << (raycastHit ? "yes" : "no") << ", at " << glm::to_string(tIntersections) << "." << std::endl;
+  // auto rayHitEntry = rayOrigin + tIntersections.x * rayDirNorm;
+  // auto rayHitExit = rayOrigin + tIntersections.y * rayDirNorm;
+  // vstr::debug() << "Hit octree from " << glm::to_string(rayHitEntry) << " to " << glm::to_string(rayHitExit)
+  //   << ", diff = " << glm::to_string(rayHitExit - rayHitEntry) << "." << std::endl;
 
   // If no uniform buffer object exists, create one
   if (mCloudTreeBuffer == 0) {

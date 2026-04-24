@@ -120,7 +120,7 @@ namespace csp::atmospheres {
         // Debug
         void SetupDebug();
         void SetDebug(bool mode);
-        void DrawDebug();
+        void DrawDebug(const glm::mat4 &modelViewMat, const glm::mat4 &projMat);
 
         TreeNode *GetNodes() const {
             return &nodes[0];
