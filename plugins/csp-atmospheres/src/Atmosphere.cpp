@@ -773,28 +773,32 @@ void Atmosphere::BuildOctree() {
   // vstr::debug() << "Planet radius = " << mPlanetRadius << ", aabb = " << glm::to_string(minBounds) << " --> " << glm::to_string(maxBounds) << std::endl;
   glm::vec3 cloudLayerSize = glm::vec3(1.0f) * properties.cloudLayerHeight;
 
-  mCloudTree = std::make_unique<Tree>(minBounds - cloudLayerSize, maxBounds + cloudLayerSize, 3, std::move(properties), true);
+  mCloudTree = std::make_unique<Tree>(minBounds - cloudLayerSize, maxBounds + cloudLayerSize, 4, std::move(properties), true);
   mCloudTree->Build();
   mCloudTree->SetupDebug();
   vstr::debug() << "Built octree with size " << mCloudTree->GetUsedNodeCount() << "." << std::endl;
 
-  // glm::vec3 rayOrigin(-5.0f, 0.0f, 0.0f);
-  // glm::vec3 rayDir = glm::vec3(1.0f, 0.0f, 1.0f);
-  // glm::vec3 rayDirNorm = rayDir / length(rayDir);
-  // glm::vec3 rayDirInvNorm = 1.0f / rayDirNorm;
+  glm::vec3 rayOrigin(minBounds - cloudLayerSize);
+  glm::vec3 rayDir = glm::vec3(1.0f, 0.999f, 1.0f);
+  glm::vec3 rayDirNorm = rayDir / length(rayDir);
+  glm::vec3 rayDirInvNorm = 1.0f / rayDirNorm;
 
-  // glm::vec2 tIntersections(0.0f);
-  // glm::vec3 aabbMin(-10.0f, -10.0f, -10.0f);
-  // glm::vec3 aabbMax(10.0f, 10.0f, 10.0f);
-  // bool intersected = IntersectAabbSlab(rayOrigin, rayDir, rayDirInvNorm, aabbMin, aabbMax, tIntersections);
-  // vstr::debug() << "Intersection with (" << glm::to_string(aabbMin) << ", " << glm::to_string(aabbMax) << "): "
-  //   << (intersected ? "yes" : "no") << ", at " << glm::to_string(tIntersections) << "." << std::endl;
-  // vstr::debug() << "Calc intersection points: x1 = " << glm::to_string(rayOrigin + rayDirNorm * tIntersections.x) << "." << std::endl;  
+  glm::vec2 tIntersections(0.0f);
+  glm::vec3 aabbMin(3191.568359f, 2393.676270f, 3191.568359f);
+  glm::vec3 aabbMax(3989.460449f, 3191.568359f, 3989.460449f);
+  bool intersected = IntersectAabbSlab(rayOrigin, rayDir, rayDirInvNorm, aabbMin, aabbMax, tIntersections);
+  vstr::debug() << "Intersection with (" << glm::to_string(aabbMin) << ", " << glm::to_string(aabbMax) << "): "
+    << (intersected ? "yes" : "no") << ", at " << glm::to_string(tIntersections) << "." << std::endl;
+  vstr::debug() << "Calc intersection points: x1 = "
+    << glm::to_string(rayOrigin + rayDirNorm * tIntersections.x) << ", x2 = "
+    << glm::to_string(rayOrigin + rayDirNorm * tIntersections.y) << "." << std::endl;
 
-  // rayOrigin = minBounds - cloudLayerSize;
-  // rayOrigin.y = 0.0f;
-  // bool raycastHit = TreeRaycast(mCloudTree.get(), rayOrigin, rayDir, tIntersections);
-  // vstr::debug() << "Raycast against octree: " << (raycastHit ? "yes" : "no") << ", at " << glm::to_string(tIntersections) << "." << std::endl;
+  bool raycastHit = TreeRaycast(mCloudTree.get(), rayOrigin, rayDir, tIntersections);
+  vstr::debug() << "Raycast against octree: " << (raycastHit ? "yes" : "no") << ", at " << glm::to_string(tIntersections) << "." << std::endl;
+  auto rayHitEntry = rayOrigin + tIntersections.x * rayDirNorm;
+  auto rayHitExit = rayOrigin + tIntersections.y * rayDirNorm;
+  vstr::debug() << "Hit octree from " << glm::to_string(rayHitEntry) << " to " << glm::to_string(rayHitExit)
+    << ", diff = " << glm::to_string(rayHitExit - rayHitEntry) << "." << std::endl;
 
   // If no uniform buffer object exists, create one
   if (mCloudTreeBuffer == 0) {

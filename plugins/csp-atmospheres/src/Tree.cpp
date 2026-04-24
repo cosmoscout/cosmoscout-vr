@@ -182,7 +182,7 @@ namespace csp::atmospheres {
         void main() {
             vec3 projected = isoMat * (inPos * (aabbMax - aabbMin) + aabbMin);
             projected /= 1000 * 1000 * 50;
-            projected.xy /= (2.0 + projected.z);
+            projected.xy /= (1.0 + projected.z);
             gl_Position = vec4(projected, 1);
             // pos = posHom.xyz;
             // gl_Position = projMat * posHom;
@@ -194,7 +194,7 @@ namespace csp::atmospheres {
         uniform float density;
 
         void main() {
-            color = vec4(1, 0, clamp(density, 0, 1), 1);
+            color = vec4(1, density > 0.01 ? 1 : 0, clamp(density, 0, 1), 1);
             // gl_FragDepth = length(inPos);
         })";
 

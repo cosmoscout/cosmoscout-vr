@@ -27,6 +27,8 @@
 
 #include "utils.hpp"
 
+#include <limits>
+
 namespace csp::atmospheres {
     const float DEFAULT_DENSITY_CUTOFF = 1.0e-2f;
 
@@ -425,22 +427,26 @@ namespace csp::atmospheres {
     bool IntersectAabbSlab(const glm::vec3 &rayOrigin, const glm::vec3 &rayDirNorm, const glm::vec3 &rayDirInvNorm,
         const glm::vec3 &aabbMin, const glm::vec3 &aabbMax, glm::vec2 &tRayEntryExit) {
         float tMin = 0;
-        float tMax = 1e10;
+        float tMax = std::numeric_limits<float>::max();
         
         float tx1 = (aabbMin.x - rayOrigin.x) * rayDirInvNorm.x;
         float tx2 = (aabbMax.x - rayOrigin.x) * rayDirInvNorm.x;
         tMin = std::min(tx1, tx2);
         tMax = std::max(tx1, tx2);
+        // vstr::debug() << "x: tMin = " << tMin << ", tMax = " << tMax << std::endl;
 
         float ty1 = (aabbMin.y - rayOrigin.y) * rayDirInvNorm.y;
         float ty2 = (aabbMax.y - rayOrigin.y) * rayDirInvNorm.y;
         tMin = std::max(tMin, std::min(ty1, ty2));
         tMax = std::min(tMax, std::max(ty1, ty2));
+        // vstr::debug() << "y: tMin = " << tMin << ", tMax = " << tMax << std::endl;
 
         float tz1 = (aabbMin.z - rayOrigin.z) * rayDirInvNorm.z;
         float tz2 = (aabbMax.z - rayOrigin.z) * rayDirInvNorm.z;
         tMin = std::max(tMin, std::min(tz1, tz2));
         tMax = std::min(tMax, std::max(tz1, tz2));
+        // vstr::debug() << "z: tMin = " << tMin << ", tMax = " << tMax << std::endl;
+
 
         tRayEntryExit.x = std::min(tMin, tMax);
         tRayEntryExit.y = std::max(tMin, tMax);
@@ -455,22 +461,24 @@ namespace csp::atmospheres {
         auto nodes = tree->GetNodes();
         while (treeNodeIndex < tree->GetUsedNodeCount()) {
             auto &node = nodes[treeNodeIndex];
-            vstr::debug() << "Raycast() check nodes[" << treeNodeIndex << "] with " << node.childrenCount << " children." << std::endl;
+            // vstr::debug() << "Raycast() check nodes[" << treeNodeIndex << "] with " << node.childrenCount << " children." << std::endl;
 
             bool hitNode = IntersectAabbSlab(rayOrigin, rayDirNorm, rayDirInvNorm, node.aabbMin, node.aabbMax, tRayEntryExit);
             bool isLeaf = node.IsLeaf();
             bool criticalDensity = node.density > 0.0f;
 
+            vstr::debug() << "Nodes[" << treeNodeIndex << "] " << (hitNode ? "hit" : "missed") << ". leaf = " << (isLeaf ? "yes" : "no") << ", density = " << node.density << ".";
             if (hitNode && isLeaf && criticalDensity) {
+                vstr::debug() << " -> hit leaf node with density; stopping." << std::endl;
+                vstr::debug() << "Node details: aabb = " << glm::to_string(node.aabbMin / 1000.0f) << ", " << glm::to_string(node.aabbMax / 1000.0f) << "." << std::endl;
                 return true;
             }
 
-            vstr::debug() << " -> node " << (hitNode ? "hit" : "missed") << ". leaf = " << (isLeaf ? "yes" : "no") << ", density = " << node.density << ".";
             if ((isLeaf || criticalDensity) && hitNode || (isLeaf && !hitNode)) {
-                vstr::debug() << " next node." << std::endl;
+                vstr::debug() << " -> next node." << std::endl;
                 treeNodeIndex += 1;
             } else {
-                vstr::debug() << " jumping over " << node.childrenCount << " children." << std::endl;
+                vstr::debug() << " -> jumping over " << node.childrenCount << " children." << std::endl;
                 treeNodeIndex += node.childrenCount; // Jump over all children
             }
         }
