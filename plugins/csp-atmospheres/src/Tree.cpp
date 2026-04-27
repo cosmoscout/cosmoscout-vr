@@ -8,9 +8,6 @@
 #include "Tree.hpp"
 
 namespace csp::atmospheres {
-    const unsigned int ROOT_NODE_INDEX = 0;
-    const unsigned int BASE_DENSITY_SAMPLES = 10000;
-
     Tree::Tree(glm::vec3 totalBoundsMin, glm::vec3 totalBoundsMax, unsigned int maxDepth, CloudProperties properties, bool debug) {
         this->maxDepth = maxDepth;
         usedNodeIndex = 0;
@@ -171,6 +168,8 @@ namespace csp::atmospheres {
         uniform mat4 modelViewMat;
         uniform mat4 projMat;
 
+        uniform float maxBounds;
+
         uniform vec3 aabbMin;
         uniform vec3 aabbMax;
 
@@ -181,13 +180,14 @@ namespace csp::atmospheres {
             ); 
 
         void main() {
+            // Isometric projection
             // vec3 projected = isoMat * (inPos * (aabbMax - aabbMin) + aabbMin);
             // projected /= 1000 * 1000 * 50;
             // projected.xy /= (1.0 + projected.z);
+
             vec3 pos = inPos * (aabbMax - aabbMin) + aabbMin;
-            pos /= 1000000;
+            pos /= maxBounds; // Scale to [0, 1] x ... x [0, 1] screen space
             vec4 projPos = projMat * modelViewMat * vec4(pos, 1);
-            // projPos.xy /= (3 + projPos.z);
             gl_Position = projPos;
         })";
     const char *TREE_DEBUG_FRAG_SHADER = R"(#version 400
@@ -197,14 +197,15 @@ namespace csp::atmospheres {
         uniform float density;
 
         void main() {
-            color = vec4(1, density > 0.01 ? 1 : 0, clamp(density, 0, 1), 1);
+            float scaledDensity = density / 8;
+            float clampedDensity = clamp(scaledDensity, 0, 1);
+            color = vec4(clampedDensity, 0, 1, density > 0.0 ? 1 : 0);
             // gl_FragDepth = length(pos);
         })";
 
     void Tree::SetupDebug() {
         debugShader->InitVertexShaderFromString(TREE_DEBUG_VERT_SHADER);
         debugShader->InitFragmentShaderFromString(TREE_DEBUG_FRAG_SHADER);
-
         debugShader->Link();
 
         vao->Bind();
@@ -234,17 +235,11 @@ namespace csp::atmospheres {
             debugShader->Bind();
             vao->Bind();
 
-            // Get model-view and projection matrices and set in shader
-            // std::array<GLfloat, 16> modelViewArr{};
-            // std::array<GLfloat, 16> projArr{};
-            // glGetFloatv(GL_MODELVIEW_MATRIX, modelViewArr.data());
-            // glGetFloatv(GL_PROJECTION_MATRIX, projArr.data());
-            // glm::mat4 modelViewMat = glm::make_mat4(modelViewArr.data());
-            // // vstr::debug() << "Modelview = " << glm::to_string(modelViewMat) << std::endl;
-            // glm::mat4 projMat = glm::make_mat4(projArr.data());
-            // // vstr::debug() << "Proj = " << glm::to_string(projMat) << std::endl;
             glUniformMatrix4fv(debugShader->GetUniformLocation("modelViewMat"), 1, GL_FALSE, glm::value_ptr(modelViewMat));
             glUniformMatrix4fv(debugShader->GetUniformLocation("projMat"), 1, GL_FALSE, glm::value_ptr(projMat));
+            
+            
+            debugShader->SetUniform(debugShader->GetUniformLocation("maxBounds"), GetMaxBounds());
 
             for (size_t i = 0; i < GetUsedNodeCount(); i++) {
                 const auto &node = nodes[i];

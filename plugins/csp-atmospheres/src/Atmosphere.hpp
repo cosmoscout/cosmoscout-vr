@@ -84,6 +84,7 @@ class Atmosphere : public IVistaOpenGLDraw {
   const int resz2 = 256, resy2 = 256;
   glm::dvec3                   mRadii                          = glm::dvec3(1.0, 1.0, 1.0);
   glm::dmat4                   mObserverRelativeTransformation = glm::dmat4(1.0);
+  glm::dquat                   mObserverRelativeRotation       = glm::dquat();
   double                       mSceneScale                     = 1.0;
   Plugin::Settings::Atmosphere mSettings;
 

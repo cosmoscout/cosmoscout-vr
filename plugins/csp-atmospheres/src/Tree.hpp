@@ -94,6 +94,9 @@ namespace csp::atmospheres {
         glm::uvec2 noise2dDim, cloudDim, cloudTypeDim;
     };
 
+    const unsigned int ROOT_NODE_INDEX = 0;
+    const unsigned int BASE_DENSITY_SAMPLES = 10000;
+
     class Tree {
     private:
         unsigned int maxDepth, maxNodeCount, usedNodeIndex;
@@ -122,12 +125,20 @@ namespace csp::atmospheres {
         void SetDebug(bool mode);
         void DrawDebug(const glm::mat4 &modelViewMat, const glm::mat4 &projMat);
 
+        bool IsDebug() const {
+            return debugMode;
+        }
+
         TreeNode *GetNodes() const {
             return &nodes[0];
         }
 
         unsigned int GetUsedNodeCount() const {
             return usedNodeIndex + 1; // all used node indices
+        }
+
+        float GetMaxBounds() const {
+            return glm::length(nodes[ROOT_NODE_INDEX].aabbMax);
         }
     };
 

@@ -29,6 +29,7 @@
 #include <VistaOGLExt/VistaTexture.h>
 
 #include <glm/gtc/type_ptr.hpp>
+#include <glm/gtx/quaternion.hpp>
 
 #define STB_IMAGE_IMPLEMENTATION
 #define STB_IMAGE_WRITE_IMPLEMENTATION
@@ -384,6 +385,7 @@ void Atmosphere::update(double time) {
     mSunDirection   = mSolarSystem->getSunDirection(object->getObserverRelativePosition());
     // Observer relative transform (pos, rot, scale relative to coordinate frame of observer (camera))
     mObserverRelativeTransformation = object->getObserverRelativeTransform();
+    mObserverRelativeRotation       = object->getRelativeRotation(time, mSolarSystem->getObserver());
     mSceneScale                     = mSolarSystem->getObserver().getScale();
     mEclipseShadowReceiver->update(*object);
 
@@ -631,11 +633,23 @@ bool Atmosphere::Do() {
   mAtmoShader.Release();
 
   glDepthMask(GL_TRUE);
-
   glPopAttrib();
 
   // --- Render octree nodes wireframe ---
-  mCloudTree->DrawDebug(matV, matP);
+  if (mCloudTree->IsDebug()) {
+    glm::vec4 relObserverPos = mObserverRelativeTransformation[3];
+    glm::mat4 viewMat(1.0f);
+    viewMat = glm::translate(viewMat, glm::vec3(relObserverPos.x, relObserverPos.y, relObserverPos.z));
+    viewMat = viewMat * glm::inverse((glm::mat4)glm::toMat4(mObserverRelativeRotation));
+    // viewMat = glm::scale(viewMat, glm::vec3(1.0f / (float)(mSceneScale / (mPlanetRadius + 5000))));
+    viewMat = glm::scale(viewMat, glm::vec3((float)((1.0f / mSceneScale) * mCloudTree->GetMaxBounds())));
+    // viewMat[3] = glm::vec4(0.0f);
+    // vstr::debug() << "View Mat = " << glm::to_string(viewMat) << std::endl;
+    // vstr::debug() << "Proj Mat = " << glm::to_string(matP) << std::endl;
+    // vstr::debug() << "Scale = " << mSceneScale << ", Rel Scale = " << mObserverRelativeScale << std::endl;
+    // vstr::debug() << "Rot = " << glm::to_string(mObserverRelativeRotation) << std::endl;
+    mCloudTree->DrawDebug(viewMat, matP);
+  }
   // ---
 
   return true;
@@ -651,7 +665,6 @@ bool Atmosphere::GetBoundingBox(VistaBoundingBox& bb) {
   std::array<float, 3> const fMax = {extend, extend, extend};
 
   bb.SetBounds(fMin.data(), fMax.data());
-
   return true;
 }
 
@@ -769,7 +782,7 @@ void Atmosphere::BuildOctree() {
   glm::vec3 minBounds(minx, miny, minz);
   glm::vec3 maxBounds(maxx, maxy, maxz);
   // vstr::debug() << "Planet radius = " << mPlanetRadius << ", aabb = " << glm::to_string(minBounds) << " --> " << glm::to_string(maxBounds) << std::endl;
-  glm::vec3 cloudLayerSize = glm::vec3(1.0f) * properties.cloudLayerHeight;
+  glm::vec3 cloudLayerSize = glm::vec3(properties.cloudLayerHeight);
 
   mCloudTree = std::make_unique<Tree>(minBounds - cloudLayerSize, maxBounds + cloudLayerSize, 4, std::move(properties), true);
   mCloudTree->Build();
