@@ -70,7 +70,7 @@ namespace csp::atmospheres {
 
         if (depth >= maxDepth) { // If level of depth has been reached, stop subdivision process.
             if (debugMode)
-                vstr::debug() << "max depth reached. STOP" << std::endl;;
+                vstr::debug() << "max depth reached. STOP" << std::endl;
 
             return 0;
         }

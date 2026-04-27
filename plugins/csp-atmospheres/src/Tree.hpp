@@ -95,7 +95,7 @@ namespace csp::atmospheres {
     };
 
     const unsigned int ROOT_NODE_INDEX = 0;
-    const unsigned int BASE_DENSITY_SAMPLES = 10000;
+    const unsigned int BASE_DENSITY_SAMPLES = 50000;
 
     class Tree {
     private:
