@@ -31,7 +31,7 @@ namespace cs::gui {
 class CS_GUI_EXPORT WebView {
  public:
   /// Creates a new WebView for the given page at the location of the URL.
-  WebView(const std::string& url, int width, int height, bool allowLocalFileAccess = false);
+  WebView(const std::string& url, int width, int height);
 
   WebView(WebView const& other) = delete;
   WebView(WebView&& other)      = delete;

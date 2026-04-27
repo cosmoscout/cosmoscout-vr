@@ -134,7 +134,7 @@ int impl(std::vector<std::string> const& arguments, Type type) {
 
   output << "lambda";
   for (int32_t t(0); t < totalAngles; ++t) {
-    output << fmt::format(",{}", 180.0 * t / (totalAngles - 1.0));
+    output << std::format(",{}", 180.0 * t / (totalAngles - 1.0));
   }
   output << std::endl;
 
@@ -145,7 +145,7 @@ int impl(std::vector<std::string> const& arguments, Type type) {
     double g2     = g2s.size() == 1 ? g2s[0] : g2s[i];
     double alpha  = alphas.size() == 1 ? alphas[0] : alphas[i];
 
-    output << fmt::format("{}", lambda);
+    output << std::format("{}", lambda);
     for (int32_t i(0); i < totalAngles; ++i) {
       double theta = i * glm::pi<double>() / (totalAngles - 1);
       double phase = 0.0;
@@ -172,7 +172,7 @@ int impl(std::vector<std::string> const& arguments, Type type) {
         phase = alpha * a + (1.0 - alpha) * b;
       }
 
-      output << fmt::format(",{}", phase);
+      output << std::format(",{}", phase);
     }
     output << std::endl;
   }

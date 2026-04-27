@@ -91,7 +91,7 @@ int manualMode(std::vector<std::string> const& arguments) {
     double lambda = lambdas[i];
     double value  = values.size() == 1 ? values[0] : values[i];
 
-    output << fmt::format("{},{}", lambda, value) << std::endl;
+    output << std::format("{},{}", lambda, value) << std::endl;
   }
 
   return 0;

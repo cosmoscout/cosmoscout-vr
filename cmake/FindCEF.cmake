@@ -10,10 +10,10 @@ find_path(CEF_INCLUDE_DIR include/cef_version.h
     HINTS ${CEF_ROOT_DIR}/include/cef)
 
 # Locate library.
-find_path(CEF_RESOURCE_DIR cef.pak
+find_path(CEF_RESOURCE_DIR resources.pak
     HINTS ${CEF_ROOT_DIR}/share/cef)
 
-find_path(CEF_LIBRARY_DIR snapshot_blob.bin
+find_path(CEF_LIBRARY_DIR v8_context_snapshot.bin
     HINTS ${CEF_ROOT_DIR}/lib)
 
 find_library(CEF_LIBRARY NAMES cef libcef

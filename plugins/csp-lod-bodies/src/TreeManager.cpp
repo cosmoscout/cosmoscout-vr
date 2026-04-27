@@ -258,8 +258,7 @@ void TreeManager::onNodeInserted(TileNode* node) {
 
 void TreeManager::releaseResources(TileNode* node) {
   for (auto const& res : mGLResources->mChannels) {
-    auto data = node->getTileData(res->getDataType());
-    if (data) {
+    if (auto const& data = node->getTileData(res->getDataType())) {
       res->releaseGPU(data);
     }
   }
@@ -269,14 +268,13 @@ void TreeManager::releaseResources(TileNode* node) {
 
 void TreeManager::prune() {
   // sort by age, oldest nodes at the back
-  std::sort(mNodes.begin(), mNodes.end(), AgeLess(mFrameCount));
-  int count = 0;
+  std::ranges::sort(mNodes, AgeLess(mFrameCount));
 
   while (!mNodes.empty()) {
-    TileNode* node = mNodes.back();
 
     // remove unnused nodes, but never root nodes
-    if (node->getAge(mFrameCount) > maxNodeAge && node->getLevel() > 0) {
+    if (TileNode* node = mNodes.back();
+        node->getAge(mFrameCount) > maxNodeAge && node->getLevel() > 0) {
       releaseResources(node);
 
       if (!removeNode(&mTree, node)) {
@@ -285,7 +283,6 @@ void TreeManager::prune() {
 
       // remove entries for node from internal data structures
       mNodes.pop_back();
-      ++count;
     } else {
       // The node at the back of mAgeStore can not be removed - stop
       // The sorting of mAgeStore ensures that there is no node that
@@ -312,8 +309,6 @@ void TreeManager::merge() {
   int unmerged = 0;
 
   for (auto& node : mergeNodes) {
-    assert(node != nullptr);
-
     if (insertNode(&mTree, node)) {
       onNodeInserted(node);
       ++merged;

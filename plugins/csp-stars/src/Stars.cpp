@@ -630,13 +630,11 @@ bool Stars::readStarsFromCatalog(CatalogType type, std::string const& filename) 
   }
 
   if (file.is_open()) {
-    int  lineCount = 0;
     bool loadHipparcos(mCatalogs.find(CatalogType::eHipparcos) != mCatalogs.end());
 
     // read line by line
     while (!file.eof()) {
       // get line
-      ++lineCount;
       std::string line;
       getline(file, line);
 

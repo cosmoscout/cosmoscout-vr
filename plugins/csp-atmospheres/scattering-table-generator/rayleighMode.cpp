@@ -72,16 +72,16 @@ int rayleighMode(std::vector<std::string> const& arguments) {
   args.addArgument({"--penndorf-extinction"}, &cPenndorfExtinction,
       "Use the Penndorf extinction tables (default: false)");
   args.addArgument({"--ior"}, &cIoR,
-      fmt::format("The index of refraction of the gas. Can be one number or a comma-separated list "
+      std::format("The index of refraction of the gas. Can be one number or a comma-separated list "
                   "of values for each wavelength (default: {}).",
           cIoR));
   args.addArgument({"-n", "--number-density"}, &cNumberDensity,
-      fmt::format("The number density per m³ (default: {}).", cNumberDensity));
+      std::format("The number density per m³ (default: {}).", cNumberDensity));
   args.addArgument({"--phase-depolarization"}, &cPhaseDepolarization,
-      fmt::format(
+      std::format(
           "The depolarization factor for the phase function (default: {}).", cPhaseDepolarization));
   args.addArgument({"--scattering-depolarization"}, &cScatteringDepolarization,
-      fmt::format("The depolarization factor for the king-correction used for the scattering "
+      std::format("The depolarization factor for the king-correction used for the scattering "
                   "coefficient (default: {}).",
           cScatteringDepolarization));
   common::addLambdaFlags(args, &cLambdas, &cMinLambda, &cMaxLambda, &cLambdaSamples);
@@ -132,7 +132,7 @@ int rayleighMode(std::vector<std::string> const& arguments) {
   absorptionOutput << "lambda,beta_abs" << std::endl;
   phaseOutput << "lambda";
   for (int32_t t(0); t < totalAngles; ++t) {
-    phaseOutput << fmt::format(",{}", 180.0 * t / (totalAngles - 1.0));
+    phaseOutput << std::format(",{}", 180.0 * t / (totalAngles - 1.0));
   }
   phaseOutput << std::endl;
 
@@ -156,7 +156,7 @@ int rayleighMode(std::vector<std::string> const& arguments) {
 
       double beta_sca = common::interpolate(penndorf, minLambda, maxLambda, lambda);
 
-      scatteringOutput << fmt::format("{},{}", lambda, beta_sca) << std::endl;
+      scatteringOutput << std::format("{},{}", lambda, beta_sca) << std::endl;
 
     } else {
 
@@ -171,13 +171,13 @@ int rayleighMode(std::vector<std::string> const& arguments) {
       double beta_sca =
           8.0 / 3.0 * std::pow(glm::pi<double>(), 3.0) * f / (cNumberDensity * std::pow(lambda, 4));
 
-      scatteringOutput << fmt::format("{},{}", lambda, beta_sca) << std::endl;
+      scatteringOutput << std::format("{},{}", lambda, beta_sca) << std::endl;
     }
 
     // Absorption is always zero.
-    absorptionOutput << fmt::format("{},{}", lambda, 0.0) << std::endl;
+    absorptionOutput << std::format("{},{}", lambda, 0.0) << std::endl;
 
-    phaseOutput << fmt::format("{}", lambda);
+    phaseOutput << std::format("{}", lambda);
     for (int32_t i(0); i < totalAngles; ++i) {
       double theta = i * glm::pi<double>() / (totalAngles - 1);
       double gamma = cPhaseDepolarization / (2.0 - cPhaseDepolarization);
@@ -187,7 +187,7 @@ int rayleighMode(std::vector<std::string> const& arguments) {
               : 3.0 / (16.0 * glm::pi<double>()) *
                     (1.0 + 3.0 * gamma + (1.0 - gamma) * std::pow(std::cos(theta), 2.0)) /
                     (1.0 + 2.0 * gamma);
-      phaseOutput << fmt::format(",{}", phase);
+      phaseOutput << std::format(",{}", phase);
     }
     phaseOutput << std::endl;
   }

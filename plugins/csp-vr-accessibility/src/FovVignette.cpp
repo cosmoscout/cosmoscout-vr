@@ -266,9 +266,9 @@ void FovVignette::updateFadeAnimatedVignette() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 double FovVignette::getNow() {
-  boost::posix_time::ptime const EPOCH(boost::gregorian::date(1970, 1, 1));
-  auto delta = boost::posix_time::microsec_clock::universal_time() - EPOCH;
-  return delta.total_microseconds() / 1000000.0;
+  return std::chrono::duration<double>(std::chrono::high_resolution_clock::now().time_since_epoch())
+      .count();
+  ;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

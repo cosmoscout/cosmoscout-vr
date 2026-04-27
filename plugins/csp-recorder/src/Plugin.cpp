@@ -122,8 +122,8 @@ void Plugin::update() {
       mFrameCounter = 0;
 
       // We use the current date as a filename.
-      auto timeString =
-          cs::utils::convert::time::toString(boost::posix_time::microsec_clock::local_time());
+      auto timeString = cs::utils::convert::time::toString(
+          std::chrono::duration<double>(std::chrono::file_clock::now().time_since_epoch()).count());
       cs::utils::replaceString(timeString, ":", "-");
       cs::utils::replaceString(timeString, ".", "-");
       cs::utils::replaceString(timeString, "T", "-");
@@ -162,7 +162,7 @@ def capture(file):
     // Now that the output file is initialized, we can write the information for each frame. Here we
     // write a call navigation.setBodyFull() setting the current full observer transformation.
     if (mPluginSettings.mRecordTime.get()) {
-      mOutFile << fmt::format("runJS(\"CosmoScout.callbacks.navigation.setBodyFull('{}', '{}', "
+      mOutFile << std::format("runJS(\"CosmoScout.callbacks.navigation.setBodyFull('{}', '{}', "
                               "{}, {}, {}, {}, {}, {}, {}, 0);\")",
                       mAllSettings->mObserver.pCenter.get(), mAllSettings->mObserver.pFrame.get(),
                       mAllSettings->mObserver.pPosition.get().x,

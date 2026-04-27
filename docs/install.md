@@ -12,17 +12,17 @@ SPDX-License-Identifier: CC-BY-4.0
 :information_source: _**Tip:** This page contains generic build instructions for CosmoScout VR. Alternatively, you can follow a [guide specific to your IDE](ide-setup.md)._
 
 **CosmoScout VR supports 64 bits only and can be build in debug and release mode on Linux and Windows.
-You will need a copy of [CMake](https://cmake.org/) (version 3.22 or greater), [Boost](https://www.boost.org/) (version 1.69 or greater) and a recent C++ compiler (gcc 7, clang 5 or msvc 19).
+You will need a copy of [CMake](https://cmake.org/) (version 3.22 or greater) and a recent C++ compiler (gcc 13, clang 18 or msvc 19).
 For the compilation of the externals [Python](https://www.python.org/) is also required.**
 
 ## Linux
 
 Before you start, it may be necessary to install some additional system packages.
 As there are many distributions with varying default libs and available packages, giving an exhaustive list is difficult.
-Here is an exemplary list for Ubuntu 20.04 which you have to adapt to your specific distribution:
+Here is an exemplary list for Ubuntu 24.04 which you have to adapt to your specific distribution:
 
 ```bash
-sudo apt-get install git cmake build-essential xorg-dev libboost-all-dev libglu1-mesa-dev libssl-dev libxkbcommon0
+sudo apt-get install git cmake build-essential xorg-dev libglu1-mesa-dev libssl-dev libxkbcommon0
 ```
 
 ### Cloning the repository
@@ -135,21 +135,6 @@ cd cosmoscout-vr
 
 ### Getting the dependencies
 
-Getting a precompiled version of boost suitable for CosmoScout VR which will be found by CMake can be difficult: Older CMake versions fail to find boost versions which are too new; but on the other hand you need a rather new version if you use a very recent version of MSVC (e.g. 14.2, the one shipped with Visual Studio 2019). The "oldest" precompiled boost which you can get on SourceForge for MSVC 14.2 is version 1.70.0.
-
-So using version 1.70.0 may work in most cases. You can get it from from https://sourceforge.net/projects/boost/files/boost-binaries/1.70.0
-
-| MSVC | Visual Studio | File                                        | Link                                                                                                                              |
-|------|---------------|---------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------|
-| 14.2 | 2019          | `boost_1_70_0-unsupported-msvc-14.2-64.exe` | [download](https://sourceforge.net/projects/boost/files/boost-binaries/1.70.0/boost_1_70_0-unsupported-msvc-14.2-64.exe/download) |
-| 14.1 | 2017          | `boost_1_70_0-msvc-14.1-64.exe`             | [download](https://sourceforge.net/projects/boost/files/boost-binaries/1.70.0/boost_1_70_0-msvc-14.1-64.exe/download)             |
-| 14.0 | 2015          | `boost_1_70_0-msvc-14.0-64.exe`             | [download](https://sourceforge.net/projects/boost/files/boost-binaries/1.70.0/boost_1_70_0-msvc-14.0-64.exe/download)             |
-
-> [!TIP]
-> If you want that CosmoScout VR detects your 3DConnexion Space Navigator, you have to [download](https://3dconnexion.com/de/software-developer-program/) and install the 3DConnexion SDK. Then you need to add one line to the `make_externals.bat` but file as [described here](https://github.com/cosmoscout/cosmoscout-vr/blob/main/make_externals.bat#L313).
-
-
-Then you have to compile the dependencies.
 Per default, all dependencies are built in release mode using precompiled headers and unity builds where possible.
 This behavior can be adjusted using some environment variables:
 
@@ -161,7 +146,7 @@ This behavior can be adjusted using some environment variables:
 
 You should set these as required before executing the scripts below.
 This step only has to be done once.
-If you are using Visual Studio 2017, you have to replace `-G "Visual Studio 16 2019" -A x64` with `-G "Visual Studio 15 Win64"`.
+If you are using Visual Studio 2022, you have to replace `-G "Visual Studio 16 2019" -A x64` with `-G "Visual Studio 17 2022" -A x64`.
 
 ```batch
 git submodule update --init --recursive
@@ -176,9 +161,6 @@ All parameters given to `make_externals.bat` will be forwarded to CMake. For exa
 One can either use [CMake Presets](https://cmake.org/cmake/help/v3.22/manual/cmake-presets.7.html) or build the software manually using CMake.
 **Using CMake Presets** is easy and definitely the recommended way.
 
-On Linux, boost is usually found automatically by CMake, on Windows you have to provide the `BOOST_ROOT` path.
-**Replace the path in the commands below to match your setup or set `BOOST_ROOT` as an environment variable!**
-
 You can get a list of available configuration presets using the following command:
 
 ```batch
@@ -189,7 +171,6 @@ The results will be structured the following way: windows-<build-tool>-<build-ty
 After you decided for a preset you can configure with the following command:
 
 ```batch
-set BOOST_ROOT=C:\local\boost_1_70_0
 cmake --preset <preset-name>
 ```
 
@@ -203,7 +184,6 @@ The results will be structured the following way: windows-<build-tool>-<build-ty
 After you decided for a preset you can build with the following command:
 
 ```batch
-set BOOST_ROOT=C:\local\boost_1_70_0
 cmake --build --preset <preset-name>
 ```
 

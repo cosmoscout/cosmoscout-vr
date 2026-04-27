@@ -70,29 +70,29 @@ int hulstMode(std::vector<std::string> const& arguments) {
       "<name>_absorption.csv, respectively (default: \"" +
           cOutput + "\").");
   args.addArgument({"--junge"}, &cJunge,
-      fmt::format("The Junge exponent for the scattering approximation (default: {}).", cJunge));
+      std::format("The Junge exponent for the scattering approximation (default: {}).", cJunge));
   args.addArgument({"--turbidity"}, &cTurbidity,
-      fmt::format(
+      std::format(
           "The Junge exponent for the scattering approximation (default: {}).", cTurbidity));
   args.addArgument({"--kappa"}, &cKappa,
-      fmt::format("The Kappa factor for the scattering approximation. This can be a single value "
+      std::format("The Kappa factor for the scattering approximation. This can be a single value "
                   "or a comma-separated list of values per wavelength (default: {}).",
           cKappa));
   args.addArgument({"-r", "--radius"}, &cRadius,
-      fmt::format("The particle radius for the anomalous diffraction approximation (default: {}).",
+      std::format("The particle radius for the anomalous diffraction approximation (default: {}).",
           cRadius));
   args.addArgument({"-n", "--ior-real"}, &cIoRreal,
-      fmt::format("The real part of the particle's IoR for the anomalous diffraction "
+      std::format("The real part of the particle's IoR for the anomalous diffraction "
                   "approximation. This can be a single value or a comma-separated list of values "
                   "per wavelength  (default: {}).",
           cIoRreal));
   args.addArgument({"-k", "--ior-imag"}, &cIoRImag,
-      fmt::format("The imaginary part of the particle's IoR for the anomalous diffraction "
+      std::format("The imaginary part of the particle's IoR for the anomalous diffraction "
                   "approximation. This can be a single value or a comma-separated list of values "
                   "per wavelength  (default: {}).",
           cIoRImag));
   args.addArgument({"--number-density"}, &cNumberDensity,
-      fmt::format("The number of particle per unit volume to compute the scattering coefficients "
+      std::format("The number of particle per unit volume to compute the scattering coefficients "
                   "(default: {}).",
           cNumberDensity));
   common::addLambdaFlags(args, &cLambdas, &cMinLambda, &cMaxLambda, &cLambdaSamples);
@@ -164,8 +164,8 @@ int hulstMode(std::vector<std::string> const& arguments) {
     double beta_sca = hulstScattering(lambda, cTurbidity, kappa, cJunge);
     double beta_abs = beta_ext - beta_sca;
 
-    scatteringOutput << fmt::format("{},{}", lambda, beta_sca) << std::endl;
-    absorptionOutput << fmt::format("{},{}", lambda, beta_abs) << std::endl;
+    scatteringOutput << std::format("{},{}", lambda, beta_sca) << std::endl;
+    absorptionOutput << std::format("{},{}", lambda, beta_abs) << std::endl;
   }
 
   return 0;

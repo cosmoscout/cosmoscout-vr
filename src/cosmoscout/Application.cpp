@@ -595,7 +595,7 @@ void Application::FrameUpdate() {
 
       if (!std::isnan(polar.x) && !std::isnan(polar.y) && !std::isnan(heightDiff)) {
         mGuiManager->getGui()->executeJavascript(
-            fmt::format("CosmoScout.state.observerLngLatHeight = [{}, {}, {}]",
+            std::format("CosmoScout.state.observerLngLatHeight = [{}, {}, {}]",
                 cs::utils::convert::toDegrees(polar.x), cs::utils::convert::toDegrees(polar.y),
                 heightDiff));
       }
@@ -828,7 +828,7 @@ void Application::connectSlots() {
 
           if (!std::isnan(lngLat.x) && !std::isnan(lngLat.y) && !std::isnan(polar.z)) {
             mGuiManager->getGui()->executeJavascript(
-                fmt::format("CosmoScout.state.pointerPosition = [{}, {}, {}];", lngLat.x, lngLat.y,
+                std::format("CosmoScout.state.pointerPosition = [{}, {}, {}];", lngLat.x, lngLat.y,
                     polar.z / mSettings->mGraphics.pHeightScale.get()));
             return;
           }
@@ -839,13 +839,13 @@ void Application::connectSlots() {
   // Update the time shown in the user interface when the simulation time changes.
   mTimeControl->pSimulationTime.connectAndTouch([this](double val) {
     mGuiManager->getGui()->executeJavascript(
-        fmt::format("CosmoScout.state.simulationTime = new Date('{}');",
+        std::format("CosmoScout.state.simulationTime = new Date('{}');",
             cs::utils::convert::time::toString(val)));
   });
 
   // Update the simulation time speed shown in the user interface.
   mSettings->pTimeSpeed.connectAndTouch([this](float val) {
-    mGuiManager->getGui()->executeJavascript(fmt::format("CosmoScout.state.timeSpeed = {};", val));
+    mGuiManager->getGui()->executeJavascript(std::format("CosmoScout.state.timeSpeed = {};", val));
   });
 
   // Show notification when the center name of the celestial observer changes.
@@ -860,34 +860,34 @@ void Application::connectSlots() {
         }
 
         mGuiManager->getGui()->executeJavascript(
-            fmt::format("CosmoScout.state.activePlanetCenter = '{}';", center));
+            std::format("CosmoScout.state.activePlanetCenter = '{}';", center));
 
-        mGuiManager->getGui()->executeJavascript(fmt::format(
+        mGuiManager->getGui()->executeJavascript(std::format(
             "CosmoScout.state.activePlanetRadius = [{}, {}, {}];", radii[0], radii[1], radii[2]));
       });
 
   // Show notification when the frame name of the celestial observer changes.
   mSettings->mObserver.pFrame.connectAndTouch([this](std::string const& frame) {
     mGuiManager->getGui()->executeJavascript(
-        fmt::format("CosmoScout.state.activePlanetFrame = '{}';", frame));
+        std::format("CosmoScout.state.activePlanetFrame = '{}';", frame));
   });
 
   // Set the observer position state.
   mSettings->mObserver.pPosition.connectAndTouch([this](glm::dvec3 const& p) {
     mGuiManager->getGui()->executeJavascript(
-        fmt::format("CosmoScout.state.observerPosition = [{}, {}, {}];", p.x, p.y, p.z));
+        std::format("CosmoScout.state.observerPosition = [{}, {}, {}];", p.x, p.y, p.z));
   });
 
   // Set the observer rotation state.
   mSettings->mObserver.pRotation.connectAndTouch([this](glm::dquat const& r) {
     mGuiManager->getGui()->executeJavascript(
-        fmt::format("CosmoScout.state.observerRotation = [{}, {}, {}, {}];", r.x, r.y, r.z, r.w));
+        std::format("CosmoScout.state.observerRotation = [{}, {}, {}, {}];", r.x, r.y, r.z, r.w));
   });
 
   // Show the current speed of the celestial observer in the user interface.
   mSolarSystem->pCurrentObserverSpeed.connect([this](float speed) {
     mGuiManager->getGui()->executeJavascript(
-        fmt::format("CosmoScout.state.observerSpeed = {};", speed));
+        std::format("CosmoScout.state.observerSpeed = {};", speed));
   });
 
   // Show log messages in the user interface.

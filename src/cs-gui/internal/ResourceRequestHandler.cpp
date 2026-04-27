@@ -30,10 +30,9 @@ CefRefPtr<CefResourceHandler> ResourceRequestHandler::GetResourceHandler(
   }
 
   // Here we skip anything marked with { ... } at the beginning of a file URL. This is explained in
-  // the documentation of WebView::setZoomLevel in great detail. The curly braces are %7B and %7D in
-  // encoded URLs.
-  if (url.find("file://%7B") == 0) {
-    pathStartIndex = url.find("%7D") + 3;
+  // the documentation of WebView::setZoomLevel in great detail.
+  if (url.find("file://{") == 0) {
+    pathStartIndex = url.find('}') + 1;
   }
 
   if (pathStartIndex > 0) {

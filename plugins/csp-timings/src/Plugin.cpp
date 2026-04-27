@@ -55,8 +55,8 @@ void Plugin::init() {
   // documentation of cs::gui::WebView::setZoomLevel in great detail. This also means that all other
   // WebViews with an URL starting with "file://{mainUIZoom}../" will be automatically affected by
   // the pMainUIScale factor.
-  mGuiItem = std::make_unique<cs::gui::GuiItem>(
-      "file://{mainUIZoom}../share/resources/gui/timings.html", false);
+  mGuiItem =
+      std::make_unique<cs::gui::GuiItem>("file://{mainUIZoom}../share/resources/gui/timings.html");
 
   // Configure the positioning and attributes of the statistics GUI item.
   mGuiItem->setSizeX(500);
@@ -241,16 +241,14 @@ void Plugin::update() {
   if (!mEnableRecording && !mRecordedGPURanges.empty()) {
 
     // We use the current date as a directory name.
-    auto timeString =
-        cs::utils::convert::time::toString(boost::posix_time::microsec_clock::local_time());
+    auto timeString = cs::utils::convert::time::toString(std::chrono::utc_clock::now());
     cs::utils::replaceString(timeString, ":", "-");
     cs::utils::replaceString(timeString, ".", "-");
     cs::utils::replaceString(timeString, "T", "-");
     cs::utils::replaceString(timeString, "Z", "");
 
     std::string directory = "csp-timings/" + timeString;
-    cs::utils::filesystem::createDirectoryRecursively(
-        boost::filesystem::system_complete(directory));
+    cs::utils::filesystem::createDirectoryRecursively(std::filesystem::absolute(directory));
 
     // This stores a CSV file for each nesting level in the directory created above. The prefix will
     // be prepended to the CSV file name.

@@ -10,7 +10,6 @@
 
 #include "cs_core_export.hpp"
 
-#include "../cs-scene/IntersectableObject.hpp"
 #include "../cs-utils/Property.hpp"
 #include "Settings.hpp"
 
@@ -19,11 +18,8 @@
 #include <VistaKernel/InteractionManager/VistaIntentionSelect.h>
 #include <VistaKernel/InteractionManager/VistaKeyboardSystemControl.h>
 
-#include <glm/glm.hpp>
 #include <memory>
 #include <unordered_set>
-
-#include <boost/date_time/posix_time/posix_time.hpp>
 
 class IVistaNode;
 class VistaNodeAdapter;
@@ -170,7 +166,7 @@ class CS_CORE_EXPORT InputManager : public VistaKeyboardSystemControl::IVistaDir
   VistaIntentionSelect                         mSelection;
   std::unordered_set<VistaNodeAdapter*>        mAdapters;
   std::unordered_set<gui::ScreenSpaceGuiArea*> mScreenSpaceGuis;
-  boost::posix_time::ptime                     mClickTime;
+  std::chrono::steady_clock::time_point        mClickTime;
 
   VistaOpenGLNode* mActiveWorldSpaceGuiNode{};
 

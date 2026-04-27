@@ -34,7 +34,6 @@
 #include <VistaOGLExt/VistaTexture.h>
 
 // Standard includes
-#include <boost/filesystem.hpp>
 #include <functional>
 #include <glm/gtc/type_ptr.hpp>
 
@@ -399,8 +398,8 @@ bool TextureOverlayRenderer::Do() {
 
   if (mActiveWMSLayer && !mActiveWMSLayer->getSettings().mTimeIntervals.empty()) {
     // Get the current time. Pre-fetch times are related to this.
-    boost::posix_time::ptime time =
-        cs::utils::convert::time::toPosix(mTimeControl->pSimulationTime.get());
+    std::chrono::utc_clock::time_point time =
+        cs::utils::convert::time::toUTC(mTimeControl->pSimulationTime.get());
 
     // Select WMS textures to be downloaded. If no pre-fetch is set, only sellect the texture for
     // the current timestep.
@@ -408,9 +407,10 @@ bool TextureOverlayRenderer::Do() {
          preFetch <= mPluginSettings->mPrefetchCount.get(); preFetch++) {
 
       // Get the start time of the WMS sample.
-      boost::posix_time::ptime sampleStartTime =
-          utils::addDurationToTime(time, mCurrentInterval.mSampleDuration, preFetch);
-      sampleStartTime -= boost::posix_time::microseconds(time.time_of_day().fractional_seconds());
+      std::chrono::utc_clock::time_point sampleStartTime =
+          time + (mCurrentInterval.mSampleDuration * preFetch);
+
+      sampleStartTime = std::chrono::floor<std::chrono::milliseconds>(sampleStartTime);
       bool inInterval = utils::timeInIntervals(
           sampleStartTime, mActiveWMSLayer->getSettings().mTimeIntervals, mCurrentInterval);
 
@@ -419,7 +419,7 @@ bool TextureOverlayRenderer::Do() {
 
       auto requestedTexture = mTexturesBuffer.find(timeString);
       auto loadedTexture    = mTextures.find(timeString);
-      auto wrongTexture     = std::find(mWrongTextures.begin(), mWrongTextures.end(), timeString);
+      auto wrongTexture     = std::ranges::find(mWrongTextures, timeString);
 
       // Only load textures that aren't stored yet.
       if (requestedTexture == mTexturesBuffer.end() && loadedTexture == mTextures.end() &&
@@ -431,10 +431,10 @@ bool TextureOverlayRenderer::Do() {
         request.mTime    = timeString;
         request.mBounds  = getBounds();
 
-        mTexturesBuffer.insert(std::pair<std::string, std::future<std::optional<WebMapTexture>>>(
+        mTexturesBuffer.emplace(
             timeString, mTextureLoader.loadTextureAsync(*mActiveWMS, *mActiveWMSLayer, request,
                             mPluginSettings->mMapCache.get(),
-                            request.mBounds == mActiveWMSLayer->getSettings().mBounds)));
+                            request.mBounds == mActiveWMSLayer->getSettings().mBounds));
       }
     }
 
@@ -445,8 +445,7 @@ bool TextureOverlayRenderer::Do() {
         std::optional<WebMapTexture> texture = texIt->second.get();
 
         if (texture.has_value()) {
-          mTextures.insert(
-              std::pair<std::string, WebMapTexture>(texIt->first, std::move(texture.value())));
+          mTextures.emplace(texIt->first, std::move(texture.value()));
         } else {
           mWrongTextures.emplace_back(texIt->first);
         }
@@ -458,9 +457,11 @@ bool TextureOverlayRenderer::Do() {
     }
 
     // Get the current time.
-    time = cs::utils::convert::time::toPosix(mTimeControl->pSimulationTime.get());
-    boost::posix_time::ptime sampleStartTime =
-        time - boost::posix_time::microseconds(time.time_of_day().fractional_seconds());
+    time = cs::utils::convert::time::toUTC(mTimeControl->pSimulationTime.get());
+
+    std::chrono::utc_clock::time_point sampleStartTime{
+        std::chrono::floor<std::chrono::milliseconds>(time)};
+
     bool inInterval = utils::timeInIntervals(
         sampleStartTime, mActiveWMSLayer->getSettings().mTimeIntervals, mCurrentInterval);
 
@@ -486,13 +487,13 @@ bool TextureOverlayRenderer::Do() {
     }
 
     if (!mWMSTextureUsed || !mPluginSettings->mEnableInterpolation.get() ||
-        !mCurrentInterval.mSampleDuration.isDuration()) {
+        mCurrentInterval.mSampleDuration.count() == 0) {
       mSecondWMSTextureUsed = false;
       mCurrentSecondTexture = "";
     } // Create fading between Wms textures when interpolation is enabled.
     else {
-      boost::posix_time::ptime sampleAfter =
-          utils::addDurationToTime(sampleStartTime, mCurrentInterval.mSampleDuration);
+      std::chrono::utc_clock::time_point sampleAfter =
+          sampleStartTime + mCurrentInterval.mSampleDuration;
       bool isAfterInInterval = utils::timeInIntervals(
           sampleAfter, mActiveWMSLayer->getSettings().mTimeIntervals, mCurrentInterval);
 
@@ -509,8 +510,8 @@ bool TextureOverlayRenderer::Do() {
         }
         // Interpolate fade value between the 2 WMS textures.
         mFade = static_cast<float>(
-            static_cast<double>((sampleAfter - time).total_seconds()) /
-            static_cast<double>((sampleAfter - sampleStartTime).total_seconds()));
+            std::chrono::duration<double>(sampleAfter - time).count() /
+            std::chrono::duration<double>(sampleAfter - sampleStartTime).count());
       }
     }
   }

@@ -11,9 +11,9 @@
 #include "cs_graphics_export.hpp"
 
 #include <VistaOGLExt/VistaTexture.h>
-#include <boost/filesystem.hpp>
 #include <glm/glm.hpp>
 
+#include <filesystem>
 #include <memory>
 #include <string>
 #include <vector>
@@ -26,7 +26,7 @@ class CS_GRAPHICS_EXPORT ColorMap {
   /// Creates a ColorMap from a json string.
   explicit ColorMap(std::string const& sJsonString);
   /// Creates a ColorMap from the json file at sJsonPath.
-  explicit ColorMap(boost::filesystem::path const& sJsonPath);
+  explicit ColorMap(std::filesystem::path const& sJsonPath);
 
   /// Binds the color map for use in rendering.
   void bind(unsigned unit);

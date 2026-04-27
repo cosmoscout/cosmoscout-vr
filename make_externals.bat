@@ -12,16 +12,16 @@ rem Make sure to run "git submodule update --init" before executing this script!
 rem Default build mode is release, if "set COSMOSCOUT_DEBUG_BUILD=true" is executed before, all    #
 rem dependencies will be built in debug mode.                                                      #
 rem Usage:                                                                                         #
-rem    make_externals.bat [additional CMake flags, defaults to -G "Visual Studio 15 Win64"]        #
+rem    make_externals.bat [additional CMake flags, defaults to -G "Visual Studio 16 2019" -A x64]  #
 rem Examples:                                                                                      #
 rem    make_externals.bat                                                                          #
-rem    make_externals.bat -G "Visual Studio 15 Win64"                                              #
 rem    make_externals.bat -G "Visual Studio 16 2019" -A x64                                        #
+rem    make_externals.bat -G "Visual Studio 17 2022" -A x64                                        #
 rem    make_externals.bat -GNinja -DCMAKE_C_COMPILER=cl.exe -DCMAKE_CXX_COMPILER=cl.exe            #
 rem ---------------------------------------------------------------------------------------------- #
 
 rem The CMake generator and other flags can be passed as parameters.
-set CMAKE_FLAGS=-G "Visual Studio 15 Win64"
+set CMAKE_FLAGS=-G "Visual Studio 16 2019" -A x64
 IF NOT "%~1"=="" (
   SET CMAKE_FLAGS=%*
 )
@@ -128,20 +128,6 @@ cmake %CMAKE_FLAGS% -DCMAKE_BUILD_TYPE=%BUILD_TYPE% -DCMAKE_INSTALL_PREFIX="%INS
       "%EXTERNALS_DIR%/SDL_ttf" || goto :error
 cmake --build . --config %BUILD_TYPE% --target install --parallel %NUMBER_OF_PROCESSORS% || goto :error
 
-rem c-ares -----------------------------------------------------------------------------------------
-:c-ares
-
-echo.
-echo Building and installing c-ares ...
-echo.
-
-cmake -E make_directory "%BUILD_DIR%/c-ares" && cd "%BUILD_DIR%/c-ares"
-cmake %CMAKE_FLAGS% -DCMAKE_BUILD_TYPE=%BUILD_TYPE% -DCARES_BUILD_TOOLS=OFF^
-      -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%"^
-      "%EXTERNALS_DIR%/c-ares" || goto :error
-
-cmake --build . --config %BUILD_TYPE% --target install --parallel %NUMBER_OF_PROCESSORS% || goto :error
-
 rem curl -------------------------------------------------------------------------------------------
 :curl
 
@@ -152,7 +138,7 @@ echo.
 cmake -E make_directory "%BUILD_DIR%/curl" && cd "%BUILD_DIR%/curl"
 cmake %CMAKE_FLAGS% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%"^
       -DCMAKE_BUILD_TYPE=%BUILD_TYPE%^
-      -DBUILD_TESTING=OFF -DBUILD_CURL_EXE=OFF -DENABLE_ARES=ON^
+      -DBUILD_TESTING=OFF -DBUILD_CURL_EXE=OFF -DENABLE_ARES=OFF^
       -DCARES_INCLUDE_DIR="%INSTALL_DIR%/include"^
       -DCARES_LIBRARY="%INSTALL_DIR%/lib/cares.lib"^
       -DCURL_USE_SCHANNEL=On -DCMAKE_INSTALL_LIBDIR=lib^
@@ -207,7 +193,8 @@ echo.
 
 cmake -E make_directory "%BUILD_DIR%/spdlog" && cd "%BUILD_DIR%/spdlog"
 cmake %CMAKE_FLAGS% -DCMAKE_BUILD_TYPE=%BUILD_TYPE% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%"^
-      -DSPDLOG_BUILD_TESTS=Off -DSPDLOG_ENABLE_PCH=On "%EXTERNALS_DIR%/spdlog" || goto :error
+      -DSPDLOG_BUILD_TESTS=Off -D SPDLOG_BUILD_EXAMPLE=Off -DSPDLOG_ENABLE_PCH=On^
+      -DSPDLOG_USE_STD_FORMAT=On "%EXTERNALS_DIR%/spdlog" || goto :error
 
 cmake --build . --config %BUILD_TYPE% --target install --parallel %NUMBER_OF_PROCESSORS% || goto :error
 
@@ -378,27 +365,28 @@ echo.
 echo Downloading, building and installing cef (this may take some time) ...
 echo.
 
-set CEF_DIR=cef_binary_88.1.6+g4fe33a1+chromium-88.0.4324.96_windows64_minimal
+set CEF_DIR=cef_binary_135.0.20+ge7de5c3+chromium-135.0.7049.85_windows64_minimal
 
 cmake -E make_directory "%BUILD_DIR%/cef/extracted" && cd "%BUILD_DIR%/cef"
 
 IF NOT EXIST cef.tar.bz2 (
-  curl.exe https://cef-builds.spotifycdn.com/cef_binary_88.1.6%%2Bg4fe33a1%%2Bchromium-88.0.4324.96_windows64_minimal.tar.bz2 --output cef.tar.bz2
+  curl.exe https://cef-builds.spotifycdn.com/cef_binary_135.0.20+ge7de5c3+chromium-135.0.7049.85_windows64_minimal.tar.bz2 --output cef.tar.bz2
+
+  cd "%BUILD_DIR%/cef/extracted"
+
+  cmake -E tar xfj ../cef.tar.bz2
+
+  rem We don't want the example applications.
+  cmake -E remove_directory %CEF_DIR%/tests
 ) else (
   echo File 'cef.tar.bz2' already exists, no download required.
 )
 
-cd "%BUILD_DIR%/cef/extracted"
-cmake -E tar xfj ../cef.tar.bz2
-
-rem We don't want the example applications.
-cmake -E remove_directory %CEF_DIR%/tests
-
-cd ..
+cd "%BUILD_DIR%/cef/
 
 cmake %CMAKE_FLAGS% -DCMAKE_BUILD_TYPE=%BUILD_TYPE% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%"^
       -DCMAKE_UNITY_BUILD=%UNITY_BUILD% -DCEF_RUNTIME_LIBRARY_FLAG=/MD -DCEF_DEBUG_INFO_FLAG=""^
-      "%BUILD_DIR%/cef/extracted/%CEF_DIR%" || goto :error
+      -DCEF_COMPILER_DEFINES_DEBUG="_HAS_ITERATOR_DEBUGGING=1" "%BUILD_DIR%/cef/extracted/%CEF_DIR%" || goto :error
 
 cmake --build . --config %BUILD_TYPE% --parallel %NUMBER_OF_PROCESSORS% || goto :error
 

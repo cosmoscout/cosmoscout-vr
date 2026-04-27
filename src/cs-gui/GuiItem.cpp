@@ -15,8 +15,8 @@ namespace cs::gui {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-GuiItem::GuiItem(std::string const& url, bool allowLocalFileAccess)
-    : WebView(url, 100, 100, allowLocalFileAccess)
+GuiItem::GuiItem(std::string const& url)
+    : WebView(url, 100, 100)
     , mAreaWidth(1)
     , mAreaHeight(1)
     , mSizeX(0)
