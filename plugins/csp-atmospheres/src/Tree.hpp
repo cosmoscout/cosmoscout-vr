@@ -32,7 +32,7 @@
 namespace csp::atmospheres {
     const float DEFAULT_DENSITY_CUTOFF = 1.0e-2f;
     const unsigned int ROOT_NODE_INDEX = 0;
-    const unsigned int BASE_DENSITY_SAMPLES = 5000; // >= 25,000 long loading time but less gaps in the octree
+    const unsigned int BASE_DENSITY_SAMPLES = 10000; // >= 25,000 long loading time but less gaps in the octree
 
     const std::array BOX_VERTS = {
         /*0*/ 0.001F, 0.001F, 0.001F, /*1*/ 0.001F, 0.001F, 0.999F, /*2*/ 0.001F, 0.999F, 0.001F, /*3*/ 0.001F, 0.999F, 0.999F,
@@ -241,6 +241,19 @@ namespace csp::atmospheres {
         return result;
     }
 
+    static glm::vec3 GetSphericalCoordsFull(glm::vec3 pos) {
+        float z = length(pos);
+        float x = atan2(pos.x, pos.z);
+        float y = asin(pos.y / z);
+        return glm::vec3(x, y, z);
+    }
+
+    static glm::vec3 GetCartesianCoords(glm::vec3 pos) {
+        float radius = pos.z;
+        float x = sin(pos.x);
+        return glm::vec3(radius * x * cos(pos.y), radius * x * sin(pos.y), radius * cos(x));
+    }
+
     static float Remap(float t, float oldMin, float oldMax, float newMin, float newMax) {
         float tScaled = (t - oldMin) / (oldMax - oldMin);
         return std::clamp(newMin + tScaled * (newMax - newMin), std::min(newMin, newMax), std::max(newMin, newMax));
@@ -253,6 +266,7 @@ namespace csp::atmospheres {
     // Constants from csp-atmosphere.frag (must be updated when corresponding constants in shader file are changed!)
     const float CUMULONIMBUS_START_HEIGHT = 1500;
     const float CUMULONIMBUS_END_HEIGHT = 5000;
+    const float CUMULONIMBUS_THICKNESS = CUMULONIMBUS_END_HEIGHT - CUMULONIMBUS_START_HEIGHT;
     const float CLOUD_BASE_FRACTION = 0.;
 
     const float CLOUD_TYPE_NOISE_WORLEY_SCALE = 5.3f;

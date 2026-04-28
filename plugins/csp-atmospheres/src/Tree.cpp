@@ -41,7 +41,7 @@ namespace csp::atmospheres {
 
     unsigned int Tree::Subdivide(unsigned int index, unsigned int depth) {
         if (debugMode && index > 0 && index % (maxNodeCount / 100) == 0)
-            vstr::debug() << "Generated " << index << " nodes so far: " << ((float)index / maxNodeCount) * 100.0f << "% of max nodes." << std::endl;
+            vstr::debug() << "Subdivided " << ((float)index / maxNodeCount) * 100.0f << "% of max nodes."  << std::endl;
         // vstr::debug() << "Depth " << depth << "(i = " << index << "): aabb = "
         //     << glm::to_string(nodes[index].aabbMin * 0.00001f) << ", "
         //     << glm::to_string(nodes[index].aabbMax * 0.00001f) << std::endl;
@@ -112,8 +112,8 @@ namespace csp::atmospheres {
         // x = centre of node
 
         glm::vec3 centre = (node.aabbMax - node.aabbMin) * 0.5f;
-        if (glm::length(centre) > 1e-4)
-            centre = node.aabbMin + centre;
+        if (glm::length(centre) > 1e-4) // If node is not root (i.e., aabbMin == -aabbMax, thus linearly dependent and centre == zero vector)...
+            centre = node.aabbMin + centre; // ...then convert from direction to position
         glm::vec3 newMinBounds[8], newMaxBounds[8];
         // Bottom
         newMinBounds[0] = node.aabbMin;
@@ -147,8 +147,6 @@ namespace csp::atmospheres {
             childNode.aabbMax = newMaxBounds[i];
 
             children += Subdivide(currNodeIndex, depth);
-            // if (depth == maxDepth)
-            //     vstr::debug() << "Node " << currNodeIndex << " bounds = " << glm::to_string(childNode.aabbMin) << ", " << glm::to_string(childNode.aabbMax) << std::endl;
         }
         node.childrenCount = children;
         return children;
@@ -160,20 +158,37 @@ namespace csp::atmospheres {
     }
 
     float Tree::GetTotalDensity(unsigned int index, unsigned int totalSamples = BASE_DENSITY_SAMPLES) {
+        // IDEA: dont sample at random positions, but find where the cloud layer is inside this bounding box
+        // and sample there. Much more precise and possible due to aabbMin, aabbMax being absolute positions.
+
         auto &node = nodes[index];
 
-        // Sample at random positions inside the bounding box
+        // float distAabbMin = glm::length(node.aabbMin);
+        // float distAabbMax = glm::length(node.aabbMax);
+        // float minDist = std::min(distAabbMin, distAabbMax);
+        // float maxDist = std::max(distAabbMin, distAabbMax);
+        // float distDiff = maxDist - minDist;
+        
+        // float minCloudLayer = properties.planetRadius + CUMULONIMBUS_START_HEIGHT;
+        // float maxCloudLayer = properties.planetRadius + CUMULONIMBUS_END_HEIGHT;
+
+        // bool aabbIntersectClouds = (minDist <= minCloudLayer && maxDist >= minCloudLayer) || (minDist > minCloudLayer && minDist < maxCloudLayer);
+
+        // Sample random positions inside the bounding box
         float totalDensity = 0.0f;
+        glm::vec3 extends;
+        if (index == 0) // Fix root node issue: rootNode.aabbMin == -rootNode.aabbMax => rootNode centre == zero vector (linearly dependent)
+            extends = node.aabbMax * 2.0f;
+        else
+            extends = node.GetExtends();
+        
         for (size_t i = 0; i < totalSamples; i++) {
             glm::vec3 randomUnitPos = glm::vec3(rand(), rand(), rand()) * (1.0f / RAND_MAX);
-            glm::vec3 randomSamplePos = node.aabbMin + node.GetExtends() * randomUnitPos;
+            glm::vec3 randomSamplePos = node.aabbMin + extends * randomUnitPos;
             totalDensity += GetDensity(randomSamplePos);
         }
         return totalDensity;
     }
-
-    // MV Matrix immer relativ zum Planeten der betrachtet wird. MV-Matrix: ObserverRelativeTransform
-    // https://github.com/cosmoscout/cosmoscout-vr/blob/d26a33b6b706126abf9faae8aa6056fcde1892ba/plugins/csp-simple-bodies/src/SimpleBody.cpp#L458 
 
     const char *TREE_DEBUG_VERT_SHADER = R"(#version 400
         layout (location = 0) in vec3 inPos;
@@ -211,9 +226,12 @@ namespace csp::atmospheres {
         uniform float density;
 
         void main() {
-            float scaledDensity = density / 8;
-            float clampedDensity = clamp(scaledDensity, 0, 1);
-            color = vec4(clampedDensity, 1, 0, density > 0.0 ? 1 : 0);
+            if (density > 1e-4) {
+                float densityScale = clamp(density / 10, 0, 1);
+                color = vec4(1, densityScale, densityScale, 1);
+            } else {
+                color = vec4(0, 1, 0, 1);
+            }
             // gl_FragDepth = length(pos);
         })";
 
