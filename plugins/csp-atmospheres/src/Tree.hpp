@@ -8,7 +8,7 @@
 #ifndef CSP_TREE_BVH_HPP
 #define CSP_TREE_BVH_HPP
 
-#define TREE_DEBUG_MODE
+// #define TREE_DEBUG_MODE
 
 #include <glm/glm.hpp>
 #include <glm/gtx/string_cast.hpp>
@@ -31,6 +31,8 @@
 
 namespace csp::atmospheres {
     const float DEFAULT_DENSITY_CUTOFF = 1.0e-2f;
+    const unsigned int ROOT_NODE_INDEX = 0;
+    const unsigned int BASE_DENSITY_SAMPLES = 5000; // >= 25,000 long loading time but less gaps in the octree
 
     const std::array BOX_VERTS = {
         /*0*/ 0.001F, 0.001F, 0.001F, /*1*/ 0.001F, 0.001F, 0.999F, /*2*/ 0.001F, 0.999F, 0.001F, /*3*/ 0.001F, 0.999F, 0.999F,
@@ -93,9 +95,6 @@ namespace csp::atmospheres {
         glm::uvec3 noiseDim;
         glm::uvec2 noise2dDim, cloudDim, cloudTypeDim;
     };
-
-    const unsigned int ROOT_NODE_INDEX = 0;
-    const unsigned int BASE_DENSITY_SAMPLES = 50000;
 
     class Tree {
     private:

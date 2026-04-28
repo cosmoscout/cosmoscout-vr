@@ -784,7 +784,7 @@ void Atmosphere::BuildOctree() {
   // vstr::debug() << "Planet radius = " << mPlanetRadius << ", aabb = " << glm::to_string(minBounds) << " --> " << glm::to_string(maxBounds) << std::endl;
   glm::vec3 cloudLayerSize = glm::vec3(properties.cloudLayerHeight);
 
-  mCloudTree = std::make_unique<Tree>(minBounds - cloudLayerSize, maxBounds + cloudLayerSize, 4, std::move(properties), true);
+  mCloudTree = std::make_unique<Tree>(minBounds - cloudLayerSize, maxBounds + cloudLayerSize, 8, std::move(properties), true);
   mCloudTree->Build();
   mCloudTree->SetupDebug();
   vstr::debug() << "3d_clouds: Built octree with size " << mCloudTree->GetUsedNodeCount() << "." << std::endl;

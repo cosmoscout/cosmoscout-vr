@@ -50,6 +50,8 @@ const float INFINITY = 1 / 0.;
 
 // Octree node
 // Total struct size must be a multiple of sizeof(vec4) = 16 for std140 alignment.
+// Order seems to be important: as vec3 is padded to vec4, inserting a 4 byte field after the vec3 prevents
+// unneccessary padding.
 struct TreeNode {
   vec3 aabbMin;           // 3 * 4 bytes
   uint childrenCount;      // 1 * 4 bytes
@@ -58,8 +60,10 @@ struct TreeNode {
 }; // = 32 bytes
 
 // Octree generated on the CPU, stored in a sequential array
-const uint TREE_MAX_NODES = 1081; // theoretically UBOs only need to handle 16384 bytes max (1081 is used node count for depth = 4)
-layout(std140, binding = 1) uniform cloudTree {
+// Theoretically UBOs only need to handle 16384 bytes max (1081 is used node count for depth = 4)
+// buffer keyword: SBBO
+const uint TREE_MAX_NODES = 299593;
+layout(std140, binding = 1) readonly buffer cloudTree {
   TreeNode nodes[TREE_MAX_NODES];
 };
 

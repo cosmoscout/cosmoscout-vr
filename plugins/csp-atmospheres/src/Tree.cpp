@@ -33,16 +33,20 @@ namespace csp::atmospheres {
         vao = std::make_unique<VistaVertexArrayObject>();
     }
 
-    void Tree::Build() {        
+    void Tree::Build() {
         unsigned int depth = 0;
         usedNodeIndex = 0;
         Subdivide(ROOT_NODE_INDEX, depth);
     }
 
     unsigned int Tree::Subdivide(unsigned int index, unsigned int depth) {
+        if (debugMode && index > 0 && index % (maxNodeCount / 100) == 0)
+            vstr::debug() << "Generated " << index << " nodes so far: " << ((float)index / maxNodeCount) * 100.0f << "% of max nodes." << std::endl;
         // vstr::debug() << "Depth " << depth << "(i = " << index << "): aabb = "
         //     << glm::to_string(nodes[index].aabbMin * 0.00001f) << ", "
         //     << glm::to_string(nodes[index].aabbMax * 0.00001f) << std::endl;
+
+#ifdef TREE_DEBUG_MODE
         if (debugMode) {
             for (size_t i = 0; i < depth; i++)
             {
@@ -50,32 +54,42 @@ namespace csp::atmospheres {
             }
             vstr::debug() << "[Depth = " << depth << "] index " << index << ": ";
         }
+#endif
 
         auto &node = nodes[index];
 
         float totalDensity = GetTotalDensity(index, BASE_DENSITY_SAMPLES * (depth + 1));
         if (totalDensity <= 1e-3) {
+#ifdef TREE_DEBUG_MODE
             if (debugMode)
                 vstr::debug() << "zero density. STOP" << std::endl;
+#endif
 
-                node.density = 0;
+            node.density = 0;
             return 0;
         }
         else {
+#ifdef TREE_DEBUG_MODE
             if (debugMode)
                 vstr::debug() << "density = " << totalDensity << ". ";
+#endif
 
                 node.density = totalDensity;
         }
 
         if (depth >= maxDepth) { // If level of depth has been reached, stop subdivision process.
+#ifdef TREE_DEBUG_MODE
             if (debugMode)
                 vstr::debug() << "max depth reached. STOP" << std::endl;
+#endif
 
             return 0;
         }
+        
+#ifdef TREE_DEBUG_MODE
         if (debugMode)
             vstr::debug() << std::endl;
+#endif
 
         depth += 1;
         // Nodes are stored sequentially, so children of current node are the next 8 nodes in the nodes-array.
@@ -199,7 +213,7 @@ namespace csp::atmospheres {
         void main() {
             float scaledDensity = density / 8;
             float clampedDensity = clamp(scaledDensity, 0, 1);
-            color = vec4(clampedDensity, 0, 1, density > 0.0 ? 1 : 0);
+            color = vec4(clampedDensity, 1, 0, density > 0.0 ? 1 : 0);
             // gl_FragDepth = length(pos);
         })";
 
