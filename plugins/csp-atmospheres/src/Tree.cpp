@@ -36,15 +36,12 @@ namespace csp::atmospheres {
     void Tree::Build() {
         unsigned int depth = 0;
         usedNodeIndex = 0;
-        Subdivide(ROOT_NODE_INDEX, depth);
+        Subdivide(ROOT_NODE_INDEX, depth, false);
     }
 
-    unsigned int Tree::Subdivide(unsigned int index, unsigned int depth) {
+    unsigned int Tree::Subdivide(unsigned int index, unsigned int depth, bool check) {
         if (debugMode && index > 0 && index % (maxNodeCount / 100) == 0)
             vstr::debug() << "Subdivided " << ((float)index / maxNodeCount) * 100.0f << "% of max nodes."  << std::endl;
-        // vstr::debug() << "Depth " << depth << "(i = " << index << "): aabb = "
-        //     << glm::to_string(nodes[index].aabbMin * 0.00001f) << ", "
-        //     << glm::to_string(nodes[index].aabbMax * 0.00001f) << std::endl;
 
 #ifdef TREE_DEBUG_MODE
         if (debugMode) {
@@ -58,32 +55,31 @@ namespace csp::atmospheres {
 
         auto &node = nodes[index];
 
-        float totalDensity = GetTotalDensity(index, BASE_DENSITY_SAMPLES * (depth + 1));
-        if (totalDensity <= 1e-3) {
+        float totalDensity = 0.0f;
+        if (check) { // TEMP: force subdivision via "&& depth > static_cast<unsigned int>(maxDepth * 0.25f)"
+            totalDensity = GetTotalDensity(index, (unsigned int)(BASE_DENSITY_SAMPLES / pow(depth + 1, 0.5f)));
+            // TEMP: fix shallow subdivision by forcing octree to divide if depth <= maxDepth / 2
+            if (totalDensity < MIN_DENSITY_CUTOFF) {
 #ifdef TREE_DEBUG_MODE
-            if (debugMode)
-                vstr::debug() << "zero density. STOP" << std::endl;
+                if (debugMode)
+                    vstr::debug() << "zero density. STOP" << std::endl;
 #endif
-
-            node.density = 0;
-            return 0;
-        }
-        else {
+                return 0;
+            } else {
 #ifdef TREE_DEBUG_MODE
-            if (debugMode)
-                vstr::debug() << "density = " << totalDensity << ". ";
+                if (debugMode)
+                    vstr::debug() << "density = " << totalDensity << ". ";
 #endif
+            }
+            node.density = totalDensity;
 
-                node.density = totalDensity;
-        }
-
-        if (depth >= maxDepth) { // If level of depth has been reached, stop subdivision process.
+            if (depth >= maxDepth) { // If level of depth has been reached, stop subdivision process.
 #ifdef TREE_DEBUG_MODE
             if (debugMode)
                 vstr::debug() << "max depth reached. STOP" << std::endl;
 #endif
-
-            return 0;
+                return 0;
+            }
         }
         
 #ifdef TREE_DEBUG_MODE
@@ -161,6 +157,7 @@ namespace csp::atmospheres {
         // IDEA: dont sample at random positions, but find where the cloud layer is inside this bounding box
         // and sample there. Much more precise and possible due to aabbMin, aabbMax being absolute positions.
 
+        // float totalDensity = NAN;
         auto &node = nodes[index];
 
         // float distAabbMin = glm::length(node.aabbMin);
@@ -172,9 +169,19 @@ namespace csp::atmospheres {
         // float minCloudLayer = properties.planetRadius + CUMULONIMBUS_START_HEIGHT;
         // float maxCloudLayer = properties.planetRadius + CUMULONIMBUS_END_HEIGHT;
 
+        // //                                                  (I)                                                      (II)
         // bool aabbIntersectClouds = (minDist <= minCloudLayer && maxDist >= minCloudLayer) || (minDist > minCloudLayer && minDist < maxCloudLayer);
+        // if (aabbIntersectClouds) {
+
+        // }
+
+        // return totalDensity;
 
         // Sample random positions inside the bounding box
+        static std::random_device rd;  // Will be used to obtain a seed for the random number engine
+        static std::mt19937 gen(rd()); // Standard mersenne_twister_engine seeded with rd()
+        static std::uniform_real_distribution<float> distr(0.0f, 1.0f);
+
         float totalDensity = 0.0f;
         glm::vec3 extends;
         if (index == 0) // Fix root node issue: rootNode.aabbMin == -rootNode.aabbMax => rootNode centre == zero vector (linearly dependent)
@@ -183,9 +190,13 @@ namespace csp::atmospheres {
             extends = node.GetExtends();
         
         for (size_t i = 0; i < totalSamples; i++) {
-            glm::vec3 randomUnitPos = glm::vec3(rand(), rand(), rand()) * (1.0f / RAND_MAX);
+            // Generate random vector in [0, 1) x [0, 1) x [0, 1)
+            glm::vec3 randomUnitPos = glm::vec3(distr(gen), distr(gen), distr(gen));
             glm::vec3 randomSamplePos = node.aabbMin + extends * randomUnitPos;
-            totalDensity += GetDensity(randomSamplePos);
+            totalDensity = GetDensity(randomSamplePos);
+
+            if (totalDensity > MIN_DENSITY_CUTOFF)
+                break;
         }
         return totalDensity;
     }
@@ -225,12 +236,17 @@ namespace csp::atmospheres {
 
         uniform float density;
 
+        float remap(float t, float minOld, float maxOld, float minNew, float maxNew) {
+            float tRescaled = (t - minOld) / (maxOld - minOld);
+            return clamp(tRescaled * (maxNew - minNew) + minNew, min(minNew, maxNew), max(maxNew, minNew));
+        }
+
         void main() {
-            if (density > 1e-4) {
-                float densityScale = clamp(density / 10, 0, 1);
-                color = vec4(1, densityScale, densityScale, 1);
+            if (density > 1e-6) {
+                float densityScale = remap(density, 1e-6, 0.5, 1e-6, 1);
+                color = vec4(0, 1, densityScale, 1);
             } else {
-                color = vec4(0, 1, 0, 1);
+                color = vec4(1, 0.2, 0, 1);
             }
             // gl_FragDepth = length(pos);
         })";
@@ -268,13 +284,14 @@ namespace csp::atmospheres {
             vao->Bind();
 
             glUniformMatrix4fv(debugShader->GetUniformLocation("modelViewMat"), 1, GL_FALSE, glm::value_ptr(modelViewMat));
-            glUniformMatrix4fv(debugShader->GetUniformLocation("projMat"), 1, GL_FALSE, glm::value_ptr(projMat));
-            
-            
+            glUniformMatrix4fv(debugShader->GetUniformLocation("projMat"), 1, GL_FALSE, glm::value_ptr(projMat));            
             debugShader->SetUniform(debugShader->GetUniformLocation("maxBounds"), GetMaxBounds());
 
             for (size_t i = 0; i < GetUsedNodeCount(); i++) {
                 const auto &node = nodes[i];
+                if (!node.IsLeaf())
+                    continue;
+                
                 debugShader->SetUniform(debugShader->GetUniformLocation("aabbMin"), node.aabbMin[0], node.aabbMin[1], node.aabbMin[2]);
                 debugShader->SetUniform(debugShader->GetUniformLocation("aabbMax"), node.aabbMax[0], node.aabbMax[1], node.aabbMax[2]);
                 debugShader->SetUniform(debugShader->GetUniformLocation("density"), node.density);

@@ -26,13 +26,14 @@
 #include <VistaOGLExt/VistaVertexArrayObject.h>
 
 #include "utils.hpp"
+#include <random>
 
 #include <limits>
 
 namespace csp::atmospheres {
-    const float DEFAULT_DENSITY_CUTOFF = 1.0e-2f;
+    const float MIN_DENSITY_CUTOFF = 1.0e-6f;
     const unsigned int ROOT_NODE_INDEX = 0;
-    const unsigned int BASE_DENSITY_SAMPLES = 10000; // >= 25,000 long loading time but less gaps in the octree
+    const unsigned int BASE_DENSITY_SAMPLES = 100000; // >= 25,000 long loading time but less gaps in the octree
 
     const std::array BOX_VERTS = {
         /*0*/ 0.001F, 0.001F, 0.001F, /*1*/ 0.001F, 0.001F, 0.999F, /*2*/ 0.001F, 0.999F, 0.001F, /*3*/ 0.001F, 0.999F, 0.999F,
@@ -65,10 +66,6 @@ namespace csp::atmospheres {
 
         bool IsLeaf() const {
             return childrenCount == 0;
-        }
-
-        bool HitRay(glm::vec3 origin, glm::vec3 dir, float densityCutoff = DEFAULT_DENSITY_CUTOFF) {
-            throw;
         }
     };
 
@@ -112,7 +109,7 @@ namespace csp::atmospheres {
         float GetDensity(glm::vec3 pos);
         // Calculates average density throughout the node (basically the cost function for decision to subdivide).
         float GetTotalDensity(unsigned int index, unsigned int totalSamples);
-        unsigned int Subdivide(unsigned int index, unsigned int depth);
+        unsigned int Subdivide(unsigned int index, unsigned int depth, bool check = true);
         void UpdateBounds(unsigned int index, unsigned int relChildIndex);
 
     public:
@@ -448,6 +445,43 @@ namespace csp::atmospheres {
         return acc;
     }
 
+    // Returns x > y if nothing was hit
+    glm::vec2 IntersectRaySphere(const glm::vec3 &rayOrigin, const glm::vec3 &rayDir, float radius) {
+        // Good explanation: https://www.scratchapixel.com/lessons/3d-basic-rendering/minimal-ray-tracer-rendering-simple-shapes/ray-sphere-intersection.html
+        // t_a = -b (as C = -O, cause everything is centered around the observed celestial object)
+        float b   = glm::dot(rayOrigin, rayDir);
+        float c   = glm::dot(rayOrigin, rayOrigin) - radius * radius;
+
+        // det = t_b^2
+        float det = b * b - c;
+        if (det < 0.0f) {
+            return glm::vec2(1, -1);
+        }
+
+        det = sqrt(det);
+        return glm::vec2(-b - det, -b + det);
+    }
+
+    // aabbMin, aabbMax = Bounding box
+    // Radius = Sphere radius centred at the origin
+    // Longitudes = Horizontal size of bounding box inside the sphere
+    // Altitudes = Vertical size
+    bool IntersectSphereAabb(const glm::vec3 &aabbMin, const glm::vec3 &aabbMax, float radius, glm::vec2 &longitudes, glm::vec2 &altitudes) {
+        // for (int i = 0; i < 3; i++) {
+        //     float min = aabbMin[i];
+        //     float max = aabbMax[i];
+
+        //     glm::vec3 axis(0.0f);
+        //     axis[i] = 1.0f;
+        //     glm::vec2 minHit = IntersectRaySphere(aabbMin, axis, radius);
+        //     glm::vec2 maxHit = IntersectRaySphere(aabbMax, axis, radius);
+        //     bool confirmMinHit = minHit.y > minHit.x;
+        //     bool confirmMaxHit = maxHit.y > maxHit.x;
+            
+        // }
+        throw;
+    }
+
     bool IntersectAabbSlab(const glm::vec3 &rayOrigin, const glm::vec3 &rayDirNorm, const glm::vec3 &rayDirInvNorm,
         const glm::vec3 &aabbMin, const glm::vec3 &aabbMax, glm::vec2 &tRayEntryExit) {
         float tMin = 0;
@@ -470,7 +504,6 @@ namespace csp::atmospheres {
         tMin = std::max(tMin, std::min(tz1, tz2));
         tMax = std::min(tMax, std::max(tz1, tz2));
         // vstr::debug() << "z: tMin = " << tMin << ", tMax = " << tMax << std::endl;
-
 
         tRayEntryExit.x = std::min(tMin, tMax);
         tRayEntryExit.y = std::max(tMin, tMax);
