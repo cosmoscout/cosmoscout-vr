@@ -33,7 +33,7 @@
 namespace csp::atmospheres {
     const float MIN_DENSITY_CUTOFF = 1.0e-6f;
     const unsigned int ROOT_NODE_INDEX = 0;
-    const unsigned int BASE_DENSITY_SAMPLES = 100000; // >= 25,000 long loading time but less gaps in the octree
+    const unsigned int BASE_DENSITY_SAMPLES = 500; // >= 25,000 long loading time but less gaps in the octree
 
     const std::array BOX_VERTS = {
         /*0*/ 0.001F, 0.001F, 0.001F, /*1*/ 0.001F, 0.001F, 0.999F, /*2*/ 0.001F, 0.999F, 0.001F, /*3*/ 0.001F, 0.999F, 0.999F,
@@ -108,7 +108,7 @@ namespace csp::atmospheres {
         // Calculates cloud density at the given index.
         float GetDensity(glm::vec3 pos);
         // Calculates average density throughout the node (basically the cost function for decision to subdivide).
-        float GetTotalDensity(unsigned int index, unsigned int totalSamples);
+        float GetTotalDensity(unsigned int index, unsigned int depth, unsigned int totalSamples);
         unsigned int Subdivide(unsigned int index, unsigned int depth, bool check = true);
         void UpdateBounds(unsigned int index, unsigned int relChildIndex);
 
@@ -303,7 +303,7 @@ namespace csp::atmospheres {
     // low frequency noises have faded to .5 at this distance
     float LF_END_DISTANCE = 2000000.0f;
 
-    glm::vec4 GetVerticalProfile(glm::vec3 position, CloudProperties &properties) {
+    static glm::vec4 GetVerticalProfile(glm::vec3 position, CloudProperties &properties) {
         glm::vec2 lngLat = GetSphericalCoords(position);
         glm::vec2 texCoords = glm::vec2(lngLat.x / (2.0f * PI) + 0.5f, 1.0f - lngLat.y / PI + 0.5f);
         // vstr::debug() << "GetVerticalProfile()::pos_over_earth = " << (glm::length(position) - properties.planetRadius) << ", texCoords = " << glm::to_string(texCoords) << std::endl;
@@ -340,7 +340,7 @@ namespace csp::atmospheres {
         return cloudConfig;
     }
 
-    glm::vec2 GetCumuloNimbusDensity(glm::vec3 position, CloudProperties &properties) {
+    static glm::vec2 GetCumuloNimbusDensity(glm::vec3 position, CloudProperties &properties) {
         // vstr::debug() << "GetCumuloNimbusDensity()::height = " << glm::length(position) / 1000.0f << std::endl;
         glm::vec4 cloudConfig = GetVerticalProfile(position, properties);
         // vstr::debug() << "Cloud config (vert. profile) = " << glm::to_string(cloudConfig) << std::endl;
@@ -432,7 +432,7 @@ namespace csp::atmospheres {
         return glm::vec2(cloudDensity > properties.renderSettings.cloudCutoff ? totalDensity : 0, cloudDensity);
     }
 
-    glm::vec2 GetCloudDensity(glm::vec3 position, CloudProperties &properties) {
+    static glm::vec2 GetCloudDensity(glm::vec3 position, CloudProperties &properties) {
         glm::vec2 acc(0.0f);
         float height = glm::length(position) - properties.planetRadius;
         // vstr::debug() << "Calculating density at " << glm::to_string(position) << std::endl;
@@ -446,7 +446,7 @@ namespace csp::atmospheres {
     }
 
     // Returns x > y if nothing was hit
-    glm::vec2 IntersectRaySphere(const glm::vec3 &rayOrigin, const glm::vec3 &rayDir, float radius) {
+    static bool IntersectRayCircle(const glm::vec2 &rayOrigin, const glm::vec2 &rayDir, float radius, glm::vec2 &hit) {
         // Good explanation: https://www.scratchapixel.com/lessons/3d-basic-rendering/minimal-ray-tracer-rendering-simple-shapes/ray-sphere-intersection.html
         // t_a = -b (as C = -O, cause everything is centered around the observed celestial object)
         float b   = glm::dot(rayOrigin, rayDir);
@@ -455,34 +455,165 @@ namespace csp::atmospheres {
         // det = t_b^2
         float det = b * b - c;
         if (det < 0.0f) {
-            return glm::vec2(1, -1);
+            hit = glm::vec2(1, -1);
+            return false;
         }
 
         det = sqrt(det);
-        return glm::vec2(-b - det, -b + det);
+        hit = glm::vec2(-b - det, -b + det);
+        return true;
     }
 
-    // aabbMin, aabbMax = Bounding box
-    // Radius = Sphere radius centred at the origin
-    // Longitudes = Horizontal size of bounding box inside the sphere
-    // Altitudes = Vertical size
-    bool IntersectSphereAabb(const glm::vec3 &aabbMin, const glm::vec3 &aabbMax, float radius, glm::vec2 &longitudes, glm::vec2 &altitudes) {
-        // for (int i = 0; i < 3; i++) {
-        //     float min = aabbMin[i];
-        //     float max = aabbMax[i];
+    static bool IntersectRaySphere(const glm::vec3 &rayOrigin, const glm::vec3 &rayDir, float radius, glm::vec2 &hit) {
+        // Good explanation: https://www.scratchapixel.com/lessons/3d-basic-rendering/minimal-ray-tracer-rendering-simple-shapes/ray-sphere-intersection.html
+        // t_a = -b (as C = -O, cause everything is centered around the observed celestial object)
+        float b   = glm::dot(rayOrigin, rayDir);
+        float c   = glm::dot(rayOrigin, rayOrigin) - radius * radius;
 
-        //     glm::vec3 axis(0.0f);
-        //     axis[i] = 1.0f;
-        //     glm::vec2 minHit = IntersectRaySphere(aabbMin, axis, radius);
-        //     glm::vec2 maxHit = IntersectRaySphere(aabbMax, axis, radius);
-        //     bool confirmMinHit = minHit.y > minHit.x;
-        //     bool confirmMaxHit = maxHit.y > maxHit.x;
-            
-        // }
+        // det = t_b^2
+        float det = b * b - c;
+        if (det < 0.0f) {
+            hit = glm::vec2(1, -1);
+            return false;
+        }
+
+        det = sqrt(det);
+        hit = glm::vec2(-b - det, -b + det);
+        return true;
+    }
+
+    static bool IntersectSphereAAPlane(const glm::vec3 &planePos, const glm::ivec2 &planeAxes, float radius, glm::vec2 &angleHit) {
+        glm::vec3 planeAxis1(0.0f);
+        planeAxis1[planeAxes[0]] = 1.0f;
+        
+        glm::vec3 planeAxis2(0.0f);
+        planeAxis2[planeAxes[1]] = 1.0f;
+
         throw;
     }
 
-    bool IntersectAabbSlab(const glm::vec3 &rayOrigin, const glm::vec3 &rayDirNorm, const glm::vec3 &rayDirInvNorm,
+    // Source: https://web.archive.org/web/19991129023147/http://www.gamasutra.com/features/19991018/Gomez_4.htm
+    bool IntersectAABBSphere(const glm::vec3& aabbMin, const glm::vec3 &aabbMax, float r, glm::vec3 &C) {
+        float s, d = 0;
+        // Find the square of the distance from the sphere to the box
+        for (int i = 0 ; i < 3 ; i++) {
+            if (C[i] < aabbMin[i]) {
+                s = C[i] - aabbMin[i];
+                d += s*s;
+            }
+
+            else if (C[i] > aabbMax[i]) {
+                s = C[i] - aabbMax[i];
+                d += s*s;
+            }
+        }
+        return d <= r*r;
+    }
+
+    // Source: Jim Arvo, in "Graphics Gems", Academic Press, 1990.
+    static bool IntersectAABBSphereCases(glm::vec3 aabbMin, glm::vec3 aabbMax, float radius, int mode) {
+    float  a, b;
+    float  dMin, dMax;
+    float  r2 = sqrt(radius);
+    int    i, face;
+
+    switch(mode) {
+        case 0: /* Hollow Box and Hollow Sphere */
+            dMin = 0;
+            dMax = 0;
+            face = false;
+            for (i = 0; i < 3; i++) {
+                a = sqrt(-aabbMin[i] );
+                b = sqrt(-aabbMax[i] );
+                dMax += std::max(a, b);
+                if (aabbMin[i] > 0.0f) {
+                    face = true;
+                    dMin += a;
+                }
+                else if (aabbMax[i] < 0.0f) {
+                    face = true;
+                    dMin += b;
+                }
+                else if (std::min(a, b) <= r2)
+                    face = true;
+                }
+            if (face && (dMin <= r2) && (r2 <= dMax))
+                return true;
+            break;
+
+        case 1: /* Hollow Box and Solid Sphere */
+            dMin = 0;
+            face = false;
+            for( i = 0; i < 3; i++ ) {
+                if (aabbMin[i] > 0.0f) {
+                    face = true;
+                    dMin += sqrt(-aabbMin[i]);
+                } else if (aabbMax[i] < 0.0f) {
+                    face = true;
+                    dMin += sqrt(aabbMax[i]);     
+                } else if (-aabbMax[i] <= radius)
+                    face = true;
+                else if (aabbMax[i] <= radius)
+                    face = true;
+                }
+            if (face && (dMin <= r2))
+                return true;
+            break;
+
+        case 2: /* Solid Box and Hollow Sphere */
+            dMax = 0;
+            dMin = 0;
+            for( i = 0; i < 3; i++ ) {
+                a = sqrt(-aabbMin[i]);
+                b = sqrt(-aabbMax[i]);
+                dMax += std::max(a, b);
+                if (aabbMax[i] > 0.0f)
+                    dMin += a;
+                else if (aabbMax[i] < 0.0f)
+                    dMin += b;
+            }
+            if (dMin <= r2 && r2 <= dMax)
+                return true;
+            break;
+
+        case 3: /* Solid Box and Solid Sphere */
+            dMin = 0;
+            for( i = 0; i < 3; i++ ) {
+                if (aabbMin[i] > 0.0f)
+                dMin += sqrt(-aabbMin[i]);
+                else if (aabbMax[i] < 0.0f) dMin += sqrt(-aabbMax[i]);     
+                }
+            if (dMin <= r2)
+                return true;
+            break;
+  
+        }
+        return false;
+    } 
+
+    // bool IntersectAabbSlab2D(const glm::vec2 &rayOrigin, const glm::vec2 &rayDirNorm, const glm::vec2 &rayDirInvNorm,
+    //     const glm::vec2 &aabbMin, const glm::vec2 &aabbMax, glm::vec2 &tRayEntryExit) {
+    //     float tMin = 0;
+    //     float tMax = std::numeric_limits<float>::max();
+        
+    //     float tx1 = (aabbMin.x - rayOrigin.x) * rayDirInvNorm.x;
+    //     float tx2 = (aabbMax.x - rayOrigin.x) * rayDirInvNorm.x;
+    //     tMin = std::min(tx1, tx2);
+    //     tMax = std::max(tx1, tx2);
+    //     // vstr::debug() << "x: tMin = " << tMin << ", tMax = " << tMax << std::endl;
+
+    //     float ty1 = (aabbMin.y - rayOrigin.y) * rayDirInvNorm.y;
+    //     float ty2 = (aabbMax.y - rayOrigin.y) * rayDirInvNorm.y;
+    //     tMin = std::max(tMin, std::min(ty1, ty2));
+    //     tMax = std::min(tMax, std::max(ty1, ty2));
+    //     // vstr::debug() << "y: tMin = " << tMin << ", tMax = " << tMax << std::endl;
+
+    //     tRayEntryExit.x = std::min(tMin, tMax);
+    //     tRayEntryExit.y = std::max(tMin, tMax);
+    //     return tMax >= std::max(0.0f, tMin);
+    // }
+
+    static bool IntersectAabbSlab(const glm::vec3 &rayOrigin, const glm::vec3 &rayDirNorm, const glm::vec3 &rayDirInvNorm,
         const glm::vec3 &aabbMin, const glm::vec3 &aabbMax, glm::vec2 &tRayEntryExit) {
         float tMin = 0;
         float tMax = std::numeric_limits<float>::max();
@@ -510,7 +641,7 @@ namespace csp::atmospheres {
         return tMax >= std::max(0.0f, tMin);
     }
 
-    bool TreeRaycast(const Tree *tree, const glm::vec3 &rayOrigin, const glm::vec3 &rayDir, glm::vec2 &tRayEntryExit) {
+    static bool TreeRaycast(const Tree *tree, const glm::vec3 &rayOrigin, const glm::vec3 &rayDir, glm::vec2 &tRayEntryExit) {
         glm::vec3 rayDirNorm = rayDir / length(rayDir);
         glm::vec3 rayDirInvNorm = 1.0f / rayDirNorm;
 

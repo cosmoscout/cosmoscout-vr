@@ -57,7 +57,8 @@ namespace csp::atmospheres {
 
         float totalDensity = 0.0f;
         if (check) { // TEMP: force subdivision via "&& depth > static_cast<unsigned int>(maxDepth * 0.25f)"
-            totalDensity = GetTotalDensity(index, (unsigned int)(BASE_DENSITY_SAMPLES / pow(depth + 1, 0.5f)));
+            const float DENSITY_SAMPLING_DECREASE_EXP = 0.25f;
+            totalDensity = GetTotalDensity(index, depth, (unsigned int)(BASE_DENSITY_SAMPLES / pow(depth + 1, DENSITY_SAMPLING_DECREASE_EXP)));
             // TEMP: fix shallow subdivision by forcing octree to divide if depth <= maxDepth / 2
             if (totalDensity < MIN_DENSITY_CUTOFF) {
 #ifdef TREE_DEBUG_MODE
@@ -153,52 +154,43 @@ namespace csp::atmospheres {
         return density.x;
     }
 
-    float Tree::GetTotalDensity(unsigned int index, unsigned int totalSamples = BASE_DENSITY_SAMPLES) {
+    float Tree::GetTotalDensity(unsigned int index, unsigned int depth, unsigned int totalSamples = BASE_DENSITY_SAMPLES) {
         // IDEA: dont sample at random positions, but find where the cloud layer is inside this bounding box
         // and sample there. Much more precise and possible due to aabbMin, aabbMax being absolute positions.
 
-        // float totalDensity = NAN;
         auto &node = nodes[index];
 
-        // float distAabbMin = glm::length(node.aabbMin);
-        // float distAabbMax = glm::length(node.aabbMax);
-        // float minDist = std::min(distAabbMin, distAabbMax);
-        // float maxDist = std::max(distAabbMin, distAabbMax);
-        // float distDiff = maxDist - minDist;
-        
-        // float minCloudLayer = properties.planetRadius + CUMULONIMBUS_START_HEIGHT;
-        // float maxCloudLayer = properties.planetRadius + CUMULONIMBUS_END_HEIGHT;
-
-        // //                                                  (I)                                                      (II)
-        // bool aabbIntersectClouds = (minDist <= minCloudLayer && maxDist >= minCloudLayer) || (minDist > minCloudLayer && minDist < maxCloudLayer);
-        // if (aabbIntersectClouds) {
-
+        // Check intersection of node with outer cloud layer.
+        // (mode = 2: solid box, hollow sphere => if box is inside sphere, no hit registered, other way around is a hit)
+        // bool intersectOuterClouds = IntersectAABBSphere(node.aabbMin, node.aabbMax, properties.planetRadius + CUMULONIMBUS_END_HEIGHT, 2);
+        // if (!intersectOuterClouds) { // Node is outside of completely inside or outside outer cloud layer.
+        //     vstr::debug() << "[Depth " << depth << "] Node " << glm::to_string(node.aabbMin / 1000.0f) << ", "
+        //         << glm::to_string(node.aabbMax / 1000.0f) << " no intersect with outer cloud layer (" << (properties.planetRadius + CUMULONIMBUS_END_HEIGHT) / 1000.0f << ")" << std::endl;
+        //     // Check if node intersects inner layer at least.
+        //     bool intersectInnerCloudLayer = IntersectAABBSphere(node.aabbMin, node.aabbMax, properties.planetRadius + CUMULONIMBUS_START_HEIGHT, 2);
+        //     if (!intersectInnerCloudLayer) {
+        //         vstr::debug() << "[Depth " << depth << "] No intersect with inner cloud layer (" << (properties.planetRadius + CUMULONIMBUS_START_HEIGHT) / 1000.0f << ")" << std::endl;
+        //         return 0.0f;
+        //     }
         // }
-
-        // return totalDensity;
+        static glm::vec3 origin(0.0f);
+        bool intersectOuterCloudLayer = IntersectAABBSphere(node.aabbMin, node.aabbMax, properties.planetRadius + CUMULONIMBUS_START_HEIGHT, origin);
+        bool intersectInnerCloudLayer = IntersectAABBSphere(node.aabbMin, node.aabbMax, properties.planetRadius + CUMULONIMBUS_END_HEIGHT, origin);
+        if (!intersectInnerCloudLayer && !intersectOuterCloudLayer)
+            return 0.0f;
 
         // Sample random positions inside the bounding box
         static std::random_device rd;  // Will be used to obtain a seed for the random number engine
         static std::mt19937 gen(rd()); // Standard mersenne_twister_engine seeded with rd()
         static std::uniform_real_distribution<float> distr(0.0f, 1.0f);
 
-        float totalDensity = 0.0f;
         glm::vec3 extends;
         if (index == 0) // Fix root node issue: rootNode.aabbMin == -rootNode.aabbMax => rootNode centre == zero vector (linearly dependent)
             extends = node.aabbMax * 2.0f;
         else
             extends = node.GetExtends();
         
-        for (size_t i = 0; i < totalSamples; i++) {
-            // Generate random vector in [0, 1) x [0, 1) x [0, 1)
-            glm::vec3 randomUnitPos = glm::vec3(distr(gen), distr(gen), distr(gen));
-            glm::vec3 randomSamplePos = node.aabbMin + extends * randomUnitPos;
-            totalDensity = GetDensity(randomSamplePos);
-
-            if (totalDensity > MIN_DENSITY_CUTOFF)
-                break;
-        }
-        return totalDensity;
+        return 0.0f;
     }
 
     const char *TREE_DEBUG_VERT_SHADER = R"(#version 400
