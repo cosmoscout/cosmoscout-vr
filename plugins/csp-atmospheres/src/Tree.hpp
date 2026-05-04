@@ -33,7 +33,7 @@
 namespace csp::atmospheres {
     const float MIN_DENSITY_CUTOFF = 1.0e-6f;
     const unsigned int ROOT_NODE_INDEX = 0;
-    const unsigned int BASE_DENSITY_SAMPLES = 500; // >= 25,000 long loading time but less gaps in the octree
+    const unsigned int BASE_DENSITY_SAMPLES = 250000;
 
     const std::array BOX_VERTS = {
         /*0*/ 0.001F, 0.001F, 0.001F, /*1*/ 0.001F, 0.001F, 0.999F, /*2*/ 0.001F, 0.999F, 0.001F, /*3*/ 0.001F, 0.999F, 0.999F,
@@ -647,30 +647,41 @@ namespace csp::atmospheres {
 
         unsigned int treeNodeIndex = 0;
         auto nodes = tree->GetNodes();
-        while (treeNodeIndex < tree->GetUsedNodeCount()) {
+        unsigned int totalNodeCount = nodes[0].childrenCount + 1;
+        tRayEntryExit = glm::vec2(std::numeric_limits<float>::max(), std::numeric_limits<float>::max());
+        glm::vec2 hitInterval;
+        while (treeNodeIndex < totalNodeCount) {
             auto &node = nodes[treeNodeIndex];
             // vstr::debug() << "Raycast() check nodes[" << treeNodeIndex << "] with " << node.childrenCount << " children." << std::endl;
 
-            bool hitNode = IntersectAabbSlab(rayOrigin, rayDirNorm, rayDirInvNorm, node.aabbMin, node.aabbMax, tRayEntryExit);
+            bool hitNode = IntersectAabbSlab(rayOrigin, rayDirNorm, rayDirInvNorm, node.aabbMin, node.aabbMax, hitInterval);
             bool isLeaf = node.IsLeaf();
             bool criticalDensity = node.density > 0.0f;
 
-            vstr::debug() << "Nodes[" << treeNodeIndex << "] " << (hitNode ? "hit" : "missed") << ". leaf = " << (isLeaf ? "yes" : "no") << ", density = " << node.density << ".";
+            if (hitNode)
+                vstr::debug() << "nodes[" << treeNodeIndex << "] ";
+            // vstr::debug() << "Nodes[" << treeNodeIndex << "] " << (hitNode ? "hit" : "missed") << ". leaf = " << (isLeaf ? "yes" : "no") << ", density = " << node.density << ".";
             if (hitNode && isLeaf && criticalDensity) {
-                vstr::debug() << " -> hit leaf node with density; stopping." << std::endl;
-                vstr::debug() << "Node details: aabb = " << glm::to_string(node.aabbMin / 1000.0f) << ", " << glm::to_string(node.aabbMax / 1000.0f) << "." << std::endl;
-                return true;
+                vstr::debug() << std::endl << "hit leaf node with density at "
+                    << "entry = " << glm::to_string((rayOrigin + rayDir * hitInterval.x) / 10000.0f)
+                    << ", exit = " << glm::to_string((rayOrigin + rayDir * hitInterval.y) / 10000.0f) << std::endl;
+                if (hitInterval.x < tRayEntryExit.x) // Is this node closer to the ray origin?
+                    tRayEntryExit = hitInterval;
             }
 
             if ((isLeaf || criticalDensity) && hitNode || (isLeaf && !hitNode)) {
-                vstr::debug() << " -> next node." << std::endl;
                 treeNodeIndex += 1;
             } else {
-                vstr::debug() << " -> jumping over " << node.childrenCount << " children." << std::endl;
+                // vstr::debug() << " -> (" << node.childrenCount << " children) -> ";
                 treeNodeIndex += node.childrenCount; // Jump over all children
             }
+
+            if (hitNode)
+                vstr::debug() << "-> ";
         }
-        return false;
+
+        vstr::debug() << "Octree traversed: STOP." << std::endl;
+        return tRayEntryExit.y >= tRayEntryExit.x;
     }
 }
 

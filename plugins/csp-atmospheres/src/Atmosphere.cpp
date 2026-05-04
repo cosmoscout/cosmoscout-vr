@@ -786,17 +786,19 @@ void Atmosphere::BuildOctree() {
 
   // TODO: Calculate precise octree boundaries to exactly fit the outer cloud layer
   // (take care of potential edge cases with intersection algorithms).
-  mCloudTree = std::make_unique<Tree>(minBounds - cloudLayerSize, maxBounds + cloudLayerSize, 6, std::move(properties), true);
+  mCloudTree = std::make_unique<Tree>(minBounds - cloudLayerSize, maxBounds + cloudLayerSize, 5, std::move(properties), true);
   mCloudTree->Build();
   mCloudTree->SetupDebug();
-  vstr::debug() << "3d_clouds: Built octree with size " << mCloudTree->GetUsedNodeCount() << "." << std::endl;
+  vstr::debug() << "Built octree with size " << mCloudTree->GetUsedNodeCount() << "." << std::endl;
 
-  // glm::vec3 rayOrigin(minBounds - cloudLayerSize);
-  // glm::vec3 rayDir = glm::vec3(1.0f, 0.999f, 1.0f);
-  // glm::vec3 rayDirNorm = rayDir / length(rayDir);
-  // glm::vec3 rayDirInvNorm = 1.0f / rayDirNorm;
+  glm::vec3 rayOrigin(maxBounds + cloudLayerSize);
+  rayOrigin *= 1.05f;
+  glm::vec3 rayDir = glm::vec3(1.0f, 1.0f, 1.1f);
+  rayDir *= -1.0f;
+  glm::vec3 rayDirNorm = rayDir / length(rayDir);
+  glm::vec3 rayDirInvNorm = 1.0f / rayDirNorm;
 
-  // glm::vec2 tIntersections(0.0f);
+  glm::vec2 tIntersections(0.0f);
   // glm::vec3 aabbMin(3191.568359f, 2393.676270f, 3191.568359f);
   // glm::vec3 aabbMax(3989.460449f, 3191.568359f, 3989.460449f);
   // bool intersected = IntersectAabbSlab(rayOrigin, rayDir, rayDirInvNorm, aabbMin, aabbMax, tIntersections);
@@ -806,12 +808,19 @@ void Atmosphere::BuildOctree() {
   //   << glm::to_string(rayOrigin + rayDirNorm * tIntersections.x) << ", x2 = "
   //   << glm::to_string(rayOrigin + rayDirNorm * tIntersections.y) << "." << std::endl;
 
-  // bool raycastHit = TreeRaycast(mCloudTree.get(), rayOrigin, rayDir, tIntersections);
-  // vstr::debug() << "Raycast against octree: " << (raycastHit ? "yes" : "no") << ", at " << glm::to_string(tIntersections) << "." << std::endl;
-  // auto rayHitEntry = rayOrigin + tIntersections.x * rayDirNorm;
-  // auto rayHitExit = rayOrigin + tIntersections.y * rayDirNorm;
-  // vstr::debug() << "Hit octree from " << glm::to_string(rayHitEntry) << " to " << glm::to_string(rayHitExit)
-  //   << ", diff = " << glm::to_string(rayHitExit - rayHitEntry) << "." << std::endl;
+  bool raycastHit = TreeRaycast(mCloudTree.get(), rayOrigin, rayDir, tIntersections);
+  vstr::debug() << "Raycast against octree: " << (raycastHit ? "yes" : "no") << ", at " << glm::to_string(tIntersections) << "." << std::endl;
+  auto rayHitEntry = rayOrigin + tIntersections.x * rayDirNorm;
+  auto rayHitExit = rayOrigin + tIntersections.y * rayDirNorm;
+  vstr::debug() << "Hit octree from " << glm::to_string(rayHitEntry / 10000.0f) << " to " << glm::to_string(rayHitExit / 10000.0f)
+    << ", diff = " << glm::to_string(rayHitExit - rayHitEntry) << "." << std::endl;
+  vstr::debug() << "Planet radius = " << glm::to_string(glm::vec3((float)mPlanetRadius) / 10000.0f) << std::endl;
+
+  bool secondHit = TreeRaycast(mCloudTree.get(), rayOrigin + rayDir * tIntersections.y, rayDir, tIntersections);
+  rayHitEntry = rayOrigin + tIntersections.x * rayDirNorm;
+  rayHitExit = rayOrigin + tIntersections.y * rayDirNorm;
+  vstr::debug() << "Hit octree second time from " << glm::to_string(rayHitEntry / 10000.0f) << " to " << glm::to_string(rayHitExit / 10000.0f)
+    << ", diff = " << glm::to_string(rayHitExit - rayHitEntry) << "." << std::endl;
 
   // If no uniform buffer object exists, create one
   if (mCloudTreeBuffer == 0) {

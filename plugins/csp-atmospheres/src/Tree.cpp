@@ -36,7 +36,7 @@ namespace csp::atmospheres {
     void Tree::Build() {
         unsigned int depth = 0;
         usedNodeIndex = 0;
-        Subdivide(ROOT_NODE_INDEX, depth, false);
+        Subdivide(ROOT_NODE_INDEX, depth);
     }
 
     unsigned int Tree::Subdivide(unsigned int index, unsigned int depth, bool check) {
@@ -56,31 +56,29 @@ namespace csp::atmospheres {
         auto &node = nodes[index];
 
         float totalDensity = 0.0f;
-        if (check) { // TEMP: force subdivision via "&& depth > static_cast<unsigned int>(maxDepth * 0.25f)"
-            const float DENSITY_SAMPLING_DECREASE_EXP = 0.25f;
-            totalDensity = GetTotalDensity(index, depth, (unsigned int)(BASE_DENSITY_SAMPLES / pow(depth + 1, DENSITY_SAMPLING_DECREASE_EXP)));
-            // TEMP: fix shallow subdivision by forcing octree to divide if depth <= maxDepth / 2
-            if (totalDensity < MIN_DENSITY_CUTOFF) {
-#ifdef TREE_DEBUG_MODE
-                if (debugMode)
-                    vstr::debug() << "zero density. STOP" << std::endl;
-#endif
-                return 0;
-            } else {
-#ifdef TREE_DEBUG_MODE
-                if (debugMode)
-                    vstr::debug() << "density = " << totalDensity << ". ";
-#endif
-            }
-            node.density = totalDensity;
-
-            if (depth >= maxDepth) { // If level of depth has been reached, stop subdivision process.
+        const float DENSITY_SAMPLING_DECREASE_EXP = 0.33f;
+        totalDensity = GetTotalDensity(index, depth, (unsigned int)(BASE_DENSITY_SAMPLES / pow(depth + 1, DENSITY_SAMPLING_DECREASE_EXP)));
+        // TEMP: fix shallow subdivision by forcing octree to divide if depth <= maxDepth / 2
+        if (totalDensity < MIN_DENSITY_CUTOFF) {
 #ifdef TREE_DEBUG_MODE
             if (debugMode)
-                vstr::debug() << "max depth reached. STOP" << std::endl;
+                vstr::debug() << "zero density. STOP" << std::endl;
 #endif
-                return 0;
-            }
+            return 0;
+        } else {
+#ifdef TREE_DEBUG_MODE
+            if (debugMode)
+                vstr::debug() << "density = " << totalDensity << ". ";
+#endif
+        }
+        node.density = totalDensity;
+
+        if (depth >= maxDepth) { // If level of depth has been reached, stop subdivision process.
+#ifdef TREE_DEBUG_MODE
+        if (debugMode)
+            vstr::debug() << "max depth reached. STOP" << std::endl;
+#endif
+            return 0;
         }
         
 #ifdef TREE_DEBUG_MODE
@@ -176,8 +174,11 @@ namespace csp::atmospheres {
         static glm::vec3 origin(0.0f);
         bool intersectOuterCloudLayer = IntersectAABBSphere(node.aabbMin, node.aabbMax, properties.planetRadius + CUMULONIMBUS_START_HEIGHT, origin);
         bool intersectInnerCloudLayer = IntersectAABBSphere(node.aabbMin, node.aabbMax, properties.planetRadius + CUMULONIMBUS_END_HEIGHT, origin);
-        if (!intersectInnerCloudLayer && !intersectOuterCloudLayer)
+        if (!intersectInnerCloudLayer && !intersectOuterCloudLayer) {
+            // if (depth <= 3)
+            //     vstr::debug() << "Nodes[" << index << "] at depth " << depth << " not intersecting cloud layer: aborting." << std::endl;
             return 0.0f;
+        }
 
         // Sample random positions inside the bounding box
         static std::random_device rd;  // Will be used to obtain a seed for the random number engine
@@ -190,6 +191,15 @@ namespace csp::atmospheres {
         else
             extends = node.GetExtends();
         
+        for (unsigned int i = 0; i < totalSamples; i++) {
+            // Generate random position in [0, 1) x [0, 1) x [0, 1)
+            glm::vec3 randomPos(distr(gen), distr(gen), distr(gen));
+            glm::vec3 samplePos = node.aabbMin + extends * randomPos;
+            float density = GetDensity(samplePos);
+            if (density > 0.0f)
+                return density;
+        }
+
         return 0.0f;
     }
 
