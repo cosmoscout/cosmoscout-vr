@@ -39,9 +39,9 @@ namespace csp::atmospheres {
         Subdivide(ROOT_NODE_INDEX, depth);
     }
 
-    unsigned int Tree::Subdivide(unsigned int index, unsigned int depth, bool check) {
-        if (debugMode && index > 0 && index % (maxNodeCount / 100) == 0)
-            vstr::debug() << "Subdivided " << ((float)index / maxNodeCount) * 100.0f << "% of max nodes."  << std::endl;
+    unsigned int Tree::Subdivide(unsigned int index, unsigned int depth) {
+        if (debugMode && index > 0 && maxNodeCount >= 10 && index % static_cast<int>(maxNodeCount * 0.1f) == 0)
+            vstr::debug() << "Subdivided " << round(((float)index / maxNodeCount) * 100.0f) << "% of max nodes."  << std::endl;
 
 #ifdef TREE_DEBUG_MODE
         if (debugMode) {
@@ -57,7 +57,9 @@ namespace csp::atmospheres {
 
         float totalDensity = 0.0f;
         const float DENSITY_SAMPLING_DECREASE_EXP = 0.33f;
+
         totalDensity = GetTotalDensity(index, depth, (unsigned int)(BASE_DENSITY_SAMPLES / pow(depth + 1, DENSITY_SAMPLING_DECREASE_EXP)));
+
         // TEMP: fix shallow subdivision by forcing octree to divide if depth <= maxDepth / 2
         if (totalDensity < MIN_DENSITY_CUTOFF) {
 #ifdef TREE_DEBUG_MODE
@@ -258,6 +260,10 @@ namespace csp::atmospheres {
         debugShader->InitFragmentShaderFromString(TREE_DEBUG_FRAG_SHADER);
         debugShader->Link();
 
+        debugShader->Bind();
+        debugShader->SetUniform(debugShader->GetUniformLocation("maxBounds"), GetMaxBounds());
+        debugShader->Release();
+
         vao->Bind();
         vao->EnableAttributeArray(0);
         vao->SpecifyAttributeArrayFloat(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0, vbo.get());
@@ -278,16 +284,15 @@ namespace csp::atmospheres {
     }
 
     void Tree::DrawDebug(const glm::mat4 &modelViewMat, const glm::mat4 &projMat) {
-        glPushAttrib(GL_POLYGON_BIT);
-        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-
         if (debugMode) {
+            glPushAttrib(GL_POLYGON_BIT);
+            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
             debugShader->Bind();
             vao->Bind();
 
             glUniformMatrix4fv(debugShader->GetUniformLocation("modelViewMat"), 1, GL_FALSE, glm::value_ptr(modelViewMat));
             glUniformMatrix4fv(debugShader->GetUniformLocation("projMat"), 1, GL_FALSE, glm::value_ptr(projMat));            
-            debugShader->SetUniform(debugShader->GetUniformLocation("maxBounds"), GetMaxBounds());
 
             for (size_t i = 0; i < GetUsedNodeCount(); i++) {
                 const auto &node = nodes[i];
@@ -303,8 +308,8 @@ namespace csp::atmospheres {
 
             debugShader->Release();
             vao->Release();
-        }
 
-        glPopAttrib();
+            glPopAttrib();
+        }
     }
 }

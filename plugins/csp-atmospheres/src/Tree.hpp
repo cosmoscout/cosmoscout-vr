@@ -33,7 +33,7 @@
 namespace csp::atmospheres {
     const float MIN_DENSITY_CUTOFF = 1.0e-6f;
     const unsigned int ROOT_NODE_INDEX = 0;
-    const unsigned int BASE_DENSITY_SAMPLES = 250000;
+    const unsigned int BASE_DENSITY_SAMPLES = 150000;
 
     const std::array BOX_VERTS = {
         /*0*/ 0.001F, 0.001F, 0.001F, /*1*/ 0.001F, 0.001F, 0.999F, /*2*/ 0.001F, 0.999F, 0.001F, /*3*/ 0.001F, 0.999F, 0.999F,
@@ -109,7 +109,7 @@ namespace csp::atmospheres {
         float GetDensity(glm::vec3 pos);
         // Calculates average density throughout the node (basically the cost function for decision to subdivide).
         float GetTotalDensity(unsigned int index, unsigned int depth, unsigned int totalSamples);
-        unsigned int Subdivide(unsigned int index, unsigned int depth, bool check = true);
+        unsigned int Subdivide(unsigned int index, unsigned int depth);
         void UpdateBounds(unsigned int index, unsigned int relChildIndex);
 
     public:
@@ -648,7 +648,7 @@ namespace csp::atmospheres {
         unsigned int treeNodeIndex = 0;
         auto nodes = tree->GetNodes();
         unsigned int totalNodeCount = nodes[0].childrenCount + 1;
-        tRayEntryExit = glm::vec2(std::numeric_limits<float>::max(), std::numeric_limits<float>::max());
+        tRayEntryExit = glm::vec2(std::numeric_limits<float>::max(), 0.0f);
         glm::vec2 hitInterval;
         while (treeNodeIndex < totalNodeCount) {
             auto &node = nodes[treeNodeIndex];
@@ -657,16 +657,20 @@ namespace csp::atmospheres {
             bool hitNode = IntersectAabbSlab(rayOrigin, rayDirNorm, rayDirInvNorm, node.aabbMin, node.aabbMax, hitInterval);
             bool isLeaf = node.IsLeaf();
             bool criticalDensity = node.density > 0.0f;
+            bool hitCorner = hitInterval.y - hitInterval.x < 1e-4;
 
-            if (hitNode)
-                vstr::debug() << "nodes[" << treeNodeIndex << "] ";
+            // if (hitNode)
+            //     vstr::debug() << "nodes[" << treeNodeIndex << "] ";
             // vstr::debug() << "Nodes[" << treeNodeIndex << "] " << (hitNode ? "hit" : "missed") << ". leaf = " << (isLeaf ? "yes" : "no") << ", density = " << node.density << ".";
-            if (hitNode && isLeaf && criticalDensity) {
-                vstr::debug() << std::endl << "hit leaf node with density at "
-                    << "entry = " << glm::to_string((rayOrigin + rayDir * hitInterval.x) / 10000.0f)
-                    << ", exit = " << glm::to_string((rayOrigin + rayDir * hitInterval.y) / 10000.0f) << std::endl;
-                if (hitInterval.x < tRayEntryExit.x) // Is this node closer to the ray origin?
+            if (hitNode && isLeaf && criticalDensity && !hitCorner) {
+                // TODO: Check if hitInterval has length zero => ray hit a node corner (ignore?)
+                if (hitInterval.x < tRayEntryExit.x) { // Is this node closer to the ray origin?
                     tRayEntryExit = hitInterval;
+                    vstr::debug() << "Hit leaf node with density at "
+                    << "entry = " << glm::to_string((rayOrigin + rayDirNorm * hitInterval.x) / 10000.0f)
+                    << ", exit = " << glm::to_string((rayOrigin + rayDirNorm * hitInterval.y) / 10000.0f) << std::endl;
+                    // vstr::debug() << "Node bounds min = " << glm::to_string(node.aabbMin / 10000.0f) << ", max = " << glm::to_string(node.aabbMax / 10000.0f) << std::endl;
+                }
             }
 
             if ((isLeaf || criticalDensity) && hitNode || (isLeaf && !hitNode)) {
@@ -676,8 +680,8 @@ namespace csp::atmospheres {
                 treeNodeIndex += node.childrenCount; // Jump over all children
             }
 
-            if (hitNode)
-                vstr::debug() << "-> ";
+            // if (hitNode)
+            //     vstr::debug() << "-> ";
         }
 
         vstr::debug() << "Octree traversed: STOP." << std::endl;
