@@ -787,14 +787,31 @@ void Atmosphere::BuildOctree() {
   mCloudTree->SetupDebug();
   vstr::debug() << "Built octree with size " << mCloudTree->GetUsedNodeCount() << "." << std::endl;
 
-  glm::vec3 rayOrigin(maxBounds + cloudLayerSize);
-  rayOrigin *= 1.05f;
-  glm::vec3 rayDir = glm::vec3(1.0f, 1.0f, 1.0f);
-  rayDir *= -1.0f;
-  glm::vec3 rayDirNorm = rayDir / length(rayDir);
-  glm::vec3 rayDirInvNorm = 1.0f / rayDirNorm;
+  float totalDensity = 0.0f;
+  float maxDensity, minDensity;
+  unsigned int usedNodeCount = mCloudTree->GetUsedNodeCount();
+  unsigned int criticalDensityNodeCount = 0;
+  for (size_t i = 0; i < usedNodeCount; i++) {
+    float density = mCloudTree->GetNodes()[i].density;
+    if (density >= MIN_DENSITY_CUTOFF) {
+      maxDensity = std::max(maxDensity, density);
+      minDensity = std::min(minDensity, density);
 
-  glm::vec2 tIntersections(0.0f);
+      totalDensity += density;
+      criticalDensityNodeCount++;
+    }
+  }
+  vstr::debug() << "Average density of (critically dense) nodes = " << (totalDensity / criticalDensityNodeCount)
+    << ", min = " << minDensity << ", max = " << maxDensity << std::endl;
+
+  // glm::vec3 rayOrigin(maxBounds + cloudLayerSize);
+  // rayOrigin *= 1.05f;
+  // glm::vec3 rayDir = glm::vec3(1.0f, 1.0f, 1.0f);
+  // rayDir *= -1.0f;
+  // glm::vec3 rayDirNorm = rayDir / length(rayDir);
+  // glm::vec3 rayDirInvNorm = 1.0f / rayDirNorm;
+
+  // glm::vec2 tIntersections(0.0f);
   // glm::vec3 aabbMin(3191.568359f, 2393.676270f, 3191.568359f);
   // glm::vec3 aabbMax(3989.460449f, 3191.568359f, 3989.460449f);
   // bool intersected = IntersectAabbSlab(rayOrigin, rayDir, rayDirInvNorm, aabbMin, aabbMax, tIntersections);

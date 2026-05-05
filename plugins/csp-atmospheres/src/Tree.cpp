@@ -40,7 +40,7 @@ namespace csp::atmospheres {
     }
 
     unsigned int Tree::Subdivide(unsigned int index, unsigned int depth) {
-        if (debugMode && index > 0 && maxNodeCount >= 10 && index % static_cast<int>(maxNodeCount * 0.1f) == 0)
+        if (debugMode && index > 0 && maxNodeCount >= 5 && index % static_cast<int>(maxNodeCount * 0.05f) == 0)
             vstr::debug() << "Subdivided " << round(((float)index / maxNodeCount) * 100.0f) << "% of max nodes."  << std::endl;
 
 #ifdef TREE_DEBUG_MODE
@@ -55,10 +55,8 @@ namespace csp::atmospheres {
 
         auto &node = nodes[index];
 
-        float totalDensity = 0.0f;
-        const float DENSITY_SAMPLING_DECREASE_EXP = 0.33f;
-
-        totalDensity = GetTotalDensity(index, depth, (unsigned int)(BASE_DENSITY_SAMPLES / pow(depth + 1, DENSITY_SAMPLING_DECREASE_EXP)));
+        const float DENSITY_SAMPLING_DECREASE_EXP = 1.0f;
+        float totalDensity = GetTotalDensity(index, depth, (unsigned int)((float)BASE_DENSITY_SAMPLES / pow(depth + 1, DENSITY_SAMPLING_DECREASE_EXP)));
 
         // TEMP: fix shallow subdivision by forcing octree to divide if depth <= maxDepth / 2
         if (totalDensity < MIN_DENSITY_CUTOFF) {
@@ -188,21 +186,50 @@ namespace csp::atmospheres {
         static std::uniform_real_distribution<float> distr(0.0f, 1.0f);
 
         glm::vec3 extends;
-        if (index == 0) // Fix root node issue: rootNode.aabbMin == -rootNode.aabbMax => rootNode centre == zero vector (linearly dependent)
+        if (index == 0) // Fixes root node issue: rootNode.aabbMin == -rootNode.aabbMax => rootNode centre == zero vector (linearly dependent)
             extends = node.aabbMax * 2.0f;
         else
             extends = node.GetExtends();
         
+        float totalDensity = 0.0f;
         for (unsigned int i = 0; i < totalSamples; i++) {
             // Generate random position in [0, 1) x [0, 1) x [0, 1)
             glm::vec3 randomPos(distr(gen), distr(gen), distr(gen));
             glm::vec3 samplePos = node.aabbMin + extends * randomPos;
-            float density = GetDensity(samplePos);
-            if (density > 0.0f)
-                return density;
+
+            totalDensity += GetDensity(samplePos);
+            if (totalDensity >= MIN_DENSITY_CUTOFF) {
+                // vstr::debug() << "Sampled " << totalDensity << " at index " << index << ", depth = " << depth << std::endl;
+                break;
+            }
         }
 
-        return 0.0f;
+        // Sample in an evenly spaced grid throughout AABB
+        // float totalDensity = 0.0f;
+        // glm::vec3 samplePos(0.0f);
+        // glm::vec3 nodeAabbDimensions(extends.x, extends.y, extends.z);
+        // glm::uvec3 samplesPerAxis = glm::uvec3(totalSamples);
+        
+        // // Amount of times a minimum critical density has been sampled (unused so far)
+        // unsigned int criticalDensitySamples = 0;
+
+        // for (size_t i = 0; i < samplesPerAxis.x * samplesPerAxis.y * samplesPerAxis.z; i++) {
+        //     samplePos.x = float(i % samplesPerAxis.x);
+        //     samplePos.y = float(int(i / samplesPerAxis.x) % samplesPerAxis.y);
+        //     samplePos.z = float(i / (samplesPerAxis.x * samplesPerAxis.y));
+
+        //     vstr::debug() << "Sample pos = " << glm::to_string(samplePos);
+        //     samplePos /= samplesPerAxis;
+        //     vstr::debug() << ", in bounds = " << glm::to_string(samplePos) << std::endl;
+
+        //     float sampledDensity = GetDensity(node.aabbMin + extends * samplePos);
+        //     if (sampledDensity >= MIN_DENSITY_CUTOFF) {
+        //         criticalDensitySamples++;
+        //         break;
+        //     }
+        // }
+        
+        return totalDensity;
     }
 
     const char *TREE_DEBUG_VERT_SHADER = R"(#version 400
@@ -217,11 +244,11 @@ namespace csp::atmospheres {
         uniform vec3 aabbMin;
         uniform vec3 aabbMax;
 
-        const mat3 isoMat = mat3(
-                sqrt(3), -1, sqrt(2),
-                0, 2, sqrt(2),
-                -sqrt(3), -1, sqrt(2)
-            ); 
+        // const mat3 isoMat = mat3(
+        //         sqrt(3), -1, sqrt(2),
+        //         0, 2, sqrt(2),
+        //         -sqrt(3), -1, sqrt(2)
+        //     ); 
 
         void main() {
             // Isometric projection
@@ -229,7 +256,7 @@ namespace csp::atmospheres {
             // projected /= 1000 * 1000 * 50;
             // projected.xy /= (1.0 + projected.z);
 
-            vec3 pos = inPos * (aabbMax - aabbMin) + aabbMin;
+            pos = inPos * (aabbMax - aabbMin) + aabbMin;
             pos /= maxBounds; // Scale to [0, 1] x ... x [0, 1] screen space
             vec4 projPos = projMat * modelViewMat * vec4(pos, 1);
             gl_Position = projPos;
@@ -247,7 +274,7 @@ namespace csp::atmospheres {
 
         void main() {
             if (density > 1e-6) {
-                float densityScale = remap(density, 1e-6, 0.5, 1e-6, 1);
+                float densityScale = remap(density, 1e-6, 1.2, 1e-6, 1);
                 color = vec4(0, 1, densityScale, 1);
             } else {
                 color = vec4(1, 0.2, 0, 1);
@@ -298,6 +325,10 @@ namespace csp::atmospheres {
                 const auto &node = nodes[i];
                 if (!node.IsLeaf())
                     continue;
+#ifdef TREE_DEBUG_HIDE_EMPTY_NODES
+                if (node.density <= 0.0f)
+                    continue;
+#endif
                 
                 debugShader->SetUniform(debugShader->GetUniformLocation("aabbMin"), node.aabbMin[0], node.aabbMin[1], node.aabbMin[2]);
                 debugShader->SetUniform(debugShader->GetUniformLocation("aabbMax"), node.aabbMax[0], node.aabbMax[1], node.aabbMax[2]);

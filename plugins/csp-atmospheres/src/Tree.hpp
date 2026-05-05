@@ -9,6 +9,7 @@
 #define CSP_TREE_BVH_HPP
 
 // #define TREE_DEBUG_MODE
+// #define TREE_DEBUG_HIDE_EMPTY_NODES
 
 #include <glm/glm.hpp>
 #include <glm/gtx/string_cast.hpp>
@@ -31,15 +32,15 @@
 #include <limits>
 
 namespace csp::atmospheres {
-    const float MIN_DENSITY_CUTOFF = 1.0e-6f;
+    const float MIN_DENSITY_CUTOFF = 1.0f;
     const unsigned int ROOT_NODE_INDEX = 0;
-    const unsigned int BASE_DENSITY_SAMPLES = 150000;
+    const unsigned int BASE_DENSITY_SAMPLES = 1000000;
 
+    // Wireframe nodes used in debug mode: local coordinates not exactly at 0/ 1 to introduce a small padding at the edgtes.
     const std::array BOX_VERTS = {
         /*0*/ 0.001F, 0.001F, 0.001F, /*1*/ 0.001F, 0.001F, 0.999F, /*2*/ 0.001F, 0.999F, 0.001F, /*3*/ 0.001F, 0.999F, 0.999F,
         /*4*/ 0.999F, 0.001F, 0.001F, /*5*/ 0.999F, 0.001F, 0.999F, /*6*/ 0.999F, 0.999F, 0.001F, /*7*/ 0.999F, 0.999F, 0.999F
     };
-
     const std::array BOX_INDICES = {
         0U, 1U, 0U, 2U, 0U, 4U, 1U, 3U, 1U, 5U, 2U, 3U, 2U, 6U, 3U, 7U, 4U, 5U, 4U, 6U, 5U, 7U, 6U, 7U
     };
@@ -47,7 +48,12 @@ namespace csp::atmospheres {
     static unsigned int GetIndexFromPos(glm::vec3 pos, glm::uvec3 &dimensions);
     static glm::vec3 GetPosFromIndex(unsigned int index, glm::uvec3 &dimensions);
 
+    // Data structure as mirrored on the shader side. Is pushed to the GPU on a SSBO buffer and must be indentical.
+    // Storage layout may differ in GLSL (std140 works with vec4 as smallest elements).
     struct TreeNode {
+        // IDEA: Space optimisation: instead of storing AABB coordinates, store the depth and order inside
+        // the parent node (x, y, z (bytes) + depth (integer) = 16 bytes) and reconstruct AABB coordinates in the shader.
+
         glm::vec3 aabbMin, aabbMax;
         // Octree children-count is static (=8), so either firstChildIndex or density is occupied
         unsigned int childrenCount; // childrenCount = 0 => leaf node
@@ -69,6 +75,7 @@ namespace csp::atmospheres {
         }
     };
 
+    // Stores all render data and from the Atmosphere shader for easy access in the octree.
     struct CloudRenderSettings {
         float cloudQuality = 1.0f;
         float cloudTypeExponent = 1.0f;
@@ -84,6 +91,8 @@ namespace csp::atmospheres {
         float cloudHFRepetitionScale = 1231.0f;
     };
 
+    // All information required to replicate the Atmosphere shader (i.e, the density function getCloudColor) on the CPU
+    // and to setup the octree in tandem with the GPU.
     struct CloudProperties {
         CloudRenderSettings renderSettings;
         float planetRadius, cloudLayerHeight;
@@ -99,7 +108,7 @@ namespace csp::atmospheres {
         CloudProperties properties;
         std::unique_ptr<TreeNode[]> nodes;
 
-        // Debug
+        // Only for debug mode
         bool debugMode;
         std::unique_ptr<VistaGLSLShader> debugShader;
         std::unique_ptr<VistaBufferObject> vbo, ibo;
@@ -130,13 +139,17 @@ namespace csp::atmospheres {
         }
 
         unsigned int GetUsedNodeCount() const {
-            return usedNodeIndex + 1; // all used node indices
+            return usedNodeIndex + 1; // all used node indices (plus the root node)
         }
 
         float GetMaxBounds() const {
             return glm::length(nodes[ROOT_NODE_INDEX].aabbMax);
         }
     };
+
+    // The following functions attempt to replicate common GLSL functions used in the Atmosphere shader.
+    // This way, we can use the getCloudColor function (which determines the distribution of clouds in the sky) as
+    // a scalar field to sample the bounding boxes of all octree nodes and check if there are clouds inside.
 
     static glm::vec2 RollOverVector(glm::vec2 pos, const glm::uvec2 &dimensions) {
         glm::ivec2 intPart(0);
@@ -445,6 +458,9 @@ namespace csp::atmospheres {
         return acc;
     }
 
+    // The following functions are translations of GPU analogues to find intersections with AABBs, spheres and the octree in general.
+    // Used for testing and debugging purposes.
+
     // Returns x > y if nothing was hit
     static bool IntersectRayCircle(const glm::vec2 &rayOrigin, const glm::vec2 &rayDir, float radius, glm::vec2 &hit) {
         // Good explanation: https://www.scratchapixel.com/lessons/3d-basic-rendering/minimal-ray-tracer-rendering-simple-shapes/ray-sphere-intersection.html
@@ -482,16 +498,6 @@ namespace csp::atmospheres {
         return true;
     }
 
-    static bool IntersectSphereAAPlane(const glm::vec3 &planePos, const glm::ivec2 &planeAxes, float radius, glm::vec2 &angleHit) {
-        glm::vec3 planeAxis1(0.0f);
-        planeAxis1[planeAxes[0]] = 1.0f;
-        
-        glm::vec3 planeAxis2(0.0f);
-        planeAxis2[planeAxes[1]] = 1.0f;
-
-        throw;
-    }
-
     // Source: https://web.archive.org/web/19991129023147/http://www.gamasutra.com/features/19991018/Gomez_4.htm
     bool IntersectAABBSphere(const glm::vec3& aabbMin, const glm::vec3 &aabbMax, float r, glm::vec3 &C) {
         float s, d = 0;
@@ -512,106 +518,83 @@ namespace csp::atmospheres {
 
     // Source: Jim Arvo, in "Graphics Gems", Academic Press, 1990.
     static bool IntersectAABBSphereCases(glm::vec3 aabbMin, glm::vec3 aabbMax, float radius, int mode) {
-    float  a, b;
-    float  dMin, dMax;
-    float  r2 = sqrt(radius);
-    int    i, face;
+        float  a, b;
+        float  dMin, dMax;
+        float  r2 = sqrt(radius);
+        int    i, face;
 
-    switch(mode) {
-        case 0: /* Hollow Box and Hollow Sphere */
-            dMin = 0;
-            dMax = 0;
-            face = false;
-            for (i = 0; i < 3; i++) {
-                a = sqrt(-aabbMin[i] );
-                b = sqrt(-aabbMax[i] );
-                dMax += std::max(a, b);
-                if (aabbMin[i] > 0.0f) {
-                    face = true;
-                    dMin += a;
-                }
-                else if (aabbMax[i] < 0.0f) {
-                    face = true;
-                    dMin += b;
-                }
-                else if (std::min(a, b) <= r2)
-                    face = true;
-                }
-            if (face && (dMin <= r2) && (r2 <= dMax))
-                return true;
-            break;
+        switch(mode) {
+            case 0: /* Hollow Box and Hollow Sphere */
+                dMin = 0;
+                dMax = 0;
+                face = false;
+                for (i = 0; i < 3; i++) {
+                    a = sqrt(-aabbMin[i] );
+                    b = sqrt(-aabbMax[i] );
+                    dMax += std::max(a, b);
+                    if (aabbMin[i] > 0.0f) {
+                        face = true;
+                        dMin += a;
+                    }
+                    else if (aabbMax[i] < 0.0f) {
+                        face = true;
+                        dMin += b;
+                    }
+                    else if (std::min(a, b) <= r2)
+                        face = true;
+                    }
+                if (face && (dMin <= r2) && (r2 <= dMax))
+                    return true;
+                break;
 
-        case 1: /* Hollow Box and Solid Sphere */
-            dMin = 0;
-            face = false;
-            for( i = 0; i < 3; i++ ) {
-                if (aabbMin[i] > 0.0f) {
-                    face = true;
+            case 1: /* Hollow Box and Solid Sphere */
+                dMin = 0;
+                face = false;
+                for( i = 0; i < 3; i++ ) {
+                    if (aabbMin[i] > 0.0f) {
+                        face = true;
+                        dMin += sqrt(-aabbMin[i]);
+                    } else if (aabbMax[i] < 0.0f) {
+                        face = true;
+                        dMin += sqrt(aabbMax[i]);     
+                    } else if (-aabbMax[i] <= radius)
+                        face = true;
+                    else if (aabbMax[i] <= radius)
+                        face = true;
+                    }
+                if (face && (dMin <= r2))
+                    return true;
+                break;
+
+            case 2: /* Solid Box and Hollow Sphere */
+                dMax = 0;
+                dMin = 0;
+                for( i = 0; i < 3; i++ ) {
+                    a = sqrt(-aabbMin[i]);
+                    b = sqrt(-aabbMax[i]);
+                    dMax += std::max(a, b);
+                    if (aabbMax[i] > 0.0f)
+                        dMin += a;
+                    else if (aabbMax[i] < 0.0f)
+                        dMin += b;
+                }
+                if (dMin <= r2 && r2 <= dMax)
+                    return true;
+                break;
+
+            case 3: /* Solid Box and Solid Sphere */
+                dMin = 0;
+                for( i = 0; i < 3; i++ ) {
+                    if (aabbMin[i] > 0.0f)
                     dMin += sqrt(-aabbMin[i]);
-                } else if (aabbMax[i] < 0.0f) {
-                    face = true;
-                    dMin += sqrt(aabbMax[i]);     
-                } else if (-aabbMax[i] <= radius)
-                    face = true;
-                else if (aabbMax[i] <= radius)
-                    face = true;
-                }
-            if (face && (dMin <= r2))
-                return true;
-            break;
-
-        case 2: /* Solid Box and Hollow Sphere */
-            dMax = 0;
-            dMin = 0;
-            for( i = 0; i < 3; i++ ) {
-                a = sqrt(-aabbMin[i]);
-                b = sqrt(-aabbMax[i]);
-                dMax += std::max(a, b);
-                if (aabbMax[i] > 0.0f)
-                    dMin += a;
-                else if (aabbMax[i] < 0.0f)
-                    dMin += b;
-            }
-            if (dMin <= r2 && r2 <= dMax)
-                return true;
-            break;
-
-        case 3: /* Solid Box and Solid Sphere */
-            dMin = 0;
-            for( i = 0; i < 3; i++ ) {
-                if (aabbMin[i] > 0.0f)
-                dMin += sqrt(-aabbMin[i]);
-                else if (aabbMax[i] < 0.0f) dMin += sqrt(-aabbMax[i]);     
-                }
-            if (dMin <= r2)
-                return true;
-            break;
-  
+                    else if (aabbMax[i] < 0.0f) dMin += sqrt(-aabbMax[i]);     
+                    }
+                if (dMin <= r2)
+                    return true;
+                break;
         }
         return false;
-    } 
-
-    // bool IntersectAabbSlab2D(const glm::vec2 &rayOrigin, const glm::vec2 &rayDirNorm, const glm::vec2 &rayDirInvNorm,
-    //     const glm::vec2 &aabbMin, const glm::vec2 &aabbMax, glm::vec2 &tRayEntryExit) {
-    //     float tMin = 0;
-    //     float tMax = std::numeric_limits<float>::max();
-        
-    //     float tx1 = (aabbMin.x - rayOrigin.x) * rayDirInvNorm.x;
-    //     float tx2 = (aabbMax.x - rayOrigin.x) * rayDirInvNorm.x;
-    //     tMin = std::min(tx1, tx2);
-    //     tMax = std::max(tx1, tx2);
-    //     // vstr::debug() << "x: tMin = " << tMin << ", tMax = " << tMax << std::endl;
-
-    //     float ty1 = (aabbMin.y - rayOrigin.y) * rayDirInvNorm.y;
-    //     float ty2 = (aabbMax.y - rayOrigin.y) * rayDirInvNorm.y;
-    //     tMin = std::max(tMin, std::min(ty1, ty2));
-    //     tMax = std::min(tMax, std::max(ty1, ty2));
-    //     // vstr::debug() << "y: tMin = " << tMin << ", tMax = " << tMax << std::endl;
-
-    //     tRayEntryExit.x = std::min(tMin, tMax);
-    //     tRayEntryExit.y = std::max(tMin, tMax);
-    //     return tMax >= std::max(0.0f, tMin);
-    // }
+    }
 
     static bool IntersectAabbSlab(const glm::vec3 &rayOrigin, const glm::vec3 &rayDirNorm, const glm::vec3 &rayDirInvNorm,
         const glm::vec3 &aabbMin, const glm::vec3 &aabbMax, glm::vec2 &tRayEntryExit) {

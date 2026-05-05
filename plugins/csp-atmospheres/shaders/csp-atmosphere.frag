@@ -62,7 +62,7 @@ struct TreeNode {
 // Octree generated on the CPU, stored in a sequential array
 // Theoretically UBOs only need to handle 16384 bytes max (1081 is used node count for depth = 4)
 // buffer keyword: SBBO
-const uint TREE_MAX_NODES = 45000;
+const uint TREE_MAX_NODES = 42000;
 layout(std140, binding = 1) readonly buffer cloudTree {
   TreeNode nodes[TREE_MAX_NODES];
 };
