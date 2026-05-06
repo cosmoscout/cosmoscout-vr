@@ -224,67 +224,6 @@ float sRGBtoLinear(float c) {
   return mix(c / 12.92, pow((c + 0.055) / 1.055, 2.4), bLess);
 }
 
-// -------------------------------------------------------------------------------------------------
-
-bool intersectAabbSlab(vec3 rayOrigin, vec3 rayDirNorm, vec3 rayDirInvNorm, vec3 aabbMin, vec3 aabbMax, out vec2 tRayEntryExit) {  
-    float tMin = 0;
-    float tMax = INFINITY;
-    
-    float tx1 = (aabbMin.x - rayOrigin.x) * rayDirInvNorm.x;
-    float tx2 = (aabbMax.x - rayOrigin.x) * rayDirInvNorm.x;
-    tMin = min(tx1, tx2);
-    tMax = max(tx1, tx2);
-
-    float ty1 = (aabbMin.y - rayOrigin.y) * rayDirInvNorm.y;
-    float ty2 = (aabbMax.y - rayOrigin.y) * rayDirInvNorm.y;
-    tMin = max(tMin, min(ty1, ty2));
-    tMax = min(tMax, max(ty1, ty2));
-
-    float tz1 = (aabbMin.z - rayOrigin.z) * rayDirInvNorm.z;
-    float tz2 = (aabbMax.z - rayOrigin.z) * rayDirInvNorm.z;
-    tMin = max(tMin, min(tz1, tz2));
-    tMax = min(tMax, max(tz1, tz2));
-
-    tRayEntryExit.x = min(tMin, tMax);
-    tRayEntryExit.y = max(tMin, tMax);
-    return tMax >= max(0.0f, tMin);
-}
-
-bool isTreeNodeLeaf(uint treeNodeIndex) {
-  return nodes[treeNodeIndex].childrenCount == 0;
-}
-
-bool treeRaycast(vec3 rayOrigin, vec3 rayDir, out vec2 tRayEntryExit) {
-    vec3 rayDirNorm = rayDir / length(rayDir);
-    vec3 rayDirInvNorm = 1.0f / rayDirNorm;
-
-    uint treeNodeIndex = 0;
-    uint totalNodeCount = nodes[0].childrenCount + 1; // Root node plus its number of child nodes
-    tRayEntryExit = vec2(INFINITY, 0);
-    vec2 hitInterval = vec2(0);
-    while (treeNodeIndex < totalNodeCount) {
-        TreeNode node = nodes[treeNodeIndex];
-
-        // 5 conditions involved in a raycast hitting a node:
-        bool intersectNode = intersectAabbSlab(rayOrigin, rayDirNorm, rayDirInvNorm, node.aabbMin, node.aabbMax, hitInterval);
-        bool isLeaf = isTreeNodeLeaf(treeNodeIndex);
-        bool criticalDensity = node.density > 0.0f;
-        bool hitCorner = hitInterval.y - hitInterval.x < 1e-4; // Edge case: If hit interval has length zero, ignore
-        bool closestBox = hitInterval.x < tRayEntryExit.x;
-
-        if (intersectNode && isLeaf && criticalDensity && !hitCorner && closestBox) {
-          tRayEntryExit = hitInterval;
-        }
-
-        if ((isLeaf || criticalDensity) && intersectNode || (isLeaf && !intersectNode)) {
-            treeNodeIndex += 1;
-        } else {
-            treeNodeIndex += node.childrenCount; // Jump over all children
-        }
-    }
-
-    return tRayEntryExit.y >= tRayEntryExit.x;
-}
 
 // Compute intersections of a ray with a sphere. Two T parameters are returned -- if no intersection
 // is found, the first will be larger than the second. The T parameters can be negative. In this
@@ -552,6 +491,68 @@ uniform float uCloudHFRepetitionScale = 1190;
 float MIN_REMAINING_TRANSMITTANCE = 0.01;//0.001;
 uniform int TRANSMITTANCE_INTERPOLATION_STRIDE = 1;
 
+// -------------------------------------------------------------------------------------------------
+
+bool intersectAabbSlab(vec3 rayOrigin, vec3 rayDirNorm, vec3 rayDirInvNorm, vec3 aabbMin, vec3 aabbMax, out vec2 tRayEntryExit) {  
+    float tMin = 0;
+    float tMax = INFINITY;
+    
+    float tx1 = (aabbMin.x - rayOrigin.x) * rayDirInvNorm.x;
+    float tx2 = (aabbMax.x - rayOrigin.x) * rayDirInvNorm.x;
+    tMin = min(tx1, tx2);
+    tMax = max(tx1, tx2);
+
+    float ty1 = (aabbMin.y - rayOrigin.y) * rayDirInvNorm.y;
+    float ty2 = (aabbMax.y - rayOrigin.y) * rayDirInvNorm.y;
+    tMin = max(tMin, min(ty1, ty2));
+    tMax = min(tMax, max(ty1, ty2));
+
+    float tz1 = (aabbMin.z - rayOrigin.z) * rayDirInvNorm.z;
+    float tz2 = (aabbMax.z - rayOrigin.z) * rayDirInvNorm.z;
+    tMin = max(tMin, min(tz1, tz2));
+    tMax = min(tMax, max(tz1, tz2));
+
+    tRayEntryExit.x = min(tMin, tMax);
+    tRayEntryExit.y = max(tMin, tMax);
+    return tMax >= max(0.0f, tMin);
+}
+
+bool isTreeNodeLeaf(uint treeNodeIndex) {
+  return nodes[treeNodeIndex].childrenCount == 0;
+}
+
+bool treeRaycast(vec3 rayOrigin, vec3 rayDir, out vec2 tRayEntryExit) {
+    vec3 rayDirNorm = rayDir / length(rayDir);
+    vec3 rayDirInvNorm = 1.0f / rayDirNorm;
+
+    uint treeNodeIndex = 0;
+    uint totalNodeCount = nodes[0].childrenCount + 1; // Root node plus its number of child nodes
+    tRayEntryExit = vec2(INFINITY, 0);
+    vec2 hitInterval = vec2(0);
+    while (treeNodeIndex < totalNodeCount) {
+        TreeNode node = nodes[treeNodeIndex];
+
+        // 5 conditions involved in a raycast hitting a node:
+        bool intersectNode = intersectAabbSlab(rayOrigin, rayDirNorm, rayDirInvNorm, node.aabbMin, node.aabbMax, hitInterval);
+        bool isLeaf = isTreeNodeLeaf(treeNodeIndex);
+        bool criticalDensity = node.density > uCloudCutoff;
+        bool hitCorner = (hitInterval.y - hitInterval.x) < 1e-4; // Edge case: If hit interval has length zero, ignore
+        bool closestBox = hitInterval.x <= tRayEntryExit.x;
+
+        if (intersectNode && isLeaf && criticalDensity && !hitCorner && closestBox) {
+          tRayEntryExit = hitInterval;
+        }
+
+        if ((isLeaf || criticalDensity) && intersectNode || (isLeaf && !intersectNode)) {
+          treeNodeIndex += 1;
+        } else {
+          treeNodeIndex += node.childrenCount; // Jump over all children
+        }
+    }
+
+    return tRayEntryExit.y >= tRayEntryExit.x;
+}
+
 // get the cloud type at these texture coordinates
 // adds high frequency noises to the values from the cloud texture to replace coarse
 // bilinear interpolation artifacts with smaller artifacts that are harder to notice
@@ -644,7 +645,7 @@ vec2 getCumuloNimbusDensity(vec3 position, vec3 cam_pos, bool high_res = true){
   float height_factor = exp(-h / 8000);
   // uCloudCutoff determines the minimum density of a cloud. If < cutoff, density is set to zero,
   // hence uCloudCutoff sets the boundaries of the clouds.
-  // cloudConfig.a = cloudBase (The higher the cloud, the thinner it becomes.
+  // cloudConfig.a = cloudBase (The higher the cloud, the thinner it becomes).
   return vec2(cloudDensity > uCloudCutoff ? height_factor * cloudConfig.a : 0, cloudDensity);
 }
 

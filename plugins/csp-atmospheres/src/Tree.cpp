@@ -55,11 +55,11 @@ namespace csp::atmospheres {
 
         auto &node = nodes[index];
 
-        const float DENSITY_SAMPLING_DECREASE_EXP = 1.0f;
+        const float DENSITY_SAMPLING_DECREASE_EXP = 1.3f;
         float totalDensity = GetTotalDensity(index, depth, (unsigned int)((float)BASE_DENSITY_SAMPLES / pow(depth + 1, DENSITY_SAMPLING_DECREASE_EXP)));
 
         // TEMP: fix shallow subdivision by forcing octree to divide if depth <= maxDepth / 2
-        if (totalDensity < MIN_DENSITY_CUTOFF) {
+        if (totalDensity <= MIN_DENSITY_CUTOFF) {
 #ifdef TREE_DEBUG_MODE
             if (debugMode)
                 vstr::debug() << "zero density. STOP" << std::endl;
@@ -172,11 +172,10 @@ namespace csp::atmospheres {
         //     }
         // }
         static glm::vec3 origin(0.0f);
-        bool intersectOuterCloudLayer = IntersectAABBSphere(node.aabbMin, node.aabbMax, properties.planetRadius + CUMULONIMBUS_START_HEIGHT, origin);
-        bool intersectInnerCloudLayer = IntersectAABBSphere(node.aabbMin, node.aabbMax, properties.planetRadius + CUMULONIMBUS_END_HEIGHT, origin);
-        if (!intersectInnerCloudLayer && !intersectOuterCloudLayer) {
-            // if (depth <= 3)
-            //     vstr::debug() << "Nodes[" << index << "] at depth " << depth << " not intersecting cloud layer: aborting." << std::endl;
+        bool intersectInnerCloudLayerH = IntersectHollowAABBSphere(node.aabbMin, node.aabbMax, properties.planetRadius + CUMULONIMBUS_START_HEIGHT, origin);
+        bool intersectOuterCloudLayerS = IntersectSolidAABBSphere(node.aabbMin, node.aabbMax, properties.planetRadius + CUMULONIMBUS_END_HEIGHT, origin);
+        bool intersectOutCloudLayerH = IntersectSolidAABBSphere(node.aabbMin, node.aabbMax, properties.planetRadius + CUMULONIMBUS_END_HEIGHT, origin);
+        if ((!intersectInnerCloudLayerH && !intersectOuterCloudLayerS) || (!intersectInnerCloudLayerH && !intersectOutCloudLayerH)) {
             return 0.0f;
         }
 
@@ -197,39 +196,41 @@ namespace csp::atmospheres {
             glm::vec3 randomPos(distr(gen), distr(gen), distr(gen));
             glm::vec3 samplePos = node.aabbMin + extends * randomPos;
 
-            totalDensity += GetDensity(samplePos);
+            float density = GetDensity(samplePos);
+            // When leaf node is reached, introduce hard check for minimum cloud density to actually filter where clouds are.
+            if (depth == maxDepth && density < MIN_DENSITY_CUTOFF)
+                continue;
+
+            // if (depth == maxDepth && density > 1e-6) {
+            //     glm::vec3 sphericalPos = GetSphericalCoordsFull(samplePos);
+            //     sphericalPos.z -= properties.planetRadius + CUMULONIMBUS_START_HEIGHT;
+            //     vstr::debug() << "sample = " << density << " at " << glm::to_string(sphericalPos) << std::endl;
+            // }
+
+            totalDensity += density;
             if (totalDensity >= MIN_DENSITY_CUTOFF) {
                 // vstr::debug() << "Sampled " << totalDensity << " at index " << index << ", depth = " << depth << std::endl;
-                break;
+                return totalDensity;
             }
         }
 
-        // Sample in an evenly spaced grid throughout AABB
+        // Sample in an evenly spaced grid throughout the AABB
         // float totalDensity = 0.0f;
-        // glm::vec3 samplePos(0.0f);
-        // glm::vec3 nodeAabbDimensions(extends.x, extends.y, extends.z);
-        // glm::uvec3 samplesPerAxis = glm::uvec3(totalSamples);
-        
-        // // Amount of times a minimum critical density has been sampled (unused so far)
-        // unsigned int criticalDensitySamples = 0;
+        // glm::vec3 gridPos(0.0f);
+        // glm::uvec3 dimensions(totalSamples);
+        // unsigned int dimLength = (unsigned int)pow(totalSamples, 3);
+        // // vstr::debug() << "Sampling density of nodes[" << index << "]" << std::endl;
+        // for (unsigned int i = 0; i < dimLength; i++) {
+        //     gridPos = Get3DPosFromIndex(i, dimensions);
+        //     gridPos += 1;
+        //     gridPos /= dimensions;
+        //     // vstr::debug() << "Grid pos = " << glm::to_string(gridPos) << std::endl;
 
-        // for (size_t i = 0; i < samplesPerAxis.x * samplesPerAxis.y * samplesPerAxis.z; i++) {
-        //     samplePos.x = float(i % samplesPerAxis.x);
-        //     samplePos.y = float(int(i / samplesPerAxis.x) % samplesPerAxis.y);
-        //     samplePos.z = float(i / (samplesPerAxis.x * samplesPerAxis.y));
-
-        //     vstr::debug() << "Sample pos = " << glm::to_string(samplePos);
-        //     samplePos /= samplesPerAxis;
-        //     vstr::debug() << ", in bounds = " << glm::to_string(samplePos) << std::endl;
-
-        //     float sampledDensity = GetDensity(node.aabbMin + extends * samplePos);
-        //     if (sampledDensity >= MIN_DENSITY_CUTOFF) {
-        //         criticalDensitySamples++;
-        //         break;
-        //     }
+        //     glm::vec3 samplePos = node.aabbMin + extends * samplePos;
+        //     totalDensity += GetDensity(samplePos);
         // }
-        
-        return totalDensity;
+
+        return 0.0f;
     }
 
     const char *TREE_DEBUG_VERT_SHADER = R"(#version 400
@@ -274,7 +275,7 @@ namespace csp::atmospheres {
 
         void main() {
             if (density > 1e-6) {
-                float densityScale = remap(density, 1e-6, 1.2, 1e-6, 1);
+                float densityScale = remap(density, 0.2, 0.5, 0, 1);
                 color = vec4(0, 1, densityScale, 1);
             } else {
                 color = vec4(1, 0.2, 0, 1);

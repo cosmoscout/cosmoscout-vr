@@ -782,27 +782,40 @@ void Atmosphere::BuildOctree() {
 
   // TODO: Calculate precise octree boundaries to exactly fit the outer cloud layer
   // (take care of potential edge cases with intersection algorithms).
-  mCloudTree = std::make_unique<Tree>(minBounds, maxBounds, 6, std::move(properties), true);
+  mCloudTree = std::make_unique<Tree>(minBounds, maxBounds, 5, std::move(properties), true);
   mCloudTree->Build();
   mCloudTree->SetupDebug();
   vstr::debug() << "Built octree with size " << mCloudTree->GetUsedNodeCount() << "." << std::endl;
 
-  float totalDensity = 0.0f;
-  float maxDensity, minDensity;
-  unsigned int usedNodeCount = mCloudTree->GetUsedNodeCount();
-  unsigned int criticalDensityNodeCount = 0;
-  for (size_t i = 0; i < usedNodeCount; i++) {
-    float density = mCloudTree->GetNodes()[i].density;
-    if (density >= MIN_DENSITY_CUTOFF) {
-      maxDensity = std::max(maxDensity, density);
-      minDensity = std::min(minDensity, density);
+  // vstr::debug() << "Sampling latitude along the equator." << std::endl;
+  // glm::vec3 samplePos(0.0f);
+  // const unsigned int totalSamples = 1000;
+  // for (unsigned int i = 0; i < totalSamples; i++) {
+  //   float coeff = (float)i / totalSamples;
+  //   float lat = PI * 0.25f * coeff;
+  //   glm::vec3 sphericalPos = glm::vec3(PI * 0.5f, lat, mPlanetRadius + (CUMULONIMBUS_END_HEIGHT - CUMULONIMBUS_START_HEIGHT) * 0.2f);
+    
+  //   samplePos = GetCartesianCoords(sphericalPos);
+  //   float density = mCloudTree->GetDensity(samplePos);
+  //   vstr::debug() << "Sample at lat " << lat << " = " << density << std::endl;
+  // }
 
-      totalDensity += density;
-      criticalDensityNodeCount++;
-    }
-  }
-  vstr::debug() << "Average density of (critically dense) nodes = " << (totalDensity / criticalDensityNodeCount)
-    << ", min = " << minDensity << ", max = " << maxDensity << std::endl;
+  // float totalDensity = 0.0f;
+  // float maxDensity, minDensity;
+  // unsigned int usedNodeCount = mCloudTree->GetUsedNodeCount();
+  // unsigned int criticalDensityNodeCount = 0;
+  // for (size_t i = 0; i < usedNodeCount; i++) {
+  //   float density = mCloudTree->GetNodes()[i].density;
+  //   if (density >= MIN_DENSITY_CUTOFF) {
+  //     maxDensity = std::max(maxDensity, density);
+  //     minDensity = std::min(minDensity, density);
+
+  //     totalDensity += density;
+  //     criticalDensityNodeCount++;
+  //   }
+  // }
+  // vstr::debug() << "Average density of (critically dense) nodes = " << (totalDensity / criticalDensityNodeCount)
+  //   << ", min = " << minDensity << ", max = " << maxDensity << std::endl;
 
   // glm::vec3 rayOrigin(maxBounds + cloudLayerSize);
   // rayOrigin *= 1.05f;

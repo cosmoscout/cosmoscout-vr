@@ -32,11 +32,11 @@
 #include <limits>
 
 namespace csp::atmospheres {
-    const float MIN_DENSITY_CUTOFF = 1.0f;
+    const float MIN_DENSITY_CUTOFF = 0.2f;
     const unsigned int ROOT_NODE_INDEX = 0;
-    const unsigned int BASE_DENSITY_SAMPLES = 1000000;
+    const unsigned int BASE_DENSITY_SAMPLES = 2500000;
 
-    // Wireframe nodes used in debug mode: local coordinates not exactly at 0/ 1 to introduce a small padding at the edgtes.
+    // Wireframe nodes used in debug mode: local coordinates not exactly at 0/ 1 to introduce a small padding at the edges.
     const std::array BOX_VERTS = {
         /*0*/ 0.001F, 0.001F, 0.001F, /*1*/ 0.001F, 0.001F, 0.999F, /*2*/ 0.001F, 0.999F, 0.001F, /*3*/ 0.001F, 0.999F, 0.999F,
         /*4*/ 0.999F, 0.001F, 0.001F, /*5*/ 0.999F, 0.001F, 0.999F, /*6*/ 0.999F, 0.999F, 0.001F, /*7*/ 0.999F, 0.999F, 0.999F
@@ -103,7 +103,7 @@ namespace csp::atmospheres {
     };
 
     class Tree {
-    private:
+    public:
         unsigned int maxDepth, maxNodeCount, usedNodeIndex;
         CloudProperties properties;
         std::unique_ptr<TreeNode[]> nodes;
@@ -114,14 +114,15 @@ namespace csp::atmospheres {
         std::unique_ptr<VistaBufferObject> vbo, ibo;
         std::unique_ptr<VistaVertexArrayObject> vao;
 
-        // Calculates cloud density at the given index.
+        // Samples cloud density at the given position in euclidian space
         float GetDensity(glm::vec3 pos);
-        // Calculates average density throughout the node (basically the cost function for decision to subdivide).
+        // GetTotalDensity acts as a cost function/ heuristic on the subdivision process of nodes:
+        // Calculates density throughout the node. If density is above cutoff, subdivide into 8 child nodes.
         float GetTotalDensity(unsigned int index, unsigned int depth, unsigned int totalSamples);
+        // Checks both decision to subdivide the node at nodes[index] and subsequently calculates new child node bounds and subdivides recursively.
         unsigned int Subdivide(unsigned int index, unsigned int depth);
-        void UpdateBounds(unsigned int index, unsigned int relChildIndex);
 
-    public:
+    // public:
         Tree(glm::vec3 totalBoundsMin, glm::vec3 totalBoundsMax, unsigned int maxDepth, CloudProperties properties, bool debug);
         void Build();
 
@@ -498,103 +499,126 @@ namespace csp::atmospheres {
         return true;
     }
 
+    // AABB and sphere solid (one containing the other registers a hit)
     // Source: https://web.archive.org/web/19991129023147/http://www.gamasutra.com/features/19991018/Gomez_4.htm
-    bool IntersectAABBSphere(const glm::vec3& aabbMin, const glm::vec3 &aabbMax, float r, glm::vec3 &C) {
+    static bool IntersectSolidAABBSphere(const glm::vec3& aabbMin, const glm::vec3 &aabbMax, float r, glm::vec3 &C) {
         float s, d = 0;
         // Find the square of the distance from the sphere to the box
         for (int i = 0 ; i < 3 ; i++) {
             if (C[i] < aabbMin[i]) {
                 s = C[i] - aabbMin[i];
-                d += s*s;
-            }
-
-            else if (C[i] > aabbMax[i]) {
+                d += s * s;
+            } else if (C[i] > aabbMax[i]) {
                 s = C[i] - aabbMax[i];
-                d += s*s;
+                d += s * s;
             }
         }
-        return d <= r*r;
+        return d <= r * r;
     }
 
-    // Source: Jim Arvo, in "Graphics Gems", Academic Press, 1990.
-    static bool IntersectAABBSphereCases(glm::vec3 aabbMin, glm::vec3 aabbMax, float radius, int mode) {
-        float  a, b;
-        float  dMin, dMax;
-        float  r2 = sqrt(radius);
-        int    i, face;
+    // AABB and sphere hollow (either containing the other not registered)
+    // Source: https://github.com/erich666/GraphicsGems/blob/master/gems/BoxSphere.c
+    static bool IntersectHollowAABBSphere(const glm::vec3 &aabbMin, const glm::vec3 &aabbMax, float radius, const glm::vec3 &C) {
+        float dMin, dMax = 0;
+        bool face = false;
+        float r2 = sqrt(radius);
+        for (int i = 0; i < 3; i++) {
+            float a = sqrt(-aabbMin[i]);
+            float b = sqrt(-aabbMax[i]);
+            dMax += std::max(a, b);
 
-        switch(mode) {
-            case 0: /* Hollow Box and Hollow Sphere */
-                dMin = 0;
-                dMax = 0;
-                face = false;
-                for (i = 0; i < 3; i++) {
-                    a = sqrt(-aabbMin[i] );
-                    b = sqrt(-aabbMax[i] );
-                    dMax += std::max(a, b);
-                    if (aabbMin[i] > 0.0f) {
-                        face = true;
-                        dMin += a;
-                    }
-                    else if (aabbMax[i] < 0.0f) {
-                        face = true;
-                        dMin += b;
-                    }
-                    else if (std::min(a, b) <= r2)
-                        face = true;
-                    }
-                if (face && (dMin <= r2) && (r2 <= dMax))
-                    return true;
-                break;
-
-            case 1: /* Hollow Box and Solid Sphere */
-                dMin = 0;
-                face = false;
-                for( i = 0; i < 3; i++ ) {
-                    if (aabbMin[i] > 0.0f) {
-                        face = true;
-                        dMin += sqrt(-aabbMin[i]);
-                    } else if (aabbMax[i] < 0.0f) {
-                        face = true;
-                        dMin += sqrt(aabbMax[i]);     
-                    } else if (-aabbMax[i] <= radius)
-                        face = true;
-                    else if (aabbMax[i] <= radius)
-                        face = true;
-                    }
-                if (face && (dMin <= r2))
-                    return true;
-                break;
-
-            case 2: /* Solid Box and Hollow Sphere */
-                dMax = 0;
-                dMin = 0;
-                for( i = 0; i < 3; i++ ) {
-                    a = sqrt(-aabbMin[i]);
-                    b = sqrt(-aabbMax[i]);
-                    dMax += std::max(a, b);
-                    if (aabbMax[i] > 0.0f)
-                        dMin += a;
-                    else if (aabbMax[i] < 0.0f)
-                        dMin += b;
-                }
-                if (dMin <= r2 && r2 <= dMax)
-                    return true;
-                break;
-
-            case 3: /* Solid Box and Solid Sphere */
-                dMin = 0;
-                for( i = 0; i < 3; i++ ) {
-                    if (aabbMin[i] > 0.0f)
-                    dMin += sqrt(-aabbMin[i]);
-                    else if (aabbMax[i] < 0.0f) dMin += sqrt(-aabbMax[i]);     
-                    }
-                if (dMin <= r2)
-                    return true;
-                break;
+            if (aabbMin[i] > 0.0f) {
+                face = true;
+                dMin += a;
+            } else if (aabbMax[i] < 0.0f) {
+                face = true;
+                dMin += b;
+            } else if (std::min(a, b) <= r2)
+                face = true;
         }
-        return false;
+        return face && (dMin <= r2) && (r2 <= dMax);
     }
+
+    // // Source: Jim Arvo, in "Graphics Gems", Academic Press, 1990.
+    // static bool IntersectAABBSphereCases(glm::vec3 aabbMin, glm::vec3 aabbMax, float radius, int mode) {
+    //     float  a, b;
+    //     float  dMin, dMax;
+    //     float  r2 = sqrt(radius);
+    //     int    i, face;
+
+    //     switch(mode) {
+    //         case 0: /* Hollow Box and Hollow Sphere */
+    //             dMin = 0;
+    //             dMax = 0;
+    //             face = false;
+    //             for (i = 0; i < 3; i++) {
+    //                 a = sqrt(-aabbMin[i]);
+    //                 b = sqrt(-aabbMax[i]);
+    //                 dMax += std::max(a, b);
+    //                 if (aabbMin[i] > 0.0f) {
+    //                     face = true;
+    //                     dMin += a;
+    //                 }
+    //                 else if (aabbMax[i] < 0.0f) {
+    //                     face = true;
+    //                     dMin += b;
+    //                 }
+    //                 else if (std::min(a, b) <= r2)
+    //                     face = true;
+    //                 }
+    //             if (face && (dMin <= r2) && (r2 <= dMax))
+    //                 return true;
+    //             break;
+
+    //         case 1: /* Hollow Box and Solid Sphere */
+    //             dMin = 0;
+    //             face = false;
+    //             for( i = 0; i < 3; i++ ) {
+    //                 if (aabbMin[i] > 0.0f) {
+    //                     face = true;
+    //                     dMin += sqrt(-aabbMin[i]);
+    //                 } else if (aabbMax[i] < 0.0f) {
+    //                     face = true;
+    //                     dMin += sqrt(aabbMax[i]);     
+    //                 } else if (-aabbMax[i] <= radius)
+    //                     face = true;
+    //                 else if (aabbMax[i] <= radius)
+    //                     face = true;
+    //                 }
+    //             if (face && (dMin <= r2))
+    //                 return true;
+    //             break;
+
+    //         case 2: /* Solid Box and Hollow Sphere */
+    //             dMax = 0;
+    //             dMin = 0;
+    //             for( i = 0; i < 3; i++ ) {
+    //                 a = sqrt(-aabbMin[i]);
+    //                 b = sqrt(-aabbMax[i]);
+    //                 dMax += std::max(a, b);
+    //                 if (aabbMax[i] > 0.0f)
+    //                     dMin += a;
+    //                 else if (aabbMax[i] < 0.0f)
+    //                     dMin += b;
+    //             }
+    //             if (dMin <= r2 && r2 <= dMax)
+    //                 return true;
+    //             break;
+
+    //         case 3: /* Solid Box and Solid Sphere */
+    //             dMin = 0;
+    //             for(i = 0; i < 3; i++) {
+    //                 if (aabbMin[i] > 0.0f)
+    //                     dMin += sqrt(-aabbMin[i]);
+    //                 else if (aabbMax[i] < 0.0f)
+    //                     dMin += sqrt(-aabbMax[i]);
+    //             }
+    //             if (dMin <= r2)
+    //                 return true;
+    //             break;
+    //     }
+    //     return false;
+    // }
 
     static bool IntersectAabbSlab(const glm::vec3 &rayOrigin, const glm::vec3 &rayDirNorm, const glm::vec3 &rayDirInvNorm,
         const glm::vec3 &aabbMin, const glm::vec3 &aabbMax, glm::vec2 &tRayEntryExit) {
@@ -639,20 +663,19 @@ namespace csp::atmospheres {
 
             bool hitNode = IntersectAabbSlab(rayOrigin, rayDirNorm, rayDirInvNorm, node.aabbMin, node.aabbMax, hitInterval);
             bool isLeaf = node.IsLeaf();
-            bool criticalDensity = node.density > 0.0f;
+            bool criticalDensity = node.density > MIN_DENSITY_CUTOFF;
             bool hitCorner = hitInterval.y - hitInterval.x < 1e-4;
 
             // if (hitNode)
             //     vstr::debug() << "nodes[" << treeNodeIndex << "] ";
             // vstr::debug() << "Nodes[" << treeNodeIndex << "] " << (hitNode ? "hit" : "missed") << ". leaf = " << (isLeaf ? "yes" : "no") << ", density = " << node.density << ".";
             if (hitNode && isLeaf && criticalDensity && !hitCorner) {
-                // TODO: Check if hitInterval has length zero => ray hit a node corner (ignore?)
                 if (hitInterval.x < tRayEntryExit.x) { // Is this node closer to the ray origin?
                     tRayEntryExit = hitInterval;
                     vstr::debug() << "Hit leaf node with density at "
-                    << "entry = " << glm::to_string((rayOrigin + rayDirNorm * hitInterval.x) / 10000.0f)
-                    << ", exit = " << glm::to_string((rayOrigin + rayDirNorm * hitInterval.y) / 10000.0f) << std::endl;
-                    // vstr::debug() << "Node bounds min = " << glm::to_string(node.aabbMin / 10000.0f) << ", max = " << glm::to_string(node.aabbMax / 10000.0f) << std::endl;
+                        << "entry = " << glm::to_string((rayOrigin + rayDirNorm * hitInterval.x) / 10000.0f)
+                        << ", exit = " << glm::to_string((rayOrigin + rayDirNorm * hitInterval.y) / 10000.0f) << std::endl;
+                        // vstr::debug() << "Node bounds min = " << glm::to_string(node.aabbMin / 10000.0f) << ", max = " << glm::to_string(node.aabbMax / 10000.0f) << std::endl;
                 }
             }
 
