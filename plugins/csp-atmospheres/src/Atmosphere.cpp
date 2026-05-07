@@ -782,7 +782,8 @@ void Atmosphere::BuildOctree() {
 
   // TODO: Calculate precise octree boundaries to exactly fit the outer cloud layer
   // (take care of potential edge cases with intersection algorithms).
-  mCloudTree = std::make_unique<Tree>(minBounds, maxBounds, 5, std::move(properties), true);
+  // Default depth = 5
+  mCloudTree = std::make_unique<Tree>(minBounds, maxBounds, 3, std::move(properties), true);
   mCloudTree->Build();
   mCloudTree->SetupDebug();
   vstr::debug() << "Built octree with size " << mCloudTree->GetUsedNodeCount() << "." << std::endl;

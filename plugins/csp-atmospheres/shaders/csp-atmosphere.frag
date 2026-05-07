@@ -573,7 +573,6 @@ vec4 GetLocalCloudType(vec2 texCoords){
 vec4 GetVerticalProfile(vec3 position){
   vec2 lngLat = getLngLat(position);
   vec2 texCoords = vec2(lngLat.x / (2 * PI) + 0.5, 1.0 - lngLat.y / PI + 0.5);
-  // uCloudTexture = earth-clouds.jpg (black and white)
   float density = remap(textureLod(uCloudTexture, texCoords, 2).r, 0, CLOUD_COVER_MAX, 0, 1);
   vec4 hcomp_with_noise = GetLocalCloudType(texCoords);
   float cloudType = hcomp_with_noise.r;
@@ -588,20 +587,12 @@ vec4 GetVerticalProfile(vec3 position){
 }
 
 // get the density of clouds at a position in 3d space
-
-// What exactly is calculated here?
-// First component is visual density (cut off at the minimum uCloudCutoff)
-// Second component is actual density without cutoff
-// HINT: Cloud density has a huge effect on performance (via uCloudCutoff and also uCloudDensityMulitplier in raymarchInterval())
-// as it directly controls visibility, and hence the amount of raymarch samples computed.
 vec2 getCumuloNimbusDensity(vec3 position, vec3 cam_pos, bool high_res = true){
   vec4 cloudConfig = GetVerticalProfile(position);
   float cloudBase = cloudConfig.r;
   float erosionStrength = cloudConfig.g;
   float hfStrength = cloudConfig.b;
   float cameraDist = length(cam_pos - position);
-  // noiseTexture2D accessed in spherical coordinates
-  // getLngLat = spherical coords
   vec4 noise2Dl = textureLod(uNoiseTexture2D, getLngLat(position) * 1, 0);
   vec4 noise2D = textureLod(uNoiseTexture2D, getLngLat(position) * 5, 0);
 
@@ -618,9 +609,9 @@ vec2 getCumuloNimbusDensity(vec3 position, vec3 cam_pos, bool high_res = true){
     // when camDist is in the fade out range, the noise is mixed with 0.5
     blended_lf_noise = mix(blended_lf_noise, .5, remap(cameraDist, LF_FADE_DISTANCE, LF_END_DISTANCE, 0, 1)) * .5 + .5 * noise2D.r;
     // using the formula from Andrew Schneider's SIGGRAPH presentations on Nubis
-    cloudDensity = clamp(lfInfluence * blended_lf_noise - (lfInfluence - cloudDensity), 0, 1); // clamp(x, 0, 1) = saturate(x) (slide 34/207)
+    cloudDensity = clamp(lfInfluence * blended_lf_noise - (lfInfluence - cloudDensity), 0, 1);
     
-    if(high_res && cameraDist < HF_END_DISTANCE) {
+    if(high_res && cameraDist < HF_END_DISTANCE){
       vec4 hf_noises = textureLod(uNoiseTexture, position / uCloudHFRepetitionScale, 0);
       float hr_worley_noise = (1 - hf_noises.b) * .5 + lfNoises.r * .5;
       float hr_whispy_noise = hf_noises.b * .3 + lfNoises.g * .7;
@@ -643,9 +634,6 @@ vec2 getCumuloNimbusDensity(vec3 position, vec3 cam_pos, bool high_res = true){
 
   float h = length(position) - PLANET_RADIUS;
   float height_factor = exp(-h / 8000);
-  // uCloudCutoff determines the minimum density of a cloud. If < cutoff, density is set to zero,
-  // hence uCloudCutoff sets the boundaries of the clouds.
-  // cloudConfig.a = cloudBase (The higher the cloud, the thinner it becomes).
   return vec2(cloudDensity > uCloudCutoff ? height_factor * cloudConfig.a : 0, cloudDensity);
 }
 
@@ -728,24 +716,20 @@ float henyeyGreenstein(vec3 r1, vec3 r2, float g){
 
 int MAX_TRANSMITTANCE_SAMPLES = 10;
 
-float raymarchTransmittance(vec3 rayOrigin, vec3 rayDir, vec2 interval, vec3 cam_pos, int samples, float ray_origin_density, bool jitter=true) {
-  if(interval.y < 0){ // Is intersection with cloud layer behind the camera?
+// ray marching the transmittance through the cloud field. No adaptive step size used here
+float raymarchTransmittance(vec3 rayOrigin, vec3 rayDir, vec2 interval, vec3 cam_pos, int samples, float ray_origin_density, bool jitter=true){
+  if(interval.y < 0){ // Does cloud layer intersect ray behind the camera?
     return 1.;
   }
-
   float t_last = interval.x;
   float path_transmittance = 1;
   float MAXIMUM_DIST_BETWEEN_SAMPLES = 1000;
   float interval_length = interval.y - interval.x;
 
-  float densityCoeff = BASE_DENSITY * uCloudDensityMultiplier * (1+uCloudAbsorption);
-  float last_extinction = ray_origin_density * densityCoeff;
+  float last_extinction = ray_origin_density * BASE_DENSITY * uCloudDensityMultiplier * (1+uCloudAbsorption);
   vec3 position = rayOrigin;
-  int maxSamples = min(int(float(samples) * CLOUD_QUALITY), MAX_TRANSMITTANCE_SAMPLES);
-  for(int i = 1; i <= maxSamples; ++i){
-    // float dist_to_cam = length(rayOrigin - cam_pos);
-
-    // What is jitter doing?
+  for(int i = 1; i <= samples * CLOUD_QUALITY; ++i){
+    float dist_to_cam = length(rayOrigin - cam_pos);
     float jitter_value = SAMPLE_JITTER && jitter ? (hash33(position).x - .5) * JITTER_INTENSITY : 0;
     // reduce jitter on extremely long paths to avoid transmittance turning into pure noise. Introduces some banding
     jitter_value = remap(interval_length, 0, 500000, jitter_value, 0);
@@ -758,23 +742,22 @@ float raymarchTransmittance(vec3 rayOrigin, vec3 rayDir, vec2 interval, vec3 cam
     float dist = t_now - t_last;
     position = rayOrigin + rayDir * t_now;
 
-    // TODO: Implement octree raycast
     if(!CumuloNimbusGuaranteedFree(position)){
       // Calculate density at 3D point in cloud layer
       // (cam_pos needed to calculate observer distance when applying texture LOD, improves performance)
       float local_density = getCloudDensity(position, cam_pos, false).x;
 
       // Scatter = (sort of like) reflection of light at point (In-scatter => reflection toward point)
-      float extinction = local_density * densityCoeff;
+      float scatter_coefficient = local_density * BASE_DENSITY * uCloudDensityMultiplier;
+      float extinction = scatter_coefficient * (1+uCloudAbsorption);
       float clamped_dist = clamp(dist, 0, MAXIMUM_DIST_BETWEEN_SAMPLES);
-
       // exp(tau(r_i, r_i+1)), r_i, r_i+1 segment start/end along ray from sun to step pos.
       float extinction_along_segment = exp(-(extinction + last_extinction) * .5 * clamped_dist);
+
       path_transmittance *= extinction_along_segment;
       last_extinction = extinction;
     }
   }
-
   return path_transmittance;
 }
 
