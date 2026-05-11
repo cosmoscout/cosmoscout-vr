@@ -34,7 +34,7 @@
 namespace csp::atmospheres {
     const float MIN_DENSITY_CUTOFF = 0.2f;
     const unsigned int ROOT_NODE_INDEX = 0;
-    const unsigned int BASE_DENSITY_SAMPLES = 100000; // 2500000;
+    const unsigned int BASE_DENSITY_SAMPLES = 1500000; // 2500000;
 
     // Wireframe nodes used in debug mode: local coordinates not exactly at 0/ 1 to introduce a small padding at the edges.
     const std::array BOX_VERTS = {

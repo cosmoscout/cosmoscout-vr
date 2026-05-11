@@ -36,7 +36,7 @@
       CosmoScout.gui.initSlider("atmosphere.setCloudLFRepetitionScale", 100, 50000, 10, [5000]);
       CosmoScout.gui.initSlider("atmosphere.setCloudHFRepetitionScale", 100, 20000, 10, [768]);
 
-      CosmoScout.gui.initSlider("atmosphere.setInterpolationStrideScale", 1, 20, 1, [2]);
+      // CosmoScout.gui.initSlider("atmosphere.setInterpolationStrideScale", 1, 20, 1, [2]);
     }
   }
 

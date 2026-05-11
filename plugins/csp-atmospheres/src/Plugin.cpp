@@ -91,7 +91,7 @@ void from_json(nlohmann::json const& j, Plugin::Settings::Atmosphere& o) {
 
   cs::core::Settings::deserialize(j, "experimentalCloudFeatures", o.mExperimentalCloudFeatures);
   cs::core::Settings::deserialize(j, "interpolateTransmittance", o.mInterpolateTransmittance);
-  cs::core::Settings::deserialize(j, "interpolationStrideScale", o.mInterpolationStrideScale);
+  // cs::core::Settings::deserialize(j, "interpolationStrideScale", o.mInterpolationStrideScale);
   cs::core::Settings::deserialize(j, "Octree", o.mOctree);
 }
 
@@ -128,7 +128,7 @@ void to_json(nlohmann::json& j, Plugin::Settings::Atmosphere const& o) {
 
   cs::core::Settings::serialize(j, "experimentalCloudFeatures", o.mExperimentalCloudFeatures);
   cs::core::Settings::serialize(j, "interpolateTransmittance", o.mInterpolateTransmittance);
-  cs::core::Settings::serialize(j, "interpolationStrideScale", o.mInterpolationStrideScale);
+  // cs::core::Settings::serialize(j, "interpolationStrideScale", o.mInterpolationStrideScale);
   cs::core::Settings::serialize(j, "Octree", o.mOctree);
 }
 
@@ -180,7 +180,7 @@ void Plugin::init() {
 
             mGuiManager->setCheckboxValue("atmosphere.setExperimentalCloudFeatures", settings.mExperimentalCloudFeatures.get());
             mGuiManager->setCheckboxValue("atmosphere.setInterpolateTransmittance", settings.mInterpolateTransmittance.get());
-            mGuiManager->setSliderValue("atmosphere.setInterpolationStrideScale", settings.mInterpolationStrideScale.get());
+            // mGuiManager->setSliderValue("atmosphere.setInterpolationStrideScale", settings.mInterpolationStrideScale.get());
             mGuiManager->setCheckboxValue("atmosphere.setOctree", settings.mOctree.get());
           }
         }
@@ -411,15 +411,15 @@ void Plugin::init() {
         }
       }));
 
-  mGuiManager->getGui()->registerCallback("atmosphere.setInterpolationStrideScale",
-      "Set the interval at which transmittance along the raymarch is calculated (everything inbetween is interpolated).",
-      std::function([this](double value) {
-        if (!mActiveAtmosphere.empty()) {
-          auto& settings                   = mPluginSettings->mAtmospheres.at(mActiveAtmosphere);
-          settings.mInterpolationStrideScale = static_cast<int>(value);
-          mAtmospheres.at(mActiveAtmosphere)->configure(settings);
-        }
-      }));
+  // mGuiManager->getGui()->registerCallback("atmosphere.setInterpolationStrideScale",
+  //     "Set the interval at which transmittance along the raymarch is calculated (everything inbetween is interpolated).",
+  //     std::function([this](double value) {
+  //       if (!mActiveAtmosphere.empty()) {
+  //         auto& settings                   = mPluginSettings->mAtmospheres.at(mActiveAtmosphere);
+  //         settings.mInterpolationStrideScale = static_cast<int>(value);
+  //         mAtmospheres.at(mActiveAtmosphere)->configure(settings);
+  //       }
+  //     }));
 
   mGuiManager->getGui()->registerCallback("atmosphere.setOctree",
       "Enables or disables new raymarch algorithm for advanced cloud rendering.",

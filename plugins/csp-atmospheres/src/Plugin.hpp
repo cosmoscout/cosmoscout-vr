@@ -74,7 +74,7 @@ class Plugin : public cs::core::PluginBase {
       
       cs::utils::DefaultProperty<bool> mExperimentalCloudFeatures{false};
       cs::utils::DefaultProperty<bool> mInterpolateTransmittance{true};
-      cs::utils::DefaultProperty<int> mInterpolationStrideScale{4};
+      // cs::utils::DefaultProperty<int> mInterpolationStrideScale{4};
       cs::utils::DefaultProperty<bool> mOctree{false};
 
       /// If this is set to true, the plugin will save a fish-eye view of the sky to a file one

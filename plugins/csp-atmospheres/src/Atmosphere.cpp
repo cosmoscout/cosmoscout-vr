@@ -358,7 +358,7 @@ void Atmosphere::createShader(ShaderType type, VistaGLSLShader& shader, utils::U
   uniforms.cloudTypeMin              = shader.GetUniformLocation("CLOUD_TYPE_MIN");
   uniforms.cloudTypeMax              = shader.GetUniformLocation("CLOUD_TYPE_MAX");
 
-  uniforms.cloudInterpolationStrideScale = shader.GetUniformLocation("TRANSMITTANCE_INTERPOLATION_STRIDE");
+  // uniforms.cloudInterpolationStrideScale = shader.GetUniformLocation("TRANSMITTANCE_INTERPOLATION_STRIDE");
 
   // We bind the eclipse shadow map to texture unit 3. The color and depth buffer are bound to 0 and
   // 1, 2 is used for the cloud map, 3 is used for the limb luminance texture.
@@ -567,7 +567,7 @@ bool Atmosphere::Do() {
     mAtmoShader.SetUniform(mAtmoUniforms.cloudTypeMin, mSettings.mCloudTypeMin.get());
     mAtmoShader.SetUniform(mAtmoUniforms.cloudTypeMax, mSettings.mCloudTypeMax.get());
 
-    mAtmoShader.SetUniform(mAtmoUniforms.cloudInterpolationStrideScale, mSettings.mInterpolationStrideScale.get());
+    // mAtmoShader.SetUniform(mAtmoUniforms.cloudInterpolationStrideScale, mSettings.mInterpolationStrideScale.get());
   }
 
   if (mSettings.mEnableLimbLuminance.get() && mLimbLuminanceTexture) {
@@ -636,12 +636,14 @@ bool Atmosphere::Do() {
   glPopAttrib();
 
   // --- Render octree nodes wireframe ---
+  mCloudTree->SetDebug(mSettings.mOctree.get());
   if (mCloudTree->IsDebug()) {
     glm::vec4 relObserverPos = mObserverRelativeTransformation[3];
     glm::mat4 viewMat(1.0f);
     viewMat = glm::translate(viewMat, glm::vec3(relObserverPos.x, relObserverPos.y, relObserverPos.z));
     viewMat = viewMat * glm::inverse((glm::mat4)glm::toMat4(mObserverRelativeRotation));
     viewMat = glm::scale(viewMat, glm::vec3((float)((1.0f / mSceneScale) * mCloudTree->GetMaxBounds())));
+
     mCloudTree->DrawDebug(viewMat, matP);
   }
   // ---
@@ -783,7 +785,7 @@ void Atmosphere::BuildOctree() {
   // TODO: Calculate precise octree boundaries to exactly fit the outer cloud layer
   // (take care of potential edge cases with intersection algorithms).
   // Default depth = 5
-  mCloudTree = std::make_unique<Tree>(minBounds, maxBounds, 3, std::move(properties), true);
+  mCloudTree = std::make_unique<Tree>(minBounds, maxBounds, 5, std::move(properties), true);
   mCloudTree->Build();
   mCloudTree->SetupDebug();
   vstr::debug() << "Built octree with size " << mCloudTree->GetUsedNodeCount() << "." << std::endl;
