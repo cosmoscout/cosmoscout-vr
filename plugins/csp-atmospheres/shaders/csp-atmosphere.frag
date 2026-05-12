@@ -489,7 +489,7 @@ uniform float uCloudLFRepetitionScale = 5000;
 uniform float uCloudHFRepetitionScale = 1190;
 
 float MIN_REMAINING_TRANSMITTANCE = 0.01;//0.001;
-uniform int TRANSMITTANCE_INTERPOLATION_STRIDE = 1;
+uniform int TRANSMITTANCE_INTERPOLATION_STRIDE = 10;
 
 // -------------------------------------------------------------------------------------------------
 
@@ -819,15 +819,15 @@ vec4 raymarchInterval(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, vec2 interval, o
   float currSampledTransmittance = 1.0;
   float nextSampledTransmittance = 1.0;
 
-  // vec3 currSampledSkyLuminance = vec3(1.0);
-  // vec3 currSampledSkyTransmittance = vec3(1.0);
-  // vec3 nextSampledSkyLuminance = vec3(1.0);
-  // vec3 nextSampledSkyTransmittance = vec3(1.0);
+  vec3 currSampledSkyLuminance = vec3(1.0);
+  vec3 currSampledSkyTransmittance = vec3(1.0);
+  vec3 nextSampledSkyLuminance = vec3(1.0);
+  vec3 nextSampledSkyTransmittance = vec3(1.0);
 
-  // vec3 currSampledAtmoLuminance = vec3(1.0);
-  // vec3 currSampledAtmoTransmittance = vec3(1.0);
-  // vec3 nextSampledAtmoLuminance = vec3(1.0);
-  // vec3 nextSampledAtmoTransmittance = vec3(1.0);
+  vec3 currSampledAtmoLuminance = vec3(1.0);
+  vec3 currSampledAtmoTransmittance = vec3(1.0);
+  vec3 nextSampledAtmoLuminance = vec3(1.0);
+  vec3 nextSampledAtmoTransmittance = vec3(1.0);
 
   //===== BEGIN OF RAY MARCHING LOOP ======
   while(progress < 1 && sample_iterations < MAXIMUM_SAMPLES && path_transmittance.r > MIN_REMAINING_TRANSMITTANCE){
@@ -937,26 +937,27 @@ vec4 raymarchInterval(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, vec2 interval, o
       vec3 local_incoming;
 #if EXPERIMENTAL_CLOUD_FEATURES
       // Takes a performance hit for some reason
-      // int SKY_LUMINANCE_INTERPOLATION_STRIDE = 10;
-      // int skyLuminanceRelStep = sample_iterations % SKY_LUMINANCE_INTERPOLATION_STRIDE;
-      // if (skyLuminanceRelStep == 0) {
-      //   currSampledSkyLuminance = nextSampledSkyLuminance;
-      //   currSampledSkyTransmittance = nextSampledSkyTransmittance;
+      int SKY_LUMINANCE_INTERPOLATION_STRIDE = 20;
+      int skyLuminanceRelStep = sample_iterations % SKY_LUMINANCE_INTERPOLATION_STRIDE;
+      if (skyLuminanceRelStep == 0) {
+        currSampledSkyLuminance = nextSampledSkyLuminance;
+        currSampledSkyTransmittance = nextSampledSkyTransmittance;
 
-      //   // Calculate position at next interpolation step (using the same step size as in the current step).
-      //   float tNextStride = remap(progress + step_size * SKY_LUMINANCE_INTERPOLATION_STRIDE, 0, 1, interval.x, interval.y);
-      //   vec3 nextSamplePos = position + rayDir * tNextStride;
-      //   nextSampledSkyLuminance = GetSkyLuminance(nextSamplePos, sunDir, sunDir, nextSampledSkyTransmittance);
-      //   local_incoming = nextSampledSkyLuminance;
-      //   incoming_transmittance = nextSampledSkyTransmittance;
-      // } else {
-      //   // Linearly interpolate between previous and next sample step.
-      //   float t = skyLuminanceRelStep / SKY_LUMINANCE_INTERPOLATION_STRIDE; // Scale progress in stride to [0, 1] interval
-      //   vec3 interpolatedSkyLuminance = mix(currSampledSkyLuminance, nextSampledSkyLuminance, t);
-      //   vec3 interpolatedSkyTransmittance = mix(currSampledSkyTransmittance, nextSampledSkyTransmittance, t);
-      //   local_incoming = interpolatedSkyLuminance;
-      //   incoming_transmittance = interpolatedSkyTransmittance;
-      // }
+        // Calculate position at next interpolation step (using the same step size as in the current step).
+        float tNextStride = remap(progress + step_size * SKY_LUMINANCE_INTERPOLATION_STRIDE, 0, 1, interval.x, interval.y);
+        vec3 nextSamplePos = position + rayDir * tNextStride;
+        nextSampledSkyLuminance = GetSkyLuminance(nextSamplePos, sunDir, sunDir, nextSampledSkyTransmittance);
+        local_incoming = nextSampledSkyLuminance;
+        incoming_transmittance = nextSampledSkyTransmittance;
+      } else {
+        // Linearly interpolate between previous and next sample step.
+        float t = skyLuminanceRelStep / SKY_LUMINANCE_INTERPOLATION_STRIDE; // Scale progress in stride to [0, 1] interval
+        vec3 interpolatedSkyLuminance = mix(currSampledSkyLuminance, nextSampledSkyLuminance, t);
+        vec3 interpolatedSkyTransmittance = mix(currSampledSkyTransmittance, nextSampledSkyTransmittance, t);
+
+        local_incoming = interpolatedSkyLuminance;
+        incoming_transmittance = interpolatedSkyTransmittance;
+      }
       local_incoming = GetSkyLuminance(position, sunDir, sunDir, incoming_transmittance);
 #else
       // Why is position + rayDir * step_size calculated without rescaling step_size to 
@@ -965,7 +966,7 @@ vec4 raymarchInterval(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, vec2 interval, o
 
       // using the luminance provided by the atmosphere model gives unstable results and artifacts
       // the transmittance from the atmosphere model seems fine though
-      local_incoming = vec3(144809.5,129443.421875,127098.6484375) * incoming_transmittance;
+      local_incoming = vec3(144809.5, 129443.421875, 127098.6484375) * incoming_transmittance;
 
       if (local_density > 0) {
         // If too much distance was skipped, rewind to last step and recalculate.
@@ -980,29 +981,7 @@ vec4 raymarchInterval(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, vec2 interval, o
         //return vec4(10000, 0, 0, 1);
         if (!in_cloud) {
           // if entering cloud, integrate the inscattering from the regular atmosphere for the cloud-free interval
-#if EXPERIMENTAL_CLOUD_FEATURES
-        // Also performance hit...
-        // int ATMO_INTERPOLATION_STRIDE = 5;
-        // int atmoRelStep = sample_iterations % ATMO_INTERPOLATION_STRIDE;
-        // if (atmoRelStep == 0) {
-        //   currSampledAtmoLuminance = nextSampledAtmoLuminance;
-        //   currSampledAtmoTransmittance = nextSampledAtmoTransmittance;
-        //   float tNextStride = remap(progress + step_size * ATMO_INTERPOLATION_STRIDE, 0, 1, interval.x, interval.y);
-        //   vec3 nextPos = position + rayDir * tNextStride;
-        //   nextSampledAtmoLuminance = GetSkyLuminanceToPoint(rayOrigin + rayDir * t_cloudfree_start, position, sunDir, nextSampledAtmoTransmittance);
-        //   atmo_inscattering = nextSampledAtmoLuminance;
-        //   atmo_transmittance = nextSampledAtmoTransmittance;
-        // } else {
-        //   float t = atmoRelStep / ATMO_INTERPOLATION_STRIDE;
-        //   vec3 interpolatedAtmoLuminance = mix(currSampledAtmoLuminance, nextSampledAtmoLuminance, t);
-        //   vec3 interpolatedAtmoTransmittance = mix(currSampledAtmoTransmittance, nextSampledAtmoTransmittance, t);
-        //   atmo_inscattering = interpolatedAtmoLuminance;
-        //   atmo_transmittance = interpolatedAtmoTransmittance;
-        // }
-        atmo_inscattering = GetSkyLuminanceToPoint(rayOrigin + rayDir * t_cloudfree_start, position, sunDir, atmo_transmittance);
-#else
-        atmo_inscattering = GetSkyLuminanceToPoint(rayOrigin + rayDir * t_cloudfree_start, position, sunDir, atmo_transmittance);
-#endif
+          atmo_inscattering = GetSkyLuminanceToPoint(rayOrigin + rayDir * t_cloudfree_start, position, sunDir, atmo_transmittance);
           inscattering_acc += path_transmittance * atmo_inscattering;
           path_transmittance *= atmo_transmittance;
         }
