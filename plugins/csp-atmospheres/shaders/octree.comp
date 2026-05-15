@@ -1,0 +1,137 @@
+#version 430 core
+
+// --- Configuration ---
+const int MAX_NODES = 1 << 16; // 65,536 nodes max
+const int MAX_QUEUE = 1 << 16;
+const float VAR_THRESHOLD = 0.15; // Split if range > 15%
+const uint MAX_DEPTH = 5;
+
+// --- Node Layout ---
+struct Node {
+    int children[8];   // Offsets into the Nodes buffer
+    vec3 boundsMin;    // Logical bounds
+    vec3 boundsMax;
+    uint isLeaf;       // 1 = leaf, 0 = internal (split)
+    uint depth;        // Current depth level
+};
+
+// --- Buffers ---
+layout(std430, binding = 0) buffer BufferNodes {
+    Node nodes[MAX_NODES];
+};
+
+// --- Work Queue ---
+layout(std430, binding = 1) buffer BufferQueue {
+    int queue[MAX_QUEUE];
+    atomic_uint head;
+    atomic_uint tail;
+};
+
+// --- Imports ---
+
+vec2 getCloudDensity(vec3 position, vec3 cam_pos, bool hf);
+
+// --- Helpers ---
+float random(vec2 seed) {
+    return fract(sin(dot(seed.xy, vec2(12.9898, 78.233))) * 43758.5453123);
+}
+
+// Normalize vector to 0..1 space for texture lookup
+vec3 normalizeCoord(vec3 p) {
+    return (p - fieldBoundsMin) / (fieldBoundsMax - fieldBoundsMin);
+}
+
+// Evaluate density at a point
+float getDensity(vec3 p) {
+    return getCloudDensity(p, p, false).x;
+}
+
+const TOTAL_DENSITY_SAMPLES = 1000;
+
+float getTotalDensity(vec3 minBounds, vec3 maxBounds) {
+    vec3 extends = maxBounds - minBounds;
+    float totalDensity = 0;
+    for (uint i = 0; i < TOTAL_DENSITY_SAMPLES; i++) {
+        // Sample a random position inside the node bounding box
+        vec3 samplePos = vec3(random(vec2(i, i)), random(vec2(i, i) + 1), random(vec2(i, i) + 2));
+        vec3 normSamplePos = (samplePos - minBounds) / extends;
+        totalDensity += getDensity(normSamplePos);
+    }
+    return totalDensity;
+}
+
+// --- Main Kernel ---
+[numthreads(256, 1, 1)]
+void main() {
+    // 1. Pop a task from the queue
+    int queueIdx = atomicAdd(queue.head, 1);
+    if (queueIdx >= queue.tail) return; // No more work
+
+    int currentNodeIdx = queue.queue[queueIdx];
+    Node node = nodes[currentNodeIdx];
+
+    // 2. Base Case: Max Depth or already internal
+    if (node.depth >= MAX_DEPTH) {
+        node.isLeaf = 1; // Force leaf
+        nodes[currentNodeIdx] = node;
+        return;
+    }
+
+    // 3. Evaluate Scalar Field
+    float density = getTotalDensity(node.boundsMin, node.boundsMax);
+    if (density > VAR_THRESHOLD) {
+        // --- SPLIT ---
+        
+        // Mark as internal
+        node.isLeaf = 0;
+        
+        // Allocate 8 children atomically
+        // We store children indices in nodes[current].children
+        int newBaseOffset = int(atomicAdd(nodes[currentNodeIdx].depth, MAX_NODES)); // Hack: reuse depth to get base offset? 
+        // Better: Use a global atomic counter for node allocation.
+        // For this example, let's assume we calculate child indices:
+        // Child[i] = BaseNodeIndex + i
+        
+        // Let's use a separate atomic counter in a global uniform/buffer for node pool
+        // Simulated here:
+        int poolPtr = atomicAdd(queue.head + 1, 1); // Assume head+1 is pool pointer
+        int childBase = poolPtr;
+        
+        for (int i = 0; i < 8; i++) {
+            int childIdx = childBase + i;
+            
+            // Initialize Child
+            nodes[childIdx].children[0] = -1; // -1 indicates valid leaf start
+            nodes[childIdx].isLeaf = 1;
+            nodes[childIdx].depth = node.depth + 1;
+            
+            // Calculate Child Bounds
+            vec3 center = (node.boundsMin + node.boundsMax) * 0.5;
+            vec3 cMin = node.boundsMin;
+            vec3 cMax = node.boundsMax;
+
+            if (i & 1) cMin.x = center.x; else cMax.x = center.x;
+            if (i & 2) cMin.y = center.y; else cMax.y = center.y;
+            if (i & 4) cMin.z = center.z; else cMax.z = center.z;
+
+            nodes[childIdx].boundsMin = cMin;
+            nodes[childIdx].boundsMax = cMax;
+            
+            // Link Parent -> Child
+            node.children[i] = childIdx;
+
+            // Push Child to Queue
+            uint qTail = atomicAdd(queue.tail, 1);
+            if (qTail < MAX_QUEUE) {
+                queue.queue[qTail] = childIdx;
+            }
+        }
+        
+        nodes[currentNodeIdx] = node;
+    } else {
+        // --- LEAF ---
+        // Ensure it is marked as leaf
+        node.isLeaf = 1;
+        nodes[currentNodeIdx] = node;
+    }
+}

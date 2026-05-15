@@ -635,9 +635,9 @@ bool Atmosphere::Do() {
   glDepthMask(GL_TRUE);
   glPopAttrib();
 
-  // --- Render octree nodes wireframe ---
+
   mCloudTree->SetDebug(mSettings.mOctree.get());
-  if (mCloudTree->IsDebug()) {
+  if (mCloudTree->GetDebug()) {
     glm::vec4 relObserverPos = mObserverRelativeTransformation[3];
     glm::mat4 viewMat(1.0f);
     viewMat = glm::translate(viewMat, glm::vec3(relObserverPos.x, relObserverPos.y, relObserverPos.z));
@@ -646,7 +646,6 @@ bool Atmosphere::Do() {
 
     mCloudTree->DrawDebug(viewMat, matP);
   }
-  // ---
 
   return true;
 }
@@ -732,139 +731,8 @@ void Atmosphere::renderSkyDome(std::string const& name) const {
 }
 
 void Atmosphere::BuildOctree() {
-  CloudProperties properties;
-  properties.cloudLayerHeight = 5000.0f;
-  // properties.renderSettings = CloudRenderSettings();
-
-  glm::uvec3 noiseDataDim(resx, resy, resz);
-  properties.noise = mNoiseData.data();
-  properties.noiseDim = noiseDataDim;
-  properties.noise2d = mNoiseData2D.data();
-  glm::uvec2 noiseData2DDim(resz2, resy2);
-  properties.noise2dDim = noiseData2DDim;
-  
-  int cloudWidth, cloudHeight, cloudChannels;
-  auto cloudData = utils::readTexture(mSettings.mCloudTexture.value(), &cloudWidth, &cloudHeight, &cloudChannels);
-  properties.cloud = cloudData;
-  properties.cloudDim = glm::uvec2(cloudWidth, cloudHeight);
-
-  int cloudTypeWidth, cloudTypeHeight, cloudTypeChannels;
-  auto cloudTypeData = utils::readTexture(mSettings.mCloudTypeTexture.value(), &cloudTypeWidth, &cloudTypeHeight, &cloudTypeChannels);
-  properties.cloudType = cloudTypeData;
-  properties.cloudTypeDim = glm::uvec2(cloudTypeWidth, cloudTypeHeight);
-
-  // vstr::debug() << "Cloud type data read: ";
-  // int step = int(properties.cloudType.size() / 150);
-  // int zeroPixels = 0;
-  // for (size_t i = 0; i < properties.cloudType.size(); i += 4) {
-  //   glm::vec4 pixel(properties.cloudType[i], properties.cloudType[i + 1], properties.cloudType[i + 2], properties.cloudType[i + 3]);
-  //   // vstr::debug() << glm::to_string(pixel) << std::endl;
-  //   if (pixel.a < 1e-3) {
-  //     zeroPixels += 1;
-  //     vstr::debug() << "zero pixel tex coord = " << i % cloudTypeWidth << ", " << ((int)(i / cloudTypeWidth)) % cloudTypeHeight << std::endl;
-  //   }
-  // }
-  // vstr::debug() << zeroPixels << " transparent pixels" << std::endl;
-  // vstr::debug() << "Border pixel count = " << (cloudTypeWidth * 2 + cloudTypeHeight * 2 - 4) << std::endl;
-  
-  properties.planetRadius = (float)mPlanetRadius;
-
-  VistaBoundingBox box;
-  GetBoundingBox(box);
-  float minx, miny, minz;
-  float maxx, maxy, maxz;
-  box.m_v3Min.GetValues(minx, miny, minz);
-  box.m_v3Max.GetValues(maxx, maxy, maxz);
-  glm::vec3 minBounds(minx, miny, minz);
-  glm::vec3 maxBounds(maxx, maxy, maxz);
-  // vstr::debug() << "Planet radius = " << mPlanetRadius << ", aabb = " << glm::to_string(minBounds) << " --> " << glm::to_string(maxBounds) << std::endl;
-  glm::vec3 cloudLayerSize = glm::vec3(properties.cloudLayerHeight);
-  maxBounds += cloudLayerSize;
-  minBounds -= cloudLayerSize;
-
-  // TODO: Calculate precise octree boundaries to exactly fit the outer cloud layer
-  // (take care of potential edge cases with intersection algorithms).
-  // Default depth = 5
-  mCloudTree = std::make_unique<Tree>(minBounds, maxBounds, 5, std::move(properties), true);
+  mCloudTree = std::make_unique<Tree>(mAtmoShader);
   mCloudTree->Build();
-  mCloudTree->SetupDebug();
-  vstr::debug() << "Built octree with size " << mCloudTree->GetUsedNodeCount() << "." << std::endl;
-
-  // vstr::debug() << "Sampling latitude along the equator." << std::endl;
-  // glm::vec3 samplePos(0.0f);
-  // const unsigned int totalSamples = 1000;
-  // for (unsigned int i = 0; i < totalSamples; i++) {
-  //   float coeff = (float)i / totalSamples;
-  //   float lat = PI * 0.25f * coeff;
-  //   glm::vec3 sphericalPos = glm::vec3(PI * 0.5f, lat, mPlanetRadius + (CUMULONIMBUS_END_HEIGHT - CUMULONIMBUS_START_HEIGHT) * 0.2f);
-    
-  //   samplePos = GetCartesianCoords(sphericalPos);
-  //   float density = mCloudTree->GetDensity(samplePos);
-  //   vstr::debug() << "Sample at lat " << lat << " = " << density << std::endl;
-  // }
-
-  // float totalDensity = 0.0f;
-  // float maxDensity, minDensity;
-  // unsigned int usedNodeCount = mCloudTree->GetUsedNodeCount();
-  // unsigned int criticalDensityNodeCount = 0;
-  // for (size_t i = 0; i < usedNodeCount; i++) {
-  //   float density = mCloudTree->GetNodes()[i].density;
-  //   if (density >= MIN_DENSITY_CUTOFF) {
-  //     maxDensity = std::max(maxDensity, density);
-  //     minDensity = std::min(minDensity, density);
-
-  //     totalDensity += density;
-  //     criticalDensityNodeCount++;
-  //   }
-  // }
-  // vstr::debug() << "Average density of (critically dense) nodes = " << (totalDensity / criticalDensityNodeCount)
-  //   << ", min = " << minDensity << ", max = " << maxDensity << std::endl;
-
-  // glm::vec3 rayOrigin(maxBounds + cloudLayerSize);
-  // rayOrigin *= 1.05f;
-  // glm::vec3 rayDir = glm::vec3(1.0f, 1.0f, 1.0f);
-  // rayDir *= -1.0f;
-  // glm::vec3 rayDirNorm = rayDir / length(rayDir);
-  // glm::vec3 rayDirInvNorm = 1.0f / rayDirNorm;
-
-  // glm::vec2 tIntersections(0.0f);
-  // glm::vec3 aabbMin(3191.568359f, 2393.676270f, 3191.568359f);
-  // glm::vec3 aabbMax(3989.460449f, 3191.568359f, 3989.460449f);
-  // bool intersected = IntersectAabbSlab(rayOrigin, rayDir, rayDirInvNorm, aabbMin, aabbMax, tIntersections);
-  // vstr::debug() << "Intersection with (" << glm::to_string(aabbMin) << ", " << glm::to_string(aabbMax) << "): "
-  //   << (intersected ? "yes" : "no") << ", at " << glm::to_string(tIntersections) << "." << std::endl;
-  // vstr::debug() << "Calc intersection points: x1 = "
-  //   << glm::to_string(rayOrigin + rayDirNorm * tIntersections.x) << ", x2 = "
-  //   << glm::to_string(rayOrigin + rayDirNorm * tIntersections.y) << "." << std::endl;
-
-  // vstr::debug() << "Raycast Origin = " << glm::to_string(rayOrigin / 10000.0f) << std::endl;
-  // vstr::debug() << "Planet radius = " << glm::to_string(glm::vec3((float)mPlanetRadius) / 10000.0f) << std::endl;
-  // vstr::debug() << "Octree Max Bound = " << glm::to_string(maxBounds / 10000.0f) << std::endl;
-
-  // bool raycastHit = TreeRaycast(mCloudTree.get(), rayOrigin, rayDir, tIntersections);
-  // vstr::debug() << "Raycast against octree: " << (raycastHit ? "yes" : "no") << ", at " << glm::to_string(tIntersections) << "." << std::endl;
-  // auto rayHitEntry = rayOrigin + tIntersections.x * rayDirNorm;
-  // auto rayHitExit = rayOrigin + tIntersections.y * rayDirNorm;
-  // vstr::debug() << "Hit octree from " << glm::to_string(rayHitEntry / 10000.0f) << " to " << glm::to_string(rayHitExit / 10000.0f) << "." << std::endl;
-
-  // glm::vec3 newRayOrigin = rayOrigin + rayDirNorm * (tIntersections.y + 1);
-  // vstr::debug() << "New Raycast Origin = " << glm::to_string(newRayOrigin / 10000.0f) << std::endl;
-  // bool secondHit = TreeRaycast(mCloudTree.get(), newRayOrigin, rayDir, tIntersections);
-  // rayHitEntry = newRayOrigin + tIntersections.x * rayDirNorm;
-  // rayHitExit = newRayOrigin + tIntersections.y * rayDirNorm;
-  // vstr::debug() << "Hit octree second time = " << (raycastHit ? "yes" : "no") << ". At " << glm::to_string(rayHitEntry / 10000.0f) << " to "
-  //   << glm::to_string(rayHitExit / 10000.0f) << "." << std::endl;
-
-  // If no uniform buffer object exists, create one
-  if (mCloudTreeBuffer == 0) {
-    glGenBuffers(1, &mCloudTreeBuffer);
-  }
-  glBindBuffer(GL_UNIFORM_BUFFER, mCloudTreeBuffer);
-  // Binding point in shader is 1
-  glBindBufferBase(GL_UNIFORM_BUFFER, 1, mCloudTreeBuffer);
-  // Pass nodes to buffer
-  GLuint treeSize = sizeof(TreeNode) * mCloudTree->GetUsedNodeCount();
-  glBufferData(GL_UNIFORM_BUFFER, treeSize, mCloudTree->GetNodes(), GL_STATIC_DRAW);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

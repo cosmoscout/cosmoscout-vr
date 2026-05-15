@@ -32,9 +32,17 @@
 #include <limits>
 
 namespace csp::atmospheres {
-    const float MIN_DENSITY_CUTOFF = 0.2f;
-    const unsigned int ROOT_NODE_INDEX = 0;
-    const unsigned int BASE_DENSITY_SAMPLES = 1500000; // 2500000;
+    // Define the Node struct to match GLSL exactly
+    typedef struct {
+        int children[8];
+        glm::vec3 boundsMin;
+        glm::vec3 boundsMax;
+        unsigned int isLeaf;
+        unsigned int depth;
+    } Node;
+
+    const int MAX_NODES = 1 << 16;
+    const int MAX_QUEUE = 1 << 16;
 
     // Wireframe nodes used in debug mode: local coordinates not exactly at 0/ 1 to introduce a small padding at the edges.
     const std::array BOX_VERTS = {
@@ -45,654 +53,69 @@ namespace csp::atmospheres {
         0U, 1U, 0U, 2U, 0U, 4U, 1U, 3U, 1U, 5U, 2U, 3U, 2U, 6U, 3U, 7U, 4U, 5U, 4U, 6U, 5U, 7U, 6U, 7U
     };
 
-    static unsigned int GetIndexFromPos(glm::vec3 pos, glm::uvec3 &dimensions);
-    static glm::vec3 GetPosFromIndex(unsigned int index, glm::uvec3 &dimensions);
-
-    // Data structure as mirrored on the shader side. Is pushed to the GPU on a SSBO buffer and must be indentical.
-    // Storage layout may differ in GLSL (std140 works with vec4 as smallest elements).
-    struct TreeNode {
-        // IDEA: Space optimisation: instead of storing AABB coordinates, store the depth and order inside
-        // the parent node (x, y, z (bytes) + depth (integer) = 16 bytes) and reconstruct AABB coordinates in the shader.
-
-        glm::vec3 aabbMin, aabbMax;
-        // Octree children-count is static (=8), so either firstChildIndex or density is occupied
-        unsigned int childrenCount; // childrenCount = 0 => leaf node
-        float density;
-
-        TreeNode() {
-            aabbMin = glm::vec3(0.0);
-            aabbMax = glm::vec3(0.0);
-            childrenCount = 0;
-            density = -0.0f;
-        }
-
-        glm::vec3 GetExtends() const {
-            return aabbMax - aabbMin;
-        }
-
-        bool IsLeaf() const {
-            return childrenCount == 0;
-        }
-    };
-
-    // Stores all render data and from the Atmosphere shader for easy access in the octree.
-    struct CloudRenderSettings {
-        float cloudQuality = 1.0f;
-        float cloudTypeExponent = 1.0f;
-        float cloudRangeMin = 0.0f;
-        float cloudRangeMax = 1.0f;
-        float cloudTypeMin = 0.0f;
-        float cloudTypeMax = 1.0f;
-        float cloudDensityMultiplier = 1.0f;
-        float cloudAbsorption = 0.0f;
-        float cloudCoverageExponent = 1.0f;
-        float cloudCutoff = 0.1f;
-        float cloudLFRepetitionScale = 5000.0f;
-        float cloudHFRepetitionScale = 1231.0f;
-    };
-
-    // All information required to replicate the Atmosphere shader (i.e, the density function getCloudColor) on the CPU
-    // and to setup the octree in tandem with the GPU.
-    struct CloudProperties {
-        CloudRenderSettings renderSettings;
-        float planetRadius, cloudLayerHeight;
-        float *noise, *noise2d;
-        std::vector<float> cloud, cloudType;
-        glm::uvec3 noiseDim;
-        glm::uvec2 noise2dDim, cloudDim, cloudTypeDim;
-    };
-
     class Tree {
-    public:
-        unsigned int maxDepth, maxNodeCount, usedNodeIndex;
-        CloudProperties properties;
-        std::unique_ptr<TreeNode[]> nodes;
+    private:
+        const size_t queueOffset = MAX_QUEUE * sizeof(unsigned int);
 
-        // Only for debug mode
-        bool debugMode;
+        GLuint shaderProgram, computeShader;
+        GLuint nodesBuffer;
+        GLuint queueBuffer;
+
+        std::vector<Node> builtNodes;
+
+        // -- DEBUG --
+        bool debugMode = true;
         std::unique_ptr<VistaGLSLShader> debugShader;
         std::unique_ptr<VistaBufferObject> vbo, ibo;
         std::unique_ptr<VistaVertexArrayObject> vao;
 
-        // Samples cloud density at the given position in euclidian space
-        float GetDensity(glm::vec3 pos);
-        // GetTotalDensity acts as a cost function/ heuristic on the subdivision process of nodes:
-        // Calculates density throughout the node. If density is above cutoff, subdivide into 8 child nodes.
-        float GetTotalDensity(unsigned int index, unsigned int depth, unsigned int totalSamples);
-        // Checks both decision to subdivide the node at nodes[index] and subsequently calculates new child node bounds and subdivides recursively.
-        unsigned int Subdivide(unsigned int index, unsigned int depth);
+        void SetupDebug(float maxBoundsAxis);
 
-    // public:
-        Tree(glm::vec3 totalBoundsMin, glm::vec3 totalBoundsMax, unsigned int maxDepth, CloudProperties properties, bool debug);
+    public:
+
+        Tree(VistaGLSLShader &atmosphereShader, glm::vec3 minBounds, glm::vec3 maxBounds);
         void Build();
 
-        // Debug
-        void SetupDebug();
-        void SetDebug(bool mode);
-        void DrawDebug(const glm::mat4 &modelViewMat, const glm::mat4 &projMat);
+        void SetDebug(bool state) {
+            debugMode = state;
+        }
 
-        bool IsDebug() const {
+        bool GetDebug() const {
             return debugMode;
         }
 
-        TreeNode *GetNodes() const {
-            return &nodes[0];
+        void DrawDebug(const glm::mat4 &modelViewMat, const glm::mat4 &projMat);
+
+        unsigned int GetHeadCount() const {
+            glBindBuffer(GL_SHADER_STORAGE_BUFFER, queueBuffer);
+            unsigned int headCount = 0;
+            glGetBufferSubData(GL_SHADER_STORAGE_BUFFER, queueOffset, sizeof(unsigned int), &headCount);
+            return headCount;
         }
 
-        unsigned int GetUsedNodeCount() const {
-            return usedNodeIndex + 1; // all used node indices (plus the root node)
+        unsigned int GetTailCount() const {
+            glBindBuffer(GL_SHADER_STORAGE_BUFFER, queueBuffer);
+            unsigned int tailCount = 0;
+            glGetBufferSubData(GL_SHADER_STORAGE_BUFFER, queueOffset + sizeof(unsigned int), sizeof(unsigned int), &tailCount);
+            return tailCount;
         }
 
-        float GetMaxBounds() const {
-            return glm::length(nodes[ROOT_NODE_INDEX].aabbMax);
+        void FetchNodes() {
+            unsigned int headCount = GetHeadCount();
+            if (headCount == builtNodes.size()) {
+                vstr::debug() << "Head count " << headCount << " unchanged; aborting builtNodes update." << std::endl;
+            }
+
+            Node nodes[MAX_NODES];
+            glBindBuffer(GL_SHADER_STORAGE_BUFFER, nodesBuffer);
+            glGetBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, headCount * sizeof(Node), nodes);
+
+            builtNodes.clear();
+            for (size_t i = 0; i < headCount; i++) {
+                builtNodes.push_back(nodes[i]);
+            }
         }
     };
-
-    // The following functions attempt to replicate common GLSL functions used in the Atmosphere shader.
-    // This way, we can use the getCloudColor function (which determines the distribution of clouds in the sky) as
-    // a scalar field to sample the bounding boxes of all octree nodes and check if there are clouds inside.
-
-    static glm::vec2 RollOverVector(glm::vec2 pos, const glm::uvec2 &dimensions) {
-        glm::ivec2 intPart(0);
-        intPart.x = (int)pos.x;
-        intPart.y = (int)pos.y;
-
-        glm::ivec2 intPartRolledOver;
-        intPartRolledOver.x = intPart.x % dimensions.x;
-        intPartRolledOver.y = intPart.y % dimensions.y;
-
-        glm::vec2 decimalRemainder = (glm::vec2)intPart - pos;
-        return (glm::vec2)intPartRolledOver + decimalRemainder;
-    }
-
-    static glm::vec3 RollOverVector3D(glm::vec3 pos, const glm::uvec3 &dimensions) {
-        glm::ivec3 intPart(0);
-        intPart.x = (int)round(pos.x);
-        intPart.y = (int)round(pos.y);
-        intPart.z = (int)round(pos.z);
-
-        glm::ivec3 intPartRolledOver;
-        intPartRolledOver.x = intPart.x % dimensions.x;
-        intPartRolledOver.y = intPart.y % dimensions.y;
-        intPartRolledOver.z = intPart.z % dimensions.z;
-
-        glm::vec3 decimalRemainder = (glm::vec3)intPart - pos;
-        return (glm::vec3)intPartRolledOver + decimalRemainder;
-    }
-
-    enum IndexingMode {
-        Clamp,
-        Repeat
-    };
-
-    static unsigned int GetIndexFromPos(glm::vec2 pos, const glm::uvec2 &dimensions, IndexingMode indexing) {
-        // Simulate a GL_REPEAT texture.
-        // When texture is read out of bounds, repeat the texture so that read position is inside texture.
-        if (indexing == IndexingMode::Repeat)
-            pos = RollOverVector(pos, dimensions);
-        else if(indexing == IndexingMode::Clamp) {
-            glm::vec2 newPos = pos = glm::clamp(pos, glm::vec2(0.0f), (glm::vec2)dimensions);
-            // vstr::debug() << "Pos -> clampedPos (to " << glm::to_string(dimensions) << "): " << glm::to_string(pos)
-            //     << " -> " << glm::to_string(newPos) << std::endl;
-            pos = newPos;
-        }
-        return (int)pos.x + (int)pos.y * dimensions.x;
-    }
-
-    static unsigned int GetIndexFrom3DPos(glm::vec3 pos, const glm::uvec3 &dimensions, IndexingMode indexing) {
-        if (indexing == IndexingMode::Repeat)
-            pos = RollOverVector3D(pos, dimensions);
-        else if(indexing == IndexingMode::Clamp)
-            pos = glm::clamp(pos, glm::vec3(0.0f), (glm::vec3)dimensions);
-        return (int)pos.x + (int)pos.y * dimensions.x + (int)pos.z * dimensions.x * dimensions.y;
-    }
-
-    static glm::vec3 Get3DPosFromIndex(unsigned int index, const glm::uvec3 &dimensions) {
-        glm::uvec3 pos;
-        pos.x = index % dimensions.x;
-        pos.y = int(index / dimensions.x) % dimensions.y;
-        pos.z = int(index / (dimensions.x * dimensions.y));
-        return pos;
-    }
-
-    static glm::vec4 GetTexture(const float *data2d, glm::uvec2 &dimensions, glm::vec2 texCoords, unsigned int channels = 4, IndexingMode indexing = IndexingMode::Repeat) {
-        // vstr::debug() << "GetTexture(clamped) texcoords = " << glm::to_string(texCoords) << std::endl;
-        texCoords *= dimensions; // Tex coord input is normalised, so convert back to original dimensions.
-        unsigned int index = GetIndexFromPos(texCoords, dimensions, indexing);
-        // unsigned int size = dimensions.x * dimensions.y;
-        // vstr::debug() << "Index = " << index << ", size = " << size << " (" << dimensions.x << ", " << dimensions.y << ")" << std::endl;
-
-        glm::vec4 texel(0.0);
-        for (unsigned int i = 0; i < channels; i++) {
-            texel[i] = data2d[index + i];
-        }
-        return texel;
-    }
-
-    static glm::vec4 GetTexture3D(const float *data, glm::uvec3 &dimensions, glm::vec3 texCoords, unsigned int channels = 4, IndexingMode indexing = IndexingMode::Repeat) {
-        texCoords *= dimensions; // Tex coord input is normalised, so convert back to original dimensions.
-        unsigned int index = GetIndexFrom3DPos(texCoords, dimensions, indexing);
-        // vstr::debug() << "Texture read: pos = " << glm::to_string(texCoords) << " -> index = " << index
-        //     << ", dim = " << glm::to_string(dimensions) << ", size = " << dimensions.x * dimensions.y * dimensions.z << std::endl;
-        // unsigned int size = dimensions.x * dimensions.y * dimensions.z;
-        // vstr::debug() << "GetTexture3D index, size: " << index << ", " << size
-        //     << "(" << dimensions.x << ", " << dimensions.y << ", " << dimensions.z << ")" << std::endl;
-
-        glm::vec4 texel(0.0);
-        for (unsigned int i = 0; i < channels; i++) {
-            texel[i] = data[index + i];
-        }
-        return texel;
-    }
-
-    static glm::vec2 GetSphericalCoords(glm::vec3 pos) {
-        glm::vec2 result;
-        result.x = atan2(pos.x, pos.z);
-        result.y = asin(pos.y / length(pos));
-        return result;
-    }
-
-    static glm::vec3 GetSphericalCoordsFull(glm::vec3 pos) {
-        float z = length(pos);
-        float x = atan2(pos.x, pos.z);
-        float y = asin(pos.y / z);
-        return glm::vec3(x, y, z);
-    }
-
-    static glm::vec3 GetCartesianCoords(glm::vec3 pos) {
-        float radius = pos.z;
-        float x = sin(pos.x);
-        return glm::vec3(radius * x * cos(pos.y), radius * x * sin(pos.y), radius * cos(x));
-    }
-
-    static float Remap(float t, float oldMin, float oldMax, float newMin, float newMax) {
-        float tScaled = (t - oldMin) / (oldMax - oldMin);
-        return std::clamp(newMin + tScaled * (newMax - newMin), std::min(newMin, newMax), std::max(newMin, newMax));
-    }
-
-    static float Mix(float a, float b, float t) {
-        return a * (1 - t) + b * t;
-    }
-
-    // Constants from csp-atmosphere.frag (must be updated when corresponding constants in shader file are changed!)
-    const float CUMULONIMBUS_START_HEIGHT = 1500;
-    const float CUMULONIMBUS_END_HEIGHT = 5000;
-    const float CUMULONIMBUS_THICKNESS = CUMULONIMBUS_END_HEIGHT - CUMULONIMBUS_START_HEIGHT;
-    const float CLOUD_BASE_FRACTION = 0.;
-
-    const float CLOUD_TYPE_NOISE_WORLEY_SCALE = 5.3f;
-    const float CLOUD_TYPE_NOISE_PERLIN_SCALE = 30;
-
-    static glm::vec4 GetLocalCloudType(glm::vec2 texCoords, CloudProperties &properties) {
-        glm::vec4 worleySample = GetTexture(properties.noise2d, properties.noise2dDim, texCoords * CLOUD_TYPE_NOISE_WORLEY_SCALE);
-        glm::vec4 perlinSample = GetTexture(properties.noise2d, properties.noise2dDim, texCoords * CLOUD_TYPE_NOISE_PERLIN_SCALE);
-        // vstr::debug() << "Worley = " << glm::to_string(worleySample) << ", perlin = " << glm::to_string(perlinSample) << std::endl;
-        float worleyNoise = worleySample.b;
-        float perlinNoise = perlinSample.g;
-        float cloudType = worleyNoise * 0.5f + perlinNoise * 0.5f;
-
-        float expCloudType = pow(cloudType, (float)properties.renderSettings.cloudTypeExponent);
-        // 0.0, 1.0 are constants in shader, but set to aforementioned values.
-        // float cloudTypeRemapped = Remap(expCloudType, 0.0f, 1.0f, 0.0f, 1.0f);
-            // (float)properties.uniforms.cloudRangeMin, (float)properties.uniforms.cloudRangeMax,
-            // (float)properties.uniforms.cloudTypeMin, (float)properties.uniforms.cloudTypeMax);
-        return glm::vec4(expCloudType, perlinSample.y, perlinSample.z, perlinSample.w);
-    }
-
-    const float PI = 3.141592653589793f;
-
-    // cloud types are remapped from [0,1] so that all values above this become 1
-    float CLOUD_COVER_MAX = .8f;
-
-    // fraction of the cloud layer thickness by which the thickness is locally varying at high frequency
-    float CLOUD_HEIGHT_VARIATION = .1f;
-
-    // high frequency noises begin to fade at this distance
-    float HF_FADE_DISTANCE = 10000.0f;
-    // high frequency noises have faded to .5 at this distance
-    float HF_END_DISTANCE = 100000.0f;
-
-    // low frequency noises begin to fade at this distance
-    float LF_FADE_DISTANCE = 500000.0f;
-    // low frequency noises have faded to .5 at this distance
-    float LF_END_DISTANCE = 2000000.0f;
-
-    static glm::vec4 GetVerticalProfile(glm::vec3 position, CloudProperties &properties) {
-        glm::vec2 lngLat = GetSphericalCoords(position);
-        glm::vec2 texCoords = glm::vec2(lngLat.x / (2.0f * PI) + 0.5f, 1.0f - lngLat.y / PI + 0.5f);
-        // vstr::debug() << "GetVerticalProfile()::pos_over_earth = " << (glm::length(position) - properties.planetRadius) << ", texCoords = " << glm::to_string(texCoords) << std::endl;
-        // uCloudTexture = earth-clouds.jpg (black and white)
-        // In shader: textureLod(..., 2) call with LOD level 2
-        float cloudCoverDensity = GetTexture(properties.cloud.data(), properties.cloudDim, texCoords).r;
-        // vstr::debug() << "GetVerticalProfile()::cloudCoverDensity(tex2d) = " << cloudCoverDensity << std::endl;
-        float density = Remap(cloudCoverDensity, 0.0f, CLOUD_COVER_MAX, 0.0f, 1.0f);
-        glm::vec4 hcomp_with_noise = GetLocalCloudType(texCoords, properties);
-        // vstr::debug() << "GetVerticalProfile::local_cloud_type = " << glm::to_string(hcomp_with_noise) << std::endl;
-
-        float cloudType = hcomp_with_noise.r;
-        glm::vec3 noiseSample(hcomp_with_noise.g, hcomp_with_noise.b, hcomp_with_noise.a);
-        float endHeight = CUMULONIMBUS_END_HEIGHT * (1.0f - CLOUD_HEIGHT_VARIATION * noiseSample.g);
-        float startAltitude = properties.planetRadius + CUMULONIMBUS_START_HEIGHT;
-        float topAltitude = properties.planetRadius + endHeight;
-        float thickness = endHeight - CUMULONIMBUS_START_HEIGHT;
-
-        // "progress" in cloud from bottom to top in range 0 to 1
-        float posHeight = glm::length(position);
-        // vstr::debug() << "GetVerticalProfile()::Cloud height remap: height = " << posHeight / 1000.0f << ", x = " << startAltitude / 1000.0f << ", y = " << topAltitude / 1000.0f << std::endl;
-        float height_in_cloud = Remap(posHeight, startAltitude, topAltitude, 0.0f, 1.0f);
-
-        // vstr::debug() << "remapping " << length(position) / 1000.0f << "km from ["
-        //     << (properties.planetRadius + CUMULONIMBUS_START_HEIGHT) / 1000.0f << ", " << topAltitude / 1000.0f << "] to [0, 1]" << std::endl;
-        // vstr::debug() << "Sampling at height " << abs(length(position) - properties.planetRadius) / 1000.0f
-        //     << "km above planet. Height factor = " << height_in_cloud << std::endl;
-        glm::vec2 cloudTypeTexCoords = glm::vec2(cloudType, 1.0f - height_in_cloud);
-        // vstr::debug() << "Cloud type tex coords" << glm::to_string(cloudTypeTexCoords) << std::endl;
-        glm::vec4 cloudConfig = GetTexture(properties.cloudType.data(), properties.cloudTypeDim, cloudTypeTexCoords, 4, IndexingMode::Clamp);
-        // vstr::debug() << "GetVerticalProfile()::cloudConfig = " << glm::to_string(cloudConfig) << std::endl;
-        cloudConfig.r *= density * .95f; // glm::vec4(cloudConfig.r * density * .95f, cloudConfig.g, cloudConfig.b, cloudConfig.a);
-        // vstr::debug() << "return GetVerticalProfile()::cloudConfig = " << glm::to_string(cloudConfig) << std::endl;
-        return cloudConfig;
-    }
-
-    static glm::vec2 GetCumuloNimbusDensity(glm::vec3 position, CloudProperties &properties) {
-        // vstr::debug() << "GetCumuloNimbusDensity()::height = " << glm::length(position) / 1000.0f << std::endl;
-        glm::vec4 cloudConfig = GetVerticalProfile(position, properties);
-        // vstr::debug() << "Cloud config (vert. profile) = " << glm::to_string(cloudConfig) << std::endl;
-        float cloudBase = cloudConfig.r;
-        // = 0 => cloudDensity = 0
-        // Also, if cloudConfig.a = 0 => total = 0.
-        // GetVerticalProfile always returns a vec4 with x, z or y, w components zero, hence
-        // either one will always be set to zero.
-
-        float erosionStrength = cloudConfig.g;
-        float hfStrength = cloudConfig.b;
-        // noiseTexture2D accessed in spherical coordinates
-        // getLngLat = spherical coords
-        glm::vec4 noise2Dl = GetTexture(properties.noise2d, properties.noise2dDim, GetSphericalCoords(position) * 1.0f);
-        // vstr::debug() << "2D noise = " << glm::to_string(noise2Dl) << std::endl;
-        glm::vec4 noise2D = GetTexture(properties.noise2d, properties.noise2dDim, GetSphericalCoords(position) * 5.0f);
-
-        float cloudDensity = (float)pow(cloudBase, properties.renderSettings.cloudCoverageExponent);
-        // vstr::debug() << "CloudDensity#1: " << cloudDensity << " = pow(cloudDensity[" << cloudDensity << "], "
-            // << properties.renderSettings.cloudCoverageExponent << ")" << std::endl;
-
-        float lfInfluence = cloudConfig.g;
-        float hfInfluence = hfStrength;
-        // if(cameraDist < LF_END_DISTANCE){
-        glm::vec3 lf_noise_texCoords(position * (1.0f / properties.renderSettings.cloudLFRepetitionScale));
-        // vstr::debug() << "LF Noise3D at pos " << glm::to_string(lf_noise_texCoords) << " = " << glm::to_string(position) << " * " << properties.renderSettings.cloudLFRepetitionScale << "^-1" << std::endl;
-        glm::vec4 lfNoises = GetTexture3D(properties.noise, properties.noiseDim, lf_noise_texCoords);
-        // vstr::debug() << " = " << glm::to_string(lfNoises) << std::endl;
-
-        // blend between worley and perlin noises using a noise at a different frequency to reduce repetition
-        float lr_worley_noise = (1.0f - lfNoises.b) * .8f + lfNoises.r * .2f;
-        float lr_whispy_noise = lfNoises.r * .2f + lfNoises.g * .8f;
-        float blended_lf_noise = Mix(lr_worley_noise, lr_whispy_noise, noise2Dl.r);
-        // when camDist is in the fade out range, the noise is mixed with 0.5
-        // blended_lf_noise = mix(blended_lf_noise, .5, remap(cameraDist, LF_FADE_DISTANCE, LF_END_DISTANCE, 0, 1)) * .5 + .5 * noise2D.r;
-        blended_lf_noise = .5f * .5f + .5f * noise2D.r;
-        // using the formula from Andrew Schneider's SIGGRAPH presentations on Nubis
-        float new_cloudDensity = std::clamp(lfInfluence * blended_lf_noise - (lfInfluence - cloudDensity), 0.0f, 1.0f); // clamp(x, 0, 1) = saturate(x) (slide 34/207)
-        // vstr::debug() << "CloudDensity#2: " << new_cloudDensity << " =  std::clamp(lfInfluence[" << lfInfluence << "] * blended_lf_noise["
-        //     << blended_lf_noise << "] - lfInfluence[" << lfInfluence << "] + cloudDensity[" << cloudDensity << "], 0.0f, 1.0f)" << std::endl;
-        cloudDensity = new_cloudDensity;
-        // if(high_res && cameraDist < HF_END_DISTANCE){
-
-        glm::vec3 hf_noise_texCoords(position * (1.0f / properties.renderSettings.cloudHFRepetitionScale));
-        // vstr::debug() << "HF Noise3D at pos " << glm::to_string(hf_noise_texCoords) << " = " << glm::to_string(position) << " * " << properties.renderSettings.cloudHFRepetitionScale << "^-1" << std::endl;
-        glm::vec4 hf_noises = GetTexture3D(properties.noise, properties.noiseDim, hf_noise_texCoords);
-        // vstr::debug() << " = " << glm::to_string(hf_noises) << std::endl;
-
-        float hr_worley_noise = (1.0f - hf_noises.b) * .5f + lfNoises.r * .5f;
-        float hr_whispy_noise = hf_noises.b * .3f + lfNoises.g * .7f;
-        float blended_hf_noise = Mix(hr_worley_noise, hr_whispy_noise, lfNoises.r);
-        blended_hf_noise = Mix(blended_hf_noise, .5f,  1.0f); //Remap(cameraDist, HF_FADE_DISTANCE, HF_END_DISTANCE, 0, 1));
-        new_cloudDensity = std::clamp(hfInfluence * blended_hf_noise - (hfInfluence - cloudDensity), 0.0f, 1.0f);
-        // vstr::debug() << "CloudDensity#2: " << new_cloudDensity << " =  std::clamp(hfInfluence[" << hfInfluence << "] * blended_hf_noise["
-        //     << blended_hf_noise << "] - hfInfluence[" << hfInfluence << "] + cloudDensity[" << cloudDensity << "], 0.0f, 1.0f)" << std::endl;
-        cloudDensity = new_cloudDensity;
-        // vstr::debug() << "CloudDensity#3 = " << cloudDensity << std::endl;
-
-        // }else{
-        // Old impl:
-        // cloudDensity = std::clamp(hfInfluence * .5f - (hfInfluence - cloudDensity), 0.0f, 1.0f);
-        // }
-        // }else{
-        // // reduce density by assuming noise=0.5 
-        // // without this operation, the cloud would become more dense at the LOD region border
-        // // MUST BE PERFORMED FOR ALL FUTURE NOISE SCALES TO AVOID DISCONTINUITIES 
-        // cloudDensity = std::clamp(lfInfluence * .5f - (lfInfluence - cloudDensity), 0.0f, 1.0f);
-        // cloudDensity = std::clamp(hfInfluence * .5f - (hfInfluence - cloudDensity), 0.0f, 1.0f);
-        // }
-        if (isnan(cloudDensity)) {
-            cloudDensity = 0;
-        }
-
-        float h = abs(glm::length(position) - properties.planetRadius);
-        float height_factor = exp(-h / 8000);
-
-        // What is this actually? Also a density measure?
-        float totalDensity = cloudConfig.a * height_factor;
-        // if (total > 0.0f) {
-        // vstr::debug() << "VerticalProfile(" << glm::to_string(position) << ").a = " << cloudConfig.a << ", height factor = e^(-" << h << "/8000) = "
-        //     << height_factor << ". Total = " << total << ", cloud density = " << cloudDensity << " > "
-        //     << properties.renderSettings.cloudCutoff << std::endl;
-        // }
-        // vstr::debug() << "totalDensity = " << totalDensity << ", cloudDensity = " << cloudDensity << std::endl;
-        // uCloudCutoff determines the minimum density of a cloud. If < cutoff, density is set to zero,
-        // hence uCloudCutoff sets the boundaries of the clouds.
-        // cloudConfig.a = cloudBase (The higher the cloud, the thinner it becomes).
-        // return glm::vec2(total, cloudDensity);
-        return glm::vec2(cloudDensity > properties.renderSettings.cloudCutoff ? totalDensity : 0, cloudDensity);
-    }
-
-    static glm::vec2 GetCloudDensity(glm::vec3 position, CloudProperties &properties) {
-        glm::vec2 acc(0.0f);
-        float height = glm::length(position) - properties.planetRadius;
-        // vstr::debug() << "Calculating density at " << glm::to_string(position) << std::endl;
-        // vstr::debug() << "Height above ground = " << height / 1000.0f << "m, dist to cloud layer = " << std::min(height - CUMULONIMBUS_START_HEIGHT, height - CUMULONIMBUS_END_HEIGHT) / 1000.0f << "m" << std::endl;
-        if(height > CUMULONIMBUS_START_HEIGHT && height < CUMULONIMBUS_END_HEIGHT) {
-            // vstr::debug() << "GetCloudDensity()::Calculating density at height " << glm::length(position) / 1000.0f << std::endl;
-            acc += GetCumuloNimbusDensity(position, properties);
-            // vstr::debug() << "Density = " << glm::to_string(acc) << std::endl;
-        }
-        return acc;
-    }
-
-    // The following functions are translations of GPU analogues to find intersections with AABBs, spheres and the octree in general.
-    // Used for testing and debugging purposes.
-
-    // Returns x > y if nothing was hit
-    static bool IntersectRayCircle(const glm::vec2 &rayOrigin, const glm::vec2 &rayDir, float radius, glm::vec2 &hit) {
-        // Good explanation: https://www.scratchapixel.com/lessons/3d-basic-rendering/minimal-ray-tracer-rendering-simple-shapes/ray-sphere-intersection.html
-        // t_a = -b (as C = -O, cause everything is centered around the observed celestial object)
-        float b   = glm::dot(rayOrigin, rayDir);
-        float c   = glm::dot(rayOrigin, rayOrigin) - radius * radius;
-
-        // det = t_b^2
-        float det = b * b - c;
-        if (det < 0.0f) {
-            hit = glm::vec2(1, -1);
-            return false;
-        }
-
-        det = sqrt(det);
-        hit = glm::vec2(-b - det, -b + det);
-        return true;
-    }
-
-    static bool IntersectRaySphere(const glm::vec3 &rayOrigin, const glm::vec3 &rayDir, float radius, glm::vec2 &hit) {
-        // Good explanation: https://www.scratchapixel.com/lessons/3d-basic-rendering/minimal-ray-tracer-rendering-simple-shapes/ray-sphere-intersection.html
-        // t_a = -b (as C = -O, cause everything is centered around the observed celestial object)
-        float b   = glm::dot(rayOrigin, rayDir);
-        float c   = glm::dot(rayOrigin, rayOrigin) - radius * radius;
-
-        // det = t_b^2
-        float det = b * b - c;
-        if (det < 0.0f) {
-            hit = glm::vec2(1, -1);
-            return false;
-        }
-
-        det = sqrt(det);
-        hit = glm::vec2(-b - det, -b + det);
-        return true;
-    }
-
-    // AABB and sphere solid (one containing the other registers a hit)
-    // Source: https://web.archive.org/web/19991129023147/http://www.gamasutra.com/features/19991018/Gomez_4.htm
-    static bool IntersectSolidAABBSphere(const glm::vec3& aabbMin, const glm::vec3 &aabbMax, float r, glm::vec3 &C) {
-        float s, d = 0;
-        // Find the square of the distance from the sphere to the box
-        for (int i = 0 ; i < 3 ; i++) {
-            if (C[i] < aabbMin[i]) {
-                s = C[i] - aabbMin[i];
-                d += s * s;
-            } else if (C[i] > aabbMax[i]) {
-                s = C[i] - aabbMax[i];
-                d += s * s;
-            }
-        }
-        return d <= r * r;
-    }
-
-    // AABB and sphere hollow (either containing the other not registered)
-    // Source: https://github.com/erich666/GraphicsGems/blob/master/gems/BoxSphere.c
-    static bool IntersectHollowAABBSphere(const glm::vec3 &aabbMin, const glm::vec3 &aabbMax, float radius, const glm::vec3 &C) {
-        float dMin, dMax = 0;
-        bool face = false;
-        float r2 = sqrt(radius);
-        for (int i = 0; i < 3; i++) {
-            float a = sqrt(-aabbMin[i]);
-            float b = sqrt(-aabbMax[i]);
-            dMax += std::max(a, b);
-
-            if (aabbMin[i] > 0.0f) {
-                face = true;
-                dMin += a;
-            } else if (aabbMax[i] < 0.0f) {
-                face = true;
-                dMin += b;
-            } else if (std::min(a, b) <= r2)
-                face = true;
-        }
-        return face && (dMin <= r2) && (r2 <= dMax);
-    }
-
-    // // Source: Jim Arvo, in "Graphics Gems", Academic Press, 1990.
-    // static bool IntersectAABBSphereCases(glm::vec3 aabbMin, glm::vec3 aabbMax, float radius, int mode) {
-    //     float  a, b;
-    //     float  dMin, dMax;
-    //     float  r2 = sqrt(radius);
-    //     int    i, face;
-
-    //     switch(mode) {
-    //         case 0: /* Hollow Box and Hollow Sphere */
-    //             dMin = 0;
-    //             dMax = 0;
-    //             face = false;
-    //             for (i = 0; i < 3; i++) {
-    //                 a = sqrt(-aabbMin[i]);
-    //                 b = sqrt(-aabbMax[i]);
-    //                 dMax += std::max(a, b);
-    //                 if (aabbMin[i] > 0.0f) {
-    //                     face = true;
-    //                     dMin += a;
-    //                 }
-    //                 else if (aabbMax[i] < 0.0f) {
-    //                     face = true;
-    //                     dMin += b;
-    //                 }
-    //                 else if (std::min(a, b) <= r2)
-    //                     face = true;
-    //                 }
-    //             if (face && (dMin <= r2) && (r2 <= dMax))
-    //                 return true;
-    //             break;
-
-    //         case 1: /* Hollow Box and Solid Sphere */
-    //             dMin = 0;
-    //             face = false;
-    //             for( i = 0; i < 3; i++ ) {
-    //                 if (aabbMin[i] > 0.0f) {
-    //                     face = true;
-    //                     dMin += sqrt(-aabbMin[i]);
-    //                 } else if (aabbMax[i] < 0.0f) {
-    //                     face = true;
-    //                     dMin += sqrt(aabbMax[i]);     
-    //                 } else if (-aabbMax[i] <= radius)
-    //                     face = true;
-    //                 else if (aabbMax[i] <= radius)
-    //                     face = true;
-    //                 }
-    //             if (face && (dMin <= r2))
-    //                 return true;
-    //             break;
-
-    //         case 2: /* Solid Box and Hollow Sphere */
-    //             dMax = 0;
-    //             dMin = 0;
-    //             for( i = 0; i < 3; i++ ) {
-    //                 a = sqrt(-aabbMin[i]);
-    //                 b = sqrt(-aabbMax[i]);
-    //                 dMax += std::max(a, b);
-    //                 if (aabbMax[i] > 0.0f)
-    //                     dMin += a;
-    //                 else if (aabbMax[i] < 0.0f)
-    //                     dMin += b;
-    //             }
-    //             if (dMin <= r2 && r2 <= dMax)
-    //                 return true;
-    //             break;
-
-    //         case 3: /* Solid Box and Solid Sphere */
-    //             dMin = 0;
-    //             for(i = 0; i < 3; i++) {
-    //                 if (aabbMin[i] > 0.0f)
-    //                     dMin += sqrt(-aabbMin[i]);
-    //                 else if (aabbMax[i] < 0.0f)
-    //                     dMin += sqrt(-aabbMax[i]);
-    //             }
-    //             if (dMin <= r2)
-    //                 return true;
-    //             break;
-    //     }
-    //     return false;
-    // }
-
-    static bool IntersectAabbSlab(const glm::vec3 &rayOrigin, const glm::vec3 &rayDirNorm, const glm::vec3 &rayDirInvNorm,
-        const glm::vec3 &aabbMin, const glm::vec3 &aabbMax, glm::vec2 &tRayEntryExit) {
-        float tMin = 0;
-        float tMax = std::numeric_limits<float>::max();
-        
-        float tx1 = (aabbMin.x - rayOrigin.x) * rayDirInvNorm.x;
-        float tx2 = (aabbMax.x - rayOrigin.x) * rayDirInvNorm.x;
-        tMin = std::min(tx1, tx2);
-        tMax = std::max(tx1, tx2);
-        // vstr::debug() << "x: tMin = " << tMin << ", tMax = " << tMax << std::endl;
-
-        float ty1 = (aabbMin.y - rayOrigin.y) * rayDirInvNorm.y;
-        float ty2 = (aabbMax.y - rayOrigin.y) * rayDirInvNorm.y;
-        tMin = std::max(tMin, std::min(ty1, ty2));
-        tMax = std::min(tMax, std::max(ty1, ty2));
-        // vstr::debug() << "y: tMin = " << tMin << ", tMax = " << tMax << std::endl;
-
-        float tz1 = (aabbMin.z - rayOrigin.z) * rayDirInvNorm.z;
-        float tz2 = (aabbMax.z - rayOrigin.z) * rayDirInvNorm.z;
-        tMin = std::max(tMin, std::min(tz1, tz2));
-        tMax = std::min(tMax, std::max(tz1, tz2));
-        // vstr::debug() << "z: tMin = " << tMin << ", tMax = " << tMax << std::endl;
-
-        tRayEntryExit.x = std::min(tMin, tMax);
-        tRayEntryExit.y = std::max(tMin, tMax);
-        return tMax >= std::max(0.0f, tMin);
-    }
-
-    static bool TreeRaycast(const Tree *tree, const glm::vec3 &rayOrigin, const glm::vec3 &rayDir, glm::vec2 &tRayEntryExit) {
-        glm::vec3 rayDirNorm = rayDir / length(rayDir);
-        glm::vec3 rayDirInvNorm = 1.0f / rayDirNorm;
-
-        unsigned int treeNodeIndex = 0;
-        auto nodes = tree->GetNodes();
-        unsigned int totalNodeCount = nodes[0].childrenCount + 1;
-        tRayEntryExit = glm::vec2(std::numeric_limits<float>::max(), 0.0f);
-        glm::vec2 hitInterval;
-        while (treeNodeIndex < totalNodeCount) {
-            auto &node = nodes[treeNodeIndex];
-            // vstr::debug() << "Raycast() check nodes[" << treeNodeIndex << "] with " << node.childrenCount << " children." << std::endl;
-
-            bool hitNode = IntersectAabbSlab(rayOrigin, rayDirNorm, rayDirInvNorm, node.aabbMin, node.aabbMax, hitInterval);
-            bool isLeaf = node.IsLeaf();
-            bool criticalDensity = node.density > MIN_DENSITY_CUTOFF;
-            bool hitCorner = hitInterval.y - hitInterval.x < 1e-4;
-
-            // if (hitNode)
-            //     vstr::debug() << "nodes[" << treeNodeIndex << "] ";
-            // vstr::debug() << "Nodes[" << treeNodeIndex << "] " << (hitNode ? "hit" : "missed") << ". leaf = " << (isLeaf ? "yes" : "no") << ", density = " << node.density << ".";
-            if (hitNode && isLeaf && criticalDensity && !hitCorner) {
-                if (hitInterval.x < tRayEntryExit.x) { // Is this node closer to the ray origin?
-                    tRayEntryExit = hitInterval;
-                    vstr::debug() << "Hit leaf node with density at "
-                        << "entry = " << glm::to_string((rayOrigin + rayDirNorm * hitInterval.x) / 10000.0f)
-                        << ", exit = " << glm::to_string((rayOrigin + rayDirNorm * hitInterval.y) / 10000.0f) << std::endl;
-                        // vstr::debug() << "Node bounds min = " << glm::to_string(node.aabbMin / 10000.0f) << ", max = " << glm::to_string(node.aabbMax / 10000.0f) << std::endl;
-                }
-            }
-
-            if ((isLeaf || criticalDensity) && hitNode || (isLeaf && !hitNode)) {
-                treeNodeIndex += 1;
-            } else {
-                // vstr::debug() << " -> (" << node.childrenCount << " children) -> ";
-                treeNodeIndex += node.childrenCount; // Jump over all children
-            }
-
-            // if (hitNode)
-            //     vstr::debug() << "-> ";
-        }
-
-        vstr::debug() << "Octree traversed: STOP." << std::endl;
-        return tRayEntryExit.y >= tRayEntryExit.x;
-    }
 }
 
 #endif
