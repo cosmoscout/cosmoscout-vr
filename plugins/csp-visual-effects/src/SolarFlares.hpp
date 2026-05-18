@@ -64,7 +64,6 @@ class SolarFlares : public IVistaOpenGLDraw {
   std::unique_ptr<VistaBufferObject>      mVBO;
 
   struct {
-    uint32_t color = 0;
     uint32_t modelViewMatrix  = 0;
     uint32_t projectionMatrix = 0;
   } mUniforms;

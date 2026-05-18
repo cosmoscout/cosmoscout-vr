@@ -44,15 +44,12 @@ void main()
 static const char* SOLAR_FLARES_SHADER_FRAG = R"(
 #version 330
 
-// uniforms
-uniform vec4 cColor;
-
 // outputs
 layout(location = 0) out vec4 vOutColor;
 
 void main()
 {
-  vOutColor = cColor;
+  vOutColor = vec4(1.0, 0.2, 0.2, 0.5);
 })";
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -68,7 +65,7 @@ SolarFlares::SolarFlares(std::shared_ptr<Plugin::Settings>  pluginSettings,
     VistaSceneGraph* pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
     mGLNode.reset(pSG->NewOpenGLNode(pSG->GetRoot(), this));
     VistaOpenSGMaterialTools::SetSortKeyOnSubtree(
-        mGLNode.get(), static_cast<int>(cs::utils::DrawOrder::eTransparentItems) - 1);
+        mGLNode.get(), static_cast<int>(cs::utils::DrawOrder::eTransparentItems) + 1);
     logger().info("Added SolarFlares to scene graph.");
 
     // Solar flare will be depicted on a simple quad.
@@ -143,13 +140,27 @@ bool SolarFlares::Do() {
   // Get observer relative transform and extract the upper left 3x3 matrix.
   auto matMV = parent->getObserverRelativeTransform();
 
-  double size = 1000.0 * 1000.0 * 1000.0;   // TODO: Currently hardcoded size of panel.
+  // Remember the original position of the parent object.
+  glm::dvec3 position = glm::dvec3(matMV[3]);
 
-  // Scale panel where solar flare is depicted on.
-  matMV = glm::scale(matMV, glm::dvec3(size, size, size));
+  // Remember the original scaling of the parent object.
+  double scaleX = glm::length(glm::dvec3(matMV[0]));
+  double scaleY = glm::length(glm::dvec3(matMV[1]));
+  double scaleZ = glm::length(glm::dvec3(matMV[2]));
 
-  // Rotate panel where solar flare is depicted on to face the observer.
-  //matMV = glm::rotate(matMV, static_cast<double>(glm::radians(mRotAngle)), mRotAxis); // TODO: Face the observer.
+  // Set matrix to identity.
+  matMV = glm::dmat4(1.0);
+
+  // Size of the panel.
+  double size = 1000.0 * 1000.0 * 1000.0; // TODO: Currently hardcoded size of panel.
+  
+  // Inject the original scaling together with the desired size of the panel.
+  matMV[0][0] = scaleX * size;
+  matMV[1][1] = scaleY * size;
+  matMV[2][2] = scaleZ * size;
+
+  // Inject the original position.
+  matMV[3] = glm::dvec4(position, 1.0);
 
   // Get projection matrix.
   std::array<GLfloat, 16> glMatP{};
@@ -158,13 +169,14 @@ bool SolarFlares::Do() {
   glPushAttrib(GL_ENABLE_BIT | GL_COLOR_BUFFER_BIT | GL_LINE_BIT);
   glDisable(GL_CULL_FACE);
   glEnable(GL_DEPTH_TEST);
+  glEnable(GL_BLEND);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
   mShader->Bind();
 
   // Set uniforms
   glUniformMatrix4fv(mUniforms.modelViewMatrix, 1, GL_FALSE, glm::value_ptr(glm::highp_mat4(matMV)));
   glUniformMatrix4fv(mUniforms.projectionMatrix, 1, GL_FALSE, glMatP.data());
-  mShader->SetUniform(mUniforms.color, 1.0, 1.0, 1.0, 1.0);
 
   mVAO->Bind();
 
@@ -194,7 +206,6 @@ void SolarFlares::createShader() {
   mShader->InitFragmentShaderFromString(sFrag);
   mShader->Link();
 
-  mUniforms.color       = mShader->GetUniformLocation("cColor");
   mUniforms.modelViewMatrix  = mShader->GetUniformLocation("uMatModelView");
   mUniforms.projectionMatrix = mShader->GetUniformLocation("uMatProjection");
 }
