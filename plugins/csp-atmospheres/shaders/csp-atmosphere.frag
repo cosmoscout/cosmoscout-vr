@@ -495,41 +495,41 @@ bool intersectAabbSlab(vec3 rayOrigin, vec3 rayDirNorm, vec3 rayDirInvNorm, vec3
     return tMax >= max(0.0f, tMin);
 }
 
-bool isTreeNodeLeaf(uint treeNodeIndex) {
-  return nodes[treeNodeIndex].childrenCount == 0;
-}
+// bool isTreeNodeLeaf(uint treeNodeIndex) {
+//   return nodes[treeNodeIndex].childrenCount == 0;
+// }
 
-bool treeRaycast(vec3 rayOrigin, vec3 rayDir, out vec2 tRayEntryExit) {
-    vec3 rayDirNorm = rayDir / length(rayDir);
-    vec3 rayDirInvNorm = 1.0f / rayDirNorm;
+// bool treeRaycast(vec3 rayOrigin, vec3 rayDir, out vec2 tRayEntryExit) {
+//     vec3 rayDirNorm = rayDir / length(rayDir);
+//     vec3 rayDirInvNorm = 1.0f / rayDirNorm;
 
-    uint treeNodeIndex = 0;
-    uint totalNodeCount = nodes[0].childrenCount + 1; // Root node plus its number of child nodes
-    tRayEntryExit = vec2(INFINITY, 0);
-    vec2 hitInterval = vec2(0);
-    while (treeNodeIndex < totalNodeCount) {
-        TreeNode node = nodes[treeNodeIndex];
+//     uint treeNodeIndex = 0;
+//     uint totalNodeCount = nodes[0].childrenCount + 1; // Root node plus its number of child nodes
+//     tRayEntryExit = vec2(INFINITY, 0);
+//     vec2 hitInterval = vec2(0);
+//     while (treeNodeIndex < totalNodeCount) {
+//         TreeNode node = nodes[treeNodeIndex];
 
-        // 5 conditions involved in a raycast hitting a node:
-        bool intersectNode = intersectAabbSlab(rayOrigin, rayDirNorm, rayDirInvNorm, node.aabbMin, node.aabbMax, hitInterval);
-        bool isLeaf = isTreeNodeLeaf(treeNodeIndex);
-        bool criticalDensity = node.density > uCloudCutoff;
-        bool hitCorner = (hitInterval.y - hitInterval.x) < 1e-4; // Edge case: If hit interval has length zero, ignore
-        bool closestBox = hitInterval.x <= tRayEntryExit.x;
+//         // 5 conditions involved in a raycast hitting a node:
+//         bool intersectNode = intersectAabbSlab(rayOrigin, rayDirNorm, rayDirInvNorm, node.aabbMin, node.aabbMax, hitInterval);
+//         bool isLeaf = isTreeNodeLeaf(treeNodeIndex);
+//         bool criticalDensity = node.density > uCloudCutoff;
+//         bool hitCorner = (hitInterval.y - hitInterval.x) < 1e-4; // Edge case: If hit interval has length zero, ignore
+//         bool closestBox = hitInterval.x <= tRayEntryExit.x;
 
-        if (intersectNode && isLeaf && criticalDensity && !hitCorner && closestBox) {
-          tRayEntryExit = hitInterval;
-        }
+//         if (intersectNode && isLeaf && criticalDensity && !hitCorner && closestBox) {
+//           tRayEntryExit = hitInterval;
+//         }
 
-        if ((isLeaf || criticalDensity) && intersectNode || (isLeaf && !intersectNode)) {
-          treeNodeIndex += 1;
-        } else {
-          treeNodeIndex += node.childrenCount; // Jump over all children
-        }
-    }
+//         if ((isLeaf || criticalDensity) && intersectNode || (isLeaf && !intersectNode)) {
+//           treeNodeIndex += 1;
+//         } else {
+//           treeNodeIndex += node.childrenCount; // Jump over all children
+//         }
+//     }
 
-    return tRayEntryExit.y >= tRayEntryExit.x;
-}
+//     return tRayEntryExit.y >= tRayEntryExit.x;
+// }
 
 // get the cloud type at these texture coordinates
 // adds high frequency noises to the values from the cloud texture to replace coarse
@@ -1088,155 +1088,155 @@ vec4 raymarchInterval(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, vec2 interval, o
 }
 
 // New version: check intersections with cloud layer and then with octree
-vec4 getCloudColor/*IntersectAndOct*/(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, float surfaceDistance, out vec3 transmittance) {
-  float thickness = CUMULONIMBUS_END_HEIGHT - CUMULONIMBUS_START_HEIGHT;
+// vec4 getCloudColor/*IntersectAndOct*/(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, float surfaceDistance, out vec3 transmittance) {
+//   float thickness = CUMULONIMBUS_END_HEIGHT - CUMULONIMBUS_START_HEIGHT;
 
-  // The sphere radius of the upper-most and lowest cloud layers
-  float topAltitude = PLANET_RADIUS + CUMULONIMBUS_END_HEIGHT;
-  float lowAltitude = PLANET_RADIUS + CUMULONIMBUS_START_HEIGHT;
+//   // The sphere radius of the upper-most and lowest cloud layers
+//   float topAltitude = PLANET_RADIUS + CUMULONIMBUS_END_HEIGHT;
+//   float lowAltitude = PLANET_RADIUS + CUMULONIMBUS_START_HEIGHT;
 
-  // Check where ray intersects top/ bottom cloud layer and atmosphere
-  vec2 topIntersections = intersectSphere(rayOrigin, rayDir, topAltitude);
-  vec2 lowIntersections = intersectSphere(rayOrigin, rayDir, lowAltitude);
-  vec2 atmo_intersections = intersectAtmosphere(rayOrigin, rayDir);
-  // => Returns coefficients t_0, t_1, such that rayOrigin + t_0 * rayDir = first intersection, ...
+//   // Check where ray intersects top/ bottom cloud layer and atmosphere
+//   vec2 topIntersections = intersectSphere(rayOrigin, rayDir, topAltitude);
+//   vec2 lowIntersections = intersectSphere(rayOrigin, rayDir, lowAltitude);
+//   vec2 atmo_intersections = intersectAtmosphere(rayOrigin, rayDir);
+//   // => Returns coefficients t_0, t_1, such that rayOrigin + t_0 * rayDir = first intersection, ...
 
-  float originHeight = length(rayOrigin);
-  bool hitsSurface = surfaceDistance < atmo_intersections.y || intersectSphere(rayOrigin, rayDir, PLANET_RADIUS).y > 0;
-  bool originInClouds = originHeight > lowAltitude && originHeight < topAltitude;
+//   float originHeight = length(rayOrigin);
+//   bool hitsSurface = surfaceDistance < atmo_intersections.y || intersectSphere(rayOrigin, rayDir, PLANET_RADIUS).y > 0;
+//   bool originInClouds = originHeight > lowAltitude && originHeight < topAltitude;
 
-  bool hitTop = topIntersections.y > 0;
-  bool hitBottom = lowIntersections.y > 0;
+//   bool hitTop = topIntersections.y > 0;
+//   bool hitBottom = lowIntersections.y > 0;
 
-  bool above = originHeight > topAltitude;
-  bool below = originHeight < lowAltitude;
+//   bool above = originHeight > topAltitude;
+//   bool below = originHeight < lowAltitude;
 
-  // Calculate the exact interval along which the ray passes through the cloud layer.
-  vec2 interval1 = vec2(0, -1);
-  vec2 interval2 = vec2(0, -1);
+//   // Calculate the exact interval along which the ray passes through the cloud layer.
+//   vec2 interval1 = vec2(0, -1);
+//   vec2 interval2 = vec2(0, -1);
 
-  // Edge case: if ray pierces cloud layer from above, leaves it below and then
-  // enters again from below along the bend of the planet, we calculate this interval, too. 
+//   // Edge case: if ray pierces cloud layer from above, leaves it below and then
+//   // enters again from below along the bend of the planet, we calculate this interval, too. 
 
-  // use infinity for no intersection to allow selecting other variables through min operation
-  float lowXcorrected = lowIntersections.x < lowIntersections.y ? lowIntersections.x : INFINITY;
+//   // use infinity for no intersection to allow selecting other variables through min operation
+//   float lowXcorrected = lowIntersections.x < lowIntersections.y ? lowIntersections.x : INFINITY;
 
-  if(above){
-    interval1.x = topIntersections.x;
-    interval1.y = lowIntersections.x;
-    if(!hitsSurface){
-      if(hitBottom){
-        // ray exits the cloud layer at the bottom and reintersects it, creating a second interval
-        interval2.x = lowIntersections.y;
-        interval2.y = topIntersections.y;
-      }else{
-        // ray leaves the cloud layer on the upper side
-        interval1.y = topIntersections.y;
-      }
-    }else{
-      if(hitBottom){
-        interval1.y = min(surfaceDistance, lowXcorrected);
-      }else{
-        interval1.y = surfaceDistance;
-      }
-      if(!hitTop || surfaceDistance < topIntersections.x){
-        interval1.y = -1;
-      }
-    }
-  }else{
-    if(below){
-      if(lowIntersections.y > 0){
-        interval1.x = lowIntersections.y;
-        interval1.y = topIntersections.y;
-      }else{
+//   if(above){
+//     interval1.x = topIntersections.x;
+//     interval1.y = lowIntersections.x;
+//     if(!hitsSurface){
+//       if(hitBottom){
+//         // ray exits the cloud layer at the bottom and reintersects it, creating a second interval
+//         interval2.x = lowIntersections.y;
+//         interval2.y = topIntersections.y;
+//       }else{
+//         // ray leaves the cloud layer on the upper side
+//         interval1.y = topIntersections.y;
+//       }
+//     }else{
+//       if(hitBottom){
+//         interval1.y = min(surfaceDistance, lowXcorrected);
+//       }else{
+//         interval1.y = surfaceDistance;
+//       }
+//       if(!hitTop || surfaceDistance < topIntersections.x){
+//         interval1.y = -1;
+//       }
+//     }
+//   }else{
+//     if(below){
+//       if(lowIntersections.y > 0){
+//         interval1.x = lowIntersections.y;
+//         interval1.y = topIntersections.y;
+//       }else{
 
-      }
-    }else{
-      interval1.x = 0;
-      if(lowIntersections.y > 0){
-        interval1.y = lowIntersections.x;
-        // check for second interval
-        interval2.x = lowIntersections.y;
-        interval2.y = topIntersections.y;
-      }else{
-        interval1.y = topIntersections.y;
-      }
-    }
-  }
+//       }
+//     }else{
+//       interval1.x = 0;
+//       if(lowIntersections.y > 0){
+//         interval1.y = lowIntersections.x;
+//         // check for second interval
+//         interval2.x = lowIntersections.y;
+//         interval2.y = topIntersections.y;
+//       }else{
+//         interval1.y = topIntersections.y;
+//       }
+//     }
+//   }
 
-  if(interval1.y - interval1.x < 1){
-    interval1.y = -1;
-    interval1.x = 0;
-  }
+//   if(interval1.y - interval1.x < 1){
+//     interval1.y = -1;
+//     interval1.x = 0;
+//   }
 
-  interval1.y = min(interval1.y, surfaceDistance);
-  interval2.y = min(interval2.y, surfaceDistance);
+//   interval1.y = min(interval1.y, surfaceDistance);
+//   interval2.y = min(interval2.y, surfaceDistance);
 
-  if(interval1.y <= interval1.x){
-    interval1.y = -1;
-    interval1.x = 0;
-  }
+//   if(interval1.y <= interval1.x){
+//     interval1.y = -1;
+//     interval1.x = 0;
+//   }
 
-  //return vec4(interval1.y - interval1.x / 10000, 10000, 0, 1);
+//   //return vec4(interval1.y - interval1.x / 10000, 10000, 0, 1);
 
-  if(interval2.y < interval2.x){
-    interval2.y = -1;
-    interval2.x = 0;
-  }
+//   if(interval2.y < interval2.x){
+//     interval2.y = -1;
+//     interval2.x = 0;
+//   }
 
-  vec3 transmittance_int1 = vec3(1);
-  vec3 transmittance_int2 = vec3(1);
-  vec4 scatter_data1 = raymarchInterval(rayOrigin, rayDir, sunDir, interval1, transmittance_int1);
-  vec4 scatter_data2 = vec4(0,0,0,1);
+//   vec3 transmittance_int1 = vec3(1);
+//   vec3 transmittance_int2 = vec3(1);
+//   vec4 scatter_data1 = raymarchInterval(rayOrigin, rayDir, sunDir, interval1, transmittance_int1);
+//   vec4 scatter_data2 = vec4(0,0,0,1);
 
-  // Previously: scatter_data1.a > 0.0001 but as scatter_data1.a = path_transmittance.r, this value designates the
-  // remaining transmittance, which if very low, means little light was received and the raymarch was aborted hence.
-  if(scatter_data1.a > MIN_REMAINING_TRANSMITTANCE) { // scatter_data1.a = transmittance_int1.r (if < 0.001, then hardly any transmittance left)
-    scatter_data2 = raymarchInterval(rayOrigin, rayDir, sunDir, interval2, transmittance_int2);
-  }
-  if(scatter_data1.x < 1e-6 && scatter_data2.x < 1e-6) {
-    // no significant inscattering from clouds. just return standard inscattering
-    if(hitsSurface) {
-      return vec4(GetSkyLuminanceToPoint(rayOrigin, rayOrigin + surfaceDistance * rayDir, sunDir, transmittance), transmittance);
-    } else {
-      return vec4(GetSkyLuminance(rayOrigin, rayDir, sunDir, transmittance), transmittance.r);
-    }
-  }
+//   // Previously: scatter_data1.a > 0.0001 but as scatter_data1.a = path_transmittance.r, this value designates the
+//   // remaining transmittance, which if very low, means little light was received and the raymarch was aborted hence.
+//   if(scatter_data1.a > MIN_REMAINING_TRANSMITTANCE) { // scatter_data1.a = transmittance_int1.r (if < 0.001, then hardly any transmittance left)
+//     scatter_data2 = raymarchInterval(rayOrigin, rayDir, sunDir, interval2, transmittance_int2);
+//   }
+//   if(scatter_data1.x < 1e-6 && scatter_data2.x < 1e-6) {
+//     // no significant inscattering from clouds. just return standard inscattering
+//     if(hitsSurface) {
+//       return vec4(GetSkyLuminanceToPoint(rayOrigin, rayOrigin + surfaceDistance * rayDir, sunDir, transmittance), transmittance);
+//     } else {
+//       return vec4(GetSkyLuminance(rayOrigin, rayDir, sunDir, transmittance), transmittance.r);
+//     }
+//   }
 
-  //return vec4(interval1.x, 1, 0, 1);
-  vec3 transmittance_before_int1;
-  vec3 inscattering_before_int1 = GetSkyLuminanceToPoint(rayOrigin, rayOrigin + rayDir * interval1.x, sunDir, transmittance_before_int1);
+//   //return vec4(interval1.x, 1, 0, 1);
+//   vec3 transmittance_before_int1;
+//   vec3 inscattering_before_int1 = GetSkyLuminanceToPoint(rayOrigin, rayOrigin + rayDir * interval1.x, sunDir, transmittance_before_int1);
 
-  if(scatter_data2.x < 1e-6){
-    // no significant inscattering from second interval. return first interval inscattering with transmittance behind
-    vec3 transmittance_behind_int1 = vec3(1);
-    vec3 inscattering_behind_int1 = vec3(0);
-    //return vec4(0, 1000, 0, 1);
-    if(hitsSurface){
-      if(surfaceDistance > interval1.y){
-        inscattering_behind_int1 = GetSkyLuminanceToPoint(rayOrigin + rayDir * interval1.y, rayOrigin + rayDir * surfaceDistance, sunDir, transmittance_behind_int1);
-      }
-    }else{
-      inscattering_behind_int1 = GetSkyLuminance(rayOrigin + rayDir * interval1.y, rayDir, sunDir, transmittance_behind_int1);
-    }
-    vec3 inScatter = inscattering_before_int1 + transmittance_before_int1 * (scatter_data1.xyz + transmittance_int1 * inscattering_behind_int1);
-    transmittance = transmittance_before_int1 * transmittance_int1 * transmittance_behind_int1;
-    return vec4(inScatter, transmittance.x);
-  }else{
-    vec3 transmittance_between_intervals = vec3(1);
-    vec3 inscattering_between_intervals = GetSkyLuminanceToPoint(rayOrigin + rayDir * interval1.y, rayOrigin + rayDir * interval2.x, sunDir, transmittance_between_intervals);
-    vec3 transmittance_behind = vec3(1);
-    vec3 inscattering_behind = GetSkyLuminance(rayOrigin + rayDir * interval2.y, rayDir, sunDir, transmittance_behind);
+//   if(scatter_data2.x < 1e-6){
+//     // no significant inscattering from second interval. return first interval inscattering with transmittance behind
+//     vec3 transmittance_behind_int1 = vec3(1);
+//     vec3 inscattering_behind_int1 = vec3(0);
+//     //return vec4(0, 1000, 0, 1);
+//     if(hitsSurface){
+//       if(surfaceDistance > interval1.y){
+//         inscattering_behind_int1 = GetSkyLuminanceToPoint(rayOrigin + rayDir * interval1.y, rayOrigin + rayDir * surfaceDistance, sunDir, transmittance_behind_int1);
+//       }
+//     }else{
+//       inscattering_behind_int1 = GetSkyLuminance(rayOrigin + rayDir * interval1.y, rayDir, sunDir, transmittance_behind_int1);
+//     }
+//     vec3 inScatter = inscattering_before_int1 + transmittance_before_int1 * (scatter_data1.xyz + transmittance_int1 * inscattering_behind_int1);
+//     transmittance = transmittance_before_int1 * transmittance_int1 * transmittance_behind_int1;
+//     return vec4(inScatter, transmittance.x);
+//   }else{
+//     vec3 transmittance_between_intervals = vec3(1);
+//     vec3 inscattering_between_intervals = GetSkyLuminanceToPoint(rayOrigin + rayDir * interval1.y, rayOrigin + rayDir * interval2.x, sunDir, transmittance_between_intervals);
+//     vec3 transmittance_behind = vec3(1);
+//     vec3 inscattering_behind = GetSkyLuminance(rayOrigin + rayDir * interval2.y, rayDir, sunDir, transmittance_behind);
 
-    transmittance = transmittance_int1 * transmittance_between_intervals * transmittance_int2 * transmittance_behind;
-    vec3 inScatter = inscattering_before_int1 + transmittance_before_int1 * (scatter_data1.xyz + transmittance_int1 * (inscattering_between_intervals + transmittance_between_intervals * (scatter_data2.xyz + transmittance_int2 * inscattering_behind)));
-    return vec4(inScatter, transmittance.x);
-  }
+//     transmittance = transmittance_int1 * transmittance_between_intervals * transmittance_int2 * transmittance_behind;
+//     vec3 inScatter = inscattering_before_int1 + transmittance_before_int1 * (scatter_data1.xyz + transmittance_int1 * (inscattering_between_intervals + transmittance_between_intervals * (scatter_data2.xyz + transmittance_int2 * inscattering_behind)));
+//     return vec4(inScatter, transmittance.x);
+//   }
 
-  return vec4(0, 100000, 0, 1);
-}
+//   return vec4(0, 100000, 0, 1);
+// }
 
-vec4 getCloudColorOld(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, float surfaceDistance, out vec3 transmittance) {
+vec4 getCloudColor(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, float surfaceDistance, out vec3 transmittance) {
   float thickness = CUMULONIMBUS_END_HEIGHT - CUMULONIMBUS_START_HEIGHT;
 
   // The sphere radius of the upper-most and lowest cloud layers
@@ -1987,7 +1987,5 @@ void main() {
     oColor = vec3(0.0);
   }
 }
-
-
 
 #endif

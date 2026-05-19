@@ -134,7 +134,7 @@ void storeShaderInfoLog(std::string shaderName, GLuint shaderId) {
     glGetShaderInfoLog(shaderId, iLogSize, NULL, sLog);
     
     std::ofstream logFile;
-    logFile.open ("shader-log.txt", std::ios::in | std::ios::trunc);
+    logFile.open ("shader-log.txt", std::ios::in | std::ios::app);
     if (logFile.is_open()) {
       logFile << "Failed to compile shader program: " << std::endl;
       logFile << shaderName << " (ID = " << shaderId << ")" << std::endl;

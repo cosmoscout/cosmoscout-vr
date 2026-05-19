@@ -265,14 +265,34 @@ void Atmosphere::configure(Plugin::Settings::Atmosphere const& settings) {
     }
 
     if (mNoiseData.size() > 0 && mNoiseData2D.size() > 0 && mCloudTexture && mCloudTypeTexture && !mCloudTree) {
-      BuildOctree();
+      // Setup the octree structure
+      CreateOctree();
     }
   }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Atmosphere::createShader(ShaderType type, VistaGLSLShader& shader, utils::Uniforms& uniforms) const {
+void Atmosphere::CreateOctree() {
+  VistaBoundingBox box;
+  GetBoundingBox(box);
+  float minx, miny, minz;
+  float maxx, maxy, maxz;
+  box.m_v3Min.GetValues(minx, miny, minz);
+  box.m_v3Max.GetValues(maxx, maxy, maxz);
+  glm::vec3 minBounds(minx, miny, minz);
+  glm::vec3 maxBounds(maxx, maxy, maxz);
+  // vstr::debug() << "Planet radius = " << mPlanetRadius << ", aabb = " << glm::to_string(minBounds) << " --> " << glm::to_string(maxBounds) << std::endl;
+  glm::vec3 cloudLayerSize = glm::vec3(CUMULONIMBUS_END_HEIGHT);
+  maxBounds += cloudLayerSize;
+  minBounds -= cloudLayerSize;
+
+  mCloudTree = std::make_unique<Tree>(minBounds, maxBounds);
+  vstr::debug() << "3d_clouds: Building octree..." << std::endl;
+  mCloudTree->Build();
+}
+
+void Atmosphere::createShader(ShaderType type, VistaGLSLShader& shader, utils::Uniforms& uniforms) {
   shader = VistaGLSLShader();
 
   auto sVert =
@@ -319,7 +339,6 @@ void Atmosphere::createShader(ShaderType type, VistaGLSLShader& shader, utils::U
 
   // Add the fragment shader from the atmospheric model.
   glAttachShader(shader.GetProgram(), mModel->getShader());
-
   shader.Link();
 
   uniforms.sunDir                    = shader.GetUniformLocation("uSunDir");
@@ -642,7 +661,7 @@ bool Atmosphere::Do() {
     glm::mat4 viewMat(1.0f);
     viewMat = glm::translate(viewMat, glm::vec3(relObserverPos.x, relObserverPos.y, relObserverPos.z));
     viewMat = viewMat * glm::inverse((glm::mat4)glm::toMat4(mObserverRelativeRotation));
-    viewMat = glm::scale(viewMat, glm::vec3((float)((1.0f / mSceneScale) * mCloudTree->GetMaxBounds())));
+    viewMat = glm::scale(viewMat, glm::vec3((float)((1.0f / mSceneScale) * mCloudTree->GetMaxSize())));
 
     mCloudTree->DrawDebug(viewMat, matP);
   }
@@ -665,7 +684,7 @@ bool Atmosphere::GetBoundingBox(VistaBoundingBox& bb) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Atmosphere::renderSkyDome(std::string const& name) const {
+void Atmosphere::renderSkyDome(std::string const& name) {
   const int SIZE = 512;
 
   VistaGLSLShader shader;
@@ -728,11 +747,6 @@ void Atmosphere::renderSkyDome(std::string const& name) const {
   glDeleteTextures(1, &texture);
 
   glPopAttrib();
-}
-
-void Atmosphere::BuildOctree() {
-  mCloudTree = std::make_unique<Tree>(mAtmoShader);
-  mCloudTree->Build();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

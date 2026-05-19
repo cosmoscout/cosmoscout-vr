@@ -54,12 +54,13 @@ class Atmosphere : public IVistaOpenGLDraw {
  private:
   enum class ShaderType { eAtmosphere, eSkyDome };
 
-  void createShader(ShaderType type, VistaGLSLShader& shader, utils::Uniforms& uniforms) const;
+  void CreateOctree();
+
+  void createShader(ShaderType type, VistaGLSLShader& shader, utils::Uniforms& uniforms);
   void updateShaders();
 
-  void renderSkyDome(std::string const& name) const;
+  void renderSkyDome(std::string const& name);
 
-  void BuildOctree();
 
   std::shared_ptr<Plugin::Settings>                mPluginSettings;
   std::shared_ptr<cs::core::Settings>              mAllSettings;

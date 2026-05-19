@@ -43,6 +43,17 @@ namespace csp::atmospheres {
 
     const int MAX_NODES = 1 << 16;
     const int MAX_QUEUE = 1 << 16;
+    const int MAX_NODE_SIZE = MAX_NODES * sizeof(Node);
+    const int MAX_QUEUE_SIZE = MAX_QUEUE * sizeof(unsigned int);
+
+    const int NODE_BUFFER_BINDING = 0;
+    const int QUEUE_BUFFER_BINDING = 1;
+    const int ATOMICS_BUFFER_BINDING = 2;
+    const int MIN_BOUNDS_LOC = 0;
+    const int MAX_BOUNDS_LOC = 1;
+
+    const float CUMULONIMBUS_START_HEIGHT = 1500;
+    const float CUMULONIMBUS_END_HEIGHT = 5000;
 
     // Wireframe nodes used in debug mode: local coordinates not exactly at 0/ 1 to introduce a small padding at the edges.
     const std::array BOX_VERTS = {
@@ -55,13 +66,13 @@ namespace csp::atmospheres {
 
     class Tree {
     private:
-        const size_t queueOffset = MAX_QUEUE * sizeof(unsigned int);
+        glm::vec3 minBounds, maxBounds;
 
-        GLuint shaderProgram, computeShader;
-        GLuint nodesBuffer;
-        GLuint queueBuffer;
+        std::unique_ptr<VistaGLSLShader> shader;
+        GLuint nodesBuffer, queueBuffer, atomicsBuffer;
 
         std::vector<Node> builtNodes;
+        unsigned int headCount, tailCount;
 
         // -- DEBUG --
         bool debugMode = true;
@@ -71,9 +82,17 @@ namespace csp::atmospheres {
 
         void SetupDebug(float maxBoundsAxis);
 
-    public:
+        void UpdateCounts() {
+            GLuint counters[2];
+            glBindBuffer(GL_ATOMIC_COUNTER_BUFFER, atomicsBuffer);
+            glGetBufferSubData(GL_ATOMIC_COUNTER_BUFFER, 0, sizeof(GLuint) * 2, counters);
+            glBindBuffer(GL_ATOMIC_COUNTER_BUFFER, 0);
+            headCount = counters[0];
+            tailCount = counters[1];
+        }
 
-        Tree(VistaGLSLShader &atmosphereShader, glm::vec3 minBounds, glm::vec3 maxBounds);
+    public:
+        Tree(glm::vec3 minBounds, glm::vec3 maxBounds);
         void Build();
 
         void SetDebug(bool state) {
@@ -86,35 +105,11 @@ namespace csp::atmospheres {
 
         void DrawDebug(const glm::mat4 &modelViewMat, const glm::mat4 &projMat);
 
-        unsigned int GetHeadCount() const {
-            glBindBuffer(GL_SHADER_STORAGE_BUFFER, queueBuffer);
-            unsigned int headCount = 0;
-            glGetBufferSubData(GL_SHADER_STORAGE_BUFFER, queueOffset, sizeof(unsigned int), &headCount);
-            return headCount;
+        float GetMaxSize() const {
+            return glm::length(maxBounds);
         }
 
-        unsigned int GetTailCount() const {
-            glBindBuffer(GL_SHADER_STORAGE_BUFFER, queueBuffer);
-            unsigned int tailCount = 0;
-            glGetBufferSubData(GL_SHADER_STORAGE_BUFFER, queueOffset + sizeof(unsigned int), sizeof(unsigned int), &tailCount);
-            return tailCount;
-        }
-
-        void FetchNodes() {
-            unsigned int headCount = GetHeadCount();
-            if (headCount == builtNodes.size()) {
-                vstr::debug() << "Head count " << headCount << " unchanged; aborting builtNodes update." << std::endl;
-            }
-
-            Node nodes[MAX_NODES];
-            glBindBuffer(GL_SHADER_STORAGE_BUFFER, nodesBuffer);
-            glGetBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, headCount * sizeof(Node), nodes);
-
-            builtNodes.clear();
-            for (size_t i = 0; i < headCount; i++) {
-                builtNodes.push_back(nodes[i]);
-            }
-        }
+        void FetchNodes();
     };
 }
 
