@@ -77,23 +77,11 @@ float sampleDensity(vec3 minBounds, vec3 maxBounds) {
 // [numthreads(64, 1, 1)]
 void main() {
     // 1. Pop a task from the queue
-    memoryBarrierAtomicCounter();
-    memoryBarrier();
-    barrier();
     uint currentQueueIdx = atomicCounter(head); // Returns val of head, then increments by 1
-    memoryBarrierAtomicCounter();
-    memoryBarrier();
-    barrier();
     if (currentQueueIdx > MAX_NODES || currentQueueIdx > atomicCounter(tail))
         return; // No more work
 
-    memoryBarrierAtomicCounter();
-    memoryBarrier();
-    barrier();
     uint nextQueueIdx = atomicCounterIncrement(head);
-    memoryBarrierAtomicCounter();
-    memoryBarrier();
-    barrier();
     int currentNodeIdx = queue[nextQueueIdx];
     Node node = nodes[currentNodeIdx];
 
@@ -114,14 +102,7 @@ void main() {
         // Allocate 8 children
         for (uint i = 0; i < 8; i++) {
             // For every child node, increment the running count of created nodes.
-            memoryBarrierAtomicCounter();
-            memoryBarrier();
-            barrier();
             uint childIdx = atomicCounterIncrement(head);
-            memoryBarrierAtomicCounter();
-            memoryBarrier();
-            barrier();
-
             Node child = nodes[childIdx];
 
             // Initialize child
@@ -144,11 +125,7 @@ void main() {
             node.children[i] = int(childIdx);
 
             // Push child to queue
-            memoryBarrierAtomicCounter();
-            memoryBarrier();
-            barrier();
             uint tailIdx = atomicCounterIncrement(tail);
-            memoryBarrierAtomicCounter();
             memoryBarrier();
             barrier();
             if (tailIdx < MAX_QUEUE) {
@@ -161,6 +138,7 @@ void main() {
     }
 
     nodes[currentNodeIdx] = node;
+    memoryBarrierAtomicCounter();
     memoryBarrier();
     barrier();
 }

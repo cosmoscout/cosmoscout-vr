@@ -64,6 +64,57 @@ namespace csp::atmospheres {
     }
 
     void Tree::Build() {
+
+        /*
+        // 1. Create buffer and allocate 4 bytes
+        GLuint atomicBuf;
+        glGenBuffers(1, &atomicBuf);
+        glBindBuffer(GL_ATOMIC_COUNTER_BUFFER, atomicBuf);
+        glBufferData(GL_ATOMIC_COUNTER_BUFFER, sizeof(GLuint), nullptr, GL_DYNAMIC_DRAW);
+
+        // 2. Initialise to 0
+        GLuint zero = 0;
+        glBufferSubData(GL_ATOMIC_COUNTER_BUFFER, 0, sizeof(zero), &zero);
+
+        // 3. Bind it to binding point 0
+        glBindBufferBase(GL_ATOMIC_COUNTER_BUFFER, 0, atomicBuf);
+
+        // 4. Compile / link compute shader (see source below)
+        //    then:
+        glUseProgram(computeProg);
+
+        // 5. Dispatch (let's launch 8×8×1 work‑groups, each 16×16 threads)
+        glDispatchCompute(8, 8, 1);
+
+        // 6. Ensure the GPU finished the atomic updates
+        glMemoryBarrier(GL_ATOMIC_COUNTER_BARRIER_BIT);
+
+        // 7. Read back
+        glBindBuffer(GL_ATOMIC_COUNTER_BUFFER, atomicBuf);
+        GLuint *ptr = (GLuint*)glMapBufferRange(GL_ATOMIC_COUNTER_BUFFER, 0,
+                                                sizeof(GLuint), GL_MAP_READ_BIT);
+        std::cout << "Final counter value = " << *ptr << std::endl;   // should be 8*8*256 = 16384
+        glUnmapBuffer(GL_ATOMIC_COUNTER_BUFFER);
+
+        GLSL:
+
+        #version 430
+
+        // Bind to the same point we used on the CPU (0)
+        layout(binding = 0, offset = 0) uniform atomic_uint counter;
+
+        // Each work‑group has 16×16 threads (adjust to your needs)
+        layout (local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
+
+        void main()
+        {
+            // Every invocation increments the counter once
+            atomicCounterIncrement(counter);
+        }
+
+        printed value = numGroupsX * numGroupsY * local_size_x * local_size_y (here 8 × 8 × 16 × 16 = 16384) ?
+        */
+
         shader->Bind();
 
         bool complete = false;
