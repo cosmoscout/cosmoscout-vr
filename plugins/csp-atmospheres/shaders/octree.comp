@@ -5,15 +5,14 @@ layout (local_size_x = 256, local_size_y = 1, local_size_z = 1) in;
 // --- Configuration ---
 const int MAX_NODES = 1 << 16; // 65,536 nodes max
 const int MAX_QUEUE = 1 << 16;
-const float VAR_THRESHOLD = 0.15; // Split if range > 15%
+const float VAR_THRESHOLD = 0.1; // Density threshold
 const uint MAX_DEPTH = 4;
 
 // --- Node Layout ---
 struct Node {
     int children[8];   // Offsets into the Nodes buffer
-    vec3 boundsMin;    // Logical bounds
+    vec3 boundsMin;
     vec3 boundsMax;
-    uint isLeaf;       // 1 = leaf, 0 = internal (split)
     uint depth;        // Current depth level
 };
 
@@ -38,6 +37,10 @@ layout(location = 1) uniform vec3 totalMaxBounds;
 // --- Helpers ---
 float random(vec2 seed) {
     return fract(sin(dot(seed.xy, vec2(12.9898, 78.233))) * 43758.5453123);
+}
+
+bool isLeafNode(uint nodesIdx) {
+    return nodes[nodesIdx].children[0] == -1;
 }
 
 // --- Imports ---
@@ -74,15 +77,15 @@ float sampleDensity(vec3 minBounds, vec3 maxBounds) {
 // [numthreads(64, 1, 1)]
 void main() {
     // 1. Pop a task from the queue
-    uint queueIdx = atomicCounterIncrement(head);
-    if (queueIdx >= atomicCounter(tail)) return; // No more work
+    uint queueIdx = atomicCounterIncrement(head); // Returns val of head, then increments by 1
+    if (queueIdx > atomicCounter(tail)) return; // No more work
 
     int currentNodeIdx = queue[queueIdx];
     Node node = nodes[currentNodeIdx];
 
-    // 2. Base Case: Max Depth or already internal
+    // 2. Base Case: Max depth or already branch node
     if (node.depth >= MAX_DEPTH) {
-        node.isLeaf = 1; // Force leaf
+        node.children[0] = -1; // Sets leaf node
         nodes[currentNodeIdx] = node;
         return;
     }
@@ -92,8 +95,7 @@ void main() {
     if (density > VAR_THRESHOLD) {
         // --- SPLIT ---
         
-        // Mark as internal
-        node.isLeaf = 0;
+        // Branch node
         
         // Allocate 8 children atomically
         // We store children indices in nodes[current].children
@@ -104,7 +106,7 @@ void main() {
         
         // Let's use a separate atomic counter in a global uniform/buffer for node pool
         // Simulated here:
-        uint childBase = atomicCounterIncrement(head) + 1; // Prev: head + 1
+        uint childBase = atomicCounter(head) + 1; // Prev: atomicCounterAdd(head + 1, 1)
         
         for (uint i = 0; i < 8; i++) {
             uint childIdx = childBase + i;
@@ -112,7 +114,6 @@ void main() {
 
             // Initialize child
             child.children[0] = -1; // -1 indicates valid leaf start
-            child.isLeaf = 1;
             child.depth = node.depth + 1;
             
             // Calculate child bounds
@@ -120,17 +121,17 @@ void main() {
             vec3 cMin = node.boundsMin;
             vec3 cMax = node.boundsMax;
 
-            if (bool(i & 1)) cMin.x = centre.x; else cMax.x = centre.x;
-            if (bool(i & 2)) cMin.y = centre.y; else cMax.y = centre.y;
-            if (bool(i & 4)) cMin.z = centre.z; else cMax.z = centre.z;
+            // if (i & 1 > 0) cMin.x = centre.x; else cMax.x = centre.x; // Uneven => right-of-centre
+            // if (i & 2 > 0) cMin.y = centre.y; else cMax.y = centre.y; // Behind centre
+            // if (i & 4 > 0) cMin.z = centre.z; else cMax.z = centre.z; // Last four indices => above-centre
 
             nodes[childIdx].boundsMin = cMin;
             nodes[childIdx].boundsMax = cMax;
             
-            // Link Parent -> Child
+            // Link parent -> child
             node.children[i] = int(childIdx);
 
-            // Push Child to Queue
+            // Push child to queue
             uint tailIdx = atomicCounterIncrement(tail) + 1;
             if (tailIdx < MAX_QUEUE) {
                 queue[tailIdx] = int(childIdx);
@@ -140,8 +141,7 @@ void main() {
         nodes[currentNodeIdx] = node;
     } else {
         // --- LEAF ---
-        // Ensure it is marked as leaf
-        node.isLeaf = 1;
+        node.children[0] = -1; // Ensure it is marked as leaf
         nodes[currentNodeIdx] = node;
     }
 }

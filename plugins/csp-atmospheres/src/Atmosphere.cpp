@@ -73,6 +73,8 @@ Atmosphere::Atmosphere(std::shared_ptr<Plugin::Settings> pluginSettings,
   mAtmosphereNode->SetIsEnabled(false);
   VistaOpenSGMaterialTools::SetSortKeyOnSubtree(
       mAtmosphereNode.get(), static_cast<int>(cs::utils::DrawOrder::eAtmospheres));
+
+  mCloudTree = std::make_unique<Tree>();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -264,16 +266,19 @@ void Atmosphere::configure(Plugin::Settings::Atmosphere const& settings) {
       renderSkyDome(mObjectName);
     }
 
-    if (mNoiseData.size() > 0 && mNoiseData2D.size() > 0 && mCloudTexture && mCloudTypeTexture && !mCloudTree) {
-      // Setup the octree structure
+    // if (/*mNoiseData.size() > 0 && mNoiseData2D.size() > 0 && mCloudTexture && mCloudTypeTexture && */!mCloudTree) {
+    //   // Check if cloud generation resources have been generated
+    //   vstr::debug() << "Initialising octree." << std::endl;
+    // }
+    if (!mCloudTree)
       CreateOctree();
-    }
   }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Atmosphere::CreateOctree() {
+  // Find smallest bounding box surrounding the planet
   VistaBoundingBox box;
   GetBoundingBox(box);
   float minx, miny, minz;
@@ -282,12 +287,13 @@ void Atmosphere::CreateOctree() {
   box.m_v3Max.GetValues(maxx, maxy, maxz);
   glm::vec3 minBounds(minx, miny, minz);
   glm::vec3 maxBounds(maxx, maxy, maxz);
-  // vstr::debug() << "Planet radius = " << mPlanetRadius << ", aabb = " << glm::to_string(minBounds) << " --> " << glm::to_string(maxBounds) << std::endl;
+  // Expand bounding box by maximum cloud height to include cloud layer  
   glm::vec3 cloudLayerSize = glm::vec3(CUMULONIMBUS_END_HEIGHT);
   maxBounds += cloudLayerSize;
   minBounds -= cloudLayerSize;
 
-  mCloudTree = std::make_unique<Tree>(minBounds, maxBounds);
+  vstr::debug() << "3d_clouds: Setting up octree..." << std::endl;
+  mCloudTree->Setup(minBounds, maxBounds);
   vstr::debug() << "3d_clouds: Building octree..." << std::endl;
   mCloudTree->Build();
 }
@@ -654,17 +660,16 @@ bool Atmosphere::Do() {
   glDepthMask(GL_TRUE);
   glPopAttrib();
 
+  // mCloudTree.SetDebug(mSettings.mOctree.get());
+  // if (mCloudTree.GetDebug()) {
+  //   glm::vec4 relObserverPos = mObserverRelativeTransformation[3];
+  //   glm::mat4 viewMat(1.0f);
+  //   viewMat = glm::translate(viewMat, glm::vec3(relObserverPos.x, relObserverPos.y, relObserverPos.z));
+  //   viewMat = viewMat * glm::inverse((glm::mat4)glm::toMat4(mObserverRelativeRotation));
+  //   viewMat = glm::scale(viewMat, glm::vec3((float)((1.0f / mSceneScale) * mCloudTree.GetMaxSize())));
 
-  mCloudTree->SetDebug(mSettings.mOctree.get());
-  if (mCloudTree->GetDebug()) {
-    glm::vec4 relObserverPos = mObserverRelativeTransformation[3];
-    glm::mat4 viewMat(1.0f);
-    viewMat = glm::translate(viewMat, glm::vec3(relObserverPos.x, relObserverPos.y, relObserverPos.z));
-    viewMat = viewMat * glm::inverse((glm::mat4)glm::toMat4(mObserverRelativeRotation));
-    viewMat = glm::scale(viewMat, glm::vec3((float)((1.0f / mSceneScale) * mCloudTree->GetMaxSize())));
-
-    mCloudTree->DrawDebug(viewMat, matP);
-  }
+  //   mCloudTree.DrawDebug(viewMat, matP);
+  // }
 
   return true;
 }

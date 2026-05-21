@@ -33,18 +33,22 @@
 
 namespace csp::atmospheres {
     // Define the Node struct to match GLSL exactly
-    typedef struct {
-        int children[8];
+    typedef struct OctreeNode {
+        int children[8] = { -1, 0, 0, 0, 0, 0, 0, 0 };
         glm::vec3 boundsMin;
         glm::vec3 boundsMax;
-        unsigned int isLeaf;
-        unsigned int depth;
+        unsigned int depth = 0;
     } Node;
+
+    bool IsLeafNode(const Node &node) {
+        return node.children[0] == -1;
+    }
 
     const int MAX_NODES = 1 << 16;
     const int MAX_QUEUE = 1 << 16;
     const int MAX_NODE_SIZE = MAX_NODES * sizeof(Node);
     const int MAX_QUEUE_SIZE = MAX_QUEUE * sizeof(unsigned int);
+    const unsigned int ROOT_NODE_INDEX = 0;
 
     const int NODE_BUFFER_BINDING = 0;
     const int QUEUE_BUFFER_BINDING = 1;
@@ -92,7 +96,8 @@ namespace csp::atmospheres {
         }
 
     public:
-        Tree(glm::vec3 minBounds, glm::vec3 maxBounds);
+        Tree();
+        void Setup(const glm::vec3 &minBounds, const glm::vec3 &maxBounds);
         void Build();
 
         void SetDebug(bool state) {

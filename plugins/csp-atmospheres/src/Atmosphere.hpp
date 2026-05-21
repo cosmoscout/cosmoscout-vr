@@ -107,6 +107,7 @@ class Atmosphere : public IVistaOpenGLDraw {
 
   // Octree for 3D cloud raymarcher
   std::unique_ptr<Tree> mCloudTree;
+  // Tree mCloudTree;
 };
 
 } // namespace csp::atmospheres
