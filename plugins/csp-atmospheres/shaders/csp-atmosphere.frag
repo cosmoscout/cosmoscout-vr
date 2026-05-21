@@ -48,6 +48,9 @@ uniform float     uTestUniform;
 
 const float INFINITY = 1 / 0.;
 
+// outputs
+layout(location = 0) out vec3 oColor;
+
 // -------------------------------------------------------------------------------------------------
 
 // Each atmospheric model will implement these three methods. We forward-declare them here. The
@@ -467,7 +470,7 @@ uniform float uCloudLFRepetitionScale = 5000;
 uniform float uCloudHFRepetitionScale = 1190;
 
 float MIN_REMAINING_TRANSMITTANCE = 0.01;//0.001;
-uniform int TRANSMITTANCE_INTERPOLATION_STRIDE = 10;
+uniform int TRANSMITTANCE_INTERPOLATION_STRIDE = 20;
 
 // -------------------------------------------------------------------------------------------------
 
@@ -980,13 +983,10 @@ vec4 raymarchInterval(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, vec2 interval, o
         vec2 top_intersection = intersectSphere(position, sunDir, PLANET_RADIUS + CUMULONIMBUS_END_HEIGHT);
         float sampledInTransmittance;
 #if INTERPOLATE_TRANSMITTANCE
-        // Sample transmittance every N steps and interpolate in between. Saves lots of computational cost on the
-        // assumption that sun light transmittance doesn't change much over small distances (as the sun is far away).
-
-        // Always use in_cloud_counter when sampling, as using the total counter per ray march (samples_taken)
-        // will result in massive artifacts (such as jittering, banding and noise).
-        int totalStride = 1 + in_cloud_counter * TRANSMITTANCE_INTERPOLATION_STRIDE;
-        int transmittanceStepMod = in_cloud_counter % totalStride;//totalStride;
+        // Calculate the next time a transmittance sample is computed.
+        // Always use in_cloud_counter to calculate transmittance step
+        // Add n steps to stride at every sampling point
+        int transmittanceStepMod = in_cloud_counter % TRANSMITTANCE_INTERPOLATION_STRIDE;
         if (transmittanceStepMod == 0) {
           currSampledTransmittance = nextSampledTransmittance;
           // Go forward to position at end of the stride and calculate the transmittance there.
@@ -1838,5 +1838,7 @@ void main() {
     oColor = vec3(0.0);
   }
 }
+
+
 
 #endif

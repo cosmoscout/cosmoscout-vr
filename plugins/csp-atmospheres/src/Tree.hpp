@@ -85,15 +85,7 @@ namespace csp::atmospheres {
         std::unique_ptr<VistaVertexArrayObject> vao;
 
         void SetupDebug(float maxBoundsAxis);
-
-        void UpdateCounts() {
-            GLuint counters[2];
-            glBindBuffer(GL_ATOMIC_COUNTER_BUFFER, atomicsBuffer);
-            glGetBufferSubData(GL_ATOMIC_COUNTER_BUFFER, 0, sizeof(GLuint) * 2, counters);
-            glBindBuffer(GL_ATOMIC_COUNTER_BUFFER, 0);
-            headCount = counters[0];
-            tailCount = counters[1];
-        }
+        void UpdateCounts();
 
     public:
         Tree();

@@ -73,8 +73,6 @@ Atmosphere::Atmosphere(std::shared_ptr<Plugin::Settings> pluginSettings,
   mAtmosphereNode->SetIsEnabled(false);
   VistaOpenSGMaterialTools::SetSortKeyOnSubtree(
       mAtmosphereNode.get(), static_cast<int>(cs::utils::DrawOrder::eAtmospheres));
-
-  mCloudTree = std::make_unique<Tree>();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -270,8 +268,9 @@ void Atmosphere::configure(Plugin::Settings::Atmosphere const& settings) {
     //   // Check if cloud generation resources have been generated
     //   vstr::debug() << "Initialising octree." << std::endl;
     // }
-    if (!mCloudTree)
+    if (!mCloudTree) {
       CreateOctree();
+    }
   }
 }
 
@@ -287,11 +286,12 @@ void Atmosphere::CreateOctree() {
   box.m_v3Max.GetValues(maxx, maxy, maxz);
   glm::vec3 minBounds(minx, miny, minz);
   glm::vec3 maxBounds(maxx, maxy, maxz);
-  // Expand bounding box by maximum cloud height to include cloud layer  
+  // Expand bounding box by maximum cloud height to include cloud layer
   glm::vec3 cloudLayerSize = glm::vec3(CUMULONIMBUS_END_HEIGHT);
   maxBounds += cloudLayerSize;
   minBounds -= cloudLayerSize;
 
+  mCloudTree = std::make_unique<Tree>();
   vstr::debug() << "3d_clouds: Setting up octree..." << std::endl;
   mCloudTree->Setup(minBounds, maxBounds);
   vstr::debug() << "3d_clouds: Building octree..." << std::endl;

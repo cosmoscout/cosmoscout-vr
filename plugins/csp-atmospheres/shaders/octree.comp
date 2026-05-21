@@ -1,12 +1,12 @@
 #version 430 core
 
-layout (local_size_x = 256, local_size_y = 1, local_size_z = 1) in;
+layout (local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
 
 // --- Configuration ---
 const int MAX_NODES = 1 << 16; // 65,536 nodes max
 const int MAX_QUEUE = 1 << 16;
 const float VAR_THRESHOLD = 0.1; // Density threshold
-const uint MAX_DEPTH = 4;
+const uint MAX_DEPTH = 1;
 
 // --- Node Layout ---
 struct Node {
@@ -28,7 +28,7 @@ layout(std430, binding = 1) buffer BufferQueue {
 
 // --- Work Queue Counters ---
 layout(binding = 2) uniform atomic_uint head;
-layout(binding = 2, offset = 4) uniform atomic_uint tail;
+layout(binding = 2/*, offset = 4 (not necessary)*/) uniform atomic_uint tail;
 
 // Outer Octree Bounds for normalising coordinates
 layout(location = 0) uniform vec3 totalMinBounds;
@@ -77,10 +77,24 @@ float sampleDensity(vec3 minBounds, vec3 maxBounds) {
 // [numthreads(64, 1, 1)]
 void main() {
     // 1. Pop a task from the queue
-    uint queueIdx = atomicCounterIncrement(head); // Returns val of head, then increments by 1
-    if (queueIdx > atomicCounter(tail)) return; // No more work
+    memoryBarrierAtomicCounter();
+    memoryBarrier();
+    barrier();
+    uint currentQueueIdx = atomicCounter(head); // Returns val of head, then increments by 1
+    memoryBarrierAtomicCounter();
+    memoryBarrier();
+    barrier();
+    if (currentQueueIdx > MAX_NODES || currentQueueIdx > atomicCounter(tail))
+        return; // No more work
 
-    int currentNodeIdx = queue[queueIdx];
+    memoryBarrierAtomicCounter();
+    memoryBarrier();
+    barrier();
+    uint nextQueueIdx = atomicCounterIncrement(head);
+    memoryBarrierAtomicCounter();
+    memoryBarrier();
+    barrier();
+    int currentNodeIdx = queue[nextQueueIdx];
     Node node = nodes[currentNodeIdx];
 
     // 2. Base Case: Max depth or already branch node
@@ -91,25 +105,23 @@ void main() {
     }
 
     // 3. Evaluate scalar field
-    float density = sampleDensity(node.boundsMin, node.boundsMax);
+    // float density = sampleDensity(node.boundsMin, node.boundsMax);
+    float density = 1;
     if (density > VAR_THRESHOLD) {
         // --- SPLIT ---
-        
         // Branch node
         
-        // Allocate 8 children atomically
-        // We store children indices in nodes[current].children
-        // int newBaseOffset = int(atomicCounterIncrement(nodes[currentNodeIdx].depth, MAX_NODES) + 1); // Hack: reuse depth to get base offset? 
-        // Better: Use a global atomic counter for node allocation.
-        // For this example, let's assume we calculate child indices:
-        // children[i] = BaseNodeIndex + i
-        
-        // Let's use a separate atomic counter in a global uniform/buffer for node pool
-        // Simulated here:
-        uint childBase = atomicCounter(head) + 1; // Prev: atomicCounterAdd(head + 1, 1)
-        
+        // Allocate 8 children
         for (uint i = 0; i < 8; i++) {
-            uint childIdx = childBase + i;
+            // For every child node, increment the running count of created nodes.
+            memoryBarrierAtomicCounter();
+            memoryBarrier();
+            barrier();
+            uint childIdx = atomicCounterIncrement(head);
+            memoryBarrierAtomicCounter();
+            memoryBarrier();
+            barrier();
+
             Node child = nodes[childIdx];
 
             // Initialize child
@@ -132,16 +144,23 @@ void main() {
             node.children[i] = int(childIdx);
 
             // Push child to queue
-            uint tailIdx = atomicCounterIncrement(tail) + 1;
+            memoryBarrierAtomicCounter();
+            memoryBarrier();
+            barrier();
+            uint tailIdx = atomicCounterIncrement(tail);
+            memoryBarrierAtomicCounter();
+            memoryBarrier();
+            barrier();
             if (tailIdx < MAX_QUEUE) {
                 queue[tailIdx] = int(childIdx);
             }
         }
-        
-        nodes[currentNodeIdx] = node;
     } else {
         // --- LEAF ---
         node.children[0] = -1; // Ensure it is marked as leaf
-        nodes[currentNodeIdx] = node;
     }
+
+    nodes[currentNodeIdx] = node;
+    memoryBarrier();
+    barrier();
 }

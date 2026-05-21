@@ -3,7 +3,7 @@
 
 namespace csp::atmospheres {
     Tree::Tree() {
-        this->builtNodes = std::vector<Node>();
+        this->builtNodes = std::vector<Node>(MAX_NODES, Node());
         this->shader = std::make_unique<VistaGLSLShader>();
     }
 
@@ -17,34 +17,29 @@ namespace csp::atmospheres {
 
         shader->Bind();
         
-        auto nodes = std::vector<Node>();
-        for (size_t i = 0; i < MAX_NODES; i++) {
-            Node node;
-            nodes.push_back(node);
-        }
-
-        Node &root = nodes[ROOT_NODE_INDEX];
+        // 1. Setup nodes buffer
+        // Define root node
+        Node &root = builtNodes[ROOT_NODE_INDEX];
+        root.depth = 0;
         root.boundsMin = minBounds;
         root.boundsMax = maxBounds;
-        
-        // 1. Setup nodes buffer
+
         glGenBuffers(1, &nodesBuffer);
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, nodesBuffer);
-        glBufferData(GL_SHADER_STORAGE_BUFFER, MAX_NODE_SIZE, nodes.data(), GL_DYNAMIC_DRAW);
+        // glBufferData(GL_SHADER_STORAGE_BUFFER, MAX_NODE_SIZE, nullptr, GL_DYNAMIC_DRAW);
+        // glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, sizeof(Node), &root);
+        // TODO: Stop initialising whole array
+        glBufferData(GL_SHADER_STORAGE_BUFFER, MAX_NODE_SIZE, builtNodes.data(), GL_DYNAMIC_DRAW);
 
         // 3. Setup work queue buffer
         // Initialize queue
-        int initialQueue[MAX_QUEUE];
-        // Push root node as work task
+        auto initialQueue = std::vector<int>(MAX_QUEUE, 0);
         initialQueue[0] = ROOT_NODE_INDEX;
-        // Fill rest with 0s
-        for(int i = 1; i < MAX_QUEUE; i++)
-            initialQueue[i] = 0;
 
         glGenBuffers(1, &queueBuffer);
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, queueBuffer);
-        glBufferData(GL_SHADER_STORAGE_BUFFER, MAX_QUEUE_SIZE, initialQueue, GL_DYNAMIC_DRAW);
-        
+        glBufferData(GL_SHADER_STORAGE_BUFFER, MAX_QUEUE_SIZE, initialQueue.data(), GL_DYNAMIC_DRAW);
+
         // Initialize atomics (Head = 0, Tail = 1 because we have 1 item, the root node)
         headCount = 0;
         tailCount = 1;
@@ -53,8 +48,13 @@ namespace csp::atmospheres {
         // Bind the buffer and define its initial storage capacity
         glBindBuffer(GL_ATOMIC_COUNTER_BUFFER, atomicsBuffer);
         glBufferData(GL_ATOMIC_COUNTER_BUFFER, sizeof(GLuint) * 2, atomicVals, GL_DYNAMIC_DRAW);
-        // Unbind the buffer        
-        glBindBuffer(GL_ATOMIC_COUNTER_BUFFER, 0);
+        
+        // Bind the SSBOs to the shader bindings (0 = nodes, 1 = queue, 2 = atomics)
+        // Bind the allocated buffer memory at ID 2 to the binding ATOMICS_BUFFER_BINDING used on the compute shader
+        // to make sure we access the correct buffer when reading it with glGetBuffer(Sub)Data
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, NODE_BUFFER_BINDING, nodesBuffer);
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, QUEUE_BUFFER_BINDING, queueBuffer);
+        glBindBufferBase(GL_ATOMIC_COUNTER_BUFFER, ATOMICS_BUFFER_BINDING, atomicsBuffer);
 
         // Set bounds
         float _minBounds[] = { minBounds[0], minBounds[1], minBounds[2] };
@@ -64,63 +64,66 @@ namespace csp::atmospheres {
     }
 
     void Tree::Build() {
-        // Bind the SSBOs to the shader bindings (0 = nodes, 1 = queue)
         shader->Bind();
 
-        // Bind the allocated buffer memory at ID atomicsBuffer, ... to the binding ATOMICS_BUFFER_BINDING used on the compute shader 
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, NODE_BUFFER_BINDING, nodesBuffer);
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, QUEUE_BUFFER_BINDING, queueBuffer);
-        glBindBufferBase(GL_ATOMIC_COUNTER_BUFFER, ATOMICS_BUFFER_BINDING, atomicsBuffer);
-
-        // --- THE LOOP ---
         bool complete = false;
         unsigned int iterations = 0;
 
         while (!complete) {
-            // 1. Dispatch Work (e.g., 16 groups of 256 threads = 4096 threads)
+            // 1. Dispatch Work (e.g., 32 * 1 * 1 * number of work groups defined in shader)
             glDispatchCompute(32, 1, 1);
-            
-            // 2. Barrier to ensure shader writes (atomic adds) are visible
-            glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT | GL_ATOMIC_COUNTER_BARRIER_BIT);
 
-            // 3. Read back the atomic counters from the GPU
+            // 2. Read back the atomic counters from the GPU
             UpdateCounts();
+            vstr::debug() << "Built " << headCount << " nodes, " << tailCount << " left." << std::endl;
 
-            if (headCount % 100 == 0)
-                vstr::debug() << "Built " << headCount << " nodes, " << tailCount << " left." << std::endl;
             // We read from the buffer binding point (which is 1)
             // Note: In a real loop, reading buffer data is expensive. 
             // For simple trees this is fine. For massive trees, consider a different topology.
 
             // glBindBuffer(GL_PIXEL_PACK_BUFFER, 0); // Unbind PBO if used, or use GL_READ_BUFFER
             
-            // 4. Read back the Head counter (optional, strictly speaking Tail is enough for "is there work?")
+            // 3. Read back the head counter (optional, strictly speaking tail is enough for "is there work?")
             // If Tail == Head, the queue is empty.
-            complete = headCount > tailCount;
-            
             iterations += 1;
-            if (iterations % 200 == 0) {
-                FetchNodes();
-            }
+            complete = headCount > tailCount;
         }
 
         FetchNodes();
-        vstr::debug() << "Built octree with size = " << headCount << std::endl;
+        
+        for (size_t i = 0; i < headCount; i++) {
+            const auto &node = builtNodes[i];
+            vstr::debug() << "Node " << i << ": depth = " << node.depth << ", leaf = " << (IsLeafNode(node) ? "yes" : "no") << ", children = ";
+            for (size_t j = 0; j < 8; j++) {
+                int childIdx = node.children[j];
+                vstr::debug() << childIdx << ", ";
+                if (childIdx == -1)
+                    break;
+            }
+            vstr::debug() << std::endl;
+        }
+        vstr::debug() << "Built octree with size = " << headCount << " in " << iterations << " iterations." << std::endl;
+    }
+
+    void Tree::UpdateCounts() {
+        GLuint counters[2];
+        glBindBuffer(GL_ATOMIC_COUNTER_BUFFER, atomicsBuffer);
+        glMemoryBarrier(GL_ATOMIC_COUNTER_BARRIER_BIT);
+        glGetBufferSubData(GL_ATOMIC_COUNTER_BUFFER, 0, sizeof(GLuint) * 2, counters);
+        glBindBuffer(GL_ATOMIC_COUNTER_BUFFER, 0);
+        headCount = counters[0];
+        tailCount = counters[1];
     }
 
     void Tree::FetchNodes() {
-        if (headCount == builtNodes.size()) {
-            vstr::debug() << "Head count " << headCount << " unchanged; aborting builtNodes update." << std::endl;
-        }
-
-        Node nodes[MAX_NODES];
-        glBindBuffer(GL_SHADER_STORAGE_BUFFER, nodesBuffer);
-        glGetBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, headCount * sizeof(Node), nodes);
+        // if (headCount == builtNodes.size()) {
+        //     vstr::debug() << "Head count " << headCount << " unchanged; aborting builtNodes update." << std::endl;
+        // }
 
         builtNodes.clear();
-        for (size_t i = 0; i < headCount; i++) {
-            builtNodes.push_back(nodes[i]);
-        }
+        glBindBuffer(GL_SHADER_STORAGE_BUFFER, nodesBuffer);
+        glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+        glGetBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, headCount * sizeof(Node), builtNodes.data());
     }
 
     const char *TREE_DEBUG_VERT_SHADER = R"(#version 400
@@ -210,8 +213,8 @@ namespace csp::atmospheres {
 
             for (size_t i = 0; i < builtNodes.size(); i++) {
                 const auto &node = builtNodes[i];
-                if (!IsLeafNode(node))
-                    continue;
+                // if (!IsLeafNode(node))
+                //     continue;
                 
                 debugShader->SetUniform(debugShader->GetUniformLocation("aabbMin"), node.boundsMin[0], node.boundsMin[1], node.boundsMin[2]);
                 debugShader->SetUniform(debugShader->GetUniformLocation("aabbMax"), node.boundsMax[0], node.boundsMax[1], node.boundsMax[2]);
