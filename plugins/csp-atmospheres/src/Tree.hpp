@@ -38,6 +38,7 @@ namespace csp::atmospheres {
         glm::vec3 boundsMin;
         glm::vec3 boundsMax;
         unsigned int depth = 0;
+        int padding[4];
     } Node;
 
     bool IsLeafNode(const Node &node) {
