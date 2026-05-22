@@ -32,9 +32,9 @@
 #include <limits>
 
 namespace csp::atmospheres {
-    // Define the Node struct to match GLSL exactly
+    // Define the Node struct to match GLSL
     typedef struct OctreeNode {
-        int children[8] = { -1, 0, 0, 0, 0, 0, 0, 0 };
+        int children[8] = { -1, 0, 0, 0, 0, 0, 0, 0 }; // 8 * 4 = 32 bytes Largest struct member defines memory layout
         glm::vec3 boundsMin;
         glm::vec3 boundsMax;
         unsigned int depth = 0;
@@ -44,8 +44,8 @@ namespace csp::atmospheres {
         return node.children[0] == -1;
     }
 
-    const int MAX_NODES = 1 << 16;
-    const int MAX_QUEUE = 1 << 16;
+    const int MAX_NODES = 1 << 12;
+    const int MAX_QUEUE = 1 << 12;
     const int MAX_NODE_SIZE = MAX_NODES * sizeof(Node);
     const int MAX_QUEUE_SIZE = MAX_QUEUE * sizeof(unsigned int);
     const unsigned int ROOT_NODE_INDEX = 0;

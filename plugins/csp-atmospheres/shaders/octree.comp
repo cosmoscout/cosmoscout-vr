@@ -3,14 +3,14 @@
 layout (local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
 
 // --- Configuration ---
-const int MAX_NODES = 1 << 16; // 65,536 nodes max
-const int MAX_QUEUE = 1 << 16;
+const int MAX_NODES = 1 << 12; // 65,536 nodes max
+const int MAX_QUEUE = 1 << 12;
 const float VAR_THRESHOLD = 0.1; // Density threshold
-const uint MAX_DEPTH = 1;
+const uint MAX_DEPTH = 3;
 
 // --- Node Layout ---
 struct Node {
-    int children[8];   // Offsets into the Nodes buffer
+    int children[8];   // Largest struct member (8 * 4 = 32 bytes)
     vec3 boundsMin;
     vec3 boundsMax;
     uint depth;        // Current depth level
@@ -78,14 +78,14 @@ float sampleDensity(vec3 minBounds, vec3 maxBounds) {
 void main() {
     // 1. Pop a task from the queue
     uint currentQueueIdx = atomicCounter(head); // Returns val of head, then increments by 1
-    if (currentQueueIdx > MAX_NODES || currentQueueIdx > atomicCounter(tail))
+    if (currentQueueIdx > MAX_QUEUE || currentQueueIdx > atomicCounter(tail))
         return; // No more work
 
-    uint nextQueueIdx = atomicCounterIncrement(head);
-    int currentNodeIdx = queue[nextQueueIdx];
+    currentQueueIdx = atomicCounterIncrement(head);
+    int currentNodeIdx = queue[currentQueueIdx];
     Node node = nodes[currentNodeIdx];
 
-    // 2. Base Case: Max depth or already branch node
+    // // 2. Base Case: Max depth or already branch node
     if (node.depth >= MAX_DEPTH) {
         node.children[0] = -1; // Sets leaf node
         nodes[currentNodeIdx] = node;
@@ -93,8 +93,7 @@ void main() {
     }
 
     // 3. Evaluate scalar field
-    // float density = sampleDensity(node.boundsMin, node.boundsMax);
-    float density = 1;
+    float density = 1; //sampleDensity(node.boundsMin, node.boundsMax);
     if (density > VAR_THRESHOLD) {
         // --- SPLIT ---
         // Branch node
@@ -126,8 +125,6 @@ void main() {
 
             // Push child to queue
             uint tailIdx = atomicCounterIncrement(tail);
-            memoryBarrier();
-            barrier();
             if (tailIdx < MAX_QUEUE) {
                 queue[tailIdx] = int(childIdx);
             }

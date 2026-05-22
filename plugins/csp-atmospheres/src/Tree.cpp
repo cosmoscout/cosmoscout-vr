@@ -3,16 +3,18 @@
 
 namespace csp::atmospheres {
     Tree::Tree() {
+        // Initialise with default node (written to GPU nodes buffer in Setup())
         this->builtNodes = std::vector<Node>(MAX_NODES, Node());
         this->shader = std::make_unique<VistaGLSLShader>();
     }
 
     void Tree::Setup(const glm::vec3 &minBounds, const glm::vec3 &maxBounds) {
+        // Global bounds of root node
         this->minBounds = minBounds;
         this->maxBounds = maxBounds;
         
+        // Compute shader to generate octree
         shader->InitComputeShaderFromFile("../share/resources/shaders/octree.comp");
-        // utils::storeShaderInfoLog("octree.comp", shader->GetComputeShader(0));
         shader->Link();
 
         shader->Bind();
@@ -122,11 +124,11 @@ namespace csp::atmospheres {
 
         while (!complete) {
             // 1. Dispatch Work (e.g., 32 * 1 * 1 * number of work groups defined in shader)
-            glDispatchCompute(32, 1, 1);
+            glDispatchCompute(1, 1, 1);
 
             // 2. Read back the atomic counters from the GPU
             UpdateCounts();
-            vstr::debug() << "Built " << headCount << " nodes, " << tailCount << " left." << std::endl;
+            vstr::debug() << "Built " << headCount << " nodes, " << (headCount - tailCount) << " left." << std::endl;
 
             // We read from the buffer binding point (which is 1)
             // Note: In a real loop, reading buffer data is expensive. 
@@ -141,7 +143,7 @@ namespace csp::atmospheres {
         }
 
         FetchNodes();
-        
+        // Print all nodes that have been generated (= headCount)
         for (size_t i = 0; i < headCount; i++) {
             const auto &node = builtNodes[i];
             vstr::debug() << "Node " << i << ": depth = " << node.depth << ", leaf = " << (IsLeafNode(node) ? "yes" : "no") << ", children = ";
