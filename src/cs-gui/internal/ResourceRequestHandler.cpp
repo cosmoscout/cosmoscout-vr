@@ -46,11 +46,9 @@ CefRefPtr<CefResourceHandler> ResourceRequestHandler::GetResourceHandler(
       return nullptr;
     }
 
-    std::vector<char> buffer(
-        (std::istreambuf_iterator<char>(input)), (std::istreambuf_iterator<char>()));
+    input.close();
 
-    CefRefPtr<CefStreamReader> stream =
-        CefStreamReader::CreateForData(static_cast<void*>(buffer.data()), buffer.size());
+    CefRefPtr<CefStreamReader> stream = CefStreamReader::CreateForFile(path);
 
     std::string mime("text/html");
     if (ext == ".png") {

@@ -36,12 +36,20 @@ void WebApp::OnBeforeCommandLineProcessing(
     command_line->AppendSwitch("enable-overlay-scrollbar");
     command_line->AppendSwitch("enable-begin-frame-scheduling");
     command_line->AppendSwitch("disable-web-security");
+  }
+
+#ifdef _WIN32
+  if (process_type == "gpu-process") {
+    command_line->AppendSwitch("disable-vulkan");
+    command_line->AppendSwitchWithValue("disable-features", "Vulkan");
+    command_line->AppendSwitchWithValue("use-angle", "d3d11");
 
     if (!mHardwareAccelerated) {
       command_line->AppendSwitch("disable-gpu");
       command_line->AppendSwitch("disable-gpu-compositing");
     }
   }
+#endif
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
