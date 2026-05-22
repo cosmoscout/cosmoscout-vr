@@ -269,9 +269,9 @@ void Plugin::init() {
     std::unique_lock<std::mutex> lock(mCaptureMutex);
 
     // Read all paramters.
-    mCaptureDelay  = std::clamp(getParam<int32_t>(conn, "delay", 50), 1, 200);
-    mCaptureWidth  = std::clamp(getParam<int32_t>(conn, "width", 0), 0, 4096);
-    mCaptureHeight = std::clamp(getParam<int32_t>(conn, "height", 0), 0, 4096);
+    mCaptureDelay  = std::clamp(getParam<int32_t>(conn, "delay", 50), 1, 10000);
+    mCaptureWidth  = std::clamp(getParam<int32_t>(conn, "width", 0), 0, 8192);
+    mCaptureHeight = std::clamp(getParam<int32_t>(conn, "height", 0), 0, 8192);
     mRestoreState  = getParam<std::string>(conn, "restoreState", "false") == "true";
     mCaptureGui    = getParam<std::string>(conn, "gui", "auto");
     mCaptureDepth  = getParam<std::string>(conn, "depth", "false") == "true";

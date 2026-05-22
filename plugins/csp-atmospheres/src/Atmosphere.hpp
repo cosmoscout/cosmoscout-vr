@@ -58,6 +58,8 @@ class Atmosphere : public IVistaOpenGLDraw {
     uint32_t colorBuffer               = 0;
     uint32_t waterLevel                = 0;
     uint32_t cloudTexture              = 0;
+    uint32_t cloudTypeTexture          = 0;
+    uint32_t noiseTexture2D            = 0;
     uint32_t cloudAltitude             = 0;
     uint32_t limbLuminanceTexture      = 0;
     uint32_t inverseModelViewMatrix    = 0;
@@ -66,6 +68,22 @@ class Atmosphere : public IVistaOpenGLDraw {
     uint32_t modelMatrix               = 0;
     uint32_t modelViewProjectionMatrix = 0;
     uint32_t shadowCoordinates         = 0;
+    uint32_t noiseTexture              = 0;
+    uint32_t cloudDensityMultiplier    = 0;
+    uint32_t cloudAbsorption           = 0;
+    uint32_t coverageExponent          = 0;
+    uint32_t cloudCutoff               = 0;
+    uint32_t cloudLFRepetitionScale    = 0;
+    uint32_t cloudHFRepetitionScale    = 0;
+
+    uint32_t cloudQuality              = 0;
+    uint32_t cloudMaxSamples           = 0;
+    uint32_t cloudJitter               = 0;
+    uint32_t cloudTypeExponent         = 0;
+    uint32_t cloudRangeMin             = 0;
+    uint32_t cloudRangeMax             = 0;
+    uint32_t cloudTypeMin              = 0;
+    uint32_t cloudTypeMax              = 0;
 
     // Only used by the panorama shader.
     uint32_t atmoPanoUniforms = 0;
@@ -90,6 +108,9 @@ class Atmosphere : public IVistaOpenGLDraw {
   std::shared_ptr<cs::graphics::HDRBuffer>         mHDRBuffer;
   std::shared_ptr<cs::core::EclipseShadowReceiver> mEclipseShadowReceiver;
   std::unique_ptr<VistaTexture>                    mCloudTexture;
+  std::unique_ptr<VistaTexture>                    mCloudTypeTexture;
+  GLuint                                           mNoiseTexture = 0;
+  GLuint                                           mNoiseTexture2D = 0;
   GLuint                                           mLimbLuminanceTexture = 0;
 
   glm::dvec3                   mRadii                          = glm::dvec3(1.0, 1.0, 1.0);
