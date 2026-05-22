@@ -86,7 +86,7 @@ void Plugin::onLoad() {
   from_json(mAllSettings->mPlugins.at("csp-visual-effects"), *mPluginSettings);
 
   for (auto const& settings : mPluginSettings->mSolarFlares) {
-    auto solarFlares = std::make_shared<SolarFlares>(mPluginSettings, mSolarSystem);
+    auto solarFlares = std::make_shared<SolarFlares>(mPluginSettings, mSolarSystem, mTimeControl);
     solarFlares->setParentName(settings.first);
     mSolarFlares.emplace(settings.first, solarFlares);
     logger().info("Loaded solar flares for {}.", settings.first);

@@ -15,6 +15,7 @@
 #include <VistaKernel/GraphicsManager/VistaOpenGLNode.h>
 #include <VistaKernel/GraphicsManager/VistaOpenGLDraw.h>
 #include <VistaOGLExt/VistaGLSLShader.h>
+#include <VistaOGLExt/VistaTexture.h>
 #include <VistaOGLExt/VistaBufferObject.h>
 #include <VistaOGLExt/VistaVertexArrayObject.h>
 
@@ -26,7 +27,8 @@ class SolarFlares : public IVistaOpenGLDraw {
  public:
   SolarFlares(
     std::shared_ptr<Plugin::Settings>     pluginSettings,
-    std::shared_ptr<cs::core::SolarSystem>    solarSystem
+    std::shared_ptr<cs::core::SolarSystem>    solarSystem,
+    std::shared_ptr<cs::core::TimeControl>    timeControl
   );
 
   SolarFlares(SolarFlares const& other) = delete;
@@ -52,6 +54,7 @@ class SolarFlares : public IVistaOpenGLDraw {
 
   std::shared_ptr<Plugin::Settings> mPluginSettings;
   std::shared_ptr<cs::core::SolarSystem> mSolarSystem;
+  std::shared_ptr<cs::core::TimeControl> mTimeControl;
 
   std::unique_ptr<VistaOpenGLNode> mGLNode;
 
@@ -59,11 +62,19 @@ class SolarFlares : public IVistaOpenGLDraw {
 
   std::string mParentName;
 
+  bool mPlayBackTimeSet = false;
+  float mPlaybackStartTime = 0.0f;
+
+  std::unique_ptr<VistaTexture> mNoiseTexture;
+
   std::unique_ptr<VistaGLSLShader>        mShader;
   std::unique_ptr<VistaVertexArrayObject> mVAO;
   std::unique_ptr<VistaBufferObject>      mVBO;
 
   struct {
+    uint32_t time  = 0;
+    uint32_t resolution  = 0;
+    uint32_t noiseTexture  = 0;
     uint32_t modelViewMatrix  = 0;
     uint32_t projectionMatrix = 0;
   } mUniforms;
