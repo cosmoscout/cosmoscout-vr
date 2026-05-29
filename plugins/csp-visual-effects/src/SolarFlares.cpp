@@ -219,7 +219,7 @@ bool SolarFlares::Do() {
   matMV = glm::dmat4(1.0);
 
   // Size of the panel.
-  double size = 1000.0 * 1000.0 * 1000.0 * 1.4; // TODO: Currently hardcoded size of panel.
+  double size = 1000.0 * 1000.0 * 1000.0 * 1.2; // TODO: Currently hardcoded size of panel.
   
   // Inject the original scaling together with the desired size of the panel.
   matMV[0][0] = scaleX * size;
