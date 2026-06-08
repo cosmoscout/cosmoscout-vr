@@ -10,9 +10,9 @@
 
 #include "cs_graphics_export.hpp"
 
+#include <memory>
 #include <string>
 #include <vector>
-#include <memory>
 
 namespace cs::graphics {
 
@@ -36,7 +36,6 @@ class CS_GRAPHICS_EXPORT ObjLoader {
   void initData(const std::string& objFilePath);
 
   std::shared_ptr<std::vector<float>> mVertices;
-
 };
 
 } // namespace cs::graphics

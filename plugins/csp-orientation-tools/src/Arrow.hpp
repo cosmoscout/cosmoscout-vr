@@ -10,13 +10,13 @@
 
 #include "Plugin.hpp"
 
-#include "../../../src/cs-scene/CelestialObject.hpp"
 #include "../../../src/cs-graphics/ObjLoader.hpp"
+#include "../../../src/cs-scene/CelestialObject.hpp"
 
-#include <VistaKernel/GraphicsManager/VistaOpenGLNode.h>
 #include <VistaKernel/GraphicsManager/VistaOpenGLDraw.h>
-#include <VistaOGLExt/VistaGLSLShader.h>
+#include <VistaKernel/GraphicsManager/VistaOpenGLNode.h>
 #include <VistaOGLExt/VistaBufferObject.h>
+#include <VistaOGLExt/VistaGLSLShader.h>
 #include <VistaOGLExt/VistaVertexArrayObject.h>
 
 #include <glm/glm.hpp>
@@ -25,15 +25,10 @@ namespace csp::orientationtools {
 
 class Arrow : public IVistaOpenGLDraw {
  public:
-  Arrow(
-    std::shared_ptr<Plugin::Settings>     pluginSettings,
-    std::shared_ptr<cs::core::SolarSystem>    solarSystem,
-    std::shared_ptr<cs::graphics::ObjLoader>  arrowModel,
-    const glm::dvec3                          rotAxis,
-    const float                               rotAngle,
-    const glm::vec4&                          color,
-    float                                     size
-  );
+  Arrow(std::shared_ptr<Plugin::Settings>      pluginSettings,
+      std::shared_ptr<cs::core::SolarSystem>   solarSystem,
+      std::shared_ptr<cs::graphics::ObjLoader> arrowModel, const glm::dvec3 rotAxis,
+      const float rotAngle, const glm::vec4& color, float size);
 
   Arrow(Arrow const& other) = delete;
   Arrow(Arrow&& other)      = delete;
@@ -47,7 +42,7 @@ class Arrow : public IVistaOpenGLDraw {
   void update(double tTime);
 
   // The arrow visualizes the orientation of this object.
-  void setParentName(std::string objectName);
+  void               setParentName(std::string objectName);
   std::string const& getParentName() const;
 
   bool Do() override;
@@ -56,7 +51,7 @@ class Arrow : public IVistaOpenGLDraw {
  private:
   void createShader();
 
-  std::shared_ptr<Plugin::Settings> mPluginSettings;
+  std::shared_ptr<Plugin::Settings>      mPluginSettings;
   std::shared_ptr<cs::core::SolarSystem> mSolarSystem;
 
   std::unique_ptr<VistaOpenGLNode> mGLNode;
@@ -64,10 +59,10 @@ class Arrow : public IVistaOpenGLDraw {
   int mVertexCount;
 
   glm::vec4 mColor;
-  float mSize;
-  
+  float     mSize;
+
   glm::dvec3 mRotAxis;
-  float mRotAngle;
+  float      mRotAngle;
 
   std::string mParentName;
 
@@ -76,7 +71,7 @@ class Arrow : public IVistaOpenGLDraw {
   std::unique_ptr<VistaBufferObject>      mVBO;
 
   struct {
-    uint32_t color = 0;
+    uint32_t color            = 0;
     uint32_t modelViewMatrix  = 0;
     uint32_t projectionMatrix = 0;
   } mUniforms;

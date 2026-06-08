@@ -11,11 +11,11 @@
 #include "../../../src/cs-utils/FrameStats.hpp"
 #include "logger.hpp"
 
-#include <VistaKernel/GraphicsManager/VistaSceneGraph.h>
-#include <VistaKernelOpenSGExt/VistaOpenSGMaterialTools.h>
-#include <VistaKernel/VistaSystem.h>
 #include <VistaKernel/GraphicsManager/VistaGraphicsManager.h>
 #include <VistaKernel/GraphicsManager/VistaGroupNode.h>
+#include <VistaKernel/GraphicsManager/VistaSceneGraph.h>
+#include <VistaKernel/VistaSystem.h>
+#include <VistaKernelOpenSGExt/VistaOpenSGMaterialTools.h>
 
 #include <glm/gtc/type_ptr.hpp>
 
@@ -57,53 +57,49 @@ void main()
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-Arrow::Arrow(std::shared_ptr<Plugin::Settings>  pluginSettings,
-    std::shared_ptr<cs::core::SolarSystem>      solarSystem,
-    std::shared_ptr<cs::graphics::ObjLoader>    arrowModel,
-    const glm::dvec3                            rotAxis,
-    const float                                 rotAngle,
-    const glm::vec4&                            color,
-    float                                       size
-  ) :
-      mPluginSettings(std::move(pluginSettings)),
-      mSolarSystem(std::move(solarSystem)),
-      mRotAxis(rotAxis),
-      mRotAngle(rotAngle),
-      mColor(color),
-      mSize(size)
-  {
+Arrow::Arrow(std::shared_ptr<Plugin::Settings> pluginSettings,
+    std::shared_ptr<cs::core::SolarSystem>     solarSystem,
+    std::shared_ptr<cs::graphics::ObjLoader> arrowModel, const glm::dvec3 rotAxis,
+    const float rotAngle, const glm::vec4& color, float size)
+    : mPluginSettings(std::move(pluginSettings))
+    , mSolarSystem(std::move(solarSystem))
+    , mRotAxis(rotAxis)
+    , mRotAngle(rotAngle)
+    , mColor(color)
+    , mSize(size) {
 
-    // Add to scenegraph.
-    VistaSceneGraph* pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
-    mGLNode.reset(pSG->NewOpenGLNode(pSG->GetRoot(), this));
-    VistaOpenSGMaterialTools::SetSortKeyOnSubtree(
-        mGLNode.get(), static_cast<int>(cs::utils::DrawOrder::eTransparentItems));
-    logger().info("Added arrow to scene graph.");
+  // Add to scenegraph.
+  VistaSceneGraph* pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
+  mGLNode.reset(pSG->NewOpenGLNode(pSG->GetRoot(), this));
+  VistaOpenSGMaterialTools::SetSortKeyOnSubtree(
+      mGLNode.get(), static_cast<int>(cs::utils::DrawOrder::eTransparentItems));
+  logger().info("Added arrow to scene graph.");
 
-    // Remember vertex count fo arrow model.
-    mVertexCount = static_cast<int>(arrowModel->getVertices().get()->size() / 3);
+  // Remember vertex count fo arrow model.
+  mVertexCount = static_cast<int>(arrowModel->getVertices().get()->size() / 3);
 
-    // Create VBO and VAO from given vertices.
-    mVBO = std::make_unique<VistaBufferObject>();
-    mVAO = std::make_unique<VistaVertexArrayObject>();
+  // Create VBO and VAO from given vertices.
+  mVBO = std::make_unique<VistaBufferObject>();
+  mVAO = std::make_unique<VistaVertexArrayObject>();
 
-    mVAO->Bind();
+  mVAO->Bind();
 
-    mVBO->Bind(GL_ARRAY_BUFFER);
-    mVBO->BufferData(arrowModel->getVertices().get()->size() * sizeof(float), arrowModel->getVertices().get()->data(), GL_DYNAMIC_DRAW);
+  mVBO->Bind(GL_ARRAY_BUFFER);
+  mVBO->BufferData(arrowModel->getVertices().get()->size() * sizeof(float),
+      arrowModel->getVertices().get()->data(), GL_DYNAMIC_DRAW);
 
-    mVAO->EnableAttributeArray(0);
-    mVAO->SpecifyAttributeArrayFloat(0, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), 0, mVBO.get());
+  mVAO->EnableAttributeArray(0);
+  mVAO->SpecifyAttributeArrayFloat(0, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), 0, mVBO.get());
 
-    mVAO->Release();
-    mVBO->Release();
+  mVAO->Release();
+  mVBO->Release();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 Arrow::~Arrow() {
-    VistaSceneGraph* pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
-    pSG->GetRoot()->DisconnectChild(mGLNode.get());
+  VistaSceneGraph* pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
+  pSG->GetRoot()->DisconnectChild(mGLNode.get());
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -137,13 +133,13 @@ bool Arrow::Do() {
   createShader();
 
   // Get distance to observer and compute scale.
-  glm::dvec3 observerRelative = parent->getObserverRelativePosition();
-  double distanceToObserver = glm::length(observerRelative);
-  double scale = distanceToObserver * mSize;
+  glm::dvec3 observerRelative   = parent->getObserverRelativePosition();
+  double     distanceToObserver = glm::length(observerRelative);
+  double     scale              = distanceToObserver * mSize;
 
   // Get observer relative transform and extract the upper left 3x3 matrix.
   auto matMV = parent->getObserverRelativeTransform();
-  
+
   glm::vec3 xAxis = glm::vec3(matMV[0]);
   glm::vec3 yAxis = glm::vec3(matMV[1]);
   glm::vec3 zAxis = glm::vec3(matMV[2]);
@@ -172,7 +168,8 @@ bool Arrow::Do() {
   mShader->Bind();
 
   // Set uniforms
-  glUniformMatrix4fv(mUniforms.modelViewMatrix, 1, GL_FALSE, glm::value_ptr(glm::highp_mat4(matMV)));
+  glUniformMatrix4fv(
+      mUniforms.modelViewMatrix, 1, GL_FALSE, glm::value_ptr(glm::highp_mat4(matMV)));
   glUniformMatrix4fv(mUniforms.projectionMatrix, 1, GL_FALSE, glMatP.data());
   mShader->SetUniform(mUniforms.color, mColor[0], mColor[1], mColor[2], mColor[3]);
 
@@ -184,12 +181,12 @@ bool Arrow::Do() {
   // Cleanup
   glEnable(GL_CULL_FACE);
   glEnable(GL_DEPTH_TEST);
-    
+
   mShader->Release();
   mVAO->Release();
 
   glPopAttrib();
-  
+
   return true;
 }
 
@@ -205,7 +202,7 @@ void Arrow::createShader() {
   mShader->InitFragmentShaderFromString(sFrag);
   mShader->Link();
 
-  mUniforms.color       = mShader->GetUniformLocation("cColor");
+  mUniforms.color            = mShader->GetUniformLocation("cColor");
   mUniforms.modelViewMatrix  = mShader->GetUniformLocation("uMatModelView");
   mUniforms.projectionMatrix = mShader->GetUniformLocation("uMatProjection");
 }

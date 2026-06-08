@@ -7,8 +7,8 @@
 
 (() => {
   /**
-  * Orientation Tools Api
-  */
+   * Orientation Tools Api
+   */
   class OrientationToolsApi extends IApi {
     /**
      * @inheritDoc

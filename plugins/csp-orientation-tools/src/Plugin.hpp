@@ -28,7 +28,7 @@ class Plugin : public cs::core::PluginBase {
 
     // Settings for a group of arrows.
     struct Arrows {
-      float mSize;
+      float               mSize;
       std::optional<bool> mDisableX;
       std::optional<bool> mDisableY;
       std::optional<bool> mDisableZ;
@@ -36,8 +36,8 @@ class Plugin : public cs::core::PluginBase {
 
     // Settings for a group of axes.
     struct Axis {
-      float mSize;
-      glm::vec3 mColor{};
+      float               mSize;
+      glm::vec3           mColor{};
       std::optional<bool> mDisableX;
       std::optional<bool> mDisableY;
       std::optional<bool> mDisableZ;
@@ -61,17 +61,21 @@ class Plugin : public cs::core::PluginBase {
   void onLoad();
 
   // Creates and adds a group of arrows or axes for a setting.
-  void addArrowsGroup(std::pair<const std::string, csp::orientationtools::Plugin::Settings::Arrows> settings);
-  void addAxesGroup(std::pair<const std::string, csp::orientationtools::Plugin::Settings::Axis> settings);
+  void addArrowsGroup(
+      std::pair<const std::string, csp::orientationtools::Plugin::Settings::Arrows> settings);
+  void addAxesGroup(
+      std::pair<const std::string, csp::orientationtools::Plugin::Settings::Axis> settings);
 
   std::shared_ptr<Settings> mPluginSettings = std::make_shared<Settings>();
 
   std::map<std::string, std::vector<std::shared_ptr<Arrow>>> mArrows;
-  std::map<std::string, std::vector<std::shared_ptr<Axis>>> mAxes;
+  std::map<std::string, std::vector<std::shared_ptr<Axis>>>  mAxes;
 
   // Load the models used.
-  std::shared_ptr<cs::graphics::ObjLoader> mArrowModel = std::make_shared<cs::graphics::ObjLoader>("../share/resources/models/arrow.obj");
-  std::shared_ptr<cs::graphics::ObjLoader> mAxisModel = std::make_shared<cs::graphics::ObjLoader>("../share/resources/models/axis.obj");
+  std::shared_ptr<cs::graphics::ObjLoader> mArrowModel =
+      std::make_shared<cs::graphics::ObjLoader>("../share/resources/models/arrow.obj");
+  std::shared_ptr<cs::graphics::ObjLoader> mAxisModel =
+      std::make_shared<cs::graphics::ObjLoader>("../share/resources/models/axis.obj");
 
   // Define colors for arrows.
   glm::vec4 mColorX{1.0f, 0.0f, 0.0f, 1.0f};

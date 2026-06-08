@@ -8,8 +8,8 @@
 #include "ObjLoader.hpp"
 
 #include <fstream>
-#include <sstream>
 #include <iostream>
+#include <sstream>
 
 namespace cs::graphics {
 
@@ -38,14 +38,16 @@ void ObjLoader::initData(const std::string& objFilePath) {
   }
 
   std::vector<float> vertices;
-  struct TempVertex { float x, y, z; };
+  struct TempVertex {
+    float x, y, z;
+  };
   std::vector<TempVertex> tempVertices;
-  std::string line;
+  std::string             line;
 
   // Read every line in the file.
   while (std::getline(file, line)) {
     std::stringstream ss(line);
-    std::string lineHeader;
+    std::string       lineHeader;
     ss >> lineHeader;
 
     // Reads the vertex lines and remember the vertices in the line in the TempVertex struct.
@@ -54,11 +56,11 @@ void ObjLoader::initData(const std::string& objFilePath) {
       ss >> v.x >> v.y >> v.z;
       tempVertices.push_back(v);
 
-    // Read the faces lines representing the vertex indices and writes the vertexes at these
-    // indices in the final vertex array returned in correct order.
-    } else if (lineHeader =="f") {
+      // Read the faces lines representing the vertex indices and writes the vertexes at these
+      // indices in the final vertex array returned in correct order.
+    } else if (lineHeader == "f") {
       std::string vertexStr;
-    
+
       while (ss >> vertexStr) {
         int index = std::stoi(vertexStr) - 1;
 
@@ -68,10 +70,10 @@ void ObjLoader::initData(const std::string& objFilePath) {
       }
     }
   }
-    
+
   // Close the read file again.
   file.close();
-  
+
   // Set the read vertices in this object.
   mVertices = std::make_shared<std::vector<float>>(vertices);
 }
