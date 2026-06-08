@@ -3,7 +3,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported (CC
+// BY-NC-SA 3.0)
 
 #ifndef CSP_VISUAL_EFFECTS_PLUGIN_SOLAR_FLARES_HPP
 #define CSP_VISUAL_EFFECTS_PLUGIN_SOLAR_FLARES_HPP
@@ -12,11 +13,11 @@
 
 #include "../../../src/cs-scene/CelestialObject.hpp"
 
-#include <VistaKernel/GraphicsManager/VistaOpenGLNode.h>
 #include <VistaKernel/GraphicsManager/VistaOpenGLDraw.h>
+#include <VistaKernel/GraphicsManager/VistaOpenGLNode.h>
+#include <VistaOGLExt/VistaBufferObject.h>
 #include <VistaOGLExt/VistaGLSLShader.h>
 #include <VistaOGLExt/VistaTexture.h>
-#include <VistaOGLExt/VistaBufferObject.h>
 #include <VistaOGLExt/VistaVertexArrayObject.h>
 
 #include <glm/glm.hpp>
@@ -25,11 +26,9 @@ namespace csp::visualeffects {
 
 class SolarFlares : public IVistaOpenGLDraw {
  public:
-  SolarFlares(
-    std::shared_ptr<Plugin::Settings>     pluginSettings,
-    std::shared_ptr<cs::core::SolarSystem>    solarSystem,
-    std::shared_ptr<cs::core::TimeControl>    timeControl
-  );
+  SolarFlares(std::shared_ptr<Plugin::Settings> pluginSettings,
+      std::shared_ptr<cs::core::SolarSystem>    solarSystem,
+      std::shared_ptr<cs::core::TimeControl>    timeControl);
 
   SolarFlares(SolarFlares const& other) = delete;
   SolarFlares(SolarFlares&& other)      = delete;
@@ -43,7 +42,7 @@ class SolarFlares : public IVistaOpenGLDraw {
   void update(double tTime);
 
   // The axis visualizes the orientation of this object.
-  void setParentName(std::string objectName);
+  void               setParentName(std::string objectName);
   std::string const& getParentName() const;
 
   bool Do() override;
@@ -52,7 +51,7 @@ class SolarFlares : public IVistaOpenGLDraw {
  private:
   void createShader();
 
-  std::shared_ptr<Plugin::Settings> mPluginSettings;
+  std::shared_ptr<Plugin::Settings>      mPluginSettings;
   std::shared_ptr<cs::core::SolarSystem> mSolarSystem;
   std::shared_ptr<cs::core::TimeControl> mTimeControl;
 
@@ -62,7 +61,7 @@ class SolarFlares : public IVistaOpenGLDraw {
 
   std::string mParentName;
 
-  bool mPlayBackTimeSet = false;
+  bool  mPlayBackTimeSet   = false;
   float mPlaybackStartTime = 0.0f;
 
   std::unique_ptr<VistaTexture> mNoiseTexture;
@@ -72,9 +71,9 @@ class SolarFlares : public IVistaOpenGLDraw {
   std::unique_ptr<VistaBufferObject>      mVBO;
 
   struct {
-    uint32_t time  = 0;
-    uint32_t resolution  = 0;
-    uint32_t noiseTexture  = 0;
+    uint32_t time             = 0;
+    uint32_t resolution       = 0;
+    uint32_t noiseTexture     = 0;
     uint32_t modelViewMatrix  = 0;
     uint32_t projectionMatrix = 0;
   } mUniforms;

@@ -3,7 +3,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported (CC
+// BY-NC-SA 3.0)
 
 #ifndef CSP_VISUAL_EFFECTS_PLUGIN_HPP
 #define CSP_VISUAL_EFFECTS_PLUGIN_HPP
@@ -19,7 +20,7 @@ namespace csp::visualeffects {
 
 class SolarFlares;
 
-/// Your plugin description here!
+/// Plugin for adding visual effects. Currently supports solar flares on the sun.
 class Plugin : public cs::core::PluginBase {
  public:
   struct Settings {

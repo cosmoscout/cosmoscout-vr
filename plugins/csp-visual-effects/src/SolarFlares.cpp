@@ -3,21 +3,22 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported (CC
+// BY-NC-SA 3.0)
 
 #include "SolarFlares.hpp"
 
 #include "../../../src/cs-core/SolarSystem.hpp"
+#include "../../../src/cs-core/TimeControl.hpp"
 #include "../../../src/cs-graphics/TextureLoader.hpp"
 #include "../../../src/cs-utils/FrameStats.hpp"
-#include "../../../src/cs-core/TimeControl.hpp"
 #include "logger.hpp"
 
-#include <VistaKernel/GraphicsManager/VistaSceneGraph.h>
-#include <VistaKernelOpenSGExt/VistaOpenSGMaterialTools.h>
-#include <VistaKernel/VistaSystem.h>
 #include <VistaKernel/GraphicsManager/VistaGraphicsManager.h>
 #include <VistaKernel/GraphicsManager/VistaGroupNode.h>
+#include <VistaKernel/GraphicsManager/VistaSceneGraph.h>
+#include <VistaKernel/VistaSystem.h>
+#include <VistaKernelOpenSGExt/VistaOpenSGMaterialTools.h>
 
 #include <glm/gtc/type_ptr.hpp>
 
@@ -48,6 +49,7 @@ void main()
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+// Fragment shader. This contains a functon that is created by Xor on Shadertoy in 2018
 static const char* SOLAR_FLARES_SHADER_FRAG = R"(
 #version 330
 
@@ -62,7 +64,7 @@ uniform vec2      uResolution;
 uniform float     uTime;
 uniform sampler2D uNoiseTexture;
 
-// Function originally from shadertoy: https://www.shadertoy.com/view/4sycRW
+// Function originally from Xor in 2018 / Shadertoy / https://www.shadertoy.com/view/4sycRW
 void mainImage(out vec4 O,vec2 I)
 {
   //Centered coordinates.
@@ -111,61 +113,60 @@ void main()
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-SolarFlares::SolarFlares(std::shared_ptr<Plugin::Settings>  pluginSettings,
-    std::shared_ptr<cs::core::SolarSystem>      solarSystem,
-    std::shared_ptr<cs::core::TimeControl> timeControl
-  ) :
-      mPluginSettings(std::move(pluginSettings)),
-      mSolarSystem(std::move(solarSystem)),
-      mTimeControl(std::move(timeControl))
-  {
+SolarFlares::SolarFlares(std::shared_ptr<Plugin::Settings> pluginSettings,
+    std::shared_ptr<cs::core::SolarSystem>                 solarSystem,
+    std::shared_ptr<cs::core::TimeControl>                 timeControl)
+    : mPluginSettings(std::move(pluginSettings))
+    , mSolarSystem(std::move(solarSystem))
+    , mTimeControl(std::move(timeControl)) {
 
-    // Add to scenegraph.
-    VistaSceneGraph* pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
-    mGLNode.reset(pSG->NewOpenGLNode(pSG->GetRoot(), this));
-    VistaOpenSGMaterialTools::SetSortKeyOnSubtree(
-        mGLNode.get(), static_cast<int>(cs::utils::DrawOrder::eTransparentItems) - 1);
-    logger().info("Added SolarFlares to scene graph.");
+  // Add to scenegraph.
+  VistaSceneGraph* pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
+  mGLNode.reset(pSG->NewOpenGLNode(pSG->GetRoot(), this));
+  VistaOpenSGMaterialTools::SetSortKeyOnSubtree(
+      mGLNode.get(), static_cast<int>(cs::utils::DrawOrder::eTransparentItems) - 1);
+  logger().info("Added SolarFlares to scene graph.");
 
-    // Solar flare will be depicted on a simple quad.
-    std::vector<float> quadVertices = {
-        // First Triangle
-        -1.0f, -1.0f,  0.0f, // Bottom Left
-         1.0f, -1.0f,  0.0f, // Bottom Right
-        -1.0f,  1.0f,  0.0f, // Top Left
+  // Solar flare will be depicted on a simple quad.
+  std::vector<float> quadVertices = {
+      // First Triangle
+      -1.0f, -1.0f, 0.0f, // Bottom Left
+      1.0f, -1.0f, 0.0f,  // Bottom Right
+      -1.0f, 1.0f, 0.0f,  // Top Left
 
-        // Second Triangle
-         1.0f, -1.0f,  0.0f, // Bottom Right
-         1.0f,  1.0f,  0.0f, // Top Right
-        -1.0f,  1.0f,  0.0f  // Top Left
-    };
+      // Second Triangle
+      1.0f, -1.0f, 0.0f, // Bottom Right
+      1.0f, 1.0f, 0.0f,  // Top Right
+      -1.0f, 1.0f, 0.0f  // Top Left
+  };
 
-    // Remember vertex count of quad for drawing.
-    mVertexCount = 6;
+  // Remember vertex count of quad for drawing.
+  mVertexCount = 6;
 
-    mNoiseTexture = cs::graphics::TextureLoader::loadFromFile("../share/resources/textures/sun_noise.jpg");
+  mNoiseTexture =
+      cs::graphics::TextureLoader::loadFromFile("../share/resources/textures/sun_noise.jpg");
 
-    // Create VBO and VAO from given vertices.
-    mVBO = std::make_unique<VistaBufferObject>();
-    mVAO = std::make_unique<VistaVertexArrayObject>();
+  // Create VBO and VAO from given vertices.
+  mVBO = std::make_unique<VistaBufferObject>();
+  mVAO = std::make_unique<VistaVertexArrayObject>();
 
-    mVAO->Bind();
+  mVAO->Bind();
 
-    mVBO->Bind(GL_ARRAY_BUFFER);
-    mVBO->BufferData(quadVertices.size() * sizeof(float), quadVertices.data(), GL_DYNAMIC_DRAW);
+  mVBO->Bind(GL_ARRAY_BUFFER);
+  mVBO->BufferData(quadVertices.size() * sizeof(float), quadVertices.data(), GL_DYNAMIC_DRAW);
 
-    mVAO->EnableAttributeArray(0);
-    mVAO->SpecifyAttributeArrayFloat(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 3, 0, mVBO.get());
+  mVAO->EnableAttributeArray(0);
+  mVAO->SpecifyAttributeArrayFloat(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 3, 0, mVBO.get());
 
-    mVAO->Release();
-    mVBO->Release();
+  mVAO->Release();
+  mVBO->Release();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 SolarFlares::~SolarFlares() {
-    VistaSceneGraph* pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
-    pSG->GetRoot()->DisconnectChild(mGLNode.get());
+  VistaSceneGraph* pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
+  pSG->GetRoot()->DisconnectChild(mGLNode.get());
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -195,6 +196,8 @@ bool SolarFlares::Do() {
     return true;
   }
 
+  // Set the playback start time to the current simulation time, when it is not set yet. In the
+  // update() method, this lead to unstable values which is why it is here.
   if (!mPlayBackTimeSet) {
     mPlaybackStartTime = static_cast<float>(mTimeControl->pSimulationTime.get());
     logger().info("Set solar flare playback start time to {}.", mPlaybackStartTime);
@@ -220,7 +223,7 @@ bool SolarFlares::Do() {
 
   // Size of the panel.
   double size = 1000.0 * 1000.0 * 1000.0 * 1.2; // TODO: Currently hardcoded size of panel.
-  
+
   // Inject the original scaling together with the desired size of the panel.
   matMV[0][0] = scaleX * size;
   matMV[1][1] = scaleY * size;
@@ -235,19 +238,21 @@ bool SolarFlares::Do() {
 
   glPushAttrib(GL_ENABLE_BIT | GL_COLOR_BUFFER_BIT | GL_LINE_BIT);
   glDisable(GL_CULL_FACE);
-  //glDisable(GL_DEPTH_TEST);
+  // glDisable(GL_DEPTH_TEST);
   glEnable(GL_BLEND);
-  //glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+  // glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE);
 
   mShader->Bind();
 
   // Set uniforms
-  glUniformMatrix4fv(mUniforms.modelViewMatrix, 1, GL_FALSE, glm::value_ptr(glm::highp_mat4(matMV)));
+  glUniformMatrix4fv(
+      mUniforms.modelViewMatrix, 1, GL_FALSE, glm::value_ptr(glm::highp_mat4(matMV)));
   glUniformMatrix4fv(mUniforms.projectionMatrix, 1, GL_FALSE, glMatP.data());
 
   // CONTINUE HERE SET UNIFORMS
-  mShader->SetUniform(mUniforms.time, static_cast<float>(mTimeControl->pSimulationTime.get() - mPlaybackStartTime));
+  mShader->SetUniform(
+      mUniforms.time, static_cast<float>(mTimeControl->pSimulationTime.get() - mPlaybackStartTime));
   mShader->SetUniform(mUniforms.resolution, 256.0f, 256.0f);
 
   mShader->SetUniform(mUniforms.noiseTexture, 0);
@@ -261,19 +266,20 @@ bool SolarFlares::Do() {
   // Cleanup
   glEnable(GL_CULL_FACE);
   glEnable(GL_DEPTH_TEST);
-    
+
   mShader->Release();
   mVAO->Release();
 
   mNoiseTexture->Unbind(GL_TEXTURE0);
 
   glPopAttrib();
-  
+
   return true;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+// Function to create the shader with all uniforms.
 void SolarFlares::createShader() {
   mShader = std::make_unique<VistaGLSLShader>();
 
@@ -284,9 +290,9 @@ void SolarFlares::createShader() {
   mShader->InitFragmentShaderFromString(sFrag);
   mShader->Link();
 
-  mUniforms.time  = mShader->GetUniformLocation("uTime");
-  mUniforms.resolution  = mShader->GetUniformLocation("uResolution");
-  mUniforms.noiseTexture  = mShader->GetUniformLocation("uNoiseTexture");
+  mUniforms.time             = mShader->GetUniformLocation("uTime");
+  mUniforms.resolution       = mShader->GetUniformLocation("uResolution");
+  mUniforms.noiseTexture     = mShader->GetUniformLocation("uNoiseTexture");
   mUniforms.modelViewMatrix  = mShader->GetUniformLocation("uMatModelView");
   mUniforms.projectionMatrix = mShader->GetUniformLocation("uMatProjection");
 }

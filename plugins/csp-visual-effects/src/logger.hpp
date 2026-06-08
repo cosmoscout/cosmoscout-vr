@@ -3,7 +3,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported (CC
+// BY-NC-SA 3.0)
 
 #ifndef CSP_VISUAL_EFFECTS_LOGGER_HPP
 #define CSP_VISUAL_EFFECTS_LOGGER_HPP
@@ -12,8 +13,8 @@
 
 namespace csp::visualeffects {
 
-/// This creates the default singleton logger for "csp-visual-effects" when called for the first time
-/// and returns it. See cs-utils/logger.hpp for more logging details.
+/// This creates the default singleton logger for "csp-visual-effects" when called for the first
+/// time and returns it. See cs-utils/logger.hpp for more logging details.
 spdlog::logger& logger();
 
 } // namespace csp::visualeffects

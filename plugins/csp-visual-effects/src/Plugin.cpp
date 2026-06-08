@@ -3,7 +3,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported (CC
+// BY-NC-SA 3.0)
 
 #include "Plugin.hpp"
 
@@ -38,7 +39,6 @@ void to_json(nlohmann::json& j, Plugin::Settings const& o) {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-
 
 void from_json(nlohmann::json const& j, Plugin::Settings::SolarFlares& o) {
 }
@@ -85,6 +85,7 @@ void Plugin::onLoad() {
   // Read settings from JSON.
   from_json(mAllSettings->mPlugins.at("csp-visual-effects"), *mPluginSettings);
 
+  // Create the solar flare objects according to the settings.
   for (auto const& settings : mPluginSettings->mSolarFlares) {
     auto solarFlares = std::make_shared<SolarFlares>(mPluginSettings, mSolarSystem, mTimeControl);
     solarFlares->setParentName(settings.first);

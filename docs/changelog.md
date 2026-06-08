@@ -15,6 +15,7 @@ SPDX-License-Identifier: CC-BY-4.0
 
 - BRDFs for simple bodies now can be configured via `"graphics": "shading"`.
 - Default BRDFs for simple and LOD bodies now can be configured via `"graphics": "defaultShading"`.
+- A new plugin `csp-visual-effects` allows for the artificial placement of solar flares on objects.
 
 #### Other Changes
 
