@@ -3,7 +3,7 @@
 # ------------------------------------------------------------------------------------------------ #
 
 # SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
-# SPDX-License-Identifier: MIT
+# SPDX-License-Identifier: CC-BY-NC-SA-3.0
 
 option(CSP_VISUAL_EFFECTS "Enable compilation of this plugin" ON)
 

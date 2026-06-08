@@ -3,8 +3,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
-// SPDX-License-Identifier: Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported (CC
-// BY-NC-SA 3.0)
+// SPDX-FileCopyrightText: Xor <https://www.shadertoy.com/view/4sycRW>
+// SPDX-License-Identifier: CC-BY-NC-SA-3.0
 
 #include "SolarFlares.hpp"
 

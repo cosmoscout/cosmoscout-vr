@@ -3,8 +3,7 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
-// SPDX-License-Identifier: Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported (CC
-// BY-NC-SA 3.0)
+// SPDX-License-Identifier: CC-BY-NC-SA-3.0
 
 #ifndef CSP_VISUAL_EFFECTS_PLUGIN_HPP
 #define CSP_VISUAL_EFFECTS_PLUGIN_HPP
