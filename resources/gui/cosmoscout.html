@@ -159,6 +159,9 @@ SPDX-License-Identifier: MIT
       </div>
 
       <div id="plugin-buttons">
+        <a class="btn light-glass" data-toggle="tooltip" title="Main Menu" onclick="document.getElementById('cs-main-menu').showModal()">
+          <i class="material-icons">menu</i>
+        </a>
         <a class="btn light-glass" data-toggle="tooltip" title="Turn north up"
           onclick="CosmoScout.callbacks.navigation.northUp()">
           <span id="compass-arrow"></span>
@@ -177,6 +180,26 @@ SPDX-License-Identifier: MIT
         </a>
       </div>
     </div>
+
+    <dialog class="dialog" id="cs-main-menu" open>
+      <div class="dialog-wrapper">
+        <div class="dialog-header">
+          <span class="dialog-title">
+            <i class="material-icons" id="main-menu-icon">menu</i>
+            <span id="main-menu-title">Main Menu</span>
+          </span>
+          <a class="btn light-glass" id="main-menu-back-button" hidden>
+            <i class="material-icons">arrow_back</i>
+          </a>
+          <a class="btn light-glass" data-action="close" data-toggle="tooltip" title="Close"
+             onclick="document.getElementById('cs-main-menu').close()">
+            <i class="material-icons">close</i>
+          </a>
+        </div>
+        <div class="dialog-body" id="main-menu-body">
+        </div>
+      </div>
+    </dialog>
 
     <div id="sidebar">
       <div class="accordion" id="sidebar-accordion">
@@ -631,6 +654,13 @@ SPDX-License-Identifier: MIT
           </a>
         </div>
         <div class="window-content">
+          <div class="row">
+            <div class="col-12">
+              <div class="calendar-wrapper">
+                <div id="calendar-container"></div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -885,6 +915,7 @@ SPDX-License-Identifier: MIT
   <script type="text/javascript" src="js/apis/geocode.js"></script>
   <script type="text/javascript" src="js/apis/utils.js"></script>
   <script type="text/javascript" src="js/apis/bookmark_editor.js"></script>
+  <script type="text/javascript" src="js/apis/main_menu.js"></script>
 
   <script type="text/javascript">
 
@@ -901,7 +932,8 @@ SPDX-License-Identifier: MIT
         CalendarApi,
         GeoCodeApi,
         BookmarkEditorApi,
-        TimelineApi
+        TimelineApi,
+        MainMenuApi
       );
 
       const slider = document.querySelector('[data-callback="graphics.setShadowmapResolution"]');

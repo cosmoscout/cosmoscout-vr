@@ -280,7 +280,7 @@ void Plugin::init() {
   mGuiManager->getGui()->callJavascript(
       "CosmoScout.measurementTools.add", "Dip & Strike", "clear_all");
   mGuiManager->getGui()->callJavascript(
-      "CosmoScout.measurementTools.add", "Polygon", "crop_landscape");
+      "CosmoScout.measurementTools.add", "Polygon", "activity_zone");
 
   mGuiManager->getGui()->registerCallback("measurementTools.setNext",
       "Selects which tool will be created next. The given string should be either 'Location Flag', "

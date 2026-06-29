@@ -908,6 +908,11 @@ void Application::connectSlots() {
 void Application::registerGuiCallbacks() {
   // core callbacks --------------------------------------------------------------------------------
 
+  // Exits CosmoScout VR.
+  mGuiManager->getGui()->registerCallback("core.exit",
+      "Exits CosmoScout VR.",
+      std::function([this] { GetVistaSystem()->Quit(); }));
+
   // Saves the current scene state in a specified file.
   mGuiManager->getGui()->registerCallback("core.save",
       "Saves the current scene state to the given file.",
@@ -949,6 +954,19 @@ void Application::registerGuiCallbacks() {
           logger().info(plugin.first);
         }
       }));
+
+  mGuiManager->getGui()->registerCallback("core.getPlugins", "Returns a list of plugins and if they are loaded or not.", std::function([this]() {
+    std::map<std::string, bool> plugins{};
+    for (auto const& plugin : mPlugins) {
+      plugins.emplace(plugin.first, true);
+    }
+    for (auto const& plugin : mSettings->mPlugins) {
+      if (plugins.find(plugin.first) == plugins.end()) {
+        plugins.emplace(plugin.first, false);
+      }
+    }
+    return plugins;
+  }));
 
   // graphics callbacks ----------------------------------------------------------------------------
 

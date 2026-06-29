@@ -43,7 +43,7 @@ SPDX-License-Identifier: MIT
 
 @font-face {
   font-family: 'Material Icons';
-  src: url('../third-party/fonts/MaterialIcons-Regular.woff2') format('woff2');
+  src: url('../third-party/fonts/MaterialSymbolsSharp.woff2') format('woff2');
 }
 
 @font-face {
@@ -63,6 +63,7 @@ SPDX-License-Identifier: MIT
   font-family: 'Material Icons', sans-serif;
   font-weight: normal;
   font-style: normal;
+  font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
   vertical-align: middle;
   display: inline-block;
   text-transform: none;
@@ -712,6 +713,77 @@ hr {
 
 .tooltip {
   z-index: 100000;
+}
+
+/* Dialog --------------------------------------------------------------------------------------- */
+
+.dialog {
+  align-self: center;
+  justify-self: center;
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  border: none;
+  width: 400px;
+}
+
+.dialog .dialog-wrapper {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: var(--cs-color-background-dark);
+  border-top: 2px solid var(--cs-color-primary);
+  border-bottom: 2px solid var(--cs-color-primary);
+  border-radius: var(--cs-border-radius-large);
+  box-shadow: var(--cs-box-shadow-large);
+  color: var(--cs-color-text);
+  overflow: hidden;
+}
+
+.dialog .dialog-header {
+  display: flex;
+  font-size: 1.8rem;
+  font-family: 'AlegreyaSansSC', sans-serif;
+  border-bottom: 1px dashed var(--cs-color-background-lightest);
+  height: 47px;
+}
+
+.dialog .dialog-header a {
+  border-radius: 0;
+}
+
+.dialog .dialog-header i {
+  padding: 2px;
+  font-size: 24px;
+}
+
+.dialog .dialog-title {
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+  position: relative;
+  flex-grow: 1;
+  padding: 5px 5px 5px 0;
+}
+
+.dialog .dialog-title span {
+  position: relative;
+  padding-left: 80px;
+  top: -3px;
+}
+
+.dialog .dialog-title i {
+  position: absolute;
+  color: black;
+  text-shadow: none;
+  background-color: var(--cs-color-primary);
+  top: -8px;
+  font-size: 2.2rem;
+  border-radius: 0 0 80% 0;
+  padding: 5px 20px 5px 15px;
+}
+
+.plugin-manager {
 }
 
 /* Resizable Windows ---------------------------------------------------------------------------- */
