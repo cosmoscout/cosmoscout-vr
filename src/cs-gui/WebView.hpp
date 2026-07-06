@@ -303,7 +303,7 @@ class CS_GUI_EXPORT WebView {
       void callJavascriptImpl(std::string const& function, std::vector<std::string> const& args) const;
       void registerJSCallbackImpl(std::string const& name, std::string const& comment,
           std::vector<std::type_index>&&                                   types,
-          std::function<void(std::vector<std::optional<JSType>>&&)> const& callback);
+          std::function<void(std::vector<std::optional<JSType>>&&)> const& callback) const;
       void resolvePromise(double promiseID, std::string const& value) const;
       void rejectPromise(double promiseID, std::string const& message) const;
 

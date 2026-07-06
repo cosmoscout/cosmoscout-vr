@@ -403,7 +403,7 @@ void WebView::unregisterCallback(std::string const& name) {
 
 void WebView::registerJSCallbackImpl(std::string const& name, std::string const& comment,
     std::vector<std::type_index>&&                                   types,
-    std::function<void(std::vector<std::optional<JSType>>&&)> const& callback) {
+    std::function<void(std::vector<std::optional<JSType>>&&)> const& callback) const {
 
   // To increase the readability of the callback signature when inspected via an interactive
   // console, we name every argument depending on its type.
@@ -453,7 +453,7 @@ void WebView::registerJSCallbackImpl(std::string const& name, std::string const&
 
   // This registers the callback as a property of the CosmoScout.callbacks object. As the name may
   // contain multiple dots, this is a little tricky. We have to create multiple chained objects;
-  // e.g. for the callback "notifications.print.warning", we first have to create the object
+  // e.g., for the callback "notifications.print.warning", we first have to create the object
   // "notifications", then "print" and then the function "warning".
   std::string cmd = R"js(
 if (typeof CosmoScout !== 'undefined') {

@@ -1043,6 +1043,44 @@ SPDX-License-Identifier: MIT
     </div>
   </template>
 
+  <template id="main-menu-item-template">
+    <a class="btn light-glass col-12 main-menu-item" data-index="0">
+      <i class="material-icons main-menu-item-icon"></i>
+      <span class="main-menu-item-label"></span>
+    </a>
+  </template>
+
+  <template id="main-menu-plugin-template">
+    <div class="plugin-manager container">
+      <div class="plugin-manager-items"></div>
+    </div>
+  </template>
+
+  <template id="main-menu-save-template">
+    <div class="save-menu container"></div>
+  </template>
+
+  <template id="main-menu-plugin-item-active-template">
+    <div class="plugin-manager-item row">
+      <span class="plugin-manager-item-name col-10"></span>
+      <a class="btn light-glass plugin-manager-item-action col-1" data-plugin-action="reload">
+        <i class="material-icons">refresh</i>
+      </a>
+      <a class="btn light-glass plugin-manager-item-action col-1" data-plugin-action="unload">
+        <i class="material-icons">extension_off</i>
+      </a>
+    </div>
+  </template>
+
+  <template id="main-menu-plugin-item-inactive-template">
+    <div class="plugin-manager-item row">
+      <span class="plugin-manager-item-name col-10"></span>
+      <a class="btn light-glass plugin-manager-item-action col-2" data-plugin-action="load">
+        <i class="material-icons">extension</i>
+      </a>
+    </div>
+  </template>
+
 </body>
 
 </html>

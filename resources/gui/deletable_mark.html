@@ -16,7 +16,12 @@ SPDX-License-Identifier: MIT
   <script type="text/javascript" src="third-party/js/jquery-2.2.3.min.js"></script>
   <script type="text/javascript" src="third-party/js/bootstrap.bundle.min.js"></script>
 
+  <script type="text/javascript" src="js/api.js"></script>
+  <script type="text/javascript" src="js/cosmoscout.js"></script>
+
   <script type="text/javascript">
+    var CosmoScout = new CosmoScoutAPI();
+
     function setMinimized(minimize) {
       if (minimize) $('.deletable-mark').addClass('minimized');
       else $('.deletable-mark').removeClass('minimized');
@@ -27,7 +32,7 @@ SPDX-License-Identifier: MIT
 
 <body style="overflow: hidden">
   <div class="deletable-mark minimized">
-    <a class="btn light-glass block" onclick="window.callNative('deleteMe')">
+    <a class="btn light-glass block" onclick="CosmoScout.callbacks.deleteMe()">
       <i class="material-icons">close</i>
     </a>
     <div class="triangle"></div>
