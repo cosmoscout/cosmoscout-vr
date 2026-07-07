@@ -7,6 +7,8 @@
 
 #include "DeletableMark.hpp"
 
+#include "logger.hpp"
+
 #include "../../../src/cs-core/GuiManager.hpp"
 #include "../../../src/cs-core/InputManager.hpp"
 #include "../../../src/cs-core/SolarSystem.hpp"
@@ -32,24 +34,6 @@ DeletableMark::DeletableMark(std::shared_ptr<cs::core::InputManager> pInputManag
     , mGuiArea(new cs::gui::WorldSpaceGuiArea(65, 75))
     , mGuiItem(new cs::gui::GuiItem("file://../share/resources/gui/deletable_mark.html")) {
 
-  initData();
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-DeletableMark::~DeletableMark() {
-  if (mGuiNode) {
-    mGuiItem->unregisterCallback("deleteMe");
-    mInputManager->unregisterSelectable(mGuiNode);
-    mGuiArea->removeItem(mGuiItem.get());
-
-    delete mGuiNode;
-  }
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void DeletableMark::initData() {
   auto* pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
 
   auto* pGuiTransform = pSG->NewTransformNode(mTransform.get());
@@ -72,11 +56,24 @@ void DeletableMark::initData() {
   VistaOpenSGMaterialTools::SetSortKeyOnSubtree(
       pGuiTransform, static_cast<int>(cs::utils::DrawOrder::eTransparentItems));
 
+  mGuiItem->waitForFinishedLoading();
   mGuiItem->registerCallback("deleteMe", "Call this to remove the tool.",
       std::function([this]() { pShouldDelete = true; }));
 
   mSelfSelectedConnection =
       pSelected.connect([this](bool val) { mGuiItem->callJavascript("setMinimized", !val); });
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+DeletableMark::~DeletableMark() {
+  if (mGuiNode) {
+    mGuiItem->unregisterCallback("deleteMe");
+    mInputManager->unregisterSelectable(mGuiNode);
+    mGuiArea->removeItem(mGuiItem.get());
+
+    delete mGuiNode;
+  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
