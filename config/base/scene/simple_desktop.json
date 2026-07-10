@@ -756,7 +756,7 @@
   },
   "plugins": {
     "csp-timings": {},
-    "#csp-stars": {
+    "csp-stars": {
       "celestialGridTexture": "../share/resources/textures/celestial_grid.png",
       "starFiguresTexture": "../share/resources/textures/constellation_figures.png",
       "celestialGridColor": [
@@ -775,7 +775,7 @@
       "hipparcosCatalog": "../share/download/stars/hip_main.dat",
       "gaiaCatalog": "../share/download/stars/gaia_5m.csv"
     },
-    "#csp-atmospheres": {
+    "csp-atmospheres": {
       "atmospheres": {
         "Earth": {
           "cloudTexture": "../share/resources/textures/earth-clouds.jpg",
@@ -798,7 +798,7 @@
       }
     },
     "csp-measurement-tools": {},
-    "#csp-simple-bodies": {
+    "csp-simple-bodies": {
       "bodies": {
         "Sun": {
           "texture": "../share/resources/textures/sun.jpg"
@@ -916,7 +916,7 @@
         }
       }
     },
-    "#csp-rings": {
+    "csp-rings": {
       "rings": {
         "Saturn": {
           "texture": "../share/resources/textures/saturn-rings.png",
@@ -925,7 +925,7 @@
         }
       }
     },
-    "#csp-anchor-labels": {
+    "csp-anchor-labels": {
       "enabled": true,
       "enableDepthOverlap": true,
       "ignoreOverlapThreshold": 0.1,
@@ -943,7 +943,7 @@
         "Barycenter"
       ]
     },
-    "#csp-trajectories": {
+    "csp-trajectories": {
       "trajectories": {
         "Sun": {
           "color": [1, 1, 1],

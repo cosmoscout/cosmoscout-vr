@@ -34,9 +34,7 @@ class MainMenuApi extends IApi {
                     {
                         label: 'Load',
                         icon: 'folder_open',
-                        action: () => {
-                            // TODO: load callback
-                        },
+                        target: 'load',
                     },
                     {
                         label: 'Exit to Desktop',
@@ -55,6 +53,11 @@ class MainMenuApi extends IApi {
                 title: 'Save',
                 icon: 'save',
                 render: () => this._renderSaveMenu(),
+            },
+            load: {
+                title: 'Load',
+                icon: 'folder_open',
+                render: () => this._renderLoadMenu(),
             },
         };
 
@@ -229,6 +232,204 @@ class MainMenuApi extends IApi {
         }
 
         body.appendChild(saveMenu);
+
+        const newFileSection = document.createElement('div');
+        newFileSection.className = 'save-new-file mb-3';
+        newFileSection.innerHTML = `
+            <div class="row mb-2">
+                <div class="col-12">
+                    <label class="form-label">Save New Scene</label>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-8">
+                    <input type="text" class="form-control" id="save-new-filename" placeholder="Enter file name...">
+                </div>
+                <div class="col-4">
+                    <button class="btn glass block" id="save-new-button">
+                        <i class="material-icons">save</i> Save
+                    </button>
+                </div>
+            </div>
+        `;
+        saveMenu.appendChild(newFileSection);
+
+        const existingSavesSection = document.createElement('div');
+        existingSavesSection.className = 'save-existing-files';
+        existingSavesSection.innerHTML = `
+            <div class="row mb-2">
+                <div class="col-12">
+                    <label class="form-label">Overwrite Existing Scene</label>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-12">
+                    <div class="save-list"></div>
+                </div>
+            </div>
+        `;
+        saveMenu.appendChild(existingSavesSection);
+
+        this._loadSaveFiles().then((saveFiles) => {
+            const saveList = existingSavesSection.querySelector('.save-list');
+            
+            if (saveFiles.length === 0) {
+                saveList.innerHTML = '<div class="text-muted text-center py-3">No saved scenes found</div>';
+                return;
+            }
+
+            saveFiles.forEach((saveFile, index) => {
+                const saveItem = this._loadTemplate('main-menu-save-item-template');
+                if (saveItem === false) {
+                    return;
+                }
+
+                saveItem.dataset.saveIndex = index;
+                saveItem.querySelector('.save-item-name').textContent = saveFile.name;
+                saveItem.querySelector('.save-item-date').textContent = saveFile.date;
+
+                saveList.appendChild(saveItem);
+            });
+
+            document
+                .querySelectorAll('[data-save-action="overwrite"]')
+                .forEach((button) => {
+                    button.addEventListener('click', (event) => {
+                        const saveIndex = event.currentTarget.dataset.saveIndex;
+                        this._handleOverwriteSave(saveIndex);
+                    });
+                });
+
+            document
+                .querySelector('#save-new-button')
+                .addEventListener('click', () => this._handleNewSave());
+        });
+
+        return '';
+    }
+
+    _loadSaveFiles() {
+        return CosmoScout.callbacks.core.getSaveFiles().then((saveFiles) => {
+            return saveFiles.map((file) => {
+                const name = file.name || 'Untitled';
+                const basename = name.split(/[\\/]/).pop();
+                return {
+                    name: basename.replace(/\.json$/i, ''),
+                    date: file.date ? new Date(file.date).toLocaleString() : 'Unknown date',
+                };
+            });
+        });
+    }
+
+    _handleNewSave() {
+        const input = document.querySelector('#save-new-filename');
+        let filename = input.value.trim();
+
+        if (!filename) {
+            alert('Please enter a file name');
+            return;
+        }
+
+        if (!filename.endsWith('.json')) {
+            filename += '.json';
+        }
+
+        CosmoScout.callbacks.core.save(filename).then(() => {
+            alert(`Scene saved as "${filename}"`);
+            input.value = '';
+            this._renderSaveMenu();
+        }).catch((err) => {
+            alert(`Failed to save scene: ${err.message || err}`);
+        });
+    }
+
+    _handleOverwriteSave(index) {
+        CosmoScout.callbacks.core.getSaveFiles().then((saveFiles) => {
+            if (index >= 0 && index < saveFiles.length) {
+                const name = saveFiles[index].name;
+                const basename = name.split(/[\\/]/).pop();
+                CosmoScout.callbacks.core.save(basename).then(() => {
+                    alert(`Scene overwritten: "${basename}"`);
+                    this._renderSaveMenu();
+                }).catch((err) => {
+                    alert(`Failed to overwrite scene: ${err.message || err}`);
+                });
+            }
+        });
+    }
+
+    _handleLoadScene(index) {
+        CosmoScout.callbacks.core.getSaveFiles().then((saveFiles) => {
+            if (index >= 0 && index < saveFiles.length) {
+                const name = saveFiles[index].name;
+                const basename = name.split(/[\\/]/).pop();
+                CosmoScout.callbacks.core.load(basename).then(() => {
+                    alert(`Scene loaded: "${basename}"`);
+                    this.back();
+                }).catch((err) => {
+                    alert(`Failed to load scene: ${err.message || err}`);
+                });
+            }
+        });
+    }
+
+    _renderLoadMenu() {
+        const body = document.querySelector('#main-menu-body');
+        body.innerHTML = '';
+
+        const loadMenu = this._loadTemplate('main-menu-load-template');
+        if (loadMenu === false) {
+            return '';
+        }
+
+        body.appendChild(loadMenu);
+
+        const existingSavesSection = document.createElement('div');
+        existingSavesSection.className = 'load-existing-files';
+        existingSavesSection.innerHTML = `
+            <div class="row mb-2">
+                <div class="col-12">
+                    <label class="form-label">Load Scene</label>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-12">
+                    <div class="load-list"></div>
+                </div>
+            </div>
+        `;
+        loadMenu.appendChild(existingSavesSection);
+
+        this._loadSaveFiles().then((saveFiles) => {
+            const loadList = existingSavesSection.querySelector('.load-list');
+            
+            if (saveFiles.length === 0) {
+                loadList.innerHTML = '<div class="text-muted text-center py-3">No saved scenes found</div>';
+                return;
+            }
+
+            saveFiles.forEach((saveFile, index) => {
+                const loadItem = this._loadTemplate('main-menu-load-item-template');
+                if (loadItem === false) {
+                    return;
+                }
+
+                loadItem.dataset.loadIndex = index;
+                loadItem.querySelector('.load-item-name').textContent = saveFile.name;
+                loadItem.querySelector('.load-item-date').textContent = saveFile.date;
+
+                loadList.appendChild(loadItem);
+            });
+
+            document
+                .querySelectorAll('[data-load-action="load"]')
+                .forEach((button) => {
+                    button.addEventListener('click', (event) => {
+                        const loadIndex = event.currentTarget.dataset.loadIndex;
+                        this._handleLoadScene(loadIndex);
+                    });
+                });
+        });
 
         return '';
     }

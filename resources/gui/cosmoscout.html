@@ -1060,6 +1060,38 @@ SPDX-License-Identifier: MIT
     <div class="save-menu container"></div>
   </template>
 
+  <template id="main-menu-save-item-template">
+    <a class="btn light-glass col-12 main-menu-item save-item" data-save-action="overwrite">
+      <div class="row align-items-center">
+        <div class="col-9">
+          <div class="save-item-name">Save Name</div>
+          <small class="text-muted save-item-date">Date</small>
+        </div>
+        <div class="col-3 text-end">
+          <i class="material-icons">save</i>
+        </div>
+      </div>
+    </a>
+  </template>
+
+  <template id="main-menu-load-template">
+    <div class="load-menu container"></div>
+  </template>
+
+  <template id="main-menu-load-item-template">
+    <a class="btn light-glass col-12 main-menu-item load-item" data-load-action="load">
+      <div class="row align-items-center">
+        <div class="col-9">
+          <div class="load-item-name">Load Name</div>
+          <small class="text-muted load-item-date">Date</small>
+        </div>
+        <div class="col-3 text-end">
+          <i class="material-icons">folder_open</i>
+        </div>
+      </div>
+    </a>
+  </template>
+
   <template id="main-menu-plugin-item-active-template">
     <div class="plugin-manager-item row">
       <span class="plugin-manager-item-name col-10"></span>

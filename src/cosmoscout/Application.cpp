@@ -968,6 +968,39 @@ void Application::registerGuiCallbacks() {
     return plugins;
   }));
 
+  // Lists all saved scene files.
+  mGuiManager->getGui()->registerCallback("core.getSaveFiles", "Returns a list of saved scene files.", std::function([this]() {
+    std::vector<std::map<std::string, std::string>> saveFiles{};
+    
+    try {
+      auto saveDir = std::filesystem::current_path();
+      auto files = cs::utils::filesystem::listFiles(saveDir.string(), std::regex(".*\\.json$"));
+      
+      for (auto const& file : files) {
+        std::map<std::string, std::string> fileInfo;
+        fileInfo["name"] = file;
+        
+        auto filePath = saveDir / file;
+        if (std::filesystem::exists(filePath)) {
+          auto lastWrite = std::filesystem::last_write_time(filePath);
+          auto systemTime = std::chrono::clock_cast<std::chrono::system_clock>(lastWrite);
+          auto time_t_val = std::chrono::system_clock::to_time_t(systemTime);
+          char timeBuf[26];
+          ctime_s(timeBuf, sizeof(timeBuf), &time_t_val);
+          fileInfo["date"] = std::string(timeBuf);
+        } else {
+          fileInfo["date"] = "";
+        }
+        
+        saveFiles.push_back(fileInfo);
+      }
+    } catch (std::exception const& e) {
+      logger().warn("Failed to list save files: {}", e.what());
+    }
+    
+    return saveFiles;
+  }));
+
   // graphics callbacks ----------------------------------------------------------------------------
 
   // Enables lighting computation globally.
@@ -1733,6 +1766,7 @@ void Application::registerGuiCallbacks() {
 void Application::unregisterGuiCallbacks() {
   mGuiManager->getGui()->unregisterCallback("core.save");
   mGuiManager->getGui()->unregisterCallback("core.load");
+  mGuiManager->getGui()->unregisterCallback("core.getSaveFiles");
   mGuiManager->getGui()->unregisterCallback("core.listPlugins");
   mGuiManager->getGui()->unregisterCallback("core.loadPlugin");
   mGuiManager->getGui()->unregisterCallback("core.reloadPlugin");
