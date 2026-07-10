@@ -16,6 +16,10 @@ class MainMenuApi extends IApi {
         this._history = [];
         this._renderToken = 0;
 
+        this._menuElement = document.querySelector('#cs-main-menu');
+        this._menuBodyElement = this._menuElement.querySelector('#main-menu-body');
+        this._backButtonElement = this._menuElement.querySelector('#main-menu-back-button');
+
         this._menus = {
             root: {
                 title: 'Main Menu',
@@ -61,13 +65,17 @@ class MainMenuApi extends IApi {
             },
         };
 
-        document
-            .querySelector('#main-menu-back-button')
-            .addEventListener('click', () => this.back());
+        this._backButtonElement.addEventListener('click', () => this.back());
 
-        document
-            .querySelector('#main-menu-body')
+        this._menuBodyElement
             .addEventListener('click', (event) => this._handleBodyClick(event));
+
+        this._menuElement
+            .addEventListener('click', (event) => {
+                if (event.target === event.currentTarget) {
+                    this.close();
+                }
+            });
 
         this.render();
     }
@@ -176,17 +184,16 @@ class MainMenuApi extends IApi {
     }
 
     _renderPlugins() {
-        const body = document.querySelector('#main-menu-body');
         const token = ++this._renderToken;
 
-        body.innerHTML = '';
+        this._menuBodyElement.innerHTML = '';
 
         const pluginManager = this._loadTemplate('main-menu-plugin-template');
         if (pluginManager === false) {
             return '';
         }
 
-        body.appendChild(pluginManager);
+        this._menuBodyElement.appendChild(pluginManager);
 
         CosmoScout.callbacks.core.getPlugins().then((plugins) => {
             if (token !== this._renderToken || this._currentMenu !== 'plugins') {
@@ -223,15 +230,14 @@ class MainMenuApi extends IApi {
     }
 
     _renderSaveMenu() {
-        const body = document.querySelector('#main-menu-body');
-        body.innerHTML = '';
+        this._menuBodyElement.innerHTML = '';
 
         const saveMenu = this._loadTemplate('main-menu-save-template');
         if (saveMenu === false) {
             return '';
         }
 
-        body.appendChild(saveMenu);
+        this._menuBodyElement.appendChild(saveMenu);
 
         const newFileSection = document.createElement('div');
         newFileSection.className = 'save-new-file mb-3';
@@ -272,7 +278,7 @@ class MainMenuApi extends IApi {
 
         this._loadSaveFiles().then((saveFiles) => {
             const saveList = existingSavesSection.querySelector('.save-list');
-            
+
             if (saveFiles.length === 0) {
                 saveList.innerHTML = '<div class="text-muted text-center py-3">No saved scenes found</div>';
                 return;
@@ -322,11 +328,11 @@ class MainMenuApi extends IApi {
     }
 
     _handleNewSave() {
-        const input = document.querySelector('#save-new-filename');
+        const input = this._menuElement.querySelector('#save-new-filename');
         let filename = input.value.trim();
 
         if (!filename) {
-            alert('Please enter a file name');
+            CosmoScout.notifications.print('Could not save!', 'Please enter a file name.', 'warning');
             return;
         }
 
@@ -335,11 +341,11 @@ class MainMenuApi extends IApi {
         }
 
         CosmoScout.callbacks.core.save(filename).then(() => {
-            alert(`Scene saved as "${filename}"`);
+            CosmoScout.notifications.print('Saved', `Scene saved as "${filename}"`, 'archive');
             input.value = '';
             this._renderSaveMenu();
         }).catch((err) => {
-            alert(`Failed to save scene: ${err.message || err}`);
+            CosmoScout.notifications.print('Error', `Failed to save scene: ${err.message || err}`, 'error');
         });
     }
 
@@ -349,10 +355,10 @@ class MainMenuApi extends IApi {
                 const name = saveFiles[index].name;
                 const basename = name.split(/[\\/]/).pop();
                 CosmoScout.callbacks.core.save(basename).then(() => {
-                    alert(`Scene overwritten: "${basename}"`);
+                    CosmoScout.notifications.print('Saved', `Scene overwritten: "${basename}"`, 'archive');
                     this._renderSaveMenu();
                 }).catch((err) => {
-                    alert(`Failed to overwrite scene: ${err.message || err}`);
+                    CosmoScout.notifications.print('Error', `Failed to overwrite scene: ${err.message || err}`, 'error');
                 });
             }
         });
@@ -364,25 +370,24 @@ class MainMenuApi extends IApi {
                 const name = saveFiles[index].name;
                 const basename = name.split(/[\\/]/).pop();
                 CosmoScout.callbacks.core.load(basename).then(() => {
-                    alert(`Scene loaded: "${basename}"`);
+                    CosmoScout.notifications.print('Loaded', `Scene loaded: "${basename}"`, 'open_in_browser');
                     this.back();
                 }).catch((err) => {
-                    alert(`Failed to load scene: ${err.message || err}`);
+                    CosmoScout.notifications.print('Error', `Failed to load scene: ${err.message || err}`, 'error');
                 });
             }
         });
     }
 
     _renderLoadMenu() {
-        const body = document.querySelector('#main-menu-body');
-        body.innerHTML = '';
+        this._menuBodyElement.innerHTML = '';
 
         const loadMenu = this._loadTemplate('main-menu-load-template');
         if (loadMenu === false) {
             return '';
         }
 
-        body.appendChild(loadMenu);
+        this._menuBodyElement.appendChild(loadMenu);
 
         const existingSavesSection = document.createElement('div');
         existingSavesSection.className = 'load-existing-files';
@@ -402,7 +407,7 @@ class MainMenuApi extends IApi {
 
         this._loadSaveFiles().then((saveFiles) => {
             const loadList = existingSavesSection.querySelector('.load-list');
-            
+
             if (saveFiles.length === 0) {
                 loadList.innerHTML = '<div class="text-muted text-center py-3">No saved scenes found</div>';
                 return;
@@ -437,12 +442,11 @@ class MainMenuApi extends IApi {
     render() {
         const menu = this._menus[this._currentMenu];
 
-        document.querySelector('#main-menu-title').textContent = menu.title;
-        document.querySelector('#main-menu-icon').textContent = menu.icon;
-        document.querySelector('#main-menu-back-button').hidden = this._history.length === 0;
+        this._menuElement.querySelector('#main-menu-title').textContent = menu.title;
+        this._menuElement.querySelector('#main-menu-icon').textContent = menu.icon;
+        this._backButtonElement.hidden = this._history.length === 0;
 
-        const body = document.querySelector('#main-menu-body');
-        body.innerHTML = '';
+        this._menuBodyElement.innerHTML = '';
         this._renderToken += 1;
 
         if (menu.render) {
@@ -450,6 +454,10 @@ class MainMenuApi extends IApi {
             return;
         }
 
-        this._renderMenuItems(menu, body);
+        this._renderMenuItems(menu, this._menuBodyElement);
+    }
+
+    close() {
+        this._menuElement.close();
     }
 }
