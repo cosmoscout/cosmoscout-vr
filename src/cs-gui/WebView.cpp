@@ -368,8 +368,8 @@ void WebView::executeJavascript(std::string const& code) const {
 
 void WebView::registerCallback(
     std::string const& name, std::string const& comment, std::function<void()> const& callback) {
-  registerJSCallbackImpl(name, comment, {},
-      [this, callback](std::vector<std::optional<JSType>> const& args) {
+  registerJSCallbackImpl(
+      name, comment, {}, [this, callback](std::vector<std::optional<JSType>> const& args) {
         double promiseID = 0.0;
 
         try {
@@ -377,9 +377,7 @@ void WebView::registerCallback(
 
           callback();
           resolvePromise(promiseID, "undefined");
-        } catch (std::exception const& e) {
-          rejectPromise(promiseID, e.what());
-        }
+        } catch (std::exception const& e) { rejectPromise(promiseID, e.what()); }
       });
 }
 

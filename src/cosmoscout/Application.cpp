@@ -909,9 +909,8 @@ void Application::registerGuiCallbacks() {
   // core callbacks --------------------------------------------------------------------------------
 
   // Exits CosmoScout VR.
-  mGuiManager->getGui()->registerCallback("core.exit",
-      "Exits CosmoScout VR.",
-      std::function([this] { GetVistaSystem()->Quit(); }));
+  mGuiManager->getGui()->registerCallback(
+      "core.exit", "Exits CosmoScout VR.", std::function([this] { GetVistaSystem()->Quit(); }));
 
   // Saves the current scene state in a specified file.
   mGuiManager->getGui()->registerCallback("core.save",
@@ -955,51 +954,53 @@ void Application::registerGuiCallbacks() {
         }
       }));
 
-  mGuiManager->getGui()->registerCallback("core.getPlugins", "Returns a list of plugins and if they are loaded or not.", std::function([this]() {
-    std::map<std::string, bool> plugins{};
-    for (auto const& plugin : mPlugins) {
-      plugins.emplace(plugin.first, true);
-    }
-    for (auto const& plugin : mSettings->mPlugins) {
-      if (plugins.find(plugin.first) == plugins.end()) {
-        plugins.emplace(plugin.first, false);
-      }
-    }
-    return plugins;
-  }));
+  mGuiManager->getGui()->registerCallback("core.getPlugins",
+      "Returns a list of plugins and if they are loaded or not.", std::function([this]() {
+        std::map<std::string, bool> plugins{};
+        for (auto const& plugin : mPlugins) {
+          plugins.emplace(plugin.first, true);
+        }
+        for (auto const& plugin : mSettings->mPlugins) {
+          if (plugins.find(plugin.first) == plugins.end()) {
+            plugins.emplace(plugin.first, false);
+          }
+        }
+        return plugins;
+      }));
 
   // Lists all saved scene files.
-  mGuiManager->getGui()->registerCallback("core.getSaveFiles", "Returns a list of saved scene files.", std::function([this]() {
-    std::vector<std::map<std::string, std::string>> saveFiles{};
-    
-    try {
-      auto saveDir = std::filesystem::current_path();
-      auto files = cs::utils::filesystem::listFiles(saveDir.string(), std::regex(".*\\.json$"));
-      
-      for (auto const& file : files) {
-        std::map<std::string, std::string> fileInfo;
-        fileInfo["name"] = file;
-        
-        auto filePath = saveDir / file;
-        if (std::filesystem::exists(filePath)) {
-          auto lastWrite = std::filesystem::last_write_time(filePath);
-          auto systemTime = std::chrono::clock_cast<std::chrono::system_clock>(lastWrite);
-          auto time_t_val = std::chrono::system_clock::to_time_t(systemTime);
-          char timeBuf[26];
-          ctime_s(timeBuf, sizeof(timeBuf), &time_t_val);
-          fileInfo["date"] = std::string(timeBuf);
-        } else {
-          fileInfo["date"] = "";
+  mGuiManager->getGui()->registerCallback(
+      "core.getSaveFiles", "Returns a list of saved scene files.", std::function([this]() {
+        std::vector<std::map<std::string, std::string>> saveFiles{};
+
+        try {
+          auto saveDir = std::filesystem::current_path();
+          auto files = cs::utils::filesystem::listFiles(saveDir.string(), std::regex(".*\\.json$"));
+
+          for (auto const& file : files) {
+            std::map<std::string, std::string> fileInfo;
+            fileInfo["name"] = file;
+
+            auto filePath = saveDir / file;
+            if (std::filesystem::exists(filePath)) {
+              auto lastWrite  = std::filesystem::last_write_time(filePath);
+              auto systemTime = std::chrono::clock_cast<std::chrono::system_clock>(lastWrite);
+              auto time_t_val = std::chrono::system_clock::to_time_t(systemTime);
+              char timeBuf[26];
+              ctime_s(timeBuf, sizeof(timeBuf), &time_t_val);
+              fileInfo["date"] = std::string(timeBuf);
+            } else {
+              fileInfo["date"] = "";
+            }
+
+            saveFiles.push_back(fileInfo);
+          }
+        } catch (std::exception const& e) {
+          logger().warn("Failed to list save files: {}", e.what());
         }
-        
-        saveFiles.push_back(fileInfo);
-      }
-    } catch (std::exception const& e) {
-      logger().warn("Failed to list save files: {}", e.what());
-    }
-    
-    return saveFiles;
-  }));
+
+        return saveFiles;
+      }));
 
   // graphics callbacks ----------------------------------------------------------------------------
 

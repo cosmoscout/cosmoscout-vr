@@ -15,9 +15,9 @@
 
 #include <chrono>
 #include <include/cef_client.h>
+#include <nlohmann/json.hpp>
 #include <optional>
 #include <typeindex>
-#include <nlohmann/json.hpp>
 
 namespace cs::gui {
 
@@ -227,85 +227,128 @@ class CS_GUI_EXPORT WebView {
     }
   };
 
-  /// This wraps the given callback in a lambda which will be stored in an internal map. This lambda
-      /// receives its arguments as a std::vector<std::optional<JSType>>, each item in this vector will
-      /// be casted to the required paramater types of the given callback.
-      template <typename... Args, std::size_t... Is>
-      void registerCallbackWrapper(std::string const& name, std::string const& comment,
-          std::function<void(Args...)> const& callback, std::index_sequence<Is...> /*unused*/) {
+  /// Internal helper function that wraps a void-returning callback for JavaScript registration.
+  ///
+  /// This function creates a wrapper lambda that:
+  /// - Extracts the promise ID from the first argument (added by JavaScript's callNative())
+  /// - Removes the promise ID and pads remaining arguments with std::nullopt if needed
+  /// - Calls the actual C++ callback with properly typed arguments using UnderlyingValue
+  /// - Resolves the JavaScript Promise with "undefined" on success
+  /// - Catches exceptions and rejects the Promise with the error message
+  ///
+  /// @tparam Args  Parameter types of the callback.
+  /// @tparam Is    Index sequence for unpacking arguments.
+  ///
+  /// @param name     Callback name for error reporting.
+  /// @param comment  User-facing comment (not used directly here).
+  /// @param callback The C++ callback to wrap.
+  /// @param          Index sequence for parameter pack expansion.
+  template <typename... Args, std::size_t... Is>
+  void registerCallbackWrapper(std::string const& name, std::string const& comment,
+      std::function<void(Args...)> const& callback, std::index_sequence<Is...> /*unused*/) {
 
-        // The types vector is required to name the JavaScript function's arguments depending on its
-        // type.
-        std::vector<std::type_index> types = {std::type_index(typeid(Args))...};
+    // The types vector is required to name the JavaScript function's arguments depending on its
+    // type.
+    std::vector<std::type_index> types = {std::type_index(typeid(Args))...};
 
-        registerJSCallbackImpl(name, comment, std::move(types),
-            [this, name, callback](std::vector<std::optional<JSType>>&& args) {
-              double promiseID = 0.0;
+    registerJSCallbackImpl(name, comment, std::move(types),
+        [this, name, callback](std::vector<std::optional<JSType>>&& args) {
+          double promiseID = 0.0;
 
-              try {
-                promiseID = std::get<double>(args.at(0).value());
+          try {
+            promiseID = std::get<double>(args.at(0).value());
 
-                // The first argument is the promise ID, which is added by CosmoScout.callNative().
-                // The actual callback arguments start at index 1.
-                args.erase(args.begin());
+            // The first argument is the promise ID, which is added by CosmoScout.callNative().
+            // The actual callback arguments start at index 1.
+            args.erase(args.begin());
 
-                // It is possible that the JavaScript method was called with less arguments than we expect
-                // (if some of our arguments are optional). Therefore, we pad the args vector with
-                // std::nullopts.
-                args.resize(sizeof...(Args));
+            // It is possible that the JavaScript method was called with less arguments than we
+            // expect (if some of our arguments are optional). Therefore, we pad the args vector
+            // with std::nullopts.
+            args.resize(sizeof...(Args));
 
-                // Now call the actual callback. The UnderlyingValue struct is used to access the actual
-                // value in the std::optional<JSType>. See its implementation above.
-                callback(UnderlyingValue<Args>::get(std::move(args[Is]))...);
-                resolvePromise(promiseID, "undefined");
-              } catch (std::exception const& e) {
-                logger().error("Cannot execute javascript callback '{}': {}!", name, e.what());
-                rejectPromise(promiseID, e.what());
-              }
-            });
-      }
+            // Now call the actual callback. The UnderlyingValue struct is used to access the actual
+            // value in the std::optional<JSType>. See its implementation above.
+            callback(UnderlyingValue<Args>::get(std::move(args[Is]))...);
+            resolvePromise(promiseID, "undefined");
+          } catch (std::exception const& e) {
+            logger().error("Cannot execute javascript callback '{}': {}!", name, e.what());
+            rejectPromise(promiseID, e.what());
+          }
+        });
+  }
 
-      /// This wraps a callback with return value in a lambda which will resolve the JavaScript-side
-      /// Promise with the returned value.
-      template <typename R, typename... Args, std::size_t... Is>
-      void registerCallbackWrapper(std::string const& name, std::string const& comment,
-          std::function<R(Args...)> const& callback, std::index_sequence<Is...> /*unused*/) {
+  /// Internal helper function that wraps a value-returning callback for JavaScript registration.
+  ///
+  /// This function creates a wrapper lambda that:
+  /// - Extracts the promise ID from the first argument (added by JavaScript's callNative())
+  /// - Removes the promise ID and pads remaining arguments with std::nullopt if needed
+  /// - Calls the actual C++ callback with properly typed arguments using UnderlyingValue
+  /// - Serializes the return value to JSON and resolves the JavaScript Promise with it
+  /// - Catches exceptions and rejects the Promise with the error message
+  ///
+  /// @tparam R     Return type of the callback (must be JSON-serializable).
+  /// @tparam Args  Parameter types of the callback.
+  /// @tparam Is    Index sequence for unpacking arguments.
+  ///
+  /// @param name     Callback name for error reporting.
+  /// @param comment  User-facing comment (not used directly here).
+  /// @param callback The C++ callback to wrap.
+  /// @param          Index sequence for parameter pack expansion.
+  template <typename R, typename... Args, std::size_t... Is>
+  void registerCallbackWrapper(std::string const& name, std::string const& comment,
+      std::function<R(Args...)> const& callback, std::index_sequence<Is...> /*unused*/) {
 
-        // The types vector is required to name the JavaScript function's arguments depending on its
-        // type.
-        std::vector<std::type_index> types = {std::type_index(typeid(Args))...};
+    // The types vector is required to name the JavaScript function's arguments depending on its
+    // type.
+    std::vector<std::type_index> types = {std::type_index(typeid(Args))...};
 
-        registerJSCallbackImpl(name, comment, std::move(types),
-            [this, name, callback](std::vector<std::optional<JSType>>&& args) {
-              double promiseID = 0.0;
+    registerJSCallbackImpl(name, comment, std::move(types),
+        [this, name, callback](std::vector<std::optional<JSType>>&& args) {
+          double promiseID = 0.0;
 
-              try {
-                promiseID = std::get<double>(args.at(0).value());
+          try {
+            promiseID = std::get<double>(args.at(0).value());
 
-                // The first argument is the promise ID, which is added by CosmoScout.callNative().
-                // The actual callback arguments start at index 1.
-                args.erase(args.begin());
+            // The first argument is the promise ID, which is added by CosmoScout.callNative().
+            // The actual callback arguments start at index 1.
+            args.erase(args.begin());
 
-                // It is possible that the JavaScript method was called with less arguments than we expect
-                // (if some of our arguments are optional). Therefore, we pad the args vector with
-                // std::nullopts.
-                args.resize(sizeof...(Args));
+            // It is possible that the JavaScript method was called with less arguments than we
+            // expect (if some of our arguments are optional). Therefore, we pad the args vector
+            // with std::nullopts.
+            args.resize(sizeof...(Args));
 
-                auto result = callback(UnderlyingValue<Args>::get(std::move(args[Is]))...);
-                resolvePromise(promiseID, nlohmann::json(result).dump());
-              } catch (std::exception const& e) {
-                logger().error("Cannot execute javascript callback '{}': {}!", name, e.what());
-                rejectPromise(promiseID, e.what());
-              }
-            });
-      }
+            auto result = callback(UnderlyingValue<Args>::get(std::move(args[Is]))...);
+            resolvePromise(promiseID, nlohmann::json(result).dump());
+          } catch (std::exception const& e) {
+            logger().error("Cannot execute javascript callback '{}': {}!", name, e.what());
+            rejectPromise(promiseID, e.what());
+          }
+        });
+  }
 
-      void callJavascriptImpl(std::string const& function, std::vector<std::string> const& args) const;
-      void registerJSCallbackImpl(std::string const& name, std::string const& comment,
-          std::vector<std::type_index>&&                                   types,
-          std::function<void(std::vector<std::optional<JSType>>&&)> const& callback) const;
-      void resolvePromise(double promiseID, std::string const& value) const;
-      void rejectPromise(double promiseID, std::string const& message) const;
+  void callJavascriptImpl(std::string const& function, std::vector<std::string> const& args) const;
+  void registerJSCallbackImpl(std::string const& name, std::string const& comment,
+      std::vector<std::type_index>&&                                   types,
+      std::function<void(std::vector<std::optional<JSType>>&&)> const& callback) const;
+
+  /// Resolves a JavaScript Promise on the JavaScript side with the given value.
+  /// This is used internally to resolve Promises when a registered C++ callback with return
+  /// value completes successfully. The value is expected to be a JSON string or JavaScript
+  /// literal (e.g., "undefined").
+  ///
+  /// @param promiseID The unique identifier of the Promise to resolve.
+  /// @param value     The value to resolve the Promise with (as a JSON string or JS literal).
+  void resolvePromise(double promiseID, std::string const& value) const;
+
+  /// Rejects a JavaScript Promise on the JavaScript side with the given error message.
+  /// This is used internally to reject Promises when a registered C++ callback throws an
+  /// exception or encounters an error.
+  ///
+  /// @param promiseID The unique identifier of the Promise to reject.
+  /// @param message   The error message to reject the Promise with (as a JSON string).
+  void rejectPromise(double promiseID, std::string const& message) const;
 
   detail::WebViewClient* mClient;
   CefRefPtr<CefBrowser>  mBrowser;

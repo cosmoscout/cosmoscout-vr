@@ -6,428 +6,493 @@
 // SPDX-License-Identifier: MIT
 
 /**
- * The main menu
+ * API class for managing the main menu interface.
+ * Handles navigation, plugin management, and scene save/load operations.
+ * @extends IApi
  */
 class MainMenuApi extends IApi {
-    name = 'mainMenu';
+  name = 'mainMenu';
 
-    init() {
-        this._currentMenu = 'root';
-        this._history = [];
+  /**
+   * Initializes the main menu API.
+   * Sets up DOM references, event listeners, and menu configurations.
+   */
+  init() {
+    this._currentMenu = 'root';
+    this._history     = [];
 
-        this._menuElement = document.querySelector('#cs-main-menu');
-        this._menuBodyElement = this._menuElement.querySelector('#main-menu-body');
-        this._backButtonElement = this._menuElement.querySelector('#main-menu-back-button');
+    this._menuElement       = document.querySelector('#cs-main-menu');
+    this._menuBodyElement   = this._menuElement.querySelector('#main-menu-body');
+    this._backButtonElement = this._menuElement.querySelector('#main-menu-back-button');
 
-        this._menus = {
-            root: {
-                title: 'Main Menu',
-                icon: 'menu',
-                items: [
-                    {
-                        label: 'Manage Plugins',
-                        icon: 'extension',
-                        target: 'plugins',
-                    },
-                    {
-                        label: 'Save',
-                        icon: 'save',
-                        target: 'save',
-                    },
-                    {
-                        label: 'Load',
-                        icon: 'folder_open',
-                        target: 'load',
-                    },
-                    {
-                        label: 'Exit to Desktop',
-                        icon: 'exit_to_app',
-                        action: () => CosmoScout.callbacks.core.exit(),
-                    },
-                ],
-            },
+    this._menus = {
+      root: {
+        title: 'Main Menu',
+        icon: 'menu',
+        items: [
+          {
+            label: 'Manage Plugins',
+            icon: 'extension',
+            target: 'plugins',
+          },
+          {
+            label: 'Save',
+            icon: 'save',
+            target: 'save',
+          },
+          {
+            label: 'Load',
+            icon: 'folder_open',
+            target: 'load',
+          },
+          {
+            label: 'Exit to Desktop',
+            icon: 'exit_to_app',
+            action: () => CosmoScout.callbacks.core.exit(),
+          },
+        ],
+      },
 
-            plugins: {
-                title: 'Plugins',
-                icon: 'extension',
-                render: () => this._renderPlugins(),
-            },
-            save: {
-                title: 'Save',
-                icon: 'save',
-                render: () => this._renderSaveMenu(),
-            },
-            load: {
-                title: 'Load',
-                icon: 'folder_open',
-                render: () => this._renderLoadMenu(),
-            },
+      plugins: {
+        title: 'Plugins',
+        icon: 'extension',
+        render: () => this._renderPlugins(),
+      },
+      save: {
+        title: 'Save',
+        icon: 'save',
+        render: () => this._renderSaveMenu(),
+      },
+      load: {
+        title: 'Load',
+        icon: 'folder_open',
+        render: () => this._renderLoadMenu(),
+      },
+    };
+
+    this._backButtonElement.addEventListener('click', () => this.back());
+
+    this._menuBodyElement.addEventListener('click', (event) => this._handleBodyClick(event));
+
+    this._menuElement.addEventListener('click', (event) => {
+      if (event.target === event.currentTarget) {
+        this.close();
+      }
+    });
+
+    this.render();
+  }
+
+  /**
+   * Navigates to a specified menu.
+   * @param {string} menuId - The ID of the menu to navigate to.
+   */
+  navigate(menuId) {
+    if (!this._menus[menuId]) {
+      console.warn(`Unknown menu: ${menuId}`);
+      return;
+    }
+
+    this._history.push(this._currentMenu);
+    this._currentMenu = menuId;
+    this.render();
+  }
+
+  /**
+   * Returns to the previous menu in the navigation history.
+   */
+  back() {
+    if (this._history.length === 0) {
+      return;
+    }
+
+    this._currentMenu = this._history.pop();
+    this.render();
+  }
+
+  /**
+   * Loads template content by ID.
+   * @param {string} id - The template ID to load.
+   * @returns {DocumentFragment|false} The template content or false if not found.
+   */
+  _loadTemplate(id) {
+    const template = CosmoScout.gui.loadTemplateContent(id);
+
+    if (template === false) {
+      console.warn(`Menu template '${id}' could not be loaded.`);
+    }
+
+    return template;
+  }
+
+  /**
+   * Handles click events on the menu body.
+   * @param {MouseEvent} event - The click event.
+   */
+  _handleBodyClick(event) {
+    const menu = this._menus[this._currentMenu];
+
+    const menuItem = event.target.closest('.main-menu-item');
+    if (menuItem && menu.items) {
+      const item = menu.items[Number(menuItem.dataset.index)];
+
+      if (!item) {
+        return;
+      }
+
+      if (item.target) {
+        this.navigate(item.target);
+      } else if (item.action) {
+        item.action();
+      }
+
+      return;
+    }
+
+    const pluginAction = event.target.closest('[data-plugin-action]');
+    if (pluginAction) {
+      const pluginName = pluginAction.dataset.pluginName;
+      const action     = pluginAction.dataset.pluginAction;
+
+      this._runPluginAction(pluginName, action);
+    }
+  }
+
+  /**
+   * Executes a plugin action.
+   * @param {string} pluginName - The name of the plugin.
+   * @param {string} action - The action to perform (load, unload, reload).
+   */
+  _runPluginAction(pluginName, action) {
+    if (!pluginName || !action) {
+      return;
+    }
+
+    let callback = null;
+
+    if (action === 'reload') {
+      callback = CosmoScout.callbacks.core.reloadPlugin(pluginName)
+                     .then(() => CosmoScout.notifications.print(
+                               'Plugin reloaded', `'${pluginName}' reloaded.`, 'refresh'));
+    } else if (action === 'unload') {
+      callback = CosmoScout.callbacks.core.unloadPlugin(pluginName)
+                     .then(() => CosmoScout.notifications.print(
+                               'Plugin unloaded', `'${pluginName}' unloaded.`, 'extension_off'));
+    } else if (action === 'load') {
+      callback = CosmoScout.callbacks.core.loadPlugin(pluginName)
+                     .then(() => CosmoScout.notifications.print(
+                               'Plugin loaded', `'${pluginName}' loaded.`, 'extension'));
+    }
+
+    if (!callback) {
+      console.warn(`Unknown plugin action: ${action}`);
+      return;
+    }
+
+    callback.then(() => this.render());
+  }
+
+  /**
+   * Renders menu items into the body element.
+   * @param {Object} menu - The menu configuration object.
+   * @param {HTMLElement} body - The container element to append items to.
+   */
+  _renderMenuItems(menu, body) {
+    menu.items.forEach((item, index) => {
+      const element = this._loadTemplate('main-menu-item-template');
+      if (element === false) {
+        return;
+      }
+
+      element.dataset.index = index;
+
+      const icon = element.querySelector('.main-menu-item-icon');
+      if (item.icon) {
+        icon.textContent = item.icon;
+      } else {
+        icon.remove();
+      }
+
+      element.querySelector('.main-menu-item-label').textContent = item.label;
+      body.appendChild(element);
+    });
+  }
+
+  /**
+   * Renders the plugins management menu.
+   * Displays a list of available plugins with load/unload/reload actions.
+   */
+  _renderPlugins() {
+    this._menuBodyElement.innerHTML = '';
+
+    const pluginManager = this._loadTemplate('main-menu-plugin-template');
+    if (pluginManager === false) {
+      return;
+    }
+
+    this._menuBodyElement.appendChild(pluginManager);
+
+    CosmoScout.callbacks.core.getPlugins().then((plugins) => {
+      if (this._currentMenu !== 'plugins') {
+        return;
+      }
+
+      const pluginList     = pluginManager.querySelector('.plugin-manager-items');
+      pluginList.innerHTML = '';
+
+      Object.entries(plugins).forEach(([name, active]) => {
+        const templateId = active ? 'main-menu-plugin-item-active-template'
+                                  : 'main-menu-plugin-item-inactive-template';
+        const pluginItem = this._loadTemplate(templateId);
+
+        if (pluginItem === false) {
+          return;
+        }
+
+        pluginItem.dataset.pluginName                                     = name;
+        pluginItem.querySelector('.plugin-manager-item-name').textContent = name;
+
+        pluginItem.querySelectorAll('[data-plugin-action]')
+            .forEach((actionButton) => { actionButton.dataset.pluginName = name; });
+
+        pluginList.appendChild(pluginItem);
+      });
+    });
+  }
+
+  /**
+   * Renders the save scene menu.
+   * Allows users to create new saves or overwrite existing ones.
+   */
+  _renderSaveMenu() {
+    this._menuBodyElement.innerHTML = '';
+
+    const saveMenu = this._loadTemplate('main-menu-save-template');
+    if (saveMenu === false) {
+      return;
+    }
+
+    this._menuBodyElement.appendChild(saveMenu);
+
+    const newFileSection = this._loadTemplate('main-menu-save-new-template');
+    if (newFileSection === false) {
+      return;
+    }
+    saveMenu.appendChild(newFileSection);
+
+    const existingSavesSection = this._loadTemplate('main-menu-save-existing-template');
+    if (existingSavesSection === false) {
+      return;
+    }
+    saveMenu.appendChild(existingSavesSection);
+
+    this._loadSaveFiles().then((saveFiles) => {
+      const saveList = existingSavesSection.querySelector('.save-list');
+
+      if (saveFiles.length === 0) {
+        const emptyTemplate = this._loadTemplate('main-menu-save-empty-template');
+        if (emptyTemplate !== false) {
+          saveList.appendChild(emptyTemplate);
+        }
+        return;
+      }
+
+      saveFiles.forEach((saveFile, index) => {
+        const saveItem = this._loadTemplate('main-menu-save-item-template');
+        if (saveItem === false) {
+          return;
+        }
+
+        saveItem.dataset.saveIndex                            = index;
+        saveItem.querySelector('.save-item-name').textContent = saveFile.name;
+        saveItem.querySelector('.save-item-date').textContent = saveFile.date;
+
+        saveList.appendChild(saveItem);
+      });
+
+      document.querySelectorAll('[data-save-action="overwrite"]').forEach((button) => {
+        button.addEventListener('click', (event) => {
+          const saveIndex = event.currentTarget.dataset.saveIndex;
+          this._handleOverwriteSave(saveIndex);
+        });
+      });
+
+      document.querySelector('#save-new-button')
+          .addEventListener('click', () => this._handleNewSave());
+    });
+  }
+
+  /**
+   * Loads and formats the list of save files.
+   * @returns {Promise<Array<Object>>} Promise resolving to an array of save file objects with name
+   *     and date.
+   */
+  _loadSaveFiles() {
+    return CosmoScout.callbacks.core.getSaveFiles().then((saveFiles) => {
+      return saveFiles.map((file) => {
+        const name     = file.name || 'Untitled';
+        const basename = name.split(/[\\/]/).pop();
+        return {
+          name: basename.replace(/\.json$/i, ''),
+          date: file.date ? new Date(file.date).toLocaleString() : 'Unknown date',
         };
+      });
+    });
+  }
 
-        this._backButtonElement.addEventListener('click', () => this.back());
+  /**
+   * Handles creating a new save file.
+   * Validates the filename and saves the scene.
+   */
+  _handleNewSave() {
+    const input    = this._menuElement.querySelector('#save-new-filename');
+    let   filename = input.value.trim();
 
-        this._menuBodyElement
-            .addEventListener('click', (event) => this._handleBodyClick(event));
+    if (!filename) {
+      CosmoScout.notifications.print('Could not save!', 'Please enter a file name.', 'warning');
+      return;
+    }
 
-        this._menuElement
-            .addEventListener('click', (event) => {
-                if (event.target === event.currentTarget) {
-                    this.close();
-                }
+    if (!filename.endsWith('.json')) {
+      filename += '.json';
+    }
+
+    CosmoScout.callbacks.core.save(filename)
+        .then(() => {
+          CosmoScout.notifications.print('Saved', `Scene saved as '${filename}'`, 'archive');
+          input.value = '';
+          this._renderSaveMenu();
+        })
+        .catch((err) => {
+          CosmoScout.notifications.print(
+              'Error', `Failed to save scene: ${err.message || err}`, 'error');
+        });
+  }
+
+  /**
+   * Handles overwriting an existing save file.
+   * @param {number} index - The index of the save file to overwrite.
+   */
+  _handleOverwriteSave(index) {
+    CosmoScout.callbacks.core.getSaveFiles().then((saveFiles) => {
+      if (index >= 0 && index < saveFiles.length) {
+        const name     = saveFiles[index].name;
+        const basename = name.split(/[\\/]/).pop();
+        CosmoScout.callbacks.core.save(basename)
+            .then(() => {
+              CosmoScout.notifications.print(
+                  'Saved', `Scene overwritten: '${basename}'`, 'archive');
+              this._renderSaveMenu();
+            })
+            .catch((err) => {
+              CosmoScout.notifications.print(
+                  'Error', `Failed to overwrite scene: ${err.message || err}`, 'error');
             });
+      }
+    });
+  }
 
-        this.render();
-    }
-
-    navigate(menuId) {
-        if (!this._menus[menuId]) {
-            console.warn(`Unknown menu: ${menuId}`);
-            return;
-        }
-
-        this._history.push(this._currentMenu);
-        this._currentMenu = menuId;
-        this.render();
-    }
-
-    back() {
-        if (this._history.length === 0) {
-            return;
-        }
-
-        this._currentMenu = this._history.pop();
-        this.render();
-    }
-
-    _loadTemplate(id) {
-        const template = CosmoScout.gui.loadTemplateContent(id);
-
-        if (template === false) {
-            console.warn(`Menu template '${id}' could not be loaded.`);
-        }
-
-        return template;
-    }
-
-    _handleBodyClick(event) {
-        const menu = this._menus[this._currentMenu];
-
-        const menuItem = event.target.closest('.main-menu-item');
-        if (menuItem && menu.items) {
-            const item = menu.items[Number(menuItem.dataset.index)];
-
-            if (!item) {
-                return;
-            }
-
-            if (item.target) {
-                this.navigate(item.target);
-            } else if (item.action) {
-                item.action();
-            }
-
-            return;
-        }
-
-        const pluginAction = event.target.closest('[data-plugin-action]');
-        if (pluginAction) {
-            const pluginName = pluginAction.dataset.pluginName;
-            const action = pluginAction.dataset.pluginAction;
-
-            this._runPluginAction(pluginName, action);
-        }
-    }
-
-    _runPluginAction(pluginName, action) {
-        if (!pluginName || !action) {
-            return;
-        }
-
-        let callback = null;
-
-        if (action === 'reload') {
-            callback = CosmoScout.callbacks.core.reloadPlugin(pluginName)
-                .then(() => CosmoScout.notifications.print('Plugin reloaded', `'${pluginName}' reloaded.`, 'refresh'));
-        } else if (action === 'unload') {
-            callback = CosmoScout.callbacks.core.unloadPlugin(pluginName)
-                .then(() => CosmoScout.notifications.print('Plugin unloaded', `'${pluginName}' unloaded.`, 'extension_off'));
-        } else if (action === 'load') {
-            callback = CosmoScout.callbacks.core.loadPlugin(pluginName)
-                .then(() => CosmoScout.notifications.print('Plugin loaded', `'${pluginName}' loaded.`, 'extension'));
-        }
-
-        if (!callback) {
-            console.warn(`Unknown plugin action: ${action}`);
-            return;
-        }
-
-        callback.then(() => this.render());
-    }
-
-    _renderMenuItems(menu, body) {
-        menu.items.forEach((item, index) => {
-            const element = this._loadTemplate('main-menu-item-template');
-            if (element === false) {
-                return;
-            }
-
-            element.dataset.index = index;
-
-            const icon = element.querySelector('.main-menu-item-icon');
-            if (item.icon) {
-                icon.textContent = item.icon;
-            } else {
-                icon.remove();
-            }
-
-            element.querySelector('.main-menu-item-label').textContent = item.label;
-            body.appendChild(element);
-        });
-    }
-
-    _renderPlugins() {
-        this._menuBodyElement.innerHTML = '';
-
-        const pluginManager = this._loadTemplate('main-menu-plugin-template');
-        if (pluginManager === false) {
-            return '';
-        }
-
-        this._menuBodyElement.appendChild(pluginManager);
-
-        CosmoScout.callbacks.core.getPlugins().then((plugins) => {
-            if (this._currentMenu !== 'plugins') {
-                return;
-            }
-
-            const pluginList = pluginManager.querySelector('.plugin-manager-items');
-            pluginList.innerHTML = '';
-
-            Object.entries(plugins).forEach(([name, active]) => {
-                const templateId = active
-                    ? 'main-menu-plugin-item-active-template'
-                    : 'main-menu-plugin-item-inactive-template';
-                const pluginItem = this._loadTemplate(templateId);
-
-                if (pluginItem === false) {
-                    return;
-                }
-
-                pluginItem.dataset.pluginName = name;
-                pluginItem.querySelector('.plugin-manager-item-name').textContent = name;
-
-                pluginItem
-                    .querySelectorAll('[data-plugin-action]')
-                    .forEach((actionButton) => {
-                        actionButton.dataset.pluginName = name;
-                    });
-
-                pluginList.appendChild(pluginItem);
+  /**
+   * Handles loading a scene from a save file.
+   * @param {number} index - The index of the save file to load.
+   */
+  _handleLoadScene(index) {
+    CosmoScout.callbacks.core.getSaveFiles().then((saveFiles) => {
+      if (index >= 0 && index < saveFiles.length) {
+        const name     = saveFiles[index].name;
+        const basename = name.split(/[\\/]/).pop();
+        CosmoScout.callbacks.core.load(basename)
+            .then(() => {
+              CosmoScout.notifications.print(
+                  'Loaded', `Scene loaded: '${basename}'`, 'open_in_browser');
+              this.back();
+            })
+            .catch((err) => {
+              CosmoScout.notifications.print(
+                  'Error', `Failed to load scene: ${err.message || err}`, 'error');
             });
+      }
+    });
+  }
+
+  /**
+   * Renders the load scene menu.
+   * Displays a list of available save files for loading.
+   */
+  _renderLoadMenu() {
+    this._menuBodyElement.innerHTML = '';
+
+    const loadMenu = this._loadTemplate('main-menu-load-template');
+    if (loadMenu === false) {
+      return;
+    }
+
+    this._menuBodyElement.appendChild(loadMenu);
+
+    const existingSavesSection = this._loadTemplate('main-menu-load-existing-template');
+    if (existingSavesSection === false) {
+      return;
+    }
+    loadMenu.appendChild(existingSavesSection);
+
+    this._loadSaveFiles().then((saveFiles) => {
+      const loadList = existingSavesSection.querySelector('.load-list');
+
+      if (saveFiles.length === 0) {
+        const emptyTemplate = this._loadTemplate('main-menu-load-empty-template');
+        if (emptyTemplate !== false) {
+          loadList.appendChild(emptyTemplate);
+        }
+        return;
+      }
+
+      saveFiles.forEach((saveFile, index) => {
+        const loadItem = this._loadTemplate('main-menu-load-item-template');
+        if (loadItem === false) {
+          return;
+        }
+
+        loadItem.dataset.loadIndex                            = index;
+        loadItem.querySelector('.load-item-name').textContent = saveFile.name;
+        loadItem.querySelector('.load-item-date').textContent = saveFile.date;
+
+        loadList.appendChild(loadItem);
+      });
+
+      document.querySelectorAll('[data-load-action="load"]').forEach((button) => {
+        button.addEventListener('click', (event) => {
+          const loadIndex = event.currentTarget.dataset.loadIndex;
+          this._handleLoadScene(loadIndex);
         });
+      });
+    });
+  }
 
-        return '';
+  /**
+   * Renders the current menu.
+   * Updates the title, icon, back button visibility, and menu body content.
+   */
+  render() {
+    const menu = this._menus[this._currentMenu];
+
+    this._menuElement.querySelector('#main-menu-title').textContent = menu.title;
+    this._menuElement.querySelector('#main-menu-icon').textContent  = menu.icon;
+    this._backButtonElement.hidden                                  = this._history.length === 0;
+
+    this._menuBodyElement.innerHTML = '';
+
+    if (menu.render) {
+      menu.render();
+      return;
     }
 
-    _renderSaveMenu() {
-        this._menuBodyElement.innerHTML = '';
+    this._renderMenuItems(menu, this._menuBodyElement);
+  }
 
-        const saveMenu = this._loadTemplate('main-menu-save-template');
-        if (saveMenu === false) {
-            return '';
-        }
-
-        this._menuBodyElement.appendChild(saveMenu);
-
-        const newFileSection = this._loadTemplate('main-menu-save-new-template');
-        if (newFileSection === false) {
-            return '';
-        }
-        saveMenu.appendChild(newFileSection);
-
-        const existingSavesSection = this._loadTemplate('main-menu-save-existing-template');
-        if (existingSavesSection === false) {
-            return '';
-        }
-        saveMenu.appendChild(existingSavesSection);
-
-        this._loadSaveFiles().then((saveFiles) => {
-            const saveList = existingSavesSection.querySelector('.save-list');
-
-            if (saveFiles.length === 0) {
-                const emptyTemplate = this._loadTemplate('main-menu-save-empty-template');
-                if (emptyTemplate !== false) {
-                    saveList.appendChild(emptyTemplate);
-                }
-                return;
-            }
-
-            saveFiles.forEach((saveFile, index) => {
-                const saveItem = this._loadTemplate('main-menu-save-item-template');
-                if (saveItem === false) {
-                    return;
-                }
-
-                saveItem.dataset.saveIndex = index;
-                saveItem.querySelector('.save-item-name').textContent = saveFile.name;
-                saveItem.querySelector('.save-item-date').textContent = saveFile.date;
-
-                saveList.appendChild(saveItem);
-            });
-
-            document
-                .querySelectorAll('[data-save-action="overwrite"]')
-                .forEach((button) => {
-                    button.addEventListener('click', (event) => {
-                        const saveIndex = event.currentTarget.dataset.saveIndex;
-                        this._handleOverwriteSave(saveIndex);
-                    });
-                });
-
-            document
-                .querySelector('#save-new-button')
-                .addEventListener('click', () => this._handleNewSave());
-        });
-
-        return '';
-    }
-
-    _loadSaveFiles() {
-        return CosmoScout.callbacks.core.getSaveFiles().then((saveFiles) => {
-            return saveFiles.map((file) => {
-                const name = file.name || 'Untitled';
-                const basename = name.split(/[\\/]/).pop();
-                return {
-                    name: basename.replace(/\.json$/i, ''),
-                    date: file.date ? new Date(file.date).toLocaleString() : 'Unknown date',
-                };
-            });
-        });
-    }
-
-    _handleNewSave() {
-        const input = this._menuElement.querySelector('#save-new-filename');
-        let filename = input.value.trim();
-
-        if (!filename) {
-            CosmoScout.notifications.print('Could not save!', 'Please enter a file name.', 'warning');
-            return;
-        }
-
-        if (!filename.endsWith('.json')) {
-            filename += '.json';
-        }
-
-        CosmoScout.callbacks.core.save(filename).then(() => {
-            CosmoScout.notifications.print('Saved', `Scene saved as '${filename}'`, 'archive');
-            input.value = '';
-            this._renderSaveMenu();
-        }).catch((err) => {
-            CosmoScout.notifications.print('Error', `Failed to save scene: ${err.message || err}`, 'error');
-        });
-    }
-
-    _handleOverwriteSave(index) {
-        CosmoScout.callbacks.core.getSaveFiles().then((saveFiles) => {
-            if (index >= 0 && index < saveFiles.length) {
-                const name = saveFiles[index].name;
-                const basename = name.split(/[\\/]/).pop();
-                CosmoScout.callbacks.core.save(basename).then(() => {
-                    CosmoScout.notifications.print('Saved', `Scene overwritten: '${basename}'`, 'archive');
-                    this._renderSaveMenu();
-                }).catch((err) => {
-                    CosmoScout.notifications.print('Error', `Failed to overwrite scene: ${err.message || err}`, 'error');
-                });
-            }
-        });
-    }
-
-    _handleLoadScene(index) {
-        CosmoScout.callbacks.core.getSaveFiles().then((saveFiles) => {
-            if (index >= 0 && index < saveFiles.length) {
-                const name = saveFiles[index].name;
-                const basename = name.split(/[\\/]/).pop();
-                CosmoScout.callbacks.core.load(basename).then(() => {
-                    CosmoScout.notifications.print('Loaded', `Scene loaded: '${basename}'`, 'open_in_browser');
-                    this.back();
-                }).catch((err) => {
-                    CosmoScout.notifications.print('Error', `Failed to load scene: ${err.message || err}`, 'error');
-                });
-            }
-        });
-    }
-
-    _renderLoadMenu() {
-        this._menuBodyElement.innerHTML = '';
-
-        const loadMenu = this._loadTemplate('main-menu-load-template');
-        if (loadMenu === false) {
-            return '';
-        }
-
-        this._menuBodyElement.appendChild(loadMenu);
-
-        const existingSavesSection = this._loadTemplate('main-menu-load-existing-template');
-        if (existingSavesSection === false) {
-            return '';
-        }
-        loadMenu.appendChild(existingSavesSection);
-
-        this._loadSaveFiles().then((saveFiles) => {
-            const loadList = existingSavesSection.querySelector('.load-list');
-
-            if (saveFiles.length === 0) {
-                const emptyTemplate = this._loadTemplate('main-menu-load-empty-template');
-                if (emptyTemplate !== false) {
-                    loadList.appendChild(emptyTemplate);
-                }
-                return;
-            }
-
-            saveFiles.forEach((saveFile, index) => {
-                const loadItem = this._loadTemplate('main-menu-load-item-template');
-                if (loadItem === false) {
-                    return;
-                }
-
-                loadItem.dataset.loadIndex = index;
-                loadItem.querySelector('.load-item-name').textContent = saveFile.name;
-                loadItem.querySelector('.load-item-date').textContent = saveFile.date;
-
-                loadList.appendChild(loadItem);
-            });
-
-            document
-                .querySelectorAll('[data-load-action="load"]')
-                .forEach((button) => {
-                    button.addEventListener('click', (event) => {
-                        const loadIndex = event.currentTarget.dataset.loadIndex;
-                        this._handleLoadScene(loadIndex);
-                    });
-                });
-        });
-
-        return '';
-    }
-
-    render() {
-        const menu = this._menus[this._currentMenu];
-
-        this._menuElement.querySelector('#main-menu-title').textContent = menu.title;
-        this._menuElement.querySelector('#main-menu-icon').textContent = menu.icon;
-        this._backButtonElement.hidden = this._history.length === 0;
-
-        this._menuBodyElement.innerHTML = '';
-
-        if (menu.render) {
-            menu.render();
-            return;
-        }
-
-        this._renderMenuItems(menu, this._menuBodyElement);
-    }
-
-    close() {
-        this._menuElement.close();
-    }
+  /**
+   * Closes the main menu.
+   */
+  close() {
+    this._menuElement.close();
+  }
 }
