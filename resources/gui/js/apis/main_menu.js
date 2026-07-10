@@ -14,7 +14,6 @@ class MainMenuApi extends IApi {
     init() {
         this._currentMenu = 'root';
         this._history = [];
-        this._renderToken = 0;
 
         this._menuElement = document.querySelector('#cs-main-menu');
         this._menuBodyElement = this._menuElement.querySelector('#main-menu-body');
@@ -147,11 +146,14 @@ class MainMenuApi extends IApi {
         let callback = null;
 
         if (action === 'reload') {
-            callback = CosmoScout.callbacks.core.reloadPlugin(pluginName);
+            callback = CosmoScout.callbacks.core.reloadPlugin(pluginName)
+                .then(() => CosmoScout.notifications.print('Plugin reloaded', `'${pluginName}' reloaded.`, 'refresh'));
         } else if (action === 'unload') {
-            callback = CosmoScout.callbacks.core.unloadPlugin(pluginName);
+            callback = CosmoScout.callbacks.core.unloadPlugin(pluginName)
+                .then(() => CosmoScout.notifications.print('Plugin unloaded', `'${pluginName}' unloaded.`, 'extension_off'));
         } else if (action === 'load') {
-            callback = CosmoScout.callbacks.core.loadPlugin(pluginName);
+            callback = CosmoScout.callbacks.core.loadPlugin(pluginName)
+                .then(() => CosmoScout.notifications.print('Plugin loaded', `'${pluginName}' loaded.`, 'extension'));
         }
 
         if (!callback) {
@@ -184,8 +186,6 @@ class MainMenuApi extends IApi {
     }
 
     _renderPlugins() {
-        const token = ++this._renderToken;
-
         this._menuBodyElement.innerHTML = '';
 
         const pluginManager = this._loadTemplate('main-menu-plugin-template');
@@ -196,7 +196,7 @@ class MainMenuApi extends IApi {
         this._menuBodyElement.appendChild(pluginManager);
 
         CosmoScout.callbacks.core.getPlugins().then((plugins) => {
-            if (token !== this._renderToken || this._currentMenu !== 'plugins') {
+            if (this._currentMenu !== 'plugins') {
                 return;
             }
 
@@ -239,48 +239,26 @@ class MainMenuApi extends IApi {
 
         this._menuBodyElement.appendChild(saveMenu);
 
-        const newFileSection = document.createElement('div');
-        newFileSection.className = 'save-new-file mb-3';
-        newFileSection.innerHTML = `
-            <div class="row mb-2">
-                <div class="col-12">
-                    <label class="form-label">Save New Scene</label>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-8">
-                    <input type="text" class="form-control" id="save-new-filename" placeholder="Enter file name...">
-                </div>
-                <div class="col-4">
-                    <button class="btn glass block" id="save-new-button">
-                        <i class="material-icons">save</i> Save
-                    </button>
-                </div>
-            </div>
-        `;
+        const newFileSection = this._loadTemplate('main-menu-save-new-template');
+        if (newFileSection === false) {
+            return '';
+        }
         saveMenu.appendChild(newFileSection);
 
-        const existingSavesSection = document.createElement('div');
-        existingSavesSection.className = 'save-existing-files';
-        existingSavesSection.innerHTML = `
-            <div class="row mb-2">
-                <div class="col-12">
-                    <label class="form-label">Overwrite Existing Scene</label>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-12">
-                    <div class="save-list"></div>
-                </div>
-            </div>
-        `;
+        const existingSavesSection = this._loadTemplate('main-menu-save-existing-template');
+        if (existingSavesSection === false) {
+            return '';
+        }
         saveMenu.appendChild(existingSavesSection);
 
         this._loadSaveFiles().then((saveFiles) => {
             const saveList = existingSavesSection.querySelector('.save-list');
 
             if (saveFiles.length === 0) {
-                saveList.innerHTML = '<div class="text-muted text-center py-3">No saved scenes found</div>';
+                const emptyTemplate = this._loadTemplate('main-menu-save-empty-template');
+                if (emptyTemplate !== false) {
+                    saveList.appendChild(emptyTemplate);
+                }
                 return;
             }
 
@@ -341,7 +319,7 @@ class MainMenuApi extends IApi {
         }
 
         CosmoScout.callbacks.core.save(filename).then(() => {
-            CosmoScout.notifications.print('Saved', `Scene saved as "${filename}"`, 'archive');
+            CosmoScout.notifications.print('Saved', `Scene saved as '${filename}'`, 'archive');
             input.value = '';
             this._renderSaveMenu();
         }).catch((err) => {
@@ -355,7 +333,7 @@ class MainMenuApi extends IApi {
                 const name = saveFiles[index].name;
                 const basename = name.split(/[\\/]/).pop();
                 CosmoScout.callbacks.core.save(basename).then(() => {
-                    CosmoScout.notifications.print('Saved', `Scene overwritten: "${basename}"`, 'archive');
+                    CosmoScout.notifications.print('Saved', `Scene overwritten: '${basename}'`, 'archive');
                     this._renderSaveMenu();
                 }).catch((err) => {
                     CosmoScout.notifications.print('Error', `Failed to overwrite scene: ${err.message || err}`, 'error');
@@ -370,7 +348,7 @@ class MainMenuApi extends IApi {
                 const name = saveFiles[index].name;
                 const basename = name.split(/[\\/]/).pop();
                 CosmoScout.callbacks.core.load(basename).then(() => {
-                    CosmoScout.notifications.print('Loaded', `Scene loaded: "${basename}"`, 'open_in_browser');
+                    CosmoScout.notifications.print('Loaded', `Scene loaded: '${basename}'`, 'open_in_browser');
                     this.back();
                 }).catch((err) => {
                     CosmoScout.notifications.print('Error', `Failed to load scene: ${err.message || err}`, 'error');
@@ -389,27 +367,20 @@ class MainMenuApi extends IApi {
 
         this._menuBodyElement.appendChild(loadMenu);
 
-        const existingSavesSection = document.createElement('div');
-        existingSavesSection.className = 'load-existing-files';
-        existingSavesSection.innerHTML = `
-            <div class="row mb-2">
-                <div class="col-12">
-                    <label class="form-label">Load Scene</label>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-12">
-                    <div class="load-list"></div>
-                </div>
-            </div>
-        `;
+        const existingSavesSection = this._loadTemplate('main-menu-load-existing-template');
+        if (existingSavesSection === false) {
+            return '';
+        }
         loadMenu.appendChild(existingSavesSection);
 
         this._loadSaveFiles().then((saveFiles) => {
             const loadList = existingSavesSection.querySelector('.load-list');
 
             if (saveFiles.length === 0) {
-                loadList.innerHTML = '<div class="text-muted text-center py-3">No saved scenes found</div>';
+                const emptyTemplate = this._loadTemplate('main-menu-load-empty-template');
+                if (emptyTemplate !== false) {
+                    loadList.appendChild(emptyTemplate);
+                }
                 return;
             }
 
@@ -447,7 +418,6 @@ class MainMenuApi extends IApi {
         this._backButtonElement.hidden = this._history.length === 0;
 
         this._menuBodyElement.innerHTML = '';
-        this._renderToken += 1;
 
         if (menu.render) {
             menu.render();
