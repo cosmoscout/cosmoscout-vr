@@ -18,7 +18,7 @@ on:
 jobs:
   clang_format:
     name: Check Clang-Format
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -41,7 +41,7 @@ jobs:
 
   comment_percentage:
     name: Check Comment Percentage
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     if: github.event_name == 'pull_request'
     steps:
       - name: Checkout Current Repository
@@ -177,7 +177,7 @@ jobs:
           path: install/linux-Release/bin/test
 
   build_windows:
-    name: Windows MSVC 19.25
+    name: Windows MSVC 19.51
     runs-on: windows-2025
     if: >
       github.event_name == 'pull_request' ||

@@ -41,6 +41,9 @@
 #include <VistaKernel/VistaSystem.h>
 #include <VistaOGLExt/VistaShaderRegistry.h>
 #include <curlpp/cURLpp.hpp>
+
+#include <chrono>
+#include <format>
 #include <memory>
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -985,10 +988,14 @@ void Application::registerGuiCallbacks() {
             if (std::filesystem::exists(filePath)) {
               auto lastWrite  = std::filesystem::last_write_time(filePath);
               auto systemTime = std::chrono::clock_cast<std::chrono::system_clock>(lastWrite);
-              auto time_t_val = std::chrono::system_clock::to_time_t(systemTime);
-              char timeBuf[26];
-              ctime_s(timeBuf, sizeof(timeBuf), &time_t_val);
-              fileInfo["date"] = std::string(timeBuf);
+
+              // Truncate to seconds so %S doesn't print fractional seconds
+              auto systemTimeSec = std::chrono::floor<std::chrono::seconds>(systemTime);
+
+              // Convert to local time using the current time zone
+              std::chrono::zoned_time zonedTime{std::chrono::current_zone(), systemTimeSec};
+
+              fileInfo["date"] = std::format("{:%Y-%m-%d %H:%M:%S}", zonedTime);
             } else {
               fileInfo["date"] = "";
             }
