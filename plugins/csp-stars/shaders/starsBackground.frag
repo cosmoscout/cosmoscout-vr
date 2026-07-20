@@ -22,6 +22,6 @@ float my_atan2(float a, float b) {
 void main() {
   const float PI       = 3.14159265359;
   vec3        view     = normalize(vView);
-  vec2        texcoord = vec2(0.5 * my_atan2(view.x, -view.z) / PI, acos(view.y) / PI);
+  vec2        texcoord = vec2(0.5 * my_atan2(view.y, -view.x) / PI, acos(view.z) / PI);
   vOutColor            = texture(iTexture, texcoord).rgb * cColor.rgb * cColor.a;
 }

@@ -87,9 +87,9 @@ vec2 VP_convertXY2lnglat(vec2 posXY)
 
 // Returns the geodetic normal vector with unit length at geodetic coordinates (lng, lat) lnglat.
 vec3 VP_toNormal(vec2 lnglat) {
-  return vec3(cos(lnglat.y) * sin(lnglat.x), 
-              sin(lnglat.y),
-              cos(lnglat.y) * cos(lnglat.x));
+  return vec3(cos(lnglat.y) * cos(lnglat.x),
+              cos(lnglat.y) * sin(lnglat.x),
+              sin(lnglat.y));
 }
 
 // Converts point @a lnglat from geodetic (lat,lng) to cartesian

@@ -605,8 +605,9 @@ void Application::FrameUpdate() {
         auto rot = mSolarSystem->getObserver().getRelativeRotation(
             mTimeControl->pSimulationTime.get(), *mSolarSystem->pActiveObject.get());
         glm::dvec4 up(0.0, 1.0, 0.0, 0.0);
-        glm::dvec4 north = rot * up;
-        north.z          = 0.0;
+        glm::dvec4 north(0.0, 0.0, 1.0, 0.0);
+        north   = rot * north;
+        north.z = 0.0;
 
         double angle = std::acos(glm::dot(up, glm::normalize(north)));
         if (north.x < 0.0) {
@@ -1554,7 +1555,7 @@ void Application::registerGuiCallbacks() {
         auto radii       = mSolarSystem->pActiveObject.get()->getRadii();
         auto observerPos = mSolarSystem->getObserver().getPosition();
 
-        glm::dvec3 y = glm::vec3(0, -1, 0);
+        glm::dvec3 y = glm::vec3(0, 0, -1);
         glm::dvec3 z = cs::utils::convert::cartesianToNormal(observerPos, radii);
         glm::dvec3 x = glm::cross(z, y);
         y            = glm::cross(z, x);

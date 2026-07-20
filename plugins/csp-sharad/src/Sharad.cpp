@@ -48,8 +48,7 @@ out vec2  vTexCoords;
 out float vTime;
 
 vec3 geodeticSurfaceNormal(vec2 lngLat) {
-  return vec3(cos(lngLat.y) * sin(lngLat.x), sin(lngLat.y),
-      cos(lngLat.y) * cos(lngLat.x));
+  return vec3(cos(lngLat.y) * cos(lngLat.x), cos(lngLat.y) * sin(lngLat.x), sin(lngLat.y));
 }
 
 vec3 toCartesian(vec2 lonLat, float height) {

@@ -88,7 +88,7 @@ glm::dvec3 const& CelestialObject::getRadii() const {
     } else {
 
       // SPICE coordinates are different.
-      mRadiiFromSPICE = glm::dvec3(result[1], result[2], result[0]);
+      mRadiiFromSPICE = glm::dvec3(result[0], result[1], result[2]);
     }
 
     return mRadiiFromSPICE;
