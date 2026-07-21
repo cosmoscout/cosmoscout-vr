@@ -111,21 +111,6 @@ class MainMenuApi extends IApi {
   }
 
   /**
-   * Loads template content by ID.
-   * @param {string} id - The template ID to load.
-   * @returns {DocumentFragment|false} The template content or false if not found.
-   */
-  _loadTemplate(id) {
-    const template = CosmoScout.gui.loadTemplateContent(id);
-
-    if (template === false) {
-      console.warn(`Menu template '${id}' could not be loaded.`);
-    }
-
-    return template;
-  }
-
-  /**
    * Handles click events on the menu body.
    * @param {MouseEvent} event - The click event.
    */
@@ -228,7 +213,7 @@ class MainMenuApi extends IApi {
    */
   _renderMenuItems(menu, body) {
     menu.items.forEach((item, index) => {
-      const element = this._loadTemplate('main-menu-item-template');
+      const element = CosmoScout.gui.loadTemplateContent('main-menu-item-template');
       if (element === false) {
         return;
       }
@@ -254,7 +239,7 @@ class MainMenuApi extends IApi {
   _renderPlugins() {
     this._menuBodyElement.innerHTML = '';
 
-    const pluginManager = this._loadTemplate('main-menu-plugin-template');
+    const pluginManager = CosmoScout.gui.loadTemplateContent('main-menu-plugin-template');
     if (pluginManager === false) {
       return;
     }
@@ -272,7 +257,7 @@ class MainMenuApi extends IApi {
       Object.entries(plugins).forEach(([name, active]) => {
         const templateId = active ? 'main-menu-plugin-item-active-template'
                                   : 'main-menu-plugin-item-inactive-template';
-        const pluginItem = this._loadTemplate(templateId);
+        const pluginItem = CosmoScout.gui.loadTemplateContent(templateId);
 
         if (pluginItem === false) {
           return;
@@ -296,20 +281,20 @@ class MainMenuApi extends IApi {
   _renderSaveMenu() {
     this._menuBodyElement.innerHTML = '';
 
-    const saveMenu = this._loadTemplate('main-menu-save-template');
+    const saveMenu = CosmoScout.gui.loadTemplateContent('main-menu-save-template');
     if (saveMenu === false) {
       return;
     }
 
     this._menuBodyElement.appendChild(saveMenu);
 
-    const newFileSection = this._loadTemplate('main-menu-save-new-template');
+    const newFileSection = CosmoScout.gui.loadTemplateContent('main-menu-save-new-template');
     if (newFileSection === false) {
       return;
     }
     saveMenu.appendChild(newFileSection);
 
-    const existingSavesSection = this._loadTemplate('main-menu-save-existing-template');
+    const existingSavesSection = CosmoScout.gui.loadTemplateContent('main-menu-save-existing-template');
     if (existingSavesSection === false) {
       return;
     }
@@ -319,7 +304,7 @@ class MainMenuApi extends IApi {
       const saveList = existingSavesSection.querySelector('.save-list');
 
       if (saveFiles.length === 0) {
-        const emptyTemplate = this._loadTemplate('main-menu-save-empty-template');
+        const emptyTemplate = CosmoScout.gui.loadTemplateContent('main-menu-save-empty-template');
         if (emptyTemplate !== false) {
           saveList.appendChild(emptyTemplate);
         }
@@ -327,7 +312,7 @@ class MainMenuApi extends IApi {
       }
 
       saveFiles.forEach((saveFile, index) => {
-        const saveItem = this._loadTemplate('main-menu-save-item-template');
+        const saveItem = CosmoScout.gui.loadTemplateContent('main-menu-save-item-template');
         if (saveItem === false) {
           return;
         }
@@ -451,14 +436,14 @@ class MainMenuApi extends IApi {
   _renderLoadMenu() {
     this._menuBodyElement.innerHTML = '';
 
-    const loadMenu = this._loadTemplate('main-menu-load-template');
+    const loadMenu = CosmoScout.gui.loadTemplateContent('main-menu-load-template');
     if (loadMenu === false) {
       return;
     }
 
     this._menuBodyElement.appendChild(loadMenu);
 
-    const existingSavesSection = this._loadTemplate('main-menu-load-existing-template');
+    const existingSavesSection = CosmoScout.gui.loadTemplateContent('main-menu-load-existing-template');
     if (existingSavesSection === false) {
       return;
     }
@@ -468,7 +453,7 @@ class MainMenuApi extends IApi {
       const loadList = existingSavesSection.querySelector('.load-list');
 
       if (saveFiles.length === 0) {
-        const emptyTemplate = this._loadTemplate('main-menu-load-empty-template');
+        const emptyTemplate = CosmoScout.gui.loadTemplateContent('main-menu-load-empty-template');
         if (emptyTemplate !== false) {
           loadList.appendChild(emptyTemplate);
         }
@@ -476,7 +461,7 @@ class MainMenuApi extends IApi {
       }
 
       saveFiles.forEach((saveFile, index) => {
-        const loadItem = this._loadTemplate('main-menu-load-item-template');
+        const loadItem = CosmoScout.gui.loadTemplateContent('main-menu-load-item-template');
         if (loadItem === false) {
           return;
         }
