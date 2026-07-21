@@ -22,8 +22,7 @@ struct NodeConnection {
       : mFromNode(fromNode)
       , mFromSocket(std::move(fromSocket))
       , mToNode(toNode)
-      , mToSocket(std::move(toSocket)) {
-  }
+      , mToSocket(std::move(toSocket)) {}
 
   uint32_t    mFromNode;
   std::string mFromSocket;

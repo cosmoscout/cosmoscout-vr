@@ -37,8 +37,7 @@ class Plugin : public cs::core::PluginBase {
     TimerRange(std::string name, uint32_t start, uint32_t end)
         : mName(std::move(name))
         , mStart(start)
-        , mEnd(end) {
-    }
+        , mEnd(end) {}
 
     std::string mName;
 

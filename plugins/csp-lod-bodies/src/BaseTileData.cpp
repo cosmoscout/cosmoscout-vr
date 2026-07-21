@@ -13,8 +13,7 @@ namespace csp::lodbodies {
 
 /* explicit */
 BaseTileData::BaseTileData(uint32_t resolution)
-    : mResolution(resolution) {
-}
+    : mResolution(resolution) {}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 

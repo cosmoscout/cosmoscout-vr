@@ -45,6 +45,7 @@
 #include <chrono>
 #include <format>
 #include <memory>
+#include <ranges>
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -956,20 +957,20 @@ void Application::registerGuiCallbacks() {
   // Lists all loaded plugins.
   mGuiManager->getGui()->registerCallback(
       "core.listPlugins", "Lists all loaded plugins.", std::function([this]() {
-        for (auto const& plugin : mPlugins) {
-          logger().info(plugin.first);
+        for (const auto& pluginName : mPlugins | std::views::keys) {
+          logger().info(pluginName);
         }
       }));
 
   mGuiManager->getGui()->registerCallback("core.getPlugins",
       "Returns a list of plugins and if they are loaded or not.", std::function([this]() {
         std::map<std::string, bool> plugins{};
-        for (auto const& plugin : mPlugins) {
-          plugins.emplace(plugin.first, true);
+        for (const auto& pluginName : mPlugins | std::views::keys) {
+          plugins.emplace(pluginName, true);
         }
-        for (auto const& plugin : mSettings->mPlugins) {
-          if (plugins.find(plugin.first) == plugins.end()) {
-            plugins.emplace(plugin.first, false);
+        for (const auto& pluginName : mSettings->mPlugins | std::views::keys) {
+          if (!plugins.contains(pluginName)) {
+            plugins.emplace(pluginName, false);
           }
         }
         return plugins;
@@ -977,7 +978,7 @@ void Application::registerGuiCallbacks() {
 
   // Lists all saved scene files.
   mGuiManager->getGui()->registerCallback(
-      "core.getSaveFiles", "Returns a list of saved scene files.", std::function([this]() {
+      "core.getSaveFiles", "Returns a list of saved scene files.", std::function([] {
         std::vector<std::map<std::string, std::string>> saveFiles{};
 
         try {
@@ -988,8 +989,7 @@ void Application::registerGuiCallbacks() {
             std::map<std::string, std::string> fileInfo;
             fileInfo["name"] = file;
 
-            auto filePath = saveDir / file;
-            if (std::filesystem::exists(filePath)) {
+            if (auto filePath = saveDir / file; std::filesystem::exists(filePath)) {
               auto lastWrite  = std::filesystem::last_write_time(filePath);
               auto systemTime = std::chrono::clock_cast<std::chrono::system_clock>(lastWrite);
 

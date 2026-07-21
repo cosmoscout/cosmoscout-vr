@@ -18,8 +18,7 @@ class JSHandler : public CefV8Handler {
 
  public:
   explicit JSHandler(CefRefPtr<CefBrowser> const& browser)
-      : mBrowser(browser) {
-  }
+      : mBrowser(browser) {}
 
   /// Handles function calls from Javascript. Only functions with the name "callNative" and at
   /// least one argument are accepted.

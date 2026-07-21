@@ -21,13 +21,11 @@ class IApi {
   /**
    * Called when the API is registered via CosmoScout.init()
    */
-  init() {
-  }
+  init() {}
 
   /**
    * Automatically called once a frame. You should override this if you want to do something at
    * regular intervals.
    */
-  update() {
-  }
+  update() {}
 }

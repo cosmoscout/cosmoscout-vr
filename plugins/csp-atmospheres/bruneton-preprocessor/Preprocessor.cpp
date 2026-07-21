@@ -356,8 +356,7 @@ const char kComputeMultipleScatteringShader[] = R"(
 class Program {
  public:
   Program(std::string const& vertexShaderSource, std::string const& fragmentShaderSource)
-      : Program(vertexShaderSource, "", fragmentShaderSource) {
-  }
+      : Program(vertexShaderSource, "", fragmentShaderSource) {}
 
   Program(std::string const& vertexShaderSource, std::string const& geometryShaderSource,
       std::string const& fragmentShaderSource) {

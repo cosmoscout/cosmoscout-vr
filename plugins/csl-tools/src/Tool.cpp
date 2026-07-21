@@ -10,11 +10,9 @@
 namespace csl::tools {
 
 Tool::Tool(std::string objectName)
-    : mObjectName(std::move(objectName)) {
-}
+    : mObjectName(std::move(objectName)) {}
 
-void Tool::update() {
-}
+void Tool::update() {}
 
 void Tool::setObjectName(std::string name) {
   mObjectName = std::move(name);

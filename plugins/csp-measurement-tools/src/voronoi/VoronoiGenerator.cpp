@@ -16,8 +16,7 @@
 namespace csp::measurementtools {
 
 VoronoiGenerator::VoronoiGenerator()
-    : mBeachline(this) {
-}
+    : mBeachline(this) {}
 
 void VoronoiGenerator::parse(std::vector<Site> const& sites) {
   mSites     = sites;

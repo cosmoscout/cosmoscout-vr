@@ -30,19 +30,16 @@ class Property {
   Property() = default;
 
   Property(T val) // NOLINT(hicpp-explicit-conversions)
-      : mValue(std::move(val)) {
-  }
+      : mValue(std::move(val)) {}
 
   Property(Property<T> const& other)
-      : mValue(other.mValue) {
-  }
+      : mValue(other.mValue) {}
 
   Property(Property<T>&& other) noexcept
       : mOnChange(std::move(other.mOnChange))
       , mConnection(other.mConnection)
       , mConnectionID(other.mConnectionID)
-      , mValue(other.mValue) {
-  }
+      , mValue(other.mValue) {}
 
   Property& operator=(Property<T>&& other) noexcept {
     if (this != &other) {
