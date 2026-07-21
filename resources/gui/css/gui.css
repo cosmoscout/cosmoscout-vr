@@ -717,6 +717,10 @@ hr {
 
 /* Dialog --------------------------------------------------------------------------------------- */
 
+.dialog::backdrop {
+  background: rgba(0, 0, 0, 0.7);
+}
+
 .dialog {
   align-self: center;
   justify-self: center;
