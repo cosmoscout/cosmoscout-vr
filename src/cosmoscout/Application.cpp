@@ -1779,6 +1779,7 @@ void Application::unregisterGuiCallbacks() {
   mGuiManager->getGui()->unregisterCallback("core.save");
   mGuiManager->getGui()->unregisterCallback("core.load");
   mGuiManager->getGui()->unregisterCallback("core.getSaveFiles");
+  mGuiManager->getGui()->unregisterCallback("core.getPlugins");
   mGuiManager->getGui()->unregisterCallback("core.listPlugins");
   mGuiManager->getGui()->unregisterCallback("core.loadPlugin");
   mGuiManager->getGui()->unregisterCallback("core.reloadPlugin");
