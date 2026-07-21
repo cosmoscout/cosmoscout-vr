@@ -375,10 +375,6 @@ class MainMenuApi extends IApi {
           CosmoScout.notifications.print('Saved', `Scene saved as '${filename}'`, 'archive');
           input.value = '';
           this._renderSaveMenu();
-        })
-        .catch((err) => {
-          CosmoScout.notifications.print(
-              'Error', `Failed to save scene: ${err.message || err}`, 'error');
         });
   }
 
@@ -396,10 +392,6 @@ class MainMenuApi extends IApi {
               CosmoScout.notifications.print(
                   'Saved', `Scene overwritten: '${basename}'`, 'archive');
               this._renderSaveMenu();
-            })
-            .catch((err) => {
-              CosmoScout.notifications.print(
-                  'Error', `Failed to overwrite scene: ${err.message || err}`, 'error');
             });
       }
     });
@@ -419,10 +411,6 @@ class MainMenuApi extends IApi {
               CosmoScout.notifications.print(
                   'Loaded', `Scene loaded: '${basename}'`, 'open_in_browser');
               this.back();
-            })
-            .catch((err) => {
-              CosmoScout.notifications.print(
-                  'Error', `Failed to load scene: ${err.message || err}`, 'error');
             });
       }
     });
