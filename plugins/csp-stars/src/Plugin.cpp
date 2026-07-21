@@ -233,6 +233,7 @@ void Plugin::deInit() {
   mGuiManager->getGui()->unregisterCallback("stars.setDrawMode4");
   mGuiManager->getGui()->unregisterCallback("stars.setDrawMode5");
   mGuiManager->getGui()->unregisterCallback("stars.setDrawMode6");
+  mGuiManager->getGui()->unregisterCallback("stars.setDrawMode7");
   mGuiManager->getGui()->unregisterCallback("stars.setEnabled");
   mGuiManager->getGui()->unregisterCallback("stars.setEnableGrid");
   mGuiManager->getGui()->unregisterCallback("stars.setEnableFigures");
