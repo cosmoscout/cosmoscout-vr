@@ -308,7 +308,6 @@ class MainMenuApi extends IApi {
         if (emptyTemplate !== false) {
           saveList.appendChild(emptyTemplate);
         }
-        return;
       }
 
       saveFiles.forEach((saveFile, index) => {
