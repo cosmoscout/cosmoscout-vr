@@ -153,7 +153,16 @@ find_package(SDL2_ttf REQUIRED)
 find_package(OPENSG REQUIRED)
 find_package(CIVETWEB REQUIRED)
 find_package(VistaCoreLibs REQUIRED 
-  COMPONENTS "VistaBase" "VistaKernel" "VistaKernelOpenSGExt" "VistaOGLExt"
+  COMPONENTS
+    VistaAspects
+    VistaBase
+    VistaMath
+    VistaTools
+    VistaInterProcComm
+    VistaDataFlowNet
+    VistaKernel
+    VistaKernelOpenSGExt
+    VistaOGLExt
 )
 
 # X11 is used on Linux to set the application window's name and icon.
