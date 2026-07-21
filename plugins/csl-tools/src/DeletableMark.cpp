@@ -7,8 +7,6 @@
 
 #include "DeletableMark.hpp"
 
-#include "logger.hpp"
-
 #include "../../../src/cs-core/GuiManager.hpp"
 #include "../../../src/cs-core/InputManager.hpp"
 #include "../../../src/cs-core/SolarSystem.hpp"
