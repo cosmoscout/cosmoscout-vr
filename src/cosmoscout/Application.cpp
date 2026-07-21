@@ -652,6 +652,10 @@ void Application::FrameUpdate() {
     cs::utils::FrameStats::ScopedTimer timer("FrameRate RecordTime");
     m_pFrameRate->RecordTime();
   }
+
+  if (mQuitRequested) {
+    Quit();
+  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -913,7 +917,7 @@ void Application::registerGuiCallbacks() {
 
   // Exits CosmoScout VR.
   mGuiManager->getGui()->registerCallback(
-      "core.exit", "Exits CosmoScout VR.", std::function([this] { GetVistaSystem()->Quit(); }));
+      "core.exit", "Exits CosmoScout VR.", std::function([this]() { mQuitRequested = true; }));
 
   // Saves the current scene state in a specified file.
   mGuiManager->getGui()->registerCallback("core.save",
