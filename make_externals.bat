@@ -90,19 +90,19 @@ echo.
 
 cmake -E make_directory "%BUILD_DIR%/glew/extracted" && cd "%BUILD_DIR%/glew"
 
-IF NOT EXIST glew-2.2.0-win32.zip (
-  curl.exe -L https://github.com/nigels-com/glew/releases/download/glew-2.2.0/glew-2.2.0-win32.zip --output glew-2.2.0-win32.zip
+IF NOT EXIST glew-2.3.1-win32.zip (
+  curl.exe -L https://github.com/nigels-com/glew/releases/download/glew-2.3.1/glew-2.3.1-win32.zip --output glew-2.3.1-win32.zip
 ) else (
-  echo File 'glew-2.2.0-win32.zip' already exists, no download required.
+  echo File 'glew-2.3.1-win32.zip' already exists, no download required.
 )
 
 cd "%BUILD_DIR%/glew/extracted"
-cmake -E tar xfj ../glew-2.2.0-win32.zip
+cmake -E tar xfj ../glew-2.3.1-win32.zip
 cd ..
 
-cmake -E copy_directory "%BUILD_DIR%/glew/extracted/glew-2.2.0/include"         "%INSTALL_DIR%/include" || goto :error
-cmake -E copy_directory "%BUILD_DIR%/glew/extracted/glew-2.2.0/lib/Release/x64" "%INSTALL_DIR%/lib"     || goto :error
-cmake -E copy_directory "%BUILD_DIR%/glew/extracted/glew-2.2.0/bin/Release/x64" "%INSTALL_DIR%/bin"     || goto :error
+cmake -E copy_directory "%BUILD_DIR%/glew/extracted/glew-2.3.1/include"         "%INSTALL_DIR%/include" || goto :error
+cmake -E copy_directory "%BUILD_DIR%/glew/extracted/glew-2.3.1/lib/Release/x64" "%INSTALL_DIR%/lib"     || goto :error
+cmake -E copy_directory "%BUILD_DIR%/glew/extracted/glew-2.3.1/bin/Release/x64" "%INSTALL_DIR%/bin"     || goto :error
 
 rem  SDL2 ------------------------------------------------------------------------------------------
 :sdl2
