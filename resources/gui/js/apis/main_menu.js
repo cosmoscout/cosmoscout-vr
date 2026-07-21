@@ -294,7 +294,8 @@ class MainMenuApi extends IApi {
     }
     saveMenu.appendChild(newFileSection);
 
-    const existingSavesSection = CosmoScout.gui.loadTemplateContent('main-menu-save-existing-template');
+    const existingSavesSection =
+        CosmoScout.gui.loadTemplateContent('main-menu-save-existing-template');
     if (existingSavesSection === false) {
       return;
     }
@@ -370,12 +371,11 @@ class MainMenuApi extends IApi {
       filename += '.json';
     }
 
-    CosmoScout.callbacks.core.save(filename)
-        .then(() => {
-          CosmoScout.notifications.print('Saved', `Scene saved as '${filename}'`, 'archive');
-          input.value = '';
-          this._renderSaveMenu();
-        });
+    CosmoScout.callbacks.core.save(filename).then(() => {
+      CosmoScout.notifications.print('Saved', `Scene saved as '${filename}'`, 'archive');
+      input.value = '';
+      this._renderSaveMenu();
+    });
   }
 
   /**
@@ -387,12 +387,10 @@ class MainMenuApi extends IApi {
       if (index >= 0 && index < saveFiles.length) {
         const name     = saveFiles[index].name;
         const basename = name.split(/[\\/]/).pop();
-        CosmoScout.callbacks.core.save(basename)
-            .then(() => {
-              CosmoScout.notifications.print(
-                  'Saved', `Scene overwritten: '${basename}'`, 'archive');
-              this._renderSaveMenu();
-            });
+        CosmoScout.callbacks.core.save(basename).then(() => {
+          CosmoScout.notifications.print('Saved', `Scene overwritten: '${basename}'`, 'archive');
+          this._renderSaveMenu();
+        });
       }
     });
   }
@@ -406,12 +404,11 @@ class MainMenuApi extends IApi {
       if (index >= 0 && index < saveFiles.length) {
         const name     = saveFiles[index].name;
         const basename = name.split(/[\\/]/).pop();
-        CosmoScout.callbacks.core.load(basename)
-            .then(() => {
-              CosmoScout.notifications.print(
-                  'Loaded', `Scene loaded: '${basename}'`, 'open_in_browser');
-              this.back();
-            });
+        CosmoScout.callbacks.core.load(basename).then(() => {
+          CosmoScout.notifications.print(
+              'Loaded', `Scene loaded: '${basename}'`, 'open_in_browser');
+          this.back();
+        });
       }
     });
   }
@@ -430,7 +427,8 @@ class MainMenuApi extends IApi {
 
     this._menuBodyElement.appendChild(loadMenu);
 
-    const existingSavesSection = CosmoScout.gui.loadTemplateContent('main-menu-load-existing-template');
+    const existingSavesSection =
+        CosmoScout.gui.loadTemplateContent('main-menu-load-existing-template');
     if (existingSavesSection === false) {
       return;
     }
