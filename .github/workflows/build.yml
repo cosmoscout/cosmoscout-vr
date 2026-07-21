@@ -177,7 +177,7 @@ jobs:
           path: install/linux-Release/bin/test
 
   build_windows:
-    name: Windows MSVC 19.51
+    name: Windows MSVC
     runs-on: windows-2025
     if: >
       github.event_name == 'pull_request' ||
