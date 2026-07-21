@@ -74,7 +74,7 @@ class MainMenuApi extends IApi {
 
     this._menuBodyElement.addEventListener('click', (event) => this._handleBodyClick(event));
 
-    this._menuElement.addEventListener('click', (event) => {
+    this._menuElement.addEventListener('mousedown', (event) => {
       if (event.target === event.currentTarget) {
         this.close();
       }
