@@ -171,17 +171,14 @@ class MainMenuApi extends IApi {
     let callback = null;
 
     if (action === 'reload') {
-      callback = CosmoScout.callbacks.core.reloadPlugin(pluginName)
-                     .then(() => CosmoScout.notifications.print(
-                               'Plugin reloaded', `'${pluginName}' reloaded.`, 'refresh'));
+      CosmoScout.callbacks.core.reloadPlugin(pluginName);
+      callback = this._waitForPluginStateChange(pluginName);
     } else if (action === 'unload') {
-      callback = CosmoScout.callbacks.core.unloadPlugin(pluginName)
-                     .then(() => CosmoScout.notifications.print(
-                               'Plugin unloaded', `'${pluginName}' unloaded.`, 'extension_off'));
+      CosmoScout.callbacks.core.unloadPlugin(pluginName);
+      callback = this._waitForPluginStateChange(pluginName);
     } else if (action === 'load') {
-      callback = CosmoScout.callbacks.core.loadPlugin(pluginName)
-                     .then(() => CosmoScout.notifications.print(
-                               'Plugin loaded', `'${pluginName}' loaded.`, 'extension'));
+      CosmoScout.callbacks.core.loadPlugin(pluginName);
+      callback = this._waitForPluginStateChange(pluginName);
     }
 
     if (!callback) {
@@ -190,6 +187,38 @@ class MainMenuApi extends IApi {
     }
 
     callback.then(() => this.render());
+  }
+
+  /**
+   * Waits for a plugin to actually load or unload.
+   * @param {string} pluginName - The name of the plugin to wait for.
+   * @returns {Promise<void>} Promise that resolves when the plugin state has changed.
+   */
+  _waitForPluginStateChange(pluginName) {
+    return new Promise((resolve) => {
+      let initialCheckDone = false;
+      let wasActive        = false;
+
+      const checkPluginState = () => {
+        CosmoScout.callbacks.core.getPlugins().then((plugins) => {
+          const isActive = plugins[pluginName] === true;
+
+          if (!initialCheckDone) {
+            wasActive        = isActive;
+            initialCheckDone = true;
+            requestAnimationFrame(checkPluginState);
+            return;
+          }
+
+          if (isActive !== wasActive) {
+            resolve();
+          } else {
+            requestAnimationFrame(checkPluginState);
+          }
+        });
+      };
+      checkPluginState();
+    });
   }
 
   /**
