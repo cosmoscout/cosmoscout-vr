@@ -740,7 +740,6 @@ hr {
   border-top: 2px solid var(--cs-color-primary);
   border-bottom: 2px solid var(--cs-color-primary);
   border-radius: var(--cs-border-radius-large);
-  box-shadow: var(--cs-box-shadow-large);
   color: var(--cs-color-text);
   overflow: hidden;
 }
