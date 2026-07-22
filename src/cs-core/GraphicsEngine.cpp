@@ -33,7 +33,7 @@ void GLAPIENTRY MessageCallback(GLenum source, GLenum type, GLuint id, GLenum se
     GLsizei length, const GLchar* message, const void* userParams) {
 
   // get the log level from the settings
-  const cs::core::Settings* settings = reinterpret_cast<const cs::core::Settings*>(userParams);
+  const auto* settings = static_cast<const Settings*>(userParams);
 
   // Print the following infos (OpenGL errors, shader compile errors, perf. warnings, shader
   // compilation warnings, depricated code, redundant state changes, undefined behaviour, anything
@@ -67,7 +67,7 @@ void GLAPIENTRY MessageCallback(GLenum source, GLenum type, GLuint id, GLenum se
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-GraphicsEngine::GraphicsEngine(std::shared_ptr<core::Settings> settings)
+GraphicsEngine::GraphicsEngine(std::shared_ptr<Settings> settings)
     : mSettings(std::move(settings))
     , mShadowMap(std::make_shared<graphics::ShadowMap>())
     , mFallbackEclipseShadowMap(
@@ -244,10 +244,7 @@ GraphicsEngine::GraphicsEngine(std::shared_ptr<core::Settings> settings)
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 GraphicsEngine::~GraphicsEngine() {
-  try {
-    // Tell the user what's going on.
-    logger().debug("Deleting GraphicsEngine.");
-  } catch (...) {}
+  logger().debug("Deleting GraphicsEngine.");
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -346,7 +343,7 @@ VistaTexture* GraphicsEngine::getCurrentDepthBufferAsTexture(bool forceCopy) {
     viewport->GetViewportProperties()->GetPosition(x, y);
     viewport->GetViewportProperties()->GetSize(w, h);
     it->second.mBuffer->Bind();
-    glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, x, y, w, h, 0);
+    glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT24, x, y, w, h, 0);
     it->second.mBuffer->Unbind();
     it->second.mDirty = false;
   }
