@@ -555,7 +555,7 @@ Settings::DeserializationException::DeserializationException(
     std::string property, std::string jsonError)
     : mProperty(std::move(property))
     , mJSONError(std::move(jsonError))
-    , mMessage("While parsing property " + mProperty + ": " + mJSONError) {};
+    , mMessage("While parsing property " + mProperty + ": " + mJSONError){};
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
