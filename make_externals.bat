@@ -90,19 +90,19 @@ echo.
 
 cmake -E make_directory "%BUILD_DIR%/glew/extracted" && cd "%BUILD_DIR%/glew"
 
-IF NOT EXIST glew-2.2.0-win32.zip (
-  curl.exe -L https://github.com/nigels-com/glew/releases/download/glew-2.2.0/glew-2.2.0-win32.zip --output glew-2.2.0-win32.zip
+IF NOT EXIST glew-2.3.1-win32.zip (
+  curl.exe -L https://github.com/nigels-com/glew/releases/download/glew-2.3.1/glew-2.3.1-win32.zip --output glew-2.3.1-win32.zip
 ) else (
-  echo File 'glew-2.2.0-win32.zip' already exists, no download required.
+  echo File 'glew-2.3.1-win32.zip' already exists, no download required.
 )
 
 cd "%BUILD_DIR%/glew/extracted"
-cmake -E tar xfj ../glew-2.2.0-win32.zip
+cmake -E tar xfj ../glew-2.3.1-win32.zip
 cd ..
 
-cmake -E copy_directory "%BUILD_DIR%/glew/extracted/glew-2.2.0/include"         "%INSTALL_DIR%/include" || goto :error
-cmake -E copy_directory "%BUILD_DIR%/glew/extracted/glew-2.2.0/lib/Release/x64" "%INSTALL_DIR%/lib"     || goto :error
-cmake -E copy_directory "%BUILD_DIR%/glew/extracted/glew-2.2.0/bin/Release/x64" "%INSTALL_DIR%/bin"     || goto :error
+cmake -E copy_directory "%BUILD_DIR%/glew/extracted/glew-2.3.1/include"         "%INSTALL_DIR%/include" || goto :error
+cmake -E copy_directory "%BUILD_DIR%/glew/extracted/glew-2.3.1/lib/Release/x64" "%INSTALL_DIR%/lib"     || goto :error
+cmake -E copy_directory "%BUILD_DIR%/glew/extracted/glew-2.3.1/bin/Release/x64" "%INSTALL_DIR%/bin"     || goto :error
 
 rem  SDL2 ------------------------------------------------------------------------------------------
 :sdl2
@@ -125,7 +125,7 @@ echo.
 
 cmake -E make_directory "%BUILD_DIR%/SDL2_ttf" && cd "%BUILD_DIR%/SDL2_ttf"
 cmake %CMAKE_FLAGS% -DCMAKE_BUILD_TYPE=%BUILD_TYPE% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%"^
-      "%EXTERNALS_DIR%/SDL_ttf" || goto :error
+      -DCMAKE_POLICY_VERSION_MINIMUM=3.5 "%EXTERNALS_DIR%/SDL_ttf" || goto :error
 cmake --build . --config %BUILD_TYPE% --target install --parallel %NUMBER_OF_PROCESSORS% || goto :error
 
 rem curl -------------------------------------------------------------------------------------------
@@ -164,7 +164,7 @@ cmake %CMAKE_FLAGS% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%" -DCMAKE_UNITY_BUILD=%
       -DCURL_INCLUDE_DIR="%INSTALL_DIR%/include"^
       -DCURL_LIBRARY="%INSTALL_DIR%/lib/%CURL_LIB%"^
       -DCMAKE_INSTALL_LIBDIR=lib -DCURL_NO_CURL_CMAKE=On^
-      "%EXTERNALS_DIR%/curlpp" || goto :error
+      -DCMAKE_POLICY_VERSION_MINIMUM=3.5 "%EXTERNALS_DIR%/curlpp" || goto :error
 
 cmake --build . --config %BUILD_TYPE% --target install --parallel %NUMBER_OF_PROCESSORS% || goto :error
 
@@ -207,7 +207,7 @@ echo.
 
 cmake -E make_directory "%BUILD_DIR%/civetweb" && cd "%BUILD_DIR%/civetweb"
 cmake %CMAKE_FLAGS% -DCMAKE_BUILD_TYPE=%BUILD_TYPE% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%"^
-      -DCIVETWEB_ENABLE_WEBSOCKETS=On^
+      -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DCIVETWEB_ENABLE_WEBSOCKETS=On^
       -DCIVETWEB_BUILD_TESTING=OFF -DCIVETWEB_ENABLE_SERVER_EXECUTABLE=OFF^
       -DCIVETWEB_ENABLE_CXX=On -DBUILD_SHARED_LIBS=On "%EXTERNALS_DIR%/civetweb" || goto :error
 
@@ -338,7 +338,7 @@ cmake -E tar xfj ../cspice.zip -- cspice/src/cspice cspice/include
 cd cspice
 
 echo project(cspice C) > "CMakeLists.txt"
-echo cmake_minimum_required(VERSION 2.8) >> "CMakeLists.txt"
+echo cmake_minimum_required(VERSION 3.28) >> "CMakeLists.txt"
 echo add_definitions("-D_COMPLEX_DEFINED -DMSDOS -DOMIT_BLANK_CC -DKR_headers -DNON_ANSI_STDIO") >> "CMakeLists.txt"
 echo file(GLOB_RECURSE CSPICE_SOURCE src/cspice/*.c) >> "CMakeLists.txt"
 echo add_library(cspice SHARED ${CSPICE_SOURCE}) >> "CMakeLists.txt"
