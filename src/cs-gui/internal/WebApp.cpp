@@ -50,14 +50,10 @@ void WebApp::OnBeforeCommandLineProcessing(
     }
   }
 #elif __linux__
-  command_line->AppendSwitch("disable-vulkan");
-  command_line->AppendSwitchWithValue("disable-features", "Vulkan,VulkanFromANGLE,DefaultANGLEVulkan");
-  command_line->AppendSwitchWithValue("use-gl", "desktop");
-  command_line->AppendSwitchWithValue("use-angle", "gl");
-
   if (!mHardwareAccelerated) {
-    command_line->AppendSwitch("disable-gpu");
-    command_line->AppendSwitch("disable-gpu-compositing");
+    // Hardware acceleration is currently forced, since CEF doesn't run correctly on linux with a software renderer.
+    // command_line->AppendSwitch("disable-gpu");
+    // command_line->AppendSwitch("disable-gpu-compositing");
   }
 #endif
 }
