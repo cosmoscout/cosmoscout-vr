@@ -121,6 +121,7 @@ struct Primitive {
   glm::vec3 emissiveFactor{};
 
   std::vector<std::pair<Texture, TextureVar>> textures;
+  std::vector<std::shared_ptr<unsigned int>>  bufferPtrs;
   std::shared_ptr<unsigned int>               vaoPtr;
   std::shared_ptr<unsigned int>               programPtr;
 };

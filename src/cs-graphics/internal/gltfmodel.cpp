@@ -1154,6 +1154,13 @@ Primitive GltfShared::createMeshPrimitive(
     }
   }
 
+  // At this point, bufferMap contains the only reference to the OpenGL object ids
+  // for the newly created buffer objects, so unless we persist those in some way,
+  // the buffer memory may be cleared by the graphics driver.
+  for (auto const& bufferEntry : bufferMap) {
+    myPrimitive.bufferPtrs.push_back(bufferEntry.second.id);
+  }
+
   CheckGLErrors("createMeshPrimitive");
   return myPrimitive;
 }
