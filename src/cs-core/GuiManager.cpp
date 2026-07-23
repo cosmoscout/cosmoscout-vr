@@ -148,14 +148,14 @@ GuiManager::GuiManager(
     version += ")";
   }
 
-  mCosmoScoutGui->callJavascript("CosmoScout.loadingScreen.setVersion", version);
+  mCosmoScoutGui->callJavaScript("CosmoScout.loadingScreen.setVersion", version);
 
   // Restore history from saved file. Currently we don't update the history when reloading a
   // settings file at runtime, as overwriting the history feels a bit odd.
   if (mSettings->mCommandHistory && !mSettings->mCommandHistory.value().empty()) {
     nlohmann::json array = mSettings->mCommandHistory.value();
-    mCosmoScoutGui->executeJavascript("CosmoScout.statusbar.history = " + array.dump());
-    mCosmoScoutGui->executeJavascript("CosmoScout.statusbar.historyIndex = " +
+    mCosmoScoutGui->executeJavaScript("CosmoScout.statusbar.history = " + array.dump());
+    mCosmoScoutGui->executeJavaScript("CosmoScout.statusbar.historyIndex = " +
                                       std::to_string(mSettings->mCommandHistory.value().size()));
   }
 
@@ -180,12 +180,12 @@ GuiManager::GuiManager(
 
   // Set settings for the time Navigation
   mSettings->pMinDate.connectAndTouch([this](std::string const& minDate) {
-    mCosmoScoutGui->callJavascript(
+    mCosmoScoutGui->callJavaScript(
         "CosmoScout.timeline.setTimelineRange", minDate, mSettings->pMaxDate.get());
   });
 
   mSettings->pMaxDate.connect([this](std::string const& maxDate) {
-    mCosmoScoutGui->callJavascript(
+    mCosmoScoutGui->callJavaScript(
         "CosmoScout.timeline.setTimelineRange", mSettings->pMinDate.get(), maxDate);
   });
 
@@ -204,7 +204,7 @@ GuiManager::GuiManager(
   // Add icons to the Bookmark Editor.
   auto icons = utils::filesystem::listFiles("../share/resources/icons", std::regex("^.*\\.png$"));
   for (auto const& icon : icons) {
-    mCosmoScoutGui->callJavascript("CosmoScout.bookmarkEditor.addIcon", icon.substr(25));
+    mCosmoScoutGui->callJavaScript("CosmoScout.bookmarkEditor.addIcon", icon.substr(25));
   }
 
   // Trigger initial onLoad()
@@ -302,7 +302,7 @@ uint32_t GuiManager::addBookmark(Settings::Bookmark bookmark) {
     }
 
     auto c = bookmark.mColor.value_or(glm::vec3(0.8F, 0.8F, 1.0F)) * 255.F;
-    mCosmoScoutGui->callJavascript("CosmoScout.timeline.addBookmark", newID, start, end,
+    mCosmoScoutGui->callJavaScript("CosmoScout.timeline.addBookmark", newID, start, end,
         std::format("rgb({}, {}, {})", c.r, c.g, c.b));
   }
 
@@ -324,7 +324,7 @@ void GuiManager::removeBookmark(uint32_t bookmarkID) {
   Settings::Bookmark bookmark = it->second;
 
   if (bookmark.mTime) {
-    mCosmoScoutGui->callJavascript("CosmoScout.timeline.removeBookmark", bookmarkID);
+    mCosmoScoutGui->callJavaScript("CosmoScout.timeline.removeBookmark", bookmarkID);
   }
 
   mBookmarks.erase(it);
@@ -342,7 +342,7 @@ std::map<uint32_t, const Settings::Bookmark> const& GuiManager::getBookmarks() c
 
 void GuiManager::showNotification(std::string const& sTitle, std::string const& sText,
     std::string const& sIcon, std::string const& sFlyToOnClick) const {
-  mCosmoScoutGui->callJavascript(
+  mCosmoScoutGui->callJavaScript(
       "CosmoScout.notifications.print", sTitle, sText, sIcon, sFlyToOnClick);
 }
 
@@ -350,13 +350,13 @@ void GuiManager::showNotification(std::string const& sTitle, std::string const& 
 
 void GuiManager::addTimelineButton(
     std::string const& name, std::string const& icon, std::string const& callback) const {
-  mCosmoScoutGui->callJavascript("CosmoScout.timeline.addButton", name, icon, callback);
+  mCosmoScoutGui->callJavaScript("CosmoScout.timeline.addButton", name, icon, callback);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void GuiManager::removeTimelineButton(std::string const& name) const {
-  mCosmoScoutGui->callJavascript("CosmoScout.timeline.removeButton", name);
+  mCosmoScoutGui->callJavaScript("CosmoScout.timeline.removeButton", name);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -386,19 +386,19 @@ gui::ScreenSpaceGuiArea& GuiManager::getLocalGuiArea() const {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void GuiManager::enableLoadingScreen(bool enable) {
-  mCosmoScoutGui->callJavascript("CosmoScout.loadingScreen.setLoading", enable);
+  mCosmoScoutGui->callJavaScript("CosmoScout.loadingScreen.setLoading", enable);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void GuiManager::setLoadingScreenStatus(std::string const& sStatus) const {
-  mCosmoScoutGui->callJavascript("CosmoScout.loadingScreen.setStatus", sStatus);
+  mCosmoScoutGui->callJavaScript("CosmoScout.loadingScreen.setStatus", sStatus);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void GuiManager::setLoadingScreenProgress(float percent, bool animate) const {
-  mCosmoScoutGui->callJavascript("CosmoScout.loadingScreen.setProgress", percent, animate);
+  mCosmoScoutGui->callJavaScript("CosmoScout.loadingScreen.setProgress", percent, animate);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -412,7 +412,7 @@ void GuiManager::update() {
 
 void GuiManager::addPluginTabToSideBar(
     std::string const& name, std::string const& icon, std::string const& content) {
-  mCosmoScoutGui->callJavascript("CosmoScout.sidebar.addPluginTab", name, icon, content);
+  mCosmoScoutGui->callJavaScript("CosmoScout.sidebar.addPluginTab", name, icon, content);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -427,7 +427,7 @@ void GuiManager::addPluginTabToSideBarFromHTML(
 
 void GuiManager::addSettingsSectionToSideBar(
     std::string const& name, std::string const& icon, std::string const& content) {
-  mCosmoScoutGui->callJavascript("CosmoScout.sidebar.addSettingsSection", name, icon, content);
+  mCosmoScoutGui->callJavaScript("CosmoScout.sidebar.addSettingsSection", name, icon, content);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -441,70 +441,70 @@ void GuiManager::addSettingsSectionToSideBarFromHTML(
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void GuiManager::removePluginTab(std::string const& name) {
-  mCosmoScoutGui->callJavascript("CosmoScout.sidebar.removePluginTab", name);
+  mCosmoScoutGui->callJavaScript("CosmoScout.sidebar.removePluginTab", name);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void GuiManager::removeSettingsSection(std::string const& name) {
-  mCosmoScoutGui->callJavascript("CosmoScout.sidebar.removeSettingsSection", name);
+  mCosmoScoutGui->callJavaScript("CosmoScout.sidebar.removeSettingsSection", name);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void GuiManager::executeJavascriptFile(std::string const& jsFile) {
   std::string content = utils::filesystem::loadToString(jsFile);
-  mCosmoScoutGui->executeJavascript(content);
+  mCosmoScoutGui->executeJavaScript(content);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void GuiManager::addTemplate(std::string const& id, std::string const& fileName) {
   std::string content = utils::filesystem::loadToString(fileName);
-  mCosmoScoutGui->callJavascript("CosmoScout.gui.addTemplate", id, content);
+  mCosmoScoutGui->callJavaScript("CosmoScout.gui.addTemplate", id, content);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void GuiManager::removeTemplate(std::string const& id) {
-  mCosmoScoutGui->callJavascript("CosmoScout.gui.removeTemplate", id);
+  mCosmoScoutGui->callJavaScript("CosmoScout.gui.removeTemplate", id);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void GuiManager::addCSS(const std::string& fileName) {
-  mCosmoScoutGui->callJavascript("CosmoScout.gui.addCSS", fileName);
+  mCosmoScoutGui->callJavaScript("CosmoScout.gui.addCSS", fileName);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void GuiManager::removeCSS(const std::string& fileName) {
-  mCosmoScoutGui->callJavascript("CosmoScout.gui.removeCSS", fileName);
+  mCosmoScoutGui->callJavaScript("CosmoScout.gui.removeCSS", fileName);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void GuiManager::setCheckboxValue(std::string const& name, bool val, bool emitCallbacks) const {
-  mCosmoScoutGui->callJavascript("CosmoScout.gui.setCheckboxValue", name, val, emitCallbacks);
+  mCosmoScoutGui->callJavaScript("CosmoScout.gui.setCheckboxValue", name, val, emitCallbacks);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void GuiManager::setRadioChecked(std::string const& name, bool emitCallbacks) const {
-  mCosmoScoutGui->callJavascript("CosmoScout.gui.setRadioChecked", name, emitCallbacks);
+  mCosmoScoutGui->callJavaScript("CosmoScout.gui.setRadioChecked", name, emitCallbacks);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void GuiManager::setSliderValue(std::string const& name, double val, bool emitCallbacks) const {
-  mCosmoScoutGui->callJavascript("CosmoScout.gui.setSliderValue", name, emitCallbacks, val);
+  mCosmoScoutGui->callJavaScript("CosmoScout.gui.setSliderValue", name, emitCallbacks, val);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void GuiManager::setSliderValue(
     std::string const& name, glm::dvec2 const& val, bool emitCallbacks) const {
-  mCosmoScoutGui->callJavascript(
+  mCosmoScoutGui->callJavaScript(
       "CosmoScout.gui.setSliderValue", name, emitCallbacks, val.x, val.y);
 }
 

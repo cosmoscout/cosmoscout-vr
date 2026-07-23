@@ -1056,11 +1056,12 @@ SPDX-License-Identifier: MIT
   <template id="main-menu-save-item-template">
     <a class="btn light-glass col-12 main-menu-item save-item" data-save-action="overwrite">
       <div class="row align-items-center">
-        <div class="col-9">
+        <div class="col-10">
+          <small class="text-muted save-item-path"></small>
           <div class="save-item-name">Save Name</div>
           <small class="text-muted save-item-date">Date</small>
         </div>
-        <div class="col-3 text-end">
+        <div class="col-2 text-end">
           <i class="material-icons">save</i>
         </div>
       </div>
@@ -1074,11 +1075,12 @@ SPDX-License-Identifier: MIT
   <template id="main-menu-load-item-template">
     <a class="btn light-glass col-12 main-menu-item load-item" data-load-action="load">
       <div class="row align-items-center">
-        <div class="col-9">
+        <div class="col-10">
+          <small class="text-muted load-item-path"></small>
           <div class="load-item-name">Load Name</div>
           <small class="text-muted load-item-date">Date</small>
         </div>
-        <div class="col-3 text-end">
+        <div class="col-2 text-end">
           <i class="material-icons">folder_open</i>
         </div>
       </div>

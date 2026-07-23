@@ -345,7 +345,7 @@ void WebView::injectKeyEvent(KeyEvent const& event) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void WebView::callJavascriptImpl(
+void WebView::callJavaScriptImpl(
     std::string const& function, std::vector<std::string> const& args) const {
   std::string call(function + "( ");
   for (auto&& s : args) {
@@ -359,7 +359,7 @@ void WebView::callJavascriptImpl(
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void WebView::executeJavascript(std::string const& code) const {
+void WebView::executeJavaScript(std::string const& code) const {
   CefRefPtr<CefFrame> frame = mBrowser->GetMainFrame();
   frame->ExecuteJavaScript(code, frame->GetURL(), 0);
 }
@@ -394,7 +394,7 @@ void WebView::unregisterCallback(std::string const& name) {
   )js";
 
   utils::replaceString(cmd, "$name", name);
-  executeJavascript(cmd);
+  executeJavaScript(cmd);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -469,7 +469,7 @@ $comment
   utils::replaceString(cmd, "$comment", formattedComment);
   utils::replaceString(cmd, "$signature", signature);
   utils::replaceString(cmd, "$callSignature", callSignature);
-  executeJavascript(cmd);
+  executeJavaScript(cmd);
 
   // Register the actual 'window.callNative()' handler.
   mClient->RegisterJSCallback(name, callback);
@@ -478,14 +478,13 @@ $comment
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void WebView::resolvePromise(double promiseID, std::string const& value) const {
-  executeJavascript(std::format("CosmoScout.resolveNativePromise({}, {});", promiseID, value));
+  executeJavaScript(std::format("CosmoScout.resolveNativePromise({}, {});", promiseID, value));
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void WebView::rejectPromise(double promiseID, std::string const& message) const {
-  executeJavascript(std::format(
-      "CosmoScout.rejectNativePromise({}, {});", promiseID, nlohmann::json(message).dump()));
+  executeJavaScript(std::format("CosmoScout.rejectNativePromise({}, {});", promiseID, message));
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -349,7 +349,7 @@ void Plugin::update() {
       auto request = mJavaScriptCalls.front();
       mJavaScriptCalls.pop();
       logger().debug("Executing '/run-js' request: '{}'", request);
-      mGuiManager->getGui()->executeJavascript(request);
+      mGuiManager->getGui()->executeJavaScript(request);
     }
   }
 

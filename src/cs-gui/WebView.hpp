@@ -50,7 +50,7 @@ class CS_GUI_EXPORT WebView {
   /// The given callback is fired when the active gui element wants to receive keyboard events.
   void setRequestKeyboardFocusCallback(RequestKeyboardFocusCallback const& callback);
 
-  /// Calls an existing Javascript function. You can pass as many arguments as you like. They will
+  /// Calls an existing JavaScript function. You can pass as many arguments as you like. They will
   /// be converted to std::strings, so on the JavaScript side you will have to convert them back.
   ///
   /// @param function The name of the function.
@@ -58,16 +58,16 @@ class CS_GUI_EXPORT WebView {
   ///                 string be either providing a definition for core::utils::toString or by
   ///                 implementing the operator<<() for that type.
   template <typename... Args>
-  void callJavascript(std::string const& function, Args&&... a) const {
+  void callJavaScript(std::string const& function, Args&&... a) const {
     // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-array-to-pointer-decay)
     std::vector<std::string> args = {(utils::toString(a))...};
-    callJavascriptImpl(function, args);
+    callJavaScriptImpl(function, args);
   }
 
   /// Execute JavaScript code.
-  void executeJavascript(std::string const& code) const;
+  void executeJavaScript(std::string const& code) const;
 
-  /// Register a callback which can be called from Javascript with the
+  /// Register a callback which can be called from JavaScript with the
   /// "window.callNative('callback_name', ... args ...)" function. Callbacks are also registered as
   /// CosmoScout.callbacks.callback_name(... args ...). For the latter to work, the WebView has to
   /// have finished loading. So please call waitForFinishedLoading() before calling these methods.
@@ -272,7 +272,7 @@ class CS_GUI_EXPORT WebView {
             callback(UnderlyingValue<Args>::get(std::move(args[Is]))...);
             resolvePromise(promiseID, "undefined");
           } catch (std::exception const& e) {
-            logger().error("Cannot execute javascript callback '{}': {}!", name, e.what());
+            logger().error("Cannot execute JavaScript callback '{}': {}!", name, e.what());
             rejectPromise(promiseID, e.what());
           }
         });
@@ -322,13 +322,13 @@ class CS_GUI_EXPORT WebView {
             auto result = callback(UnderlyingValue<Args>::get(std::move(args[Is]))...);
             resolvePromise(promiseID, nlohmann::json(result).dump());
           } catch (std::exception const& e) {
-            logger().error("Cannot execute javascript callback '{}': {}!", name, e.what());
+            logger().error("Cannot execute JavaScript callback '{}': {}!", name, e.what());
             rejectPromise(promiseID, e.what());
           }
         });
   }
 
-  void callJavascriptImpl(std::string const& function, std::vector<std::string> const& args) const;
+  void callJavaScriptImpl(std::string const& function, std::vector<std::string> const& args) const;
   void registerJSCallbackImpl(std::string const& name, std::string const& comment,
       std::vector<std::type_index>&&                                   types,
       std::function<void(std::vector<std::optional<JSType>>&&)> const& callback) const;
@@ -347,7 +347,7 @@ class CS_GUI_EXPORT WebView {
   /// exception or encounters an error.
   ///
   /// @param promiseID The unique identifier of the Promise to reject.
-  /// @param message   The error message to reject the Promise with (as a JSON string).
+  /// @param message   The error message to reject the Promise with.
   void rejectPromise(double promiseID, std::string const& message) const;
 
   detail::WebViewClient* mClient;

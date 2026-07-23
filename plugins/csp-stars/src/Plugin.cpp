@@ -221,7 +221,7 @@ void Plugin::deInit() {
 
   mGuiManager->removeSettingsSection("Stars");
 
-  mGuiManager->getGui()->callJavascript("CosmoScout.removeApi", "stars");
+  mGuiManager->getGui()->callJavaScript("CosmoScout.removeApi", "stars");
 
   mGuiManager->getGui()->unregisterCallback("stars.setLuminanceBoost");
   mGuiManager->getGui()->unregisterCallback("stars.setSize");

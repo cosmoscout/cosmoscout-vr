@@ -59,7 +59,7 @@ DeletableMark::DeletableMark(std::shared_ptr<cs::core::InputManager> pInputManag
       std::function([this]() { pShouldDelete = true; }));
 
   mSelfSelectedConnection =
-      pSelected.connect([this](bool val) { mGuiItem->callJavascript("setMinimized", !val); });
+      pSelected.connect([this](bool val) { mGuiItem->callJavaScript("setMinimized", !val); });
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -237,14 +237,10 @@ class MainMenuApi extends IApi {
    * Displays a list of available plugins with load/unload/reload actions.
    */
   _renderPlugins() {
-    this._menuBodyElement.innerHTML = '';
-
     const pluginManager = CosmoScout.gui.loadTemplateContent('main-menu-plugin-template');
     if (pluginManager === false) {
       return;
     }
-
-    this._menuBodyElement.appendChild(pluginManager);
 
     CosmoScout.callbacks.core.getPlugins().then((plugins) => {
       if (this._currentMenu !== 'plugins') {
@@ -271,6 +267,8 @@ class MainMenuApi extends IApi {
 
         pluginList.appendChild(pluginItem);
       });
+
+      this._menuBodyElement.replaceChildren(pluginManager);
     });
   }
 
@@ -279,14 +277,10 @@ class MainMenuApi extends IApi {
    * Allows users to create new saves or overwrite existing ones.
    */
   _renderSaveMenu() {
-    this._menuBodyElement.innerHTML = '';
-
     const saveMenu = CosmoScout.gui.loadTemplateContent('main-menu-save-template');
     if (saveMenu === false) {
       return;
     }
-
-    this._menuBodyElement.appendChild(saveMenu);
 
     const newFileSection = CosmoScout.gui.loadTemplateContent('main-menu-save-new-template');
     if (newFileSection === false) {
@@ -301,25 +295,28 @@ class MainMenuApi extends IApi {
     }
     saveMenu.appendChild(existingSavesSection);
 
-    this._loadSaveFiles().then((saveFiles) => {
+    this._loadSceneFiles().then((sceneFiles) => {
       const saveList = existingSavesSection.querySelector('.save-list');
 
-      if (saveFiles.length === 0) {
+      if (sceneFiles.length === 0) {
         const emptyTemplate = CosmoScout.gui.loadTemplateContent('main-menu-save-empty-template');
         if (emptyTemplate !== false) {
           saveList.appendChild(emptyTemplate);
         }
       }
 
-      saveFiles.forEach((saveFile, index) => {
+      sceneFiles.forEach((sceneFile, index) => {
         const saveItem = CosmoScout.gui.loadTemplateContent('main-menu-save-item-template');
         if (saveItem === false) {
           return;
         }
 
-        saveItem.dataset.saveIndex                            = index;
-        saveItem.querySelector('.save-item-name').textContent = saveFile.name;
-        saveItem.querySelector('.save-item-date').textContent = saveFile.date;
+          saveItem.dataset.saveIndex                            = index;
+          saveItem.dataset.savePath                             = sceneFile.path;
+          saveItem.dataset.saveName                             = sceneFile.name;
+          saveItem.querySelector('.save-item-name').textContent = sceneFile.name;
+          saveItem.querySelector('.save-item-path').textContent = sceneFile.path.replace(sceneFile.name + '.json', '');
+          saveItem.querySelector('.save-item-date').textContent = sceneFile.date;
 
         saveList.appendChild(saveItem);
       });
@@ -327,35 +324,37 @@ class MainMenuApi extends IApi {
       document.querySelectorAll('[data-save-action="overwrite"]').forEach((button) => {
         button.addEventListener('click', (event) => {
           const saveIndex = event.currentTarget.dataset.saveIndex;
-          this._handleOverwriteSave(saveIndex);
+          this._handleOverwriteScene(saveIndex);
         });
       });
 
       document.querySelector('#save-new-button')
           .addEventListener('click', () => this._handleNewSave());
     });
+
+    this._menuBodyElement.replaceChildren(saveMenu);
   }
 
   /**
-   * Loads and formats the list of save files.
-   * @returns {Promise<Array<Object>>} Promise resolving to an array of save file objects with name
-   *     and date.
-   */
-  _loadSaveFiles() {
-    return CosmoScout.callbacks.core.getSaveFiles().then((saveFiles) => {
-      return saveFiles.map((file) => {
-        const name     = file.name || 'Untitled';
-        const basename = name.split(/[\\/]/).pop();
-        return {
-          name: basename.replace(/\.json$/i, ''),
-          date: file.date ? new Date(file.date).toLocaleString() : 'Unknown date',
-        };
-      });
-    });
-  }
+    * Loads and formats the list of save files.
+    * @returns {Promise<Array<Object>>} Promise resolving to an array of scene file objects with name, path, and date.
+    */
+   _loadSceneFiles() {
+     return CosmoScout.callbacks.core.getSceneFiles().then((sceneFiles) => {
+       return sceneFiles.map((file) => {
+         const name     = file.name || 'Untitled';
+         const basename = name.split(/[\\/]/).pop();
+         return {
+           name: basename.replace(/\.json$/i, ''),
+           path: file.path || '',
+           date: file.date ? new Date(file.date).toLocaleString() : 'Unknown date',
+         };
+       });
+     });
+   }
 
   /**
-   * Handles creating a new save file.
+   * Handles creating a new scene file.
    * Validates the filename and saves the scene.
    */
   _handleNewSave() {
@@ -372,60 +371,46 @@ class MainMenuApi extends IApi {
     }
 
     CosmoScout.callbacks.core.save(filename).then(() => {
-      CosmoScout.notifications.print('Saved', `Scene saved as '${filename}'`, 'archive');
       input.value = '';
       this._renderSaveMenu();
     });
   }
 
   /**
-   * Handles overwriting an existing save file.
-   * @param {number} index - The index of the save file to overwrite.
+   * Handles overwriting an existing scene file.
+   * @param {number} index - The index of the scene file to overwrite.
    */
-  _handleOverwriteSave(index) {
-    CosmoScout.callbacks.core.getSaveFiles().then((saveFiles) => {
-      if (index >= 0 && index < saveFiles.length) {
-        const name     = saveFiles[index].name;
-        const basename = name.split(/[\\/]/).pop();
-        CosmoScout.callbacks.core.save(basename).then(() => {
-          CosmoScout.notifications.print('Saved', `Scene overwritten: '${basename}'`, 'archive');
-          this._renderSaveMenu();
-        });
-      }
-    });
-  }
+  _handleOverwriteScene(index) {
+     const button = document.querySelector(`[data-save-index="${index}"]`);
+     if (button && button.dataset.savePath) {
+       CosmoScout.callbacks.core.save(button.dataset.savePath).then(() => {
+         this._renderSaveMenu();
+       });
+     }
+   }
 
   /**
-   * Handles loading a scene from a save file.
-   * @param {number} index - The index of the save file to load.
+   * Handles loading a scene from a scene file.
+   * @param {number} index - The index of the scene file to load.
    */
   _handleLoadScene(index) {
-    CosmoScout.callbacks.core.getSaveFiles().then((saveFiles) => {
-      if (index >= 0 && index < saveFiles.length) {
-        const name     = saveFiles[index].name;
-        const basename = name.split(/[\\/]/).pop();
-        CosmoScout.callbacks.core.load(basename).then(() => {
-          CosmoScout.notifications.print(
-              'Loaded', `Scene loaded: '${basename}'`, 'open_in_browser');
-          this.back();
-        });
-      }
-    });
-  }
+     const button = document.querySelector(`[data-load-index="${index}"]`);
+     if (button && button.dataset.loadPath) {
+       CosmoScout.callbacks.core.load(button.dataset.loadPath).then(() => {
+         this.back();
+       });
+     }
+   }
 
   /**
    * Renders the load scene menu.
    * Displays a list of available save files for loading.
    */
   _renderLoadMenu() {
-    this._menuBodyElement.innerHTML = '';
-
     const loadMenu = CosmoScout.gui.loadTemplateContent('main-menu-load-template');
     if (loadMenu === false) {
       return;
     }
-
-    this._menuBodyElement.appendChild(loadMenu);
 
     const existingSavesSection =
         CosmoScout.gui.loadTemplateContent('main-menu-load-existing-template');
@@ -434,10 +419,10 @@ class MainMenuApi extends IApi {
     }
     loadMenu.appendChild(existingSavesSection);
 
-    this._loadSaveFiles().then((saveFiles) => {
+    this._loadSceneFiles().then((sceneFiles) => {
       const loadList = existingSavesSection.querySelector('.load-list');
 
-      if (saveFiles.length === 0) {
+      if (sceneFiles.length === 0) {
         const emptyTemplate = CosmoScout.gui.loadTemplateContent('main-menu-load-empty-template');
         if (emptyTemplate !== false) {
           loadList.appendChild(emptyTemplate);
@@ -445,15 +430,18 @@ class MainMenuApi extends IApi {
         return;
       }
 
-      saveFiles.forEach((saveFile, index) => {
+      sceneFiles.forEach((sceneFile, index) => {
         const loadItem = CosmoScout.gui.loadTemplateContent('main-menu-load-item-template');
         if (loadItem === false) {
           return;
         }
 
         loadItem.dataset.loadIndex                            = index;
-        loadItem.querySelector('.load-item-name').textContent = saveFile.name;
-        loadItem.querySelector('.load-item-date').textContent = saveFile.date;
+        loadItem.dataset.loadPath                             = sceneFile.path;
+        loadItem.dataset.loadName                             = sceneFile.name;
+        loadItem.querySelector('.load-item-name').textContent = sceneFile.name;
+        loadItem.querySelector('.load-item-path').textContent = sceneFile.path.replace(sceneFile.name + '.json', '');
+        loadItem.querySelector('.load-item-date').textContent = sceneFile.date;
 
         loadList.appendChild(loadItem);
       });
@@ -465,6 +453,8 @@ class MainMenuApi extends IApi {
         });
       });
     });
+
+    this._menuBodyElement.replaceChildren(loadMenu);
   }
 
   /**
@@ -478,13 +468,12 @@ class MainMenuApi extends IApi {
     this._menuElement.querySelector('#main-menu-icon').textContent  = menu.icon;
     this._backButtonElement.hidden                                  = this._history.length === 0;
 
-    this._menuBodyElement.innerHTML = '';
-
     if (menu.render) {
       menu.render();
       return;
     }
 
+    this._menuBodyElement.innerHTML = '';
     this._renderMenuItems(menu, this._menuBodyElement);
   }
 

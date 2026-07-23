@@ -157,7 +157,7 @@ bool Application::Init(VistaSystem* pVistaSystem) {
 
   // Initialize some gui components
   mSettings->pEnableSensorSizeControl.connectAndTouch([this](bool enable) {
-    mGuiManager->getGui()->callJavascript(
+    mGuiManager->getGui()->callJavaScript(
         "CosmoScout.gui.hideElement", "#enableSensorSizeControl", !enable);
   });
 
@@ -279,8 +279,12 @@ void Application::FrameUpdate() {
   if (!mSettingsToSave.empty()) {
     try {
       mSettings->saveToFile(mSettingsToSave);
+      mGuiManager->getGui()->callJavaScript("CosmoScout.notifications.print", "Saved",
+          "Scene saved: '" + mSettingsToSave + "'", "archive");
     } catch (std::exception const& e) {
       logger().warn("Failed to save settings to '{}': {}", mSettingsToSave, e.what());
+      mGuiManager->getGui()->callJavaScript("CosmoScout.notifications.print", "Error",
+          "Failed to save scene: '" + std::string(e.what()) + "'", "error");
     }
     mSettingsToSave = "";
   }
@@ -288,8 +292,12 @@ void Application::FrameUpdate() {
   if (!mSettingsToLoad.empty()) {
     try {
       mSettings->loadFromFile(mSettingsToLoad);
+      mGuiManager->getGui()->callJavaScript("CosmoScout.notifications.print", "Loaded",
+          "Scene loaded: '" + mSettingsToLoad + "'", "open_in_browser");
     } catch (std::exception const& e) {
       logger().warn("Failed to load settings from '{}': {}", mSettingsToLoad, e.what());
+      mGuiManager->getGui()->callJavaScript("CosmoScout.notifications.print", "Error",
+          "Failed to load scene: '" + std::string(e.what()) + "'", "error");
     }
     mSettingsToLoad = "";
 
@@ -571,7 +579,7 @@ void Application::FrameUpdate() {
 
     // Call update on all APIs
     if (mLoadedAllPlugins) {
-      mGuiManager->getGui()->callJavascript("CosmoScout.update");
+      mGuiManager->getGui()->callJavaScript("CosmoScout.update");
     }
 
     if (mSolarSystem->pActiveObject.get()) {
@@ -598,7 +606,7 @@ void Application::FrameUpdate() {
       double heightDiff = polar.z / mSettings->mGraphics.pHeightScale.get() - surfaceHeight;
 
       if (!std::isnan(polar.x) && !std::isnan(polar.y) && !std::isnan(heightDiff)) {
-        mGuiManager->getGui()->executeJavascript(
+        mGuiManager->getGui()->executeJavaScript(
             std::format("CosmoScout.state.observerLngLatHeight = [{}, {}, {}]",
                 cs::utils::convert::toDegrees(polar.x), cs::utils::convert::toDegrees(polar.y),
                 heightDiff));
@@ -617,7 +625,7 @@ void Application::FrameUpdate() {
           angle = -angle;
         }
 
-        mGuiManager->getGui()->callJavascript("CosmoScout.timeline.setNorthDirection", angle);
+        mGuiManager->getGui()->callJavaScript("CosmoScout.timeline.setNorthDirection", angle);
 
       } catch (std::exception const& e) {
         // Getting the relative transformation may fail due to insufficient SPICE data.
@@ -773,7 +781,7 @@ void Application::initPlugin(std::string const& name) {
         plugin->second.mIsInitialized = true;
 
         // Plugin finished loading -> init its custom components.
-        mGuiManager->getGui()->callJavascript("CosmoScout.gui.initInputs");
+        mGuiManager->getGui()->callJavaScript("CosmoScout.gui.initInputs");
       } catch (std::exception const& e) {
         logger().warn("Failed to initialize plugin '{}': {}", plugin->first, e.what());
       }
@@ -835,25 +843,25 @@ void Application::connectSlots() {
           auto lngLat = cs::utils::convert::toDegrees(polar.xy());
 
           if (!std::isnan(lngLat.x) && !std::isnan(lngLat.y) && !std::isnan(polar.z)) {
-            mGuiManager->getGui()->executeJavascript(
+            mGuiManager->getGui()->executeJavaScript(
                 std::format("CosmoScout.state.pointerPosition = [{}, {}, {}];", lngLat.x, lngLat.y,
                     polar.z / mSettings->mGraphics.pHeightScale.get()));
             return;
           }
         }
-        mGuiManager->getGui()->executeJavascript("CosmoScout.state.pointerPosition = undefined;");
+        mGuiManager->getGui()->executeJavaScript("CosmoScout.state.pointerPosition = undefined;");
       });
 
   // Update the time shown in the user interface when the simulation time changes.
   mTimeControl->pSimulationTime.connectAndTouch([this](double val) {
-    mGuiManager->getGui()->executeJavascript(
+    mGuiManager->getGui()->executeJavaScript(
         std::format("CosmoScout.state.simulationTime = new Date('{}');",
             cs::utils::convert::time::toString(val)));
   });
 
   // Update the simulation time speed shown in the user interface.
   mSettings->pTimeSpeed.connectAndTouch([this](float val) {
-    mGuiManager->getGui()->executeJavascript(std::format("CosmoScout.state.timeSpeed = {};", val));
+    mGuiManager->getGui()->executeJavaScript(std::format("CosmoScout.state.timeSpeed = {};", val));
   });
 
   // Show notification when the center name of the celestial observer changes.
@@ -867,34 +875,34 @@ void Application::connectSlots() {
           radii  = object->getRadii();
         }
 
-        mGuiManager->getGui()->executeJavascript(
+        mGuiManager->getGui()->executeJavaScript(
             std::format("CosmoScout.state.activePlanetCenter = '{}';", center));
 
-        mGuiManager->getGui()->executeJavascript(std::format(
+        mGuiManager->getGui()->executeJavaScript(std::format(
             "CosmoScout.state.activePlanetRadius = [{}, {}, {}];", radii[0], radii[1], radii[2]));
       });
 
   // Show notification when the frame name of the celestial observer changes.
   mSettings->mObserver.pFrame.connectAndTouch([this](std::string const& frame) {
-    mGuiManager->getGui()->executeJavascript(
+    mGuiManager->getGui()->executeJavaScript(
         std::format("CosmoScout.state.activePlanetFrame = '{}';", frame));
   });
 
   // Set the observer position state.
   mSettings->mObserver.pPosition.connectAndTouch([this](glm::dvec3 const& p) {
-    mGuiManager->getGui()->executeJavascript(
+    mGuiManager->getGui()->executeJavaScript(
         std::format("CosmoScout.state.observerPosition = [{}, {}, {}];", p.x, p.y, p.z));
   });
 
   // Set the observer rotation state.
   mSettings->mObserver.pRotation.connectAndTouch([this](glm::dquat const& r) {
-    mGuiManager->getGui()->executeJavascript(
+    mGuiManager->getGui()->executeJavaScript(
         std::format("CosmoScout.state.observerRotation = [{}, {}, {}, {}];", r.x, r.y, r.z, r.w));
   });
 
   // Show the current speed of the celestial observer in the user interface.
   mSolarSystem->pCurrentObserverSpeed.connect([this](float speed) {
-    mGuiManager->getGui()->executeJavascript(
+    mGuiManager->getGui()->executeJavaScript(
         std::format("CosmoScout.state.observerSpeed = {};", speed));
   });
 
@@ -906,7 +914,7 @@ void Application::connectSlots() {
             {spdlog::level::trace, "T"}, {spdlog::level::debug, "D"}, {spdlog::level::info, "I"},
             {spdlog::level::warn, "W"}, {spdlog::level::err, "E"}, {spdlog::level::critical, "C"}};
 
-        mGuiManager->getGui()->callJavascript(
+        mGuiManager->getGui()->callJavaScript(
             "CosmoScout.statusbar.printMessage", mapping.at(level), logger, message);
       });
 }
@@ -978,7 +986,7 @@ void Application::registerGuiCallbacks() {
 
   // Lists all saved scene files.
   mGuiManager->getGui()->registerCallback(
-      "core.getSaveFiles", "Returns a list of saved scene files.", std::function([] {
+      "core.getSceneFiles", "Returns a list of saved scene files.", std::function([] {
         std::vector<std::map<std::string, std::string>> saveFiles{};
 
         try {
@@ -987,17 +995,16 @@ void Application::registerGuiCallbacks() {
 
           for (auto const& file : files) {
             std::map<std::string, std::string> fileInfo;
-            fileInfo["name"] = file;
+            auto                               filePath = saveDir / file;
+            fileInfo["name"]                            = file;
+            fileInfo["path"] = std::filesystem::canonical(filePath).string();
 
-            if (auto filePath = saveDir / file; std::filesystem::exists(filePath)) {
+            if (std::filesystem::exists(filePath)) {
               auto lastWrite  = std::filesystem::last_write_time(filePath);
               auto systemTime = std::chrono::clock_cast<std::chrono::system_clock>(lastWrite);
 
-              // Truncate to seconds so %S doesn't print fractional seconds
-              auto systemTimeSec = std::chrono::floor<std::chrono::seconds>(systemTime);
-
               // Convert to local time using the current time zone
-              std::chrono::zoned_time zonedTime{std::chrono::current_zone(), systemTimeSec};
+              std::chrono::zoned_time zonedTime{std::chrono::current_zone(), systemTime};
 
               fileInfo["date"] = std::format("{:%Y-%m-%d %H:%M:%S}", zonedTime);
             } else {
@@ -1316,12 +1323,12 @@ void Application::registerGuiCallbacks() {
 
   // Update the side bar field showing the average luminance of the scene.
   mGraphicsEngine->pAverageLuminance.connect([this](float value) {
-    mGuiManager->getGui()->callJavascript("CosmoScout.sidebar.setAverageSceneLuminance", value);
+    mGuiManager->getGui()->callJavaScript("CosmoScout.sidebar.setAverageSceneLuminance", value);
   });
 
   // Update the side bar field showing the maximum luminance of the scene.
   mGraphicsEngine->pMaximumLuminance.connect([this](float value) {
-    mGuiManager->getGui()->callJavascript("CosmoScout.sidebar.setMaximumSceneLuminance", value);
+    mGuiManager->getGui()->callJavaScript("CosmoScout.sidebar.setMaximumSceneLuminance", value);
   });
 
   // Adjusts the amount of ambient lighting.
@@ -1390,7 +1397,7 @@ void Application::registerGuiCallbacks() {
         auto bookmark = mGuiManager->getBookmarks().find(static_cast<uint32_t>(bookmarkID));
         if (bookmark != mGuiManager->getBookmarks().end()) {
           nlohmann::json json = bookmark->second;
-          mGuiManager->getGui()->callJavascript(
+          mGuiManager->getGui()->callJavaScript(
               "CosmoScout.bookmarkEditor.editBookmark", bookmarkID, json.dump());
         } else {
           logger().warn("Failed to execute 'bookmark.edit' for bookmark ID '{}': No such "
@@ -1465,7 +1472,7 @@ void Application::registerGuiCallbacks() {
       std::function([this](double bookmarkID, double x, double y) {
         auto bookmark = mGuiManager->getBookmarks().find(static_cast<uint32_t>(bookmarkID));
         if (bookmark != mGuiManager->getBookmarks().end()) {
-          mGuiManager->getGui()->callJavascript("CosmoScout.bookmarkEditor.showBookmarkTooltip",
+          mGuiManager->getGui()->callJavaScript("CosmoScout.bookmarkEditor.showBookmarkTooltip",
               bookmarkID, bookmark->second.mName, bookmark->second.mDescription.value_or(""),
               bookmark->second.mLocation.has_value(), bookmark->second.mTime.has_value(), x, y);
         } else {
@@ -1479,7 +1486,7 @@ void Application::registerGuiCallbacks() {
   // it for API consistency when just in conjuntion with CosmoScout.callbacks.bookmark.showTooltip.
   mGuiManager->getGui()->registerCallback("bookmark.hideTooltip",
       "Hides the previously shown bookmark tooltip.", std::function([this]() {
-        mGuiManager->getGui()->callJavascript("CosmoScout.bookmarkEditor.hideBookmarkTooltip");
+        mGuiManager->getGui()->callJavaScript("CosmoScout.bookmarkEditor.hideBookmarkTooltip");
       }));
 
   // Timeline callbacks ----------------------------------------------------------------------------
