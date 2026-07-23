@@ -311,12 +311,13 @@ class MainMenuApi extends IApi {
           return;
         }
 
-          saveItem.dataset.saveIndex                            = index;
-          saveItem.dataset.savePath                             = sceneFile.path;
-          saveItem.dataset.saveName                             = sceneFile.name;
-          saveItem.querySelector('.save-item-name').textContent = sceneFile.name;
-          saveItem.querySelector('.save-item-path').textContent = sceneFile.path.replace(sceneFile.name + '.json', '');
-          saveItem.querySelector('.save-item-date').textContent = sceneFile.date;
+        saveItem.dataset.saveIndex                            = index;
+        saveItem.dataset.savePath                             = sceneFile.path;
+        saveItem.dataset.saveName                             = sceneFile.name;
+        saveItem.querySelector('.save-item-name').textContent = sceneFile.name;
+        saveItem.querySelector('.save-item-path').textContent =
+            sceneFile.path.replace(sceneFile.name + '.json', '');
+        saveItem.querySelector('.save-item-date').textContent = sceneFile.date;
 
         saveList.appendChild(saveItem);
       });
@@ -336,22 +337,23 @@ class MainMenuApi extends IApi {
   }
 
   /**
-    * Loads and formats the list of save files.
-    * @returns {Promise<Array<Object>>} Promise resolving to an array of scene file objects with name, path, and date.
-    */
-   _loadSceneFiles() {
-     return CosmoScout.callbacks.core.getSceneFiles().then((sceneFiles) => {
-       return sceneFiles.map((file) => {
-         const name     = file.name || 'Untitled';
-         const basename = name.split(/[\\/]/).pop();
-         return {
-           name: basename.replace(/\.json$/i, ''),
-           path: file.path || '',
-           date: file.date ? new Date(file.date).toLocaleString() : 'Unknown date',
-         };
-       });
-     });
-   }
+   * Loads and formats the list of save files.
+   * @returns {Promise<Array<Object>>} Promise resolving to an array of scene file objects with
+   *     name, path, and date.
+   */
+  _loadSceneFiles() {
+    return CosmoScout.callbacks.core.getSceneFiles().then((sceneFiles) => {
+      return sceneFiles.map((file) => {
+        const name     = file.name || 'Untitled';
+        const basename = name.split(/[\\/]/).pop();
+        return {
+          name: basename.replace(/\.json$/i, ''),
+          path: file.path || '',
+          date: file.date ? new Date(file.date).toLocaleString() : 'Unknown date',
+        };
+      });
+    });
+  }
 
   /**
    * Handles creating a new scene file.
@@ -381,26 +383,23 @@ class MainMenuApi extends IApi {
    * @param {number} index - The index of the scene file to overwrite.
    */
   _handleOverwriteScene(index) {
-     const button = document.querySelector(`[data-save-index="${index}"]`);
-     if (button && button.dataset.savePath) {
-       CosmoScout.callbacks.core.save(button.dataset.savePath).then(() => {
-         this._renderSaveMenu();
-       });
-     }
-   }
+    const button = document.querySelector(`[data-save-index="${index}"]`);
+    if (button && button.dataset.savePath) {
+      CosmoScout.callbacks.core.save(button.dataset.savePath)
+          .then(() => { this._renderSaveMenu(); });
+    }
+  }
 
   /**
    * Handles loading a scene from a scene file.
    * @param {number} index - The index of the scene file to load.
    */
   _handleLoadScene(index) {
-     const button = document.querySelector(`[data-load-index="${index}"]`);
-     if (button && button.dataset.loadPath) {
-       CosmoScout.callbacks.core.load(button.dataset.loadPath).then(() => {
-         this.back();
-       });
-     }
-   }
+    const button = document.querySelector(`[data-load-index="${index}"]`);
+    if (button && button.dataset.loadPath) {
+      CosmoScout.callbacks.core.load(button.dataset.loadPath).then(() => { this.back(); });
+    }
+  }
 
   /**
    * Renders the load scene menu.
@@ -440,7 +439,8 @@ class MainMenuApi extends IApi {
         loadItem.dataset.loadPath                             = sceneFile.path;
         loadItem.dataset.loadName                             = sceneFile.name;
         loadItem.querySelector('.load-item-name').textContent = sceneFile.name;
-        loadItem.querySelector('.load-item-path').textContent = sceneFile.path.replace(sceneFile.name + '.json', '');
+        loadItem.querySelector('.load-item-path').textContent =
+            sceneFile.path.replace(sceneFile.name + '.json', '');
         loadItem.querySelector('.load-item-date').textContent = sceneFile.date;
 
         loadList.appendChild(loadItem);
