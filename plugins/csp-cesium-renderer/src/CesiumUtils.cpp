@@ -191,7 +191,7 @@ static void extractPrimitive(CesiumRenderData* renderData, const CesiumGltf::Mod
           const CesiumGltf::Image* pImage =
               CesiumGltf::Model::getSafe(&pModel->images, pTexture->source);
           if (pImage && pImage->pAsset) {
-            const CesiumGltf::ImageAsset& asset = *pImage->pAsset;
+            const CesiumImage::ImageAsset& asset = *pImage->pAsset;
             if (!asset.pixelData.empty()) {
               renderData->texturePixels = asset.pixelData;
               renderData->texWidth      = asset.width;
@@ -517,7 +517,7 @@ void StubPrepareRendererResources::free(
   }
 }
 void* StubPrepareRendererResources::prepareRasterInLoadThread(
-    CesiumGltf::ImageAsset& image, const std::any& rendererOptions) {
+    CesiumImage::ImageAsset& image, const std::any& rendererOptions) {
   return nullptr;
 }
 void* StubPrepareRendererResources::prepareRasterInMainThread(

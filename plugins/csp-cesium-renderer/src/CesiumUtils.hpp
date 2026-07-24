@@ -80,7 +80,7 @@ class StubPrepareRendererResources : public Cesium3DTilesSelection::IPrepareRend
 
   // --- Raster Overlay Handlers ---
   void* prepareRasterInLoadThread(
-      CesiumGltf::ImageAsset& image, const std::any& rendererOptions) override;
+      CesiumImage::ImageAsset& image, const std::any& rendererOptions) override;
   void* prepareRasterInMainThread(
       CesiumRasterOverlays::RasterOverlayTile& rasterTile, void* pLoadThreadResult) override;
   void freeRaster(const CesiumRasterOverlays::RasterOverlayTile& rasterTile,

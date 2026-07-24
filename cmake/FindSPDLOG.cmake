@@ -26,6 +26,10 @@ if(SPDLOG_FOUND)
     endif()
 
     if(NOT TARGET spdlog::spdlog)
+        add_library(spdlog::spdlog_header_only UNKNOWN IMPORTED)
+        set_target_properties(spdlog::spdlog_header_only PROPERTIES
+            INTERFACE_INCLUDE_DIRECTORIES "${SPDLOG_INCLUDE_DIRS}")
+
         add_library(spdlog::spdlog UNKNOWN IMPORTED)
         set_target_properties(spdlog::spdlog PROPERTIES
             INTERFACE_INCLUDE_DIRECTORIES "${SPDLOG_INCLUDE_DIRS}")

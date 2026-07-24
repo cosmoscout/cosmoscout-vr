@@ -23,6 +23,9 @@ if(GLM_FOUND)
     if(NOT TARGET glm::glm)
         add_library(glm::glm INTERFACE IMPORTED)
         set_target_properties(glm::glm PROPERTIES
+                INTERFACE_INCLUDE_DIRECTORIES "${GLM_INCLUDE_DIRS}")
+        add_library(glm::glm-header-only INTERFACE IMPORTED)
+        set_target_properties(glm::glm-header-only PROPERTIES
             INTERFACE_INCLUDE_DIRECTORIES "${GLM_INCLUDE_DIRS}")
     endif()
 endif()
