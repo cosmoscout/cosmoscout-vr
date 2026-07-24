@@ -301,7 +301,7 @@ bool Sharad::Do() {
     mShader.SetUniform(mUniforms.time, static_cast<float>(mCurrTime - mStartTime));
 
     mTexture->Bind(GL_TEXTURE0);
-    auto depthBuffer = mGraphicsEngine->getCurrentDepthBufferAsTexture(false);
+    auto depthBuffer = mGraphicsEngine->getCurrentDepthBufferAsTexture(true);
     depthBuffer->Bind(GL_TEXTURE1);
 
     glPushAttrib(GL_ENABLE_BIT | GL_DEPTH_BUFFER_BIT);

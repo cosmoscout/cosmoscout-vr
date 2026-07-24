@@ -378,6 +378,12 @@ IF NOT EXIST cef.tar.bz2 (
 
   rem We don't want the example applications.
   cmake -E remove_directory %CEF_DIR%/tests
+
+  rem Very ugly workaround for a linking bug, where CEF is build with different flags than the
+  rem rest of the project.
+  IF "%COSMOSCOUT_DEBUG_BUILD%"=="true" (
+    powershell -NoProfile -ExecutionPolicy Bypass -Command "(Get-Content '%BUILD_DIR%/cef/extracted/%CEF_DIR%/cmake/cef_variables.cmake') -replace '_HAS_ITERATOR_DEBUGGING=0', '_HAS_ITERATOR_DEBUGGING=1' | Set-Content '%BUILD_DIR%/cef/extracted/%CEF_DIR%/cmake/cef_variables.cmake'"
+  )
 ) else (
   echo File 'cef.tar.bz2' already exists, no download required.
 )
@@ -386,7 +392,7 @@ cd "%BUILD_DIR%/cef/
 
 cmake %CMAKE_FLAGS% -DCMAKE_BUILD_TYPE=%BUILD_TYPE% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%"^
       -DCMAKE_UNITY_BUILD=%UNITY_BUILD% -DCEF_RUNTIME_LIBRARY_FLAG=/MD -DCEF_DEBUG_INFO_FLAG=""^
-      -DCEF_COMPILER_DEFINES_DEBUG="_HAS_ITERATOR_DEBUGGING=1" "%BUILD_DIR%/cef/extracted/%CEF_DIR%" || goto :error
+      "%BUILD_DIR%/cef/extracted/%CEF_DIR%" || goto :error
 
 cmake --build . --config %BUILD_TYPE% --parallel %NUMBER_OF_PROCESSORS% || goto :error
 
