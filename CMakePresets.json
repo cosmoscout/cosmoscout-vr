@@ -1,8 +1,8 @@
 {
-  "version": 3,
+  "version": 8,
   "cmakeMinimumRequired": {
     "major": 3,
-    "minor": 22,
+    "minor": 28,
     "patch": 0
   },
   "configurePresets": [
@@ -15,7 +15,8 @@
         "CMAKE_EXPORT_COMPILE_COMMANDS": "On",
         "COSMOSCOUT_UNIT_TESTS": "On",
         "CMAKE_INSTALL_MESSAGE": "LAZY"
-      }
+      },
+      "toolchainFile": "${sourceDir}/vcpkg/scripts/buildsystems/vcpkg.cmake"
     },
     {
       "name": "ninja",
@@ -96,12 +97,16 @@
     {
       "name": "windows-ninja-release-config",
       "inherits": ["base", "ninja", "windows-release"],
-      "toolchainFile": "${sourceDir}/cmake/Windows.MSVC.toolchain.cmake"
+      "cacheVariables": {
+        "VCPKG_CHAINLOAD_TOOLCHAIN_FILE": "${sourceDir}/cmake/Windows.MSVC.toolchain.cmake"
+      }
     },
     {
       "name": "windows-ninja-debug-config",
       "inherits": ["base", "ninja", "windows-debug"],
-      "toolchainFile": "${sourceDir}/cmake/Windows.MSVC.toolchain.cmake"
+      "cacheVariables": {
+        "VCPKG_CHAINLOAD_TOOLCHAIN_FILE": "${sourceDir}/cmake/Windows.MSVC.toolchain.cmake"
+      }
     },
     {
       "name": "windows-vs-release-config",

@@ -5,7 +5,7 @@
 # SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
 # SPDX-License-Identifier: MIT
 
-cmake_minimum_required(VERSION 3.13)
+cmake_minimum_required(VERSION 3.28)
 project(cosmoscout-vr VERSION 1.10.0)
 
 # Use cmake 3.12's <PACKAGE>_ROOT variabled for searching.
@@ -101,12 +101,6 @@ else()
   SET(TIFF_ROOT_DIR ${COSMOSCOUT_EXTERNALS_DIR})
 endif()
 
-if (DEFINED ENV{GLEW_ROOT_DIR})
-  SET(GLEW_ROOT_DIR "$ENV{GLEW_ROOT_DIR}")
-else()
-  SET(GLEW_ROOT_DIR ${COSMOSCOUT_EXTERNALS_DIR})
-endif()
-
 if (DEFINED ENV{SDL2_ROOT_DIR})
   SET(SDL2_ROOT_DIR "$ENV{SDL2_ROOT_DIR}")
 else()
@@ -123,12 +117,6 @@ if (DEFINED ENV{OPENSG_ROOT_DIR})
   SET(OPENSG_ROOT_DIR "$ENV{OPENSG_ROOT_DIR}")
 else()
   SET(OPENSG_ROOT_DIR ${COSMOSCOUT_EXTERNALS_DIR})
-endif()
-
-if (DEFINED ENV{CIVETWEB_ROOT_DIR})
-  SET(CIVETWEB_ROOT_DIR "$ENV{CIVETWEB_ROOT_DIR}")
-else()
-  SET(CIVETWEB_ROOT_DIR ${COSMOSCOUT_EXTERNALS_DIR})
 endif()
 
 if (DEFINED ENV{VISTA_CMAKE_CONFIG_DIR})
@@ -151,7 +139,6 @@ find_package(GLEW REQUIRED)
 find_package(SDL2 REQUIRED)
 find_package(SDL2_ttf REQUIRED)
 find_package(OPENSG REQUIRED)
-find_package(CIVETWEB REQUIRED)
 find_package(VistaCoreLibs REQUIRED 
   COMPONENTS
     VistaAspects

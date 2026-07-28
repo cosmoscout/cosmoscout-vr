@@ -11,6 +11,8 @@ if (NOT CSP_WEB_API)
   return()
 endif()
 
+find_package(CIVETWEB REQUIRED)
+
 # build plugin -------------------------------------------------------------------------------------
 
 file(GLOB SOURCE_FILES src/*.cpp)
@@ -29,7 +31,7 @@ target_link_libraries(csp-web-api
   PUBLIC
     cs-core
     civetweb::civetweb
-    civetweb::civetwebcpp
+    civetweb::civetweb-cpp
 )
 
 # Add this Plugin to a "plugins" folder in your IDE.

@@ -20,8 +20,10 @@
 #undef STB_IMAGE_RESIZE_IMPLEMENTATION
 
 #include <VistaOGLExt/VistaOGLUtils.h>
-#include <iostream>
+
 #include <tiffio.h>
+
+#include <iostream>
 #include <vector>
 
 namespace cs::graphics {
@@ -122,7 +124,9 @@ std::unique_ptr<VistaTexture> TextureLoader::loadFromFile(std::string const& sFi
     }
 
     result->Bind();
-    gluBuild2DMipmaps(GL_TEXTURE_2D, GL_RGBA32F, width, height, GL_RGBA, GL_FLOAT, pixels);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, width, height, 0, GL_RGBA, GL_FLOAT, pixels);
+    glGenerateMipmap(GL_TEXTURE_2D);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 
     stbi_image_free(pixels);
 

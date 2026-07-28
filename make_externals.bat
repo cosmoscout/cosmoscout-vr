@@ -81,28 +81,36 @@ cmake -E make_directory "%INSTALL_DIR%/share"
 cmake -E make_directory "%INSTALL_DIR%/bin"
 cmake -E make_directory "%INSTALL_DIR%/include"
 
-rem glew -------------------------------------------------------------------------------------------
-:glew
+rem vcpkg ------------------------------------------------------------------------------------------
+:setup_vcpkg
 
 echo.
-echo Downloading, building and installing GLEW ...
+echo Setting up vcpkg ...
 echo.
 
-cmake -E make_directory "%BUILD_DIR%/glew/extracted" && cd "%BUILD_DIR%/glew"
-
-IF NOT EXIST glew-2.3.1-win32.zip (
-  curl.exe -L https://github.com/nigels-com/glew/releases/download/glew-2.3.1/glew-2.3.1-win32.zip --output glew-2.3.1-win32.zip
+if NOT EXIST "%CURRENT_DIR%/vcpkg" (
+  echo Cloning vcpkg...
+  git clone https://github.com/microsoft/vcpkg "%CURRENT_DIR%/vcpkg" || goto :error
 ) else (
-  echo File 'glew-2.3.1-win32.zip' already exists, no download required.
+  echo vcpkg already exists, updating...
+  cd "%CURRENT_DIR%/vcpkg"
+  git pull || goto :error
+  cd "%CURRENT_DIR%"
 )
 
-cd "%BUILD_DIR%/glew/extracted"
-cmake -E tar xfj ../glew-2.3.1-win32.zip
-cd ..
+echo Bootstrapping vcpkg...
+cd "%CURRENT_DIR%/vcpkg"
+call bootstrap-vcpkg.bat || goto :error
+cd "%CURRENT_DIR%"
 
-cmake -E copy_directory "%BUILD_DIR%/glew/extracted/glew-2.3.1/include"         "%INSTALL_DIR%/include" || goto :error
-cmake -E copy_directory "%BUILD_DIR%/glew/extracted/glew-2.3.1/lib/Release/x64" "%INSTALL_DIR%/lib"     || goto :error
-cmake -E copy_directory "%BUILD_DIR%/glew/extracted/glew-2.3.1/bin/Release/x64" "%INSTALL_DIR%/bin"     || goto :error
+rem Install GLEW via vcpkg (this will be replaced as more libraries are migrated)
+echo Installing GLEW via vcpkg...
+cd "%CURRENT_DIR%/vcpkg"
+call vcpkg install || goto :error
+cd "%CURRENT_DIR%"
+
+rem Use vcpkg toolchain for GLEW and other vcpkg-managed dependencies
+set VCPKG_TOOLCHAIN=%CURRENT_DIR%/vcpkg/scripts/buildsystems/vcpkg.cmake
 
 rem  SDL2 ------------------------------------------------------------------------------------------
 :sdl2
@@ -199,19 +207,19 @@ cmake %CMAKE_FLAGS% -DCMAKE_BUILD_TYPE=%BUILD_TYPE% -DCMAKE_INSTALL_PREFIX="%INS
 cmake --build . --config %BUILD_TYPE% --target install --parallel %NUMBER_OF_PROCESSORS% || goto :error
 
 rem civetweb -----------------------------------------------------------------------------------------
-:civetweb
-
-echo.
-echo Building and installing civetweb ...
-echo.
-
-cmake -E make_directory "%BUILD_DIR%/civetweb" && cd "%BUILD_DIR%/civetweb"
-cmake %CMAKE_FLAGS% -DCMAKE_BUILD_TYPE=%BUILD_TYPE% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%"^
-      -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DCIVETWEB_ENABLE_WEBSOCKETS=On^
-      -DCIVETWEB_BUILD_TESTING=OFF -DCIVETWEB_ENABLE_SERVER_EXECUTABLE=OFF^
-      -DCIVETWEB_ENABLE_CXX=On -DBUILD_SHARED_LIBS=On "%EXTERNALS_DIR%/civetweb" || goto :error
-
-cmake --build . --config %BUILD_TYPE% --target install --parallel %NUMBER_OF_PROCESSORS% || goto :error
+rem :civetweb
+rem
+rem echo.
+rem echo Building and installing civetweb ...
+rem echo.
+rem
+rem cmake -E make_directory "%BUILD_DIR%/civetweb" && cd "%BUILD_DIR%/civetweb"
+rem cmake %CMAKE_FLAGS% -DCMAKE_BUILD_TYPE=%BUILD_TYPE% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%"^
+rem       -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DCIVETWEB_ENABLE_WEBSOCKETS=On^
+rem       -DCIVETWEB_BUILD_TESTING=OFF -DCIVETWEB_ENABLE_SERVER_EXECUTABLE=OFF^
+rem       -DCIVETWEB_ENABLE_CXX=On -DBUILD_SHARED_LIBS=On "%EXTERNALS_DIR%/civetweb" || goto :error
+rem
+rem cmake --build . --config %BUILD_TYPE% --target install --parallel %NUMBER_OF_PROCESSORS% || goto :error
 
 rem jsonhpp ----------------------------------------------------------------------------------------
 :jsonhpp
@@ -313,7 +321,7 @@ cmake %CMAKE_FLAGS% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%" -DVISTADEMO_ENABLED=O
       -DCMAKE_BUILD_TYPE=%BUILD_TYPE% -DVISTACORELIBS_USE_OPENVR=On -DVISTADRIVERS_BUILD_OPENVR=On^
       -DVISTACORELIBS_USE_INFINITE_REVERSE_PROJECTION=On -DOPENSG_ROOT_DIR=%INSTALL_DIR%^
       -DOPENVR_ROOT_DIR="%INSTALL_DIR%" -DVISTACORELIBS_USE_GLUT_WINDOWIMP=Off^
-      -DVISTACORELIBS_USE_SDL2_WINDOWIMP=On -DSDL2_ROOT_DIR=%INSTALL_DIR%^
+      -DGLEW_ROOT_DIR="%CURRENT_DIR%/vcpkg_installed/x64-windows" -DVISTACORELIBS_USE_SDL2_WINDOWIMP=On -DSDL2_ROOT_DIR=%INSTALL_DIR%^
       -DSDL2_TTF_ROOT_DIR=%INSTALL_DIR% -DCMAKE_UNITY_BUILD=%UNITY_BUILD%^
       -DVISTA_USE_PRECOMPILED_HEADERS=%PRECOMPILED_HEADERS% "%EXTERNALS_DIR%/vista" || goto :error
 cmake --build . --config %BUILD_TYPE% --target install --parallel %NUMBER_OF_PROCESSORS% || goto :error

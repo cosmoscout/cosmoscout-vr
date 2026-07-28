@@ -1,0 +1,26 @@
+{
+  "name": "cosmoscout-vr",
+  "version": "1.10.0",
+  "description": "",
+  "dependencies": [
+    "glew"
+  ],
+  "default-features": [
+    "csl-node-editor",
+    "csl-web-api"
+  ],
+  "features": {
+    "csl-node-editor": {
+      "description": "Node Editor plugin library",
+      "dependencies": [
+        "civetweb"
+      ]
+    },
+    "csl-web-api": {
+      "description": "Web API plugin",
+      "dependencies": [
+        "civetweb"
+      ]
+    }
+  }
+}
