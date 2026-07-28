@@ -2,6 +2,9 @@
   "name": "cosmoscout-vr",
   "version": "1.10.0",
   "description": "",
+  "license": "MIT",
+  "maintainers": ["German Aerospace Center (DLR)"],
+  "supports": "(windows & x64) | (linux & x64)",
   "dependencies": [
     "glew",
     "sdl2",
@@ -18,12 +21,13 @@
     "glm",
     "tinygltf",
     "stb",
-    "cspice"
+    "cspice",
+    "openvr"
   ],
+  "dev-dependencies": ["doctest"],
   "default-features": [
     "csl-node-editor",
-    "csl-web-api",
-    "test"
+    "csl-web-api"
   ],
   "features": {
     "csl-node-editor": {
@@ -33,10 +37,6 @@
     "csl-web-api": {
       "description": "Web API plugin",
       "dependencies": ["civetweb"]
-    },
-    "test": {
-      "description": "Unit tests",
-      "dependencies": ["doctest"]
     }
   }
 }
