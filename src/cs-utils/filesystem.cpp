@@ -9,8 +9,8 @@
 
 #include "utils.hpp"
 
-#include <curlpp/Easy.hpp>
-#include <curlpp/Options.hpp>
+#include <curlcpp/curl_easy.h>
+#include <curlcpp/curl_option.h>
 
 #include <fstream>
 
@@ -94,14 +94,14 @@ void downloadFile(std::string const& url, std::string const& destination,
     throw std::runtime_error("Failed to open " + destination + " for downloading " + url + "!");
   }
 
-  curlpp::Easy request;
-  request.setOpt(curlpp::options::Url(url));
-  request.setOpt(curlpp::options::WriteStream(&stream));
-  request.setOpt(curlpp::options::NoSignal(true));
-  request.setOpt(curlpp::options::NoProgress(false));
-  request.setOpt(curlpp::options::SslVerifyPeer(false));
-  request.setOpt(curlpp::options::FollowLocation(true));
-  request.setOpt(curlpp::options::ProgressFunction(
+  curl::curl_easy request;
+  request.add(curl::make_option(CURLOPT_URL, url));
+  request.add(curl::make_option(CURLOPT_WRITEDATA, &stream));
+  request.add(curl::make_option(CURLOPT_NOSIGNAL, true));
+  request.add(curl::make_option(CURLOPT_NOPROGRESS, false));
+  request.add(curl::make_option(CURLOPT_SSL_VERIFYPEER, false));
+  request.add(curl::make_option(CURLOPT_FOLLOWLOCATION, true));
+  request.add(curl::make_option(CURLOPT_PROGRESSFUNCTION,
       [&](double a, double b, double /*unused*/, double /*unused*/) {
         progressCallback(b, a);
         return 0;

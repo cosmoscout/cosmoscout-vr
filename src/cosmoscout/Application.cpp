@@ -7,6 +7,7 @@
 
 #include "Application.hpp"
 
+#include "../../vcpkg_installed/x64-windows/include/curlcpp/curl_global.h"
 #include "../cs-core/DragNavigation.hpp"
 #include "../cs-core/GraphicsEngine.hpp"
 #include "../cs-core/GuiManager.hpp"
@@ -40,7 +41,7 @@
 #include <VistaKernel/InteractionManager/VistaInteractionManager.h>
 #include <VistaKernel/VistaSystem.h>
 #include <VistaOGLExt/VistaShaderRegistry.h>
-#include <curlpp/cURLpp.hpp>
+
 #include <memory>
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -67,17 +68,11 @@ Application::Application(std::shared_ptr<cs::core::Settings> settings)
     : mSettings(std::move(settings)) {
 
   mSettings->onLoad().connect([this]() { onLoad(); });
-
-  // Initialize curl.
-  cURLpp::initialize();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-Application::~Application() {
-  // Last but not least, cleanup curl.
-  cURLpp::terminate();
-}
+Application::~Application() = default;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 

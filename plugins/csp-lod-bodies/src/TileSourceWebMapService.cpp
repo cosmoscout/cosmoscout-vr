@@ -14,11 +14,10 @@
 #include "../../../src/cs-utils/filesystem.hpp"
 #include "../../../src/cs-utils/utils.hpp"
 
-#include <curlpp/Easy.hpp>
-#include <curlpp/Info.hpp>
-#include <curlpp/Infos.hpp>
-#include <curlpp/Options.hpp>
-#include <curlpp/cURLpp.hpp>
+#include <curlcpp/curl_easy.h>
+#include <curlcpp/curl_easy_info.h>
+#include <curlcpp/curl_info.h>
+#include <curlcpp/curl_option.h>
 #include <fstream>
 #include <sstream>
 
@@ -424,14 +423,19 @@ std::optional<std::string> TileSourceWebMapService::loadData(TileId const& tileI
       mLastTimeTileFailed.erase(cacheFilePath);
     }
 
-    curlpp::Easy request;
-    request.setOpt(curlpp::options::Url(url.str()));
-    request.setOpt(curlpp::options::WriteStream(&out));
-    request.setOpt(curlpp::options::NoSignal(true));
+    std::ostringstream                 headerSink;
+    curl::curl_ios<std::ostringstream> headerWriter(headerSink);
+
+    curl::curl_ios<std::ostream>       bodyWriter(out);
+    curl::curl_easy request(bodyWriter);
+    request.add<CURLOPT_URL>(url.str().c_str());
+    request.add<CURLOPT_NOSIGNAL>(true);
+    request.add<CURLOPT_HEADERDATA>(headerWriter.get_stream());
+    request.add<CURLOPT_HEADERFUNCTION>(headerWriter.get_function());
 
     request.perform();
 
-    auto contentType = curlpp::Info<CURLINFO_CONTENT_TYPE, std::string>::get(request);
+    auto contentType = request.get_info<CURLINFO_CONTENT_TYPE>().get();
 
     fail = !cs::utils::contains(contentType, "image/png") &&
            !cs::utils::contains(contentType, "image/tiff");

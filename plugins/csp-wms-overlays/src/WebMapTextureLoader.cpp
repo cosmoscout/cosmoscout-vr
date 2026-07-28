@@ -15,8 +15,9 @@
 #include "../../../src/cs-utils/filesystem.hpp"
 #include "../../../src/cs-utils/utils.hpp"
 
-#include <curlpp/Infos.hpp>
-#include <curlpp/Options.hpp>
+#include <curlcpp/curl_easy.h>
+#include <curlcpp/curl_easy_info.h>
+#include <curlcpp/curl_option.h>
 
 #define STB_IMAGE_IMPLEMENTATION
 #define STB_IMAGE_WRITE_IMPLEMENTATION
@@ -89,11 +90,16 @@ std::optional<std::stringstream> WebMapTextureLoader::requestTexture(
 
     std::stringstream out(std::ios_base::out | std::ios_base::in | std::ios_base::binary);
 
-    curlpp::Easy request;
-    request.setOpt(curlpp::options::Url(url));
-    request.setOpt(curlpp::options::WriteStream(&out));
-    request.setOpt(curlpp::options::NoSignal(true));
-    request.setOpt(curlpp::options::SslVerifyPeer(false));
+    std::ostringstream                 headerSink;
+    curl::curl_ios<std::ostringstream> headerWriter(headerSink);
+
+    curl::curl_ios<std::ostream> bodyWriter(out);
+    curl::curl_easy              request(bodyWriter);
+    request.add<CURLOPT_URL>(url.c_str());
+    request.add<CURLOPT_NOSIGNAL>(true);
+    request.add<CURLOPT_SSL_VERIFYPEER>(false);
+    request.add<CURLOPT_HEADERDATA>(headerWriter.get_stream());
+    request.add<CURLOPT_HEADERFUNCTION>(headerWriter.get_function());
 
     try {
       request.perform();
@@ -102,7 +108,7 @@ std::optional<std::stringstream> WebMapTextureLoader::requestTexture(
       continue;
     }
 
-    std::string contentType = curlpp::Info<CURLINFO_CONTENT_TYPE, std::string>::get(request);
+    std::string contentType = request.get_info<CURLINFO_CONTENT_TYPE>().get();
     // Remove suffix and parameter from content type
     size_t suffixPos    = contentType.find('+');
     size_t parameterPos = contentType.find(';');
@@ -130,10 +136,11 @@ std::optional<std::stringstream> WebMapTextureLoader::requestTexture(
         // or corrupted data.
         // => Retry the request.
         logger().debug("Could not create WebMapExceptionReport: '{}'.", e.what());
-        continue;
       }
       continue;
-    } else if (contentType != getMimeType(wms, layer)) {
+    }
+
+    if (contentType != getMimeType(wms, layer)) {
       logger().debug("Received response of invalid MIME type '{}'.", contentType);
       continue;
     }

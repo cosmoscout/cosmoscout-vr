@@ -113,69 +113,45 @@ rem Use vcpkg toolchain for GLEW and other vcpkg-managed dependencies
 set VCPKG_TOOLCHAIN=%CURRENT_DIR%/vcpkg/scripts/buildsystems/vcpkg.cmake
 set VCPKG_INSTALL_DIR=%CURRENT_DIR%/vcpkg_installed/x64-windows
 
-rem  SDL2 ------------------------------------------------------------------------------------------
-rem :sdl2
-rem
-rem echo.
-rem echo Building and installing SDL2 ...
-rem echo.
-rem
-rem cmake -E make_directory "%BUILD_DIR%/SDL2" && cd "%BUILD_DIR%/SDL2"
-rem cmake %CMAKE_FLAGS% -DCMAKE_BUILD_TYPE=%BUILD_TYPE% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%"^
-rem       "%EXTERNALS_DIR%/SDL" || goto :error
-rem cmake --build . --config %BUILD_TYPE% --target install --parallel %NUMBER_OF_PROCESSORS% || goto :error
-rem
-rem rem  SDL2_ttf --------------------------------------------------------------------------------------
-rem :sdl2_ttf
-rem
-rem echo.
-rem echo Building and installing SDL2_ttf ...
-rem echo.
-rem
-rem cmake -E make_directory "%BUILD_DIR%/SDL2_ttf" && cd "%BUILD_DIR%/SDL2_ttf"
-rem cmake %CMAKE_FLAGS% -DCMAKE_BUILD_TYPE=%BUILD_TYPE% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%"^
-rem       -DCMAKE_POLICY_VERSION_MINIMUM=3.5 "%EXTERNALS_DIR%/SDL_ttf" || goto :error
-rem cmake --build . --config %BUILD_TYPE% --target install --parallel %NUMBER_OF_PROCESSORS% || goto :error
-
 rem curl -------------------------------------------------------------------------------------------
-:curl
-
-echo.
-echo Building and installing curl ...
-echo.
-
-cmake -E make_directory "%BUILD_DIR%/curl" && cd "%BUILD_DIR%/curl"
-cmake %CMAKE_FLAGS% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%"^
-      -DCMAKE_BUILD_TYPE=%BUILD_TYPE%^
-      -DBUILD_TESTING=OFF -DBUILD_CURL_EXE=OFF -DENABLE_ARES=OFF^
-      -DCARES_INCLUDE_DIR="%INSTALL_DIR%/include"^
-      -DCARES_LIBRARY="%INSTALL_DIR%/lib/cares.lib"^
-      -DCURL_USE_SCHANNEL=On -DCMAKE_INSTALL_LIBDIR=lib^
-      "%EXTERNALS_DIR%/curl" || goto :error
-
-cmake --build . --config %BUILD_TYPE% --target install --parallel %NUMBER_OF_PROCESSORS% || goto :error
+rem :curl
+rem
+rem echo.
+rem echo Building and installing curl ...
+rem echo.
+rem
+rem cmake -E make_directory "%BUILD_DIR%/curl" && cd "%BUILD_DIR%/curl"
+rem cmake %CMAKE_FLAGS% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%"^
+rem       -DCMAKE_BUILD_TYPE=%BUILD_TYPE%^
+rem       -DBUILD_TESTING=OFF -DBUILD_CURL_EXE=OFF -DENABLE_ARES=OFF^
+rem       -DCARES_INCLUDE_DIR="%INSTALL_DIR%/include"^
+rem       -DCARES_LIBRARY="%INSTALL_DIR%/lib/cares.lib"^
+rem       -DCURL_USE_SCHANNEL=On -DCMAKE_INSTALL_LIBDIR=lib^
+rem       "%EXTERNALS_DIR%/curl" || goto :error
+rem
+rem cmake --build . --config %BUILD_TYPE% --target install --parallel %NUMBER_OF_PROCESSORS% || goto :error
 
 rem curlpp -----------------------------------------------------------------------------------------
-:curlpp
-
-echo.
-echo Building and installing curlpp ...
-echo.
-
-if "%COSMOSCOUT_DEBUG_BUILD%"=="true" (
-  set CURL_LIB=libcurl-d_imp.lib
-) else ( 
-  set CURL_LIB=libcurl_imp.lib
-)
-cmake -E make_directory "%BUILD_DIR%/curlpp" && cd "%BUILD_DIR%/curlpp"
-cmake %CMAKE_FLAGS% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%" -DCMAKE_UNITY_BUILD=%UNITY_BUILD%^
-      -DCMAKE_BUILD_TYPE=%BUILD_TYPE%^
-      -DCURL_INCLUDE_DIR="%INSTALL_DIR%/include"^
-      -DCURL_LIBRARY="%INSTALL_DIR%/lib/%CURL_LIB%"^
-      -DCMAKE_INSTALL_LIBDIR=lib -DCURL_NO_CURL_CMAKE=On^
-      -DCMAKE_POLICY_VERSION_MINIMUM=3.5 "%EXTERNALS_DIR%/curlpp" || goto :error
-
-cmake --build . --config %BUILD_TYPE% --target install --parallel %NUMBER_OF_PROCESSORS% || goto :error
+rem :curlpp
+rem
+rem echo.
+rem echo Building and installing curlpp ...
+rem echo.
+rem
+rem if "%COSMOSCOUT_DEBUG_BUILD%"=="true" (
+rem   set CURL_LIB=libcurl-d_imp.lib
+rem ) else (
+rem   set CURL_LIB=libcurl_imp.lib
+rem )
+rem cmake -E make_directory "%BUILD_DIR%/curlpp" && cd "%BUILD_DIR%/curlpp"
+rem cmake %CMAKE_FLAGS% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%" -DCMAKE_UNITY_BUILD=%UNITY_BUILD%^
+rem       -DCMAKE_BUILD_TYPE=%BUILD_TYPE%^
+rem       -DCURL_INCLUDE_DIR="%INSTALL_DIR%/include"^
+rem       -DCURL_LIBRARY="%INSTALL_DIR%/lib/%CURL_LIB%"^
+rem       -DCMAKE_INSTALL_LIBDIR=lib -DCURL_NO_CURL_CMAKE=On^
+rem       -DCMAKE_POLICY_VERSION_MINIMUM=3.5 "%EXTERNALS_DIR%/curlpp" || goto :error
+rem
+rem cmake --build . --config %BUILD_TYPE% --target install --parallel %NUMBER_OF_PROCESSORS% || goto :error
 
 rem libtiff ----------------------------------------------------------------------------------------
 :libtiff

@@ -35,8 +35,8 @@ target_link_libraries(cs-utils
     ${VISTACORELIBS_LIBRARIES}
     ${CMAKE_DL_LIBS}
     cspice::cspice
-    curl::curl
-    curlpp::curlpp
+    CURL::libcurl
+    curlcpp::curlcpp
     spdlog::spdlog
 )
 
