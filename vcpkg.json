@@ -7,24 +7,35 @@
     "sdl2",
     "sdl2-ttf",
     "curl",
-    "curlcpp"
+    "curlcpp",
+    {
+      "name": "tiff",
+      "features": ["cxx"]
+    },
+    "spdlog",
+    "nlohmann-json",
+    "gli",
+    "glm",
+    "tinygltf",
+    "stb"
   ],
   "default-features": [
     "csl-node-editor",
-    "csl-web-api"
+    "csl-web-api",
+    "test"
   ],
   "features": {
     "csl-node-editor": {
       "description": "Node Editor plugin library",
-      "dependencies": [
-        "civetweb"
-      ]
+      "dependencies": ["civetweb"]
     },
     "csl-web-api": {
       "description": "Web API plugin",
-      "dependencies": [
-        "civetweb"
-      ]
+      "dependencies": ["civetweb"]
+    },
+    "test": {
+      "description": "Unit tests",
+      "dependencies": ["doctest"]
     }
   }
 }

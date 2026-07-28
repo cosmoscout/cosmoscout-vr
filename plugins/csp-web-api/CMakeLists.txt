@@ -12,6 +12,16 @@ if (NOT CSP_WEB_API)
 endif()
 
 find_package(CIVETWEB REQUIRED)
+find_package(TIFF REQUIRED COMPONENTS CXX)
+
+# FindTIFF assumes that the C++ bindings are part of the main TIFF library on MSVC. However,
+# vcpkg builds them as a separate tiffxx library.
+if (MSVC)
+  find_library(TIFFXX_LIBRARY_RELEASE NAMES tiffxx REQUIRED)
+  find_library(TIFFXX_LIBRARY_DEBUG NAMES tiffxxd REQUIRED)
+  include(SelectLibraryConfigurations)
+  select_library_configurations(TIFFXX)
+endif()
 
 # build plugin -------------------------------------------------------------------------------------
 
@@ -32,6 +42,9 @@ target_link_libraries(csp-web-api
     cs-core
     civetweb::civetweb
     civetweb::civetweb-cpp
+    TIFF::TIFF
+    TIFF::CXX
+    ${TIFFXX_LIBRARY}
 )
 
 # Add this Plugin to a "plugins" folder in your IDE.
