@@ -22,12 +22,13 @@
     "tinygltf",
     "stb",
     "cspice",
-    "openvr"
+    "openvr",
+    "opensg"
   ],
-  "dev-dependencies": ["doctest"],
   "default-features": [
     "csl-node-editor",
-    "csl-web-api"
+    "csl-web-api",
+    "test"
   ],
   "features": {
     "csl-node-editor": {
@@ -37,6 +38,10 @@
     "csl-web-api": {
       "description": "Web API plugin",
       "dependencies": ["civetweb"]
+    },
+    "test": {
+      "description": "Tests",
+      "dependencies": ["doctest"]
     }
   }
 }

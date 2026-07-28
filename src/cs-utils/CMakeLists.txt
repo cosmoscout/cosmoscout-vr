@@ -26,8 +26,8 @@ target_link_libraries(cs-utils
     SDL2_ttf::SDL2_ttf
     OpenGL::GL
     OpenGL::GLU
-    OpenSG::base
-    OpenSG::system
+    OpenSG::OSGBase
+    OpenSG::OSGSystem
     TIFF::TIFF
     ${VISTACORELIBS_LIBRARIES}
     ${CMAKE_DL_LIBS}

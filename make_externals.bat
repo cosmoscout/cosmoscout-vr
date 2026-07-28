@@ -113,22 +113,6 @@ rem Use vcpkg toolchain for GLEW and other vcpkg-managed dependencies
 set VCPKG_TOOLCHAIN=%CURRENT_DIR%/vcpkg/scripts/buildsystems/vcpkg.cmake
 set VCPKG_INSTALL_DIR=%CURRENT_DIR%/vcpkg_installed/x64-windows
 
-rem opensg -----------------------------------------------------------------------------------------
-:opensg
-
-echo.
-echo Building and installing opensg-1.8 ...
-echo.
-
-cmake -E make_directory "%BUILD_DIR%/opensg-1.8" && cd "%BUILD_DIR%/opensg-1.8"
-cmake %CMAKE_FLAGS% -DCMAKE_BUILD_TYPE=%BUILD_TYPE% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%"^
-      -DCMAKE_UNITY_BUILD=%UNITY_BUILD% -DOPENSG_INFINITE_REVERSE_PROJECTION=ON^
-      -DOPENSG_USE_PRECOMPILED_HEADERS=%PRECOMPILED_HEADERS%^
-      -DCMAKE_SHARED_LINKER_FLAGS="/FORCE:MULTIPLE" -DOPENSG_BUILD_WINDOW=Off^
-      -DOPENSG_BUILD_TESTS=Off "%EXTERNALS_DIR%/opensg-1.8" || goto :error
-
-cmake --build . --config %BUILD_TYPE% --target install --parallel %NUMBER_OF_PROCESSORS% || goto :error
-
 rem vista ------------------------------------------------------------------------------------------
 :vista
 
@@ -143,7 +127,7 @@ rem -DVISTADRIVERS_BUILD_3DCSPACENAVIGATOR=On to the flags below.
 
 cmake %CMAKE_FLAGS% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%" -DVISTADEMO_ENABLED=Off^
       -DCMAKE_BUILD_TYPE=%BUILD_TYPE% -DVISTACORELIBS_USE_OPENVR=On -DVISTADRIVERS_BUILD_OPENVR=On^
-      -DVISTACORELIBS_USE_INFINITE_REVERSE_PROJECTION=On -DOPENSG_ROOT_DIR=%INSTALL_DIR%^
+      -DVISTACORELIBS_USE_INFINITE_REVERSE_PROJECTION=On -DOPENSG_ROOT_DIR=%VCPKG_INSTALL_DIR%^
       -DOPENVR_ROOT_DIR="%VCPKG_INSTALL_DIR%" -DVISTACORELIBS_USE_GLUT_WINDOWIMP=Off^
       -DGLEW_ROOT_DIR="%VCPKG_INSTALL_DIR%" -DVISTACORELIBS_USE_SDL2_WINDOWIMP=On -DSDL2_ROOT_DIR=%VCPKG_INSTALL_DIR%^
       -DSDL2_TTF_ROOT_DIR=%VCPKG_INSTALL_DIR% -DCMAKE_UNITY_BUILD=%UNITY_BUILD%^

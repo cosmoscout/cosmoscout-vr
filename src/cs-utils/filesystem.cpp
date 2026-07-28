@@ -85,6 +85,15 @@ void writeStringToFile(std::string const& filePath, std::string const& content) 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+static int progressWrapper(
+    void* clientp, curl_off_t dltotal, curl_off_t dlnow, curl_off_t ultotal, curl_off_t ulnow) {
+  auto* callback = static_cast<std::function<void(double, double)> const*>(clientp);
+  (*callback)(static_cast<double>(dlnow), static_cast<double>(dltotal));
+  return 0;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void downloadFile(std::string const& url, std::string const& destination,
     std::function<void(double, double)> const& progressCallback) {
   createDirectoryRecursively(std::filesystem::path(destination).parent_path());
@@ -94,18 +103,17 @@ void downloadFile(std::string const& url, std::string const& destination,
     throw std::runtime_error("Failed to open " + destination + " for downloading " + url + "!");
   }
 
-  curl::curl_easy request;
-  request.add(curl::make_option(CURLOPT_URL, url));
-  request.add(curl::make_option(CURLOPT_WRITEDATA, &stream));
-  request.add(curl::make_option(CURLOPT_NOSIGNAL, true));
-  request.add(curl::make_option(CURLOPT_NOPROGRESS, false));
-  request.add(curl::make_option(CURLOPT_SSL_VERIFYPEER, false));
-  request.add(curl::make_option(CURLOPT_FOLLOWLOCATION, true));
-  request.add(curl::make_option(CURLOPT_PROGRESSFUNCTION,
-      [&](double a, double b, double /*unused*/, double /*unused*/) {
-        progressCallback(b, a);
-        return 0;
-      }));
+  curl::curl_ios<std::ostream> streamIos(stream);
+
+  curl::curl_easy request(streamIos);
+  request.add<CURLOPT_URL>(url.c_str());
+  request.add<CURLOPT_NOSIGNAL>(true);
+  request.add<CURLOPT_NOPROGRESS>(false);
+  request.add<CURLOPT_SSL_VERIFYPEER>(false);
+  request.add<CURLOPT_FOLLOWLOCATION>(true);
+  request.add<CURLOPT_XFERINFOFUNCTION>(&progressWrapper);
+  request.add<CURLOPT_PROGRESSDATA>(
+      curl::detail::Option_type<CURLOPT_XFERINFODATA>(&progressCallback));
 
   request.perform();
 }
