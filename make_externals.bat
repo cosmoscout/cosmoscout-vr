@@ -111,30 +111,31 @@ cd "%CURRENT_DIR%"
 
 rem Use vcpkg toolchain for GLEW and other vcpkg-managed dependencies
 set VCPKG_TOOLCHAIN=%CURRENT_DIR%/vcpkg/scripts/buildsystems/vcpkg.cmake
+set VCPKG_INSTALL_DIR=%CURRENT_DIR%/vcpkg_installed/x64-windows
 
 rem  SDL2 ------------------------------------------------------------------------------------------
-:sdl2
-
-echo.
-echo Building and installing SDL2 ...
-echo.
-
-cmake -E make_directory "%BUILD_DIR%/SDL2" && cd "%BUILD_DIR%/SDL2"
-cmake %CMAKE_FLAGS% -DCMAKE_BUILD_TYPE=%BUILD_TYPE% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%"^
-      "%EXTERNALS_DIR%/SDL" || goto :error
-cmake --build . --config %BUILD_TYPE% --target install --parallel %NUMBER_OF_PROCESSORS% || goto :error
-
-rem  SDL2_ttf --------------------------------------------------------------------------------------
-:sdl2_ttf
-
-echo.
-echo Building and installing SDL2_ttf ...
-echo.
-
-cmake -E make_directory "%BUILD_DIR%/SDL2_ttf" && cd "%BUILD_DIR%/SDL2_ttf"
-cmake %CMAKE_FLAGS% -DCMAKE_BUILD_TYPE=%BUILD_TYPE% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%"^
-      -DCMAKE_POLICY_VERSION_MINIMUM=3.5 "%EXTERNALS_DIR%/SDL_ttf" || goto :error
-cmake --build . --config %BUILD_TYPE% --target install --parallel %NUMBER_OF_PROCESSORS% || goto :error
+rem :sdl2
+rem
+rem echo.
+rem echo Building and installing SDL2 ...
+rem echo.
+rem
+rem cmake -E make_directory "%BUILD_DIR%/SDL2" && cd "%BUILD_DIR%/SDL2"
+rem cmake %CMAKE_FLAGS% -DCMAKE_BUILD_TYPE=%BUILD_TYPE% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%"^
+rem       "%EXTERNALS_DIR%/SDL" || goto :error
+rem cmake --build . --config %BUILD_TYPE% --target install --parallel %NUMBER_OF_PROCESSORS% || goto :error
+rem
+rem rem  SDL2_ttf --------------------------------------------------------------------------------------
+rem :sdl2_ttf
+rem
+rem echo.
+rem echo Building and installing SDL2_ttf ...
+rem echo.
+rem
+rem cmake -E make_directory "%BUILD_DIR%/SDL2_ttf" && cd "%BUILD_DIR%/SDL2_ttf"
+rem cmake %CMAKE_FLAGS% -DCMAKE_BUILD_TYPE=%BUILD_TYPE% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%"^
+rem       -DCMAKE_POLICY_VERSION_MINIMUM=3.5 "%EXTERNALS_DIR%/SDL_ttf" || goto :error
+rem cmake --build . --config %BUILD_TYPE% --target install --parallel %NUMBER_OF_PROCESSORS% || goto :error
 
 rem curl -------------------------------------------------------------------------------------------
 :curl
@@ -205,21 +206,6 @@ cmake %CMAKE_FLAGS% -DCMAKE_BUILD_TYPE=%BUILD_TYPE% -DCMAKE_INSTALL_PREFIX="%INS
       -DSPDLOG_USE_STD_FORMAT=On "%EXTERNALS_DIR%/spdlog" || goto :error
 
 cmake --build . --config %BUILD_TYPE% --target install --parallel %NUMBER_OF_PROCESSORS% || goto :error
-
-rem civetweb -----------------------------------------------------------------------------------------
-rem :civetweb
-rem
-rem echo.
-rem echo Building and installing civetweb ...
-rem echo.
-rem
-rem cmake -E make_directory "%BUILD_DIR%/civetweb" && cd "%BUILD_DIR%/civetweb"
-rem cmake %CMAKE_FLAGS% -DCMAKE_BUILD_TYPE=%BUILD_TYPE% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%"^
-rem       -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DCIVETWEB_ENABLE_WEBSOCKETS=On^
-rem       -DCIVETWEB_BUILD_TESTING=OFF -DCIVETWEB_ENABLE_SERVER_EXECUTABLE=OFF^
-rem       -DCIVETWEB_ENABLE_CXX=On -DBUILD_SHARED_LIBS=On "%EXTERNALS_DIR%/civetweb" || goto :error
-rem
-rem cmake --build . --config %BUILD_TYPE% --target install --parallel %NUMBER_OF_PROCESSORS% || goto :error
 
 rem jsonhpp ----------------------------------------------------------------------------------------
 :jsonhpp
@@ -321,8 +307,8 @@ cmake %CMAKE_FLAGS% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%" -DVISTADEMO_ENABLED=O
       -DCMAKE_BUILD_TYPE=%BUILD_TYPE% -DVISTACORELIBS_USE_OPENVR=On -DVISTADRIVERS_BUILD_OPENVR=On^
       -DVISTACORELIBS_USE_INFINITE_REVERSE_PROJECTION=On -DOPENSG_ROOT_DIR=%INSTALL_DIR%^
       -DOPENVR_ROOT_DIR="%INSTALL_DIR%" -DVISTACORELIBS_USE_GLUT_WINDOWIMP=Off^
-      -DGLEW_ROOT_DIR="%CURRENT_DIR%/vcpkg_installed/x64-windows" -DVISTACORELIBS_USE_SDL2_WINDOWIMP=On -DSDL2_ROOT_DIR=%INSTALL_DIR%^
-      -DSDL2_TTF_ROOT_DIR=%INSTALL_DIR% -DCMAKE_UNITY_BUILD=%UNITY_BUILD%^
+      -DGLEW_ROOT_DIR="%VCPKG_INSTALL_DIR%" -DVISTACORELIBS_USE_SDL2_WINDOWIMP=On -DSDL2_ROOT_DIR=%VCPKG_INSTALL_DIR%^
+      -DSDL2_TTF_ROOT_DIR=%VCPKG_INSTALL_DIR% -DCMAKE_UNITY_BUILD=%UNITY_BUILD%^
       -DVISTA_USE_PRECOMPILED_HEADERS=%PRECOMPILED_HEADERS% "%EXTERNALS_DIR%/vista" || goto :error
 cmake --build . --config %BUILD_TYPE% --target install --parallel %NUMBER_OF_PROCESSORS% || goto :error
 

@@ -3,7 +3,9 @@
   "version": "1.10.0",
   "description": "",
   "dependencies": [
-    "glew"
+    "glew",
+    "sdl2",
+    "sdl2-ttf"
   ],
   "default-features": [
     "csl-node-editor",
