@@ -31,7 +31,7 @@ target_link_libraries(cs-utils
     TIFF::TIFF
     ${VISTACORELIBS_LIBRARIES}
     ${CMAKE_DL_LIBS}
-    cspice::cspice
+    unofficial::cspice::cspice
     CURL::libcurl
     curlcpp::curlcpp
     spdlog::spdlog

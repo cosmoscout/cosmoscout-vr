@@ -17,7 +17,8 @@
     "gli",
     "glm",
     "tinygltf",
-    "stb"
+    "stb",
+    "cspice"
   ],
   "default-features": [
     "csl-node-editor",

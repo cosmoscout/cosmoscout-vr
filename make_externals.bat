@@ -161,46 +161,6 @@ cmake %CMAKE_FLAGS% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%" -DVISTADEMO_ENABLED=O
       -DVISTA_USE_PRECOMPILED_HEADERS=%PRECOMPILED_HEADERS% "%EXTERNALS_DIR%/vista" || goto :error
 cmake --build . --config %BUILD_TYPE% --target install --parallel %NUMBER_OF_PROCESSORS% || goto :error
 
-rem cspice -----------------------------------------------------------------------------------------
-:cspice
-
-echo.
-echo Downloading and installing cspice ...
-echo.
-
-cmake -E make_directory "%BUILD_DIR%/cspice/extracted" && cd "%BUILD_DIR%/cspice"
-
-IF NOT EXIST cspice.zip (
-  curl.exe https://naif.jpl.nasa.gov/pub/naif/toolkit//C/PC_Windows_VisualC_64bit/packages/cspice.zip --output cspice.zip
-) else (
-  echo File 'cspice.zip' already exists no, download required.
-)
-
-cd "%BUILD_DIR%/cspice/extracted"
-cmake -E tar xfj ../cspice.zip -- cspice/src/cspice cspice/include
-cd cspice
-
-echo project(cspice C) > "CMakeLists.txt"
-echo cmake_minimum_required(VERSION 3.28) >> "CMakeLists.txt"
-echo add_definitions("-D_COMPLEX_DEFINED -DMSDOS -DOMIT_BLANK_CC -DKR_headers -DNON_ANSI_STDIO") >> "CMakeLists.txt"
-echo file(GLOB_RECURSE CSPICE_SOURCE src/cspice/*.c) >> "CMakeLists.txt"
-echo add_library(cspice SHARED ${CSPICE_SOURCE}) >> "CMakeLists.txt"
-echo set_target_properties(cspice PROPERTIES WINDOWS_EXPORT_ALL_SYMBOLS 1) >> "CMakeLists.txt"
-
-cmake %CMAKE_FLAGS% -DCMAKE_BUILD_TYPE=%BUILD_TYPE% . || exit /b
-
-cmake --build . --config %BUILD_TYPE% --parallel %NUMBER_OF_PROCESSORS% || exit /b
-
-cmake -E copy_directory "%BUILD_DIR%/cspice/extracted/cspice/include" "%INSTALL_DIR%/include/cspice"
-
-if %USING_NINJA%==true (
-  cmake -E copy "%BUILD_DIR%/cspice/extracted/cspice/cspice.lib" "%INSTALL_DIR%/lib"
-  cmake -E copy "%BUILD_DIR%/cspice/extracted/cspice/cspice.dll" "%INSTALL_DIR%/lib"
-) else (
-  cmake -E copy "%BUILD_DIR%/cspice/extracted/cspice/%BUILD_TYPE%/cspice.lib" "%INSTALL_DIR%/lib"
-  cmake -E copy "%BUILD_DIR%/cspice/extracted/cspice/%BUILD_TYPE%/cspice.dll" "%INSTALL_DIR%/lib"
-)
-
 rem cef --------------------------------------------------------------------------------------------
 :cef
 

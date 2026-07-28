@@ -41,12 +41,6 @@ set(COSMOSCOUT_EXTERNALS_DIR COSMOSCOUT_EXTERNALS_DIR-NotFound
 # Make sure to use forward slashes only.
 file(TO_CMAKE_PATH ${COSMOSCOUT_EXTERNALS_DIR} COSMOSCOUT_EXTERNALS_DIR)
 
-if (DEFINED ENV{CSPICE_ROOT_DIR})
-  SET(CSPICE_ROOT_DIR "$ENV{CSPICE_ROOT_DIR}")
-else()
-  SET(CSPICE_ROOT_DIR ${COSMOSCOUT_EXTERNALS_DIR})
-endif()
-
 if (DEFINED ENV{CEF_ROOT_DIR})
   SET(CEF_ROOT_DIR "$ENV{CEF_ROOT_DIR}")
 else()
@@ -67,7 +61,7 @@ endif()
 
 find_package(GLM REQUIRED)
 find_package(GLI REQUIRED)
-find_package(CSPICE REQUIRED)
+find_package(unofficial-cspice REQUIRED)
 find_package(CURL REQUIRED)
 find_package(CURLCPP REQUIRED)
 find_package(SPDLOG REQUIRED)
