@@ -23,7 +23,8 @@
     "stb",
     "cspice",
     "openvr",
-    "opensg"
+    "opensg",
+    "cef"
   ],
   "default-features": [
     "csl-node-editor",

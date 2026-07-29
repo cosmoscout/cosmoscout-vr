@@ -86,9 +86,9 @@ void writeStringToFile(std::string const& filePath, std::string const& content) 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static int progressWrapper(
-    void* clientp, curl_off_t dltotal, curl_off_t dlnow, curl_off_t ultotal, curl_off_t ulnow) {
-  auto* callback = static_cast<std::function<void(double, double)> const*>(clientp);
-  (*callback)(static_cast<double>(dlnow), static_cast<double>(dltotal));
+    void* data, curl_off_t dlTotal, curl_off_t dlNow, curl_off_t, curl_off_t) {
+  auto* callback = static_cast<std::function<void(double, double)> const*>(data);
+  (*callback)(static_cast<double>(dlNow), static_cast<double>(dlTotal));
   return 0;
 }
 

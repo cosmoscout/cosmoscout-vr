@@ -103,14 +103,11 @@ cd "%CURRENT_DIR%/vcpkg"
 call bootstrap-vcpkg.bat || goto :error
 cd "%CURRENT_DIR%"
 
-rem Install GLEW via vcpkg (this will be replaced as more libraries are migrated)
-echo Installing GLEW via vcpkg...
+echo Installing dependencies via vcpkg...
 cd "%CURRENT_DIR%/vcpkg"
 call vcpkg install || goto :error
 cd "%CURRENT_DIR%"
 
-rem Use vcpkg toolchain for GLEW and other vcpkg-managed dependencies
-set VCPKG_TOOLCHAIN=%CURRENT_DIR%/vcpkg/scripts/buildsystems/vcpkg.cmake
 set VCPKG_INSTALL_DIR=%CURRENT_DIR%/vcpkg_installed/x64-windows
 
 rem vista ------------------------------------------------------------------------------------------
@@ -133,56 +130,6 @@ cmake %CMAKE_FLAGS% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%" -DVISTADEMO_ENABLED=O
       -DSDL2_TTF_ROOT_DIR=%VCPKG_INSTALL_DIR% -DCMAKE_UNITY_BUILD=%UNITY_BUILD%^
       -DVISTA_USE_PRECOMPILED_HEADERS=%PRECOMPILED_HEADERS% "%EXTERNALS_DIR%/vista" || goto :error
 cmake --build . --config %BUILD_TYPE% --target install --parallel %NUMBER_OF_PROCESSORS% || goto :error
-
-rem cef --------------------------------------------------------------------------------------------
-:cef
-
-echo.
-echo Downloading, building and installing cef (this may take some time) ...
-echo.
-
-set CEF_DIR=cef_binary_135.0.20+ge7de5c3+chromium-135.0.7049.85_windows64_minimal
-
-cmake -E make_directory "%BUILD_DIR%/cef/extracted" && cd "%BUILD_DIR%/cef"
-
-IF NOT EXIST cef.tar.bz2 (
-  curl.exe https://cef-builds.spotifycdn.com/cef_binary_135.0.20+ge7de5c3+chromium-135.0.7049.85_windows64_minimal.tar.bz2 --output cef.tar.bz2
-
-  cd "%BUILD_DIR%/cef/extracted"
-
-  cmake -E tar xfj ../cef.tar.bz2
-
-  rem We don't want the example applications.
-  cmake -E remove_directory %CEF_DIR%/tests
-
-  rem Very ugly workaround for a linking bug, where CEF is build with different flags than the
-  rem rest of the project.
-  IF "%COSMOSCOUT_DEBUG_BUILD%"=="true" (
-    powershell -NoProfile -ExecutionPolicy Bypass -Command "(Get-Content '%BUILD_DIR%/cef/extracted/%CEF_DIR%/cmake/cef_variables.cmake') -replace '_HAS_ITERATOR_DEBUGGING=0', '_HAS_ITERATOR_DEBUGGING=1' | Set-Content '%BUILD_DIR%/cef/extracted/%CEF_DIR%/cmake/cef_variables.cmake'"
-  )
-) else (
-  echo File 'cef.tar.bz2' already exists, no download required.
-)
-
-cd "%BUILD_DIR%/cef/
-
-cmake %CMAKE_FLAGS% -DCMAKE_BUILD_TYPE=%BUILD_TYPE% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%"^
-      -DCMAKE_UNITY_BUILD=%UNITY_BUILD% -DCEF_RUNTIME_LIBRARY_FLAG=/MD -DCEF_DEBUG_INFO_FLAG=""^
-      "%BUILD_DIR%/cef/extracted/%CEF_DIR%" || goto :error
-
-cmake --build . --config %BUILD_TYPE% --parallel %NUMBER_OF_PROCESSORS% || goto :error
-
-echo Installing cef...
-cmake -E make_directory "%INSTALL_DIR%/include/cef"
-cmake -E copy_directory "%BUILD_DIR%/cef/extracted/%CEF_DIR%/include"                   "%INSTALL_DIR%/include/cef/include"
-cmake -E copy_directory "%BUILD_DIR%/cef/extracted/%CEF_DIR%/Resources"                 "%INSTALL_DIR%/share/cef"
-cmake -E copy_directory "%BUILD_DIR%/cef/extracted/%CEF_DIR%/Release"                   "%INSTALL_DIR%/lib"
-
-if %USING_NINJA%==true (
-  cmake -E copy "%BUILD_DIR%/cef/libcef_dll_wrapper/libcef_dll_wrapper.lib"  "%INSTALL_DIR%/lib"
-) else (
-  cmake -E copy "%BUILD_DIR%/cef/libcef_dll_wrapper/%BUILD_TYPE%/libcef_dll_wrapper.lib"  "%INSTALL_DIR%/lib"
-)
 
 rem ------------------------------------------------------------------------------------------------
 

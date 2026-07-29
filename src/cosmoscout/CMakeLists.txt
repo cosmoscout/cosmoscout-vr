@@ -34,7 +34,7 @@ if(NOT (${CMAKE_GENERATOR} STREQUAL "Ninja" AND WIN32))
 endif()
 
 target_link_libraries(cosmoscout
-  cef::cef
+  cef::libcef
   cs-core
 )
 
