@@ -75,15 +75,15 @@ echo "Downloading, building and installing GLEW ..."
 echo ""
 
 cmake -E make_directory "$BUILD_DIR/glew/extracted" && cd "$BUILD_DIR/glew"
-wget -nc https://github.com/nigels-com/glew/releases/download/glew-2.2.0/glew-2.2.0.tgz
+wget -nc https://github.com/nigels-com/glew/releases/download/glew-2.3.1/glew-2.3.1.tgz
 
 cd "$BUILD_DIR/glew/extracted"
-cmake -E tar xzf ../glew-2.2.0.tgz
+cmake -E tar xzf ../glew-2.3.1.tgz
 cd ..
 
 cmake "${CMAKE_FLAGS[@]}" -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" \
       -DCMAKE_INSTALL_LIBDIR=lib \
-      -DCMAKE_BUILD_TYPE=$BUILD_TYPE "$BUILD_DIR/glew/extracted/glew-2.2.0/build/cmake"
+      -DCMAKE_BUILD_TYPE=$BUILD_TYPE "$BUILD_DIR/glew/extracted/glew-2.3.1/build/cmake"
 cmake --build . --target install --parallel "$(nproc)"
 
 # ViSTA expects glew library to be called libGLEW.so
@@ -110,7 +110,7 @@ echo ""
 
 cmake -E make_directory "$BUILD_DIR/SDL2_ttf" && cd "$BUILD_DIR/SDL2_ttf"
 cmake "${CMAKE_FLAGS[@]}" -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" \
-      "$EXTERNALS_DIR/SDL_ttf"
+      -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DSDL2TTF_VENDORED=On "$EXTERNALS_DIR/SDL_ttf"
 cmake --build . --target install --parallel "$(nproc)"
 
 # curl ---------------------------------------------------------------------------------------------
@@ -165,7 +165,7 @@ echo ""
 
 cmake -E make_directory "$BUILD_DIR/spdlog" && cd "$BUILD_DIR/spdlog"
 cmake "${CMAKE_FLAGS[@]}" -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" -DSPDLOG_BUILD_TESTS=Off \
-      -DSPDLOG_USE_STD_FORMAT=On -DCMAKE_POSITION_INDEPENDENT_CODE=On \
+      -DSPDLOG_BUILD_EXAMPLE=Off -DSPDLOG_USE_STD_FORMAT=On -DCMAKE_POSITION_INDEPENDENT_CODE=On \
       -DCMAKE_BUILD_TYPE=$BUILD_TYPE "$EXTERNALS_DIR/spdlog"
 cmake --build . --target install --parallel "$(nproc)"
 
@@ -178,7 +178,8 @@ echo ""
 cmake -E make_directory "$BUILD_DIR/civetweb" && cd "$BUILD_DIR/civetweb"
 cmake "${CMAKE_FLAGS[@]}" -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" -DCIVETWEB_ENABLE_CXX=On \
       -DCIVETWEB_ENABLE_WEBSOCKETS=On -DCIVETWEB_BUILD_TESTING=Off \
-      -DBUILD_SHARED_LIBS=On -DCMAKE_BUILD_TYPE=$BUILD_TYPE "$EXTERNALS_DIR/civetweb"
+      -DBUILD_SHARED_LIBS=On -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
+      -DCMAKE_POLICY_VERSION_MINIMUM=3.5 "$EXTERNALS_DIR/civetweb"
 cmake --build . --target install --parallel "$(nproc)"
 
 # jsonhpp ------------------------------------------------------------------------------------------

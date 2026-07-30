@@ -30,6 +30,10 @@ SPDX-License-Identifier: CC-BY-4.0
 - Fix an issue which caused some flickering above the horizon at nighttime if refraction was enabled and lighting was disabled.
 - Fix energy conservation when HDR but no lighting are enabled.
 
+#### For developers
+
+- Create compatability with CMake 4+.
+
 ## [v1.10.0](https://github.com/cosmoscout/cosmoscout-vr/releases)
 
 **Release Date:** 2025-01-27
