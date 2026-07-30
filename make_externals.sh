@@ -110,7 +110,7 @@ echo ""
 
 cmake -E make_directory "$BUILD_DIR/SDL2_ttf" && cd "$BUILD_DIR/SDL2_ttf"
 cmake "${CMAKE_FLAGS[@]}" -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" \
-      "$EXTERNALS_DIR/SDL_ttf"
+      -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DSDL2TTF_VENDORED=On "$EXTERNALS_DIR/SDL_ttf"
 cmake --build . --target install --parallel "$(nproc)"
 
 # curl ---------------------------------------------------------------------------------------------
@@ -165,7 +165,7 @@ echo ""
 
 cmake -E make_directory "$BUILD_DIR/spdlog" && cd "$BUILD_DIR/spdlog"
 cmake "${CMAKE_FLAGS[@]}" -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" -DSPDLOG_BUILD_TESTS=Off \
-      -DSPDLOG_USE_STD_FORMAT=On -DCMAKE_POSITION_INDEPENDENT_CODE=On \
+      -DSPDLOG_BUILD_EXAMPLE=Off -DSPDLOG_USE_STD_FORMAT=On -DCMAKE_POSITION_INDEPENDENT_CODE=On \
       -DCMAKE_BUILD_TYPE=$BUILD_TYPE "$EXTERNALS_DIR/spdlog"
 cmake --build . --target install --parallel "$(nproc)"
 
