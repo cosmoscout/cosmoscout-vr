@@ -24,7 +24,8 @@
     "cspice",
     "openvr",
     "opensg",
-    "cef"
+    "cef",
+    "vista"
   ],
   "default-features": [
     "csl-node-editor",
