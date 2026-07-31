@@ -37,8 +37,8 @@ class CS_CORE_EXPORT GraphicsEngine {
 
   explicit GraphicsEngine(std::shared_ptr<Settings> settings);
 
-  GraphicsEngine(GraphicsEngine const& other) = default;
-  GraphicsEngine(GraphicsEngine&& other)      = default;
+  GraphicsEngine(GraphicsEngine const& other)     = default;
+  GraphicsEngine(GraphicsEngine&& other) noexcept = default;
 
   GraphicsEngine& operator=(GraphicsEngine const& other) = default;
   GraphicsEngine& operator=(GraphicsEngine&& other)      = default;
@@ -70,7 +70,7 @@ class CS_CORE_EXPORT GraphicsEngine {
  private:
   void calculateCascades();
 
-  std::shared_ptr<core::Settings>                          mSettings;
+  std::shared_ptr<Settings>                                mSettings;
   std::shared_ptr<graphics::ShadowMap>                     mShadowMap;
   std::shared_ptr<graphics::HDRBuffer>                     mHDRBuffer;
   std::shared_ptr<graphics::ClearHDRBufferNode>            mClearNode;
