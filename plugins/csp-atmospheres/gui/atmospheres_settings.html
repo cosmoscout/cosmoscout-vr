@@ -44,6 +44,16 @@ SPDX-License-Identifier: MIT
     <label class="checklabel">
       <input
         type="checkbox"
+        data-callback="atmosphere.setAdvancedClouds"
+      />
+      <i class="material-icons"></i>
+      <span>Advanced Clouds</span>
+    </label>
+  </div>
+  <div class="col-8 offset-4">
+    <label class="checklabel">
+      <input
+        type="checkbox"
         data-callback="atmosphere.setEnableLimbLuminance"
         checked
       />
@@ -61,8 +71,99 @@ SPDX-License-Identifier: MIT
 </div>
 
 <div class="row">
+  <div class="col-4">Cloud Quality</div>
+  <div class="col-8">
+    <div data-callback="atmosphere.setCloudQuality"></div>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-4">Cloud Max Samples</div>
+  <div class="col-8">
+    <div data-callback="atmosphere.setCloudMaxSamples"></div>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-4">Cloud Sample Jitter</div>
+  <div class="col-8">
+    <div data-callback="atmosphere.setCloudJitter"></div>
+  </div>
+</div>
+
+<div class="row">
   <div class="col-4">Cloud Altitude</div>
   <div class="col-8">
     <div data-callback="atmosphere.setCloudAltitude"></div>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-4">Cloud Type exp</div>
+  <div class="col-8">
+    <div data-callback="atmosphere.setCloudTypeExponent"></div>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-4">Cloud Type floor</div>
+  <div class="col-8">
+    <div data-callback="atmosphere.setCloudRangeMin"></div>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-4">Cloud Type ceil</div>
+  <div class="col-8">
+    <div data-callback="atmosphere.setCloudRangeMax"></div>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-4">Cloud Type min</div>
+  <div class="col-8">
+    <div data-callback="atmosphere.setCloudTypeMin"></div>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-4">Cloud Type max</div>
+  <div class="col-8">
+    <div data-callback="atmosphere.setCloudTypeMax"></div>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-4">Cloud Density</div>
+  <div class="col-8">
+    <div data-callback="atmosphere.setCloudDensityMultiplier"></div>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-4">Cloud Absorption</div>
+  <div class="col-8">
+    <div data-callback="atmosphere.setCloudAbsorption"></div>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-4">Cloud Cutoff</div>
+  <div class="col-8">
+    <div data-callback="atmosphere.setCloudCutoff"></div>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-4">Cloud LF wave length</div>
+  <div class="col-8">
+    <div data-callback="atmosphere.setCloudLFRepetitionScale"></div>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-4">Cloud HF wave length</div>
+  <div class="col-8">
+    <div data-callback="atmosphere.setCloudHFRepetitionScale"></div>
   </div>
 </div>
