@@ -96,7 +96,7 @@ glm::dvec3 CelestialAnchor::getRelativePosition(double tTime, CelestialAnchor co
 
   std::array<double, 6> relPos{};
   double                timeOfLight{};
-  std::array            otherPos{vOtherPos[2], vOtherPos[0], vOtherPos[1]};
+  std::array            otherPos{vOtherPos[0], vOtherPos[1], vOtherPos[2]};
   spkcpt_c(otherPos.data(), other.getCenterName().c_str(), other.getFrameName().c_str(), tTime,
       mFrameName.c_str(), "OBSERVER", "NONE", mCenterName.c_str(), relPos.data(), &timeOfLight);
 
@@ -107,7 +107,7 @@ glm::dvec3 CelestialAnchor::getRelativePosition(double tTime, CelestialAnchor co
     throw std::runtime_error(msg.data());
   }
 
-  auto vRelPos = glm::dvec3(relPos[1], relPos[2], relPos[0]) * 1000.0;
+  auto vRelPos = glm::dvec3(relPos[0] , relPos[1], relPos[2]) * 1000.0;
 
   return glm::inverse(mRotation) * ((vRelPos - mPosition) / mScale);
 }
@@ -134,7 +134,7 @@ glm::dquat CelestialAnchor::getRelativeRotation(double tTime, CelestialAnchor co
   // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-array-to-pointer-decay, modernize-avoid-c-arrays)
   raxisa_c(rotMat.data(), axis.data(), &angle);
 
-  return glm::inverse(mRotation) * glm::angleAxis(angle, glm::dvec3(axis[1], axis[2], axis[0])) *
+  return glm::inverse(mRotation) * glm::angleAxis(angle, glm::dvec3(axis[0], axis[1], axis[2])) *
          other.mRotation;
 }
 
