@@ -1,0 +1,20 @@
+<template id="simple-objects-list-item-template">
+  <div class="row px-0 mx-0">
+    <div class="flex-grow-1 py-2">
+      <span class="simpleobjects-name">%NAME%</span>
+    </div>
+    <div class="px-1">
+      <a class="btn glass block px-3" data-toggle="tooltip" title="Edit Object"
+        data-boundary="window" onclick="CosmoScout.callbacks.simpleObjects.edit('%ID%')">
+        <i class="material-icons">edit</i>
+      </a>
+    </div>
+
+    <div class="px-1">
+      <a class="btn glass block px-3" data-toggle="tooltip" title="Fly to Object"
+        data-boundary="window" onclick="CosmoScout.callbacks.simpleObjects.gotoObject('%ID%')">
+        <i class="material-icons">place</i>
+      </a>
+    </div>
+  </div>
+</template>
