@@ -1305,6 +1305,11 @@
         "useDynamicRadius": false,
         "useVerticalOnly": false
       }
+    },
+    "csp-visual-effects": {
+      "solarFlares": {
+        "Sun": {}
+      }
     }
   }
 }
