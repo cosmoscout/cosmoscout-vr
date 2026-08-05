@@ -28,6 +28,7 @@
 !/plugins/csp-lod-bodies
 !/plugins/csp-measurement-tools
 !/plugins/csp-minimap
+!/plugins/csp-orientation-tools
 !/plugins/csp-recorder
 !/plugins/csp-rings
 !/plugins/csp-satellites

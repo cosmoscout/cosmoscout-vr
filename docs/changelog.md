@@ -15,6 +15,7 @@ SPDX-License-Identifier: CC-BY-4.0
 
 - BRDFs for simple bodies now can be configured via `"graphics": "shading"`.
 - Default BRDFs for simple and LOD bodies now can be configured via `"graphics": "defaultShading"`.
+- Add `csp-orientation-tools` plugin which can visualize the orientation of an object with arrows and its axes.
 
 #### Other Changes
 
