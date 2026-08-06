@@ -5,12 +5,6 @@
 # SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
 # SPDX-License-Identifier: CC0-1.0
 
-[submodule "externals/opensg-1.8"]
-	path = externals/opensg-1.8
-	url = https://github.com/cosmoscout/opensg-1.8.git
-[submodule "externals/vista"]
-	path = externals/vista
-	url = https://github.com/cosmoscout/vista.git
 [submodule "externals/git-archive-all.sh"]
 	path = externals/git-archive-all.sh
 	url = https://github.com/cosmoscout/git-archive-all.sh

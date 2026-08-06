@@ -26,10 +26,12 @@ target_link_libraries(cs-utils
     SDL2_ttf::SDL2_ttf
     OpenGL::GL
     OpenGL::GLU
-    OpenSG::OSGBase
-    OpenSG::OSGSystem
+    OpenSG::Base
+    OpenSG::System
     TIFF::TIFF
-    ${VISTACORELIBS_LIBRARIES}
+    Vista::Kernel
+    Vista::OGLExt
+    Vista::KernelOpenSGExt
     ${CMAKE_DL_LIBS}
     unofficial::cspice::cspice
     CURL::libcurl

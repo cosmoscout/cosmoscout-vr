@@ -8,9 +8,6 @@
 cmake_minimum_required(VERSION 3.28)
 project(cosmoscout-vr VERSION 1.10.0)
 
-# Use cmake 3.12's <PACKAGE>_ROOT variabled for searching.
-cmake_policy(SET CMP0074 NEW)
-
 # Ensure local modules (for dependencies etc.) are found.
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
 
@@ -32,21 +29,6 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 include(GenerateExportHeader)
 
 find_package(OpenGL REQUIRED)
-
-# You have to provide the directory where the externals got installed to. The scripts make_*.sh and
-# make_*.bat set this directory via the command line.
-set(COSMOSCOUT_EXTERNALS_DIR COSMOSCOUT_EXTERNALS_DIR-NotFound 
-  CACHE STRING "Directory where the externals got installed to.")
-
-# Make sure to use forward slashes only.
-file(TO_CMAKE_PATH ${COSMOSCOUT_EXTERNALS_DIR} COSMOSCOUT_EXTERNALS_DIR)
-
-if (DEFINED ENV{VISTA_CMAKE_CONFIG_DIR})
-  SET(VistaCoreLibs_DIR "$ENV{VISTA_CMAKE_CONFIG_DIR}")
-else()
-  SET(VistaCoreLibs_DIR ${COSMOSCOUT_EXTERNALS_DIR}/share/VistaCoreLibs/cmake)
-endif()
-
 find_package(GLM REQUIRED)
 find_package(GLI REQUIRED)
 find_package(unofficial-cspice REQUIRED)
@@ -58,19 +40,8 @@ find_package(TIFF REQUIRED)
 find_package(GLEW REQUIRED)
 find_package(SDL2 REQUIRED)
 find_package(SDL2_ttf REQUIRED)
-find_package(OPENSG REQUIRED)
-find_package(VistaCoreLibs REQUIRED 
-  COMPONENTS
-    VistaAspects
-    VistaBase
-    VistaMath
-    VistaTools
-    VistaInterProcComm
-    VistaDataFlowNet
-    VistaKernel
-    VistaKernelOpenSGExt
-    VistaOGLExt
-)
+find_package(OpenSG REQUIRED)
+find_package(Vista REQUIRED)
 
 # X11 is used on Linux to set the application window's name and icon.
 if (UNIX)
@@ -81,7 +52,7 @@ endif()
 
 # Copy all third-party libraries to install directory.
 install(
-  DIRECTORY ${COSMOSCOUT_EXTERNALS_DIR}/lib/ ${COSMOSCOUT_EXTERNALS_DIR}/bin/ ${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/lib/ ${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/bin/
+  DIRECTORY ${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/lib/ ${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/bin/
   DESTINATION "lib"
   FILES_MATCHING PATTERN "*.so*" PATTERN "*.dll*"
 )

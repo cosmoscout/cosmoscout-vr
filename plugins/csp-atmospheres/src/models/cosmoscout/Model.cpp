@@ -9,7 +9,7 @@
 
 #include "../../logger.hpp"
 
-#include "../../../src/cs-utils/filesystem.hpp"
+#include "../../../../../src/cs-utils/filesystem.hpp"
 
 namespace csp::atmospheres::models::cosmoscout {
 
