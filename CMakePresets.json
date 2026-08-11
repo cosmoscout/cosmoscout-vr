@@ -16,7 +16,7 @@
         "COSMOSCOUT_UNIT_TESTS": "On",
         "CMAKE_INSTALL_MESSAGE": "LAZY"
       },
-      "toolchainFile": "${sourceDir}/vcpkg/scripts/buildsystems/vcpkg.cmake"
+      "toolchainFile": "${sourceDir}/tools/vcpkg/scripts/buildsystems/vcpkg.cmake"
     },
     {
       "name": "ninja",
@@ -202,6 +202,112 @@
       "name": "linux-make-debug-build",
       "inherits": "build-linux",
       "configurePreset": "linux-make-debug-config"
+    }
+  ],
+  "workflowPresets": [
+    {
+      "name": "windows-ninja-release",
+      "steps": [
+        {
+          "type": "configure",
+          "name": "windows-ninja-release-config"
+        },
+        {
+          "type": "build",
+          "name": "windows-ninja-release-build"
+        }
+      ]
+    },
+    {
+      "name": "windows-ninja-debug",
+      "steps": [
+        {
+          "type": "configure",
+          "name": "windows-ninja-debug-config"
+        },
+        {
+          "type": "build",
+          "name": "windows-ninja-debug-build"
+        }
+      ]
+    },
+    {
+      "name": "windows-vs-release",
+      "steps": [
+        {
+          "type": "configure",
+          "name": "windows-vs-release-config"
+        },
+        {
+          "type": "build",
+          "name": "windows-vs-release-build"
+        }
+      ]
+    },
+    {
+      "name": "windows-vs-debug",
+      "steps": [
+        {
+          "type": "configure",
+          "name": "windows-vs-debug-config"
+        },
+        {
+          "type": "build",
+          "name": "windows-vs-debug-build"
+        }
+      ]
+    },
+    {
+      "name": "linux-ninja-release",
+      "steps": [
+        {
+          "type": "configure",
+          "name": "linux-ninja-release-config"
+        },
+        {
+          "type": "build",
+          "name": "linux-ninja-release-build"
+        }
+      ]
+    },
+    {
+      "name": "linux-ninja-debug",
+      "steps": [
+        {
+          "type": "configure",
+          "name": "linux-ninja-debug-config"
+        },
+        {
+          "type": "build",
+          "name": "linux-ninja-debug-build"
+        }
+      ]
+    },
+    {
+      "name": "linux-make-release",
+      "steps": [
+        {
+          "type": "configure",
+          "name": "linux-make-release-config"
+        },
+        {
+          "type": "build",
+          "name": "linux-make-release-build"
+        }
+      ]
+    },
+    {
+      "name": "linux-make-debug",
+      "steps": [
+        {
+          "type": "configure",
+          "name": "linux-make-debug-config"
+        },
+        {
+          "type": "build",
+          "name": "linux-make-debug-build"
+        }
+      ]
     }
   ]
 }

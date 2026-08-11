@@ -5,7 +5,7 @@
   "description": "Chromium Embedded Framework (CEF): embed a Chromium-based browser in a native application. This port consumes CEF's official prebuilt 'minimal' binary distribution and compiles libcef_dll_wrapper from the sources bundled in that distribution.",
   "homepage": "https://bitbucket.org/chromiumembedded/cef",
   "license": "BSD-3-Clause",
-  "supports": "windows & x64",
+  "supports": "(windows & x64) | (linux & x64)",
   "dependencies": [
     {
       "name": "vcpkg-cmake",

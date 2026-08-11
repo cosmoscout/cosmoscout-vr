@@ -16,13 +16,16 @@
 
 vcpkg_check_linkage(ONLY_DYNAMIC_LIBRARY)
 
-if(NOT VCPKG_TARGET_IS_WINDOWS OR NOT VCPKG_TARGET_ARCHITECTURE STREQUAL "x64")
-    message(FATAL_ERROR
-            "The cef port only wires up windows-x64 triplets right now.\n"
-            "To add another platform, extend CEF_PLATFORM below with the matching\n"
-            "cef-builds.spotifycdn.com platform tag (windows32, macosx64, macosarm64,\n"
-            "linux64, linuxarm64, ...) and re-check the install layout, since it\n"
-            "differs per platform (e.g. no .lib import libs on Linux/macOS).")
+if(VCPKG_TARGET_IS_WINDOWS AND VCPKG_TARGET_ARCHITECTURE STREQUAL "x64")
+  # Windows‑x64 is supported – nothing to do here
+elseif(VCPKG_TARGET_IS_LINUX AND VCPKG_TARGET_ARCHITECTURE STREQUAL "x64")
+  # Linux (x64 or arm64) is supported – nothing to do here
+else()
+  message(FATAL_ERROR
+      "The cef port currently supports only:\n"
+      "  - windows-x64\n"
+      "  - linux-x64\n"
+      "Unsupported triplet: ${VCPKG_TARGET_TRIPLET}")
 endif()
 
 # The "minimal" distribution only ships Release binaries, so there is nothing
@@ -30,7 +33,14 @@ endif()
 set(VCPKG_BUILD_TYPE release)
 
 set(CEF_VERSION "135.0.20+ge7de5c3+chromium-135.0.7049.85")
-set(CEF_PLATFORM "windows64")
+
+set(CEF_PLATFORM "unsupported")
+if(VCPKG_TARGET_IS_WINDOWS AND VCPKG_TARGET_ARCHITECTURE STREQUAL "x64")
+  set(CEF_PLATFORM "windows64")
+elseif(VCPKG_TARGET_IS_LINUX AND VCPKG_TARGET_ARCHITECTURE STREQUAL "x64")
+  set(CEF_PLATFORM "linux64")
+endif()
+
 set(CEF_DISTRIB_TYPE "minimal")
 set(CEF_ARCHIVE_NAME "cef_binary_${CEF_VERSION}_${CEF_PLATFORM}_${CEF_DISTRIB_TYPE}")
 
@@ -41,21 +51,28 @@ set(CEF_ARCHIVE_NAME "cef_binary_${CEF_VERSION}_${CEF_PLATFORM}_${CEF_DISTRIB_TY
 # vcpkg will refuse to proceed and print the actual hash of the downloaded
 # file, which you then paste in here. This is the standard way to pin a
 # distfile's hash without fetching it out-of-band.
+
+if (VCPKG_TARGET_IS_WINDOWS)
+  set(CEF_SHA512 17edb65628c7d1f82a91a156d6ea3f01420f4ef97fa8b1d7c7072f2973ee0ec7a20121e2cbb4760368f9978a55aac4a6c6f3a38ab239417a98cbe2170ce82e8d)
+elseif (VCPKG_TARGET_IS_LINUX)
+  set(CEF_SHA512 481bac3c124070c79cff0d9175d22f36233f29d4886b1e1bf0127e2ea11ecefbae838c5d04b90b9e4a06b085abe5ba9d787f9af7be2351c99f3ee21e40c7645a)
+endif ()
+
 vcpkg_download_distfile(ARCHIVE
-        URLS "https://cef-builds.spotifycdn.com/${CEF_ARCHIVE_NAME}.tar.bz2"
-        FILENAME "${CEF_ARCHIVE_NAME}.tar.bz2"
-        SHA512 17edb65628c7d1f82a91a156d6ea3f01420f4ef97fa8b1d7c7072f2973ee0ec7a20121e2cbb4760368f9978a55aac4a6c6f3a38ab239417a98cbe2170ce82e8d
+    URLS "https://cef-builds.spotifycdn.com/${CEF_ARCHIVE_NAME}.tar.bz2"
+    FILENAME "${CEF_ARCHIVE_NAME}.tar.bz2"
+    SHA512 ${CEF_SHA512}
 )
 
 vcpkg_extract_source_archive_ex(
-        OUT_SOURCE_PATH SOURCE_PATH
-        ARCHIVE "${ARCHIVE}"
-        REF "${CEF_VERSION}"
+    OUT_SOURCE_PATH SOURCE_PATH
+    ARCHIVE "${ARCHIVE}"
+    REF "${CEF_VERSION}"
 )
 
 # Defensive: not present in every "minimal" build, but strip it if it is.
 if(EXISTS "${SOURCE_PATH}/tests")
-    file(REMOVE_RECURSE "${SOURCE_PATH}/tests")
+  file(REMOVE_RECURSE "${SOURCE_PATH}/tests")
 endif()
 
 # vcpkg's toolchain appends -DBUILD_SHARED_LIBS=ON (based on VCPKG_LIBRARY_LINKAGE)
@@ -77,27 +94,27 @@ vcpkg_replace_string(
 # is "dynamic" for every triplet that reaches this point, but we derive the
 # flag anyway rather than hardcoding /MD, in case that constraint ever loosens.
 if(VCPKG_CRT_LINKAGE STREQUAL "dynamic")
-    set(CEF_RUNTIME_LIBRARY_FLAG "/MD")
+  set(CEF_RUNTIME_LIBRARY_FLAG "/MD")
 else()
-    set(CEF_RUNTIME_LIBRARY_FLAG "/MT")
+  set(CEF_RUNTIME_LIBRARY_FLAG "/MT")
 endif()
 
 vcpkg_cmake_configure(
-        SOURCE_PATH "${SOURCE_PATH}"
-        OPTIONS
-        -DCEF_RUNTIME_LIBRARY_FLAG=${CEF_RUNTIME_LIBRARY_FLAG}
-        -DCEF_DEBUG_INFO_FLAG=
-        -DUSE_SANDBOX=OFF
-        # Document intent (vcpkg's toolchain overrides this to ON at the end
-        # of the cmake command line anyway - see the patch below for the real
-        # fix). The wrapper must always be static: it's glue code that gets
-        # linked into your app and resolves its libcef symbols against
-        # libcef.lib/.dll at your app's link/load time, not its own.  Without
-        # the STATIC patch the wrapper is built as a DLL and fails to link with
-        # "unresolved external symbol cef_string_utf16_set" (or any other
-        # libcef-exported symbol it references), since nothing has linked
-        # libcef.lib into it at that point.
-        -DBUILD_SHARED_LIBS=OFF
+    SOURCE_PATH "${SOURCE_PATH}"
+    OPTIONS
+    -DCEF_RUNTIME_LIBRARY_FLAG=${CEF_RUNTIME_LIBRARY_FLAG}
+    -DCEF_DEBUG_INFO_FLAG=
+    -DUSE_SANDBOX=OFF
+    # Document intent (vcpkg's toolchain overrides this to ON at the end
+    # of the cmake command line anyway - see the patch below for the real
+    # fix). The wrapper must always be static: it's glue code that gets
+    # linked into your app and resolves its libcef symbols against
+    # libcef.lib/.dll at your app's link/load time, not its own.  Without
+    # the STATIC patch the wrapper is built as a DLL and fails to link with
+    # "unresolved external symbol cef_string_utf16_set" (or any other
+    # libcef-exported symbol it references), since nothing has linked
+    # libcef.lib into it at that point.
+    -DBUILD_SHARED_LIBS=OFF
 )
 
 vcpkg_cmake_build(TARGET libcef_dll_wrapper)
@@ -124,8 +141,8 @@ file(COPY ${CEF_RELEASE_FILES} DESTINATION "${CURRENT_PACKAGES_DIR}/bin")
 # Import libraries (.lib) belong in lib/, not bin/.
 file(GLOB CEF_IMPORT_LIBS "${CURRENT_PACKAGES_DIR}/bin/*.lib")
 if(CEF_IMPORT_LIBS)
-    file(COPY ${CEF_IMPORT_LIBS} DESTINATION "${CURRENT_PACKAGES_DIR}/lib")
-    file(REMOVE ${CEF_IMPORT_LIBS})
+  file(COPY ${CEF_IMPORT_LIBS} DESTINATION "${CURRENT_PACKAGES_DIR}/lib")
+  file(REMOVE ${CEF_IMPORT_LIBS})
 endif()
 
 # The wrapper we just built. Search recursively since the exact path differs
@@ -133,7 +150,7 @@ endif()
 file(GLOB_RECURSE CEF_WRAPPER_LIB "${CURRENT_BUILDTREES_DIR}/${TARGET_TRIPLET}-rel/*libcef_dll_wrapper.lib")
 list(LENGTH CEF_WRAPPER_LIB CEF_WRAPPER_LIB_COUNT)
 if(NOT CEF_WRAPPER_LIB_COUNT EQUAL 1)
-    message(FATAL_ERROR "Expected exactly one libcef_dll_wrapper.lib, found: ${CEF_WRAPPER_LIB}")
+  message(FATAL_ERROR "Expected exactly one libcef_dll_wrapper.lib, found: ${CEF_WRAPPER_LIB}")
 endif()
 file(COPY ${CEF_WRAPPER_LIB} DESTINATION "${CURRENT_PACKAGES_DIR}/lib")
 
