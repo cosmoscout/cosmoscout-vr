@@ -93,10 +93,8 @@ void setAppIcon(std::string const& file) {
 
         std::vector<uint8_t> downSampled(newWidth * newHeight * 4);
 
-        stbir_resize_uint8_linear(
-            pixels.data(), width, height, 0,
-            downSampled.data(), newWidth, newHeight, 0,
-            STBIR_RGBA);
+        stbir_resize_uint8_linear(pixels.data(), width, height, 0, downSampled.data(), newWidth,
+            newHeight, 0, STBIR_RGBA);
 
         pixels = downSampled;
         width  = newWidth;

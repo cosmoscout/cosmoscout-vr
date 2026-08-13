@@ -1,3 +1,10 @@
+# ------------------------------------------------------------------------------------------------ #
+#                                This file is part of CosmoScout VR                                #
+# ------------------------------------------------------------------------------------------------ #
+
+# SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
+# SPDX-License-Identifier: MIT
+
 vcpkg_from_github(
     OUT_SOURCE_PATH SOURCE_PATH
     REPO cosmoscout/opensg-1.8

@@ -1,3 +1,10 @@
+# ------------------------------------------------------------------------------------------------ #
+#                                This file is part of CosmoScout VR                                #
+# ------------------------------------------------------------------------------------------------ #
+
+# SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
+# SPDX-License-Identifier: MIT
+
 # cef-config.cmake
 #
 # Provides:
@@ -5,7 +12,7 @@
 #   cef::libcef_dll_wrapper  - IMPORTED STATIC, the wrapper built from source
 #                              (link this one; it pulls in cef::libcef)
 #   CEF_RESOURCE_DIR         - path to Resources/ (*.pak files, locales/)
-#   CEF_BINARY_DIR           - path to bin/ (libcef.dll and friends)
+#   CEF_BINARY_DIR           - path to bin/ (libcef and friends)
 #   cef_copy_runtime_files(<target>) - post-build step that copies the DLLs
 #                              and resources next to <target>'s output binary
 
@@ -49,7 +56,7 @@ endif()
 set(CEF_RESOURCE_DIR "${_cef_root}/share/cef/Resources")
 set(CEF_BINARY_DIR "${_cef_root}/bin")
 
-# Copies libcef.dll + the rest of the Chromium runtime, plus Resources/
+# Copies libcef + the rest of the Chromium runtime, plus Resources/
 # (*.pak files and locales/), next to <target>'s built binary as a post-build
 # step. Call this once per executable/plugin target that links cef::libcef.
 function(cef_copy_runtime_files target)

@@ -14,11 +14,11 @@
 #include "../../../src/cs-utils/filesystem.hpp"
 #include "../../../src/cs-utils/utils.hpp"
 
+#include <cstring>
 #include <curlcpp/curl_easy.h>
 #include <curlcpp/curl_easy_info.h>
 #include <curlcpp/curl_info.h>
 #include <curlcpp/curl_option.h>
-#include <cstring>
 #include <fstream>
 #include <sstream>
 
@@ -425,8 +425,8 @@ std::optional<std::string> TileSourceWebMapService::loadData(TileId const& tileI
     std::ostringstream                 headerSink;
     curl::curl_ios<std::ostringstream> headerWriter(headerSink);
 
-    curl::curl_ios<std::ostream>       bodyWriter(out);
-    curl::curl_easy request(bodyWriter);
+    curl::curl_ios<std::ostream> bodyWriter(out);
+    curl::curl_easy              request(bodyWriter);
     request.add<CURLOPT_URL>(url.str().c_str());
     request.add<CURLOPT_NOSIGNAL>(true);
     request.add<CURLOPT_HEADERDATA>(headerWriter.get_stream());

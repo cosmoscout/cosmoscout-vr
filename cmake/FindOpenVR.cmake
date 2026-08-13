@@ -1,3 +1,10 @@
+# ------------------------------------------------------------------------------------------------ #
+#                                This file is part of CosmoScout VR                                #
+# ------------------------------------------------------------------------------------------------ #
+
+# SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
+# SPDX-License-Identifier: MIT
+
 # Locate header.
 find_path(OPENVR_INCLUDE_DIR openvr.h
     HINTS ${OPENVR_ROOT_DIR}/include)

@@ -596,7 +596,7 @@ class TimelineApi extends IApi {
     let   startDate = new Date(this._centerTime.getTime());
     let   endDate   = new Date(this._centerTime.getTime());
     startDate       = CosmoScout.utils.decreaseDate(
-              startDate, step.days, step.hours, step.minutes, step.seconds, step.milliSec);
+        startDate, step.days, step.hours, step.minutes, step.seconds, step.milliSec);
     endDate = CosmoScout.utils.increaseDate(
         endDate, step.days, step.hours, step.minutes, step.seconds, step.milliSec);
     this._updateOverviewLens();

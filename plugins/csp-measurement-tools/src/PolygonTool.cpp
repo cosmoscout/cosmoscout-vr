@@ -472,7 +472,7 @@ void PolygonTool::createMesh(std::vector<Triangle>& triangles) {
                         }
                       }
                     } // if (intersectionX==s.first.mX)
-                  }   // if (addCorners[i].mAddr == addrNew)
+                  } // if (addCorners[i].mAddr == addrNew)
                   // if (addCorners[i].mAddr > addrNew)
                   else {
                     oldCorner = addCorner;
@@ -501,9 +501,9 @@ void PolygonTool::createMesh(std::vector<Triangle>& triangles) {
               // Corners needed to be added -> run the cycle again
               edgesOK = false;
             } // if (findIntersection(...))
-          }   // for (auto const& s : triangulation)
-        }     // if (!found)
-      }       // for (int i = 0; i < mCorners.size(); i++)
+          } // for (auto const& s : triangulation)
+        } // if (!found)
+      } // for (int i = 0; i < mCorners.size(); i++)
 
       // Counts the intersection corners already added to mCorners
       int cornerCount = 0;
@@ -1303,7 +1303,7 @@ void PolygonTool::updateCalculation() {
         pointCount += mCornersFine[triangleCount].size();
         triangleCount++;
       } // if (checkPoint(avgPoint))
-    }   // for (auto const& t : triangles)
+    } // for (auto const& t : triangles)
 
     // Displays values
     if (!std::isnan(area)) {

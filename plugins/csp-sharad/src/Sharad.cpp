@@ -17,9 +17,9 @@
 
 #include <VistaKernel/GraphicsManager/VistaGroupNode.h>
 #include <VistaKernel/GraphicsManager/VistaOpenGLNode.h>
-#include <VistaOGLExt/VistaTexture.h>
 #include <VistaKernel/VistaSystem.h>
 #include <VistaKernelOpenSGExt/VistaOpenSGMaterialTools.h>
+#include <VistaOGLExt/VistaTexture.h>
 #include <glm/gtc/type_ptr.hpp>
 
 #include <cstdio>

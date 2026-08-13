@@ -1,26 +1,23 @@
+# ------------------------------------------------------------------------------------------------ #
+#                                This file is part of CosmoScout VR                                #
+# ------------------------------------------------------------------------------------------------ #
+
+# SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
+# SPDX-License-Identifier: MIT
+
 # =============================================================================
 # CEF ships two things that need very different handling:
-#   1. libcef.dll / libcef.lib and the rest of the Chromium runtime - these are
+#   1. libcef library and the rest of the Chromium runtime - these are
 #      prebuilt by upstream and are NOT compiled here (there is no source for
 #      them in the binary distribution).
 #   2. libcef_dll_wrapper - a small static glue library whose source IS bundled
 #      in the distribution, and which we build with the current triplet's
 #      compiler/flags so it is ABI-compatible with the rest of the user's app.
-#
-# This mirrors upstream's own recommended usage (see cef_binary/CMakeLists.txt)
-# and is why the vcpkg team never accepted a CEF port upstream: the curated
-# microsoft/vcpkg registry requires ports build (nearly) everything from
-# source. See https://github.com/microsoft/vcpkg/pull/10102 for the history.
-# This port is intended as a private overlay port, not for upstream vcpkg.
 # =============================================================================
 
 vcpkg_check_linkage(ONLY_DYNAMIC_LIBRARY)
 
-if(VCPKG_TARGET_IS_WINDOWS AND VCPKG_TARGET_ARCHITECTURE STREQUAL "x64")
-  # Windows‑x64 is supported – nothing to do here
-elseif(VCPKG_TARGET_IS_LINUX AND VCPKG_TARGET_ARCHITECTURE STREQUAL "x64")
-  # Linux (x64 or arm64) is supported – nothing to do here
-else()
+if (NOT VCPKG_TARGET_ARCHITECTURE STREQUAL "x64" OR (NOT VCPKG_TARGET_IS_WINDOWS AND NOT VCPKG_TARGET_IS_LINUX))
   message(FATAL_ERROR
       "The cef port currently supports only:\n"
       "  - windows-x64\n"
@@ -32,6 +29,9 @@ endif()
 # to gain from (and no way to satisfy) a Debug build here.
 set(VCPKG_BUILD_TYPE release)
 
+# ----------------------------------------------------------------------------
+# Download
+# ----------------------------------------------------------------------------
 set(CEF_VERSION "135.0.20+ge7de5c3+chromium-135.0.7049.85")
 
 set(CEF_PLATFORM "unsupported")
@@ -43,14 +43,6 @@ endif()
 
 set(CEF_DISTRIB_TYPE "minimal")
 set(CEF_ARCHIVE_NAME "cef_binary_${CEF_VERSION}_${CEF_PLATFORM}_${CEF_DISTRIB_TYPE}")
-
-# ----------------------------------------------------------------------------
-# Download
-# ----------------------------------------------------------------------------
-# The SHA512 below is a placeholder. Run the install once with it left as-is;
-# vcpkg will refuse to proceed and print the actual hash of the downloaded
-# file, which you then paste in here. This is the standard way to pin a
-# distfile's hash without fetching it out-of-band.
 
 if (VCPKG_TARGET_IS_WINDOWS)
   set(CEF_SHA512 17edb65628c7d1f82a91a156d6ea3f01420f4ef97fa8b1d7c7072f2973ee0ec7a20121e2cbb4760368f9978a55aac4a6c6f3a38ab239417a98cbe2170ce82e8d)
@@ -99,11 +91,11 @@ set(CEF_CONFIGURE_OPTIONS
     # of the cmake command line anyway - see the patch below for the real
     # fix). The wrapper must always be static: it's glue code that gets
     # linked into your app and resolves its libcef symbols against
-    # libcef.lib/.dll at your app's link/load time, not its own.  Without
+    # libcef at your app's link/load time, not its own.  Without
     # the STATIC patch the wrapper is built as a DLL and fails to link with
     # "unresolved external symbol cef_string_utf16_set" (or any other
     # libcef-exported symbol it references), since nothing has linked
-    # libcef.lib into it at that point.
+    # libcef into it at that point.
     -DBUILD_SHARED_LIBS=OFF
 )
 
@@ -132,9 +124,8 @@ vcpkg_cmake_build(TARGET libcef_dll_wrapper)
 # Install
 # ----------------------------------------------------------------------------
 # CEF's own CMakeLists.txt has no install() rules at all for the binary
-# distribution - upstream expects you to copy files manually (exactly what
-# your batch script did), so we replicate that step by hand instead of calling
-# vcpkg_cmake_install().
+# distribution - upstream expects you to copy files manually, so we replicate
+# that step by hand instead of calling vcpkg_cmake_install().
 
 # Headers: CEF's own headers use the convention #include "include/cef_xxx.h",
 # i.e. they expect the *parent* of "include/" on the include path, not
@@ -143,11 +134,11 @@ vcpkg_cmake_build(TARGET libcef_dll_wrapper)
 # have consumer code's #include "include/cef_app.h" resolve correctly.
 file(COPY "${SOURCE_PATH}/include" DESTINATION "${CURRENT_PACKAGES_DIR}/include/cef")
 
-# Prebuilt Release binaries (libcef.dll and the rest of the Chromium runtime).
+# Prebuilt Release binaries (libcef and the rest of the Chromium runtime).
 file(GLOB CEF_RELEASE_FILES "${SOURCE_PATH}/Release/*")
 file(COPY ${CEF_RELEASE_FILES} DESTINATION "${CURRENT_PACKAGES_DIR}/bin")
 
-# Import libraries (.lib) belong in lib/, not bin/.
+# Import libraries.
 file(GLOB CEF_IMPORT_LIBS "${CURRENT_PACKAGES_DIR}/bin/*.lib")
 if(CEF_IMPORT_LIBS)
   file(COPY ${CEF_IMPORT_LIBS} DESTINATION "${CURRENT_PACKAGES_DIR}/lib")
