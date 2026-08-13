@@ -91,10 +91,6 @@ jobs:
         uses: actions/checkout@v4
       - name: Checkout Submodules
         run: git submodule update --init
-      - name: Cache Object Files
-        uses: hendrikmuhs/ccache-action@v1.2.5
-        with:
-          key: gcc
       - name: Download Dependencies
         run: |
           sudo apt-get update -q
@@ -102,8 +98,7 @@ jobs:
           sudo apt-get install libxi-dev lcov xvfb libfreetype-dev
       - name: Build CosmoScout VR
         run: |
-          cmake --preset linux-make-release-config -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCOSMOSCOUT_COVERAGE_INFO=On
-          cmake --build --preset linux-make-release-build
+          cmake --workflow linux-ninja-release
       - name: Run Tests
         run: |
           ./install/linux-Release/bin/run_tests.sh
@@ -142,10 +137,6 @@ jobs:
         uses: actions/checkout@v4
       - name: Checkout Submodules
         run: git submodule update --init --recursive
-      - name: Cache Object Files
-        uses: hendrikmuhs/ccache-action@v1.2.5
-        with:
-          key: clang
       - name: Download Dependencies
         run: |
           sudo apt-get update -q
@@ -153,8 +144,7 @@ jobs:
           sudo apt-get install libxi-dev libfreetype-dev
       - name: Build CosmoScout VR
         run: |
-          cmake --preset linux-make-release-config -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCOSMOSCOUT_COVERAGE_INFO=On
-          cmake --build --preset linux-make-release-build
+          cmake --workflow linux-ninja-release
       - name: Run Tests
         run: |
           ./install/linux-Release/bin/run_tests.sh
@@ -183,10 +173,6 @@ jobs:
         uses: actions/checkout@v4
       - name: Checkout Submodules
         run: git submodule update --init --recursive
-      - name: Cache Object Files
-        uses: hendrikmuhs/ccache-action@v1.2.5
-        with:
-          key: msvc
       - name: Setup CMD
         uses: ilammy/msvc-dev-cmd@v1
       - name: Download Dependencies
@@ -195,8 +181,7 @@ jobs:
       - name: Build CosmoScout VR
         shell: cmd
         run: |
-          cmake --preset windows-ninja-release-config -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache
-          cmake --build --preset windows-ninja-release-build
+          cmake --workflow windows-ninja-release
       - name: Run Tests
         shell: cmd
         run: |
