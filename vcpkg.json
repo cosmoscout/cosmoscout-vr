@@ -9,6 +9,11 @@
     "glew",
     "sdl2",
     "sdl2-ttf",
+    {
+      "name": "dbus",
+      "platform": "linux",
+      "default-features": false
+    },
     "curl",
     "curlcpp",
     {

@@ -93,17 +93,7 @@ vcpkg_replace_string(
 # vcpkg_check_linkage(ONLY_DYNAMIC_LIBRARY) above guarantees VCPKG_CRT_LINKAGE
 # is "dynamic" for every triplet that reaches this point, but we derive the
 # flag anyway rather than hardcoding /MD, in case that constraint ever loosens.
-if(VCPKG_CRT_LINKAGE STREQUAL "dynamic")
-  set(CEF_RUNTIME_LIBRARY_FLAG "/MD")
-else()
-  set(CEF_RUNTIME_LIBRARY_FLAG "/MT")
-endif()
-
-vcpkg_cmake_configure(
-    SOURCE_PATH "${SOURCE_PATH}"
-    OPTIONS
-    -DCEF_RUNTIME_LIBRARY_FLAG=${CEF_RUNTIME_LIBRARY_FLAG}
-    -DCEF_DEBUG_INFO_FLAG=
+set(CEF_CONFIGURE_OPTIONS
     -DUSE_SANDBOX=OFF
     # Document intent (vcpkg's toolchain overrides this to ON at the end
     # of the cmake command line anyway - see the patch below for the real
@@ -115,6 +105,25 @@ vcpkg_cmake_configure(
     # libcef-exported symbol it references), since nothing has linked
     # libcef.lib into it at that point.
     -DBUILD_SHARED_LIBS=OFF
+)
+
+if(VCPKG_TARGET_IS_WINDOWS)
+  if(VCPKG_CRT_LINKAGE STREQUAL "dynamic")
+    set(CEF_RUNTIME_LIBRARY_FLAG "/MD")
+  else()
+    set(CEF_RUNTIME_LIBRARY_FLAG "/MT")
+  endif()
+
+  list(APPEND CEF_CONFIGURE_OPTIONS
+      -DCEF_RUNTIME_LIBRARY_FLAG=${CEF_RUNTIME_LIBRARY_FLAG}
+      -DCEF_DEBUG_INFO_FLAG=
+  )
+endif()
+
+vcpkg_cmake_configure(
+    SOURCE_PATH "${SOURCE_PATH}"
+    OPTIONS
+    ${CEF_CONFIGURE_OPTIONS}
 )
 
 vcpkg_cmake_build(TARGET libcef_dll_wrapper)
@@ -147,10 +156,14 @@ endif()
 
 # The wrapper we just built. Search recursively since the exact path differs
 # between single-config (Ninja) and multi-config (MSBuild) generators.
-file(GLOB_RECURSE CEF_WRAPPER_LIB "${CURRENT_BUILDTREES_DIR}/${TARGET_TRIPLET}-rel/*libcef_dll_wrapper.lib")
+# On Windows the wrapper is a .lib file, while on Linux it is a static .a archive.
+# Use a glob that matches both extensions to handle both platforms.
+file(GLOB_RECURSE CEF_WRAPPER_LIB
+    "${CURRENT_BUILDTREES_DIR}/${TARGET_TRIPLET}-rel/*libcef_dll_wrapper.lib"
+    "${CURRENT_BUILDTREES_DIR}/${TARGET_TRIPLET}-rel/*libcef_dll_wrapper.a")
 list(LENGTH CEF_WRAPPER_LIB CEF_WRAPPER_LIB_COUNT)
 if(NOT CEF_WRAPPER_LIB_COUNT EQUAL 1)
-  message(FATAL_ERROR "Expected exactly one libcef_dll_wrapper.lib, found: ${CEF_WRAPPER_LIB}")
+  message(FATAL_ERROR "Expected exactly one libcef_dll_wrapper library, found: ${CEF_WRAPPER_LIB}")
 endif()
 file(COPY ${CEF_WRAPPER_LIB} DESTINATION "${CURRENT_PACKAGES_DIR}/lib")
 

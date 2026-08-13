@@ -18,11 +18,10 @@
 #include <curlcpp/curl_easy_info.h>
 #include <curlcpp/curl_info.h>
 #include <curlcpp/curl_option.h>
+#include <cstring>
 #include <fstream>
 #include <sstream>
 
-#define STB_IMAGE_IMPLEMENTATION
-#define STB_IMAGE_WRITE_IMPLEMENTATION
 #include <stb_image.h>
 
 #include <tiffio.h>

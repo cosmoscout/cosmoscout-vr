@@ -19,6 +19,11 @@ if(NOT MSVC)
 
     set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Release or Debug" FORCE)
   endif()
+
+
+  set(CMAKE_INSTALL_RPATH "$ORIGIN/../lib")
+  set(CMAKE_SKIP_RPATH OFF)
+  set(CMAKE_BUILD_WITH_INSTALL_RPATH OFF)
 endif()
 
 # Use folders when targeting an IDE
@@ -36,7 +41,7 @@ find_package(CURL REQUIRED)
 find_package(CURLCPP REQUIRED)
 find_package(SPDLOG REQUIRED)
 find_package(CEF REQUIRED)
-find_package(TIFF REQUIRED)
+find_package(TIFF REQUIRED COMPONENTS CXX)
 find_package(GLEW REQUIRED)
 find_package(SDL2 REQUIRED)
 find_package(SDL2_ttf REQUIRED)

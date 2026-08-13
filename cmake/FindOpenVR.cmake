@@ -4,7 +4,9 @@ find_path(OPENVR_INCLUDE_DIR openvr.h
 
 # Locate libraries.
 find_library(OPENVR_LIBRARY NAMES openvr_api openvr_api.lib
-    HINTS ${OPENVR_ROOT_DIR}/lib)
+    HINTS ${OPENVR_ROOT_DIR}/lib
+    PATHS ${OPENVR_ROOT_DIR}/lib
+    NO_DEFAULT_PATH)
 
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(OpenVR DEFAULT_MSG OPENVR_INCLUDE_DIR OPENVR_LIBRARY)
@@ -17,12 +19,19 @@ if (OPENVR_FOUND)
     message(STATUS "OPENVR_LIBRARY .................. ${OPENVR_LIBRARY}")
   endif ()
 
-  if (NOT TARGET OpenVR::API)
-    add_library(OpenVR::API UNKNOWN IMPORTED)
-    set_target_properties(OpenVR::API PROPERTIES
-        INTERFACE_INCLUDE_DIRECTORIES "${OPENVR_INCLUDE_DIRS}")
-
-    set_property(TARGET OpenVR::API APPEND PROPERTY
-        IMPORTED_LOCATION "${OPENVR_LIBRARY}")
+  if (NOT TARGET openvr)
+    if (WIN32)
+      add_library(OpenVR::API UNKNOWN IMPORTED)
+      set_target_properties(OpenVR::API PROPERTIES
+          INTERFACE_INCLUDE_DIRECTORIES ${OPENVR_INCLUDE_DIRS}
+          IMPORTED_LOCATION ${OPENVR_LIBRARY}
+      )
+    else ()
+      add_library(OpenVR::API INTERFACE IMPORTED)
+      set_target_properties(OpenVR::API PROPERTIES
+          INTERFACE_INCLUDE_DIRECTORIES ${OPENVR_INCLUDE_DIRS}
+          INTERFACE_LINK_LIBRARIES      ${OPENVR_LIBRARY}
+      )
+    endif ()
   endif ()
 endif ()

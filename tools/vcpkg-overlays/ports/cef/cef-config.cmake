@@ -12,11 +12,11 @@
 get_filename_component(_cef_root "${CMAKE_CURRENT_LIST_DIR}/../.." ABSOLUTE)
 
 if(NOT TARGET cef::libcef)
-    find_file(CEF_LIBCEF_DLL NAMES libcef.dll PATHS "${_cef_root}/bin" NO_DEFAULT_PATH)
+    find_file(CEF_LIBCEF_DLL NAMES libcef.dll libcef.so PATHS "${_cef_root}/bin" NO_DEFAULT_PATH)
     find_library(CEF_LIBCEF_LIB NAMES libcef PATHS "${_cef_root}/lib" NO_DEFAULT_PATH)
 
-    if(NOT CEF_LIBCEF_DLL OR NOT CEF_LIBCEF_LIB)
-        message(FATAL_ERROR "cef-config.cmake: could not locate libcef.dll / libcef.lib under ${_cef_root}")
+    if(NOT CEF_LIBCEF_DLL OR ((NOT CEF_LIBCEF_LIB) AND WIN32))
+        message(FATAL_ERROR "cef-config.cmake: could not locate libcef libraries under ${_cef_root}")
     endif()
 
     add_library(cef::libcef SHARED IMPORTED)
@@ -28,10 +28,15 @@ if(NOT TARGET cef::libcef)
 endif()
 
 if(NOT TARGET cef::libcef_dll_wrapper)
-    find_library(CEF_WRAPPER_LIB NAMES libcef_dll_wrapper PATHS "${_cef_root}/lib" NO_DEFAULT_PATH)
+    find_library(CEF_WRAPPER_LIB
+        NAMES
+        libcef_dll_wrapper
+        libcef_dll_wrapper.a
+        libcef_dll_wrapper.lib
+        PATHS "${_cef_root}/lib" NO_DEFAULT_PATH)
 
     if(NOT CEF_WRAPPER_LIB)
-        message(FATAL_ERROR "cef-config.cmake: could not locate libcef_dll_wrapper.lib under ${_cef_root}/lib")
+        message(FATAL_ERROR "cef-config.cmake: could not locate libcef_dll_wrapper library under ${_cef_root}/lib")
     endif()
 
     add_library(cef::libcef_dll_wrapper STATIC IMPORTED)
@@ -54,6 +59,8 @@ function(cef_copy_runtime_files target)
 
     file(GLOB _cef_runtime_files
         "${CEF_BINARY_DIR}/*.dll"
+        "${CEF_BINARY_DIR}/*.so"
+        "${CEF_BINARY_DIR}/*.so.1"
         "${CEF_BINARY_DIR}/*.dat"
         "${CEF_BINARY_DIR}/*.bin"
         "${CEF_BINARY_DIR}/*.json"

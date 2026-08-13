@@ -7,7 +7,6 @@
 
 #include "Application.hpp"
 
-#include "../../vcpkg_installed/x64-windows/include/curlcpp/curl_global.h"
 #include "../cs-core/DragNavigation.hpp"
 #include "../cs-core/GraphicsEngine.hpp"
 #include "../cs-core/GuiManager.hpp"

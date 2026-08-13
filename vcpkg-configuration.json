@@ -1,3 +1,4 @@
 {
-  "overlay-ports": [ "./tools/vcpkg-overlays/ports" ]
+  "overlay-ports": [ "./tools/vcpkg-overlays/ports" ],
+  "overlay-triplets": [ "./tools/vcpkg-overlays/triplets" ]
 }

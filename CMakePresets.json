@@ -48,6 +48,7 @@
       "binaryDir": "${sourceDir}/build/windows-Release",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
+        "VCPKG_TARGET_TRIPLET": "x64-windows-release",
         "CMAKE_INSTALL_PREFIX": "${sourceDir}/install/windows-Release"
       }
     },
@@ -58,6 +59,7 @@
       "binaryDir": "${sourceDir}/build/windows-Debug",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
+        "VCPKG_TARGET_TRIPLET": "x64-windows-debug",
         "CMAKE_INSTALL_PREFIX": "${sourceDir}/install/windows-Debug"
       }
     },
@@ -77,6 +79,7 @@
       "binaryDir": "${sourceDir}/build/linux-Release",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
+        "VCPKG_TARGET_TRIPLET": "x64-linux-release",
         "CMAKE_INSTALL_PREFIX": "${sourceDir}/install/linux-Release"
       }
     },
@@ -87,6 +90,7 @@
       "binaryDir": "${sourceDir}/build/linux-Debug",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
+        "VCPKG_TARGET_TRIPLET": "x64-linux-debug",
         "CMAKE_INSTALL_PREFIX": "${sourceDir}/install/linux-Debug"
       }
     },
