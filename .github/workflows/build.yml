@@ -96,9 +96,16 @@ jobs:
           sudo apt-get update -q
           sudo apt-get install libgl1-mesa-dev libglu1-mesa-dev libx11-dev
           sudo apt-get install libxi-dev lcov xvfb libfreetype-dev
+      - name: Setup CMake and Ninja
+        uses: lukka/get-cmake@latest
+      - name: Setup vcpkg
+        uses: lukka/run-vcpkg@v11
+        with:
+          vcpkgDirectory: '${{ github.workspace }}/tools/vcpkg'
       - name: Build CosmoScout VR
-        run: |
-          cmake --workflow linux-ninja-release
+        uses: lukka/run-cmake@v10
+        with:
+          workflowPreset: 'linux-ninja-release'
       - name: Run Tests
         run: |
           ./install/linux-Release/bin/run_tests.sh
@@ -142,9 +149,16 @@ jobs:
           sudo apt-get update -q
           sudo apt-get install libgl1-mesa-dev libglu1-mesa-dev libx11-dev
           sudo apt-get install libxi-dev libfreetype-dev
+      - name: Setup CMake and Ninja
+        uses: lukka/get-cmake@latest
+      - name: Setup vcpkg
+        uses: lukka/run-vcpkg@v11
+        with:
+          vcpkgDirectory: '${{ github.workspace }}/tools/vcpkg'
       - name: Build CosmoScout VR
-        run: |
-          cmake --workflow linux-ninja-release
+        uses: lukka/run-cmake@v10
+        with:
+          workflowPreset: 'linux-ninja-release'
       - name: Run Tests
         run: |
           ./install/linux-Release/bin/run_tests.sh
@@ -172,16 +186,17 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
       - name: Checkout Submodules
-        run: git submodule update --init --recursive
-      - name: Setup CMD
-        uses: ilammy/msvc-dev-cmd@v1
-      - name: Download Dependencies
-        run: |
-          choco install ninja
+        run: git submodule update --init
+      - name: Setup CMake and Ninja
+        uses: lukka/get-cmake@latest
+      - name: Setup vcpkg
+        uses: lukka/run-vcpkg@v11
+        with:
+          vcpkgDirectory: '${{ github.workspace }}/tools/vcpkg'
       - name: Build CosmoScout VR
-        shell: cmd
-        run: |
-          cmake --workflow windows-ninja-release
+        uses: lukka/run-cmake@v10
+        with:
+          workflowPreset: 'windows-ninja-release'
       - name: Run Tests
         shell: cmd
         run: |
