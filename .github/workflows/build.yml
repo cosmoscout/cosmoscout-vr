@@ -18,7 +18,7 @@ on:
 jobs:
   clang_format:
     name: Check Clang-Format
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -41,7 +41,7 @@ jobs:
 
   comment_percentage:
     name: Check Comment Percentage
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     if: github.event_name == 'pull_request'
     steps:
       - name: Checkout Current Repository
@@ -90,7 +90,7 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
       - name: Checkout Submodules
-        run: git submodule update --init --recursive
+        run: git submodule update --init
       - name: Cache Object Files
         uses: hendrikmuhs/ccache-action@v1.2.5
         with:
@@ -100,14 +100,9 @@ jobs:
           sudo apt-get update -q
           sudo apt-get install libgl1-mesa-dev libglu1-mesa-dev libx11-dev
           sudo apt-get install libxi-dev lcov xvfb libfreetype-dev
-      - name: Build Externals
-        run: >
-          ./make_externals.sh -G "Unix Makefiles"
-          -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache
       - name: Build CosmoScout VR
         run: |
-          cmake --preset linux-make-release-config -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCOSMOSCOUT_COVERAGE_INFO=On
-          cmake --build --preset linux-make-release-build
+          cmake --workflow linux-make-release -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCOSMOSCOUT_COVERAGE_INFO=On
       - name: Run Tests
         run: |
           ./install/linux-Release/bin/run_tests.sh
@@ -155,14 +150,9 @@ jobs:
           sudo apt-get update -q
           sudo apt-get install libgl1-mesa-dev libglu1-mesa-dev libx11-dev
           sudo apt-get install libxi-dev libfreetype-dev
-      - name: Build Externals
-        run: >
-          ./make_externals.sh -G "Unix Makefiles"
-          -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache
       - name: Build CosmoScout VR
         run: |
-          cmake --preset linux-make-release-config -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache
-          cmake --build --preset linux-make-release-build
+          cmake --workflow linux-make-release -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache
       - name: Run Tests
         run: |
           ./install/linux-Release/bin/run_tests.sh
@@ -200,16 +190,10 @@ jobs:
       - name: Download Dependencies
         run: |
           choco install ninja
-      - name: Build Externals
-        shell: cmd
-        run: >
-          make_externals.bat -GNinja -DCMAKE_C_COMPILER=cl.exe -DCMAKE_CXX_COMPILER=cl.exe
-          -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache
       - name: Build CosmoScout VR
         shell: cmd
         run: |
-          cmake --preset windows-ninja-release-config -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache
-          cmake --build --preset windows-ninja-release-build
+          cmake --workflow windows-ninja-release -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache
       - name: Run Tests
         shell: cmd
         run: |
