@@ -996,7 +996,7 @@ void Application::registerGuiCallbacks() {
           for (auto const& file : files) {
             std::map<std::string, std::string> fileInfo;
             auto                               filePath = saveDir / file;
-            fileInfo["name"]                            = file;
+            fileInfo["name"]                            = filePath.stem();
             fileInfo["path"] = std::filesystem::canonical(filePath).string();
 
             if (std::filesystem::exists(filePath)) {
