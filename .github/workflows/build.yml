@@ -83,14 +83,17 @@ jobs:
       github.event_name == 'pull_request' ||
       ( contains(github.ref, 'main') && !contains(github.event.head_commit.message, '[no-ci]') ) ||
       contains(github.event.head_commit.message, '[run-ci]')
+    permissions:
+      contents: read
+      packages: write
     env:
       COSMOSCOUT_USE_PCH: false
       COSMOSCOUT_USE_UNITY_BUILD: false
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v4
-      - name: Checkout Submodules
-        run: git submodule update --init
+        uses: actions/checkout@v6
+        with:
+          submodules: true
       - name: Download Dependencies
         run: |
           sudo apt-get update -q
@@ -98,10 +101,10 @@ jobs:
           sudo apt-get install libxi-dev lcov xvfb libfreetype-dev
       - name: Setup CMake and Ninja
         uses: lukka/get-cmake@latest
-      - name: Setup vcpkg
-        uses: lukka/run-vcpkg@v11
+      - uses: LegalizeAdulthood/vcpkg-github-cache@v1
         with:
-          vcpkgDirectory: '${{ github.workspace }}/tools/vcpkg'
+          token: ${{ github.token }}
+          vcpkg-root: '${{ github.workspace }}/tools/vcpkg'
       - name: Build CosmoScout VR
         uses: lukka/run-cmake@v10
         with:
@@ -136,6 +139,9 @@ jobs:
       github.event_name == 'pull_request' ||
       ( contains(github.ref, 'main') && !contains(github.event.head_commit.message, '[no-ci]') ) ||
       contains(github.event.head_commit.message, '[run-ci]')
+    permissions:
+      contents: read
+      packages: write
     env:
       CC: clang-18
       CXX: clang++-18
@@ -143,9 +149,9 @@ jobs:
       COSMOSCOUT_USE_UNITY_BUILD: false
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v4
-      - name: Checkout Submodules
-        run: git submodule update --init --recursive
+        uses: actions/checkout@v6
+        with:
+          submodules: true
       - name: Download Dependencies
         run: |
           sudo apt-get update -q
@@ -153,10 +159,10 @@ jobs:
           sudo apt-get install libxi-dev libfreetype-dev
       - name: Setup CMake and Ninja
         uses: lukka/get-cmake@latest
-      - name: Setup vcpkg
-        uses: lukka/run-vcpkg@v11
+      - uses: LegalizeAdulthood/vcpkg-github-cache@v1
         with:
-          vcpkgDirectory: '${{ github.workspace }}/tools/vcpkg'
+          token: ${{ github.token }}
+          vcpkg-root: '${{ github.workspace }}/tools/vcpkg'
       - name: Build CosmoScout VR
         uses: lukka/run-cmake@v10
         with:
@@ -181,20 +187,23 @@ jobs:
       github.event_name == 'pull_request' ||
       ( contains(github.ref, 'main') && !contains(github.event.head_commit.message, '[no-ci]') ) ||
       contains(github.event.head_commit.message, '[run-ci]')
+    permissions:
+      contents: read
+      packages: write
     env:
       COSMOSCOUT_USE_PCH: true
       COSMOSCOUT_USE_UNITY_BUILD: true
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v4
-      - name: Checkout Submodules
-        run: git submodule update --init
+        uses: actions/checkout@v6
+        with:
+          submodules: true
       - name: Setup CMake and Ninja
         uses: lukka/get-cmake@latest
-      - name: Setup vcpkg
-        uses: lukka/run-vcpkg@v11
+      - uses: LegalizeAdulthood/vcpkg-github-cache@v1
         with:
-          vcpkgDirectory: '${{ github.workspace }}/tools/vcpkg'
+          token: ${{ github.token }}
+          vcpkg-root: '${{ github.workspace }}/tools/vcpkg'
       - name: Build CosmoScout VR
         uses: lukka/run-cmake@v10
         with:
