@@ -344,10 +344,9 @@ class MainMenuApi extends IApi {
   _loadSceneFiles() {
     return CosmoScout.callbacks.core.getSceneFiles().then((sceneFiles) => {
       return sceneFiles.map((file) => {
-        const name     = file.name || 'Untitled';
-        const basename = name.split(/[\\/]/).pop();
+        const name = file.name || 'Untitled';
         return {
-          name: basename.replace(/\.json$/i, ''),
+          name: name,
           path: file.path || '',
           date: file.date ? new Date(file.date).toLocaleString() : 'Unknown date',
         };
