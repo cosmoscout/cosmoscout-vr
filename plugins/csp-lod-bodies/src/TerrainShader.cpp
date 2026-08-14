@@ -21,8 +21,7 @@ namespace csp::lodbodies {
 
 TerrainShader::TerrainShader(std::string vertexSource, std::string fragmentSource)
     : mVertexSource(std::move(vertexSource))
-    , mFragmentSource(std::move(fragmentSource)) {
-}
+    , mFragmentSource(std::move(fragmentSource)) {}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 

@@ -18,8 +18,7 @@ namespace cs::utils {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 FrameStats::ScopedTimer::ScopedTimer(std::string name, TimerMode mode)
-    : mID(FrameStats::get().startTimerQuery(std::move(name), mode)) {
-}
+    : mID(FrameStats::get().startTimerQuery(std::move(name), mode)) {}
 
 FrameStats::ScopedTimer::~ScopedTimer() {
   FrameStats::get().endTimerQuery(mID);
@@ -28,8 +27,7 @@ FrameStats::ScopedTimer::~ScopedTimer() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 FrameStats::ScopedSamplesCounter::ScopedSamplesCounter(std::string name)
-    : mID(FrameStats::get().startSamplesQuery(std::move(name))) {
-}
+    : mID(FrameStats::get().startSamplesQuery(std::move(name))) {}
 
 FrameStats::ScopedSamplesCounter::~ScopedSamplesCounter() {
   FrameStats::get().endSamplesQuery(mID);
@@ -38,8 +36,7 @@ FrameStats::ScopedSamplesCounter::~ScopedSamplesCounter() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 FrameStats::ScopedPrimitivesCounter::ScopedPrimitivesCounter(std::string name)
-    : mID(FrameStats::get().startPrimitivesQuery(std::move(name))) {
-}
+    : mID(FrameStats::get().startPrimitivesQuery(std::move(name))) {}
 
 FrameStats::ScopedPrimitivesCounter::~ScopedPrimitivesCounter() {
   FrameStats::get().endPrimitivesQuery(mID);

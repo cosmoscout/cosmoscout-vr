@@ -27,8 +27,7 @@ namespace {
 class GetHandler : public CivetHandler {
  public:
   explicit GetHandler(std::function<void(mg_connection*)> handler)
-      : mHandler(std::move(handler)) {
-  }
+      : mHandler(std::move(handler)) {}
 
   bool handleGet(CivetServer* /*server*/, mg_connection* conn) override {
     mHandler(conn);

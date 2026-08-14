@@ -53,14 +53,12 @@ class BoundingBox {
 template <typename FloatT>
 BoundingBox<FloatT>::BoundingBox()
     : mMin()
-    , mMax() {
-}
+    , mMax() {}
 
 template <typename FloatT>
 BoundingBox<FloatT>::BoundingBox(glm::tvec3<FloatT> const& bbMin, glm::tvec3<FloatT> const& bbMax)
     : mMin(bbMin)
-    , mMax(bbMax) {
-}
+    , mMax(bbMax) {}
 
 template <typename FloatT>
 typename glm::tvec3<FloatT> const& BoundingBox<FloatT>::getMin() const {

@@ -272,15 +272,15 @@ void Plugin::init() {
   mGuiManager->executeJavascriptFile("../share/resources/gui/js/csp-measurement-tools.js");
   mGuiManager->addCSS("css/csp-measurement-tools-sidebar.css");
 
-  mGuiManager->getGui()->callJavascript(
+  mGuiManager->getGui()->callJavaScript(
       "CosmoScout.measurementTools.add", "Location Flag", "edit_location");
-  mGuiManager->getGui()->callJavascript(
+  mGuiManager->getGui()->callJavaScript(
       "CosmoScout.measurementTools.add", "Landing Ellipse", "location_searching");
-  mGuiManager->getGui()->callJavascript("CosmoScout.measurementTools.add", "Path", "timeline");
-  mGuiManager->getGui()->callJavascript(
+  mGuiManager->getGui()->callJavaScript("CosmoScout.measurementTools.add", "Path", "timeline");
+  mGuiManager->getGui()->callJavaScript(
       "CosmoScout.measurementTools.add", "Dip & Strike", "clear_all");
-  mGuiManager->getGui()->callJavascript(
-      "CosmoScout.measurementTools.add", "Polygon", "crop_landscape");
+  mGuiManager->getGui()->callJavaScript(
+      "CosmoScout.measurementTools.add", "Polygon", "activity_zone");
 
   mGuiManager->getGui()->registerCallback("measurementTools.setNext",
       "Selects which tool will be created next. The given string should be either 'Location Flag', "
@@ -343,13 +343,13 @@ void Plugin::init() {
       }
 
       mNextTool = "none";
-      mGuiManager->getGui()->callJavascript("CosmoScout.measurementTools.deselect");
+      mGuiManager->getGui()->callJavaScript("CosmoScout.measurementTools.deselect");
     }
   });
 
   mOnDoubleClickConnection = mInputManager->sOnDoubleClick.connect([this]() {
     mNextTool = "none";
-    mGuiManager->getGui()->callJavascript("CosmoScout.measurementTools.deselect");
+    mGuiManager->getGui()->callJavaScript("CosmoScout.measurementTools.deselect");
   });
 
   mPluginSettings.mPolygonHeightDiff.connect([this](float val) {

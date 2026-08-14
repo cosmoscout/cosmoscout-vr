@@ -372,7 +372,7 @@ void Plugin::init() {
 
         auto overlay = mWMSOverlays.find(object->getCenterName());
 
-        mGuiManager->getGui()->callJavascript(
+        mGuiManager->getGui()->callJavaScript(
             "CosmoScout.sidebar.setTabEnabled", "WMS Overlays", overlay != mWMSOverlays.end());
 
         if (overlay == mWMSOverlays.end()) {
@@ -381,16 +381,16 @@ void Plugin::init() {
         }
         mActiveOverlay = overlay->second;
 
-        mGuiManager->getGui()->callJavascript(
+        mGuiManager->getGui()->callJavaScript(
             "CosmoScout.gui.clearDropdown", "wmsOverlays.setServer");
-        mGuiManager->getGui()->callJavascript(
+        mGuiManager->getGui()->callJavaScript(
             "CosmoScout.gui.addDropdownValue", "wmsOverlays.setServer", "None", "None", false);
 
         auto const& settings   = getBodySettings(overlay->second);
         bool        noneActive = true;
         for (auto const& server : mWms[object->getCenterName()]) {
           bool active = server.getTitle() == settings.mActiveServer.get();
-          mGuiManager->getGui()->callJavascript("CosmoScout.gui.addDropdownValue",
+          mGuiManager->getGui()->callJavaScript("CosmoScout.gui.addDropdownValue",
               "wmsOverlays.setServer", server.getTitle(), server.getTitle(), active);
 
           if (active) {
@@ -586,7 +586,7 @@ void Plugin::initOverlay(std::string const& bodyName, Settings::Body& settings) 
   overlay->pBounds.connectAndTouch([this, &settings, center = bodyName](Bounds bounds) {
     settings.mActiveBounds = bounds;
     if (isActiveOverlay(center)) {
-      mGuiManager->getGui()->callJavascript("CosmoScout.wmsOverlays.setCurrentBounds",
+      mGuiManager->getGui()->callJavaScript("CosmoScout.wmsOverlays.setCurrentBounds",
           bounds.mMinLon, bounds.mMaxLon, bounds.mMinLat, bounds.mMaxLat);
 
       if (!mActiveLayers[mActiveOverlay->getObjectName()]) {
@@ -624,9 +624,9 @@ void Plugin::setWMSServer(
   mActiveServers[wmsOverlay->getObjectName()].emplace(*server);
 
   if (isActiveOverlay(wmsOverlay)) {
-    mGuiManager->getGui()->callJavascript(
+    mGuiManager->getGui()->callJavaScript(
         "CosmoScout.gui.setDropdownValue", "wmsOverlays.setServer", server->getTitle(), false);
-    mGuiManager->getGui()->callJavascript("CosmoScout.wmsOverlays.resetLayerSelect");
+    mGuiManager->getGui()->callJavaScript("CosmoScout.wmsOverlays.resetLayerSelect");
   }
 
   bool        noneActive = true;
@@ -637,7 +637,7 @@ void Plugin::setWMSServer(
     }
   }
   if (isActiveOverlay(wmsOverlay)) {
-    mGuiManager->getGui()->callJavascript("CosmoScout.wmsOverlays.refreshLayerSelect");
+    mGuiManager->getGui()->callJavaScript("CosmoScout.wmsOverlays.refreshLayerSelect");
   }
   if (noneActive) {
     resetWMSLayer(wmsOverlay);
@@ -648,9 +648,9 @@ void Plugin::setWMSServer(
 
 void Plugin::resetWMSServer(std::shared_ptr<TextureOverlayRenderer> const& wmsOverlay) {
   if (isActiveOverlay(wmsOverlay)) {
-    mGuiManager->getGui()->callJavascript(
+    mGuiManager->getGui()->callJavaScript(
         "CosmoScout.gui.setDropdownValue", "wmsOverlays.setServer", "None", false);
-    mGuiManager->getGui()->callJavascript("CosmoScout.wmsOverlays.resetLayerSelect");
+    mGuiManager->getGui()->callJavaScript("CosmoScout.wmsOverlays.resetLayerSelect");
   }
 
   auto& settings = getBodySettings(wmsOverlay);
@@ -681,29 +681,29 @@ void Plugin::setWMSLayer(
       mActiveLayers[wmsOverlay->getObjectName()].value());
 
   if (isActiveOverlay(wmsOverlay)) {
-    mGuiManager->getGui()->callJavascript(
+    mGuiManager->getGui()->callJavaScript(
         "CosmoScout.gui.setDropdownValue", "wmsOverlays.setLayer", layer->getName(), false);
 
-    mGuiManager->getGui()->callJavascript("CosmoScout.gui.clearDropdown", "wmsOverlays.setStyle");
-    mGuiManager->getGui()->callJavascript(
+    mGuiManager->getGui()->callJavaScript("CosmoScout.gui.clearDropdown", "wmsOverlays.setStyle");
+    mGuiManager->getGui()->callJavaScript(
         "CosmoScout.gui.addDropdownValue", "wmsOverlays.setStyle", "", "Default", false);
 
-    mGuiManager->getGui()->callJavascript("CosmoScout.wmsOverlays.setInfo", layer->getTitle(),
+    mGuiManager->getGui()->callJavaScript("CosmoScout.wmsOverlays.setInfo", layer->getTitle(),
         std::regex_replace(layer->getAbstract().value_or("<em>No description given</em>"),
             std::regex("\r"), "</br>"),
         layer->getSettings().mAttribution.value_or("None"));
-    mGuiManager->getGui()->callJavascript("CosmoScout.wmsOverlays.enableInfoButton", true);
+    mGuiManager->getGui()->callJavaScript("CosmoScout.wmsOverlays.enableInfoButton", true);
 
-    mGuiManager->getGui()->callJavascript("CosmoScout.wmsOverlays.enableTimeNavigation",
+    mGuiManager->getGui()->callJavaScript("CosmoScout.wmsOverlays.enableTimeNavigation",
         !layer->getSettings().mTimeIntervals.empty());
-    mGuiManager->getGui()->callJavascript("CosmoScout.wmsOverlays.setDefaultBounds",
+    mGuiManager->getGui()->callJavaScript("CosmoScout.wmsOverlays.setDefaultBounds",
         layer->getSettings().mBounds.mMinLon, layer->getSettings().mBounds.mMaxLon,
         layer->getSettings().mBounds.mMinLat, layer->getSettings().mBounds.mMaxLat);
 
     if (layer->getSettings().mNoSubsets) {
-      mGuiManager->getGui()->callJavascript("CosmoScout.wmsOverlays.setNoSubsets");
+      mGuiManager->getGui()->callJavaScript("CosmoScout.wmsOverlays.setNoSubsets");
     } else {
-      mGuiManager->getGui()->callJavascript("CosmoScout.wmsOverlays.setCurrentBounds",
+      mGuiManager->getGui()->callJavaScript("CosmoScout.wmsOverlays.setCurrentBounds",
           wmsOverlay->pBounds.get().mMinLon, wmsOverlay->pBounds.get().mMaxLon,
           wmsOverlay->pBounds.get().mMinLat, wmsOverlay->pBounds.get().mMaxLat);
     }
@@ -715,7 +715,7 @@ void Plugin::setWMSLayer(
   for (WebMapLayer::Style const& style : layer->getSettings().mStyles) {
     bool active = style.mName == settings.mActiveStyle.get();
     if (isActiveOverlay(wmsOverlay)) {
-      mGuiManager->getGui()->callJavascript("CosmoScout.gui.addDropdownValue",
+      mGuiManager->getGui()->callJavaScript("CosmoScout.gui.addDropdownValue",
           "wmsOverlays.setStyle", style.mName, style.mTitle, active);
     }
 
@@ -733,16 +733,16 @@ void Plugin::setWMSLayer(
 
 void Plugin::resetWMSLayer(std::shared_ptr<TextureOverlayRenderer> const& wmsOverlay) {
   if (isActiveOverlay(wmsOverlay)) {
-    mGuiManager->getGui()->callJavascript(
+    mGuiManager->getGui()->callJavaScript(
         "CosmoScout.gui.setDropdownValue", "wmsOverlays.setLayer", "None", false);
 
-    mGuiManager->getGui()->callJavascript("CosmoScout.wmsOverlays.enableInfoButton", false);
-    mGuiManager->getGui()->callJavascript("CosmoScout.wmsOverlays.clearDefaultBounds");
-    mGuiManager->getGui()->callJavascript("CosmoScout.wmsOverlays.clearCurrentBounds");
-    mGuiManager->getGui()->callJavascript("CosmoScout.wmsOverlays.enableTimeNavigation", false);
+    mGuiManager->getGui()->callJavaScript("CosmoScout.wmsOverlays.enableInfoButton", false);
+    mGuiManager->getGui()->callJavaScript("CosmoScout.wmsOverlays.clearDefaultBounds");
+    mGuiManager->getGui()->callJavaScript("CosmoScout.wmsOverlays.clearCurrentBounds");
+    mGuiManager->getGui()->callJavaScript("CosmoScout.wmsOverlays.enableTimeNavigation", false);
 
-    mGuiManager->getGui()->callJavascript("CosmoScout.gui.clearDropdown", "wmsOverlays.setStyle");
-    mGuiManager->getGui()->callJavascript(
+    mGuiManager->getGui()->callJavaScript("CosmoScout.gui.clearDropdown", "wmsOverlays.setStyle");
+    mGuiManager->getGui()->callJavaScript(
         "CosmoScout.gui.addDropdownValue", "wmsOverlays.setStyle", "", "Default", false);
   }
 
@@ -764,9 +764,9 @@ void Plugin::setWMSStyle(
 
   if (style != layerSettings.mStyles.end()) {
     if (isActiveOverlay(wmsOverlay)) {
-      mGuiManager->getGui()->callJavascript(
+      mGuiManager->getGui()->callJavaScript(
           "CosmoScout.gui.setDropdownValue", "wmsOverlays.setStyle", style->mName, false);
-      mGuiManager->getGui()->callJavascript(
+      mGuiManager->getGui()->callJavaScript(
           "CosmoScout.wmsOverlays.setLegendURL", style->mLegendUrl.value_or(""));
     }
 
@@ -781,9 +781,9 @@ void Plugin::setWMSStyle(
 
 void Plugin::resetWMSStyle(std::shared_ptr<TextureOverlayRenderer> const& wmsOverlay) {
   if (isActiveOverlay(wmsOverlay)) {
-    mGuiManager->getGui()->callJavascript(
+    mGuiManager->getGui()->callJavaScript(
         "CosmoScout.gui.setDropdownValue", "wmsOverlays.setStyle", "", false);
-    mGuiManager->getGui()->callJavascript("CosmoScout.wmsOverlays.setLegendURL", "");
+    mGuiManager->getGui()->callJavaScript("CosmoScout.wmsOverlays.setLegendURL", "");
   }
 
   auto& settings = getBodySettings(wmsOverlay);
@@ -811,7 +811,7 @@ bool Plugin::addLayerToSelect(std::shared_ptr<TextureOverlayRenderer> const& wms
   bool active = layer.getName() == activeLayer;
 
   if (isActiveOverlay(wmsOverlay)) {
-    mGuiManager->getGui()->callJavascript("CosmoScout.wmsOverlays.addLayer", layer.getName(),
+    mGuiManager->getGui()->callJavaScript("CosmoScout.wmsOverlays.addLayer", layer.getName(),
         layer.getTitle(), active, layer.isRequestable(), depth);
   }
 
@@ -886,23 +886,23 @@ void Plugin::checkScale(Bounds const& bounds, WebMapLayer const& layer, int maxT
                        layer.getSettings().mFixedHeight.value_or(maxTextureSize) / metersPerPixel;
   }
 
-  mGuiManager->getGui()->callJavascript("CosmoScout.wmsOverlays.setScale", scaleDenominator);
+  mGuiManager->getGui()->callJavaScript("CosmoScout.wmsOverlays.setScale", scaleDenominator);
   if (layer.getSettings().mMinScale && scaleDenominator <= layer.getSettings().mMinScale) {
     std::stringstream warning;
     warning << "The current scale is marked as inappropriate for this layer. ";
     warning << "Scale should be at least 1:" << layer.getSettings().mMinScale.value() << ". ";
     warning << "Consider moving the camera further from the planet or lowering the map resolution.";
-    mGuiManager->getGui()->callJavascript(
+    mGuiManager->getGui()->callJavaScript(
         "CosmoScout.wmsOverlays.showScaleWarning", true, warning.str());
   } else if (layer.getSettings().mMaxScale && scaleDenominator > layer.getSettings().mMaxScale) {
     std::stringstream warning;
     warning << "The current scale is marked as inappropriate for this layer. ";
     warning << "Scale should be at most 1:" << layer.getSettings().mMaxScale.value() << ". ";
     warning << "Consider moving the camera closer to the planet or increasing the map resolution.";
-    mGuiManager->getGui()->callJavascript(
+    mGuiManager->getGui()->callJavaScript(
         "CosmoScout.wmsOverlays.showScaleWarning", true, warning.str());
   } else {
-    mGuiManager->getGui()->callJavascript("CosmoScout.wmsOverlays.showScaleWarning", false);
+    mGuiManager->getGui()->callJavaScript("CosmoScout.wmsOverlays.showScaleWarning", false);
   }
 }
 

@@ -133,7 +133,7 @@ PathTool::PathTool(std::shared_ptr<cs::core::InputManager> pInputManager,
 
   // Update text.
   mTextConnection = pText.connectAndTouch(
-      [this](std::string const& value) { mGuiItem->callJavascript("setText", value); });
+      [this](std::string const& value) { mGuiItem->callJavaScript("setText", value); });
 
   mGuiItem->registerCallback("onSetText",
       "This is called whenever the text input of the tool's name changes.",
@@ -256,7 +256,7 @@ void PathTool::updateLineVertices() {
     ++currMark;
   }
 
-  mGuiItem->callJavascript("setData", "[" + json.str() + "]");
+  mGuiItem->callJavaScript("setData", "[" + json.str() + "]");
 
   mIndexCount = mSampledPositions.size();
 

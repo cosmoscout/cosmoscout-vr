@@ -212,7 +212,7 @@ void Plugin::deInit() {
 
   mGuiManager->removeSettingsSection("Atmospheres");
 
-  mGuiManager->getGui()->callJavascript("CosmoScout.removeApi", "atmosphere");
+  mGuiManager->getGui()->callJavaScript("CosmoScout.removeApi", "atmosphere");
 
   mGuiManager->getGui()->unregisterCallback("atmosphere.setEnable");
   mGuiManager->getGui()->unregisterCallback("atmosphere.setEnableWater");

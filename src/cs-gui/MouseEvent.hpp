@@ -25,8 +25,7 @@ struct CS_GUI_EXPORT MouseEvent {
   };
 
   MouseEvent() // NOLINT(cppcoreguidelines-pro-type-member-init): Can't init both union types.
-      : mX(0) {
-  }
+      : mX(0) {}
 
   /// Either eMove, eScroll, ePress or eRelease.
   Type mType{Type::eMove};

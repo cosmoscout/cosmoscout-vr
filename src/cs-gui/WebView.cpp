@@ -345,7 +345,7 @@ void WebView::injectKeyEvent(KeyEvent const& event) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void WebView::callJavascriptImpl(
+void WebView::callJavaScriptImpl(
     std::string const& function, std::vector<std::string> const& args) const {
   std::string call(function + "( ");
   for (auto&& s : args) {
@@ -359,7 +359,7 @@ void WebView::callJavascriptImpl(
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void WebView::executeJavascript(std::string const& code) const {
+void WebView::executeJavaScript(std::string const& code) const {
   CefRefPtr<CefFrame> frame = mBrowser->GetMainFrame();
   frame->ExecuteJavaScript(code, frame->GetURL(), 0);
 }
@@ -368,8 +368,17 @@ void WebView::executeJavascript(std::string const& code) const {
 
 void WebView::registerCallback(
     std::string const& name, std::string const& comment, std::function<void()> const& callback) {
-  registerJSCallbackImpl(name, comment, {},
-      [callback](std::vector<std::optional<JSType>> const& /*unused*/) { callback(); });
+  registerJSCallbackImpl(
+      name, comment, {}, [this, callback](std::vector<std::optional<JSType>> const& args) {
+        double promiseID = 0.0;
+
+        try {
+          promiseID = std::get<double>(args.at(0).value());
+
+          callback();
+          resolvePromise(promiseID, "undefined");
+        } catch (std::exception const& e) { rejectPromise(promiseID, e.what()); }
+      });
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -378,21 +387,21 @@ void WebView::unregisterCallback(std::string const& name) {
   mClient->UnregisterJSCallback(name);
 
   // Also remove the function property on the CosmoScout.callbacks property.
-  std::string cmd = R"(
+  std::string cmd = R"js(
     if (typeof CosmoScout !== 'undefined') {
       delete CosmoScout.callbacks.$name;
     }
-  )";
+  )js";
 
   utils::replaceString(cmd, "$name", name);
-  executeJavascript(cmd);
+  executeJavaScript(cmd);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void WebView::registerJSCallbackImpl(std::string const& name, std::string const& comment,
     std::vector<std::type_index>&&                                   types,
-    std::function<void(std::vector<std::optional<JSType>>&&)> const& callback) {
+    std::function<void(std::vector<std::optional<JSType>>&&)> const& callback) const {
 
   // To increase the readability of the callback signature when inspected via an interactive
   // console, we name every argument depending on its type.
@@ -419,7 +428,7 @@ void WebView::registerJSCallbackImpl(std::string const& name, std::string const&
     }
   }
 
-  // When executing the 'window.callNative()' method, we need the callback's name as first
+  // When executing the 'CosmoScout.callNative()' method, we need the callback's name as first
   // parameter.
   std::string callSignature = "'" + name + "'" + (signature.empty() ? "" : ", " + signature);
 
@@ -433,8 +442,8 @@ void WebView::registerJSCallbackImpl(std::string const& name, std::string const&
     currentLineWidth += nextSpacePos - currentSpacePos;
     currentSpacePos = nextSpacePos;
 
-    size_t const maxLineWidth = 40;
-    if (currentSpacePos != std::string::npos && currentLineWidth > maxLineWidth) {
+    if (constexpr size_t maxLineWidth = 40;
+        currentSpacePos != std::string::npos && currentLineWidth > maxLineWidth) {
       formattedComment += "\n  //";
       currentLineWidth = 0;
     }
@@ -442,9 +451,9 @@ void WebView::registerJSCallbackImpl(std::string const& name, std::string const&
 
   // This registers the callback as a property of the CosmoScout.callbacks object. As the name may
   // contain multiple dots, this is a little tricky. We have to create multiple chained objects;
-  // e.g. for the callback "notifications.print.warning", we first have to create the object
+  // e.g., for the callback "notifications.print.warning", we first have to create the object
   // "notifications", then "print" and then the function "warning".
-  std::string cmd = R"(
+  std::string cmd = R"js(
 if (typeof CosmoScout !== 'undefined') {
 let components = '$name'.split('.');
 components.reduce((a, b) => a[b] = a[b] || {}, CosmoScout.callbacks);
@@ -452,18 +461,30 @@ CosmoScout.callbacks.$name = ($signature) => {
 
 $comment
 
-  window.callNative($callSignature);
+  return CosmoScout.callNative($callSignature);
 }
-})";
+})js";
 
   utils::replaceString(cmd, "$name", name);
   utils::replaceString(cmd, "$comment", formattedComment);
   utils::replaceString(cmd, "$signature", signature);
   utils::replaceString(cmd, "$callSignature", callSignature);
-  executeJavascript(cmd);
+  executeJavaScript(cmd);
 
   // Register the actual 'window.callNative()' handler.
   mClient->RegisterJSCallback(name, callback);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void WebView::resolvePromise(double promiseID, std::string const& value) const {
+  executeJavaScript(std::format("CosmoScout.resolveNativePromise({}, {});", promiseID, value));
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void WebView::rejectPromise(double promiseID, std::string const& message) const {
+  executeJavaScript(std::format("CosmoScout.rejectNativePromise({}, {});", promiseID, message));
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

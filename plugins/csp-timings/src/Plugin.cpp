@@ -100,11 +100,11 @@ void Plugin::init() {
         // If cs::utils::FrameStats::get().pEnableMeasurements are disabled, we make the two
         // checkboxes of this plugin unresponsive.
         if (enable) {
-          mGuiManager->getGui()->executeJavascript(
+          mGuiManager->getGui()->executeJavaScript(
               "document.querySelectorAll('.enable-if-timer-enabled').forEach((elem) => "
               "elem.classList.remove('unresponsive'));");
         } else {
-          mGuiManager->getGui()->executeJavascript(
+          mGuiManager->getGui()->executeJavaScript(
               "document.querySelectorAll('.enable-if-timer-enabled').forEach((elem) => "
               "elem.classList.add('unresponsive'));");
         }
@@ -122,12 +122,12 @@ void Plugin::init() {
         mEnableRecording = enable;
 
         if (enable) {
-          mGuiManager->getGui()->executeJavascript(
+          mGuiManager->getGui()->executeJavaScript(
               "document.querySelector('.timings-record-button').innerHTML = "
               "'<i class=\"material-icons\">stop</i> Stop Recording';");
           logger().debug("Timing started");
         } else {
-          mGuiManager->getGui()->executeJavascript(
+          mGuiManager->getGui()->executeJavaScript(
               "document.querySelector('.timings-record-button').innerHTML = "
               "'<i class=\"material-icons\">fiber_manual_record</i> Start New Recording';");
           logger().debug("Timing finished");
@@ -224,7 +224,7 @@ void Plugin::update() {
         return json.dump();
       };
 
-      mGuiItem->callJavascript("CosmoScout.timings.setData", rangeToJSON(gpuRanges),
+      mGuiItem->callJavaScript("CosmoScout.timings.setData", rangeToJSON(gpuRanges),
           rangeToJSON(cpuRanges), countToJSON(samplesQueryResults),
           countToJSON(primitivesQueryResults));
     }

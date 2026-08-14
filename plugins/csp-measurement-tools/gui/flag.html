@@ -94,7 +94,7 @@ SPDX-License-Identifier: MIT
       );
 
       $('[data-toggle="tooltip"]').tooltip({ delay: 500, placement: "auto", html: false });
-      $(".text-input").on("input", () => window.callNative("onSetText", $(".text-input").val()));
+      $(".text-input").on("input", () => CosmoScout.callbacks.onSetText($(".text-input").val()));
     });
 
   </script>
@@ -107,10 +107,10 @@ SPDX-License-Identifier: MIT
     <div class="banner">
       <div class="d-flex">
         <input type='text' class='text-input form-control flex-grow-1' />
-        <a class="btn light-glass" data-toggle="tooltip" title='Minimize' onclick="window.callNative('minimizeMe')">
+        <a class="btn light-glass" data-toggle="tooltip" title='Minimize' onclick="CosmoScout.callbacks.minimizeMe()">
           <i class=" material-icons">file_download</i>
         </a>
-        <a class="btn light-glass" data-toggle="tooltip" title='Delete' onclick="window.callNative('deleteMe')">
+        <a class="btn light-glass" data-toggle="tooltip" title='Delete' onclick="CosmoScout.callbacks.deleteMe()">
           <i class=" material-icons">close</i>
         </a>
       </div>

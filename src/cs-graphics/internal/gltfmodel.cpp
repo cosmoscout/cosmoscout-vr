@@ -1301,8 +1301,7 @@ void Mesh::draw(glm::mat4 const& projMat, glm::mat4 const& viewMat, glm::mat4 co
 VistaGltfNode::VistaGltfNode(tinygltf::Node const& node, std::shared_ptr<GltfShared> shared)
     : mShared(std::move(shared))
     , mName(node.name)
-    , mMeshIndex(node.mesh) {
-}
+    , mMeshIndex(node.mesh) {}
 
 VistaGltfNode::~VistaGltfNode() = default;
 

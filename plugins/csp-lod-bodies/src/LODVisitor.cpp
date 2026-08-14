@@ -30,8 +30,7 @@ LODVisitor::LODVisitor(PlanetParameters const& params, TreeManager* treeMgr)
     , mMatP()
     , mCameraData()
     , mFrameCount(0)
-    , mUpdateLOD(true) {
-}
+    , mUpdateLOD(true) {}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 

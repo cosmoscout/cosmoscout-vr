@@ -18,8 +18,7 @@ namespace cs::gui::detail {
 
 ScopedTimer::ScopedTimer(std::string name)
     : mName(std::move(name))
-    , mStartTime(GetNow()) {
-}
+    , mStartTime(GetNow()) {}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 

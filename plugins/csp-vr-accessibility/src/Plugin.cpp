@@ -144,7 +144,7 @@ void Plugin::init() {
         mPluginSettings->mGridSettings.mColor = static_cast<std::string>(value);
       }));
   mPluginSettings->mGridSettings.mColor.connectAndTouch([this](std::string value) {
-    mGuiManager->getGui()->callJavascript("CosmoScout.floorGrid.setColorValue", value);
+    mGuiManager->getGui()->callJavaScript("CosmoScout.floorGrid.setColorValue", value);
   });
 
   // register callback for fov vignette enable checkbox
@@ -195,7 +195,7 @@ void Plugin::init() {
         mPluginSettings->mVignetteSettings.mColor = static_cast<std::string>(value);
       }));
   mPluginSettings->mVignetteSettings.mColor.connectAndTouch([this](std::string value) {
-    mGuiManager->getGui()->callJavascript("CosmoScout.fovVignette.setColorValue", value);
+    mGuiManager->getGui()->callJavaScript("CosmoScout.fovVignette.setColorValue", value);
   });
 
   // register callback for fov vignette lower velocity threshold
@@ -243,8 +243,8 @@ void Plugin::deInit() {
   // remove settings tab
   mGuiManager->removeSettingsSection("VR Accessibility");
 
-  mGuiManager->getGui()->callJavascript("CosmoScout.removeApi", "floorGrid");
-  mGuiManager->getGui()->callJavascript("CosmoScout.removeApi", "fovVignette");
+  mGuiManager->getGui()->callJavaScript("CosmoScout.removeApi", "floorGrid");
+  mGuiManager->getGui()->callJavaScript("CosmoScout.removeApi", "fovVignette");
 
   // remove callbacks
   mGuiManager->getGui()->unregisterCallback("floorGrid.setEnabled");
@@ -276,10 +276,10 @@ void Plugin::update() {
     // reread settings from json
     from_json(mAllSettings->mPlugins.at("csp-vr-accessibility"), *mPluginSettings);
     // reset grid color into picker
-    mGuiManager->getGui()->callJavascript(
+    mGuiManager->getGui()->callJavaScript(
         "CosmoScout.floorGrid.setColorValue", mPluginSettings->mGridSettings.mColor.get());
     // reset vignette color into picker
-    mGuiManager->getGui()->callJavascript(
+    mGuiManager->getGui()->callJavaScript(
         "CosmoScout.fovVignette.setColorValue", mPluginSettings->mVignetteSettings.mColor.get());
     // clear flag
     resetColorPicker = false;

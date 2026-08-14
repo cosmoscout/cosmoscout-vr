@@ -164,8 +164,7 @@ void WebMapLayer::getRequestableLayers(std::vector<WebMapLayer>& layers) const {
 WebMapLayer::Style::Style(VistaXML::TiXmlElement* element)
     : mName(utils::getElementValue<std::string>(element, {"Name"}).value())
     , mTitle(utils::getElementValue<std::string>(element, {"Title"}).value_or("Untitled"))
-    , mLegendUrl(getLegendUrl(element)) {
-}
+    , mLegendUrl(getLegendUrl(element)) {}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 

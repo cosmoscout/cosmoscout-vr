@@ -17,8 +17,7 @@ Vector2f::Vector2f(Vector2f const& point) = default;
 
 Vector2f::Vector2f(double x_in, double y_in)
     : mX(x_in)
-    , mY(y_in) {
-}
+    , mY(y_in) {}
 
 Vector2f Vector2f::normalize() const {
   double len = length();

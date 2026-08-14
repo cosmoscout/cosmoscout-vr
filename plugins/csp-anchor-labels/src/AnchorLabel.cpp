@@ -74,7 +74,7 @@ AnchorLabel::AnchorLabel(std::string const&           name,
         mGuiManager->showNotification("Travelling", "to " + mObject->getCenterName(), "send");
       });
 
-  mGuiItem->callJavascript("setLabelText", name);
+  mGuiItem->callJavaScript("setLabelText", name);
 
   mOffsetConnection = mPluginSettings->mLabelOffset.connect([this](double newOffset) {
     mGuiTransform->SetTranslation(0.0F, static_cast<float>(newOffset), 0.0F);

@@ -20,8 +20,7 @@ TileId::TileId() = default;
 
 TileId::TileId(int level, glm::int64 patchIdx)
     : mPatchIdx(patchIdx)
-    , mLevel(level) {
-}
+    , mLevel(level) {}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 

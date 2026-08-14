@@ -54,15 +54,15 @@ class CS_CORE_EXPORT PluginBase {
 
   /// Override this function to initialize your plugin. It will be called directly after
   /// application startup and before the update loop starts.
-  virtual void init(){};
+  virtual void init() {};
 
   /// Override this function for cleaning up after yourself, when the plugin terminates. We don't
   /// want our app littered :)
-  virtual void deInit(){};
+  virtual void deInit() {};
 
   /// Override this function if you want to do something in every frame. See the Application class
   /// for more details on when this method is actually called.
-  virtual void update(){};
+  virtual void update() {};
 
  protected:
   std::shared_ptr<Settings>       mAllSettings;
