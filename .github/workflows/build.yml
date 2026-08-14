@@ -106,11 +106,9 @@ jobs:
           token: ${{ github.token }}
           vcpkg-root: '${{ github.workspace }}/tools/vcpkg'
       - name: Build CosmoScout VR
-        uses: lukka/run-cmake@v10
-        with:
-          configurePreset: 'linux-ninja-release-config'
-          configurePresetAdditionalArgs: "['-DCOSMOSCOUT_COVERAGE_INFO=On']"
-          buildPreset: 'linux-ninja-release-build'
+        run: |
+          cmake --preset linux-ninja-release-config -DCOSMOSCOUT_COVERAGE_INFO=On
+          cmake --build --preset linux-ninja-release-build
       - name: Run Tests
         run: |
           ./install/linux-Release/bin/run_tests.sh
@@ -164,9 +162,8 @@ jobs:
           token: ${{ github.token }}
           vcpkg-root: '${{ github.workspace }}/tools/vcpkg'
       - name: Build CosmoScout VR
-        uses: lukka/run-cmake@v10
-        with:
-          workflowPreset: 'linux-ninja-release'
+        run: |
+          cmake --workflow linux-ninja-release
       - name: Run Tests
         run: |
           ./install/linux-Release/bin/run_tests.sh
@@ -205,9 +202,8 @@ jobs:
           token: ${{ github.token }}
           vcpkg-root: '${{ github.workspace }}/tools/vcpkg'
       - name: Build CosmoScout VR
-        uses: lukka/run-cmake@v10
-        with:
-          workflowPreset: 'windows-ninja-release'
+        run: |
+          cmake --workflow windows-ninja-release
       - name: Run Tests
         shell: cmd
         run: |
