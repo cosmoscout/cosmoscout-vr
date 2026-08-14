@@ -13,7 +13,6 @@ endif()
 
 find_package(CIVETWEB REQUIRED)
 find_package(TIFF REQUIRED COMPONENTS CXX)
-find_package(ZLIB REQUIRED)
 
 # build plugin -------------------------------------------------------------------------------------
 
@@ -34,8 +33,8 @@ target_link_libraries(csp-web-api
     cs-core
     civetweb::civetweb
     civetweb::civetweb-cpp
-    TIFF::CXX
     TIFF::TIFF
+    TIFF::CXX
 )
 
 # Add this Plugin to a "plugins" folder in your IDE.

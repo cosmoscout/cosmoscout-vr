@@ -105,7 +105,9 @@ jobs:
       - name: Build CosmoScout VR
         uses: lukka/run-cmake@v10
         with:
-          workflowPreset: 'linux-ninja-release'
+          configurePreset: 'linux-ninja-release-config'
+          configurePresetAdditionalArgs: "['-DCOSMOSCOUT_COVERAGE_INFO=On']"
+          buildPreset: 'linux-ninja-release-build'
       - name: Run Tests
         run: |
           ./install/linux-Release/bin/run_tests.sh
