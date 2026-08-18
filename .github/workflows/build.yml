@@ -21,7 +21,7 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
       - name: Checkout Submodules
         run: git submodule update --init plugins
       - name: Run Clang-Format
@@ -35,7 +35,7 @@ jobs:
     name: Check Compliance with REUSE Specification
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: REUSE Compliance Check
         uses: fsfe/reuse-action@v4
 
@@ -45,19 +45,17 @@ jobs:
     if: github.event_name == 'pull_request'
     steps:
       - name: Checkout Current Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           path: current
+          submodules: true
           ref: ${{ github.ref }}
       - name: Checkout Base Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           path: base
+          submodules: true
           ref: ${{ github.base_ref }}
-      - name: Checkout Current Submodules
-        run: cd $GITHUB_WORKSPACE/current && git submodule update --init plugins
-      - name: Checkout Base Submodules
-        run: cd $GITHUB_WORKSPACE/base && git submodule update --init plugins
       - name: Download Cloc
         run: |
           sudo apt-get update -y
@@ -91,7 +89,7 @@ jobs:
       COSMOSCOUT_USE_UNITY_BUILD: false
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           submodules: true
       - name: Download Dependencies
@@ -147,7 +145,7 @@ jobs:
       COSMOSCOUT_USE_UNITY_BUILD: false
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           submodules: true
       - name: Download Dependencies
@@ -171,7 +169,7 @@ jobs:
         run: |
           ./install/linux-Release/bin/run_graphical_tests.sh
       - name: Upload Results of Failed Test
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         if: failure()
         with:
           name: graphical-test-results-clang
@@ -192,7 +190,7 @@ jobs:
       COSMOSCOUT_USE_UNITY_BUILD: true
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           submodules: true
       - name: Setup CMake and Ninja
