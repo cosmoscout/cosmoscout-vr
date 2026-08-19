@@ -1,0 +1,59 @@
+{
+  "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
+  "name": "cesium-native",
+  "version-string": "0.63.0",
+  "features": {
+    "dependencies-only": {
+      "description": "install port's dependencies without the port"
+    }
+  },
+  "dependencies": [
+    "vcpkg-cmake",
+    "vcpkg-cmake-config",
+    "asyncplusplus",
+    "curl",
+    "doctest",
+    "expected-lite",
+    "fmt",
+    "glm",
+    "rapidjson",
+    "spdlog",
+    "stb",
+    "ada-url",
+    "draco",
+    {
+      "name": "ktx",
+      "default-features": false
+    },
+    "modp-base64",
+    "meshoptimizer",
+    "openssl",
+    "s2geometry",
+    "libjpeg-turbo",
+    "sqlite3",
+    "tinyxml2",
+    "libwebp",
+    "zlib-ng",
+    "picosha2",
+    "earcut-hpp",
+    "cpp-httplib",
+    "libmorton",
+    {
+      "name": "blend2d",
+      "default-features": false,
+      "features": [
+        {
+          "name": "jit",
+          "platform": "!ios"
+        }
+      ]
+    },
+    {
+      "name": "asmjit",
+      "platform": "!ios"
+    },
+    "spz",
+    "zstd"
+
+  ]
+}

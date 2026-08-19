@@ -34,11 +34,16 @@
     "vista"
   ],
   "default-features": [
+    "csl-cesium-bodies",
     "csl-node-editor",
     "csl-web-api",
     "test"
   ],
   "features": {
+    "csl-cesium-bodies": {
+      "description": "Cesium Bodies plugin",
+      "dependencies": ["cesium-native"]
+    },
     "csl-node-editor": {
       "description": "Node Editor plugin library",
       "dependencies": ["civetweb"]

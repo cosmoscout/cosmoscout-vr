@@ -12,36 +12,8 @@ if(NOT CSP_CESIUM_RENDERER)
     return()
 endif()
 
-if (DEFINED ENV{cesium-native_DIR})
-    SET(cesium-native_DIR "$ENV{cesium-native_DIR}")
-else()
-    SET(cesium-native_DIR ${COSMOSCOUT_EXTERNALS_DIR}/share/cesium-native/cmake)
-endif()
-
-if (DEFINED ENV{ZLIB_ROOT})
-    SET(ZLIB_ROOT "$ENV{ZLIB_ROOT}")
-else()
-    SET(ZLIB_ROOT ${COSMOSCOUT_EXTERNALS_DIR})
-endif()
-
-if (DEFINED ENV{ZLIB_DIR})
-    SET(ZLIB_DIR "$ENV{ZLIB_DIR}")
-else()
-    SET(ZLIB_DIR ${COSMOSCOUT_EXTERNALS_DIR}/share/zlib)
-endif()
-
-# spz uses CMake's FindZLIB module and expects its ZLIB::ZLIB target. The static Windows
-# externals use the vcpkg names zs.lib and zsd.lib, which FindZLIB does not search for.
-if(WIN32)
-    set(ZLIB_LIBRARY_RELEASE "${ZLIB_ROOT}/lib/zs.lib")
-    set(ZLIB_LIBRARY_DEBUG "${ZLIB_ROOT}/debug/lib/zsd.lib")
-endif()
-
-# Load the externals package before cesium-native's module-mode dependency lookup. This supplies
-# CURL::libcurl_static, which is part of CesiumCurl's exported link interface.
-set(CURL_DIR "${COSMOSCOUT_EXTERNALS_DIR}/share/curl")
 find_package(CURL CONFIG REQUIRED)
-find_package(cesium-native REQUIRED)
+find_package(cesium-native CONFIG REQUIRED)
 
 # build plugin -------------------------------------------------------------------------------------
 
