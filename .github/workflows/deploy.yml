@@ -12,6 +12,8 @@ on:
     tags:
       - '**'
 jobs:
+  # We fetch the dependencies for Windows and Linux here, so we can distribute them together with
+  # the source code for the release.
   fetch-dependencies:
     strategy:
       fail-fast: false
@@ -48,6 +50,8 @@ jobs:
           path: tools/vcpkg/downloads
           retention-days: 1
 
+  # We bundle the source code together with the dependencies so that the user can easily build
+  # the project without having to install the dependencies themselves.
   bundle:
     needs: fetch-dependencies
     runs-on: ubuntu-24.04
@@ -89,6 +93,7 @@ jobs:
           overwrite: true
           prerelease: true
 
+  # Build CosmoScout VR for Linux and release it.
   release_linux:
     name: Linux
     runs-on: ubuntu-24.04
@@ -120,6 +125,7 @@ jobs:
         overwrite: true
         prerelease: true
 
+  # Build CosmoScout VR for Windows and release it.
   release_windows:
     name: Windows
     runs-on: windows-2025

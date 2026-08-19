@@ -1,4 +1,5 @@
 {
+  "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
   "name": "cef",
   "version-string": "135.0.20-chromium-135.0.7049.85",
   "port-version": 0,
