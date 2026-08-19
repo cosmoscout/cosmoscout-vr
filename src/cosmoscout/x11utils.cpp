@@ -10,11 +10,12 @@
 #include "logger.hpp"
 
 #ifdef HAVE_X11
+#include <GL/glew.h>
 #include <GL/glx.h>
 #include <X11/Xatom.h>
 #include <X11/Xutil.h>
 #include <stb_image.h>
-#include <stb_image_resize.h>
+#include <stb_image_resize2.h>
 #endif
 
 namespace x11utils {
@@ -92,8 +93,8 @@ void setAppIcon(std::string const& file) {
 
         std::vector<uint8_t> downSampled(newWidth * newHeight * 4);
 
-        stbir_resize_uint8(
-            pixels.data(), width, height, 0, downSampled.data(), newWidth, newHeight, 0, channels);
+        stbir_resize_uint8_linear(pixels.data(), width, height, 0, downSampled.data(), newWidth,
+            newHeight, 0, STBIR_RGBA);
 
         pixels = downSampled;
         width  = newWidth;

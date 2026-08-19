@@ -1,0 +1,83 @@
+{
+  "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
+  "name": "vista",
+  "version": "1.0.0",
+  "description": "",
+  "license": "LGPL-2.0-or-later",
+  "supports": "(windows & x64) | (linux & x64)",
+  "dependencies": [
+    "opensg",
+    "glew",
+    {
+      "name": "vcpkg-cmake",
+      "host": true
+    },
+    {
+      "name": "vcpkg-cmake-config",
+      "host": true
+    }
+  ],
+  "default-features": [
+    "window-sdl2",
+    "openvr"
+  ],
+  "features": {
+    "window-sdl2": {
+      "description": "SDL2 windowing system",
+      "dependencies": [
+        "sdl2",
+        "sdl2-ttf",
+        {
+          "name": "dbus",
+          "platform": "linux",
+          "default-features": false
+        }
+      ]
+    },
+    "window-glut": {
+      "description": "GLUT windowing system",
+      "dependencies": ["freeglut"]
+    },
+    "openvr": {
+      "description": "OpenVR support",
+      "dependencies": ["openvr"]
+    },
+    "driver-openal-record": {
+      "description": "OpenAL record driver",
+      "dependencies": ["openal-soft", "freealut"]
+    },
+    "driver-opencv-capture": {
+      "description": "OpenCV capture driver",
+      "dependencies": ["opencv"]
+    },
+    "driver-opencv-face-track": {
+      "description": "OpenCV face track driver",
+      "dependencies": ["opencv"]
+    },
+    "driver-openni": {
+      "description": "OpenNI driver",
+      "dependencies": ["openni2"]
+    },
+    "driver-wiimote": {
+      "description": "Wiimote driver",
+      "dependencies": ["wiiuse"]
+    },
+    "driver-directx-gamepad": {
+      "description": "DirectX gamepad driver",
+      "dependencies": ["directx-headers"],
+      "supports": "windows"
+    },
+    "demo-vtk": {
+      "description": "VTK demo",
+      "dependencies": ["vtk"]
+    },
+    "networking-zmq": {
+      "description": "ZeroMQ networking support",
+      "dependencies": ["cppzmq"]
+    },
+    "tests": {
+      "description": "Vista tests",
+      "dependencies": ["gtest"]
+    }
+  }
+}

@@ -11,6 +11,8 @@ if (NOT CSL_NODE_EDITOR)
   return()
 endif()
 
+find_package(CIVETWEB REQUIRED)
+
 # build plugin -------------------------------------------------------------------------------------
 
 file(GLOB SOURCE_FILES src/*.cpp src/internal/*.cpp)
@@ -30,7 +32,7 @@ target_link_libraries(csl-node-editor
     cs-core
     cs-utils
     civetweb::civetweb
-    civetweb::civetwebcpp
+    civetweb::civetweb-cpp
 )
 
 # Add this Plugin to a "plugins" folder in your IDE.

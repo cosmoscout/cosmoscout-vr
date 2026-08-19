@@ -1,0 +1,55 @@
+{
+  "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
+  "name": "cosmoscout-vr",
+  "version": "1.10.0",
+  "description": "",
+  "license": "MIT",
+  "maintainers": ["German Aerospace Center (DLR)"],
+  "supports": "(windows & x64) | (linux & x64)",
+  "dependencies": [
+    "glew",
+    "sdl2",
+    "sdl2-ttf",
+    {
+      "name": "dbus",
+      "platform": "linux",
+      "default-features": false
+    },
+    "curl",
+    "curlcpp",
+    {
+      "name": "tiff",
+      "features": ["cxx"]
+    },
+    "spdlog",
+    "nlohmann-json",
+    "gli",
+    "glm",
+    "tinygltf",
+    "stb",
+    "cspice",
+    "openvr",
+    "opensg",
+    "cef",
+    "vista"
+  ],
+  "default-features": [
+    "csl-node-editor",
+    "csl-web-api",
+    "test"
+  ],
+  "features": {
+    "csl-node-editor": {
+      "description": "Node Editor plugin library",
+      "dependencies": ["civetweb"]
+    },
+    "csl-web-api": {
+      "description": "Web API plugin",
+      "dependencies": ["civetweb"]
+    },
+    "test": {
+      "description": "Tests",
+      "dependencies": ["doctest"]
+    }
+  }
+}

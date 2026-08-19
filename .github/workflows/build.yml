@@ -18,10 +18,10 @@ on:
 jobs:
   clang_format:
     name: Check Clang-Format
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
       - name: Checkout Submodules
         run: git submodule update --init plugins
       - name: Run Clang-Format
@@ -35,29 +35,27 @@ jobs:
     name: Check Compliance with REUSE Specification
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: REUSE Compliance Check
         uses: fsfe/reuse-action@v4
 
   comment_percentage:
     name: Check Comment Percentage
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     if: github.event_name == 'pull_request'
     steps:
       - name: Checkout Current Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           path: current
+          submodules: true
           ref: ${{ github.ref }}
       - name: Checkout Base Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           path: base
+          submodules: true
           ref: ${{ github.base_ref }}
-      - name: Checkout Current Submodules
-        run: cd $GITHUB_WORKSPACE/current && git submodule update --init plugins
-      - name: Checkout Base Submodules
-        run: cd $GITHUB_WORKSPACE/base && git submodule update --init plugins
       - name: Download Cloc
         run: |
           sudo apt-get update -y
@@ -83,31 +81,32 @@ jobs:
       github.event_name == 'pull_request' ||
       ( contains(github.ref, 'main') && !contains(github.event.head_commit.message, '[no-ci]') ) ||
       contains(github.event.head_commit.message, '[run-ci]')
+    permissions:
+      contents: read
+      packages: write
     env:
       COSMOSCOUT_USE_PCH: false
       COSMOSCOUT_USE_UNITY_BUILD: false
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v4
-      - name: Checkout Submodules
-        run: git submodule update --init --recursive
-      - name: Cache Object Files
-        uses: hendrikmuhs/ccache-action@v1.2.5
+        uses: actions/checkout@v7
         with:
-          key: gcc
+          submodules: true
       - name: Download Dependencies
         run: |
           sudo apt-get update -q
           sudo apt-get install libgl1-mesa-dev libglu1-mesa-dev libx11-dev
           sudo apt-get install libxi-dev lcov xvfb libfreetype-dev
-      - name: Build Externals
-        run: >
-          ./make_externals.sh -G "Unix Makefiles"
-          -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache
+      - name: Setup CMake and Ninja
+        uses: lukka/get-cmake@latest
+      - uses: LegalizeAdulthood/vcpkg-github-cache@v1
+        with:
+          token: ${{ github.token }}
+          vcpkg-root: '${{ github.workspace }}/tools/vcpkg'
       - name: Build CosmoScout VR
         run: |
-          cmake --preset linux-make-release-config -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCOSMOSCOUT_COVERAGE_INFO=On
-          cmake --build --preset linux-make-release-build
+          cmake --preset linux-ninja-release-config -DCOSMOSCOUT_COVERAGE_INFO=On
+          cmake --build --preset linux-ninja-release-build
       - name: Run Tests
         run: |
           ./install/linux-Release/bin/run_tests.sh
@@ -136,6 +135,9 @@ jobs:
       github.event_name == 'pull_request' ||
       ( contains(github.ref, 'main') && !contains(github.event.head_commit.message, '[no-ci]') ) ||
       contains(github.event.head_commit.message, '[run-ci]')
+    permissions:
+      contents: read
+      packages: write
     env:
       CC: clang-18
       CXX: clang++-18
@@ -143,26 +145,23 @@ jobs:
       COSMOSCOUT_USE_UNITY_BUILD: false
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v4
-      - name: Checkout Submodules
-        run: git submodule update --init --recursive
-      - name: Cache Object Files
-        uses: hendrikmuhs/ccache-action@v1.2.5
+        uses: actions/checkout@v7
         with:
-          key: clang
+          submodules: true
       - name: Download Dependencies
         run: |
           sudo apt-get update -q
           sudo apt-get install libgl1-mesa-dev libglu1-mesa-dev libx11-dev
           sudo apt-get install libxi-dev libfreetype-dev
-      - name: Build Externals
-        run: >
-          ./make_externals.sh -G "Unix Makefiles"
-          -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache
+      - name: Setup CMake and Ninja
+        uses: lukka/get-cmake@latest
+      - uses: LegalizeAdulthood/vcpkg-github-cache@v1
+        with:
+          token: ${{ github.token }}
+          vcpkg-root: '${{ github.workspace }}/tools/vcpkg'
       - name: Build CosmoScout VR
         run: |
-          cmake --preset linux-make-release-config -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache
-          cmake --build --preset linux-make-release-build
+          cmake --workflow linux-ninja-release
       - name: Run Tests
         run: |
           ./install/linux-Release/bin/run_tests.sh
@@ -170,7 +169,7 @@ jobs:
         run: |
           ./install/linux-Release/bin/run_graphical_tests.sh
       - name: Upload Results of Failed Test
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         if: failure()
         with:
           name: graphical-test-results-clang
@@ -183,33 +182,26 @@ jobs:
       github.event_name == 'pull_request' ||
       ( contains(github.ref, 'main') && !contains(github.event.head_commit.message, '[no-ci]') ) ||
       contains(github.event.head_commit.message, '[run-ci]')
+    permissions:
+      contents: read
+      packages: write
     env:
       COSMOSCOUT_USE_PCH: true
       COSMOSCOUT_USE_UNITY_BUILD: true
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v4
-      - name: Checkout Submodules
-        run: git submodule update --init --recursive
-      - name: Cache Object Files
-        uses: hendrikmuhs/ccache-action@v1.2.5
+        uses: actions/checkout@v7
         with:
-          key: msvc
-      - name: Setup CMD
-        uses: ilammy/msvc-dev-cmd@v1
-      - name: Download Dependencies
-        run: |
-          choco install ninja
-      - name: Build Externals
-        shell: cmd
-        run: >
-          make_externals.bat -GNinja -DCMAKE_C_COMPILER=cl.exe -DCMAKE_CXX_COMPILER=cl.exe
-          -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache
+          submodules: true
+      - name: Setup CMake and Ninja
+        uses: lukka/get-cmake@latest
+      - uses: LegalizeAdulthood/vcpkg-github-cache@v1
+        with:
+          token: ${{ github.token }}
+          vcpkg-root: '${{ github.workspace }}/tools/vcpkg'
       - name: Build CosmoScout VR
-        shell: cmd
         run: |
-          cmake --preset windows-ninja-release-config -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache
-          cmake --build --preset windows-ninja-release-build
+          cmake --workflow windows-ninja-release
       - name: Run Tests
         shell: cmd
         run: |

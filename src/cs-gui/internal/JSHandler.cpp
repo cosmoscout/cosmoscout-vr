@@ -41,8 +41,7 @@ bool JSHandler::Execute(const CefString& name, CefRefPtr<CefV8Value> /*object*/,
     } else {
       std::stringstream sstr;
       sstr << "Failed to handle window.callNative call. Argument " << i
-           << " has an unsupported type. Only Double, Bool and String are "
-           << "supported.";
+           << " has an unsupported type. Only Double, Bool and String are " << "supported.";
       SendError(sstr.str());
       success = false;
     }

@@ -5,11 +5,8 @@
 # SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
 # SPDX-License-Identifier: MIT
 
-cmake_minimum_required(VERSION 3.13)
+cmake_minimum_required(VERSION 3.28)
 project(cosmoscout-vr VERSION 1.10.0)
-
-# Use cmake 3.12's <PACKAGE>_ROOT variabled for searching.
-cmake_policy(SET CMP0074 NEW)
 
 # Ensure local modules (for dependencies etc.) are found.
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
@@ -22,6 +19,11 @@ if(NOT MSVC)
 
     set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Release or Debug" FORCE)
   endif()
+
+
+  set(CMAKE_INSTALL_RPATH "$ORIGIN/../lib")
+  set(CMAKE_SKIP_RPATH OFF)
+  set(CMAKE_BUILD_WITH_INSTALL_RPATH OFF)
 endif()
 
 # Use folders when targeting an IDE
@@ -32,141 +34,19 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 include(GenerateExportHeader)
 
 find_package(OpenGL REQUIRED)
-
-# You have to provide the directory where the externals got installed to. The scripts make_*.sh and
-# make_*.bat set this directory via the command line.
-set(COSMOSCOUT_EXTERNALS_DIR COSMOSCOUT_EXTERNALS_DIR-NotFound 
-  CACHE STRING "Directory where the externals got installed to.")
-
-# Make sure to use forward slashes only.
-file(TO_CMAKE_PATH ${COSMOSCOUT_EXTERNALS_DIR} COSMOSCOUT_EXTERNALS_DIR)
-
-# Set CMAKE_PREFIX_PATH so all dependencies can be found
-set(CMAKE_PREFIX_PATH ${COSMOSCOUT_EXTERNALS_DIR} ${CMAKE_PREFIX_PATH})
-
-if (DEFINED ENV{CURL_ROOT_DIR})
-  SET(CURL_ROOT_DIR "$ENV{CURL_ROOT_DIR}")
-else()
-  SET(CURL_ROOT_DIR ${COSMOSCOUT_EXTERNALS_DIR})
-endif()
-
-if (DEFINED ENV{CURLPP_ROOT_DIR})
-  SET(CURLPP_ROOT_DIR "$ENV{CURLPP_ROOT_DIR}")
-else()
-  SET(CURLPP_ROOT_DIR ${COSMOSCOUT_EXTERNALS_DIR})
-endif()
-
-if (DEFINED ENV{SPDLOG_ROOT_DIR})
-  SET(SPDLOG_ROOT_DIR "$ENV{SPDLOG_ROOT_DIR}")
-else()
-  SET(SPDLOG_ROOT_DIR ${COSMOSCOUT_EXTERNALS_DIR})
-endif()
-
-if (DEFINED ENV{GLM_ROOT_DIR})
-  SET(GLM_ROOT_DIR "$ENV{GLM_ROOT_DIR}")
-else()
-  SET(GLM_ROOT_DIR ${COSMOSCOUT_EXTERNALS_DIR})
-endif()
-
-if (DEFINED ENV{GLI_ROOT_DIR})
-  SET(GLI_ROOT_DIR "$ENV{GLI_ROOT_DIR}")
-else()
-  SET(GLI_ROOT_DIR ${COSMOSCOUT_EXTERNALS_DIR})
-endif()
-
-if (DEFINED ENV{DOCTEST_ROOT_DIR})
-  SET(DOCTEST_ROOT_DIR "$ENV{DOCTEST_ROOT_DIR}")
-else()
-  SET(DOCTEST_ROOT_DIR ${COSMOSCOUT_EXTERNALS_DIR})
-endif()
-
-if (DEFINED ENV{TINYGLTF_ROOT_DIR})
-  SET(TINYGLTF_ROOT_DIR "$ENV{TINYGLTF_ROOT_DIR}")
-else()
-  SET(TINYGLTF_ROOT_DIR ${COSMOSCOUT_EXTERNALS_DIR})
-endif()
-
-if (DEFINED ENV{CSPICE_ROOT_DIR})
-  SET(CSPICE_ROOT_DIR "$ENV{CSPICE_ROOT_DIR}")
-else()
-  SET(CSPICE_ROOT_DIR ${COSMOSCOUT_EXTERNALS_DIR})
-endif()
-
-if (DEFINED ENV{CEF_ROOT_DIR})
-  SET(CEF_ROOT_DIR "$ENV{CEF_ROOT_DIR}")
-else()
-  SET(CEF_ROOT_DIR ${COSMOSCOUT_EXTERNALS_DIR})
-endif()
-
-if (DEFINED ENV{TIFF_ROOT_DIR})
-  SET(TIFF_ROOT_DIR "$ENV{TIFF_ROOT_DIR}")
-else()
-  SET(TIFF_ROOT_DIR ${COSMOSCOUT_EXTERNALS_DIR})
-endif()
-
-if (DEFINED ENV{GLEW_ROOT_DIR})
-  SET(GLEW_ROOT_DIR "$ENV{GLEW_ROOT_DIR}")
-else()
-  SET(GLEW_ROOT_DIR ${COSMOSCOUT_EXTERNALS_DIR})
-endif()
-
-if (DEFINED ENV{SDL2_ROOT_DIR})
-  SET(SDL2_ROOT_DIR "$ENV{SDL2_ROOT_DIR}")
-else()
-  SET(SDL2_ROOT_DIR ${COSMOSCOUT_EXTERNALS_DIR})
-endif()
-
-if (DEFINED ENV{SDL2_TTF_ROOT_DIR})
-  SET(SDL2_TTF_ROOT_DIR "$ENV{SDL2_TTF_ROOT_DIR}")
-else()
-  SET(SDL2_TTF_ROOT_DIR ${COSMOSCOUT_EXTERNALS_DIR})
-endif()
-
-if (DEFINED ENV{OPENSG_ROOT_DIR})
-  SET(OPENSG_ROOT_DIR "$ENV{OPENSG_ROOT_DIR}")
-else()
-  SET(OPENSG_ROOT_DIR ${COSMOSCOUT_EXTERNALS_DIR})
-endif()
-
-if (DEFINED ENV{CIVETWEB_ROOT_DIR})
-  SET(CIVETWEB_ROOT_DIR "$ENV{CIVETWEB_ROOT_DIR}")
-else()
-  SET(CIVETWEB_ROOT_DIR ${COSMOSCOUT_EXTERNALS_DIR})
-endif()
-
-if (DEFINED ENV{VISTA_CMAKE_CONFIG_DIR})
-  SET(VistaCoreLibs_DIR "$ENV{VISTA_CMAKE_CONFIG_DIR}")
-else()
-  SET(VistaCoreLibs_DIR ${COSMOSCOUT_EXTERNALS_DIR}/share/VistaCoreLibs/cmake)
-endif()
-
-find_package(GLM REQUIRED)
-find_package(GLI REQUIRED)
-find_package(DOCTEST REQUIRED)
-find_package(TINYGLTF REQUIRED)
-find_package(CSPICE REQUIRED)
+find_package(glm CONFIG REQUIRED)
+find_package(gli CONFIG REQUIRED)
+find_package(unofficial-cspice CONFIG REQUIRED)
 find_package(CURL REQUIRED)
-find_package(CURLPP REQUIRED)
-find_package(SPDLOG REQUIRED)
-find_package(CEF REQUIRED)
-find_package(TIFF REQUIRED)
-find_package(GLEW REQUIRED)
-find_package(SDL2 REQUIRED)
-find_package(SDL2_ttf REQUIRED)
-find_package(OPENSG REQUIRED)
-find_package(CIVETWEB REQUIRED)
-find_package(VistaCoreLibs REQUIRED 
-  COMPONENTS
-    VistaAspects
-    VistaBase
-    VistaMath
-    VistaTools
-    VistaInterProcComm
-    VistaDataFlowNet
-    VistaKernel
-    VistaKernelOpenSGExt
-    VistaOGLExt
-)
+find_package(curlcpp CONFIG REQUIRED)
+find_package(spdlog CONFIG REQUIRED)
+find_package(cef CONFIG REQUIRED)
+find_package(TIFF REQUIRED COMPONENTS CXX)
+find_package(GLEW CONFIG REQUIRED)
+find_package(SDL2 CONFIG REQUIRED)
+find_package(SDL2_ttf CONFIG REQUIRED)
+find_package(OpenSG CONFIG REQUIRED)
+find_package(Vista CONFIG REQUIRED)
 
 # X11 is used on Linux to set the application window's name and icon.
 if (UNIX)
@@ -177,7 +57,7 @@ endif()
 
 # Copy all third-party libraries to install directory.
 install(
-  DIRECTORY ${COSMOSCOUT_EXTERNALS_DIR}/lib/ ${COSMOSCOUT_EXTERNALS_DIR}/bin/ 
+  DIRECTORY ${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/lib/ ${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/bin/
   DESTINATION "lib"
   FILES_MATCHING PATTERN "*.so*" PATTERN "*.dll*"
 )
@@ -274,6 +154,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 option(COSMOSCOUT_UNIT_TESTS "Enable compilation of tests" OFF)
 if (NOT COSMOSCOUT_UNIT_TESTS)
   add_definitions(-DDOCTEST_CONFIG_DISABLE)
+else ()
+  find_package(doctest CONFIG REQUIRED)
 endif()
 
 # Enable code coverage measurements
