@@ -18,7 +18,6 @@
 #include <CesiumGltf/Texture.h>
 #include <CesiumGltfContent/GltfUtilities.h>
 #include <GL/glew.h>
-#include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/quaternion.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
@@ -47,6 +46,7 @@ static void extractPrimitive(CesiumRenderData* renderData, const CesiumGltf::Mod
   CesiumGltf::AccessorView<CesiumGltf::AccessorTypes::VEC3<float>> positions(
       *pModel, posIt->second);
   if (positions.status() != CesiumGltf::AccessorViewStatus::Valid) {
+    logger().error("Invalid POSITION accessor!");
     return;
   }
 
@@ -76,10 +76,9 @@ static void extractPrimitive(CesiumRenderData* renderData, const CesiumGltf::Mod
   // --- Get baseColorFactor for this primitive's material ---
   float matR = 0.8f, matG = 0.8f, matB = 0.8f, matA = 1.0f;
   if (primitive.material >= 0) {
-    const auto* pMat = CesiumGltf::Model::getSafe(&pModel->materials, primitive.material);
-    if (pMat && pMat->pbrMetallicRoughness) {
-      const auto& factor = pMat->pbrMetallicRoughness->baseColorFactor;
-      if (factor.size() >= 4) {
+    if (const auto* pMat = CesiumGltf::Model::getSafe(&pModel->materials, primitive.material);
+        pMat && pMat->pbrMetallicRoughness) {
+      if (const auto& factor = pMat->pbrMetallicRoughness->baseColorFactor; factor.size() >= 4) {
         matR = static_cast<float>(factor[0]);
         matG = static_cast<float>(factor[1]);
         matB = static_cast<float>(factor[2]);
@@ -89,9 +88,9 @@ static void extractPrimitive(CesiumRenderData* renderData, const CesiumGltf::Mod
   }
 
   // --- Compute normal matrix for this node (inverse transpose of upper-left 3x3) ---
-  glm::mat3 normalMatrix = glm::mat3(1.0f);
+  glm::dmat3 normalMatrix(1.0f);
   if (hasNormals) {
-    normalMatrix = glm::mat3(glm::transpose(glm::inverse(glm::mat4(nodeTransform))));
+    normalMatrix = glm::dmat3(glm::transpose(glm::inverse(glm::dmat4(nodeTransform))));
   }
 
   // --- Copy vertices with node transform baked in ---
@@ -109,10 +108,15 @@ static void extractPrimitive(CesiumRenderData* renderData, const CesiumGltf::Mod
     renderData->vertices.push_back(static_cast<float>(transformed.y));
     renderData->vertices.push_back(static_cast<float>(transformed.z));
 
+    // Retain the same node-transformed position for CPU intersection tests.
+    // Keep this copy in double precision; unlike the GPU VBO it is not subject
+    // to the intentional float conversion used for tile-local vertex offsets.
+    renderData->cpuPositions.emplace_back(transformed.x, transformed.y, transformed.z);
+
     // Transform normal
     if (hasNormals) {
-      glm::vec3 n(normals[i].value[0], normals[i].value[1], normals[i].value[2]);
-      glm::vec3 tn = glm::normalize(normalMatrix * n);
+      glm::dvec3 n(normals[i].value[0], normals[i].value[1], normals[i].value[2]);
+      glm::vec3  tn(normalMatrix * n);
       renderData->vertices.push_back(tn.x);
       renderData->vertices.push_back(tn.y);
       renderData->vertices.push_back(tn.z);
@@ -198,9 +202,6 @@ static void extractPrimitive(CesiumRenderData* renderData, const CesiumGltf::Mod
               renderData->texHeight     = asset.height;
               renderData->texChannels   = asset.channels;
               renderData->hasTexture    = true;
-
-              logger().info("[Cesium] CPU Thread: Texture extracted: {}x{}, {} channels, {} bytes.",
-                  asset.width, asset.height, asset.channels, asset.pixelData.size());
             }
           }
         }
@@ -225,8 +226,7 @@ static void processNode(CesiumRenderData* renderData, const CesiumGltf::Model* p
 
   // Get this node's local transform (uses GltfUtilities for correct TRS decomposition)
   glm::dmat4 localTransform(1.0);
-  auto       optTransform = CesiumGltfContent::GltfUtilities::getNodeTransform(node);
-  if (optTransform) {
+  if (auto optTransform = CesiumGltfContent::GltfUtilities::getNodeTransform(node)) {
     localTransform = *optTransform;
   }
 
@@ -248,6 +248,47 @@ static void processNode(CesiumRenderData* renderData, const CesiumGltf::Model* p
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
+// Rebase all tile-local vertices around a double-precision anchor before uploading the VBO.
+//
+// glTF POSITION accessors are floats. That is normally sufficient for a tile-sized offset, but
+// some tiles contain coordinates that are still large even after RTC_CENTER has been applied.
+// Converting those coordinates directly to a float VBO quantizes neighboring vertices together.
+// Moving the anchor into the tile transform keeps the GPU coordinates small while preserving the
+// exact placement of the geometry.
+////////////////////////////////////////////////////////////////////////////////////////////////////
+static void rebaseVertices(CesiumRenderData* renderData) {
+  if (renderData->cpuPositions.empty()) {
+    return;
+  }
+
+  const glm::dvec3 origin = renderData->cpuPositions.front();
+
+  // The CPU copy must use the same rebased coordinate system as the VBO because intersection
+  // transforms rays through tileTransform.
+  for (glm::dvec3& position : renderData->cpuPositions) {
+    position -= origin;
+  }
+
+  // Apply the inverse change to the root transform: T * (origin + local) = (T * To) * local.
+  glm::dmat4 originTransform(1.0);
+  originTransform[3] = glm::dvec4(origin, 1.0);
+  renderData->tileTransform *= originTransform;
+
+  // Replace only the position part of the interleaved VBO. The remaining attributes are already
+  // finalized by extractPrimitive().
+  for (size_t i = 0; i < renderData->cpuPositions.size(); ++i) {
+    const size_t vertexOffset = i * 12;
+    if (vertexOffset + 2 >= renderData->vertices.size()) {
+      break;
+    }
+
+    renderData->vertices[vertexOffset + 0] = static_cast<float>(renderData->cpuPositions[i].x);
+    renderData->vertices[vertexOffset + 1] = static_cast<float>(renderData->cpuPositions[i].y);
+    renderData->vertices[vertexOffset + 2] = static_cast<float>(renderData->cpuPositions[i].z);
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
 // prepareInLoadThread: CPU-side geometry extraction (runs on background thread)
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -260,18 +301,10 @@ StubPrepareRendererResources::prepareInLoadThread(const CesiumAsync::AsyncSystem
   CesiumGltf::Model* pModel = std::get_if<CesiumGltf::Model>(&tileLoadResult.contentKind);
 
   if (!pModel) {
-    logger().debug("[Cesium] CPU Thread: Tile has no model data, skipping.");
     return asyncSystem.createResolvedFuture(
         Cesium3DTilesSelection::TileLoadResultAndRenderResources{
             std::move(tileLoadResult), nullptr});
   }
-
-  logger().info("[Cesium] CPU Thread: Model found! Meshes: {}", pModel->meshes.size());
-
-  // ── Benchmarking: measure CPU-side glTF extraction time ──
-  // NOTE: FrameStats::ScopedTimer is MAIN-THREAD-ONLY (writes to shared QueryPool).
-  // This function runs on a background thread, so we use std::chrono instead.
-  auto cpuParseStart = std::chrono::high_resolution_clock::now();
 
   // --- STEP B: Create our render data container on the heap ---
   auto* renderData = new CesiumRenderData();
@@ -336,15 +369,7 @@ StubPrepareRendererResources::prepareInLoadThread(const CesiumAsync::AsyncSystem
     }
   }
 
-  logger().info("[Cesium] CPU Thread: Extracted {} vertices, {} indices.",
-      renderData->vertices.size() / 12, renderData->indices.size());
-
-  // ── Log CPU parsing time for benchmarking ──
-  auto cpuParseEnd = std::chrono::high_resolution_clock::now();
-  auto cpuParseMs =
-      std::chrono::duration_cast<std::chrono::microseconds>(cpuParseEnd - cpuParseStart).count() /
-      1000.0;
-  logger().info("[Cesium] CPU Parsing took {:.2f} ms.", cpuParseMs);
+  rebaseVertices(renderData);
 
   return asyncSystem.createResolvedFuture(Cesium3DTilesSelection::TileLoadResultAndRenderResources{
       std::move(tileLoadResult),
@@ -370,9 +395,6 @@ void* StubPrepareRendererResources::prepareInMainThread(
   // Save the index count BEFORE we clear the vectors later.
   pData->indexCount = static_cast<uint32_t>(pData->indices.size());
 
-  logger().info("[Cesium] GPU Upload: {} vertices, {} indices.", pData->vertices.size() / 12,
-      pData->indexCount);
-
   // --- STEP 2: Generate the VAO (Vertex Array Object) ---
   glGenVertexArrays(1, &pData->vao);
   glBindVertexArray(pData->vao);
@@ -394,7 +416,7 @@ void* StubPrepareRendererResources::prepareInMainThread(
   GLsizei stride = 12 * sizeof(float);
 
   // Location 0 = Position (3 floats, offset 0 bytes)
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride, (void*)0);
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride, (void*)nullptr);
   glEnableVertexAttribArray(0);
 
   // Location 1 = Normal (3 floats, offset 12 bytes)
@@ -457,9 +479,6 @@ void* StubPrepareRendererResources::prepareInMainThread(
     // Unbind texture (good hygiene)
     glBindTexture(GL_TEXTURE_2D, 0);
 
-    logger().info("[Cesium] GPU Upload: Texture uploaded, ID={}, {}x{}.", pData->textureId,
-        pData->texWidth, pData->texHeight);
-
     // Free CPU-side pixel data immediately (it's now in VRAM)
     pData->texturePixels.clear();
     pData->texturePixels.shrink_to_fit();
@@ -497,9 +516,6 @@ void StubPrepareRendererResources::free(
     if (pData->textureId != 0) {
       glDeleteTextures(1, &pData->textureId);
     }
-
-    logger().debug("[Cesium] GPU Free: Deleted VAO={}, VBO={}, EBO={}, Tex={}.", pData->vao,
-        pData->vbo, pData->ebo, pData->textureId);
 
     // Delete the struct itself from CPU heap memory
     delete pData;

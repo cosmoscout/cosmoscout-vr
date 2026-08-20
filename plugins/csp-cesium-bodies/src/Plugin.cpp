@@ -23,7 +23,6 @@
 
 // CosmoScout headers for the Math Bridge
 #include "../../../src/cs-core/SolarSystem.hpp"
-#include "../../../src/cs-utils/convert.hpp"
 
 // ViSTA headers for real viewport/projection extraction
 #include <VistaKernel/DisplayManager/VistaDisplayManager.h>
@@ -34,7 +33,6 @@
 // ------------------------------------------------------------------------------------------------
 // // (DLL EXPORTS)                                                                    //
 // ------------------------------------------------------------------------------------------------
-// //
 
 EXPORT_FN cs::core::PluginBase* create() {
   return new csp::cesiumbodies::Plugin;
@@ -173,7 +171,7 @@ void Plugin::update() {
   // The inverse permutation: ECEF(X,Y,Z) = GLM(Z,X,Y)
   auto&      observer = mSolarSystem->getObserver();
   glm::dvec3 glmPos   = observer.getPosition();
-  glm::dvec3 camPositionECEF(glmPos.z, glmPos.x, glmPos.y);
+  glm::dvec3 camPositionECEF(glmPos.zxy());
 
   // Guard: Skip Cesium updates while the observer is still flying to Earth.
   // On startup, CosmoScout animates the observer from the Solar System Barycenter
@@ -205,8 +203,8 @@ void Plugin::update() {
   glm::dvec3 glmDir = glm::normalize(glm::transpose(rot) * glm::dvec3(0.0, 0.0, -1.0));
   glm::dvec3 glmUp  = glm::normalize(glm::transpose(rot) * glm::dvec3(0.0, 1.0, 0.0));
   // Apply inverse permutation: ECEF(X,Y,Z) = GLM(Z,X,Y)
-  glm::dvec3 camDirectionECEF(glmDir.z, glmDir.x, glmDir.y);
-  glm::dvec3 camUpECEF(glmUp.z, glmUp.x, glmUp.y);
+  glm::dvec3 camDirectionECEF(glmDir.zxy());
+  glm::dvec3 camUpECEF(glmUp.zxy());
 
   // 7. Package the ECEF camera into a Cesium ViewState
   //    Extract REAL viewport size and FOV from ViSTA's display manager.
@@ -238,21 +236,6 @@ void Plugin::update() {
   double hFov = 2.0 * std::atan((right - left) / 2.0);
   double vFov = 2.0 * std::atan((top - bottom) / 2.0);
 
-  // --- Diagnostic V3: Replicate EXACT updateSceneScale() math ---
-  // Uses cartesianToLngLatHeight for true geodetic altitude (not rough maxRadius approximation).
-  static int sFrameCount = 0;
-  if (++sFrameCount % 300 == 1) {
-    auto   diagRadii = earth->getRadii();
-    auto   diagLLH   = cs::utils::convert::cartesianToLngLatHeight(camPositionECEF, diagRadii);
-    double geodeticH = diagLLH.z;                           // True geodetic height above ellipsoid
-    bool   collision = geodeticH < 0.5 && true;             // Earth mIsCollidable=true by default
-    double scrollDisplacement = 0.48 * observer.getScale(); // per-frame scroll movement
-    logger().warn("[CESIUM_DIAG_V3] Scale={:.4e}, GeodeticH={:.2f}m, Collision={}, "
-                  "ScrollDisp={:.2f}m, ScaleFactor={:.4e}, Viewport={:.0f}x{:.0f}",
-        observer.getScale(), geodeticH, collision ? "YES" : "no", scrollDisplacement, scaleFactor,
-        viewportSize.x, viewportSize.y);
-  }
-
   // Pass the RAW observer ECEF position to Cesium — no position hacks.
   // The viewport scaling above already handles LOD magnification.
   Cesium3DTilesSelection::ViewState viewState(camPositionECEF, // position (raw ECEF)
@@ -264,7 +247,7 @@ void Plugin::update() {
   );
 
   // 8. Tell the tileset what the camera sees, then kick off tile loading.
-  std::vector<Cesium3DTilesSelection::ViewState> frustums = {viewState};
+  std::vector frustums = {viewState};
   mTileset->updateViewGroup(mTileset->getDefaultViewGroup(), frustums);
   mTileset->loadTiles();
 }

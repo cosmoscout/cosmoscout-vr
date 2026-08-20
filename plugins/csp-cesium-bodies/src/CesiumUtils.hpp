@@ -17,7 +17,6 @@
 #include <CesiumAsync/ITaskProcessor.h>
 #include <GL/glew.h>
 #include <cstddef> // for std::byte
-#include <cstdint>
 #include <glm/glm.hpp>
 #include <vector>
 
@@ -52,7 +51,7 @@ struct CesiumRenderData {
 
   // CPU-side copies retained for getHeight() / getIntersection() queries.
   // Only positions + indices are kept — normals, UVs, colors are discarded.
-  std::vector<glm::vec3> cpuPositions; // Tile-local space positions
+  std::vector<glm::dvec3> cpuPositions; // Tile-local space positions
   std::vector<uint32_t>  cpuIndices;   // Triangle index list
 };
 
@@ -81,14 +80,18 @@ class StubPrepareRendererResources : public Cesium3DTilesSelection::IPrepareRend
   // --- Raster Overlay Handlers ---
   void* prepareRasterInLoadThread(
       CesiumImage::ImageAsset& image, const std::any& rendererOptions) override;
+
   void* prepareRasterInMainThread(
       CesiumRasterOverlays::RasterOverlayTile& rasterTile, void* pLoadThreadResult) override;
+
   void freeRaster(const CesiumRasterOverlays::RasterOverlayTile& rasterTile,
       void* pLoadThreadResult, void* pMainThreadResult) noexcept override;
+
   void attachRasterInMainThread(const Cesium3DTilesSelection::Tile& tile,
       int32_t overlayTextureCoordinateID, const CesiumRasterOverlays::RasterOverlayTile& rasterTile,
       void* pMainThreadRendererResources, const glm::dvec2& translation,
       const glm::dvec2& scale) override;
+
   void detachRasterInMainThread(const Cesium3DTilesSelection::Tile& tile,
       int32_t overlayTextureCoordinateID, const CesiumRasterOverlays::RasterOverlayTile& rasterTile,
       void* pMainThreadRendererResources) noexcept override;

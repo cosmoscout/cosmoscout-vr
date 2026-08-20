@@ -51,18 +51,16 @@ layout(location = 1) in vec3 a_Normal;
 layout(location = 2) in vec2 a_UV;
 layout(location = 3) in vec4 a_Color;
 
-out vec3 v_Normal;
-out vec3 v_Position;
+// out vec3 v_Position;
 out vec2 v_UV;
 out vec4 v_Color;
 
 void main() {
-    vec4 worldPos = u_ModelMatrix * vec4(a_Position, 1.0);
-    v_Position    = worldPos.xyz;
-    v_Normal      = u_NormalMatrix * a_Normal;
+    vec4 viewPos = u_ViewMatrix * u_ModelMatrix * vec4(a_Position, 1.0);
+    // v_Position    = worldPos.xyz;
     v_UV          = a_UV;
     v_Color       = a_Color;
-    gl_Position   = u_ProjectionMatrix * u_ViewMatrix * worldPos;
+    gl_Position   = u_ProjectionMatrix * viewPos;
 }
 )";
 
@@ -170,12 +168,6 @@ CesiumTilesetRenderer::CesiumTilesetRenderer( // initialize lost
       mLocLightDir         = glGetUniformLocation(mShaderProgram, "u_LightDir");
       mLocCameraPos        = glGetUniformLocation(mShaderProgram, "u_CameraPos");
       mLocSunIlluminance   = glGetUniformLocation(mShaderProgram, "u_SunIlluminance");
-
-      logger().info("Cesium shader compiled and linked successfully.");
-      logger().info("  Uniform locations: Model={}, View={}, Proj={}, Normal={}, Tex={}, "
-                    "HasTex={}, Light={}, Cam={}",
-          mLocModelMatrix, mLocViewMatrix, mLocProjectionMatrix, mLocNormalMatrix,
-          mLocBaseColorTexture, mLocHasTexture, mLocLightDir, mLocCameraPos);
     }
   }
 
@@ -217,16 +209,18 @@ bool CesiumTilesetRenderer::Do() {
   glGetFloatv(GL_MODELVIEW_MATRIX, glMatV.data());
   glGetFloatv(GL_PROJECTION_MATRIX, glMatP.data());
 
-  // Upload view/projection once per frame
+  // Upload the actual view/projection matrices once per frame. The tile model
+  // matrix below is observer-relative, but still needs the camera orientation
+  // and any view transform supplied by ViSTA.
   glUniformMatrix4fv(mLocViewMatrix, 1, GL_FALSE, glMatV.data());
   glUniformMatrix4fv(mLocProjectionMatrix, 1, GL_FALSE, glMatP.data());
 
   // Upload light direction from CosmoScout SolarSystem (matches csp-simple-bodies pattern)
   glm::dmat4 observerToEarth = earth->getObserverRelativeTransform();
-  glm::dvec3 earthPos        = glm::dvec3(observerToEarth[3]);
+  glm::dvec3 earthPos(observerToEarth[3]);
 
   // Upload physically-correct sun illuminance (CosmoScout's HDR system)
-  float sunIlluminance = static_cast<float>(mSolarSystem->getSunIlluminance(earthPos));
+  auto sunIlluminance = static_cast<float>(mSolarSystem->getSunIlluminance(earthPos));
   glUniform1f(mLocSunIlluminance, sunIlluminance);
 
   // Camera is at the origin in observer-relative rendering
@@ -252,17 +246,6 @@ bool CesiumTilesetRenderer::Do() {
 
   uint32_t tilesDrawn = 0;
 
-  // Periodic diagnostic logging (every 500 frames)
-  static int diagCounter = 0;
-  if (diagCounter % 500 == 0 && !tiles.empty()) {
-    auto&  observer = mSolarSystem->getObserver();
-    double camDist  = glm::length(observer.getPosition());
-    double scale    = observer.getScale();
-    logger().warn("[DIAG] SunIll={:.0f}, CamDist={:.0f}m, Scale={:.3e}, TilesSelected={}",
-        sunIlluminance, camDist, scale, tiles.size());
-  }
-  diagCounter++;
-
   for (auto const& pTilePointer : tiles) {
     const auto* pTile = pTilePointer.get();
 
@@ -287,22 +270,18 @@ bool CesiumTilesetRenderer::Do() {
     //    (with applyRtcCenter + applyGltfUpAxisTransform already applied).
     //    observerToEarth transforms ECEF → observer-relative (64-bit).
     //    The cast to mat4 is safe because the result contains small relative values.
+    // Do the large-coordinate subtraction in double precision, before the
+    // final conversion to the float matrix consumed by OpenGL. Vertex values
+    // remain tile-local offsets, so the float VBO does not contain ECEF-scale
+    // coordinates.
     glm::dmat4 tileToObserver = observerToEarth * pData->tileTransform;
-    glm::mat4  modelMatrix    = glm::mat4(tileToObserver);
-
-    // Periodic tile diagnostic (first valid tile, every 500 frames)
-    if ((diagCounter - 1) % 500 == 0 && tilesDrawn == 0) {
-      logger().warn(
-          "[DIAG] Tile0 mat diag=({:.6f},{:.6f},{:.6f},{:.6f}), col3=({:.4f},{:.4f},{:.4f})",
-          modelMatrix[0][0], modelMatrix[1][1], modelMatrix[2][2], modelMatrix[3][3],
-          modelMatrix[3][0], modelMatrix[3][1], modelMatrix[3][2]);
-    }
+    glm::mat4  modelMatrix(tileToObserver);
 
     glUniformMatrix4fv(mLocModelMatrix, 1, GL_FALSE, glm::value_ptr(modelMatrix));
 
     // 7b. Compute and upload the normal matrix (inverse-transpose of model matrix)
-    glm::dmat3 normalMatrixD = glm::dmat3(glm::inverseTranspose(tileToObserver));
-    glm::mat3  normalMatrix  = glm::mat3(normalMatrixD);
+    glm::dmat3 normalMatrixD(glm::inverseTranspose(tileToObserver));
+    glm::mat3  normalMatrix(normalMatrixD);
 
     glUniformMatrix3fv(mLocNormalMatrix, 1, GL_FALSE, glm::value_ptr(normalMatrix));
 
@@ -320,7 +299,7 @@ bool CesiumTilesetRenderer::Do() {
     {
       cs::utils::FrameStats::ScopedTimer drawTimer("Cesium GPU Draw");
       glBindVertexArray(pData->vao);
-      glDrawElements(GL_TRIANGLES, pData->indexCount, GL_UNSIGNED_INT, nullptr);
+      glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(pData->indexCount), GL_UNSIGNED_INT, nullptr);
     }
 
     tilesDrawn++;
@@ -334,16 +313,6 @@ bool CesiumTilesetRenderer::Do() {
     glEnable(GL_BLEND);
   glBindVertexArray(0);
   glUseProgram(0);
-
-  // 10. Throttled diagnostic logging (every 100 frames)
-  if (frameCounter % 100 == 0) {
-    if (tilesDrawn > 0) {
-      logger().info("Drawing {} Cesium tiles.", tilesDrawn);
-    } else if (!tiles.empty()) {
-      logger().warn(
-          "Cesium has {} tiles selected, but 0 reached draw! Check tile states.", tiles.size());
-    }
-  }
 
   return true;
 }
@@ -399,17 +368,6 @@ static bool rayTriangleIntersect(glm::dvec3 const& origin, glm::dvec3 const& dir
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 double CesiumTilesetRenderer::getHeight(glm::dvec2 lngLat) const {
-  // DLL VERSION MARKER — proves at runtime that this rebuilt DLL is loaded.
-  // If you see this in the log, the getHeight()=0 bypass IS active.
-  static int sCallCount = 0;
-  if (++sCallCount % 300 == 1) {
-    logger().warn("[CESIUM_GETHEIGHT_V2] getHeight() BYPASS active — returning 0.0 "
-                  "(call #{})",
-        sCallCount);
-  }
-
-  // Returning 0 disables surface collision. CosmoScout navigates relative to the
-  // WGS84 ellipsoid, allowing the camera to freely approach the surface.
   return 0.0;
 }
 
