@@ -9,108 +9,78 @@
 #include "CesiumUtils.hpp"
 #include "logger.hpp"
 
-// CosmoScout core headers
 #include "../../../src/cs-core/SolarSystem.hpp"
 #include "../../../src/cs-utils/FrameStats.hpp"
 #include "../../../src/cs-utils/convert.hpp"
 #include "../../../src/cs-utils/utils.hpp"
 
-// ViSTA headers for scene graph hookup
 #include <VistaKernel/GraphicsManager/VistaGroupNode.h>
-#include <VistaKernel/GraphicsManager/VistaSceneGraph.h> // <> for exgternal library
+#include <VistaKernel/GraphicsManager/VistaSceneGraph.h>
 #include <VistaKernel/VistaSystem.h>
 #include <VistaKernelOpenSGExt/VistaOpenSGMaterialTools.h>
-#include <VistaMath/VistaBoundingBox.h>
 
-// GLM for matrix math
-#include <glm/gtc/matrix_inverse.hpp> // for glm::inverseTranspose
-#include <glm/gtc/type_ptr.hpp>       // for matrix math
-#include <glm/gtx/transform.hpp>
+#include <glm/gtc/matrix_inverse.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
-// Cesium tile access
 #include <Cesium3DTilesSelection/Tile.h>
 #include <Cesium3DTilesSelection/TileContent.h>
 #include <Cesium3DTilesSelection/TilesetViewGroup.h>
 
 namespace csp::cesiumbodies {
 
-////////////////////////////////////////////////////////////////////////////////////////////////////
-// SHADER SOURCE CODE                                                                             //
-////////////////////////////////////////////////////////////////////////////////////////////////////
-// static const char* is used to store the shader source code in the .cpp file
-const char* CesiumTilesetRenderer::CESIUM_VERT = R"( 
+const char* CesiumTilesetRenderer::CESIUM_VERT = R"(
 #version 430
 
-uniform mat4 u_ModelMatrix;
-uniform mat4 u_ViewMatrix;
-uniform mat4 u_ProjectionMatrix;
-uniform mat3 u_NormalMatrix;
+uniform mat4 uModelMatrix;
+uniform mat4 uViewMatrix;
+uniform mat4 uProjectionMatrix;
 
-layout(location = 0) in vec3 a_Position;
-layout(location = 1) in vec3 a_Normal;
-layout(location = 2) in vec2 a_UV;
-layout(location = 3) in vec4 a_Color;
+layout(location = 0) in vec3 aPosition;
+layout(location = 1) in vec2 aUV;
+layout(location = 2) in vec4 aColor;
 
-// out vec3 v_Position;
-out vec2 v_UV;
-out vec4 v_Color;
+out vec2 vUV;
+out vec4 vColor;
 
 void main() {
-    vec4 viewPos = u_ViewMatrix * u_ModelMatrix * vec4(a_Position, 1.0);
-    // v_Position    = worldPos.xyz;
-    v_UV          = a_UV;
-    v_Color       = a_Color;
-    gl_Position   = u_ProjectionMatrix * viewPos;
+  vec4 viewPos = uViewMatrix * uModelMatrix * vec4(aPosition, 1.0);
+  vUV         = aUV;
+  vColor      = aColor;
+  gl_Position  = uProjectionMatrix * viewPos;
 }
 )";
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// fragment shader for every pxl,
 const char* CesiumTilesetRenderer::CESIUM_FRAG = R"(
 #version 430
 
-in vec2 v_UV;
-in vec4 v_Color;
+in vec2 vUV;
+in vec4 vColor;
 
-uniform sampler2D u_BaseColorTexture;
-uniform bool  u_HasTexture;
-uniform float u_SunIlluminance;
+uniform sampler2D uBaseColorTexture;
+uniform bool      uHasTexture;
+uniform float     uSunIlluminance;
 
 layout(location = 0) out vec3 oColor;
 
 const float PI = 3.14159265359;
 
-// --- sRGB to Linear conversion (glTF base color textures are sRGB) ---
 vec3 sRGBtoLinear(vec3 srgb) {
     return pow(srgb, vec3(2.2));
 }
 
 void main() {
-    // Google Photorealistic 3D Tiles are PHOTOGRAMMETRY.
-    // Textures already contain baked lighting (sunlight, shadows, AO).
-    // We do NOT apply PBR lighting — just pass through the base color
-    // with HDR scaling for CosmoScout's tone mapper.
+  vec3 baseColor;
+  if (uHasTexture) {
+      baseColor = sRGBtoLinear(texture(uBaseColorTexture, vUV).rgb);
+  } else {
+      baseColor = vColor.rgb;
+  }
 
-    vec3 baseColor;
-    if (u_HasTexture) {
-        baseColor = sRGBtoLinear(texture(u_BaseColorTexture, v_UV).rgb);
-    } else {
-        baseColor = v_Color.rgb;
-    }
-
-    // HDR scaling for photogrammetry:
-    // These are pre-lit photos, NOT raw albedo. The baked lighting already
-    // encodes the BRDF response. We scale to match CosmoScout's HDR range.
-    // Factor: sunIlluminance * avgAlbedo / PI, where avgAlbedo ~ 0.06
-    // for photogrammetry (pre-baked textures appear darker in linear space).
-    oColor = baseColor * u_SunIlluminance * 0.06 / PI;
+  oColor = baseColor * uSunIlluminance * 0.06 / PI;
 }
 )";
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-// HELPER: Compile a single shader stage                                                          //
-////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static GLuint compileShader(GLenum type, const char* source) { //
   GLuint shader = glCreateShader(type);
@@ -129,28 +99,22 @@ static GLuint compileShader(GLenum type, const char* source) { //
   return shader;
 }
 
-////////////////////////////////////////////////////////////////////////////////////////////////////
-// CONSTRUCTOR                                                                                    //
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-CesiumTilesetRenderer::CesiumTilesetRenderer( // initialize lost
+CesiumTilesetRenderer::CesiumTilesetRenderer(
     Cesium3DTilesSelection::Tileset* pTileset, std::shared_ptr<cs::core::SolarSystem> pSolarSystem)
     : mTileset(pTileset)
-    , mSolarSystem(std::move(pSolarSystem)) { // takes psolar and puts it into msolar
+    , mSolarSystem(std::move(pSolarSystem)) {
 
-  // ---- 1. COMPILE AND LINK THE SHADER PROGRAM ----
   GLuint vert = compileShader(GL_VERTEX_SHADER, CESIUM_VERT);
   GLuint frag = compileShader(GL_FRAGMENT_SHADER, CESIUM_FRAG);
 
   if (vert && frag) {
-    mShaderProgram =
-        glCreateProgram(); // creates new empty container and gives back new id and stores it
-    glAttachShader(mShaderProgram, vert); // attaches the vertex shader to the program
-    glAttachShader(mShaderProgram, frag); // attaches the fragment shader to the program
-    glLinkProgram(mShaderProgram);        // links the program together
+    mShaderProgram = glCreateProgram();
+    glAttachShader(mShaderProgram, vert);
+    glAttachShader(mShaderProgram, frag);
+    glLinkProgram(mShaderProgram);
 
     GLint linked = 0;
-    glGetProgramiv(mShaderProgram, GL_LINK_STATUS, &linked); // manage link failure
+    glGetProgramiv(mShaderProgram, GL_LINK_STATUS, &linked);
     if (!linked) {
       char infoLog[512];
       glGetProgramInfoLog(mShaderProgram, 512, nullptr, infoLog);
@@ -158,24 +122,18 @@ CesiumTilesetRenderer::CesiumTilesetRenderer( // initialize lost
       glDeleteProgram(mShaderProgram);
       mShaderProgram = 0;
     } else {
-      // Cache uniform locations — only done once, not per-frame
-      mLocModelMatrix      = glGetUniformLocation(mShaderProgram, "u_ModelMatrix");
-      mLocViewMatrix       = glGetUniformLocation(mShaderProgram, "u_ViewMatrix");
-      mLocProjectionMatrix = glGetUniformLocation(mShaderProgram, "u_ProjectionMatrix");
-      mLocNormalMatrix     = glGetUniformLocation(mShaderProgram, "u_NormalMatrix");
-      mLocBaseColorTexture = glGetUniformLocation(mShaderProgram, "u_BaseColorTexture");
-      mLocHasTexture       = glGetUniformLocation(mShaderProgram, "u_HasTexture");
-      mLocLightDir         = glGetUniformLocation(mShaderProgram, "u_LightDir");
-      mLocCameraPos        = glGetUniformLocation(mShaderProgram, "u_CameraPos");
-      mLocSunIlluminance   = glGetUniformLocation(mShaderProgram, "u_SunIlluminance");
+      mLocModelMatrix      = glGetUniformLocation(mShaderProgram, "uModelMatrix");
+      mLocViewMatrix       = glGetUniformLocation(mShaderProgram, "uViewMatrix");
+      mLocProjectionMatrix = glGetUniformLocation(mShaderProgram, "uProjectionMatrix");
+      mLocBaseColorTexture = glGetUniformLocation(mShaderProgram, "uBaseColorTexture");
+      mLocHasTexture       = glGetUniformLocation(mShaderProgram, "uHasTexture");
+      mLocSunIlluminance   = glGetUniformLocation(mShaderProgram, "uSunIlluminance");
     }
   }
 
-  // Delete shader objects — they're baked into the program now.
   glDeleteShader(vert);
   glDeleteShader(frag);
 
-  // ---- 2. HOOK INTO THE VISTA SCENE GRAPH ----
   VistaSceneGraph* pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
   mGLNode.reset(pSG->NewOpenGLNode(pSG->GetRoot(), this));
   VistaOpenSGMaterialTools::SetSortKeyOnSubtree(
@@ -184,12 +142,8 @@ CesiumTilesetRenderer::CesiumTilesetRenderer( // initialize lost
   logger().info("CesiumTilesetRenderer attached to ViSTA scene graph.");
 }
 
-////////////////////////////////////////////////////////////////////////////////////////////////////
-// THE DRAW LOOP                                                                                  //
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
 bool CesiumTilesetRenderer::Do() {
-  // 1. Guard: If the shader failed to compile, don't draw.
+  // TODO: Extract into separate body.
   auto earth = mSolarSystem->getObject("Earth");
   if (mShaderProgram == 0 || !earth) {
     return true;
@@ -200,47 +154,32 @@ bool CesiumTilesetRenderer::Do() {
   static int frameCounter = 0;
   frameCounter++;
 
-  // 2. Activate our shader program
   glUseProgram(mShaderProgram);
 
-  // 3. Get ViSTA's current View and Projection matrices from the OpenGL state.
   std::array<GLfloat, 16> glMatV{};
   std::array<GLfloat, 16> glMatP{};
   glGetFloatv(GL_MODELVIEW_MATRIX, glMatV.data());
   glGetFloatv(GL_PROJECTION_MATRIX, glMatP.data());
 
-  // Upload the actual view/projection matrices once per frame. The tile model
-  // matrix below is observer-relative, but still needs the camera orientation
-  // and any view transform supplied by ViSTA.
   glUniformMatrix4fv(mLocViewMatrix, 1, GL_FALSE, glMatV.data());
   glUniformMatrix4fv(mLocProjectionMatrix, 1, GL_FALSE, glMatP.data());
 
-  // Upload light direction from CosmoScout SolarSystem (matches csp-simple-bodies pattern)
   glm::dmat4 observerToEarth = earth->getObserverRelativeTransform();
   glm::dvec3 earthPos(observerToEarth[3]);
 
-  // Upload physically-correct sun illuminance (CosmoScout's HDR system)
   auto sunIlluminance = static_cast<float>(mSolarSystem->getSunIlluminance(earthPos));
   glUniform1f(mLocSunIlluminance, sunIlluminance);
 
-  // Camera is at the origin in observer-relative rendering
-  // (u_LightDir and u_CameraPos are no longer used — photogrammetry shader is unlit)
-
-  // 5. Save and set GL state for our draw
-  //    CosmoScout uses reverse-Z depth (GL_GEQUAL) and flipped winding (GL_CW).
-  //    The projection flips triangle winding, so SetupGLNode sets GL_CW = front.
-  //    Rather than fighting the winding convention, just disable face culling.
   GLint     prevDepthFunc;
   GLboolean cullEnabled  = glIsEnabled(GL_CULL_FACE);
   GLboolean blendEnabled = glIsEnabled(GL_BLEND);
 
   glGetIntegerv(GL_DEPTH_FUNC, &prevDepthFunc);
 
-  glDepthFunc(GL_GEQUAL);  // CosmoScout's reverse-Z: near=1.0, far=0.0
-  glDisable(GL_CULL_FACE); // Disable culling — avoids winding order conflicts
+  glDepthFunc(GL_GEQUAL);
+  glDisable(GL_CULL_FACE);
   glDisable(GL_BLEND);
 
-  // 6. Get the list of tiles Cesium wants us to render
   const auto& result = mTileset->getDefaultViewGroup().getViewUpdateResult();
   const auto& tiles  = result.tilesToRenderThisFrame;
 
@@ -249,14 +188,12 @@ bool CesiumTilesetRenderer::Do() {
   for (auto const& pTilePointer : tiles) {
     const auto* pTile = pTilePointer.get();
 
-    // Skip tiles that haven't finished loading
-    auto state = pTile->getState();
-    if (state != Cesium3DTilesSelection::TileLoadState::ContentLoaded &&
+    if (auto state = pTile->getState();
+        state != Cesium3DTilesSelection::TileLoadState::ContentLoaded &&
         state != Cesium3DTilesSelection::TileLoadState::Done) {
       continue;
     }
 
-    // Get the render content (our CesiumRenderData pointer)
     auto* pRenderContent = pTile->getContent().getRenderContent();
     if (!pRenderContent)
       continue;
@@ -265,50 +202,33 @@ bool CesiumTilesetRenderer::Do() {
     if (!pData || pData->vao == 0)
       continue;
 
-    // 7. Compute per-tile model matrix (observer-relative):
-    //    pData->tileTransform is the CORRECTED tile-to-ECEF transform
-    //    (with applyRtcCenter + applyGltfUpAxisTransform already applied).
-    //    observerToEarth transforms ECEF → observer-relative (64-bit).
-    //    The cast to mat4 is safe because the result contains small relative values.
-    // Do the large-coordinate subtraction in double precision, before the
-    // final conversion to the float matrix consumed by OpenGL. Vertex values
-    // remain tile-local offsets, so the float VBO does not contain ECEF-scale
-    // coordinates.
     glm::dmat4 tileToObserver = observerToEarth * pData->tileTransform;
     glm::mat4  modelMatrix(tileToObserver);
 
     glUniformMatrix4fv(mLocModelMatrix, 1, GL_FALSE, glm::value_ptr(modelMatrix));
 
-    // 7b. Compute and upload the normal matrix (inverse-transpose of model matrix)
-    glm::dmat3 normalMatrixD(glm::inverseTranspose(tileToObserver));
-    glm::mat3  normalMatrix(normalMatrixD);
-
-    glUniformMatrix3fv(mLocNormalMatrix, 1, GL_FALSE, glm::value_ptr(normalMatrix));
-
-    // 7c. Bind texture (if this tile has one)
     if (pData->textureId != 0) {
       glActiveTexture(GL_TEXTURE0);
       glBindTexture(GL_TEXTURE_2D, pData->textureId);
-      glUniform1i(mLocBaseColorTexture, 0); // Use texture unit 0
-      glUniform1i(mLocHasTexture, 1);       // true
+      glUniform1i(mLocBaseColorTexture, 0);
+      glUniform1i(mLocHasTexture, 1);
     } else {
-      glUniform1i(mLocHasTexture, 0); // false
+      glUniform1i(mLocHasTexture, 0);
     }
 
-    // 8. Bind the tile's VAO and draw!
     {
       cs::utils::FrameStats::ScopedTimer drawTimer("Cesium GPU Draw");
       glBindVertexArray(pData->vao);
-      glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(pData->indexCount), GL_UNSIGNED_INT, nullptr);
+      glDrawElements(
+          GL_TRIANGLES, static_cast<GLsizei>(pData->indexCount), GL_UNSIGNED_INT, nullptr);
     }
 
     tilesDrawn++;
   }
 
-  // 9. Restore GL state PERFECTLY — failing to do so corrupts the tone mapper
-  glDepthFunc(prevDepthFunc); // CRITICAL: restore reverse-Z depth function
+  glDepthFunc(prevDepthFunc);
   if (cullEnabled)
-    glEnable(GL_CULL_FACE); // Restore face culling if it was on
+    glEnable(GL_CULL_FACE);
   if (blendEnabled)
     glEnable(GL_BLEND);
   glBindVertexArray(0);
@@ -317,23 +237,18 @@ bool CesiumTilesetRenderer::Do() {
   return true;
 }
 
-////////////////////////////////////////////////////////////////////////////////////////////////////
-// HELPER: Möller–Trumbore ray-triangle intersection                                              //
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
 /// Tests whether a ray hits a triangle. Returns true if hit, and sets 'tOut' to the parametric
 /// distance along the ray (hit point = origin + tOut * direction).
 static bool rayTriangleIntersect(glm::dvec3 const& origin, glm::dvec3 const& dir,
     glm::dvec3 const& v0, glm::dvec3 const& v1, glm::dvec3 const& v2, double& tOut) {
 
-  const double EPSILON = 1e-9;
+  constexpr double EPSILON = 1e-9;
 
   glm::dvec3 e1 = v1 - v0;
   glm::dvec3 e2 = v2 - v0;
   glm::dvec3 h  = glm::cross(dir, e2);
   double     a  = glm::dot(e1, h);
 
-  // Ray is parallel to the triangle
   if (a > -EPSILON && a < EPSILON) {
     return false;
   }
@@ -347,15 +262,11 @@ static bool rayTriangleIntersect(glm::dvec3 const& origin, glm::dvec3 const& dir
   }
 
   glm::dvec3 q = glm::cross(s, e1);
-  double     v = f * glm::dot(dir, q);
-
-  if (v < 0.0 || u + v > 1.0) {
+  if (double v = f * glm::dot(dir, q); v < 0.0 || u + v > 1.0) {
     return false;
   }
 
-  double t = f * glm::dot(e2, q);
-
-  if (t > EPSILON) {
+  if (double t = f * glm::dot(e2, q); t > EPSILON) {
     tOut = t;
     return true;
   }
@@ -363,17 +274,10 @@ static bool rayTriangleIntersect(glm::dvec3 const& origin, glm::dvec3 const& dir
   return false;
 }
 
-////////////////////////////////////////////////////////////////////////////////////////////////////
-// CelestialSurface: getHeight                                                                    //
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
+// TODO
 double CesiumTilesetRenderer::getHeight(glm::dvec2 lngLat) const {
   return 0.0;
 }
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-// IntersectableObject: getIntersection                                                           //
-////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool CesiumTilesetRenderer::getIntersection(
     glm::dvec3 const& rayPos, glm::dvec3 const& rayDir, glm::dvec3& pos) const {
@@ -386,7 +290,6 @@ bool CesiumTilesetRenderer::getIntersection(
     return false;
   }
 
-  // The ray comes in relative to the CelestialObject's coordinate system (ECEF)
   const auto& result = mTileset->getDefaultViewGroup().getViewUpdateResult();
   const auto& tiles  = result.tilesToRenderThisFrame;
 
@@ -412,14 +315,11 @@ bool CesiumTilesetRenderer::getIntersection(
       continue;
     }
 
-    // Transform ray into tile-local space
-    // MUST use pData->tileTransform (corrected with RTC center + up-axis),
-    // because vertex positions were baked in this coordinate space.
     glm::dmat4 tileXform    = pData->tileTransform;
     glm::dmat4 invTileXform = glm::inverse(tileXform);
 
-    glm::dvec3 localOrigin = glm::dvec3(invTileXform * glm::dvec4(rayPos, 1.0));
-    glm::dvec3 localDir    = glm::normalize(glm::dvec3(invTileXform * glm::dvec4(rayDir, 0.0)));
+    glm::dvec3 localOrigin(invTileXform * glm::dvec4(rayPos, 1.0));
+    glm::dvec3 localDir = glm::normalize(glm::dvec3(invTileXform * glm::dvec4(rayDir, 0.0)));
 
     for (size_t i = 0; i + 2 < pData->cpuIndices.size(); i += 3) {
       uint32_t i0 = pData->cpuIndices[i + 0];
@@ -435,12 +335,10 @@ bool CesiumTilesetRenderer::getIntersection(
       glm::dvec3 v1(pData->cpuPositions[i1]);
       glm::dvec3 v2(pData->cpuPositions[i2]);
 
-      double t = 0.0;
-      if (rayTriangleIntersect(localOrigin, localDir, v0, v1, v2, t)) {
+      if (double t = 0.0; rayTriangleIntersect(localOrigin, localDir, v0, v1, v2, t)) {
         if (t > 0.0 && t < closestT) {
           closestT = t;
 
-          // Convert hit point back to ECEF
           glm::dvec3 localHit = localOrigin + t * localDir;
           pos                 = glm::dvec3(tileXform * glm::dvec4(localHit, 1.0));
           foundHit            = true;
@@ -452,21 +350,14 @@ bool CesiumTilesetRenderer::getIntersection(
   return foundHit;
 }
 
-////////////////////////////////////////////////////////////////////////////////////////////////////
-// DESTRUCTOR                                                                                     //
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
 CesiumTilesetRenderer::~CesiumTilesetRenderer() {
   if (mShaderProgram) {
     glDeleteProgram(mShaderProgram);
   }
 
-  // Clean up scene graph connection
   VistaSceneGraph* pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
   pSG->GetRoot()->DisconnectChild(mGLNode.get());
 }
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool CesiumTilesetRenderer::GetBoundingBox(VistaBoundingBox& /*bb*/) {
   return false;

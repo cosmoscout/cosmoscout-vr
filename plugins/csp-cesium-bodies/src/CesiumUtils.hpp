@@ -8,66 +8,54 @@
 #ifndef CSP_CESIUM_BODIES_CESIUM_UTILS_HPP
 #define CSP_CESIUM_BODIES_CESIUM_UTILS_HPP
 
-// Belt-and-suspenders: Prevent the deadly Windows 'task' macro collision
-#ifdef task
-#undef task
-#endif
-
 #include <Cesium3DTilesSelection/IPrepareRendererResources.h>
 #include <CesiumAsync/ITaskProcessor.h>
 #include <GL/glew.h>
-#include <cstddef> // for std::byte
+#include <cstddef>
 #include <glm/glm.hpp>
 #include <vector>
 
 namespace csp::cesiumbodies {
 
-// 0. CPU-SIDE RENDER DATA CONTAINER
-// This struct carries extracted mesh data from the CPU worker thread
-// to the main (GPU) thread. It lives on the heap and is passed as void*.
+/// This struct carries extracted mesh data from the CPU worker thread to the main (GPU) thread.
+/// It lives on the heap and is passed as void*.
 struct CesiumRenderData {
-  std::vector<float>    vertices; // Interleaved: [Px,Py,Pz, Nx,Ny,Nz, U,V] = 8 floats
-  std::vector<uint32_t> indices;  // Triangle indices (always uint32_t)
+  std::vector<float>    vertices; ///< Interleaved: [Px,Py,Pz, Nx,Ny,Nz, U,V] = 8 floats
+  std::vector<uint32_t> indices;  ///< Triangle indices (always uint32_t)
 
-  // --- TEXTURE CPU DATA (filled by prepareInLoadThread) ---
-  std::vector<std::byte> texturePixels; // Raw decoded RGBA/RGB bytes from ImageAsset
+  std::vector<std::byte> texturePixels;
   int32_t                texWidth    = 0;
   int32_t                texHeight   = 0;
-  int32_t                texChannels = 4; // 1=R, 2=RG, 3=RGB, 4=RGBA
+  int32_t                texChannels = 4;
   bool                   hasTexture  = false;
 
-  // GPU handles (filled by prepareInMainThread, cleaned by free)
-  GLuint vao       = 0; // Vertex Array Object — the "recipe card"
-  GLuint vbo       = 0; // Vertex Buffer Object — vertex data in VRAM
-  GLuint ebo       = 0; // Element Buffer Object — index data in VRAM
-  GLuint textureId = 0; // GPU texture handle
+  GLuint vao       = 0;
+  GLuint vbo       = 0;
+  GLuint ebo       = 0;
+  GLuint textureId = 0;
 
-  // How many indices to draw (saved before we clear the CPU vector)
   uint32_t indexCount = 0;
 
-  // Corrected tile-to-ECEF transform (with RTC center + up-axis applied).
-  // The renderer uses this instead of raw pTile->getTransform().
+  /// Corrected tile-to-ECEF transform (with RTC center + up-axis applied).
+  /// The renderer uses this instead of raw pTile->getTransform().
   glm::dmat4 tileTransform{1.0};
 
-  // CPU-side copies retained for getHeight() / getIntersection() queries.
-  // Only positions + indices are kept — normals, UVs, colors are discarded.
-  std::vector<glm::dvec3> cpuPositions; // Tile-local space positions
-  std::vector<uint32_t>  cpuIndices;   // Triangle index list
+  /// CPU-side copies retained for getHeight() / getIntersection() queries.
+  /// Only positions + indices are kept — normals, UVs, colors are discarded.
+  std::vector<glm::dvec3> cpuPositions;
+  std::vector<uint32_t>   cpuIndices;
 };
 
-// 1. THE TASK PROCESSOR
 class CosmoScoutTaskProcessor : public CesiumAsync::ITaskProcessor {
  public:
   CosmoScoutTaskProcessor() = default;
   void startTask(std::function<void()> f) override;
 };
 
-// 2. THE STUB RENDERER
 class StubPrepareRendererResources : public Cesium3DTilesSelection::IPrepareRendererResources {
  public:
   StubPrepareRendererResources() = default;
 
-  // --- 3D Tiles Geometry Handlers ---
   CesiumAsync::Future<Cesium3DTilesSelection::TileLoadResultAndRenderResources> prepareInLoadThread(
       const CesiumAsync::AsyncSystem&          asyncSystem,
       Cesium3DTilesSelection::TileLoadResult&& tileLoadResult, const glm::dmat4& transform,
@@ -77,7 +65,6 @@ class StubPrepareRendererResources : public Cesium3DTilesSelection::IPrepareRend
   void  free(Cesium3DTilesSelection::Tile& tile, void* pLoadThreadResult,
        void* pMainThreadResult) noexcept override;
 
-  // --- Raster Overlay Handlers ---
   void* prepareRasterInLoadThread(
       CesiumImage::ImageAsset& image, const std::any& rendererOptions) override;
 
