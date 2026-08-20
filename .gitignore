@@ -38,7 +38,7 @@
 !/plugins/csp-trajectories
 !/plugins/csp-web-api
 !/plugins/csp-wms-overlays
-!/plugins/csp-cesium-renderer
+!/plugins/csp-cesium-bodies
 
 *.sublime*
 .vscode
