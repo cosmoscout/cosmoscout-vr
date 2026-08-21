@@ -35,22 +35,37 @@ if(NOT TARGET cef::libcef)
 endif()
 
 if(NOT TARGET cef::libcef_dll_wrapper)
-    find_library(CEF_WRAPPER_LIB
+    find_library(CEF_WRAPPER_LIB_RELEASE
         NAMES
         libcef_dll_wrapper
         libcef_dll_wrapper.a
         libcef_dll_wrapper.lib
         PATHS "${_cef_root}/lib" NO_DEFAULT_PATH)
 
-    if(NOT CEF_WRAPPER_LIB)
+    if(NOT CEF_WRAPPER_LIB_RELEASE)
         message(FATAL_ERROR "cef-config.cmake: could not locate libcef_dll_wrapper library under ${_cef_root}/lib")
     endif()
 
+    find_library(CEF_WRAPPER_LIB_DEBUG
+        NAMES
+        libcef_dll_wrapper
+        libcef_dll_wrapper.a
+        libcef_dll_wrapper.lib
+        PATHS "${_cef_root}/debug/lib" NO_DEFAULT_PATH)
+
     add_library(cef::libcef_dll_wrapper STATIC IMPORTED)
     set_target_properties(cef::libcef_dll_wrapper PROPERTIES
-        IMPORTED_LOCATION "${CEF_WRAPPER_LIB}"
+        IMPORTED_LOCATION "${CEF_WRAPPER_LIB_RELEASE}"
+        IMPORTED_LOCATION_RELEASE "${CEF_WRAPPER_LIB_RELEASE}"
+        IMPORTED_LOCATION_RELWITHDEBINFO "${CEF_WRAPPER_LIB_RELEASE}"
+        IMPORTED_LOCATION_MINSIZEREL "${CEF_WRAPPER_LIB_RELEASE}"
         INTERFACE_LINK_LIBRARIES "cef::libcef"
     )
+
+    if(CEF_WRAPPER_LIB_DEBUG)
+        set_property(TARGET cef::libcef_dll_wrapper PROPERTY
+            IMPORTED_LOCATION_DEBUG "${CEF_WRAPPER_LIB_DEBUG}")
+    endif()
 endif()
 
 set(CEF_RESOURCE_DIR "${_cef_root}/share/cef/Resources")

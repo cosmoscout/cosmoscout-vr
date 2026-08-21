@@ -54,6 +54,10 @@ class CesiumTilesetRenderer : public cs::scene::CelestialSurface,
   Cesium3DTilesSelection::Tileset*       mTileset;
   std::shared_ptr<cs::core::SolarSystem> mSolarSystem;
 
+  mutable glm::dvec2 mLastQueryLngLat{std::numeric_limits<double>::quiet_NaN(), 0.0};
+  mutable double     mCachedHeight                = 0.0;
+  mutable bool       mHeightQueryInFlight         = false;
+
   std::unique_ptr<VistaOpenGLNode> mGLNode;
 
   GLuint mShaderProgram = 0;

@@ -25,9 +25,10 @@ if (NOT VCPKG_TARGET_ARCHITECTURE STREQUAL "x64" OR (NOT VCPKG_TARGET_IS_WINDOWS
       "Unsupported triplet: ${VCPKG_TARGET_TRIPLET}")
 endif()
 
-# The "minimal" distribution only ships Release binaries, so there is nothing
-# to gain from (and no way to satisfy) a Debug build here.
-set(VCPKG_BUILD_TYPE release)
+# The "minimal" distribution only ships Release Chromium binaries. The C++
+# wrapper is built from source, however, and must match the consumer's CRT and
+# iterator-debugging configuration. Therefore, let the triplet decide whether
+# to build Debug, Release, or both configurations.
 
 # ----------------------------------------------------------------------------
 # Download
@@ -145,18 +146,30 @@ if(CEF_IMPORT_LIBS)
   file(REMOVE ${CEF_IMPORT_LIBS})
 endif()
 
-# The wrapper we just built. Search recursively since the exact path differs
-# between single-config (Ninja) and multi-config (MSBuild) generators.
-# On Windows the wrapper is a .lib file, while on Linux it is a static .a archive.
-# Use a glob that matches both extensions to handle both platforms.
-file(GLOB_RECURSE CEF_WRAPPER_LIB
-    "${CURRENT_BUILDTREES_DIR}/${TARGET_TRIPLET}-rel/*libcef_dll_wrapper.lib"
-    "${CURRENT_BUILDTREES_DIR}/${TARGET_TRIPLET}-rel/*libcef_dll_wrapper.a")
-list(LENGTH CEF_WRAPPER_LIB CEF_WRAPPER_LIB_COUNT)
-if(NOT CEF_WRAPPER_LIB_COUNT EQUAL 1)
-  message(FATAL_ERROR "Expected exactly one libcef_dll_wrapper library, found: ${CEF_WRAPPER_LIB}")
+# Install each wrapper configuration produced by the triplet. Search recursively
+# since the exact path differs between single-config and multi-config generators.
+# Windows produces a .lib archive and Linux produces a static .a archive.
+function(install_cef_wrapper BUILD_SUFFIX DESTINATION)
+  file(GLOB_RECURSE CEF_WRAPPER_LIB
+      "${CURRENT_BUILDTREES_DIR}/${TARGET_TRIPLET}-${BUILD_SUFFIX}/*libcef_dll_wrapper.lib"
+      "${CURRENT_BUILDTREES_DIR}/${TARGET_TRIPLET}-${BUILD_SUFFIX}/*libcef_dll_wrapper.a")
+  list(LENGTH CEF_WRAPPER_LIB CEF_WRAPPER_LIB_COUNT)
+  if(NOT CEF_WRAPPER_LIB_COUNT EQUAL 1)
+    message(FATAL_ERROR
+        "Expected exactly one ${BUILD_SUFFIX} libcef_dll_wrapper library, found: ${CEF_WRAPPER_LIB}")
+  endif()
+
+  file(MAKE_DIRECTORY "${DESTINATION}")
+  file(COPY ${CEF_WRAPPER_LIB} DESTINATION "${DESTINATION}")
+endfunction()
+
+if(NOT VCPKG_BUILD_TYPE OR VCPKG_BUILD_TYPE STREQUAL "release")
+  install_cef_wrapper("rel" "${CURRENT_PACKAGES_DIR}/lib")
 endif()
-file(COPY ${CEF_WRAPPER_LIB} DESTINATION "${CURRENT_PACKAGES_DIR}/lib")
+
+if(NOT VCPKG_BUILD_TYPE OR VCPKG_BUILD_TYPE STREQUAL "debug")
+  install_cef_wrapper("dbg" "${CURRENT_PACKAGES_DIR}/debug/lib")
+endif()
 
 # Runtime resources: *.pak files and locales/.
 file(COPY "${SOURCE_PATH}/Resources/" DESTINATION "${CURRENT_PACKAGES_DIR}/share/cef/Resources")

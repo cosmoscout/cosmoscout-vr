@@ -15,7 +15,8 @@ find_package(CIVETWEB REQUIRED)
 find_package(TIFF REQUIRED COMPONENTS CXX)
 
 if (MSVC)
-  find_library(TIFFXX_LIBRARY NAMES tiffxx tiffxxd)
+  find_library(TIFFXX_LIBRARY_RELEASE NAMES tiffxx)
+  find_library(TIFFXX_LIBRARY_DEBUG   NAMES tiffxxd)
 endif()
 
 # build plugin -------------------------------------------------------------------------------------
@@ -39,7 +40,7 @@ target_link_libraries(csp-web-api
     civetweb::civetweb-cpp
     TIFF::TIFF
     TIFF::CXX
-    $<$<PLATFORM_ID:Windows>:${TIFFXX_LIBRARY}>
+    $<$<PLATFORM_ID:Windows>:$<IF:$<CONFIG:Release>,${TIFFXX_LIBRARY_RELEASE},${TIFFXX_LIBRARY_DEBUG}>>
 )
 
 # Add this Plugin to a "plugins" folder in your IDE.

@@ -25,6 +25,8 @@
 #include <Cesium3DTilesSelection/Tile.h>
 #include <Cesium3DTilesSelection/TileContent.h>
 #include <Cesium3DTilesSelection/TilesetViewGroup.h>
+#include <CesiumGltfContent/GltfUtilities.h>
+#include <CesiumGeometry/Ray.h>
 
 namespace csp::cesiumbodies {
 
@@ -73,7 +75,7 @@ vec3 sRGBtoLinear(vec3 srgb) {
 void main() {
   vec3 baseColor;
   if (uHasTexture) {
-      baseColor = sRGBtoLinear(texture(uBaseColorTexture, vUV).rgb);
+      baseColor = sRGBtoLinear(texture(uBaseColorTexture, vUV).rgb) * vColor.rgb;
   } else {
       baseColor = vColor.rgb;
   }
@@ -207,20 +209,24 @@ bool CesiumTilesetRenderer::Do() {
 
     glUniformMatrix4fv(mLocModelMatrix, 1, GL_FALSE, glm::value_ptr(modelMatrix));
 
-    if (pData->textureId != 0) {
-      glActiveTexture(GL_TEXTURE0);
-      glBindTexture(GL_TEXTURE_2D, pData->textureId);
-      glUniform1i(mLocBaseColorTexture, 0);
-      glUniform1i(mLocHasTexture, 1);
-    } else {
-      glUniform1i(mLocHasTexture, 0);
-    }
-
     {
       cs::utils::FrameStats::ScopedTimer drawTimer("Cesium GPU Draw");
       glBindVertexArray(pData->vao);
-      glDrawElements(
-          GL_TRIANGLES, static_cast<GLsizei>(pData->indexCount), GL_UNSIGNED_INT, nullptr);
+      glActiveTexture(GL_TEXTURE0);
+      glUniform1i(mLocBaseColorTexture, 0);
+
+      for (const CesiumDrawBatch& batch : pData->batches) {
+        GLuint textureId = 0;
+        if (batch.textureSlot >= 0 &&
+            batch.textureSlot < static_cast<int32_t>(pData->textures.size())) {
+          textureId = pData->textures[batch.textureSlot].textureId;
+        }
+
+        glBindTexture(GL_TEXTURE_2D, textureId);
+        glUniform1i(mLocHasTexture, textureId != 0 ? 1 : 0);
+        glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(batch.indexCount), GL_UNSIGNED_INT,
+            reinterpret_cast<void*>(static_cast<uintptr_t>(batch.firstIndex) * sizeof(uint32_t)));
+      }
     }
 
     tilesDrawn++;
@@ -237,117 +243,82 @@ bool CesiumTilesetRenderer::Do() {
   return true;
 }
 
-/// Tests whether a ray hits a triangle. Returns true if hit, and sets 'tOut' to the parametric
-/// distance along the ray (hit point = origin + tOut * direction).
-static bool rayTriangleIntersect(glm::dvec3 const& origin, glm::dvec3 const& dir,
-    glm::dvec3 const& v0, glm::dvec3 const& v1, glm::dvec3 const& v2, double& tOut) {
-
-  constexpr double EPSILON = 1e-9;
-
-  glm::dvec3 e1 = v1 - v0;
-  glm::dvec3 e2 = v2 - v0;
-  glm::dvec3 h  = glm::cross(dir, e2);
-  double     a  = glm::dot(e1, h);
-
-  if (a > -EPSILON && a < EPSILON) {
-    return false;
-  }
-
-  double     f = 1.0 / a;
-  glm::dvec3 s = origin - v0;
-  double     u = f * glm::dot(s, h);
-
-  if (u < 0.0 || u > 1.0) {
-    return false;
-  }
-
-  glm::dvec3 q = glm::cross(s, e1);
-  if (double v = f * glm::dot(dir, q); v < 0.0 || u + v > 1.0) {
-    return false;
-  }
-
-  if (double t = f * glm::dot(e2, q); t > EPSILON) {
-    tOut = t;
-    return true;
-  }
-
-  return false;
-}
-
-// TODO
+// Cesium native only offers an async function to test for intersections. We query this intersection
+// asynchronously, which works quite well in most cases. The only downside is that collisions with
+// the ground are a little bouncy.
 double CesiumTilesetRenderer::getHeight(glm::dvec2 lngLat) const {
-  return 0.0;
+  if (!mHeightQueryInFlight) {
+    mHeightQueryInFlight = true;
+    mLastQueryLngLat     = lngLat;
+
+    std::vector positions{CesiumGeospatial::Cartographic(lngLat.x, lngLat.y, 0.0)};
+
+    mTileset->sampleHeightMostDetailed(positions).thenInMainThread(
+        [this](Cesium3DTilesSelection::SampleHeightResult&& result) {
+          mHeightQueryInFlight = false;
+          if (!result.positions.empty() && result.sampleSuccess[0]) {
+            mCachedHeight = result.positions[0].height;
+          }
+        });
+  }
+
+  return mCachedHeight;
 }
 
 bool CesiumTilesetRenderer::getIntersection(
     glm::dvec3 const& rayPos, glm::dvec3 const& rayDir, glm::dvec3& pos) const {
-  if (!mTileset) {
+  if (mTileset == nullptr) {
     return false;
   }
 
-  auto earth = mSolarSystem->getObject("Earth");
-  if (!earth) {
+  const double dirLength = glm::length(rayDir);
+  if (dirLength <= 0.0) {
     return false;
   }
 
-  const auto& result = mTileset->getDefaultViewGroup().getViewUpdateResult();
-  const auto& tiles  = result.tilesToRenderThisFrame;
+  // CosmoScout VR uses (Z, X, Y) layout, Cesium uses (X, Y, Z) ECEF.
+  // Convert ray from CosmoScout coordinates to ECEF.
+  glm::dvec3 rayPosECEF(rayPos.yzx());
+  glm::dvec3 rayDirECEF(rayDir.yzx());
 
-  double closestT = std::numeric_limits<double>::max();
-  bool   foundHit = false;
+  // CesiumGeometry::Ray requires a normalized direction.
+  const CesiumGeometry::Ray ray(rayPosECEF, rayDirECEF / dirLength);
 
-  for (auto const& pTilePointer : tiles) {
-    const auto* pTile = pTilePointer.get();
+  bool found = false;
+  double closestDistSq = std::numeric_limits<double>::max();
+  glm::dvec3 closestPointECEF(0.0);
 
-    auto state = pTile->getState();
-    if (state != Cesium3DTilesSelection::TileLoadState::ContentLoaded &&
-        state != Cesium3DTilesSelection::TileLoadState::Done) {
-      continue;
+  mTileset->forEachLoadedTile([&](Cesium3DTilesSelection::Tile const& tile) {
+    Cesium3DTilesSelection::TileRenderContent const* pRenderContent =
+        tile.getContent().getRenderContent();
+    if (pRenderContent == nullptr) {
+      return;
     }
 
-    auto* pRenderContent = pTile->getContent().getRenderContent();
-    if (!pRenderContent) {
-      continue;
-    }
+    CesiumGltf::Model const& model = pRenderContent->getModel();
 
-    auto* pData = static_cast<CesiumRenderData*>(pRenderContent->getRenderResources());
-    if (!pData || pData->cpuPositions.empty() || pData->cpuIndices.size() < 3) {
-      continue;
-    }
+    CesiumGltfContent::GltfUtilities::IntersectResult result =
+        CesiumGltfContent::GltfUtilities::intersectRayGltfModel(
+            ray,
+            model,
+            /* cullBackFaces */ true,
+            tile.getTransform());
 
-    glm::dmat4 tileXform    = pData->tileTransform;
-    glm::dmat4 invTileXform = glm::inverse(tileXform);
-
-    glm::dvec3 localOrigin(invTileXform * glm::dvec4(rayPos, 1.0));
-    glm::dvec3 localDir = glm::normalize(glm::dvec3(invTileXform * glm::dvec4(rayDir, 0.0)));
-
-    for (size_t i = 0; i + 2 < pData->cpuIndices.size(); i += 3) {
-      uint32_t i0 = pData->cpuIndices[i + 0];
-      uint32_t i1 = pData->cpuIndices[i + 1];
-      uint32_t i2 = pData->cpuIndices[i + 2];
-
-      if (i0 >= pData->cpuPositions.size() || i1 >= pData->cpuPositions.size() ||
-          i2 >= pData->cpuPositions.size()) {
-        continue;
-      }
-
-      glm::dvec3 v0(pData->cpuPositions[i0]);
-      glm::dvec3 v1(pData->cpuPositions[i1]);
-      glm::dvec3 v2(pData->cpuPositions[i2]);
-
-      if (double t = 0.0; rayTriangleIntersect(localOrigin, localDir, v0, v1, v2, t)) {
-        if (t > 0.0 && t < closestT) {
-          closestT = t;
-
-          glm::dvec3 localHit = localOrigin + t * localDir;
-          pos                 = glm::dvec3(tileXform * glm::dvec4(localHit, 1.0));
-          foundHit            = true;
-        }
+    if (result.hit.has_value()) {
+      const double distSq = result.hit->rayToWorldPointDistanceSq;
+      if (distSq < closestDistSq) {
+        closestDistSq = distSq;
+        closestPointECEF = result.hit->worldPoint;
+        found = true;
       }
     }
+  });
+
+  if (found) {
+    // Convert intersection point back from ECEF to CosmoScout coordinates.
+    pos = glm::dvec3(closestPointECEF.yzx());
   }
-
-  return foundHit;
+  return found;
 }
 
 CesiumTilesetRenderer::~CesiumTilesetRenderer() {

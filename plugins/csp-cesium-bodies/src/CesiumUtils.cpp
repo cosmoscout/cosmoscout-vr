@@ -15,18 +15,63 @@
 #include <CesiumGltf/Image.h>
 #include <CesiumGltf/Material.h>
 #include <CesiumGltf/Node.h>
+#include <CesiumGltf/Sampler.h>
 #include <CesiumGltf/Texture.h>
 #include <CesiumGltfContent/GltfUtilities.h>
 #include <GL/glew.h>
 #include <glm/gtc/quaternion.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#include <string>
 #include <thread>
 
 namespace csp::cesiumbodies {
 
 void CosmoScoutTaskProcessor::startTask(std::function<void()> f) {
   std::thread(std::move(f)).detach();
+}
+
+static int32_t getOrCreateTexture(
+    CesiumRenderData* renderData, const CesiumGltf::Model* pModel, int32_t textureIndex) {
+  for (size_t i = 0; i < renderData->textures.size(); ++i) {
+    if (renderData->textures[i].sourceIndex == textureIndex) {
+      return static_cast<int32_t>(i);
+    }
+  }
+
+  const CesiumGltf::Texture* pTexture =
+      CesiumGltf::Model::getSafe(&pModel->textures, textureIndex);
+  if (!pTexture || pTexture->source < 0) {
+    return -1;
+  }
+
+  const CesiumGltf::Image* pImage = CesiumGltf::Model::getSafe(&pModel->images, pTexture->source);
+  if (!pImage || !pImage->pAsset || pImage->pAsset->pixelData.empty()) {
+    return -1;
+  }
+
+  const CesiumImage::ImageAsset& asset = *pImage->pAsset;
+  CesiumTextureData              texture;
+  texture.pixels      = asset.pixelData;
+  texture.width       = asset.width;
+  texture.height      = asset.height;
+  texture.channels    = asset.channels;
+  texture.sourceIndex = textureIndex;
+
+  if (const CesiumGltf::Sampler* pSampler =
+          CesiumGltf::Model::getSafe(&pModel->samplers, pTexture->sampler)) {
+    texture.wrapS = pSampler->wrapS;
+    texture.wrapT = pSampler->wrapT;
+    if (pSampler->minFilter) {
+      texture.minFilter = *pSampler->minFilter;
+    }
+    if (pSampler->magFilter) {
+      texture.magFilter = *pSampler->magFilter;
+    }
+  }
+
+  renderData->textures.emplace_back(std::move(texture));
+  return static_cast<int32_t>(renderData->textures.size() - 1);
 }
 
 static void extractPrimitive(CesiumRenderData* renderData, const CesiumGltf::Model* pModel,
@@ -45,9 +90,16 @@ static void extractPrimitive(CesiumRenderData* renderData, const CesiumGltf::Mod
     return;
   }
 
-  bool                                                             hasUVs = false;
+  const CesiumGltf::Material* pMaterial =
+      CesiumGltf::Model::getSafe(&pModel->materials, primitive.material);
+  const CesiumGltf::MaterialPBRMetallicRoughness* pPbr =
+      pMaterial && pMaterial->pbrMetallicRoughness ? &*pMaterial->pbrMetallicRoughness : nullptr;
+
+  int64_t texCoordSet = pPbr && pPbr->baseColorTexture ? pPbr->baseColorTexture->texCoord : 0;
+  bool    hasUVs      = false;
   CesiumGltf::AccessorView<CesiumGltf::AccessorTypes::VEC2<float>> uvs;
-  if (auto uvIt = primitive.attributes.find("TEXCOORD_0"); uvIt != primitive.attributes.end()) {
+  if (auto uvIt = primitive.attributes.find("TEXCOORD_" + std::to_string(texCoordSet));
+      uvIt != primitive.attributes.end()) {
     uvs = CesiumGltf::AccessorView<CesiumGltf::AccessorTypes::VEC2<float>>(*pModel, uvIt->second);
     if (uvs.status() == CesiumGltf::AccessorViewStatus::Valid) {
       hasUVs = true;
@@ -55,15 +107,12 @@ static void extractPrimitive(CesiumRenderData* renderData, const CesiumGltf::Mod
   }
 
   glm::vec4 color{0.8F, 0.8F, 0.8F, 1.0F};
-  if (primitive.material >= 0) {
-    if (const auto* pMat = CesiumGltf::Model::getSafe(&pModel->materials, primitive.material);
-        pMat && pMat->pbrMetallicRoughness) {
-      if (const auto& factor = pMat->pbrMetallicRoughness->baseColorFactor; factor.size() >= 4) {
-        color.x = static_cast<float>(factor[0]);
-        color.y = static_cast<float>(factor[1]);
-        color.z = static_cast<float>(factor[2]);
-        color.w = static_cast<float>(factor[3]);
-      }
+  if (pPbr) {
+    if (const auto& factor = pPbr->baseColorFactor; factor.size() >= 4) {
+      color.x = static_cast<float>(factor[0]);
+      color.y = static_cast<float>(factor[1]);
+      color.z = static_cast<float>(factor[2]);
+      color.w = static_cast<float>(factor[3]);
     }
   }
 
@@ -95,6 +144,7 @@ static void extractPrimitive(CesiumRenderData* renderData, const CesiumGltf::Mod
     renderData->vertices.push_back(color.w);
   }
 
+  const auto firstIndex = static_cast<uint32_t>(renderData->indices.size());
   if (primitive.indices >= 0) {
     const CesiumGltf::Accessor* pIndexAccessor =
         CesiumGltf::Model::getSafe(&pModel->accessors, primitive.indices);
@@ -133,30 +183,13 @@ static void extractPrimitive(CesiumRenderData* renderData, const CesiumGltf::Mod
     }
   }
 
-  if (!renderData->hasTexture && primitive.material >= 0) {
-    const CesiumGltf::Material* pMaterial =
-        CesiumGltf::Model::getSafe(&pModel->materials, primitive.material);
-    if (pMaterial && pMaterial->pbrMetallicRoughness) {
-      if (const auto& pbr = *pMaterial->pbrMetallicRoughness; pbr.baseColorTexture) {
-        int32_t                    textureIndex = pbr.baseColorTexture->index;
-        const CesiumGltf::Texture* pTexture =
-            CesiumGltf::Model::getSafe(&pModel->textures, textureIndex);
-        if (pTexture && pTexture->source >= 0) {
-          const CesiumGltf::Image* pImage =
-              CesiumGltf::Model::getSafe(&pModel->images, pTexture->source);
-          if (pImage && pImage->pAsset) {
-            const CesiumImage::ImageAsset& asset = *pImage->pAsset;
-            if (!asset.pixelData.empty()) {
-              renderData->texturePixels = asset.pixelData;
-              renderData->texWidth      = asset.width;
-              renderData->texHeight     = asset.height;
-              renderData->texChannels   = asset.channels;
-              renderData->hasTexture    = true;
-            }
-          }
-        }
-      }
+  if (const uint32_t indexCount = static_cast<uint32_t>(renderData->indices.size()) - firstIndex;
+      indexCount > 0) {
+    int32_t textureSlot = -1;
+    if (hasUVs && pPbr && pPbr->baseColorTexture) {
+      textureSlot = getOrCreateTexture(renderData, pModel, pPbr->baseColorTexture->index);
     }
+    renderData->batches.push_back({firstIndex, indexCount, textureSlot});
   }
 }
 
@@ -238,7 +271,7 @@ StubPrepareRendererResources::prepareInLoadThread(const CesiumAsync::AsyncSystem
   if (!pModel) {
     return asyncSystem.createResolvedFuture(
         Cesium3DTilesSelection::TileLoadResultAndRenderResources{
-            std::move(tileLoadResult), nullptr});
+            .result = std::move(tileLoadResult), .pRenderResources = nullptr});
   }
 
   auto* renderData = new CesiumRenderData();
@@ -254,7 +287,7 @@ StubPrepareRendererResources::prepareInLoadThread(const CesiumAsync::AsyncSystem
       0.0, 0.0, 0.0, 1.0                                           // col 3: no translation
   );
 
-  rootTransform = ecefToCosmoScout * rootTransform;
+  rootTransform             = ecefToCosmoScout * rootTransform;
   renderData->tileTransform = rootTransform;
   glm::dmat4 identity(1.0);
 
@@ -274,9 +307,7 @@ StubPrepareRendererResources::prepareInLoadThread(const CesiumAsync::AsyncSystem
   rebaseVertices(renderData);
 
   return asyncSystem.createResolvedFuture(Cesium3DTilesSelection::TileLoadResultAndRenderResources{
-      std::move(tileLoadResult),
-      renderData
-  });
+      std::move(tileLoadResult), renderData});
 }
 
 void* StubPrepareRendererResources::prepareInMainThread(
@@ -290,8 +321,6 @@ void* StubPrepareRendererResources::prepareInMainThread(
 
   cs::utils::FrameStats::ScopedTimer timer(
       "Cesium VRAM Upload", cs::utils::FrameStats::TimerMode::eCPU);
-
-  pData->indexCount = static_cast<uint32_t>(pData->indices.size());
 
   glGenVertexArrays(1, &pData->vao);
   glBindVertexArray(pData->vao);
@@ -309,30 +338,36 @@ void* StubPrepareRendererResources::prepareInMainThread(
   GLsizei stride = 9 * sizeof(float);
 
   // Location 0 = Position (3 floats, offset 0 bytes)
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride, (void*)nullptr);
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride, nullptr);
   glEnableVertexAttribArray(0);
 
   // Location 1 = UV (2 floats, offset 12 bytes)
-  glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, stride, (void*)(3 * sizeof(float)));
+  glVertexAttribPointer(
+      1, 2, GL_FLOAT, GL_FALSE, stride, reinterpret_cast<void*>(3 * sizeof(float)));
   glEnableVertexAttribArray(1);
 
   // Location 2 = Color (4 floats, offset 20 bytes)
-  glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, stride, (void*)(5 * sizeof(float)));
+  glVertexAttribPointer(
+      2, 4, GL_FLOAT, GL_FALSE, stride, reinterpret_cast<void*>(5 * sizeof(float)));
   glEnableVertexAttribArray(2);
 
   glBindVertexArray(0);
 
-  if (pData->hasTexture && !pData->texturePixels.empty()) {
+  for (CesiumTextureData& texture : pData->textures) {
+    if (texture.pixels.empty()) {
+      continue;
+    }
+
     GLenum format = GL_RGBA;
-    if (pData->texChannels == 1)
+    if (texture.channels == 1)
       format = GL_RED;
-    else if (pData->texChannels == 2)
+    else if (texture.channels == 2)
       format = GL_RG;
-    else if (pData->texChannels == 3)
+    else if (texture.channels == 3)
       format = GL_RGB;
 
-    glGenTextures(1, &pData->textureId);
-    glBindTexture(GL_TEXTURE_2D, pData->textureId);
+    glGenTextures(1, &texture.textureId);
+    glBindTexture(GL_TEXTURE_2D, texture.textureId);
 
     // Cesium pixels are tightly packed — no row padding
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
@@ -340,12 +375,12 @@ void* StubPrepareRendererResources::prepareInMainThread(
     glTexImage2D(GL_TEXTURE_2D,     // target
         0,                          // mip level 0 (the full-size base image)
         format,                     // internal format (how GPU stores it)
-        pData->texWidth,            // width in pixels
-        pData->texHeight,           // height in pixels
+        texture.width,              // width in pixels
+        texture.height,             // height in pixels
         0,                          // border (always 0, legacy parameter)
         format,                     // pixel data format (how OUR bytes are laid out)
         GL_UNSIGNED_BYTE,           // each channel is one byte (0-255)
-        pData->texturePixels.data() // pointer to the raw bytes
+        texture.pixels.data()       // pointer to the raw bytes
     );
 
     // Restore OpenGL default alignment to avoid contaminating other code
@@ -353,15 +388,15 @@ void* StubPrepareRendererResources::prepareInMainThread(
 
     glGenerateMipmap(GL_TEXTURE_2D);
 
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, texture.wrapS);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, texture.wrapT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, texture.minFilter);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, texture.magFilter);
 
     glBindTexture(GL_TEXTURE_2D, 0);
 
-    pData->texturePixels.clear();
-    pData->texturePixels.shrink_to_fit();
+    texture.pixels.clear();
+    texture.pixels.shrink_to_fit();
   }
 
   pData->vertices.clear();
@@ -388,8 +423,10 @@ void StubPrepareRendererResources::free(
     if (pData->ebo != 0) {
       glDeleteBuffers(1, &pData->ebo);
     }
-    if (pData->textureId != 0) {
-      glDeleteTextures(1, &pData->textureId);
+    for (const CesiumTextureData& texture : pData->textures) {
+      if (texture.textureId != 0) {
+        glDeleteTextures(1, &texture.textureId);
+      }
     }
 
     delete pData;
