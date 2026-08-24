@@ -39,8 +39,7 @@ static int32_t getOrCreateTexture(
     }
   }
 
-  const CesiumGltf::Texture* pTexture =
-      CesiumGltf::Model::getSafe(&pModel->textures, textureIndex);
+  const CesiumGltf::Texture* pTexture = CesiumGltf::Model::getSafe(&pModel->textures, textureIndex);
   if (!pTexture || pTexture->source < 0) {
     return -1;
   }
@@ -106,7 +105,7 @@ static void extractPrimitive(CesiumRenderData* renderData, const CesiumGltf::Mod
     }
   }
 
-  glm::vec4 color{0.8F, 0.8F, 0.8F, 1.0F};
+  glm::vec4 color{1.0F};
   if (pPbr) {
     if (const auto& factor = pPbr->baseColorFactor; factor.size() >= 4) {
       color.x = static_cast<float>(factor[0]);
@@ -189,7 +188,8 @@ static void extractPrimitive(CesiumRenderData* renderData, const CesiumGltf::Mod
     if (hasUVs && pPbr && pPbr->baseColorTexture) {
       textureSlot = getOrCreateTexture(renderData, pModel, pPbr->baseColorTexture->index);
     }
-    renderData->batches.push_back({firstIndex, indexCount, textureSlot});
+    renderData->batches.push_back(
+        {.firstIndex = firstIndex, .indexCount = indexCount, .textureSlot = textureSlot});
   }
 }
 
@@ -372,15 +372,15 @@ void* StubPrepareRendererResources::prepareInMainThread(
     // Cesium pixels are tightly packed — no row padding
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
-    glTexImage2D(GL_TEXTURE_2D,     // target
-        0,                          // mip level 0 (the full-size base image)
-        format,                     // internal format (how GPU stores it)
-        texture.width,              // width in pixels
-        texture.height,             // height in pixels
-        0,                          // border (always 0, legacy parameter)
-        format,                     // pixel data format (how OUR bytes are laid out)
-        GL_UNSIGNED_BYTE,           // each channel is one byte (0-255)
-        texture.pixels.data()       // pointer to the raw bytes
+    glTexImage2D(GL_TEXTURE_2D, // target
+        0,                      // mip level 0 (the full-size base image)
+        format,                 // internal format (how GPU stores it)
+        texture.width,          // width in pixels
+        texture.height,         // height in pixels
+        0,                      // border (always 0, legacy parameter)
+        format,                 // pixel data format (how OUR bytes are laid out)
+        GL_UNSIGNED_BYTE,       // each channel is one byte (0-255)
+        texture.pixels.data()   // pointer to the raw bytes
     );
 
     // Restore OpenGL default alignment to avoid contaminating other code
