@@ -5,15 +5,14 @@
 # SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
 # SPDX-License-Identifier: MIT
 
-# =============================================================================
+# =================================================================================================
 # CEF ships two things that need very different handling:
-#   1. libcef library and the rest of the Chromium runtime - these are
-#      prebuilt by upstream and are NOT compiled here (there is no source for
-#      them in the binary distribution).
-#   2. libcef_dll_wrapper - a small static glue library whose source IS bundled
-#      in the distribution, and which we build with the current triplet's
-#      compiler/flags so it is ABI-compatible with the rest of the user's app.
-# =============================================================================
+#   1. libcef library and the rest of the Chromium runtime - these are  prebuilt by upstream and
+#      are NOT compiled here (there is no source for them in the binary distribution).
+#   2. libcef_dll_wrapper - a small static glue library whose source IS bundled in the
+#      distribution, and which we build with the current triplet's compiler/flags so it is
+#      ABI-compatible with the rest of the user's app.
+# =================================================================================================
 
 vcpkg_check_linkage(ONLY_DYNAMIC_LIBRARY)
 
@@ -25,13 +24,13 @@ if (NOT VCPKG_TARGET_ARCHITECTURE STREQUAL "x64" OR (NOT VCPKG_TARGET_IS_WINDOWS
       "Unsupported triplet: ${VCPKG_TARGET_TRIPLET}")
 endif()
 
-# The "minimal" distribution only ships Release binaries, so there is nothing
-# to gain from (and no way to satisfy) a Debug build here.
-set(VCPKG_BUILD_TYPE release)
+# The "minimal" distribution only ships Release Chromium binaries. The C++ wrapper is built from
+# source, however, and must match the consumer's CRT and iterator-debugging configuration.
+# Therefore, let the triplet decide whether to build Debug, Release, or both configurations.
 
-# ----------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
 # Download
-# ----------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
 set(CEF_VERSION "135.0.20+ge7de5c3+chromium-135.0.7049.85")
 
 set(CEF_PLATFORM "unsupported")
@@ -67,35 +66,31 @@ if(EXISTS "${SOURCE_PATH}/tests")
   file(REMOVE_RECURSE "${SOURCE_PATH}/tests")
 endif()
 
-# vcpkg's toolchain appends -DBUILD_SHARED_LIBS=ON (based on VCPKG_LIBRARY_LINKAGE)
-# after the portfile's OPTIONS, so cmake sees both flags and the toolchain's
-# value (the last one) wins. Rather than fight the flag order, we patch the
-# libcef_dll CMakeLists.txt to use explicit STATIC so BUILD_SHARED_LIBS has no
-# effect on the wrapper target. This mirrors what the portfile's comments already
-# describe as the intent.
+# vcpkg's toolchain appends -DBUILD_SHARED_LIBS=ON (based on VCPKG_LIBRARY_LINKAGE) after the
+# portfile's OPTIONS, so cmake sees both flags and the toolchain's value (the last one) wins.
+# Rather than fight the flag order, we patch the libcef_dll CMakeLists.txt to use explicit STATIC
+# so BUILD_SHARED_LIBS has no effect on the wrapper target. This mirrors what the portfile's
+# comments already describe as the intent.
 vcpkg_replace_string(
     "${SOURCE_PATH}/libcef_dll/CMakeLists.txt"
     "add_library(\${CEF_TARGET}"
     "add_library(\${CEF_TARGET} STATIC"
 )
 
-# ----------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
 # Configure + build libcef_dll_wrapper only
-# ----------------------------------------------------------------------------
-# vcpkg_check_linkage(ONLY_DYNAMIC_LIBRARY) above guarantees VCPKG_CRT_LINKAGE
-# is "dynamic" for every triplet that reaches this point, but we derive the
-# flag anyway rather than hardcoding /MD, in case that constraint ever loosens.
+# -------------------------------------------------------------------------------------------------
+# vcpkg_check_linkage(ONLY_DYNAMIC_LIBRARY) above guarantees VCPKG_CRT_LINKAGE is "dynamic" for
+# every triplet that reaches this point, but we derive the flag anyway rather than hardcoding /MD,
+# in case that constraint ever loosens.
 set(CEF_CONFIGURE_OPTIONS
     -DUSE_SANDBOX=OFF
-    # Document intent (vcpkg's toolchain overrides this to ON at the end
-    # of the cmake command line anyway - see the patch below for the real
-    # fix). The wrapper must always be static: it's glue code that gets
-    # linked into your app and resolves its libcef symbols against
-    # libcef at your app's link/load time, not its own.  Without
-    # the STATIC patch the wrapper is built as a DLL and fails to link with
-    # "unresolved external symbol cef_string_utf16_set" (or any other
-    # libcef-exported symbol it references), since nothing has linked
-    # libcef into it at that point.
+    # Document intent (vcpkg's toolchain overrides this to ON at the end of the cmake command line
+    # anyway - see the patch below for the real fix). The wrapper must always be static: it's glue
+    # code that gets linked into your app and resolves its libcef symbols against libcef at your
+    # app's link/load time, not its own.  Without the STATIC patch the wrapper is built as a DLL
+    # and fails to link with "unresolved external symbol cef_string_utf16_set" (or any other
+    # libcef-exported symbol it references), since nothing has linked libcef into it at that point.
     -DBUILD_SHARED_LIBS=OFF
 )
 
@@ -120,17 +115,16 @@ vcpkg_cmake_configure(
 
 vcpkg_cmake_build(TARGET libcef_dll_wrapper)
 
-# ----------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
 # Install
-# ----------------------------------------------------------------------------
-# CEF's own CMakeLists.txt has no install() rules at all for the binary
-# distribution - upstream expects you to copy files manually, so we replicate
-# that step by hand instead of calling vcpkg_cmake_install().
+# -------------------------------------------------------------------------------------------------
+# CEF's own CMakeLists.txt has no install() rules at all for the binary distribution - upstream
+# expects you to copy files manually, so we replicate that step by hand instead of calling
+# vcpkg_cmake_install().
 
-# Headers: CEF's own headers use the convention #include "include/cef_xxx.h",
-# i.e. they expect the *parent* of "include/" on the include path, not
-# "include/" itself. Keeping a "cef/include/..." nesting here lets the
-# cef-config.cmake set INTERFACE_INCLUDE_DIRECTORIES to .../include/cef and
+# Headers: CEF's own headers use the convention #include "include/cef_xxx.h", i.e. they expect the
+# *parent* of "include/" on the include path, not "include/" itself. Keeping a "cef/include/..."
+# nesting here lets the cef-config.cmake set INTERFACE_INCLUDE_DIRECTORIES to .../include/cef and
 # have consumer code's #include "include/cef_app.h" resolve correctly.
 file(COPY "${SOURCE_PATH}/include" DESTINATION "${CURRENT_PACKAGES_DIR}/include/cef")
 
@@ -145,35 +139,47 @@ if(CEF_IMPORT_LIBS)
   file(REMOVE ${CEF_IMPORT_LIBS})
 endif()
 
-# The wrapper we just built. Search recursively since the exact path differs
-# between single-config (Ninja) and multi-config (MSBuild) generators.
-# On Windows the wrapper is a .lib file, while on Linux it is a static .a archive.
-# Use a glob that matches both extensions to handle both platforms.
-file(GLOB_RECURSE CEF_WRAPPER_LIB
-    "${CURRENT_BUILDTREES_DIR}/${TARGET_TRIPLET}-rel/*libcef_dll_wrapper.lib"
-    "${CURRENT_BUILDTREES_DIR}/${TARGET_TRIPLET}-rel/*libcef_dll_wrapper.a")
-list(LENGTH CEF_WRAPPER_LIB CEF_WRAPPER_LIB_COUNT)
-if(NOT CEF_WRAPPER_LIB_COUNT EQUAL 1)
-  message(FATAL_ERROR "Expected exactly one libcef_dll_wrapper library, found: ${CEF_WRAPPER_LIB}")
+# Install each wrapper configuration produced by the triplet. Search recursively since the exact
+# path differs between single-config and multi-config generators. Windows produces a .lib archive
+# and Linux produces a static .a archive.
+function(install_cef_wrapper BUILD_SUFFIX DESTINATION)
+  file(GLOB_RECURSE CEF_WRAPPER_LIB
+      "${CURRENT_BUILDTREES_DIR}/${TARGET_TRIPLET}-${BUILD_SUFFIX}/*libcef_dll_wrapper.lib"
+      "${CURRENT_BUILDTREES_DIR}/${TARGET_TRIPLET}-${BUILD_SUFFIX}/*libcef_dll_wrapper.a")
+  list(LENGTH CEF_WRAPPER_LIB CEF_WRAPPER_LIB_COUNT)
+  if(NOT CEF_WRAPPER_LIB_COUNT EQUAL 1)
+    message(FATAL_ERROR
+        "Expected exactly one ${BUILD_SUFFIX} libcef_dll_wrapper library, found: ${CEF_WRAPPER_LIB}")
+  endif()
+
+  file(MAKE_DIRECTORY "${DESTINATION}")
+  file(COPY ${CEF_WRAPPER_LIB} DESTINATION "${DESTINATION}")
+endfunction()
+
+if(NOT VCPKG_BUILD_TYPE OR VCPKG_BUILD_TYPE STREQUAL "release")
+  install_cef_wrapper("rel" "${CURRENT_PACKAGES_DIR}/lib")
+endif()
+
+if(NOT VCPKG_BUILD_TYPE OR VCPKG_BUILD_TYPE STREQUAL "debug")
+  install_cef_wrapper("dbg" "${CURRENT_PACKAGES_DIR}/debug/lib")
 endif()
 file(COPY ${CEF_WRAPPER_LIB} DESTINATION "${CURRENT_PACKAGES_DIR}/lib")
 
 # Runtime resources: *.pak files and locales/.
 file(COPY "${SOURCE_PATH}/Resources/" DESTINATION "${CURRENT_PACKAGES_DIR}/share/cef/Resources")
 
-# find_package(cef CONFIG) support + a helper to copy runtime files next to
-# a consumer's executable.
+# find_package(cef CONFIG) support + a helper to copy runtime files next to a consumer's
+# executable.
 file(INSTALL "${CMAKE_CURRENT_LIST_DIR}/cef-config.cmake" DESTINATION "${CURRENT_PACKAGES_DIR}/share/cef")
 
 vcpkg_install_copyright(FILE_LIST "${SOURCE_PATH}/LICENSE.txt")
 
-# ----------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
 # Post-build policy exceptions
-# ----------------------------------------------------------------------------
-# Several of CEF's redistributable DLLs (d3dcompiler_47.dll, the SwiftShader
-# and ANGLE/EGL DLLs, dxil.dll, dxcompiler.dll, ...) are loaded dynamically at
-# runtime and intentionally ship without a matching .lib import library. This
-# is expected for this port, not a packaging mistake.
+# -------------------------------------------------------------------------------------------------
+# Several of CEF's redistributable DLLs (d3dcompiler_47.dll, the SwiftShader and ANGLE/EGL DLLs,
+# dxil.dll, dxcompiler.dll, ...) are loaded dynamically at runtime and intentionally ship without a
+# matching .lib import library. This is expected for this port, not a packaging mistake.
 set(VCPKG_POLICY_DLLS_WITHOUT_LIBS enabled)
 set(VCPKG_POLICY_DLLS_WITHOUT_EXPORTS enabled)
 set(VCPKG_POLICY_MISMATCHED_NUMBER_OF_BINARIES enabled)

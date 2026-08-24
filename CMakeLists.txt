@@ -56,11 +56,19 @@ endif()
 # install some files -------------------------------------------------------------------------------
 
 # Copy all third-party libraries to install directory.
-install(
-  DIRECTORY ${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/lib/ ${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/bin/
-  DESTINATION "lib"
-  FILES_MATCHING PATTERN "*.so*" PATTERN "*.dll*"
-)
+if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+  install(
+      DIRECTORY ${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/debug/lib/ ${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/debug/bin/
+      DESTINATION "lib"
+      FILES_MATCHING PATTERN "*.so*" PATTERN "*.dll*"
+  )
+else ()
+  install(
+      DIRECTORY ${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/lib/ ${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/bin/
+      DESTINATION "lib"
+      FILES_MATCHING PATTERN "*.so*" PATTERN "*.dll*"
+  )
+endif ()
 
 # Install documentation directory
 install(DIRECTORY
