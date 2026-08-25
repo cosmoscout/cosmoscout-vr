@@ -23,6 +23,9 @@ if(${CMAKE_CXX_COMPILER_ID} STREQUAL MSVC)
         "${CEF_BINARY_DIR}/chrome_elf.dll"
         "${CEF_BINARY_DIR}/libEGL.dll"
         "${CEF_BINARY_DIR}/libGLESv2.dll"
+        "${CEF_BINARY_DIR}/vk_swiftshader.dll"
+        "${CEF_BINARY_DIR}/vulkan-1.dll"
+        "${CEF_BINARY_DIR}/vk_swiftshader_icd.json"
     )
     install(FILES ${CEF_RESOURCES} DESTINATION "bin")
     install(DIRECTORY "${CEF_RESOURCE_DIR}/" DESTINATION "bin")
@@ -39,4 +42,3 @@ else()
     install(DIRECTORY "${CEF_RESOURCE_DIR}/" DESTINATION "lib" PATTERN "locales" EXCLUDE)
     install(DIRECTORY "${CEF_RESOURCE_DIR}/locales" DESTINATION "bin")
 endif()
-
