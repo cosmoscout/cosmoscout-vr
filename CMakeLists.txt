@@ -65,6 +65,8 @@ install(
   FILES_MATCHING
     PATTERN "*.so*"
     PATTERN "*.dll*"
+    PATTERN "dbus-1.0"  EXCLUDE
+    PATTERN "pkgconfig" EXCLUDE
 )
 
 # Install documentation directory
