@@ -19,11 +19,6 @@ if(NOT MSVC)
 
     set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Release or Debug" FORCE)
   endif()
-
-
-  set(CMAKE_INSTALL_RPATH "$ORIGIN/../lib")
-  set(CMAKE_SKIP_RPATH OFF)
-  set(CMAKE_BUILD_WITH_INSTALL_RPATH OFF)
 endif()
 
 # Use folders when targeting an IDE
@@ -55,20 +50,22 @@ endif()
 
 # install some files -------------------------------------------------------------------------------
 
+set(DEPS_INSTALL_ROOT ${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET})
 # Copy all third-party libraries to install directory.
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")
-  install(
-      DIRECTORY ${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/debug/lib/ ${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/debug/bin/
-      DESTINATION "lib"
-      FILES_MATCHING PATTERN "*.so*" PATTERN "*.dll*"
-  )
-else ()
-  install(
-      DIRECTORY ${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/lib/ ${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/bin/
-      DESTINATION "lib"
-      FILES_MATCHING PATTERN "*.so*" PATTERN "*.dll*"
-  )
+  set(DEPS_INSTALL_ROOT ${DEPS_INSTALL_ROOT}/debug)
 endif ()
+
+install(
+  DIRECTORY
+    ${DEPS_INSTALL_ROOT}/lib/
+    ${DEPS_INSTALL_ROOT}/bin/
+  DESTINATION
+    "lib"
+  FILES_MATCHING
+    PATTERN "*.so*"
+    PATTERN "*.dll*"
+)
 
 # Install documentation directory
 install(DIRECTORY
