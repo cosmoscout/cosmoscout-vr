@@ -40,7 +40,12 @@ target_link_libraries(csp-web-api
     civetweb::civetweb-cpp
     TIFF::TIFF
     TIFF::CXX
-    $<$<PLATFORM_ID:Windows>:$<IF:$<CONFIG:Release>,${TIFFXX_LIBRARY_RELEASE},${TIFFXX_LIBRARY_DEBUG}>>
+    $<$<PLATFORM_ID:Windows>:
+      $<IF:$<CONFIG:Release>,
+        ${TIFFXX_LIBRARY_RELEASE},
+        ${TIFFXX_LIBRARY_DEBUG}
+      >
+    >
 )
 
 # Add this Plugin to a "plugins" folder in your IDE.

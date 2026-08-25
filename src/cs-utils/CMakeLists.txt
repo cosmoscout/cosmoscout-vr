@@ -21,9 +21,9 @@ target_link_libraries(cs-utils
   PUBLIC
     glm::glm
     GLEW::GLEW
-    SDL2::SDL2
-    SDL2::SDL2main
-    SDL2_ttf::SDL2_ttf
+    $<TARGET_NAME_IF_EXISTS:SDL2::SDL2main>
+    $<IF:$<TARGET_EXISTS:SDL2::SDL2>,SDL2::SDL2,SDL2::SDL2-static>
+    $<IF:$<TARGET_EXISTS:SDL2_ttf::SDL2_ttf>,SDL2_ttf::SDL2_ttf,SDL2_ttf::SDL2_ttf-static>
     OpenGL::GL
     OpenGL::GLU
     OpenSG::Base
