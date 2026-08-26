@@ -9,9 +9,12 @@
 #define CSP_CESIUM_BODIES_PLUGIN_HPP
 
 #include "../../../src/cs-core/PluginBase.hpp"
-#include "TilesetRenderer.hpp"
+#include "Body.hpp"
+
 #include <Cesium3DTilesSelection/Tileset.h>
+
 #include <memory>
+#include <map>
 #include <optional>
 #include <string>
 
@@ -29,7 +32,12 @@ class Plugin : public cs::core::PluginBase {
   /// All fields are std::optional — if omitted from JSON, the hardcoded
   /// defaults are used. This means "csp-cesium-renderer": {} keeps working.
   struct Settings {
-    std::optional<int64_t>     mIonAssetId;             ///< Cesium Ion asset ID (default: 2275207)
+    struct CesiumBody {
+      int64_t ionAssetId;
+    };
+
+    std::map<std::string, CesiumBody> mCesiumBodies;
+
     std::optional<std::string> mIonToken;               ///< Cesium Ion access token
     std::optional<int64_t>     mCacheSizeMB;            ///< Tile cache limit in MB (default: 256)
     std::optional<int32_t>     mMaxConcurrentDownloads; ///< Concurrent tile downloads (default: 20)
@@ -41,11 +49,12 @@ class Plugin : public cs::core::PluginBase {
   void update() override;
 
  private:
-  Settings                                         mPluginSettings;
-  std::shared_ptr<CesiumAsync::AsyncSystem>        mAsyncSystem;
-  std::shared_ptr<CesiumUtility::CreditSystem>     mCreditSystem;
-  std::unique_ptr<Cesium3DTilesSelection::Tileset> mTileset;
-  std::shared_ptr<TilesetRenderer>           mRenderer;
+  Settings mPluginSettings;
+
+  std::map<std::string, std::unique_ptr<Body>> mBodies;
+
+  std::shared_ptr<CesiumAsync::AsyncSystem>    mAsyncSystem;
+  std::shared_ptr<CesiumUtility::CreditSystem> mCreditSystem;
 };
 
 } // namespace csp::cesiumbodies

@@ -101,9 +101,11 @@ static GLuint compileShader(GLenum type, const char* source) { //
   return shader;
 }
 
-TilesetRenderer::TilesetRenderer(
-    Cesium3DTilesSelection::Tileset* pTileset, std::shared_ptr<cs::core::SolarSystem> pSolarSystem)
+TilesetRenderer::TilesetRenderer(Cesium3DTilesSelection::Tileset* pTileset,
+    std::shared_ptr<const cs::scene::CelestialObject>             object,
+    std::shared_ptr<cs::core::SolarSystem>                        pSolarSystem)
     : mTileset(pTileset)
+    , mCelestialObject(std::move(object))
     , mSolarSystem(std::move(pSolarSystem)) {
 
   GLuint vert = compileShader(GL_VERTEX_SHADER, CESIUM_VERT);
@@ -145,9 +147,7 @@ TilesetRenderer::TilesetRenderer(
 }
 
 bool TilesetRenderer::Do() {
-  // TODO: Extract into separate body.
-  auto earth = mSolarSystem->getObject("Earth");
-  if (mShaderProgram == 0 || !earth) {
+  if (mShaderProgram == 0 || !mCelestialObject) {
     return true;
   }
 
@@ -166,10 +166,10 @@ bool TilesetRenderer::Do() {
   glUniformMatrix4fv(mLocViewMatrix, 1, GL_FALSE, glMatV.data());
   glUniformMatrix4fv(mLocProjectionMatrix, 1, GL_FALSE, glMatP.data());
 
-  glm::dmat4 observerToEarth = earth->getObserverRelativeTransform();
-  glm::dvec3 earthPos(observerToEarth[3]);
+  glm::dmat4 observerToBody = mCelestialObject->getObserverRelativeTransform();
+  glm::dvec3 bodyPos(observerToBody[3]);
 
-  auto sunIlluminance = static_cast<float>(mSolarSystem->getSunIlluminance(earthPos));
+  auto sunIlluminance = static_cast<float>(mSolarSystem->getSunIlluminance(bodyPos));
   glUniform1f(mLocSunIlluminance, sunIlluminance);
 
   GLint     prevDepthFunc;
@@ -204,7 +204,7 @@ bool TilesetRenderer::Do() {
     if (!pData || pData->vao == 0)
       continue;
 
-    glm::dmat4 tileToObserver = observerToEarth * pData->tileTransform;
+    glm::dmat4 tileToObserver = observerToBody * pData->tileTransform;
     glm::mat4  modelMatrix(tileToObserver);
 
     glUniformMatrix4fv(mLocModelMatrix, 1, GL_FALSE, glm::value_ptr(modelMatrix));
@@ -302,8 +302,7 @@ bool TilesetRenderer::getIntersection(
             /* cullBackFaces */ true, tile.getTransform());
 
     if (result.hit.has_value()) {
-      const double distSq = result.hit->rayToWorldPointDistanceSq;
-      if (distSq < closestDistSq) {
+      if (const double distSq = result.hit->rayToWorldPointDistanceSq; distSq < closestDistSq) {
         closestDistSq    = distSq;
         closestPointECEF = result.hit->worldPoint;
         found            = true;

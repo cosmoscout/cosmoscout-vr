@@ -28,16 +28,17 @@ namespace csp::cesiumbodies {
 /// graph via IVistaOpenGLDraw so the engine calls our Do() method every frame during the render
 /// pass.
 class TilesetRenderer : public cs::scene::CelestialSurface,
-                              public cs::scene::IntersectableObject,
-                              public IVistaOpenGLDraw {
+                        public cs::scene::IntersectableObject,
+                        public IVistaOpenGLDraw {
  public:
   double getHeight(glm::dvec2 lngLat) const override;
 
   bool getIntersection(
       glm::dvec3 const& rayPos, glm::dvec3 const& rayDir, glm::dvec3& pos) const override;
 
-  TilesetRenderer(Cesium3DTilesSelection::Tileset* pTileset,
-      std::shared_ptr<cs::core::SolarSystem>             pSolarSystem);
+  TilesetRenderer(Cesium3DTilesSelection::Tileset*      pTileset,
+      std::shared_ptr<const cs::scene::CelestialObject> object,
+      std::shared_ptr<cs::core::SolarSystem>            pSolarSystem);
 
   ~TilesetRenderer() override;
 
@@ -51,12 +52,13 @@ class TilesetRenderer : public cs::scene::CelestialSurface,
   bool GetBoundingBox(VistaBoundingBox& bb) override;
 
  private:
-  Cesium3DTilesSelection::Tileset*       mTileset;
-  std::shared_ptr<cs::core::SolarSystem> mSolarSystem;
+  Cesium3DTilesSelection::Tileset*                  mTileset;
+  std::shared_ptr<const cs::scene::CelestialObject> mCelestialObject;
+  std::shared_ptr<cs::core::SolarSystem>            mSolarSystem;
 
   mutable glm::dvec2 mLastQueryLngLat{std::numeric_limits<double>::quiet_NaN(), 0.0};
-  mutable double     mCachedHeight                = 0.0;
-  mutable bool       mHeightQueryInFlight         = false;
+  mutable double     mCachedHeight        = 0.0;
+  mutable bool       mHeightQueryInFlight = false;
 
   std::unique_ptr<VistaOpenGLNode> mGLNode;
 
