@@ -96,7 +96,9 @@ void Plugin::init() {
     options.forbidHoles                  = true;
     options.preloadAncestors             = true;
     options.preloadSiblings              = true;
-    options.contentOptions.generateMissingNormalsSmooth = true;
+    options.renderTilesUnderCamera       = true;
+    options.enableFogCulling             = false;
+    options.contentOptions.generateMissingNormalsSmooth = false;
 
     options.loadErrorCallback =
         [](const Cesium3DTilesSelection::TilesetLoadFailureDetails& details) {
