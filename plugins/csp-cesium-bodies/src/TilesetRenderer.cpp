@@ -30,6 +30,8 @@
 
 namespace csp::cesiumbodies {
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 const char* TilesetRenderer::CESIUM_VERT = R"(
 uniform mat4 uModelMatrix;
 uniform mat4 uViewMatrix;
@@ -100,6 +102,8 @@ void main() {
 }
 )";
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 static GLuint compileShader(GLenum type, const char* source) { //
   GLuint shader = glCreateShader(type);
   glShaderSource(shader, 1, &source, nullptr);
@@ -116,6 +120,8 @@ static GLuint compileShader(GLenum type, const char* source) { //
   }
   return shader;
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
 TilesetRenderer::TilesetRenderer(Cesium3DTilesSelection::Tileset* pTileset,
     std::shared_ptr<const cs::scene::CelestialObject>             object,
@@ -140,6 +146,8 @@ TilesetRenderer::TilesetRenderer(Cesium3DTilesSelection::Tileset* pTileset,
 
   logger().info("CesiumTilesetRenderer attached to ViSTA scene graph.");
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool TilesetRenderer::Do() {
   if (!mCelestialObject) {
@@ -305,6 +313,8 @@ bool TilesetRenderer::Do() {
   return true;
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 // Cesium native only offers an async function to test for intersections. We query this intersection
 // asynchronously, which works quite well in most cases. The only downside is that collisions with
 // the ground are a little bouncy.
@@ -326,6 +336,8 @@ double TilesetRenderer::getHeight(glm::dvec2 lngLat) const {
 
   return mCachedHeight;
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool TilesetRenderer::getIntersection(
     glm::dvec3 const& rayPos, glm::dvec3 const& rayDir, glm::dvec3& pos) const {
@@ -379,6 +391,8 @@ bool TilesetRenderer::getIntersection(
   return found;
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 TilesetRenderer::~TilesetRenderer() {
   mSettings->mGraphics.pEnableLighting.disconnect(mEnableLightingConnection);
   mSettings->mGraphics.pEnableHDR.disconnect(mEnableHDRConnection);
@@ -391,8 +405,12 @@ TilesetRenderer::~TilesetRenderer() {
   pSG->GetRoot()->DisconnectChild(mGLNode.get());
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 bool TilesetRenderer::GetBoundingBox(VistaBoundingBox& /*bb*/) {
   return false;
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
 } // namespace csp::cesiumbodies

@@ -23,6 +23,8 @@
 
 namespace csp::cesiumbodies {
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 Body::Body(std::string const&                       name,
     Cesium3DTilesSelection::TilesetExternals const& tilesetExternals, int64_t assetId,
     std::string const& ionToken, Cesium3DTilesSelection::TilesetOptions const& options,
@@ -50,12 +52,16 @@ Body::Body(std::string const&                       name,
       "Cesium Ion Tileset Created (Asset {}). Streaming will begin on first update.", assetId);
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 Body::~Body() {
   if (mCelestialObject) {
     mCelestialObject->setSurface(nullptr);
     mCelestialObject->setIntersectableObject(nullptr);
   }
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Body::update(cs::scene::CelestialObserver& observer) {
   if (!mCelestialObject)
@@ -111,8 +117,12 @@ void Body::update(cs::scene::CelestialObserver& observer) {
   mTileset->loadTiles();
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 std::shared_ptr<cs::scene::CelestialSurface> Body::getSurface() const {
   return mTilesetRenderer;
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
 } // namespace csp::cesiumbodies

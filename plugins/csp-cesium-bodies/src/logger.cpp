@@ -10,6 +10,8 @@
 
 namespace csp::cesiumbodies {
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 spdlog::logger& logger() {
   static auto logger = cs::utils::createLogger("csp-cesium-bodies");
   return *logger;

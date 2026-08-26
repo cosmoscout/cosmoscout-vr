@@ -28,23 +28,35 @@
 #include <VistaKernel/DisplayManager/VistaViewport.h>
 #include <VistaKernel/VistaSystem.h>
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 EXPORT_FN cs::core::PluginBase* create() {
   return new csp::cesiumbodies::Plugin;
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
 EXPORT_FN void destroy(cs::core::PluginBase* pluginBase) {
   delete pluginBase; // NOLINT(cppcoreguidelines-owning-memory)
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 namespace csp::cesiumbodies {
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void from_json(nlohmann::json const& j, Plugin::Settings::CesiumBody& o) {
   cs::core::Settings::deserialize(j, "ionAssetId", o.ionAssetId);
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void to_json(nlohmann::json& j, Plugin::Settings::CesiumBody const& o) {
   cs::core::Settings::serialize(j, "ionAssetId", o.ionAssetId);
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void from_json(nlohmann::json const& j, Plugin::Settings& o) {
   cs::core::Settings::deserialize(j, "bodies", o.mCesiumBodies);
@@ -54,6 +66,8 @@ void from_json(nlohmann::json const& j, Plugin::Settings& o) {
   cs::core::Settings::deserialize(j, "maxScreenSpaceError", o.mMaxScreenSpaceError);
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void to_json(nlohmann::json& j, Plugin::Settings const& o) {
   cs::core::Settings::serialize(j, "bodies", o.mCesiumBodies);
   cs::core::Settings::serialize(j, "ionToken", o.mIonToken);
@@ -61,6 +75,8 @@ void to_json(nlohmann::json& j, Plugin::Settings const& o) {
   cs::core::Settings::serialize(j, "maxConcurrentDownloads", o.mMaxConcurrentDownloads);
   cs::core::Settings::serialize(j, "maxScreenSpaceError", o.mMaxScreenSpaceError);
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Plugin::init() {
   logger().info("Starting Cesium Engine Initialization...");
@@ -117,10 +133,14 @@ void Plugin::init() {
   }
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void Plugin::deInit() {
   logger().info("Unloading plugin...");
   logger().info("Unloading done.");
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Plugin::update() {
   mAsyncSystem->dispatchMainThreadTasks();
@@ -130,5 +150,7 @@ void Plugin::update() {
     body->update(observer);
   }
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
 } // namespace csp::cesiumbodies
