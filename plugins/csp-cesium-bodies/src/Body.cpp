@@ -12,10 +12,10 @@
 #include "../../../../src/cs-core/SolarSystem.hpp"
 #include "../../../../src/cs-scene/CelestialObserver.hpp"
 
-#include <VistaKernel/VistaSystem.h>
 #include <VistaKernel/DisplayManager/VistaDisplayManager.h>
-#include <VistaKernel/DisplayManager/VistaViewport.h>
 #include <VistaKernel/DisplayManager/VistaProjection.h>
+#include <VistaKernel/DisplayManager/VistaViewport.h>
+#include <VistaKernel/VistaSystem.h>
 
 #include <Cesium3DTilesSelection/Tileset.h>
 #include <Cesium3DTilesSelection/TilesetExternals.h>
@@ -29,14 +29,14 @@ Body::Body(std::string const&                       name,
     std::shared_ptr<cs::core::SolarSystem> solarSystem) {
   mCelestialObject = solarSystem->getObject(name);
 
-  auto bodyOptions = options;
+  auto bodyOptions      = options;
   bodyOptions.ellipsoid = CesiumGeospatial::Ellipsoid(mCelestialObject->getRadii().zxy());
 
   mTileset = std::make_unique<Cesium3DTilesSelection::Tileset>(
       tilesetExternals, assetId, ionToken, bodyOptions);
 
-
-  mTilesetRenderer = std::make_shared<TilesetRenderer>(mTileset.get(), mCelestialObject, solarSystem);
+  mTilesetRenderer =
+      std::make_shared<TilesetRenderer>(mTileset.get(), mCelestialObject, solarSystem);
 
   if (mCelestialObject) {
     mCelestialObject->setSurface(mTilesetRenderer);
@@ -59,7 +59,7 @@ void Body::update(cs::scene::CelestialObserver& observer) {
   if (!mCelestialObject)
     return;
 
-  glm::dvec3 glmPos   = observer.getPosition();
+  glm::dvec3 glmPos = observer.getPosition();
   glm::dvec3 camPositionECEF(glmPos.zxy());
 
   glm::dmat4 bodyToObserver = mCelestialObject->getObserverRelativeTransform();

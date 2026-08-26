@@ -810,7 +810,7 @@
           "ionAssetId": 2684829
         }
       },
-      "ionToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJub25jZSI6IjZDSlpmWEppYmpKclVWSlciLCJqdGkiOiI2NDg2NzYyNS0yYjUxLTQyZWMtYTk3Zi05YTNkYzgxYTNlNGYiLCJpZCI6NDcwMDkxLCJpc3MiOiJodHRwczovL2FwaS5jZXNpdW0uY29tIiwiYXVkIjoidW5kZWZpbmVkX2RlZmF1bHQiLCJpYXQiOjE3ODcyMzk0MDV9.8-5upWEpH9AbltdevmwDEBWgNlNVRG1VKH7uJI8uc54",
+      "ionToken": "",
       "cacheSizeMB": 4096,
       "maxConcurrentDownloads": 20,
       "maxScreenSpaceError": 8.0

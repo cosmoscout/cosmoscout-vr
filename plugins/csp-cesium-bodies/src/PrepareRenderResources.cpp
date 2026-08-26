@@ -50,7 +50,7 @@ static int32_t getOrCreateTexture(
   }
 
   const CesiumImage::ImageAsset& asset = *pImage->pAsset;
-  TextureData              texture;
+  TextureData                    texture;
   texture.pixels      = asset.pixelData;
   texture.width       = asset.width;
   texture.height      = asset.height;
@@ -263,7 +263,7 @@ static void rebaseVertices(CesiumRenderData* renderData) {
 
 CesiumAsync::Future<Cesium3DTilesSelection::TileLoadResultAndRenderResources>
 PrepareRendererResources::prepareInLoadThread(const CesiumAsync::AsyncSystem& asyncSystem,
-    Cesium3DTilesSelection::TileLoadResult&&                                      tileLoadResult,
+    Cesium3DTilesSelection::TileLoadResult&&                                  tileLoadResult,
     [[maybe_unused]] const glm::dmat4& transform, const std::any& rendererOptions) {
 
   CesiumGltf::Model* pModel = std::get_if<CesiumGltf::Model>(&tileLoadResult.contentKind);
@@ -445,19 +445,16 @@ void* PrepareRendererResources::prepareRasterInMainThread(
     CesiumRasterOverlays::RasterOverlayTile& rasterTile, void* pLoadThreadResult) {
   return nullptr;
 }
-void PrepareRendererResources::freeRaster(
-    const CesiumRasterOverlays::RasterOverlayTile& rasterTile, void* pLoadThreadResult,
-    void* pMainThreadResult) noexcept {
+void PrepareRendererResources::freeRaster(const CesiumRasterOverlays::RasterOverlayTile& rasterTile,
+    void* pLoadThreadResult, void* pMainThreadResult) noexcept {
 }
-void PrepareRendererResources::attachRasterInMainThread(
-    const Cesium3DTilesSelection::Tile& tile, int32_t overlayTextureCoordinateID,
-    const CesiumRasterOverlays::RasterOverlayTile& rasterTile, void* pMainThreadRendererResources,
-    const glm::dvec2& translation, const glm::dvec2& scale) {
+void PrepareRendererResources::attachRasterInMainThread(const Cesium3DTilesSelection::Tile& tile,
+    int32_t overlayTextureCoordinateID, const CesiumRasterOverlays::RasterOverlayTile& rasterTile,
+    void* pMainThreadRendererResources, const glm::dvec2& translation, const glm::dvec2& scale) {
 }
-void PrepareRendererResources::detachRasterInMainThread(
-    const Cesium3DTilesSelection::Tile& tile, int32_t overlayTextureCoordinateID,
-    const CesiumRasterOverlays::RasterOverlayTile& rasterTile,
-    void*                                          pMainThreadRendererResources) noexcept {
+void PrepareRendererResources::detachRasterInMainThread(const Cesium3DTilesSelection::Tile& tile,
+    int32_t overlayTextureCoordinateID, const CesiumRasterOverlays::RasterOverlayTile& rasterTile,
+    void* pMainThreadRendererResources) noexcept {
 }
 
 } // namespace csp::cesiumbodies
