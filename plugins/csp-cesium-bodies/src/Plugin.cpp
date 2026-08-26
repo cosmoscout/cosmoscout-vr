@@ -112,8 +112,8 @@ void Plugin::init() {
               static_cast<int>(details.type), details.statusCode, details.message);
         };
 
-    mBodies.emplace(name,
-        std::make_unique<Body>(name, externals, body.ionAssetId, ionToken, options, mSolarSystem));
+    mBodies.emplace(name, std::make_unique<Body>(name, externals, body.ionAssetId, ionToken,
+                              options, mSolarSystem, mAllSettings));
   }
 }
 

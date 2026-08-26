@@ -8,6 +8,7 @@
 #ifndef CSP_CESIUM_BODIES_TILESET_RENDERER_HPP
 #define CSP_CESIUM_BODIES_TILESET_RENDERER_HPP
 
+#include "../../../src/cs-core/Settings.hpp"
 #include "../../../src/cs-scene/CelestialSurface.hpp"
 #include "../../../src/cs-scene/IntersectableObject.hpp"
 #include <GL/glew.h>
@@ -38,7 +39,9 @@ class TilesetRenderer : public cs::scene::CelestialSurface,
 
   TilesetRenderer(Cesium3DTilesSelection::Tileset*      pTileset,
       std::shared_ptr<const cs::scene::CelestialObject> object,
-      std::shared_ptr<cs::core::SolarSystem>            pSolarSystem);
+      std::shared_ptr<cs::core::SolarSystem>            pSolarSystem,
+      std::shared_ptr<cs::core::Settings>               settings,
+      std::string                                       objectName);
 
   ~TilesetRenderer() override;
 
@@ -55,6 +58,9 @@ class TilesetRenderer : public cs::scene::CelestialSurface,
   Cesium3DTilesSelection::Tileset*                  mTileset;
   std::shared_ptr<const cs::scene::CelestialObject> mCelestialObject;
   std::shared_ptr<cs::core::SolarSystem>            mSolarSystem;
+  std::shared_ptr<cs::core::Settings>               mSettings;
+
+  std::string mObjectName;
 
   mutable glm::dvec2 mLastQueryLngLat{std::numeric_limits<double>::quiet_NaN(), 0.0};
   mutable double     mCachedHeight        = 0.0;
@@ -63,13 +69,20 @@ class TilesetRenderer : public cs::scene::CelestialSurface,
   std::unique_ptr<VistaOpenGLNode> mGLNode;
 
   GLuint mShaderProgram = 0;
+  bool   mShaderDirty   = true;
 
-  GLint mLocModelMatrix      = -1;
-  GLint mLocViewMatrix       = -1;
-  GLint mLocProjectionMatrix = -1;
-  GLint mLocBaseColorTexture = -1;
-  GLint mLocHasTexture       = -1;
-  GLint mLocSunIlluminance   = -1;
+  int mEnableLightingConnection = -1;
+  int mEnableHDRConnection      = -1;
+
+  GLint mLocModelMatrix         = -1;
+  GLint mLocViewMatrix          = -1;
+  GLint mLocProjectionMatrix    = -1;
+  GLint mLocBaseColorTexture    = -1;
+  GLint mLocHasTexture          = -1;
+  GLint mLocSunIlluminance      = -1;
+  GLint mLocAmbientBrightness   = -1;
+  GLint mLocEnableLighting      = -1;
+  GLint mLocAvgLinearImgIntensity = -1;
 
   static const char* CESIUM_VERT;
   static const char* CESIUM_FRAG;

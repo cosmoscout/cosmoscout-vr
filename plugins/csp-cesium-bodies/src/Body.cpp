@@ -26,7 +26,9 @@ namespace csp::cesiumbodies {
 Body::Body(std::string const&                       name,
     Cesium3DTilesSelection::TilesetExternals const& tilesetExternals, int64_t assetId,
     std::string const& ionToken, Cesium3DTilesSelection::TilesetOptions const& options,
-    std::shared_ptr<cs::core::SolarSystem> solarSystem) {
+    std::shared_ptr<cs::core::SolarSystem> solarSystem,
+    std::shared_ptr<cs::core::Settings>     settings)
+    : mName(name) {
   mCelestialObject = solarSystem->getObject(name);
 
   auto bodyOptions      = options;
@@ -36,7 +38,7 @@ Body::Body(std::string const&                       name,
       tilesetExternals, assetId, ionToken, bodyOptions);
 
   mTilesetRenderer =
-      std::make_shared<TilesetRenderer>(mTileset.get(), mCelestialObject, solarSystem);
+      std::make_shared<TilesetRenderer>(mTileset.get(), mCelestialObject, solarSystem, settings, mName);
 
   if (mCelestialObject) {
     mCelestialObject->setSurface(mTilesetRenderer);

@@ -15,6 +15,7 @@
 namespace cs {
 namespace core {
 class SolarSystem;
+class Settings;
 }
 
 namespace scene {
@@ -39,7 +40,8 @@ class Body {
   Body(std::string const& name, Cesium3DTilesSelection::TilesetExternals const& tilesetExternals,
       int64_t assetId, std::string const& ionToken,
       Cesium3DTilesSelection::TilesetOptions const& options,
-      std::shared_ptr<cs::core::SolarSystem>        solarSystem);
+      std::shared_ptr<cs::core::SolarSystem>        solarSystem,
+      std::shared_ptr<cs::core::Settings>     settings);
 
   ~Body();
 
@@ -48,6 +50,8 @@ class Body {
   std::shared_ptr<cs::scene::CelestialSurface> getSurface() const;
 
  private:
+  std::string mName;
+
   std::shared_ptr<const cs::scene::CelestialObject> mCelestialObject;
 
   std::unique_ptr<Cesium3DTilesSelection::Tileset> mTileset;

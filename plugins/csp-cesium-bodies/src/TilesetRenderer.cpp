@@ -31,11 +31,10 @@
 namespace csp::cesiumbodies {
 
 const char* TilesetRenderer::CESIUM_VERT = R"(
-#version 430
-
 uniform mat4 uModelMatrix;
 uniform mat4 uViewMatrix;
 uniform mat4 uProjectionMatrix;
+uniform vec3 uSunDirection;
 
 layout(location = 0) in vec3 aPosition;
 layout(location = 1) in vec2 aUV;
@@ -43,44 +42,61 @@ layout(location = 2) in vec4 aColor;
 
 out vec2 vUV;
 out vec4 vColor;
+out vec3 vSunDirection;
+out vec3 vPosition;
 
 void main() {
-  vec4 viewPos = uViewMatrix * uModelMatrix * vec4(aPosition, 1.0);
-  vUV         = aUV;
-  vColor      = aColor;
-  gl_Position  = uProjectionMatrix * viewPos;
+  vec4 worldPos = uModelMatrix * vec4(aPosition, 1.0);
+  vec4 viewPos  = uViewMatrix * worldPos;
+  vUV           = aUV;
+  vColor        = aColor;
+  vSunDirection = (uModelMatrix * vec4(uSunDirection, 0.0)).xyz;
+  vPosition     = worldPos.xyz;
+  gl_Position   = uProjectionMatrix * viewPos;
 }
 )";
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 const char* TilesetRenderer::CESIUM_FRAG = R"(
-#version 430
-
 in vec2 vUV;
 in vec4 vColor;
+in vec3 vSunDirection;
+in vec3 vPosition;
 
 uniform sampler2D uBaseColorTexture;
 uniform bool      uHasTexture;
 uniform float     uSunIlluminance;
+uniform float     uAmbientBrightness;
+uniform bool      uEnableLighting;
+uniform float     uAvgLinearImgIntensity;
 
 layout(location = 0) out vec3 oColor;
 
 const float PI = 3.14159265359;
+const float E  = 2.718281828;
 
-vec3 sRGBtoLinear(vec3 srgb) {
-    return pow(srgb, vec3(2.2));
+vec3 SRGBtoLINEAR(vec3 srgbIn) {
+  vec3 bLess = step(vec3(0.04045), srgbIn);
+  return mix(srgbIn / vec3(12.92), pow((srgbIn + vec3(0.055)) / vec3(1.055), vec3(2.4)), bLess);
 }
 
 void main() {
   vec3 baseColor;
   if (uHasTexture) {
-      baseColor = sRGBtoLinear(texture(uBaseColorTexture, vUV).rgb) * vColor.rgb;
+      baseColor = texture(uBaseColorTexture, vUV).rgb * vColor.rgb;
   } else {
       baseColor = vColor.rgb;
   }
 
-  oColor = baseColor * uSunIlluminance * 0.06 / PI;
+#ifdef ENABLE_HDR
+  // Make the amount of ambient brightness perceptually linear in HDR mode.
+  float ambient = pow(uAmbientBrightness, E);
+  baseColor = SRGBtoLINEAR(baseColor) * uSunIlluminance / uAvgLinearImgIntensity;
+  baseColor /= PI;
+#endif
+
+  oColor = baseColor;
 }
 )";
 
@@ -103,40 +119,19 @@ static GLuint compileShader(GLenum type, const char* source) { //
 
 TilesetRenderer::TilesetRenderer(Cesium3DTilesSelection::Tileset* pTileset,
     std::shared_ptr<const cs::scene::CelestialObject>             object,
-    std::shared_ptr<cs::core::SolarSystem>                        pSolarSystem)
+    std::shared_ptr<cs::core::SolarSystem>                        pSolarSystem,
+    std::shared_ptr<cs::core::Settings>                           settings,
+    std::string                                                   objectName)
     : mTileset(pTileset)
     , mCelestialObject(std::move(object))
-    , mSolarSystem(std::move(pSolarSystem)) {
+    , mSolarSystem(std::move(pSolarSystem))
+    , mSettings(std::move(settings))
+    , mObjectName(std::move(objectName)) {
 
-  GLuint vert = compileShader(GL_VERTEX_SHADER, CESIUM_VERT);
-  GLuint frag = compileShader(GL_FRAGMENT_SHADER, CESIUM_FRAG);
-
-  if (vert && frag) {
-    mShaderProgram = glCreateProgram();
-    glAttachShader(mShaderProgram, vert);
-    glAttachShader(mShaderProgram, frag);
-    glLinkProgram(mShaderProgram);
-
-    GLint linked = 0;
-    glGetProgramiv(mShaderProgram, GL_LINK_STATUS, &linked);
-    if (!linked) {
-      char infoLog[512];
-      glGetProgramInfoLog(mShaderProgram, 512, nullptr, infoLog);
-      logger().error("Shader link failed: {}", infoLog);
-      glDeleteProgram(mShaderProgram);
-      mShaderProgram = 0;
-    } else {
-      mLocModelMatrix      = glGetUniformLocation(mShaderProgram, "uModelMatrix");
-      mLocViewMatrix       = glGetUniformLocation(mShaderProgram, "uViewMatrix");
-      mLocProjectionMatrix = glGetUniformLocation(mShaderProgram, "uProjectionMatrix");
-      mLocBaseColorTexture = glGetUniformLocation(mShaderProgram, "uBaseColorTexture");
-      mLocHasTexture       = glGetUniformLocation(mShaderProgram, "uHasTexture");
-      mLocSunIlluminance   = glGetUniformLocation(mShaderProgram, "uSunIlluminance");
-    }
-  }
-
-  glDeleteShader(vert);
-  glDeleteShader(frag);
+  mEnableLightingConnection = mSettings->mGraphics.pEnableLighting.connect(
+      [this](bool /*enabled*/) { mShaderDirty = true; });
+  mEnableHDRConnection =
+      mSettings->mGraphics.pEnableHDR.connect([this](bool /*enabled*/) { mShaderDirty = true; });
 
   VistaSceneGraph* pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
   mGLNode.reset(pSG->NewOpenGLNode(pSG->GetRoot(), this));
@@ -147,14 +142,68 @@ TilesetRenderer::TilesetRenderer(Cesium3DTilesSelection::Tileset* pTileset,
 }
 
 bool TilesetRenderer::Do() {
-  if (mShaderProgram == 0 || !mCelestialObject) {
+  if (!mCelestialObject) {
+    return true;
+  }
+
+  if (mShaderDirty) {
+    if (mShaderProgram != 0) {
+      glDeleteProgram(mShaderProgram);
+      mShaderProgram = 0;
+    }
+
+    std::string defines = "#version 430\n";
+
+    if (mSettings->mGraphics.pEnableHDR.get()) {
+      defines += "#define ENABLE_HDR\n";
+    }
+
+    std::string vert = defines + CESIUM_VERT;
+    std::string frag = defines + CESIUM_FRAG;
+
+    cs::core::Settings::Shading const& shading = mSettings->getShadingForBody(mObjectName);
+
+    GLuint vertShader = compileShader(GL_VERTEX_SHADER, vert.c_str());
+    GLuint fragShader = compileShader(GL_FRAGMENT_SHADER, frag.c_str());
+
+    if (vertShader && fragShader) {
+      mShaderProgram = glCreateProgram();
+      glAttachShader(mShaderProgram, vertShader);
+      glAttachShader(mShaderProgram, fragShader);
+      glLinkProgram(mShaderProgram);
+
+      GLint linked = 0;
+      glGetProgramiv(mShaderProgram, GL_LINK_STATUS, &linked);
+      if (!linked) {
+        char infoLog[512];
+        glGetProgramInfoLog(mShaderProgram, 512, nullptr, infoLog);
+        logger().error("Shader link failed: {}", infoLog);
+        glDeleteProgram(mShaderProgram);
+        mShaderProgram = 0;
+      } else {
+        mLocModelMatrix           = glGetUniformLocation(mShaderProgram, "uModelMatrix");
+        mLocViewMatrix            = glGetUniformLocation(mShaderProgram, "uViewMatrix");
+        mLocProjectionMatrix      = glGetUniformLocation(mShaderProgram, "uProjectionMatrix");
+        mLocBaseColorTexture      = glGetUniformLocation(mShaderProgram, "uBaseColorTexture");
+        mLocHasTexture            = glGetUniformLocation(mShaderProgram, "uHasTexture");
+        mLocSunIlluminance        = glGetUniformLocation(mShaderProgram, "uSunIlluminance");
+        mLocAmbientBrightness     = glGetUniformLocation(mShaderProgram, "uAmbientBrightness");
+        mLocEnableLighting        = glGetUniformLocation(mShaderProgram, "uEnableLighting");
+        mLocAvgLinearImgIntensity = glGetUniformLocation(mShaderProgram, "uAvgLinearImgIntensity");
+      }
+    }
+
+    glDeleteShader(vertShader);
+    glDeleteShader(fragShader);
+
+    mShaderDirty = false;
+  }
+
+  if (mShaderProgram == 0) {
     return true;
   }
 
   cs::utils::FrameStats::ScopedTimer timer("Cesium Tileset Rendering");
-
-  static int frameCounter = 0;
-  frameCounter++;
 
   glUseProgram(mShaderProgram);
 
@@ -171,6 +220,19 @@ bool TilesetRenderer::Do() {
 
   auto sunIlluminance = static_cast<float>(mSolarSystem->getSunIlluminance(bodyPos));
   glUniform1f(mLocSunIlluminance, sunIlluminance);
+
+  auto sunDirection = mSolarSystem->getSunDirection(bodyPos);
+  glm::vec3 sunDirGL(sunDirection.x, sunDirection.y, sunDirection.z);
+  glUniform3f(glGetUniformLocation(mShaderProgram, "uSunDirection"), sunDirGL[0], sunDirGL[1], sunDirGL[2]);
+
+  float ambientBrightness = mSettings->mGraphics.pAmbientBrightness.get();
+  glUniform1f(mLocAmbientBrightness, ambientBrightness);
+
+  glUniform1i(mLocEnableLighting, mSettings->mGraphics.pEnableLighting.get() ? 1 : 0);
+
+  cs::core::Settings::Shading const& shading = mSettings->getShadingForBody(mObjectName);
+  float avgLinearImgIntensity = shading.pAvgLinearImgIntensity.get();
+  glUniform1f(mLocAvgLinearImgIntensity, avgLinearImgIntensity);
 
   GLint     prevDepthFunc;
   GLboolean cullEnabled  = glIsEnabled(GL_CULL_FACE);
@@ -318,6 +380,9 @@ bool TilesetRenderer::getIntersection(
 }
 
 TilesetRenderer::~TilesetRenderer() {
+  mSettings->mGraphics.pEnableLighting.disconnect(mEnableLightingConnection);
+  mSettings->mGraphics.pEnableHDR.disconnect(mEnableHDRConnection);
+
   if (mShaderProgram) {
     glDeleteProgram(mShaderProgram);
   }
