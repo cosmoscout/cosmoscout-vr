@@ -27,10 +27,14 @@ Body::Body(std::string const&                       name,
     Cesium3DTilesSelection::TilesetExternals const& tilesetExternals, int64_t assetId,
     std::string const& ionToken, Cesium3DTilesSelection::TilesetOptions const& options,
     std::shared_ptr<cs::core::SolarSystem> solarSystem) {
-  mTileset = std::make_unique<Cesium3DTilesSelection::Tileset>(
-      tilesetExternals, assetId, ionToken, options);
-
   mCelestialObject = solarSystem->getObject(name);
+
+  auto bodyOptions = options;
+  bodyOptions.ellipsoid = CesiumGeospatial::Ellipsoid(mCelestialObject->getRadii().zxy());
+
+  mTileset = std::make_unique<Cesium3DTilesSelection::Tileset>(
+      tilesetExternals, assetId, ionToken, bodyOptions);
+
 
   mTilesetRenderer = std::make_shared<TilesetRenderer>(mTileset.get(), mCelestialObject, solarSystem);
 
@@ -87,7 +91,7 @@ void Body::update(cs::scene::CelestialObserver& observer) {
   // At Scale >= 1.0 (orbit/far view), the physical viewport correctly represents the screen —
   // the camera IS physically far away and Cesium's SSE is naturally correct.
   // Without this clamp, orbital Scale=2.7M would produce a sub-pixel viewport → 0 LOD.
-  double     scaleFactor = std::max(std::min(observer.getScale(), 1.0), 0.001);
+  double     scaleFactor = std::min(observer.getScale(), 1.0);
   glm::dvec2 viewportSize(
       static_cast<double>(sizeX) / scaleFactor, static_cast<double>(sizeY) / scaleFactor);
 
