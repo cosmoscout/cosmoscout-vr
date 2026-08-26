@@ -5,8 +5,8 @@
 // SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
 // SPDX-License-Identifier: MIT
 
-#ifndef CSP_CESIUM_BODIES_CESIUM_TILESET_RENDERER_HPP
-#define CSP_CESIUM_BODIES_CESIUM_TILESET_RENDERER_HPP
+#ifndef CSP_CESIUM_BODIES_TILESET_RENDERER_HPP
+#define CSP_CESIUM_BODIES_TILESET_RENDERER_HPP
 
 #include "../../../src/cs-scene/CelestialSurface.hpp"
 #include "../../../src/cs-scene/IntersectableObject.hpp"
@@ -24,10 +24,10 @@ class SolarSystem;
 
 namespace csp::cesiumbodies {
 
-/// Renders Cesium 3D Tiles geometry using a basic Lambertian shader.
-/// Hooks into the ViSTA scene graph via IVistaOpenGLDraw so the engine
-/// calls our Do() method every frame during the render pass.
-class CesiumTilesetRenderer : public cs::scene::CelestialSurface,
+/// Renders Cesium 3D Tiles geometry using a basic Lambertian shader. Hooks into the ViSTA scene
+/// graph via IVistaOpenGLDraw so the engine calls our Do() method every frame during the render
+/// pass.
+class TilesetRenderer : public cs::scene::CelestialSurface,
                               public cs::scene::IntersectableObject,
                               public IVistaOpenGLDraw {
  public:
@@ -36,16 +36,16 @@ class CesiumTilesetRenderer : public cs::scene::CelestialSurface,
   bool getIntersection(
       glm::dvec3 const& rayPos, glm::dvec3 const& rayDir, glm::dvec3& pos) const override;
 
-  CesiumTilesetRenderer(Cesium3DTilesSelection::Tileset* pTileset,
+  TilesetRenderer(Cesium3DTilesSelection::Tileset* pTileset,
       std::shared_ptr<cs::core::SolarSystem>             pSolarSystem);
 
-  ~CesiumTilesetRenderer() override;
+  ~TilesetRenderer() override;
 
-  CesiumTilesetRenderer(CesiumTilesetRenderer const& other) = delete;
-  CesiumTilesetRenderer(CesiumTilesetRenderer&& other)      = delete;
+  TilesetRenderer(TilesetRenderer const& other) = delete;
+  TilesetRenderer(TilesetRenderer&& other)      = delete;
 
-  CesiumTilesetRenderer& operator=(CesiumTilesetRenderer const& other) = delete;
-  CesiumTilesetRenderer& operator=(CesiumTilesetRenderer&& other)      = delete;
+  TilesetRenderer& operator=(TilesetRenderer const& other) = delete;
+  TilesetRenderer& operator=(TilesetRenderer&& other)      = delete;
 
   bool Do() override;
   bool GetBoundingBox(VistaBoundingBox& bb) override;
@@ -75,4 +75,4 @@ class CesiumTilesetRenderer : public cs::scene::CelestialSurface,
 
 } // namespace csp::cesiumbodies
 
-#endif // CSP_CESIUM_BODIES_CESIUM_TILESET_RENDERER_HPP
+#endif // CSP_CESIUM_BODIES_TILESET_RENDERER_HPP

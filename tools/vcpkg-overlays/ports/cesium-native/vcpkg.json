@@ -2,11 +2,6 @@
   "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
   "name": "cesium-native",
   "version-string": "0.63.0",
-  "features": {
-    "dependencies-only": {
-      "description": "install port's dependencies without the port"
-    }
-  },
   "dependencies": [
     "vcpkg-cmake",
     "vcpkg-cmake-config",

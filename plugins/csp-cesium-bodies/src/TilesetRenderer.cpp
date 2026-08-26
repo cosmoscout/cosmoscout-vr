@@ -5,8 +5,8 @@
 // SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
 // SPDX-License-Identifier: MIT
 
-#include "CesiumTilesetRenderer.hpp"
-#include "CesiumUtils.hpp"
+#include "TilesetRenderer.hpp"
+#include "RenderData.h"
 #include "logger.hpp"
 
 #include "../../../src/cs-core/SolarSystem.hpp"
@@ -25,12 +25,12 @@
 #include <Cesium3DTilesSelection/Tile.h>
 #include <Cesium3DTilesSelection/TileContent.h>
 #include <Cesium3DTilesSelection/TilesetViewGroup.h>
-#include <CesiumGltfContent/GltfUtilities.h>
 #include <CesiumGeometry/Ray.h>
+#include <CesiumGltfContent/GltfUtilities.h>
 
 namespace csp::cesiumbodies {
 
-const char* CesiumTilesetRenderer::CESIUM_VERT = R"(
+const char* TilesetRenderer::CESIUM_VERT = R"(
 #version 430
 
 uniform mat4 uModelMatrix;
@@ -54,7 +54,7 @@ void main() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-const char* CesiumTilesetRenderer::CESIUM_FRAG = R"(
+const char* TilesetRenderer::CESIUM_FRAG = R"(
 #version 430
 
 in vec2 vUV;
@@ -101,7 +101,7 @@ static GLuint compileShader(GLenum type, const char* source) { //
   return shader;
 }
 
-CesiumTilesetRenderer::CesiumTilesetRenderer(
+TilesetRenderer::TilesetRenderer(
     Cesium3DTilesSelection::Tileset* pTileset, std::shared_ptr<cs::core::SolarSystem> pSolarSystem)
     : mTileset(pTileset)
     , mSolarSystem(std::move(pSolarSystem)) {
@@ -144,7 +144,7 @@ CesiumTilesetRenderer::CesiumTilesetRenderer(
   logger().info("CesiumTilesetRenderer attached to ViSTA scene graph.");
 }
 
-bool CesiumTilesetRenderer::Do() {
+bool TilesetRenderer::Do() {
   // TODO: Extract into separate body.
   auto earth = mSolarSystem->getObject("Earth");
   if (mShaderProgram == 0 || !earth) {
@@ -215,7 +215,7 @@ bool CesiumTilesetRenderer::Do() {
       glActiveTexture(GL_TEXTURE0);
       glUniform1i(mLocBaseColorTexture, 0);
 
-      for (const CesiumDrawBatch& batch : pData->batches) {
+      for (const DrawBatch& batch : pData->batches) {
         GLuint textureId = 0;
         if (batch.textureSlot >= 0 &&
             batch.textureSlot < static_cast<int32_t>(pData->textures.size())) {
@@ -246,7 +246,7 @@ bool CesiumTilesetRenderer::Do() {
 // Cesium native only offers an async function to test for intersections. We query this intersection
 // asynchronously, which works quite well in most cases. The only downside is that collisions with
 // the ground are a little bouncy.
-double CesiumTilesetRenderer::getHeight(glm::dvec2 lngLat) const {
+double TilesetRenderer::getHeight(glm::dvec2 lngLat) const {
   if (!mHeightQueryInFlight) {
     mHeightQueryInFlight = true;
     mLastQueryLngLat     = lngLat;
@@ -265,7 +265,7 @@ double CesiumTilesetRenderer::getHeight(glm::dvec2 lngLat) const {
   return mCachedHeight;
 }
 
-bool CesiumTilesetRenderer::getIntersection(
+bool TilesetRenderer::getIntersection(
     glm::dvec3 const& rayPos, glm::dvec3 const& rayDir, glm::dvec3& pos) const {
   if (mTileset == nullptr) {
     return false;
@@ -284,8 +284,8 @@ bool CesiumTilesetRenderer::getIntersection(
   // CesiumGeometry::Ray requires a normalized direction.
   const CesiumGeometry::Ray ray(rayPosECEF, rayDirECEF / dirLength);
 
-  bool found = false;
-  double closestDistSq = std::numeric_limits<double>::max();
+  bool       found         = false;
+  double     closestDistSq = std::numeric_limits<double>::max();
   glm::dvec3 closestPointECEF(0.0);
 
   mTileset->forEachLoadedTile([&](Cesium3DTilesSelection::Tile const& tile) {
@@ -298,18 +298,15 @@ bool CesiumTilesetRenderer::getIntersection(
     CesiumGltf::Model const& model = pRenderContent->getModel();
 
     CesiumGltfContent::GltfUtilities::IntersectResult result =
-        CesiumGltfContent::GltfUtilities::intersectRayGltfModel(
-            ray,
-            model,
-            /* cullBackFaces */ true,
-            tile.getTransform());
+        CesiumGltfContent::GltfUtilities::intersectRayGltfModel(ray, model,
+            /* cullBackFaces */ true, tile.getTransform());
 
     if (result.hit.has_value()) {
       const double distSq = result.hit->rayToWorldPointDistanceSq;
       if (distSq < closestDistSq) {
-        closestDistSq = distSq;
+        closestDistSq    = distSq;
         closestPointECEF = result.hit->worldPoint;
-        found = true;
+        found            = true;
       }
     }
   });
@@ -321,7 +318,7 @@ bool CesiumTilesetRenderer::getIntersection(
   return found;
 }
 
-CesiumTilesetRenderer::~CesiumTilesetRenderer() {
+TilesetRenderer::~TilesetRenderer() {
   if (mShaderProgram) {
     glDeleteProgram(mShaderProgram);
   }
@@ -330,7 +327,7 @@ CesiumTilesetRenderer::~CesiumTilesetRenderer() {
   pSG->GetRoot()->DisconnectChild(mGLNode.get());
 }
 
-bool CesiumTilesetRenderer::GetBoundingBox(VistaBoundingBox& /*bb*/) {
+bool TilesetRenderer::GetBoundingBox(VistaBoundingBox& /*bb*/) {
   return false;
 }
 

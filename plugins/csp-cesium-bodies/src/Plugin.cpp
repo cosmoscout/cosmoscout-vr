@@ -6,10 +6,12 @@
 // SPDX-License-Identifier: MIT
 
 #include "Plugin.hpp"
-#include "CesiumUtils.hpp"
+#include "PrepareRenderResources.hpp"
 #include "logger.hpp"
 
 #include "../../../src/cs-core/Settings.hpp"
+
+#include <glm/glm.hpp>
 
 #include <Cesium3DTilesContent/registerAllTileContentTypes.h>
 #include <Cesium3DTilesSelection/TilesetExternals.h>
@@ -59,10 +61,10 @@ void Plugin::init() {
 
   Cesium3DTilesContent::registerAllTileContentTypes();
 
-  auto taskProcessor   = std::make_shared<CosmoScoutTaskProcessor>();
+  auto taskProcessor   = std::make_shared<TaskProcessor>();
   mAsyncSystem         = std::make_shared<CesiumAsync::AsyncSystem>(taskProcessor);
   mCreditSystem        = std::make_shared<CesiumUtility::CreditSystem>();
-  auto prepareRenderer = std::make_shared<StubPrepareRendererResources>();
+  auto prepareRenderer = std::make_shared<PrepareRendererResources>();
 
   CesiumCurl::CurlAssetAccessorOptions accessorOptions;
   accessorOptions.userAgent = "CosmoScout Cesium Bodies";
@@ -80,7 +82,7 @@ void Plugin::init() {
   options.forbidHoles                  = true;
   options.preloadAncestors             = true;
   options.preloadSiblings              = true;
-  // options.contentOptions.generateMissingNormalsSmooth = true;
+  options.contentOptions.generateMissingNormalsSmooth = true;
 
   options.loadErrorCallback = [](const Cesium3DTilesSelection::TilesetLoadFailureDetails& details) {
     logger().error("Load FAILED — type: {}, HTTP status: {}, message: {}",
@@ -99,7 +101,7 @@ void Plugin::init() {
   logger().info(
       "Cesium Ion Tileset Created (Asset {}). Streaming will begin on first update.", ionAssetID);
 
-  mRenderer = std::make_shared<CesiumTilesetRenderer>(mTileset.get(), mSolarSystem);
+  mRenderer = std::make_shared<TilesetRenderer>(mTileset.get(), mSolarSystem);
 
   // TODO: Extract celestial body.
   auto earth = mSolarSystem->getObject("Earth");

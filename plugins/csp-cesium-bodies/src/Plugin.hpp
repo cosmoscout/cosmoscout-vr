@@ -9,7 +9,7 @@
 #define CSP_CESIUM_BODIES_PLUGIN_HPP
 
 #include "../../../src/cs-core/PluginBase.hpp"
-#include "CesiumTilesetRenderer.hpp"
+#include "TilesetRenderer.hpp"
 #include <Cesium3DTilesSelection/Tileset.h>
 #include <memory>
 #include <optional>
@@ -45,7 +45,7 @@ class Plugin : public cs::core::PluginBase {
   std::shared_ptr<CesiumAsync::AsyncSystem>        mAsyncSystem;
   std::shared_ptr<CesiumUtility::CreditSystem>     mCreditSystem;
   std::unique_ptr<Cesium3DTilesSelection::Tileset> mTileset;
-  std::shared_ptr<CesiumTilesetRenderer>           mRenderer;
+  std::shared_ptr<TilesetRenderer>           mRenderer;
 };
 
 } // namespace csp::cesiumbodies

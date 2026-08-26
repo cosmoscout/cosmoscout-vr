@@ -5,10 +5,10 @@
 // SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
 // SPDX-License-Identifier: MIT
 
-#include "CesiumUtils.hpp"
+#include "PrepareRenderResources.hpp"
+#include "RenderData.h"
 #include "logger.hpp"
 
-// CosmoScout FrameStats for benchmarking timers
 #include "../../../src/cs-utils/FrameStats.hpp"
 #include <CesiumAsync/AsyncSystem.h>
 #include <CesiumGltf/AccessorView.h>
@@ -27,7 +27,7 @@
 
 namespace csp::cesiumbodies {
 
-void CosmoScoutTaskProcessor::startTask(std::function<void()> f) {
+void TaskProcessor::startTask(std::function<void()> f) {
   std::thread(std::move(f)).detach();
 }
 
@@ -50,7 +50,7 @@ static int32_t getOrCreateTexture(
   }
 
   const CesiumImage::ImageAsset& asset = *pImage->pAsset;
-  CesiumTextureData              texture;
+  TextureData              texture;
   texture.pixels      = asset.pixelData;
   texture.width       = asset.width;
   texture.height      = asset.height;
@@ -262,7 +262,7 @@ static void rebaseVertices(CesiumRenderData* renderData) {
 }
 
 CesiumAsync::Future<Cesium3DTilesSelection::TileLoadResultAndRenderResources>
-StubPrepareRendererResources::prepareInLoadThread(const CesiumAsync::AsyncSystem& asyncSystem,
+PrepareRendererResources::prepareInLoadThread(const CesiumAsync::AsyncSystem& asyncSystem,
     Cesium3DTilesSelection::TileLoadResult&&                                      tileLoadResult,
     [[maybe_unused]] const glm::dmat4& transform, const std::any& rendererOptions) {
 
@@ -310,7 +310,7 @@ StubPrepareRendererResources::prepareInLoadThread(const CesiumAsync::AsyncSystem
       std::move(tileLoadResult), renderData});
 }
 
-void* StubPrepareRendererResources::prepareInMainThread(
+void* PrepareRendererResources::prepareInMainThread(
     Cesium3DTilesSelection::Tile& tile, void* pLoadThreadResult) {
 
   auto* pData = static_cast<CesiumRenderData*>(pLoadThreadResult);
@@ -353,7 +353,7 @@ void* StubPrepareRendererResources::prepareInMainThread(
 
   glBindVertexArray(0);
 
-  for (CesiumTextureData& texture : pData->textures) {
+  for (TextureData& texture : pData->textures) {
     if (texture.pixels.empty()) {
       continue;
     }
@@ -407,7 +407,7 @@ void* StubPrepareRendererResources::prepareInMainThread(
   return pData;
 }
 
-void StubPrepareRendererResources::free(
+void PrepareRendererResources::free(
     Cesium3DTilesSelection::Tile& tile, void* pLoadThreadResult, void* pMainThreadResult) noexcept {
 
   if (pMainThreadResult) {
@@ -423,7 +423,7 @@ void StubPrepareRendererResources::free(
     if (pData->ebo != 0) {
       glDeleteBuffers(1, &pData->ebo);
     }
-    for (const CesiumTextureData& texture : pData->textures) {
+    for (const TextureData& texture : pData->textures) {
       if (texture.textureId != 0) {
         glDeleteTextures(1, &texture.textureId);
       }
@@ -437,24 +437,24 @@ void StubPrepareRendererResources::free(
     delete pData;
   }
 }
-void* StubPrepareRendererResources::prepareRasterInLoadThread(
+void* PrepareRendererResources::prepareRasterInLoadThread(
     CesiumImage::ImageAsset& image, const std::any& rendererOptions) {
   return nullptr;
 }
-void* StubPrepareRendererResources::prepareRasterInMainThread(
+void* PrepareRendererResources::prepareRasterInMainThread(
     CesiumRasterOverlays::RasterOverlayTile& rasterTile, void* pLoadThreadResult) {
   return nullptr;
 }
-void StubPrepareRendererResources::freeRaster(
+void PrepareRendererResources::freeRaster(
     const CesiumRasterOverlays::RasterOverlayTile& rasterTile, void* pLoadThreadResult,
     void* pMainThreadResult) noexcept {
 }
-void StubPrepareRendererResources::attachRasterInMainThread(
+void PrepareRendererResources::attachRasterInMainThread(
     const Cesium3DTilesSelection::Tile& tile, int32_t overlayTextureCoordinateID,
     const CesiumRasterOverlays::RasterOverlayTile& rasterTile, void* pMainThreadRendererResources,
     const glm::dvec2& translation, const glm::dvec2& scale) {
 }
-void StubPrepareRendererResources::detachRasterInMainThread(
+void PrepareRendererResources::detachRasterInMainThread(
     const Cesium3DTilesSelection::Tile& tile, int32_t overlayTextureCoordinateID,
     const CesiumRasterOverlays::RasterOverlayTile& rasterTile,
     void*                                          pMainThreadRendererResources) noexcept {

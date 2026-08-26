@@ -5,7 +5,6 @@
 # SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
 # SPDX-License-Identifier: MIT
 
-# 1. The Toggle: Allows developers to turn off compilation of this specific plugin
 option(CSP_CESIUM_BODIES "Enable compilation of this plugin" ON)
 
 if(NOT CSP_CESIUM_BODIES)
@@ -17,20 +16,8 @@ find_package(cesium-native CONFIG REQUIRED)
 
 # build plugin -------------------------------------------------------------------------------------
 
-# 2. Define Files used in this Plugin Here (Did not use GLOB becasue it created ghost files which compiler missed)
-set(SOURCE_FILES
-  src/Plugin.cpp
-  src/logger.cpp
-  src/CesiumUtils.cpp
-  src/CesiumTilesetRenderer.cpp
-)
-
-set(HEADER_FILES
-  src/Plugin.hpp
-  src/logger.hpp
-  src/CesiumUtils.hpp
-  src/CesiumTilesetRenderer.hpp
-)
+file(GLOB SOURCE_FILES src/*.cpp)
+file(GLOB HEADER_FILES src/*.hpp)
 
 # 3. Create Target
 add_library(csp-cesium-bodies SHARED
