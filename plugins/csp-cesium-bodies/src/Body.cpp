@@ -11,6 +11,7 @@
 
 #include "../../../../src/cs-core/SolarSystem.hpp"
 #include "../../../../src/cs-scene/CelestialObserver.hpp"
+#include "../../../../src/cs-utils/FrameStats.hpp"
 
 #include <VistaKernel/DisplayManager/VistaDisplayManager.h>
 #include <VistaKernel/DisplayManager/VistaProjection.h>
@@ -26,11 +27,9 @@
 
 #include <glm/gtx/norm.hpp>
 
-#include <Cesium3DTilesSelection/ITilesetHeightSampler.h>
 #include <CesiumGeometry/IntersectionTests.h>
 #include <CesiumGeometry/Ray.h>
 #include <CesiumGltfContent/GltfUtilities.h>
-#include <limits>
 
 namespace CesiumGeometry {
 class Ray;
@@ -68,6 +67,8 @@ Body::~Body() = default;
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Body::update(cs::scene::CelestialObserver& observer) {
+  cs::utils::FrameStats::ScopedTimer timer("update", cs::utils::FrameStats::TimerMode::eCPU);
+
   if (!mCelestialObject)
     return;
 
@@ -172,7 +173,11 @@ static bool boundingVolumeContainsCoordinate(
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+// The implementation has been taken from Cesium3DTilesSelection::TilesetHeightQuery and modified to
+// just query the tileset in the current state synchronously to avoid additional overhead.
 double Body::getHeight(glm::dvec2 lngLat) const {
+  cs::utils::FrameStats::ScopedTimer timer("getHeight", cs::utils::FrameStats::TimerMode::eCPU);
+
   // The ray for height queries starts at this fraction of the ellipsoid max
   // radius above the ellipsoid surface. If a tileset surface is more than this
   // distance above the ellipsoid, it may be missed by height queries.
@@ -189,76 +194,77 @@ double Body::getHeight(glm::dvec2 lngLat) const {
   CesiumGeometry::Ray            ray(
       ellipsoid.cartographicToCartesian(start), -ellipsoid.geodeticSurfaceNormal(start));
 
-  std::vector<Cesium3DTilesSelection::Tile::Pointer> candidateTiles{};
-  std::vector<Cesium3DTilesSelection::Tile::Pointer> additiveCandidateTiles{};
+  std::vector<Cesium3DTilesSelection::Tile::ConstPointer> candidateTiles{};
+  std::vector<Cesium3DTilesSelection::Tile::ConstPointer> additiveCandidateTiles{};
 
-  std::function<void(Cesium3DTilesSelection::Tile::Pointer const&)> findCandidateTiles =
-      [&](Cesium3DTilesSelection::Tile::Pointer const& tile) -> void {
-    // If tile failed to load, this means we can't complete the intersection
-    if (tile->getState() == Cesium3DTilesSelection::TileLoadState::Failed) {
-      return;
-    }
+  // Iterative depth-first search over the tile tree using an explicit stack,
+  // avoiding the recursion/std::function overhead. Children are pushed in
+  // reverse order so they are visited in their original (left-to-right) order.
+  std::vector<Cesium3DTilesSelection::Tile::ConstPointer> tilesToVisit;
+  if (mLastHeightTile)
+    tilesToVisit.emplace_back(mLastHeightTile);
 
-    const std::optional<Cesium3DTilesSelection::BoundingVolume>& boundingVolume =
-        tile->getContentBoundingVolume();
+  if (Cesium3DTilesSelection::Tile::ConstPointer root = mTileset->getRootTile())
+    tilesToVisit.emplace_back(root);
 
-    if (tile->getChildren().empty()) { // This is a leaf node, it's a candidate
-      if (boundingVolume) { // If optional content bounding volume exists, test against it
-        if (boundingVolumeContainsCoordinate(*boundingVolume, ray, position, ellipsoid)) {
-          candidateTiles.emplace_back(tile);
-        }
-      } else {
-        candidateTiles.emplace_back(tile);
-      }
-    } else { // We have children
-      // If additive refinement, add parent to the list with children
-      if (tile->getRefine() == Cesium3DTilesSelection::TileRefine::Add) {
-        if (boundingVolume) { // If optional content bounding volume exists, test against it
-          if (boundingVolumeContainsCoordinate(*boundingVolume, ray, position, ellipsoid)) {
-            additiveCandidateTiles.emplace_back(tile);
-          }
-        } else {
-          additiveCandidateTiles.emplace_back(tile);
-        }
-      }
-
-      for (Cesium3DTilesSelection::Tile& child : tile->getChildren()) {
-        if (!boundingVolumeContainsCoordinate(child.getBoundingVolume(), ray, position, ellipsoid))
-          continue;
-
-        findCandidateTiles(&child);
-      }
-    }
+  // A tile with no content bounding volume is treated as always passing.
+  auto passesContentBoundingVolume = [&ray, &position, &ellipsoid](
+                                         Cesium3DTilesSelection::Tile::ConstPointer const& tile) {
+    const auto& bv = tile->getContentBoundingVolume();
+    return !bv || boundingVolumeContainsCoordinate(*bv, ray, position, ellipsoid);
   };
 
-  findCandidateTiles(mTileset->getRootTile());
+  while (!tilesToVisit.empty()) {
+    Cesium3DTilesSelection::Tile::ConstPointer tile = tilesToVisit.back();
+    tilesToVisit.pop_back();
+
+    if (tile->getState() == Cesium3DTilesSelection::TileLoadState::Failed) {
+      continue;
+    }
+
+    if (tile->getChildren().empty()) { // Leaf node, it's a candidate
+      if (passesContentBoundingVolume(tile)) {
+        candidateTiles.emplace_back(tile);
+      }
+      continue;
+    }
+
+    // Non-leaf: additive refinement means the parent itself can also contribute.
+    if (tile->getRefine() == Cesium3DTilesSelection::TileRefine::Add &&
+        passesContentBoundingVolume(tile)) {
+      additiveCandidateTiles.emplace_back(tile);
+    }
+
+    // Push children in reverse so the first child is visited first.
+    for (auto const& child : tile->getChildren() | std::views::reverse) {
+      if (boundingVolumeContainsCoordinate(child.getBoundingVolume(), ray, position, ellipsoid)) {
+        tilesToVisit.emplace_back(&child);
+      }
+    }
+  }
 
   std::optional<CesiumGltfContent::GltfUtilities::RayGltfHit> intersection;
-  auto intersectVisibleTile = [&](Cesium3DTilesSelection::Tile* tile) {
-    Cesium3DTilesSelection::TileRenderContent* renderContent =
+  for (auto const& tile :
+      std::array{std::span{additiveCandidateTiles}, std::span{candidateTiles}} | std::views::join) {
+    Cesium3DTilesSelection::TileRenderContent const* renderContent =
         tile->getContent().getRenderContent();
     if (!renderContent)
-      return;
+      continue;
 
     auto [hit, _] = CesiumGltfContent::GltfUtilities::intersectRayGltfModel(
         ray, renderContent->getModel(), true, tile->getTransform());
 
     // Set ray info to this hit if closer, or the first hit
     if (!intersection.has_value()) {
-      intersection = std::move(hit);
+      intersection    = std::move(hit);
+      mLastHeightTile = tile;
     } else if (hit) {
       double prevDistSq = intersection->rayToWorldPointDistanceSq;
-      if (double thisDistSq = hit->rayToWorldPointDistanceSq; thisDistSq < prevDistSq)
-        intersection = std::move(hit);
+      if (double thisDistSq = hit->rayToWorldPointDistanceSq; thisDistSq < prevDistSq) {
+        intersection    = std::move(hit);
+        mLastHeightTile = tile;
+      }
     }
-  };
-
-  for (const Cesium3DTilesSelection::Tile::Pointer& pTile : additiveCandidateTiles) {
-    intersectVisibleTile(pTile.get());
-  }
-
-  for (const Cesium3DTilesSelection::Tile::Pointer& pTile : candidateTiles) {
-    intersectVisibleTile(pTile.get());
   }
 
   if (intersection.has_value()) {

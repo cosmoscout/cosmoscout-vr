@@ -11,15 +11,10 @@
 #include "../../../src/cs-scene/CelestialSurface.hpp"
 #include "../../../src/cs-scene/IntersectableObject.hpp"
 
-#include <glm/vec2.hpp>
-
 #include <Cesium3DTilesSelection/Tile.h>
-#include <CesiumGeometry/Ray.h>
-#include <CesiumGltfContent/GltfUtilities.h>
-#include <cstdint>
+#include <Cesium3DTilesSelection/Tileset.h>
 #include <memory>
 #include <string>
-#include <vector>
 
 namespace cs {
 namespace core {
@@ -67,8 +62,11 @@ class Body : public cs::scene::CelestialSurface, public cs::scene::Intersectable
   std::shared_ptr<cs::core::SolarSystem>            mSolarSystem;
   std::shared_ptr<const cs::scene::CelestialObject> mCelestialObject;
 
-  std::unique_ptr<Cesium3DTilesSelection::Tileset> mTileset;
-  std::shared_ptr<TilesetRenderer>                 mTilesetRenderer;
+  std::unique_ptr<Cesium3DTilesSelection::Tileset>   mTileset;
+  std::shared_ptr<TilesetRenderer>                   mTilesetRenderer;
+
+  /// We cache the last height tile to avoid unnecessary tile traversal.
+  mutable Cesium3DTilesSelection::Tile::ConstPointer mLastHeightTile;
 };
 
 } // namespace csp::cesiumbodies
