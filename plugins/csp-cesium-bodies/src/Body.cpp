@@ -17,10 +17,24 @@
 #include <VistaKernel/DisplayManager/VistaViewport.h>
 #include <VistaKernel/VistaSystem.h>
 
+#include <Cesium3DTilesSelection/BoundingVolume.h>
 #include <Cesium3DTilesSelection/Tileset.h>
 #include <Cesium3DTilesSelection/TilesetExternals.h>
 #include <Cesium3DTilesSelection/TilesetOptions.h>
+#include <CesiumGeospatial/Cartographic.h>
+#include <CesiumGeospatial/Ellipsoid.h>
 
+#include <glm/gtx/norm.hpp>
+
+#include <Cesium3DTilesSelection/ITilesetHeightSampler.h>
+#include <CesiumGeometry/IntersectionTests.h>
+#include <CesiumGeometry/Ray.h>
+#include <CesiumGltfContent/GltfUtilities.h>
+#include <limits>
+
+namespace CesiumGeometry {
+class Ray;
+}
 namespace csp::cesiumbodies {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -109,26 +123,150 @@ void Body::update(cs::scene::CelestialObserver& observer) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// Cesium native only offers an async function to test for intersections. We query this intersection
-// asynchronously, which works quite well in most cases. The only downside is that collisions with
-// the ground are a little bouncy.
+static bool boundingVolumeContainsCoordinate(
+    const Cesium3DTilesSelection::BoundingVolume& boundingVolume,
+
+    const CesiumGeometry::Ray& ray, const CesiumGeospatial::Cartographic& coordinate,
+    const CesiumGeospatial::Ellipsoid& ellipsoid) {
+
+  struct Operation {
+    const CesiumGeometry::Ray&            ray;
+    const CesiumGeospatial::Cartographic& coordinate;
+    const CesiumGeospatial::Ellipsoid&    ellipsoid;
+
+    bool operator()(const CesiumGeometry::OrientedBoundingBox& boundingBox) const noexcept {
+      std::optional<double> t =
+          CesiumGeometry::IntersectionTests::rayOBBParametric(ray, boundingBox);
+      return t && t.value() >= 0;
+    }
+
+    bool operator()(const CesiumGeospatial::BoundingRegion& boundingRegion) const noexcept {
+      return boundingRegion.getRectangle().contains(coordinate);
+    }
+
+    bool operator()(const CesiumGeometry::BoundingSphere& boundingSphere) const noexcept {
+      std::optional<double> t =
+          CesiumGeometry::IntersectionTests::raySphereParametric(ray, boundingSphere);
+      return t && t.value() >= 0;
+    }
+
+    bool operator()(const CesiumGeospatial::BoundingRegionWithLooseFittingHeights& boundingRegion)
+        const noexcept {
+      return boundingRegion.getBoundingRegion().getRectangle().contains(coordinate);
+    }
+
+    bool operator()(const CesiumGeospatial::S2CellBoundingVolume& s2Cell) const noexcept {
+      return s2Cell.computeBoundingRegion(ellipsoid).getRectangle().contains(coordinate);
+    }
+
+    bool operator()(const CesiumGeometry::BoundingCylinderRegion& cylinderRegion) const noexcept {
+      std::optional<double> t = CesiumGeometry::IntersectionTests::rayOBBParametric(
+          ray, cylinderRegion.toOrientedBoundingBox());
+      return t && t.value() >= 0;
+    }
+  };
+
+  return std::visit(
+      Operation{.ray = ray, .coordinate = coordinate, .ellipsoid = ellipsoid}, boundingVolume);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 double Body::getHeight(glm::dvec2 lngLat) const {
-  if (!mHeightQueryInFlight) {
-    mHeightQueryInFlight = true;
-    mLastQueryLngLat     = lngLat;
+  // The ray for height queries starts at this fraction of the ellipsoid max
+  // radius above the ellipsoid surface. If a tileset surface is more than this
+  // distance above the ellipsoid, it may be missed by height queries.
+  // 0.007 is chosen to accomodate Olympus Mons, the tallest peak on Mars. 0.007
+  // is seven-tenths of a percent, or about 44,647 meters for WGS84, well above
+  // the highest point on Earth.
+  constexpr double rayOriginHeightFraction = 0.007;
 
-    std::vector positions{CesiumGeospatial::Cartographic(lngLat.x, lngLat.y, 0.0)};
+  auto ellipsoid = mTileset->getEllipsoid();
 
-    mTileset->sampleHeightMostDetailed(positions).thenInMainThread(
-        [this](Cesium3DTilesSelection::SampleHeightResult&& result) {
-          mHeightQueryInFlight = false;
-          if (!result.positions.empty() && result.sampleSuccess[0]) {
-            mCachedHeight = result.positions[0].height;
+  CesiumGeospatial::Cartographic position(lngLat.x, lngLat.y, 0.0);
+  CesiumGeospatial::Cartographic start(position.longitude, position.latitude,
+      ellipsoid.getMaximumRadius() * rayOriginHeightFraction);
+  CesiumGeometry::Ray            ray(
+      ellipsoid.cartographicToCartesian(start), -ellipsoid.geodeticSurfaceNormal(start));
+
+  std::vector<Cesium3DTilesSelection::Tile::Pointer> candidateTiles{};
+  std::vector<Cesium3DTilesSelection::Tile::Pointer> additiveCandidateTiles{};
+
+  std::function<void(Cesium3DTilesSelection::Tile::Pointer const&)> findCandidateTiles =
+      [&](Cesium3DTilesSelection::Tile::Pointer const& tile) -> void {
+    // If tile failed to load, this means we can't complete the intersection
+    if (tile->getState() == Cesium3DTilesSelection::TileLoadState::Failed) {
+      return;
+    }
+
+    const std::optional<Cesium3DTilesSelection::BoundingVolume>& boundingVolume =
+        tile->getContentBoundingVolume();
+
+    if (tile->getChildren().empty()) { // This is a leaf node, it's a candidate
+      if (boundingVolume) { // If optional content bounding volume exists, test against it
+        if (boundingVolumeContainsCoordinate(*boundingVolume, ray, position, ellipsoid)) {
+          candidateTiles.emplace_back(tile);
+        }
+      } else {
+        candidateTiles.emplace_back(tile);
+      }
+    } else { // We have children
+      // If additive refinement, add parent to the list with children
+      if (tile->getRefine() == Cesium3DTilesSelection::TileRefine::Add) {
+        if (boundingVolume) { // If optional content bounding volume exists, test against it
+          if (boundingVolumeContainsCoordinate(*boundingVolume, ray, position, ellipsoid)) {
+            additiveCandidateTiles.emplace_back(tile);
           }
-        });
+        } else {
+          additiveCandidateTiles.emplace_back(tile);
+        }
+      }
+
+      for (Cesium3DTilesSelection::Tile& child : tile->getChildren()) {
+        if (!boundingVolumeContainsCoordinate(child.getBoundingVolume(), ray, position, ellipsoid))
+          continue;
+
+        findCandidateTiles(&child);
+      }
+    }
+  };
+
+  findCandidateTiles(mTileset->getRootTile());
+
+  std::optional<CesiumGltfContent::GltfUtilities::RayGltfHit> intersection;
+  auto intersectVisibleTile = [&](Cesium3DTilesSelection::Tile* tile) {
+    Cesium3DTilesSelection::TileRenderContent* renderContent =
+        tile->getContent().getRenderContent();
+    if (!renderContent)
+      return;
+
+    auto [hit, _] = CesiumGltfContent::GltfUtilities::intersectRayGltfModel(
+        ray, renderContent->getModel(), true, tile->getTransform());
+
+    // Set ray info to this hit if closer, or the first hit
+    if (!intersection.has_value()) {
+      intersection = std::move(hit);
+    } else if (hit) {
+      double prevDistSq = intersection->rayToWorldPointDistanceSq;
+      if (double thisDistSq = hit->rayToWorldPointDistanceSq; thisDistSq < prevDistSq)
+        intersection = std::move(hit);
+    }
+  };
+
+  for (const Cesium3DTilesSelection::Tile::Pointer& pTile : additiveCandidateTiles) {
+    intersectVisibleTile(pTile.get());
   }
 
-  return mCachedHeight;
+  for (const Cesium3DTilesSelection::Tile::Pointer& pTile : candidateTiles) {
+    intersectVisibleTile(pTile.get());
+  }
+
+  if (intersection.has_value()) {
+    return ellipsoid.getMaximumRadius() * rayOriginHeightFraction -
+           glm::sqrt(intersection->rayToWorldPointDistanceSq);
+  }
+
+  return 0.0;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -13,9 +13,13 @@
 
 #include <glm/vec2.hpp>
 
+#include <Cesium3DTilesSelection/Tile.h>
+#include <CesiumGeometry/Ray.h>
+#include <CesiumGltfContent/GltfUtilities.h>
 #include <cstdint>
 #include <memory>
 #include <string>
+#include <vector>
 
 namespace cs {
 namespace core {
@@ -30,6 +34,7 @@ class CelestialObserver;
 } // namespace cs
 
 namespace Cesium3DTilesSelection {
+class Tile;
 class Tileset;
 struct TilesetOptions;
 class TilesetExternals;
@@ -64,10 +69,6 @@ class Body : public cs::scene::CelestialSurface, public cs::scene::Intersectable
 
   std::unique_ptr<Cesium3DTilesSelection::Tileset> mTileset;
   std::shared_ptr<TilesetRenderer>                 mTilesetRenderer;
-
-  mutable glm::dvec2 mLastQueryLngLat{std::numeric_limits<double>::quiet_NaN(), 0.0};
-  mutable double     mCachedHeight        = 0.0;
-  mutable bool       mHeightQueryInFlight = false;
 };
 
 } // namespace csp::cesiumbodies
