@@ -51,7 +51,7 @@ class Plugin : public cs::core::PluginBase {
  private:
   Settings mPluginSettings;
 
-  std::map<std::string, std::unique_ptr<Body>> mBodies;
+  std::map<std::string, std::shared_ptr<Body>> mBodies;
 
   std::shared_ptr<CesiumAsync::AsyncSystem>    mAsyncSystem;
   std::shared_ptr<CesiumUtility::CreditSystem> mCreditSystem;

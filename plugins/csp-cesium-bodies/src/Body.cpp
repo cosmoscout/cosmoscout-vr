@@ -29,9 +29,10 @@ Body::Body(std::string const&                       name,
     Cesium3DTilesSelection::TilesetExternals const& tilesetExternals, int64_t assetId,
     std::string const& ionToken, Cesium3DTilesSelection::TilesetOptions const& options,
     std::shared_ptr<cs::core::SolarSystem> solarSystem,
-    std::shared_ptr<cs::core::Settings>     settings)
-    : mName(name) {
-  mCelestialObject = solarSystem->getObject(name);
+    std::shared_ptr<cs::core::Settings>    settings)
+    : mName(name)
+    , mSolarSystem(std::move(solarSystem))
+    , mCelestialObject(mSolarSystem->getObject(name)) {
 
   auto bodyOptions      = options;
   bodyOptions.ellipsoid = CesiumGeospatial::Ellipsoid(mCelestialObject->getRadii().zxy());
@@ -39,14 +40,8 @@ Body::Body(std::string const&                       name,
   mTileset = std::make_unique<Cesium3DTilesSelection::Tileset>(
       tilesetExternals, assetId, ionToken, bodyOptions);
 
-  mTilesetRenderer =
-      std::make_shared<TilesetRenderer>(mTileset.get(), mCelestialObject, solarSystem, settings, mName);
-
-  if (mCelestialObject) {
-    mCelestialObject->setSurface(mTilesetRenderer);
-    mCelestialObject->setIntersectableObject(mTilesetRenderer);
-    logger().info("Registered as CelestialSurface for {}.", name);
-  }
+  mTilesetRenderer = std::make_shared<TilesetRenderer>(
+      mTileset.get(), mCelestialObject, mSolarSystem, settings, mName);
 
   logger().info(
       "Cesium Ion Tileset Created (Asset {}). Streaming will begin on first update.", assetId);
@@ -54,12 +49,7 @@ Body::Body(std::string const&                       name,
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-Body::~Body() {
-  if (mCelestialObject) {
-    mCelestialObject->setSurface(nullptr);
-    mCelestialObject->setIntersectableObject(nullptr);
-  }
-}
+Body::~Body() = default;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -119,8 +109,62 @@ void Body::update(cs::scene::CelestialObserver& observer) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::shared_ptr<cs::scene::CelestialSurface> Body::getSurface() const {
-  return mTilesetRenderer;
+// Cesium native only offers an async function to test for intersections. We query this intersection
+// asynchronously, which works quite well in most cases. The only downside is that collisions with
+// the ground are a little bouncy.
+double Body::getHeight(glm::dvec2 lngLat) const {
+  if (!mHeightQueryInFlight) {
+    mHeightQueryInFlight = true;
+    mLastQueryLngLat     = lngLat;
+
+    std::vector positions{CesiumGeospatial::Cartographic(lngLat.x, lngLat.y, 0.0)};
+
+    mTileset->sampleHeightMostDetailed(positions).thenInMainThread(
+        [this](Cesium3DTilesSelection::SampleHeightResult&& result) {
+          mHeightQueryInFlight = false;
+          if (!result.positions.empty() && result.sampleSuccess[0]) {
+            mCachedHeight = result.positions[0].height;
+          }
+        });
+  }
+
+  return mCachedHeight;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+bool Body::getIntersection(
+    glm::dvec3 const& rayPos, glm::dvec3 const& rayDir, glm::dvec3& pos) const {
+
+  auto parent = mSolarSystem->getObject(mName);
+
+  if (!parent || !parent->getIsBodyVisible()) {
+    return false;
+  }
+
+  auto invTransform = glm::inverse(parent->getObserverRelativeTransform());
+
+  // Transform ray into planet coordinate system.
+  glm::dvec4 origin(rayPos, 1.0);
+  origin = (invTransform * origin) / glm::dvec4(parent->getRadii(), 1.0);
+
+  glm::dvec4 direction(rayDir, 0.0);
+  direction = (invTransform * direction) / glm::dvec4(parent->getRadii(), 1.0);
+  direction = glm::normalize(direction);
+
+  double b    = glm::dot(origin.xyz(), direction.xyz());
+  double c    = glm::dot(origin.xyz(), origin.xyz()) - 1.0;
+  double fDet = b * b - c;
+
+  if (fDet < 0.0) {
+    return false;
+  }
+
+  fDet = std::sqrt(fDet);
+  pos  = (origin + direction * (-b - fDet)).xyz();
+  pos *= parent->getRadii();
+
+  return true;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

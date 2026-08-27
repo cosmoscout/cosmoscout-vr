@@ -128,8 +128,17 @@ void Plugin::init() {
               static_cast<int>(details.type), details.statusCode, details.message);
         };
 
-    mBodies.emplace(name, std::make_unique<Body>(name, externals, body.ionAssetId, ionToken,
-                              options, mSolarSystem, mAllSettings));
+    auto cesiumBody = std::make_shared<Body>(
+        name, externals, body.ionAssetId, ionToken, options, mSolarSystem, mAllSettings);
+    mBodies.emplace(name, cesiumBody);
+
+    auto object = mSolarSystem->getObject(name);
+
+    if (object) {
+      object->setSurface(cesiumBody);
+      object->setIntersectableObject(cesiumBody);
+      logger().info("Registered as CelestialSurface for {}.", name);
+    }
   }
 }
 
@@ -137,6 +146,15 @@ void Plugin::init() {
 
 void Plugin::deInit() {
   logger().info("Unloading plugin...");
+
+  for (const auto& name : mBodies | std::views::keys) {
+    auto object = mSolarSystem->getObject(name);
+    if (object) {
+      object->setSurface(nullptr);
+      object->setIntersectableObject(nullptr);
+    }
+  }
+
   logger().info("Unloading done.");
 }
 

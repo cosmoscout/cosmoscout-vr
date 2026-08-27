@@ -24,6 +24,7 @@ class CelestialObserver;
 /// retrieve the altitude at a given location.
 class CS_SCENE_EXPORT CelestialSurface {
  public:
+  virtual ~CelestialSurface() = default;
   /// Returns the elevation in meters at a specific point on the surface.
   ///
   /// @param lngLat The coordinates on the surface in the Geographic Coordinate System format.

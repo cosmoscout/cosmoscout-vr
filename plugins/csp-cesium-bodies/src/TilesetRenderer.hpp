@@ -9,8 +9,7 @@
 #define CSP_CESIUM_BODIES_TILESET_RENDERER_HPP
 
 #include "../../../src/cs-core/Settings.hpp"
-#include "../../../src/cs-scene/CelestialSurface.hpp"
-#include "../../../src/cs-scene/IntersectableObject.hpp"
+#include "../../../src/cs-scene/CelestialObject.hpp"
 #include <GL/glew.h>
 #include <VistaKernel/GraphicsManager/VistaOpenGLDraw.h>
 #include <VistaKernel/GraphicsManager/VistaOpenGLNode.h>
@@ -28,20 +27,12 @@ namespace csp::cesiumbodies {
 /// Renders Cesium 3D Tiles geometry using a basic Lambertian shader. Hooks into the ViSTA scene
 /// graph via IVistaOpenGLDraw so the engine calls our Do() method every frame during the render
 /// pass.
-class TilesetRenderer : public cs::scene::CelestialSurface,
-                        public cs::scene::IntersectableObject,
-                        public IVistaOpenGLDraw {
+class TilesetRenderer : public IVistaOpenGLDraw {
  public:
-  double getHeight(glm::dvec2 lngLat) const override;
-
-  bool getIntersection(
-      glm::dvec3 const& rayPos, glm::dvec3 const& rayDir, glm::dvec3& pos) const override;
-
   TilesetRenderer(Cesium3DTilesSelection::Tileset*      pTileset,
       std::shared_ptr<const cs::scene::CelestialObject> object,
       std::shared_ptr<cs::core::SolarSystem>            pSolarSystem,
-      std::shared_ptr<cs::core::Settings>               settings,
-      std::string                                       objectName);
+      std::shared_ptr<cs::core::Settings> settings, std::string objectName);
 
   ~TilesetRenderer() override;
 
@@ -62,10 +53,6 @@ class TilesetRenderer : public cs::scene::CelestialSurface,
 
   std::string mObjectName;
 
-  mutable glm::dvec2 mLastQueryLngLat{std::numeric_limits<double>::quiet_NaN(), 0.0};
-  mutable double     mCachedHeight        = 0.0;
-  mutable bool       mHeightQueryInFlight = false;
-
   std::unique_ptr<VistaOpenGLNode> mGLNode;
 
   GLuint mShaderProgram = 0;
@@ -74,15 +61,17 @@ class TilesetRenderer : public cs::scene::CelestialSurface,
   int mEnableLightingConnection = -1;
   int mEnableHDRConnection      = -1;
 
-  GLint mLocModelMatrix         = -1;
-  GLint mLocViewMatrix          = -1;
-  GLint mLocProjectionMatrix    = -1;
-  GLint mLocBaseColorTexture    = -1;
-  GLint mLocHasTexture          = -1;
-  GLint mLocSunIlluminance      = -1;
-  GLint mLocAmbientBrightness   = -1;
-  GLint mLocEnableLighting      = -1;
-  GLint mLocAvgLinearImgIntensity = -1;
+  struct {
+    GLint modelMatrix           = -1;
+    GLint viewMatrix            = -1;
+    GLint projectionMatrix      = -1;
+    GLint baseColorTexture      = -1;
+    GLint hasTexture            = -1;
+    GLint sunIlluminance        = -1;
+    GLint ambientBrightness     = -1;
+    GLint enableLighting        = -1;
+    GLint avgLinearImgIntensity = -1;
+  } mUniforms;
 
   static const char* CESIUM_VERT;
   static const char* CESIUM_FRAG;

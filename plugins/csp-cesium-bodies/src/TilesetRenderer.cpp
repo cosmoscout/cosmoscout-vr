@@ -19,6 +19,7 @@
 #include <VistaKernel/VistaSystem.h>
 #include <VistaKernelOpenSGExt/VistaOpenSGMaterialTools.h>
 
+#include <glm/glm.hpp>
 #include <glm/gtc/matrix_inverse.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
@@ -126,8 +127,7 @@ static GLuint compileShader(GLenum type, const char* source) { //
 TilesetRenderer::TilesetRenderer(Cesium3DTilesSelection::Tileset* pTileset,
     std::shared_ptr<const cs::scene::CelestialObject>             object,
     std::shared_ptr<cs::core::SolarSystem>                        pSolarSystem,
-    std::shared_ptr<cs::core::Settings>                           settings,
-    std::string                                                   objectName)
+    std::shared_ptr<cs::core::Settings> settings, std::string objectName)
     : mTileset(pTileset)
     , mCelestialObject(std::move(object))
     , mSolarSystem(std::move(pSolarSystem))
@@ -169,8 +169,6 @@ bool TilesetRenderer::Do() {
     std::string vert = defines + CESIUM_VERT;
     std::string frag = defines + CESIUM_FRAG;
 
-    cs::core::Settings::Shading const& shading = mSettings->getShadingForBody(mObjectName);
-
     GLuint vertShader = compileShader(GL_VERTEX_SHADER, vert.c_str());
     GLuint fragShader = compileShader(GL_FRAGMENT_SHADER, frag.c_str());
 
@@ -189,15 +187,16 @@ bool TilesetRenderer::Do() {
         glDeleteProgram(mShaderProgram);
         mShaderProgram = 0;
       } else {
-        mLocModelMatrix           = glGetUniformLocation(mShaderProgram, "uModelMatrix");
-        mLocViewMatrix            = glGetUniformLocation(mShaderProgram, "uViewMatrix");
-        mLocProjectionMatrix      = glGetUniformLocation(mShaderProgram, "uProjectionMatrix");
-        mLocBaseColorTexture      = glGetUniformLocation(mShaderProgram, "uBaseColorTexture");
-        mLocHasTexture            = glGetUniformLocation(mShaderProgram, "uHasTexture");
-        mLocSunIlluminance        = glGetUniformLocation(mShaderProgram, "uSunIlluminance");
-        mLocAmbientBrightness     = glGetUniformLocation(mShaderProgram, "uAmbientBrightness");
-        mLocEnableLighting        = glGetUniformLocation(mShaderProgram, "uEnableLighting");
-        mLocAvgLinearImgIntensity = glGetUniformLocation(mShaderProgram, "uAvgLinearImgIntensity");
+        mUniforms.modelMatrix       = glGetUniformLocation(mShaderProgram, "uModelMatrix");
+        mUniforms.viewMatrix        = glGetUniformLocation(mShaderProgram, "uViewMatrix");
+        mUniforms.projectionMatrix  = glGetUniformLocation(mShaderProgram, "uProjectionMatrix");
+        mUniforms.baseColorTexture  = glGetUniformLocation(mShaderProgram, "uBaseColorTexture");
+        mUniforms.hasTexture        = glGetUniformLocation(mShaderProgram, "uHasTexture");
+        mUniforms.sunIlluminance    = glGetUniformLocation(mShaderProgram, "uSunIlluminance");
+        mUniforms.ambientBrightness = glGetUniformLocation(mShaderProgram, "uAmbientBrightness");
+        mUniforms.enableLighting    = glGetUniformLocation(mShaderProgram, "uEnableLighting");
+        mUniforms.avgLinearImgIntensity =
+            glGetUniformLocation(mShaderProgram, "uAvgLinearImgIntensity");
       }
     }
 
@@ -220,27 +219,28 @@ bool TilesetRenderer::Do() {
   glGetFloatv(GL_MODELVIEW_MATRIX, glMatV.data());
   glGetFloatv(GL_PROJECTION_MATRIX, glMatP.data());
 
-  glUniformMatrix4fv(mLocViewMatrix, 1, GL_FALSE, glMatV.data());
-  glUniformMatrix4fv(mLocProjectionMatrix, 1, GL_FALSE, glMatP.data());
+  glUniformMatrix4fv(mUniforms.viewMatrix, 1, GL_FALSE, glMatV.data());
+  glUniformMatrix4fv(mUniforms.projectionMatrix, 1, GL_FALSE, glMatP.data());
 
   glm::dmat4 observerToBody = mCelestialObject->getObserverRelativeTransform();
   glm::dvec3 bodyPos(observerToBody[3]);
 
   auto sunIlluminance = static_cast<float>(mSolarSystem->getSunIlluminance(bodyPos));
-  glUniform1f(mLocSunIlluminance, sunIlluminance);
+  glUniform1f(mUniforms.sunIlluminance, sunIlluminance);
 
-  auto sunDirection = mSolarSystem->getSunDirection(bodyPos);
+  auto      sunDirection = mSolarSystem->getSunDirection(bodyPos);
   glm::vec3 sunDirGL(sunDirection.x, sunDirection.y, sunDirection.z);
-  glUniform3f(glGetUniformLocation(mShaderProgram, "uSunDirection"), sunDirGL[0], sunDirGL[1], sunDirGL[2]);
+  glUniform3f(
+      glGetUniformLocation(mShaderProgram, "uSunDirection"), sunDirGL[0], sunDirGL[1], sunDirGL[2]);
 
   float ambientBrightness = mSettings->mGraphics.pAmbientBrightness.get();
-  glUniform1f(mLocAmbientBrightness, ambientBrightness);
+  glUniform1f(mUniforms.ambientBrightness, ambientBrightness);
 
-  glUniform1i(mLocEnableLighting, mSettings->mGraphics.pEnableLighting.get() ? 1 : 0);
+  glUniform1i(mUniforms.enableLighting, mSettings->mGraphics.pEnableLighting.get() ? 1 : 0);
 
   cs::core::Settings::Shading const& shading = mSettings->getShadingForBody(mObjectName);
-  float avgLinearImgIntensity = shading.pAvgLinearImgIntensity.get();
-  glUniform1f(mLocAvgLinearImgIntensity, avgLinearImgIntensity);
+  float                              avgLinearImgIntensity = shading.pAvgLinearImgIntensity.get();
+  glUniform1f(mUniforms.avgLinearImgIntensity, avgLinearImgIntensity);
 
   GLint     prevDepthFunc;
   GLboolean cullEnabled  = glIsEnabled(GL_CULL_FACE);
@@ -277,13 +277,13 @@ bool TilesetRenderer::Do() {
     glm::dmat4 tileToObserver = observerToBody * pData->tileTransform;
     glm::mat4  modelMatrix(tileToObserver);
 
-    glUniformMatrix4fv(mLocModelMatrix, 1, GL_FALSE, glm::value_ptr(modelMatrix));
+    glUniformMatrix4fv(mUniforms.modelMatrix, 1, GL_FALSE, glm::value_ptr(modelMatrix));
 
     {
       cs::utils::FrameStats::ScopedTimer drawTimer("Cesium GPU Draw");
       glBindVertexArray(pData->vao);
       glActiveTexture(GL_TEXTURE0);
-      glUniform1i(mLocBaseColorTexture, 0);
+      glUniform1i(mUniforms.baseColorTexture, 0);
 
       for (const DrawBatch& batch : pData->batches) {
         GLuint textureId = 0;
@@ -293,7 +293,7 @@ bool TilesetRenderer::Do() {
         }
 
         glBindTexture(GL_TEXTURE_2D, textureId);
-        glUniform1i(mLocHasTexture, textureId != 0 ? 1 : 0);
+        glUniform1i(mUniforms.hasTexture, textureId != 0 ? 1 : 0);
         glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(batch.indexCount), GL_UNSIGNED_INT,
             reinterpret_cast<void*>(static_cast<uintptr_t>(batch.firstIndex) * sizeof(uint32_t)));
       }
@@ -311,84 +311,6 @@ bool TilesetRenderer::Do() {
   glUseProgram(0);
 
   return true;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-// Cesium native only offers an async function to test for intersections. We query this intersection
-// asynchronously, which works quite well in most cases. The only downside is that collisions with
-// the ground are a little bouncy.
-double TilesetRenderer::getHeight(glm::dvec2 lngLat) const {
-  if (!mHeightQueryInFlight) {
-    mHeightQueryInFlight = true;
-    mLastQueryLngLat     = lngLat;
-
-    std::vector positions{CesiumGeospatial::Cartographic(lngLat.x, lngLat.y, 0.0)};
-
-    mTileset->sampleHeightMostDetailed(positions).thenInMainThread(
-        [this](Cesium3DTilesSelection::SampleHeightResult&& result) {
-          mHeightQueryInFlight = false;
-          if (!result.positions.empty() && result.sampleSuccess[0]) {
-            mCachedHeight = result.positions[0].height;
-          }
-        });
-  }
-
-  return mCachedHeight;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-bool TilesetRenderer::getIntersection(
-    glm::dvec3 const& rayPos, glm::dvec3 const& rayDir, glm::dvec3& pos) const {
-  if (mTileset == nullptr) {
-    return false;
-  }
-
-  const double dirLength = glm::length(rayDir);
-  if (dirLength <= 0.0) {
-    return false;
-  }
-
-  // CosmoScout VR uses (Z, X, Y) layout, Cesium uses (X, Y, Z) ECEF.
-  // Convert ray from CosmoScout coordinates to ECEF.
-  glm::dvec3 rayPosECEF(rayPos.yzx());
-  glm::dvec3 rayDirECEF(rayDir.yzx());
-
-  // CesiumGeometry::Ray requires a normalized direction.
-  const CesiumGeometry::Ray ray(rayPosECEF, rayDirECEF / dirLength);
-
-  bool       found         = false;
-  double     closestDistSq = std::numeric_limits<double>::max();
-  glm::dvec3 closestPointECEF(0.0);
-
-  mTileset->forEachLoadedTile([&](Cesium3DTilesSelection::Tile const& tile) {
-    Cesium3DTilesSelection::TileRenderContent const* pRenderContent =
-        tile.getContent().getRenderContent();
-    if (pRenderContent == nullptr) {
-      return;
-    }
-
-    CesiumGltf::Model const& model = pRenderContent->getModel();
-
-    CesiumGltfContent::GltfUtilities::IntersectResult result =
-        CesiumGltfContent::GltfUtilities::intersectRayGltfModel(ray, model,
-            /* cullBackFaces */ true, tile.getTransform());
-
-    if (result.hit.has_value()) {
-      if (const double distSq = result.hit->rayToWorldPointDistanceSq; distSq < closestDistSq) {
-        closestDistSq    = distSq;
-        closestPointECEF = result.hit->worldPoint;
-        found            = true;
-      }
-    }
-  });
-
-  if (found) {
-    // Convert intersection point back from ECEF to CosmoScout coordinates.
-    pos = glm::dvec3(closestPointECEF.yzx());
-  }
-  return found;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
