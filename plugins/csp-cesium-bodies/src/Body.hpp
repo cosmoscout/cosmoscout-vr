@@ -64,9 +64,13 @@ class Body : public cs::scene::CelestialSurface, public cs::scene::Intersectable
 
   std::unique_ptr<Cesium3DTilesSelection::Tileset>   mTileset;
   std::shared_ptr<TilesetRenderer>                   mTilesetRenderer;
+  Cesium3DTilesSelection::ViewUpdateResult           mLastViewUpdateResult;
 
   /// We cache the last height tile to avoid unnecessary tile traversal.
   mutable Cesium3DTilesSelection::Tile::ConstPointer mLastHeightTile;
+
+  /// We cache the last intersection tile to avoid unnecessary tile traversal.
+  mutable Cesium3DTilesSelection::Tile::ConstPointer mLastIntersectionTile;
 };
 
 } // namespace csp::cesiumbodies

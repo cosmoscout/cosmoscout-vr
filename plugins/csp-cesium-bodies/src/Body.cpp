@@ -117,58 +117,41 @@ void Body::update(cs::scene::CelestialObserver& observer) {
   Cesium3DTilesSelection::ViewState viewState(
       camPositionECEF, camDirectionECEF, camUpECEF, viewportSize, hFov, vFov);
 
-  std::vector frustums = {viewState};
-  mTileset->updateViewGroup(mTileset->getDefaultViewGroup(), frustums);
+  std::vector frustums  = {viewState};
+  mLastViewUpdateResult = mTileset->updateViewGroup(mTileset->getDefaultViewGroup(), frustums);
   mTileset->loadTiles();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static bool boundingVolumeContainsCoordinate(
-    const Cesium3DTilesSelection::BoundingVolume& boundingVolume,
-
-    const CesiumGeometry::Ray& ray, const CesiumGeospatial::Cartographic& coordinate,
-    const CesiumGeospatial::Ellipsoid& ellipsoid) {
-
-  struct Operation {
-    const CesiumGeometry::Ray&            ray;
-    const CesiumGeospatial::Cartographic& coordinate;
-    const CesiumGeospatial::Ellipsoid&    ellipsoid;
-
-    bool operator()(const CesiumGeometry::OrientedBoundingBox& boundingBox) const noexcept {
-      std::optional<double> t =
-          CesiumGeometry::IntersectionTests::rayOBBParametric(ray, boundingBox);
-      return t && t.value() >= 0;
-    }
-
-    bool operator()(const CesiumGeospatial::BoundingRegion& boundingRegion) const noexcept {
-      return boundingRegion.getRectangle().contains(coordinate);
-    }
-
-    bool operator()(const CesiumGeometry::BoundingSphere& boundingSphere) const noexcept {
-      std::optional<double> t =
-          CesiumGeometry::IntersectionTests::raySphereParametric(ray, boundingSphere);
-      return t && t.value() >= 0;
-    }
-
-    bool operator()(const CesiumGeospatial::BoundingRegionWithLooseFittingHeights& boundingRegion)
-        const noexcept {
-      return boundingRegion.getBoundingRegion().getRectangle().contains(coordinate);
-    }
-
-    bool operator()(const CesiumGeospatial::S2CellBoundingVolume& s2Cell) const noexcept {
-      return s2Cell.computeBoundingRegion(ellipsoid).getRectangle().contains(coordinate);
-    }
-
-    bool operator()(const CesiumGeometry::BoundingCylinderRegion& cylinderRegion) const noexcept {
-      std::optional<double> t = CesiumGeometry::IntersectionTests::rayOBBParametric(
-          ray, cylinderRegion.toOrientedBoundingBox());
-      return t && t.value() >= 0;
-    }
-  };
+    Cesium3DTilesSelection::BoundingVolume const& boundingVolume, CesiumGeometry::Ray const& ray,
+    CesiumGeospatial::Cartographic const& coordinate,
+    CesiumGeospatial::Ellipsoid const&    ellipsoid) {
 
   return std::visit(
-      Operation{.ray = ray, .coordinate = coordinate, .ellipsoid = ellipsoid}, boundingVolume);
+      [&]<typename BV>(BV const& bv) {
+        using T = std::decay_t<BV>;
+        if constexpr (std::is_same_v<T, CesiumGeometry::OrientedBoundingBox>) {
+          auto t = CesiumGeometry::IntersectionTests::rayOBBParametric(ray, bv);
+          return t.has_value() && *t >= 0;
+        } else if constexpr (std::is_same_v<T, CesiumGeospatial::BoundingRegion>) {
+          return bv.getRectangle().contains(coordinate);
+        } else if constexpr (std::is_same_v<T, CesiumGeometry::BoundingSphere>) {
+          auto t = CesiumGeometry::IntersectionTests::raySphereParametric(ray, bv);
+          return t.has_value() && *t >= 0;
+        } else if constexpr (std::is_same_v<T,
+                                 CesiumGeospatial::BoundingRegionWithLooseFittingHeights>) {
+          return bv.getBoundingRegion().getRectangle().contains(coordinate);
+        } else if constexpr (std::is_same_v<T, CesiumGeospatial::S2CellBoundingVolume>) {
+          return bv.computeBoundingRegion(ellipsoid).getRectangle().contains(coordinate);
+        } else if constexpr (std::is_same_v<T, CesiumGeometry::BoundingCylinderRegion>) {
+          auto t =
+              CesiumGeometry::IntersectionTests::rayOBBParametric(ray, bv.toOrientedBoundingBox());
+          return t.has_value() && *t >= 0;
+        }
+      },
+      boundingVolume);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -201,11 +184,13 @@ double Body::getHeight(glm::dvec2 lngLat) const {
   // avoiding the recursion/std::function overhead. Children are pushed in
   // reverse order so they are visited in their original (left-to-right) order.
   std::vector<Cesium3DTilesSelection::Tile::ConstPointer> tilesToVisit;
-  if (mLastHeightTile)
-    tilesToVisit.emplace_back(mLastHeightTile);
-
-  if (Cesium3DTilesSelection::Tile::ConstPointer root = mTileset->getRootTile())
+  if (Cesium3DTilesSelection::Tile::ConstPointer root = mTileset->getRootTile()) {
     tilesToVisit.emplace_back(root);
+  }
+
+  if (mLastHeightTile) {
+    tilesToVisit.emplace_back(mLastHeightTile);
+  }
 
   // A tile with no content bounding volume is treated as always passing.
   auto passesContentBoundingVolume = [&ray, &position, &ellipsoid](
@@ -277,38 +262,134 @@ double Body::getHeight(glm::dvec2 lngLat) const {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+// Helper: does a bounding volume intersect a ray?  It mirrors the logic used in
+// getHeight (which tests against a cartographic coordinate) but ignores the
+// geographic‑region cases – they are conservatively accepted.
+static bool boundingVolumeIntersectsRay(
+    Cesium3DTilesSelection::BoundingVolume const& boundingVolume, CesiumGeometry::Ray const& ray,
+    CesiumGeospatial::Ellipsoid const& ellipsoid) {
+
+  return std::visit(
+      [&]<typename BV>(BV const& bv) {
+        using T = std::decay_t<BV>;
+        if constexpr (std::is_same_v<T, CesiumGeometry::OrientedBoundingBox>) {
+          std::optional<double> t = CesiumGeometry::IntersectionTests::rayOBBParametric(ray, bv);
+          return t && *t >= 0;
+        } else if constexpr (std::is_same_v<T, CesiumGeometry::BoundingSphere>) {
+          std::optional<double> t = CesiumGeometry::IntersectionTests::raySphereParametric(ray, bv);
+          return t && *t >= 0;
+        } else if constexpr (std::is_same_v<T, CesiumGeometry::BoundingCylinderRegion>) {
+          std::optional<double> t =
+              CesiumGeometry::IntersectionTests::rayOBBParametric(ray, bv.toOrientedBoundingBox());
+          return t && *t >= 0;
+        } else if constexpr (std::is_same_v<T, CesiumGeospatial::S2CellBoundingVolume>) {
+          if (auto value = ellipsoid.cartesianToCartographic(ray.getOrigin()); value)
+            return bv.computeBoundingRegion(ellipsoid).getRectangle().contains(value.value());
+        }
+        return true;
+      },
+      boundingVolume);
+}
+
+//////////////////////////////////////////////////////////////////////////////
+
 bool Body::getIntersection(
     glm::dvec3 const& rayPos, glm::dvec3 const& rayDir, glm::dvec3& pos) const {
 
+  // Find the body and its transform.  If the body is not visible we abort.
   auto parent = mSolarSystem->getObject(mName);
-
-  if (!parent || !parent->getIsBodyVisible()) {
+  if (!parent || !parent->getIsBodyVisible())
     return false;
+
+  // Transform the incoming world‑space ray into the body‑centric ECEF coordinate system that the
+  // tileset uses.
+  glm::dmat4 invTransform = glm::inverse(parent->getObserverRelativeTransform());
+
+  glm::dvec4 origin    = invTransform * glm::dvec4(rayPos, 1.0);
+  glm::dvec4 direction = invTransform * glm::dvec4(rayDir, 0.0);
+
+  CesiumGeospatial::Ellipsoid ellipsoid = mTileset->getEllipsoid();
+  CesiumGeometry::Ray         cesiumRay(origin.zxy(), glm::normalize(direction.zxy()));
+
+  // Depth‑first walk of the tile tree – identical to the algorithm used in getHeight() – but this
+  // time we keep every tile whose *content* bounding volume can be intersected by the ray.
+  std::vector<Cesium3DTilesSelection::Tile::ConstPointer> candidateTiles{};
+  std::vector<Cesium3DTilesSelection::Tile::ConstPointer> additiveCandidateTiles{};
+
+  // Stack‑based DFS (root + optional last‑height cache)
+  std::vector<Cesium3DTilesSelection::Tile::ConstPointer> tilesToVisit;
+  if (!mLastViewUpdateResult.tilesToRenderThisFrame.empty()) {
+    tilesToVisit.insert(tilesToVisit.end(), mLastViewUpdateResult.tilesToRenderThisFrame.begin(),
+        mLastViewUpdateResult.tilesToRenderThisFrame.end());
   }
 
-  auto invTransform = glm::inverse(parent->getObserverRelativeTransform());
-
-  // Transform ray into planet coordinate system.
-  glm::dvec4 origin(rayPos, 1.0);
-  origin = (invTransform * origin) / glm::dvec4(parent->getRadii(), 1.0);
-
-  glm::dvec4 direction(rayDir, 0.0);
-  direction = (invTransform * direction) / glm::dvec4(parent->getRadii(), 1.0);
-  direction = glm::normalize(direction);
-
-  double b    = glm::dot(origin.xyz(), direction.xyz());
-  double c    = glm::dot(origin.xyz(), origin.xyz()) - 1.0;
-  double fDet = b * b - c;
-
-  if (fDet < 0.0) {
-    return false;
+  if (mLastIntersectionTile) {
+    tilesToVisit.emplace_back(mLastIntersectionTile);
   }
 
-  fDet = std::sqrt(fDet);
-  pos  = (origin + direction * (-b - fDet)).xyz();
-  pos *= parent->getRadii();
+  while (!tilesToVisit.empty()) {
+    auto tile = tilesToVisit.back();
+    tilesToVisit.pop_back();
 
-  return true;
+    if (tile->getState() == Cesium3DTilesSelection::TileLoadState::Failed) {
+      continue;
+    }
+
+    // Leaf -> candidate if its *content* BV is hit
+    if (tile->getChildren().empty()) {
+      if (!tile->getContentBoundingVolume() ||
+          boundingVolumeIntersectsRay(*tile->getContentBoundingVolume(), cesiumRay, ellipsoid)) {
+        candidateTiles.emplace_back(tile);
+      }
+      continue;
+    }
+
+    // Additive refinement: parent may also contribute
+    if (tile->getRefine() == Cesium3DTilesSelection::TileRefine::Add &&
+        (!tile->getContentBoundingVolume() ||
+            boundingVolumeIntersectsRay(*tile->getContentBoundingVolume(), cesiumRay, ellipsoid))) {
+      additiveCandidateTiles.emplace_back(tile);
+    }
+
+    // Push children that possibly intersect the *tile* BV
+    for (auto const& child : tile->getChildren() | std::views::reverse) {
+      if (boundingVolumeIntersectsRay(child.getBoundingVolume(), cesiumRay, ellipsoid)) {
+        tilesToVisit.emplace_back(&child);
+      }
+    }
+  }
+
+  // Test the ray against the GLTF models of all candidate tiles and keep the closest hit.
+  std::optional<CesiumGltfContent::GltfUtilities::RayGltfHit> closestHit;
+  for (auto const& tile :
+      std::array{std::span{additiveCandidateTiles}, std::span{candidateTiles}} | std::views::join) {
+
+    auto const* renderContent = tile->getContent().getRenderContent();
+    if (!renderContent) {
+      continue;
+    }
+
+    auto [hit, _] = CesiumGltfContent::GltfUtilities::intersectRayGltfModel(
+        cesiumRay, renderContent->getModel(), true, tile->getTransform());
+
+    if (!hit) {
+      continue;
+    }
+
+    if (!closestHit.has_value() ||
+        hit->rayToWorldPointDistanceSq < closestHit->rayToWorldPointDistanceSq) {
+      closestHit            = hit;
+      mLastIntersectionTile = tile; // cache for next queries
+    }
+  }
+
+  // Return the world‑space intersection point (ECEF) if we found one.
+  if (closestHit.has_value()) {
+    pos = closestHit->worldPoint.yzx();
+    return true;
+  }
+
+  return false;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
