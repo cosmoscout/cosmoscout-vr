@@ -30,7 +30,7 @@ class PrepareRendererResources : public Cesium3DTilesSelection::IPrepareRenderer
       const std::any& rendererOptions) override;
 
   void* prepareInMainThread(Cesium3DTilesSelection::Tile& tile, void* pLoadThreadResult) override;
-  void  free(Cesium3DTilesSelection::Tile& tile, void* pLoadThreadResult,
+  void  free(Cesium3DTilesSelection::Tile& tile, void* loadThreadResult,
        void* pMainThreadResult) noexcept override;
 
   void* prepareRasterInLoadThread(

@@ -40,22 +40,29 @@ uniform mat4 uProjectionMatrix;
 uniform vec3 uSunDirection;
 
 layout(location = 0) in vec3 aPosition;
-layout(location = 1) in vec2 aUV;
-layout(location = 2) in vec4 aColor;
+layout(location = 1) in vec3 aNormal;
+layout(location = 2) in vec2 aUV;
+layout(location = 3) in vec4 aColor;
 
 out vec2 vUV;
 out vec4 vColor;
 out vec3 vSunDirection;
 out vec3 vPosition;
+out vec3 vNormal;
 
 void main() {
-  vec4 worldPos = uModelMatrix * vec4(aPosition, 1.0);
-  vec4 viewPos  = uViewMatrix * worldPos;
-  vUV           = aUV;
-  vColor        = aColor;
-  vSunDirection = (uModelMatrix * vec4(uSunDirection, 0.0)).xyz;
-  vPosition     = worldPos.xyz;
-  gl_Position   = uProjectionMatrix * viewPos;
+    vec4 worldPos = uModelMatrix * vec4(aPosition, 1.0);
+    vec4 viewPos  = uViewMatrix * worldPos;
+    vUV           = aUV;
+    vColor        = aColor;
+    vSunDirection = (uModelMatrix * vec4(uSunDirection, 0.0)).xyz;
+
+    // Transform the normal correctly (inverse‑transpose of the model matrix)
+    mat3 normalMat = transpose(inverse(mat3(uModelMatrix)));
+    vNormal = normalize(normalMat * aNormal);   // <-- set transformed normal
+
+    vPosition     = worldPos.xyz;
+    gl_Position   = uProjectionMatrix * viewPos;
 }
 )";
 
@@ -66,6 +73,7 @@ in vec2 vUV;
 in vec4 vColor;
 in vec3 vSunDirection;
 in vec3 vPosition;
+in vec3 vNormal;
 
 uniform sampler2D uBaseColorTexture;
 uniform bool      uHasTexture;
@@ -98,6 +106,13 @@ void main() {
   baseColor = SRGBtoLINEAR(baseColor) * uSunIlluminance / uAvgLinearImgIntensity;
   baseColor /= PI;
 #endif
+
+  if (uEnableLighting) {
+    vec3 N = normalize(vNormal);
+    vec3 L = normalize(vSunDirection);
+    float ndotl = max(dot(N, L), 0.0);
+    baseColor *= ndotl;
+  }
 
   oColor = baseColor;
 }

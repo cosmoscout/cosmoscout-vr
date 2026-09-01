@@ -36,84 +36,97 @@ void TaskProcessor::startTask(std::function<void()> f) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static int32_t getOrCreateTexture(
-    CesiumRenderData* renderData, const CesiumGltf::Model* pModel, int32_t textureIndex) {
+    CesiumRenderData* renderData, CesiumGltf::Model const* model, int32_t textureIndex) {
   for (size_t i = 0; i < renderData->textures.size(); ++i) {
     if (renderData->textures[i].sourceIndex == textureIndex) {
       return static_cast<int32_t>(i);
     }
   }
 
-  const CesiumGltf::Texture* pTexture = CesiumGltf::Model::getSafe(&pModel->textures, textureIndex);
-  if (!pTexture || pTexture->source < 0) {
+  CesiumGltf::Texture const* texture = CesiumGltf::Model::getSafe(&model->textures, textureIndex);
+  if (!texture || texture->source < 0) {
     return -1;
   }
 
-  const CesiumGltf::Image* pImage = CesiumGltf::Model::getSafe(&pModel->images, pTexture->source);
-  if (!pImage || !pImage->pAsset || pImage->pAsset->pixelData.empty()) {
+  CesiumGltf::Image const* image = CesiumGltf::Model::getSafe(&model->images, texture->source);
+  if (!image || !image->pAsset || image->pAsset->pixelData.empty()) {
     return -1;
   }
 
-  const CesiumImage::ImageAsset& asset = *pImage->pAsset;
-  TextureData                    texture;
-  texture.pixels      = asset.pixelData;
-  texture.width       = asset.width;
-  texture.height      = asset.height;
-  texture.channels    = asset.channels;
-  texture.sourceIndex = textureIndex;
+  CesiumImage::ImageAsset const& asset = *image->pAsset;
 
-  if (const CesiumGltf::Sampler* pSampler =
-          CesiumGltf::Model::getSafe(&pModel->samplers, pTexture->sampler)) {
-    texture.wrapS = pSampler->wrapS;
-    texture.wrapT = pSampler->wrapT;
-    if (pSampler->minFilter) {
-      texture.minFilter = *pSampler->minFilter;
+  TextureData textureData;
+  textureData.pixels      = asset.pixelData;
+  textureData.width       = asset.width;
+  textureData.height      = asset.height;
+  textureData.channels    = asset.channels;
+  textureData.sourceIndex = textureIndex;
+
+  if (auto sampler = CesiumGltf::Model::getSafe(&model->samplers, texture->sampler)) {
+    textureData.wrapS = sampler->wrapS;
+    textureData.wrapT = sampler->wrapT;
+    if (sampler->minFilter) {
+      textureData.minFilter = *sampler->minFilter;
     }
-    if (pSampler->magFilter) {
-      texture.magFilter = *pSampler->magFilter;
+    if (sampler->magFilter) {
+      textureData.magFilter = *sampler->magFilter;
     }
   }
 
-  renderData->textures.emplace_back(std::move(texture));
+  renderData->textures.emplace_back(std::move(textureData));
   return static_cast<int32_t>(renderData->textures.size() - 1);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void extractPrimitive(CesiumRenderData* renderData, const CesiumGltf::Model* pModel,
-    const CesiumGltf::MeshPrimitive& primitive, const glm::dmat4& nodeTransform) {
+static void extractPrimitive(CesiumRenderData* renderData, CesiumGltf::Model const* model,
+    CesiumGltf::MeshPrimitive const& primitive, glm::dmat4 const& nodeTransform) {
 
-  auto posIt = primitive.attributes.find("POSITION");
-  if (posIt == primitive.attributes.end()) {
+  auto positionIt = primitive.attributes.find("POSITION");
+  if (positionIt == primitive.attributes.end()) {
     logger().error("Could not find POSITION attribute!");
     return;
   }
 
   CesiumGltf::AccessorView<CesiumGltf::AccessorTypes::VEC3<float>> positions(
-      *pModel, posIt->second);
+      *model, positionIt->second);
   if (positions.status() != CesiumGltf::AccessorViewStatus::Valid) {
     logger().error("Invalid POSITION accessor!");
     return;
   }
 
-  const CesiumGltf::Material* pMaterial =
-      CesiumGltf::Model::getSafe(&pModel->materials, primitive.material);
-  const CesiumGltf::MaterialPBRMetallicRoughness* pPbr =
-      pMaterial && pMaterial->pbrMetallicRoughness ? &*pMaterial->pbrMetallicRoughness : nullptr;
+  auto normalIt = primitive.attributes.find("NORMAL");
+  if (normalIt == primitive.attributes.end()) {
+    logger().error("Could not find NORMAL attribute!");
+    return;
+  }
 
-  int64_t texCoordSet = pPbr && pPbr->baseColorTexture ? pPbr->baseColorTexture->texCoord : 0;
+  CesiumGltf::AccessorView<CesiumGltf::AccessorTypes::VEC3<float>> normals(
+      *model, normalIt->second);
+  if (normals.status() != CesiumGltf::AccessorViewStatus::Valid) {
+    logger().error("Invalid NORMAL accessor!");
+    return;
+  }
+
+  const CesiumGltf::Material* material =
+      CesiumGltf::Model::getSafe(&model->materials, primitive.material);
+  const CesiumGltf::MaterialPBRMetallicRoughness* pbr =
+      material && material->pbrMetallicRoughness ? &*material->pbrMetallicRoughness : nullptr;
+
+  int64_t texCoordSet = pbr && pbr->baseColorTexture ? pbr->baseColorTexture->texCoord : 0;
   bool    hasUVs      = false;
   CesiumGltf::AccessorView<CesiumGltf::AccessorTypes::VEC2<float>> uvs;
   if (auto uvIt = primitive.attributes.find("TEXCOORD_" + std::to_string(texCoordSet));
       uvIt != primitive.attributes.end()) {
-    uvs = CesiumGltf::AccessorView<CesiumGltf::AccessorTypes::VEC2<float>>(*pModel, uvIt->second);
+    uvs = CesiumGltf::AccessorView<CesiumGltf::AccessorTypes::VEC2<float>>(*model, uvIt->second);
     if (uvs.status() == CesiumGltf::AccessorViewStatus::Valid) {
       hasUVs = true;
     }
   }
 
   glm::vec4 color{1.0F};
-  if (pPbr) {
-    if (const auto& factor = pPbr->baseColorFactor; factor.size() >= 4) {
+  if (pbr) {
+    if (const auto& factor = pbr->baseColorFactor; factor.size() >= 4) {
       color.x = static_cast<float>(factor[0]);
       color.y = static_cast<float>(factor[1]);
       color.z = static_cast<float>(factor[2]);
@@ -121,9 +134,9 @@ static void extractPrimitive(CesiumRenderData* renderData, const CesiumGltf::Mod
     }
   }
 
-  size_t vertexStart = renderData->vertices.size() / 9;
+  size_t vertexStart = renderData->vertices.size() / 12;
   renderData->vertices.reserve(
-      renderData->vertices.size() + static_cast<size_t>(positions.size()) * 9);
+      renderData->vertices.size() + static_cast<size_t>(positions.size()) * 12);
 
   for (int64_t i = 0; i < positions.size(); ++i) {
     glm::dvec4 localPos(positions[i].value[0], positions[i].value[1], positions[i].value[2], 1.0);
@@ -134,6 +147,10 @@ static void extractPrimitive(CesiumRenderData* renderData, const CesiumGltf::Mod
     renderData->vertices.push_back(static_cast<float>(transformed.z));
 
     renderData->cpuPositions.emplace_back(transformed.x, transformed.y, transformed.z);
+
+    renderData->vertices.push_back(normals[i].value[0]);
+    renderData->vertices.push_back(normals[i].value[1]);
+    renderData->vertices.push_back(normals[i].value[2]);
 
     if (hasUVs) {
       renderData->vertices.push_back(uvs[i].value[0]);
@@ -151,33 +168,33 @@ static void extractPrimitive(CesiumRenderData* renderData, const CesiumGltf::Mod
 
   const auto firstIndex = static_cast<uint32_t>(renderData->indices.size());
   if (primitive.indices >= 0) {
-    const CesiumGltf::Accessor* pIndexAccessor =
-        CesiumGltf::Model::getSafe(&pModel->accessors, primitive.indices);
+    const CesiumGltf::Accessor* indexAccessor =
+        CesiumGltf::Model::getSafe(&model->accessors, primitive.indices);
 
-    if (pIndexAccessor) {
-      if (pIndexAccessor->componentType == CesiumGltf::Accessor::ComponentType::UNSIGNED_SHORT) {
+    if (indexAccessor) {
+      if (indexAccessor->componentType == CesiumGltf::Accessor::ComponentType::UNSIGNED_SHORT) {
         CesiumGltf::AccessorView<CesiumGltf::AccessorTypes::SCALAR<uint16_t>> indexView(
-            *pModel, primitive.indices);
+            *model, primitive.indices);
         if (indexView.status() == CesiumGltf::AccessorViewStatus::Valid) {
           for (int64_t i = 0; i < indexView.size(); ++i) {
             renderData->indices.push_back(
                 static_cast<uint32_t>(indexView[i].value[0]) + static_cast<uint32_t>(vertexStart));
           }
         }
-      } else if (pIndexAccessor->componentType ==
+      } else if (indexAccessor->componentType ==
                  CesiumGltf::Accessor::ComponentType::UNSIGNED_INT) {
         CesiumGltf::AccessorView<CesiumGltf::AccessorTypes::SCALAR<uint32_t>> indexView(
-            *pModel, primitive.indices);
+            *model, primitive.indices);
         if (indexView.status() == CesiumGltf::AccessorViewStatus::Valid) {
           for (int64_t i = 0; i < indexView.size(); ++i) {
             renderData->indices.push_back(
                 indexView[i].value[0] + static_cast<uint32_t>(vertexStart));
           }
         }
-      } else if (pIndexAccessor->componentType ==
+      } else if (indexAccessor->componentType ==
                  CesiumGltf::Accessor::ComponentType::UNSIGNED_BYTE) {
         CesiumGltf::AccessorView<CesiumGltf::AccessorTypes::SCALAR<uint8_t>> indexView(
-            *pModel, primitive.indices);
+            *model, primitive.indices);
         if (indexView.status() == CesiumGltf::AccessorViewStatus::Valid) {
           for (int64_t i = 0; i < indexView.size(); ++i) {
             renderData->indices.push_back(
@@ -191,8 +208,8 @@ static void extractPrimitive(CesiumRenderData* renderData, const CesiumGltf::Mod
   if (const uint32_t indexCount = static_cast<uint32_t>(renderData->indices.size()) - firstIndex;
       indexCount > 0) {
     int32_t textureSlot = -1;
-    if (hasUVs && pPbr && pPbr->baseColorTexture) {
-      textureSlot = getOrCreateTexture(renderData, pModel, pPbr->baseColorTexture->index);
+    if (hasUVs && pbr && pbr->baseColorTexture) {
+      textureSlot = getOrCreateTexture(renderData, model, pbr->baseColorTexture->index);
     }
     renderData->batches.push_back(
         {.firstIndex = firstIndex, .indexCount = indexCount, .textureSlot = textureSlot});
@@ -201,14 +218,14 @@ static void extractPrimitive(CesiumRenderData* renderData, const CesiumGltf::Mod
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void processNode(CesiumRenderData* renderData, const CesiumGltf::Model* pModel,
-    int nodeIndex, const glm::dmat4& parentTransform) {
+static void processNode(CesiumRenderData* renderData, CesiumGltf::Model const* model, int nodeIndex,
+    glm::dmat4 const& parentTransform) {
 
-  if (nodeIndex < 0 || nodeIndex >= static_cast<int>(pModel->nodes.size())) {
+  if (nodeIndex < 0 || nodeIndex >= static_cast<int>(model->nodes.size())) {
     return;
   }
 
-  const CesiumGltf::Node& node = pModel->nodes[nodeIndex];
+  CesiumGltf::Node const& node = model->nodes[nodeIndex];
 
   // Get this node's local transform (uses GltfUtilities for correct TRS decomposition)
   glm::dmat4 localTransform(1.0);
@@ -218,15 +235,15 @@ static void processNode(CesiumRenderData* renderData, const CesiumGltf::Model* p
 
   glm::dmat4 worldTransform = parentTransform * localTransform;
 
-  if (node.mesh >= 0 && node.mesh < static_cast<int>(pModel->meshes.size())) {
-    for (const CesiumGltf::Mesh&          mesh = pModel->meshes[node.mesh];
+  if (node.mesh >= 0 && node.mesh < static_cast<int>(model->meshes.size())) {
+    for (const CesiumGltf::Mesh&          mesh = model->meshes[node.mesh];
          const CesiumGltf::MeshPrimitive& primitive : mesh.primitives) {
-      extractPrimitive(renderData, pModel, primitive, worldTransform);
+      extractPrimitive(renderData, model, primitive, worldTransform);
     }
   }
 
   for (int childIndex : node.children) {
-    processNode(renderData, pModel, childIndex, worldTransform);
+    processNode(renderData, model, childIndex, worldTransform);
   }
 }
 
@@ -260,7 +277,7 @@ static void rebaseVertices(CesiumRenderData* renderData) {
   // Replace only the position part of the interleaved VBO. The remaining attributes are already
   // finalized by extractPrimitive().
   for (size_t i = 0; i < renderData->cpuPositions.size(); ++i) {
-    const size_t vertexOffset = i * 9;
+    const size_t vertexOffset = i * 12;
     if (vertexOffset + 2 >= renderData->vertices.size()) {
       break;
     }
@@ -278,9 +295,9 @@ PrepareRendererResources::prepareInLoadThread(const CesiumAsync::AsyncSystem& as
     Cesium3DTilesSelection::TileLoadResult&&                                  tileLoadResult,
     [[maybe_unused]] const glm::dmat4& transform, const std::any& rendererOptions) {
 
-  CesiumGltf::Model* pModel = std::get_if<CesiumGltf::Model>(&tileLoadResult.contentKind);
+  auto* model = std::get_if<CesiumGltf::Model>(&tileLoadResult.contentKind);
 
-  if (!pModel) {
+  if (!model) {
     return asyncSystem.createResolvedFuture(
         Cesium3DTilesSelection::TileLoadResultAndRenderResources{
             .result = std::move(tileLoadResult), .pRenderResources = nullptr});
@@ -289,9 +306,9 @@ PrepareRendererResources::prepareInLoadThread(const CesiumAsync::AsyncSystem& as
   auto* renderData = new CesiumRenderData();
 
   glm::dmat4 rootTransform = transform;
-  rootTransform = CesiumGltfContent::GltfUtilities::applyRtcCenter(*pModel, rootTransform);
+  rootTransform = CesiumGltfContent::GltfUtilities::applyRtcCenter(*model, rootTransform);
   rootTransform =
-      CesiumGltfContent::GltfUtilities::applyGltfUpAxisTransform(*pModel, rootTransform);
+      CesiumGltfContent::GltfUtilities::applyGltfUpAxisTransform(*model, rootTransform);
 
   static constexpr glm::dmat4 ecefToCosmoScout(0.0, 0.0, 1.0, 0.0, // col 0: ECEF-X → GLM-Z
       1.0, 0.0, 0.0, 0.0,                                          // col 1: ECEF-Y → GLM-X
@@ -303,16 +320,16 @@ PrepareRendererResources::prepareInLoadThread(const CesiumAsync::AsyncSystem& as
   renderData->tileTransform = rootTransform;
   glm::dmat4 identity(1.0);
 
-  if (!pModel->scenes.empty()) {
-    if (int sceneIndex = pModel->scene >= 0 ? pModel->scene : 0;
-        sceneIndex < static_cast<int>(pModel->scenes.size())) {
-      for (const auto& scene = pModel->scenes[sceneIndex]; int rootNodeIndex : scene.nodes) {
-        processNode(renderData, pModel, rootNodeIndex, identity);
+  if (!model->scenes.empty()) {
+    if (int sceneIndex = model->scene >= 0 ? model->scene : 0;
+        sceneIndex < static_cast<int>(model->scenes.size())) {
+      for (const auto& scene = model->scenes[sceneIndex]; int rootNodeIndex : scene.nodes) {
+        processNode(renderData, model, rootNodeIndex, identity);
       }
     }
   } else {
-    for (int i = 0; i < static_cast<int>(pModel->nodes.size()); ++i) {
-      processNode(renderData, pModel, i, identity);
+    for (int i = 0; i < static_cast<int>(model->nodes.size()); ++i) {
+      processNode(renderData, model, i, identity);
     }
   }
 
@@ -327,47 +344,50 @@ PrepareRendererResources::prepareInLoadThread(const CesiumAsync::AsyncSystem& as
 void* PrepareRendererResources::prepareInMainThread(
     Cesium3DTilesSelection::Tile& tile, void* pLoadThreadResult) {
 
-  auto* pData = static_cast<CesiumRenderData*>(pLoadThreadResult);
+  auto* data = static_cast<CesiumRenderData*>(pLoadThreadResult);
 
-  if (!pData || pData->vertices.empty()) {
+  if (!data || data->vertices.empty()) {
     return nullptr;
   }
 
-  cs::utils::FrameStats::ScopedTimer timer(
-      "Cesium VRAM Upload", cs::utils::FrameStats::TimerMode::eCPU);
+  cs::utils::FrameStats::ScopedTimer timer("Cesium VRAM Upload");
 
-  glGenVertexArrays(1, &pData->vao);
-  glBindVertexArray(pData->vao);
+  glGenVertexArrays(1, &data->vao);
+  glBindVertexArray(data->vao);
 
-  glGenBuffers(1, &pData->vbo);
-  glBindBuffer(GL_ARRAY_BUFFER, pData->vbo);
-  glBufferData(GL_ARRAY_BUFFER, pData->vertices.size() * sizeof(float), pData->vertices.data(),
+  glGenBuffers(1, &data->vbo);
+  glBindBuffer(GL_ARRAY_BUFFER, data->vbo);
+  glBufferData(GL_ARRAY_BUFFER, data->vertices.size() * sizeof(float), data->vertices.data(),
       GL_STATIC_DRAW);
 
-  glGenBuffers(1, &pData->ebo);
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, pData->ebo);
-  glBufferData(GL_ELEMENT_ARRAY_BUFFER, pData->indices.size() * sizeof(uint32_t),
-      pData->indices.data(), GL_STATIC_DRAW);
+  glGenBuffers(1, &data->ebo);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, data->ebo);
+  glBufferData(GL_ELEMENT_ARRAY_BUFFER, data->indices.size() * sizeof(uint32_t),
+      data->indices.data(), GL_STATIC_DRAW);
 
-  GLsizei stride = 9 * sizeof(float);
+  GLsizei stride = 12 * sizeof(float);
 
   // Location 0 = Position (3 floats, offset 0 bytes)
   glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride, nullptr);
   glEnableVertexAttribArray(0);
 
-  // Location 1 = UV (2 floats, offset 12 bytes)
-  glVertexAttribPointer(
-      1, 2, GL_FLOAT, GL_FALSE, stride, reinterpret_cast<void*>(3 * sizeof(float)));
+  // Location 1 = Normal (3 floats, offset 12 bytes)
+  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, stride, reinterpret_cast<void*>(3 * sizeof(float)));
   glEnableVertexAttribArray(1);
 
-  // Location 2 = Color (4 floats, offset 20 bytes)
+  // Location 2 = UV (2 floats, offset 24 bytes)
   glVertexAttribPointer(
-      2, 4, GL_FLOAT, GL_FALSE, stride, reinterpret_cast<void*>(5 * sizeof(float)));
+      2, 2, GL_FLOAT, GL_FALSE, stride, reinterpret_cast<void*>(6 * sizeof(float)));
   glEnableVertexAttribArray(2);
+
+  // Location 3 = Color (4 floats, offset 32 bytes)
+  glVertexAttribPointer(
+      3, 4, GL_FLOAT, GL_FALSE, stride, reinterpret_cast<void*>(8 * sizeof(float)));
+  glEnableVertexAttribArray(3);
 
   glBindVertexArray(0);
 
-  for (TextureData& texture : pData->textures) {
+  for (TextureData& texture : data->textures) {
     if (texture.pixels.empty()) {
       continue;
     }
@@ -413,43 +433,43 @@ void* PrepareRendererResources::prepareInMainThread(
     texture.pixels.shrink_to_fit();
   }
 
-  pData->vertices.clear();
-  pData->vertices.shrink_to_fit();
-  pData->indices.clear();
-  pData->indices.shrink_to_fit();
+  data->vertices.clear();
+  data->vertices.shrink_to_fit();
+  data->indices.clear();
+  data->indices.shrink_to_fit();
 
-  return pData;
+  return data;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void PrepareRendererResources::free(
-    Cesium3DTilesSelection::Tile& tile, void* pLoadThreadResult, void* pMainThreadResult) noexcept {
+    Cesium3DTilesSelection::Tile& tile, void* loadThreadResult, void* pMainThreadResult) noexcept {
 
   if (pMainThreadResult) {
-    auto* pData = static_cast<CesiumRenderData*>(pMainThreadResult);
+    auto* data = static_cast<CesiumRenderData*>(pMainThreadResult);
 
     // Delete the GPU resources from VRAM
-    if (pData->vao != 0) {
-      glDeleteVertexArrays(1, &pData->vao);
+    if (data->vao != 0) {
+      glDeleteVertexArrays(1, &data->vao);
     }
-    if (pData->vbo != 0) {
-      glDeleteBuffers(1, &pData->vbo);
+    if (data->vbo != 0) {
+      glDeleteBuffers(1, &data->vbo);
     }
-    if (pData->ebo != 0) {
-      glDeleteBuffers(1, &pData->ebo);
+    if (data->ebo != 0) {
+      glDeleteBuffers(1, &data->ebo);
     }
-    for (const TextureData& texture : pData->textures) {
+    for (const TextureData& texture : data->textures) {
       if (texture.textureId != 0) {
         glDeleteTextures(1, &texture.textureId);
       }
     }
 
-    delete pData;
+    delete data;
   }
 
-  if (pLoadThreadResult) {
-    auto* pData = static_cast<CesiumRenderData*>(pLoadThreadResult);
+  if (loadThreadResult) {
+    auto* pData = static_cast<CesiumRenderData*>(loadThreadResult);
     delete pData;
   }
 }
