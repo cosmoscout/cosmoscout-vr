@@ -79,7 +79,8 @@ void init() {
     std::filesystem::path cachePath = exeDir / "cef_cache" / "default";
     CefString(&settings.root_cache_path).FromString(cachePath.string());
   } else {
-    std::filesystem::path cachePath = exeDir / "cef_cache" / GetVistaSystem()->GetClusterMode()->GetNodeName();
+    std::filesystem::path cachePath =
+        exeDir / "cef_cache" / GetVistaSystem()->GetClusterMode()->GetNodeName();
     CefString(&settings.root_cache_path).FromString(cachePath.string());
   }
 
