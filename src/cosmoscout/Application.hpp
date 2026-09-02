@@ -14,6 +14,8 @@
 #include <memory>
 #include <set>
 
+#include <curlcpp/curl_global.h>
+
 #ifdef __linux__
 #include "dlfcn.h"
 #define COSMOSCOUT_LIBTYPE void*
@@ -198,6 +200,8 @@ class Application : public VistaFrameLoop {
 
   // For deferred writing of settings.
   std::string mSettingsToSave;
+
+  curl::curl_global curl{};
 };
 
 #endif // CS_APPLICATION_HPP

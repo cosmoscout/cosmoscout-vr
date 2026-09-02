@@ -21,7 +21,7 @@ It lets you explore, analyze and present huge planetary data sets and large simu
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.3381953.svg)](https://doi.org/10.5281/zenodo.3381953)
 
 The software can be build on Linux (gcc or clang) and Windows (msvc).
-Nearly all dependencies are included as [git submodules](externals), please refer to the [**documentation**](docs) in order to get started.
+Vcpkg automatically imports all dependencies, please refer to the [**documentation**](docs) to get started.
 
 # Features
 

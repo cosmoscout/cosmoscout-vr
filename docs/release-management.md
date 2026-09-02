@@ -31,12 +31,12 @@ When a new version of CosmoScout VR is released, the following steps are perform
 
 ```bash
 git checkout main
-git submodule update --init --recursive
+git submodule update --init
 ```
 
 First, the [changelog.md](https://github.com/cosmoscout/cosmoscout-vr/blob/main/docs/changelog.md) has to be updated.
 Based on the commits since the last release and the completed milestone, a list of changes is compiled.
-When this is done, the file has to be comitted:
+When this is done, the file has to be committed:
 
 ```bash
 git add docs/changelog.md
@@ -59,8 +59,8 @@ git tag v<new version number>
 git push origin v<new version number>
 ```
 
-The default downloads for tags on Github do not contain git submodules.
-Therefore, a separate archive containing all the submodule code is automatically created via [Github Actions](https://github.com/cosmoscout/cosmoscout-vr/actions) when a tag is pushed.
+The default downloads for tags on Github do not contain dependencies.
+Therefore, a separate archive containing all the dependencies is automatically created via [Github Actions](https://github.com/cosmoscout/cosmoscout-vr/actions) when a tag is pushed.
 Furthermore, binaries for Windows and Linux are automatically compiled with [Github Actions](https://github.com/cosmoscout/cosmoscout-vr/actions) and uploaded to the respective release.
 
 <p align="center"><img src ="img/hr.svg"/></p>

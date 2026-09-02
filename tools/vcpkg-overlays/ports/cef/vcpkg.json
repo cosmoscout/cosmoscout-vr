@@ -1,0 +1,16 @@
+{
+  "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
+  "name": "cef",
+  "version-string": "135.0.20-chromium-135.0.7049.85",
+  "port-version": 0,
+  "description": "Chromium Embedded Framework (CEF): embed a Chromium-based browser in a native application. This port consumes CEF's official prebuilt 'minimal' binary distribution and compiles libcef_dll_wrapper from the sources bundled in that distribution.",
+  "homepage": "https://bitbucket.org/chromiumembedded/cef",
+  "license": "BSD-3-Clause",
+  "supports": "(windows & x64) | (linux & x64)",
+  "dependencies": [
+    {
+      "name": "vcpkg-cmake",
+      "host": true
+    }
+  ]
+}

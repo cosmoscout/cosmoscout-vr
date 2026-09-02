@@ -27,6 +27,7 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtx/component_wise.hpp>
 #include <glm/gtx/norm.hpp>
+#include <glm/gtx/quaternion.hpp>
 #include <utility>
 
 namespace csp::anchorlabels {

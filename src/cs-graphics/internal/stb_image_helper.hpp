@@ -9,7 +9,22 @@
 #define CS_GRAPHICS_STB_IMAGE_HELPER
 
 #include <GL/glew.h>
+
+#define STB_IMAGE_IMPLEMENTATION
+#define STBI_NO_SIMD
 #include <stb_image.h>
+#undef STB_IMAGE_IMPLEMENTATION
+#undef STBI_NO_SIMD
+
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include <stb_image_write.h>
+#undef STB_IMAGE_WRITE_IMPLEMENTATION
+
+#define STB_IMAGE_RESIZE_IMPLEMENTATION
+#define STBIR_NO_SIMD
+#include <stb_image_resize2.h>
+#undef STB_IMAGE_RESIZE_IMPLEMENTATION
+#undef STBIR_NO_SIMD
 
 namespace cs::graphics::internal {
 

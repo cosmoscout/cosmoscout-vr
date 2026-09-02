@@ -33,6 +33,7 @@ SPDX-License-Identifier: CC-BY-4.0
 #### For developers
 
 - Create compatability with CMake 4+.
+- CosmoScout is now built with [vcpkg](https://vcpkg.io) for dependency management.
 
 ## [v1.10.0](https://github.com/cosmoscout/cosmoscout-vr/releases)
 

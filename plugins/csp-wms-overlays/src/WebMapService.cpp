@@ -14,8 +14,8 @@
 
 #include <regex>
 
-#include <curlpp/Easy.hpp>
-#include <curlpp/Options.hpp>
+#include <curlcpp/curl_easy.h>
+#include <curlcpp/curl_option.h>
 
 namespace csp::wmsoverlays {
 
@@ -68,7 +68,7 @@ std::vector<WebMapLayer> const& WebMapService::getLayers() const {
 std::optional<WebMapLayer> WebMapService::getLayer(std::string const& name) const {
   std::vector<WebMapLayer> layers = getLayers();
   auto                     layer  = std::find_if(
-                           layers.begin(), layers.end(), [name](WebMapLayer const& l) { return l.getName() == name; });
+      layers.begin(), layers.end(), [name](WebMapLayer const& l) { return l.getName() == name; });
   if (layer == layers.end()) {
     return {};
   }
@@ -206,11 +206,11 @@ WebMapService::checkUpdateSequence(VistaXML::TiXmlDocument cacheDoc) {
     url << "&UPDATESEQUENCE=" << updateSequence;
 
     std::stringstream resStream;
-    curlpp::Easy      request;
-    request.setOpt(curlpp::options::Url(url.str()));
-    request.setOpt(curlpp::options::WriteStream(&resStream));
-    request.setOpt(curlpp::options::NoSignal(true));
-    request.setOpt(curlpp::options::SslVerifyPeer(false));
+    curl::curl_easy   request;
+    request.add(curl::make_option(CURLOPT_URL, url.str()));
+    request.add(curl::make_option(CURLOPT_WRITEDATA, &resStream));
+    request.add(curl::make_option(CURLOPT_NOSIGNAL, true));
+    request.add(curl::make_option(CURLOPT_SSL_VERIFYPEER, false));
 
     try {
       request.perform();
@@ -257,11 +257,17 @@ std::tuple<VistaXML::TiXmlDocument, std::string> WebMapService::requestCapabilit
   std::stringstream url = getGetCapabilitiesUrl();
 
   std::stringstream xmlStream;
-  curlpp::Easy      request;
-  request.setOpt(curlpp::options::Url(url.str()));
-  request.setOpt(curlpp::options::WriteStream(&xmlStream));
-  request.setOpt(curlpp::options::NoSignal(true));
-  request.setOpt(curlpp::options::SslVerifyPeer(false));
+
+  std::ostringstream                 headerSink;
+  curl::curl_ios<std::ostringstream> headerWriter(headerSink);
+
+  curl::curl_ios<std::ostream> bodyWriter(xmlStream);
+  curl::curl_easy              request(bodyWriter);
+  request.add<CURLOPT_URL>(url.str().c_str());
+  request.add<CURLOPT_NOSIGNAL>(true);
+  request.add<CURLOPT_SSL_VERIFYPEER>(false);
+  request.add<CURLOPT_HEADERDATA>(headerWriter.get_stream());
+  request.add<CURLOPT_HEADERFUNCTION>(headerWriter.get_function());
 
   try {
     request.perform();
