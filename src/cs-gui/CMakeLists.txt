@@ -19,8 +19,8 @@ add_library(cs-gui SHARED
 
 target_link_libraries(cs-gui
   PUBLIC
-    cef::cef
-    cef::wrapper
+    cef::libcef
+    cef::libcef_dll_wrapper
     cs-utils
 )
 

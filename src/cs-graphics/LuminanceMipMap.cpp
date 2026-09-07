@@ -8,6 +8,7 @@
 #include "LuminanceMipMap.hpp"
 
 #include "../cs-utils/FrameStats.hpp"
+#include "../cs-utils/filesystem.hpp"
 
 #include <algorithm>
 #include <cmath>

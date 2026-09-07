@@ -7,8 +7,8 @@
 
 #include "Model.hpp"
 
-#include "../../../src/cs-utils/filesystem.hpp"
-#include "../../../src/cs-utils/utils.hpp"
+#include "../../../../../src/cs-utils/filesystem.hpp"
+#include "../../../../../src/cs-utils/utils.hpp"
 #include "../../logger.hpp"
 #include "../../utils.hpp"
 #include "Metadata.hpp"
@@ -24,8 +24,14 @@
 
 namespace csp::atmospheres::models::bruneton {
 
-////////////////////////////////////////////////////////////////////////////////////////////////////
+/***/
 
+/**
+ * @brief Parses the specified JSON input and populates the current instance with the corresponding
+ * data.
+ * @param json_data The JSON string or object to deserialize.
+ * @param error A reference to store any parsing error information.
+ */
 void from_json(nlohmann::json const& j, Model::Settings& o) {
   cs::core::Settings::deserialize(j, "dataDirectory", o.mDataDirectory);
 }

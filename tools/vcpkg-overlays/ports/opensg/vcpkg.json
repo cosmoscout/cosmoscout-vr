@@ -1,0 +1,26 @@
+{
+  "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
+  "name": "opensg",
+  "version": "1.8.0",
+  "description": "Scene graph library for high-performance visualization",
+  "license": "LGPL-2.0-or-later",
+  "supports": "(windows & x64) | (linux & x64)",
+  "dependencies": [
+    {
+      "name": "vcpkg-cmake",
+      "host": true
+    },
+    {
+      "name": "vcpkg-cmake-config",
+      "host": true
+    }
+  ],
+  "features": {
+    "window": {
+      "description": "Windowing System",
+      "dependencies": [
+        "freeglut"
+      ]
+    }
+  }
+}

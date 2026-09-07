@@ -13,6 +13,9 @@
 #include <filesystem>
 #include <iostream>
 
+#include <VistaKernel/Cluster/VistaClusterMode.h>
+#include <VistaKernel/VistaSystem.h>
+
 namespace cs::gui {
 
 namespace {
@@ -72,8 +75,14 @@ void init() {
   std::filesystem::path localesPath = exeDir / "locales";
   CefString(&settings.locales_dir_path).FromString(localesPath.string());
 
-  std::filesystem::path cachePath = exeDir / "cef_cache";
-  CefString(&settings.root_cache_path).FromString(cachePath.string());
+  if (GetVistaSystem()->GetClusterMode()->GetIsLeader()) {
+    std::filesystem::path cachePath = exeDir / "cef_cache" / "default";
+    CefString(&settings.root_cache_path).FromString(cachePath.string());
+  } else {
+    std::filesystem::path cachePath =
+        exeDir / "cef_cache" / GetVistaSystem()->GetClusterMode()->GetNodeName();
+    CefString(&settings.root_cache_path).FromString(cachePath.string());
+  }
 
   if (!CefInitialize(app->GetArgs(), settings, app, nullptr)) {
     logger().error("Failed to initialize CEF. Gui will not work at all.");

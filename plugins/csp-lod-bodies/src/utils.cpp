@@ -55,7 +55,7 @@ double getHeight(
   TileNode* child = parent;
 
   // Clamp Values
-  glm::clamp(relative1, glm::dvec2(0), glm::dvec2(1));
+  relative1 = glm::clamp(relative1, glm::dvec2(0), glm::dvec2(1));
 
   // Index of Child
   int childIndex = -1;

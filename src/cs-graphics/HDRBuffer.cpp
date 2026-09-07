@@ -16,6 +16,7 @@
 #include <VistaKernel/VistaSystem.h>
 #include <VistaOGLExt/VistaFramebufferObj.h>
 #include <VistaOGLExt/VistaGLSLShader.h>
+#include <VistaOGLExt/VistaTexture.h>
 
 #include <chrono>
 

@@ -11,85 +11,142 @@ on:
   push:
     tags:
       - '**'
-
 jobs:
-  source_code:
-    name: Source Code
-    runs-on: ubuntu-24.04
+  # We fetch the dependencies for Windows and Linux here, so we can distribute them together with
+  # the source code for the release.
+  fetch-dependencies:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-24.04
+            triplet: x64-linux
+          - os: windows-2025
+            triplet: x64-windows
+    runs-on: ${{ matrix.os }}
     steps:
-    - name: Checkout Repository
-      uses: actions/checkout@v4
-    - name: Checkout Submodules
-      run: git submodule update --init --recursive
-    - name: Create Release
-      run: externals/git-archive-all.sh/git-archive-all.sh --prefix cosmoscout-vr/ source-with-submodules.tar.gz
-    - name: Upload Release
-      uses: svenstaro/upload-release-action@2.9.0
-      with:
-        repo_token: ${{ secrets.UPLOAD_TOKEN }}
-        file: source-with-submodules.tar.gz
-        asset_name: source-with-submodules.tar.gz
-        tag: ${{ github.ref }}
-        overwrite: true
-        prerelease: true
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Bootstrap vcpkg (Linux)
+        if: runner.os == 'Linux'
+        run: ./tools/vcpkg/bootstrap-vcpkg.sh -disableMetrics
+      - name: Bootstrap vcpkg (Windows)
+        if: runner.os == 'Windows'
+        run: .\tools\vcpkg\bootstrap-vcpkg.bat -disableMetrics
+      - name: Install dependencies (Linux)
+        if: runner.os == 'Linux'
+        run: >
+          ./tools/vcpkg/vcpkg install --only-downloads
+      - name: Install dependencies (Windows)
+        if: runner.os == 'Windows'
+        run: >
+          ./tools/vcpkg/vcpkg.exe install --only-downloads
+      - name: Upload dependency source archives
+        uses: actions/upload-artifact@v7
+        with:
+          name: vcpkg-downloads-${{ matrix.triplet }}
+          path: tools/vcpkg/downloads
+          retention-days: 1
 
+  # We bundle the source code together with the dependencies so that the user can easily build
+  # the project without having to install the dependencies themselves.
+  bundle:
+    needs: fetch-dependencies
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+        with:
+          submodules: recursive
+          fetch-depth: 0
+      - name: Download and merge dependency source archives
+        uses: actions/download-artifact@v8
+        with:
+          pattern: vcpkg-downloads-*
+          path: vcpkg-downloads
+          merge-multiple: true
+      - name: Assemble release bundle
+        run: |
+          NAME="source-with-dependencies"
+          STAGE="staging/${NAME}"
+          mkdir -p "$STAGE"
+          rsync -a \
+            --exclude='.git' \
+            --exclude='**/.git' \
+            --exclude='staging' \
+            --exclude='vcpkg-downloads' \
+            ./ "$STAGE/"
+          mkdir -p "$STAGE/tools/vcpkg/downloads"
+          cp -a vcpkg-downloads/. "$STAGE/tools/vcpkg/downloads/"
+          tar -C staging -czf "${NAME}.tar.gz" "${NAME}"
+      - name: Upload Release
+        uses: svenstaro/upload-release-action@2.11.5
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: source-with-dependencies.tar.gz
+          asset_name: source-with-dependencies.tar.gz
+          tag: ${{ github.ref }}
+          overwrite: true
+          prerelease: true
+
+  # Build CosmoScout VR for Linux and release it.
   release_linux:
     name: Linux
     runs-on: ubuntu-24.04
     steps:
     - name: Checkout Repository
-      uses: actions/checkout@v4
-    - name: Checkout Submodules
-      run: git submodule update --init --recursive
+      uses: actions/checkout@v7
+      with:
+        submodules: true
     - name: Download Dependencies
       run: |
         sudo apt-get update -q
         sudo apt-get install libgl1-mesa-dev libglu1-mesa-dev libx11-dev
-        sudo apt-get install libxi-dev libgconf-2-4
-    - name: Build Externals
-      run: ./make_externals.sh -G "Unix Makefiles"
+        sudo apt-get install libxi-dev
     - name: Build CosmoScout VR
       run: |
-        cmake --preset linux-make-release-config
+        cmake --preset linux-make-release-config -DCOSMOSCOUT_UNIT_TESTS=Off
         cmake --build --preset linux-make-release-build
     - name: Create Release
       run: | 
         mv install/linux-Release cosmoscout-vr
         cmake -E tar cv cosmoscout-vr-linux64.tar.gz cosmoscout-vr
     - name: Upload Release
-      uses: svenstaro/upload-release-action@2.9.0
+      uses: svenstaro/upload-release-action@2.11.5
       with:
-        repo_token: ${{ secrets.UPLOAD_TOKEN }}
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
         file: cosmoscout-vr-linux64.tar.gz
         asset_name: cosmoscout-vr-linux64.tar.gz
         tag: ${{ github.ref }}
         overwrite: true
         prerelease: true
 
+  # Build CosmoScout VR for Windows and release it.
   release_windows:
     name: Windows
     runs-on: windows-2025
     steps:
     - name: Checkout Repository
-      uses: actions/checkout@v4
-    - name: Checkout Submodules
-      run: git submodule update --init --recursive
-    - name: Build Externals
-      shell: cmd
-      run: make_externals.bat -G "Visual Studio 16 2019" -A x64 
+      uses: actions/checkout@v7
+      with:
+        submodules: true
     - name: Build CosmoScout VR
       shell: cmd
       run: |
-        cmake --preset windows-vs-release-config
+        cmake --preset windows-vs-release-config -DCOSMOSCOUT_UNIT_TESTS=Off
         cmake --build --preset windows-vs-release-build
     - name: Create Release
       run: | 
         move install\windows-Release cosmoscout-vr
         cmake -E tar cv cosmoscout-vr-win64.zip --format=zip cosmoscout-vr
     - name: Upload Release
-      uses: svenstaro/upload-release-action@2.9.0
+      uses: svenstaro/upload-release-action@2.11.5
       with:
-        repo_token: ${{ secrets.UPLOAD_TOKEN }}
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
         file: cosmoscout-vr-win64.zip
         asset_name: cosmoscout-vr-win64.zip
         tag: ${{ github.ref }}

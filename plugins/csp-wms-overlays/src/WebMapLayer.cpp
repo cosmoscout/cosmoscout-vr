@@ -11,9 +11,6 @@
 
 #include "../../../src/cs-utils/utils.hpp"
 
-#include <curlpp/Easy.hpp>
-#include <curlpp/Options.hpp>
-
 namespace csp::wmsoverlays {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

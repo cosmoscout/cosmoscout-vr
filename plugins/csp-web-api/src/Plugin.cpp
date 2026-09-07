@@ -24,7 +24,6 @@
 #include <VistaKernel/VistaFrameLoop.h>
 #include <VistaKernel/VistaSystem.h>
 #include <VistaOGLExt/VistaTexture.h>
-#include <curlpp/cURLpp.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <sstream>
 #include <tiffio.h>

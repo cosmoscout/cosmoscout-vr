@@ -13,7 +13,10 @@ file(GLOB SOURCE_FILES *.cpp */*.cpp icon.rc)
 file(GLOB HEADER_FILES *.hpp */*.hpp)
 file(GLOB_RECURSE RESOUCRE_FILES ../../resources/*)
 file(GLOB_RECURSE CONFIG_FILES ../../config/*)
-file(GLOB_RECURSE TEST_FILES ../../test/*)
+
+if (COSMOSCOUT_UNIT_TESTS)
+  file(GLOB_RECURSE TEST_FILES ../../test/*)
+endif ()
 
 add_executable(cosmoscout
   ${SOURCE_FILES}
@@ -31,7 +34,7 @@ if(NOT (${CMAKE_GENERATOR} STREQUAL "Ninja" AND WIN32))
 endif()
 
 target_link_libraries(cosmoscout
-  cef::cef
+  cef::libcef
   cs-core
 )
 

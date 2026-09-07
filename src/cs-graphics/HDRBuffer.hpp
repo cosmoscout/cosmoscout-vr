@@ -10,13 +10,14 @@
 
 #include "cs_graphics_export.hpp"
 
+#include <VistaOGLExt/VistaTexture.h>
+
 #include <array>
 #include <cstdint>
 #include <memory>
 #include <unordered_map>
 
 class VistaFramebufferObj;
-class VistaTexture;
 class VistaViewport;
 class VistaGLSLShader;
 

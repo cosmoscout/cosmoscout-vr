@@ -46,11 +46,16 @@ You can choose to enable CMake presets. From the following you can choose one re
 
 > [!TIP]
 > 
-> By default CLion creates a profile called `Debug`. You can delete that.
+> By default, CLion creates a profile called `Debug`. You can delete that.
 
 > [!TIP]
 > 
 > You can create a copy of one of the presets and modify it to your likings.
+
+> [!TIP]
+>
+> If you use WSL on Windows CLion will not show the linux presets. But you can copy one of the windows presets
+> and change it to a linux preset and set WSL as a toolchain.
   
 ### Configure Run and Test Profiles
 
@@ -170,7 +175,7 @@ We will discuss these files in the following.
     {
       "label": "Make (Release)",
       "type": "shell",
-      "command": "cmake --preset linux-make-release-config && cmake --build --preset linux-make-release-build",
+      "command": "cmake --workflow --preset linux-make-release",
       "options": {
         "cwd": "${workspaceFolder}"
       },
@@ -178,30 +183,13 @@ We will discuss these files in the following.
         "$gcc"
       ],
       "windows": {
-        "command": "cmake --preset windows-vs-release-config; cmake --build --preset windows-vs-release-build"
+        "command": "cmake --workflow --preset windows-vs-release"
       }
     },
     {
       "label": "Make (Debug)",
       "type": "shell",
-      "command": "cmake --preset linux-make-debug-config && cmake --build --preset linux-make-debug-build",
-      "options": {
-        "cwd": "${workspaceFolder}",
-        "env": {
-          "COSMOSCOUT_DEBUG_BUILD": "true"
-        }
-      },
-      "problemMatcher": [
-        "$gcc"
-      ],
-      "windows": {
-        "command": "cmake --preset windows-make-debug-config; cmake --build --preset windows-make-debug-build"
-      }
-    },
-    {
-      "label": "Make Externals (Release)",
-      "type": "shell",
-      "command": "./make_externals.sh",
+      "command": "cmake --workflow --preset linux-make-debug",
       "options": {
         "cwd": "${workspaceFolder}"
       },
@@ -209,24 +197,7 @@ We will discuss these files in the following.
         "$gcc"
       ],
       "windows": {
-        "command": ".\\make_externals.bat"
-      }
-    },
-    {
-      "label": "Make Externals (Debug)",
-      "type": "shell",
-      "command": "./make_externals.sh",
-      "options": {
-        "cwd": "${workspaceFolder}",
-        "env": {
-          "COSMOSCOUT_DEBUG_BUILD": "true"
-        }
-      },
-      "problemMatcher": [
-        "$gcc"
-      ],
-      "windows": {
-        "command": ".\\make_externals.bat"
+        "command": "cmake --workflow --preset windows-vs-debug"
       }
     },
     {
@@ -281,15 +252,15 @@ We will discuss these files in the following.
 }
 ```
 
-With this file in place, you can press `Ctrl+Shift+P` and select `Tasks: Run Task`. Now you can first select `Make Externals (Release)`, then `Make (Release)` and later `Run CosmoScout VR`.
+With this file in place, you can press `Ctrl+Shift+P` and select `Tasks: Run Task`. Now you can first select `Make (Release)` and then `Run CosmoScout VR`.
 
 > [!TIP]
 > 
-> **(Linux only):** You can use [ccache](https://ccache.dev/) to considerably speed up build times. You just need to replace the commands with `./make_externals.sh -G "Unix Makefiles" -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache` and `cmake --preset linux-make-release-config -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache` respectively._
+> **(Linux only):** You can use [ccache](https://ccache.dev/) to considerably speed up build times. You just need to replace the command with `cmake --preset linux-make-release-config -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache`._
 
 > [!TIP]
 >
-> **(Windows only):** You can use [clcache](https://github.com/frerich/clcache) to considerably speed up build times. You just need to call `make_externals.bat -G "Visual Studio 15 Win64" -DCMAKE_VS_GLOBALS=CLToolExe="clcache.exe;TrackFileAccess=false"` and `cmake --preset windows-vs-release-config -DCMAKE_VS_GLOBALS="CLToolExe=clcache.exe;TrackFileAccess=false"` respectively._
+> **(Windows only):** You can use [clcache](https://github.com/frerich/clcache) to considerably speed up build times. You just need to call `cmake --preset windows-vs-release-config -DCMAKE_VS_GLOBALS="CLToolExe=clcache.exe;TrackFileAccess=false"`._
 
 ### `.vscode/c_cpp_properties.json`
 
@@ -316,8 +287,7 @@ With this file in place, you can press `Ctrl+Shift+P` and select `Tasks: Run Tas
                 "databaseFilename": "${workspaceRoot}/.vscode/browse-windows.VC.db"
             },
             "includePath": [
-                "${workspaceRoot}/build/windows-Release/**",
-                "${workspaceRoot}/install/windows-externals-Release/include"
+                "${workspaceRoot}/build/windows-Release/**"
             ],
             "defines": [],
             "cStandard": "c11",
@@ -328,7 +298,7 @@ With this file in place, you can press `Ctrl+Shift+P` and select `Tasks: Run Tas
 }
 ```
 
-This file configures Intellisense. On Linux, the CMake flag `-DCMAKE_EXPORT_COMPILE_COMMANDS=On` is used in `make.sh` to create a database which is required by Intellisense. With this file and the [C/C++ Extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cpptools), autocompletion and similar functionality should be working both on Windows and on Linux.
+This file configures Intellisense. With this file and the [C/C++ Extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cpptools), autocompletion and similar functionality should be working both on Windows and on Linux.
 
 ### `.vscode/launch.json`
 

@@ -20,25 +20,29 @@ add_library(cs-utils SHARED
 target_link_libraries(cs-utils
   PUBLIC
     glm::glm
-    doctest::doctest
-    tinygltf::tinygltf
     GLEW::GLEW
-    SDL2::base
-    SDL2::main
-    SDL2::ttf
+    $<TARGET_NAME_IF_EXISTS:SDL2::SDL2main>
+    $<IF:$<TARGET_EXISTS:SDL2::SDL2>,SDL2::SDL2,SDL2::SDL2-static>
+    $<IF:$<TARGET_EXISTS:SDL2_ttf::SDL2_ttf>,SDL2_ttf::SDL2_ttf,SDL2_ttf::SDL2_ttf-static>
     OpenGL::GL
     OpenGL::GLU
-    OpenSG::base
-    OpenSG::system
-    Tiff::Tiff
-    Tiff::Tiffxx
-    ${VISTACORELIBS_LIBRARIES}
+    OpenSG::Base
+    OpenSG::System
+    TIFF::TIFF
+    Vista::Kernel
+    Vista::OGLExt
+    Vista::KernelOpenSGExt
     ${CMAKE_DL_LIBS}
-    cspice::cspice
-    curl::curl
-    curlpp::curlpp
+    unofficial::cspice::cspice
+    CURL::libcurl
+    curlcpp::curlcpp
     spdlog::spdlog
+
+    $<$<BOOL:${COSMOSCOUT_UNIT_TESTS}>:doctest::doctest>
 )
+
+find_path(TINYGLTF_INCLUDE_DIRS "tiny_gltf.h")
+target_include_directories(cs-utils PRIVATE ${TINYGLTF_INCLUDE_DIRS})
 
 if(COSMOSCOUT_USE_PRECOMPILED_HEADERS)
   target_precompile_headers(cs-utils PRIVATE precompiled.pch)

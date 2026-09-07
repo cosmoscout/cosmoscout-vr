@@ -18,7 +18,7 @@ echo "Using clang-format $(clang-format --version)"
 find "$SRC_DIR/../src" "$SRC_DIR/../plugins" "$SRC_DIR/../resources" "$SRC_DIR/../tools" -type f \
      \( -name '*.cpp' -o -name '*.hpp' -o -name '*.inl' -o \
         -name '*.cu' -o -name '*.cuh' -o -name '*.js' \) \
-        -and ! -path '*third-party*' -and ! -path '*third_party*' -and ! -path '*externals*' \
+        -and ! -path '*third-party*' -and ! -path '*third_party*' -and ! -path '*externals*' -and ! -path "*vcpkg*" \
         -exec sh -c '
   for file do
     echo "Formatting $file..."

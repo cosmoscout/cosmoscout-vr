@@ -7,7 +7,7 @@
 
 #include "Frustum.hpp"
 
-#include "../../../src/cs-utils/utils.hpp"
+#include "utils.hpp"
 
 #include <glm/gtx/io.hpp>
 
