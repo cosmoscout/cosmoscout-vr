@@ -529,10 +529,7 @@ class TimelineApi extends IApi {
       return;
     }
 
-    const direction = Math.sign(sliderValue);
-    const speed     = Math.pow(sliderValue, 25.0);
-
-    CosmoScout.callbacks.time.setSpeed(direction * speed);
+    CosmoScout.callbacks.time.setSpeed(Math.pow(sliderValue, 25.0));
   }
 
   /**
@@ -666,7 +663,7 @@ class TimelineApi extends IApi {
       this._centerTime = new Date(properties.start.getTime() / 2 + properties.end.getTime() / 2);
       this._timeline.setCustomTime(this._centerTime, this._timeId);
 
-      window.callNative("time.setDate", this._centerTime.toISOString());
+      CosmoScout.callbacks.time.setDate(this._centerTime.toISOString());
     }
   }
 

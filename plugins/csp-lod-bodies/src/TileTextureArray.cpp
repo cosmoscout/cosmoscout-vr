@@ -77,8 +77,7 @@ TileTextureArray::TileTextureArray(TileDataType dataType, int maxLayerCount, uin
     , mType()
     , mDataType(dataType)
     , mResolution(resolution)
-    , mNumLayers(maxLayerCount) {
-}
+    , mNumLayers(maxLayerCount) {}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 

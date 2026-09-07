@@ -251,8 +251,7 @@ std::mutex TileSourceWebMapService::mFileSystemMutex;
 
 TileSourceWebMapService::TileSourceWebMapService(uint32_t resolution)
     : mThreadPool(32)
-    , mResolution(resolution) {
-}
+    , mResolution(resolution) {}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 

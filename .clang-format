@@ -6,14 +6,14 @@
 # SPDX-License-Identifier: CC0-1.0
 
 AccessModifierOffset: -1
-AlignAfterOpenBracket: DontAlign
+AlignAfterOpenBracket: false
 AlignConsecutiveAssignments: true
 AlignConsecutiveDeclarations: true
-AlignOperands: true
-AllowShortBlocksOnASingleLine: true
-AllowShortFunctionsOnASingleLine: false
+AlignOperands: Align
+AllowShortBlocksOnASingleLine: Always
+AllowShortFunctionsOnASingleLine: Empty
 AlwaysBreakAfterReturnType: None
-AlwaysBreakTemplateDeclarations: true
+AlwaysBreakTemplateDeclarations: Yes
 BinPackArguments: true
 BinPackParameters: true
 BreakConstructorInitializersBeforeComma: true
@@ -22,5 +22,5 @@ ConstructorInitializerIndentWidth: 4
 ContinuationIndentWidth: 4
 DerivePointerAlignment: false
 PointerAlignment: Left
-Standard: Cpp11
+Standard: c++20
 SpacesInContainerLiterals: false

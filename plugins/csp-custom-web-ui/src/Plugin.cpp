@@ -190,7 +190,7 @@ void Plugin::onLoad() {
       // Register a callback to toggle the window.
       mGuiManager->getGui()->registerCallback(callback,
           "Toggles the custom window '" + settings.mName + "'.", std::function([this, id]() {
-            mGuiManager->getGui()->executeJavascript(
+            mGuiManager->getGui()->executeJavaScript(
                 "document.querySelector('#" + id + "').classList.toggle('visible')");
           }));
 
@@ -219,8 +219,8 @@ void Plugin::onLoad() {
       cs::utils::replaceString(windowMarkup, "%NAME%", settings.mName);
       cs::utils::replaceString(windowMarkup, "%CONTENT%", settings.mHTML);
 
-      mGuiManager->getGui()->callJavascript("CosmoScout.gui.addHtml", windowMarkup);
-      mGuiManager->getGui()->callJavascript("CosmoScout.gui.initDraggableWindows");
+      mGuiManager->getGui()->callJavaScript("CosmoScout.gui.addHtml", windowMarkup);
+      mGuiManager->getGui()->callJavaScript("CosmoScout.gui.initDraggableWindows");
     }
 
     // Then add all space items.
@@ -270,7 +270,7 @@ void Plugin::onLoad() {
       item.mGuiItem->setCursorChangeCallback(
           [](cs::gui::Cursor c) { cs::core::GuiManager::setCursor(c); });
       item.mGuiItem->waitForFinishedLoading();
-      item.mGuiItem->callJavascript("setContent", settings.mHTML);
+      item.mGuiItem->callJavaScript("setContent", settings.mHTML);
 
       // Store it.
       mSpaceItems.emplace_back(std::move(item));
@@ -298,7 +298,7 @@ void Plugin::unload(Settings const& pluginSettings) {
     mGuiManager->removeTimelineButton(pluginSettings.mWindowItems[i].mName);
 
     std::string id = "customWebUIWindow" + std::to_string(i);
-    mGuiManager->getGui()->executeJavascript("document.querySelector('#" + id + "').remove()");
+    mGuiManager->getGui()->executeJavaScript("document.querySelector('#" + id + "').remove()");
   }
 
   // Remove all space items.

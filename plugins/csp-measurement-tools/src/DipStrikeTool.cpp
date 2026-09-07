@@ -154,13 +154,13 @@ DipStrikeTool::DipStrikeTool(std::shared_ptr<cs::core::InputManager> pInputManag
   mGuiItem->registerCallback("setSize", "Sets the size of the dip and strike plane.",
       std::function([this](double val) { pSize = static_cast<float>(val); }));
   pSize.connectAndTouch([this](float value) {
-    mGuiItem->callJavascript("CosmoScout.gui.setSliderValue", "setSize", false, value);
+    mGuiItem->callJavaScript("CosmoScout.gui.setSliderValue", "setSize", false, value);
   });
 
   mGuiItem->registerCallback("setOpacity", "Sets the opacity of the dip and strike plane.",
       std::function([this](double val) { pOpacity = static_cast<float>(val); }));
   pOpacity.connectAndTouch([this](float value) {
-    mGuiItem->callJavascript("CosmoScout.gui.setSliderValue", "setOpacity", false, value);
+    mGuiItem->callJavaScript("CosmoScout.gui.setSliderValue", "setOpacity", false, value);
   });
 
   mGuiItem->setCursorChangeCallback([](cs::gui::Cursor c) { cs::core::GuiManager::setCursor(c); });
@@ -190,7 +190,7 @@ DipStrikeTool::DipStrikeTool(std::shared_ptr<cs::core::InputManager> pInputManag
 
   // Update text.
   mTextConnection = pText.connectAndTouch(
-      [this](std::string const& value) { mGuiItem->callJavascript("setText", value); });
+      [this](std::string const& value) { mGuiItem->callJavaScript("setText", value); });
 
   mGuiItem->registerCallback("onSetText",
       "This is called whenever the text input of the tool's name changes.",
@@ -315,10 +315,10 @@ void DipStrikeTool::calculateDipAndStrike() {
       fStrike = 360 - fStrike;
     }
 
-    mGuiItem->callJavascript("setData", fDip, fStrike);
+    mGuiItem->callJavaScript("setData", fDip, fStrike);
   } else {
     mMip = glm::normalize(glm::cross(mNormal, glm::vec3(0, 1, 0)));
-    mGuiItem->callJavascript("setData", 0, 0);
+    mGuiItem->callJavaScript("setData", 0, 0);
   }
 }
 

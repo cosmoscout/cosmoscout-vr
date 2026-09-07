@@ -23,23 +23,19 @@ class DefaultProperty : public Property<T> {
   /// There is no default constructor, as a default value has to be given at construction time.
   explicit DefaultProperty(T const& val)
       : Property<T>(val)
-      , mDefaultValue(val) {
-  }
+      , mDefaultValue(val) {}
 
   explicit DefaultProperty(T&& val)
       : Property<T>(val)
-      , mDefaultValue(std::move(val)) {
-  }
+      , mDefaultValue(std::move(val)) {}
 
   DefaultProperty(DefaultProperty<T> const& other)
       : Property<T>(other.mValue)
-      , mDefaultValue(other.mDefaultValue) {
-  }
+      , mDefaultValue(other.mDefaultValue) {}
 
   DefaultProperty(DefaultProperty<T>&& other) noexcept
       : Property<T>(std::move(other.mValue))
-      , mDefaultValue(std::move(other.mDefaultValue)) {
-  }
+      , mDefaultValue(std::move(other.mDefaultValue)) {}
 
   ~DefaultProperty() override = default;
 

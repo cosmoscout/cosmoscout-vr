@@ -191,7 +191,7 @@ void Plugin::init() {
       std::function([this](bool enable) { mPluginSettings->mAutoLOD = enable; }));
   mPluginSettings->mAutoLOD.connectAndTouch([this](bool enable) {
     mGuiManager->setCheckboxValue("lodBodies.setEnableAutoTerrainLod", enable);
-    mGuiManager->getGui()->callJavascript("CosmoScout.lodBodies.enableTerrainLodSlider", !enable);
+    mGuiManager->getGui()->callJavaScript("CosmoScout.lodBodies.enableTerrainLodSlider", !enable);
   });
 
   mGuiManager->getGui()->registerCallback("lodBodies.setAutoLoDRange",
@@ -313,37 +313,37 @@ void Plugin::init() {
 
             tabEnabled = true;
 
-            mGuiManager->getGui()->callJavascript(
+            mGuiManager->getGui()->callJavaScript(
                 "CosmoScout.gui.clearDropdown", "lodBodies.setTilesImg");
-            mGuiManager->getGui()->callJavascript(
+            mGuiManager->getGui()->callJavaScript(
                 "CosmoScout.gui.clearDropdown", "lodBodies.setTilesDem");
-            mGuiManager->getGui()->callJavascript("CosmoScout.gui.addDropdownValue",
+            mGuiManager->getGui()->callJavaScript("CosmoScout.gui.addDropdownValue",
                 "lodBodies.setTilesImg", "None", "None", "false");
 
             auto const& settings = getBodySettings(lodBody);
             for (auto const& source : settings.mImgDatasets) {
               bool active = source.first == settings.mActiveImgDataset;
-              mGuiManager->getGui()->callJavascript("CosmoScout.gui.addDropdownValue",
+              mGuiManager->getGui()->callJavaScript("CosmoScout.gui.addDropdownValue",
                   "lodBodies.setTilesImg", source.first, source.first, active);
               if (active) {
-                mGuiManager->getGui()->callJavascript(
+                mGuiManager->getGui()->callJavaScript(
                     "CosmoScout.lodBodies.setMapDataCopyright", source.second.mCopyright);
               }
             }
 
             for (auto const& source : settings.mDemDatasets) {
               bool active = source.first == settings.mActiveDemDataset;
-              mGuiManager->getGui()->callJavascript("CosmoScout.gui.addDropdownValue",
+              mGuiManager->getGui()->callJavaScript("CosmoScout.gui.addDropdownValue",
                   "lodBodies.setTilesDem", source.first, source.first, active);
               if (active) {
-                mGuiManager->getGui()->callJavascript(
+                mGuiManager->getGui()->callJavaScript(
                     "CosmoScout.lodBodies.setElevationDataCopyright", source.second.mCopyright);
               }
             }
           }
         }
 
-        mGuiManager->getGui()->callJavascript(
+        mGuiManager->getGui()->callJavaScript(
             "CosmoScout.sidebar.setTabEnabled", "Body Settings", tabEnabled);
       });
 
@@ -398,7 +398,7 @@ void Plugin::deInit() {
   mGuiManager->removePluginTab("Body Settings");
   mGuiManager->removeSettingsSection("Body Settings");
 
-  mGuiManager->getGui()->callJavascript("CosmoScout.removeApi", "lodBodies");
+  mGuiManager->getGui()->callJavaScript("CosmoScout.removeApi", "lodBodies");
 
   mGuiManager->getGui()->unregisterCallback("lodBodies.setAutoLoDRange");
   mGuiManager->getGui()->unregisterCallback("lodBodies.setEnableTilesFreeze");
@@ -571,7 +571,7 @@ void Plugin::setImageSource(std::shared_ptr<LodBody> const& body, std::string co
 
   if (name == "None") {
     body->setIMGtileSource(nullptr, 0);
-    mGuiManager->getGui()->callJavascript("CosmoScout.lodBodies.setMapDataCopyright", "");
+    mGuiManager->getGui()->callJavaScript("CosmoScout.lodBodies.setMapDataCopyright", "");
     settings.mActiveImgDataset = "None";
   } else {
     auto dataset = settings.mImgDatasets.find(name);
@@ -593,7 +593,7 @@ void Plugin::setImageSource(std::shared_ptr<LodBody> const& body, std::string co
 
     body->setIMGtileSource(source, dataset->second.mMaxLevel);
 
-    mGuiManager->getGui()->callJavascript(
+    mGuiManager->getGui()->callJavaScript(
         "CosmoScout.lodBodies.setMapDataCopyright", dataset->second.mCopyright);
   }
 }
@@ -623,7 +623,7 @@ void Plugin::setElevationSource(
 
   body->setDEMtileSource(source, dataset->second.mMaxLevel);
 
-  mGuiManager->getGui()->callJavascript(
+  mGuiManager->getGui()->callJavaScript(
       "CosmoScout.lodBodies.setElevationDataCopyright", dataset->second.mCopyright);
 }
 

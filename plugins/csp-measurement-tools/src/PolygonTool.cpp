@@ -141,7 +141,7 @@ PolygonTool::PolygonTool(std::shared_ptr<cs::core::InputManager> pInputManager,
 
   // Update text.
   mTextConnection = pText.connectAndTouch(
-      [this](std::string const& value) { mGuiItem->callJavascript("setText", value); });
+      [this](std::string const& value) { mGuiItem->callJavaScript("setText", value); });
 
   mGuiItem->registerCallback("onSetText",
       "This is called whenever the text input of the tool's name changes.",
@@ -1054,7 +1054,7 @@ void PolygonTool::updateLineVertices() {
   double minLat = cs::utils::convert::toDegrees(mBoundingBox.z);
   double maxLat = cs::utils::convert::toDegrees(mBoundingBox.w);
 
-  mGuiItem->callJavascript("setBoundaryPosition", minLng, minLat, maxLng, maxLat);
+  mGuiItem->callJavaScript("setBoundaryPosition", minLng, minLat, maxLng, maxLat);
 
   mIndexCount = mSampledPositions.size();
 
@@ -1113,8 +1113,8 @@ void PolygonTool::updateCalculation() {
   // If polygon is to big (disable area calculation and mesh generation)
   // Voronoi implementation is designed for a maximal area of one hemisphere
   if (maxDist > radii[0]) {
-    mGuiItem->callJavascript("setArea", 0);
-    mGuiItem->callJavascript("setVolume", 0, 0);
+    mGuiItem->callJavaScript("setArea", 0);
+    mGuiItem->callJavaScript("setVolume", 0, 0);
     pShowMesh = false;
     return;
   }
@@ -1307,19 +1307,19 @@ void PolygonTool::updateCalculation() {
 
     // Displays values
     if (!std::isnan(area)) {
-      mGuiItem->callJavascript("setArea", area);
+      mGuiItem->callJavaScript("setArea", area);
     } else {
-      mGuiItem->callJavascript("setArea", 0);
+      mGuiItem->callJavaScript("setArea", 0);
     }
 
     if ((!std::isnan(posVolume)) && (!std::isnan(negVolume))) {
-      mGuiItem->callJavascript("setVolume", posVolume, negVolume);
+      mGuiItem->callJavaScript("setVolume", posVolume, negVolume);
     } else if (!std::isnan(negVolume)) {
-      mGuiItem->callJavascript("setVolume", 0, negVolume);
+      mGuiItem->callJavaScript("setVolume", 0, negVolume);
     } else if (!std::isnan(posVolume)) {
-      mGuiItem->callJavascript("setVolume", posVolume, 0);
+      mGuiItem->callJavaScript("setVolume", posVolume, 0);
     } else {
-      mGuiItem->callJavascript("setVolume", 0, 0);
+      mGuiItem->callJavaScript("setVolume", 0, 0);
     }
   } // while ((!fine) && (attempt < mMaxAttempt) && (pointCount < mMaxPoints))
 

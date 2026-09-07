@@ -65,8 +65,7 @@ struct DataTypeTrait<glm::u8vec4> {
 template <typename T>
 TileData<T>::TileData(uint32_t resolution)
     : BaseTileData(resolution)
-    , mData(resolution * resolution) {
-}
+    , mData(resolution * resolution) {}
 
 template <typename T>
 TileData<T>::~TileData() = default;

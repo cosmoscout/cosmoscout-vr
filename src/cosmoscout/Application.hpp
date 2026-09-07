@@ -201,6 +201,8 @@ class Application : public VistaFrameLoop {
   // For deferred writing of settings.
   std::string mSettingsToSave;
 
+  bool mQuitRequested = false;
+
   curl::curl_global curl{};
 };
 

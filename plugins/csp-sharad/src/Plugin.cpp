@@ -75,7 +75,7 @@ void Plugin::init() {
     mSharadNodes.clear();
 
     // Clear UI list.
-    mGuiManager->getGui()->callJavascript("CosmoScout.gui.clearHtml", "list-sharad");
+    mGuiManager->getGui()->callJavaScript("CosmoScout.gui.clearHtml", "list-sharad");
 
     // Then add new ones.
     std::filesystem::path               dir(filePath);
@@ -102,7 +102,7 @@ void Plugin::init() {
             mSharads.push_back(sharad);
             mSharadNodes.emplace_back(sharadNode);
 
-            mGuiManager->getGui()->callJavascript(
+            mGuiManager->getGui()->callJavaScript(
                 "CosmoScout.sharad.add", sName, sharad->getStartTime() + 10);
           }
         }
@@ -120,7 +120,7 @@ void Plugin::init() {
       [this](std::shared_ptr<const cs::scene::CelestialObject> const& body) {
         bool enabled = body == mSolarSystem->getObject(mPluginSettings.mAnchor);
 
-        mGuiManager->getGui()->callJavascript(
+        mGuiManager->getGui()->callJavaScript(
             "CosmoScout.sidebar.setTabEnabled", "SHARAD Profiles", enabled);
       });
 

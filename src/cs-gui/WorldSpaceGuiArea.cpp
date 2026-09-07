@@ -74,8 +74,7 @@ void main() {
 
 WorldSpaceGuiArea::WorldSpaceGuiArea(int width, int height)
     : mWidth(width)
-    , mHeight(height) {
-}
+    , mHeight(height) {}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 

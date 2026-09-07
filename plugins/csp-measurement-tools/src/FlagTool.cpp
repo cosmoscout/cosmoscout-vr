@@ -61,7 +61,7 @@ FlagTool::FlagTool(std::shared_ptr<cs::core::InputManager> pInputManager,
 
   // Update text.
   mTextConnection = pText.connectAndTouch(
-      [this](std::string const& value) { mGuiItem->callJavascript("setText", value); });
+      [this](std::string const& value) { mGuiItem->callJavaScript("setText", value); });
 
   mGuiItem->registerCallback("onSetText",
       "This is called whenever the text input of the tool's name changes.",
@@ -73,7 +73,7 @@ FlagTool::FlagTool(std::shared_ptr<cs::core::InputManager> pInputManager,
     auto object = mSolarSystem->getObject(getObjectName());
     if (object) {
       double h = object->getSurface() ? object->getSurface()->getHeight(lngLat) : 0.0;
-      mGuiItem->callJavascript("setPosition", cs::utils::convert::toDegrees(lngLat.x),
+      mGuiItem->callJavaScript("setPosition", cs::utils::convert::toDegrees(lngLat.x),
           cs::utils::convert::toDegrees(lngLat.y), h);
     }
   });
@@ -85,11 +85,11 @@ FlagTool::FlagTool(std::shared_ptr<cs::core::InputManager> pInputManager,
     }
   });
 
-  pMinimized.connect([this](bool val) { mGuiItem->callJavascript("setMinimized", val); });
+  pMinimized.connect([this](bool val) { mGuiItem->callJavaScript("setMinimized", val); });
 
   mGuiItem->registerCallback("minimizeMe", "Call this to minimize the flag.",
       std::function([this]() { pMinimized = true; }));
-  mGuiItem->callJavascript("setActivePlanet", getObjectName());
+  mGuiItem->callJavaScript("setActivePlanet", getObjectName());
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

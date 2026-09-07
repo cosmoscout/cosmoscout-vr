@@ -94,8 +94,7 @@ class GLResources : public PerDataType<std::unique_ptr<TileTextureArray>> {
             {std::make_unique<TileTextureArray>(
                  TileDataType::eElevation, maxElevationLayers, elevationResolution),
                 std::make_unique<TileTextureArray>(
-                    TileDataType::eColor, maxColorLayers, colorResolution)}) {
-  }
+                    TileDataType::eColor, maxColorLayers, colorResolution)}) {}
 };
 } // namespace csp::lodbodies
 

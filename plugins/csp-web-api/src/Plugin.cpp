@@ -108,8 +108,7 @@ void tiffWriteToVector(std::vector<std::byte>& out, std::vector<T>& in, uint32_t
 class GetHandler : public CivetHandler {
  public:
   explicit GetHandler(std::function<void(mg_connection*)> handler)
-      : mHandler(std::move(handler)) {
-  }
+      : mHandler(std::move(handler)) {}
 
   bool handleGet(CivetServer* /*server*/, mg_connection* conn) override {
     mHandler(conn);
@@ -127,8 +126,7 @@ class GetHandler : public CivetHandler {
 class PostHandler : public CivetHandler {
  public:
   explicit PostHandler(std::function<void(mg_connection*)> handler)
-      : mHandler(std::move(handler)) {
-  }
+      : mHandler(std::move(handler)) {}
 
   bool handlePost(CivetServer* /*server*/, mg_connection* conn) override {
     mHandler(conn);
@@ -350,7 +348,7 @@ void Plugin::update() {
       auto request = mJavaScriptCalls.front();
       mJavaScriptCalls.pop();
       logger().debug("Executing '/run-js' request: '{}'", request);
-      mGuiManager->getGui()->executeJavascript(request);
+      mGuiManager->getGui()->executeJavaScript(request);
     }
   }
 
