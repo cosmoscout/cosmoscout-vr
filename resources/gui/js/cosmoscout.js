@@ -33,6 +33,74 @@ class CosmoScoutAPI {
   };
 
   /**
+   * Stores pending promises for native calls.
+   *
+   * @type {Map<number, Object>}
+   * @private
+   */
+  _nativePromises = new Map();
+
+  /**
+   * Incremented for each native call.
+   *
+   * @type {number}
+   * @private
+   */
+  _nextNativePromiseID = 1;
+
+  /**
+   * Calls a native callback and returns a Promise which is resolved or rejected from C++.
+   *
+   * @param name {string}
+   * @param args {*[]}
+   * @returns {Promise<*>}
+   */
+  callNative(name, ...args) {
+    return new Promise((resolve, reject) => {
+      const id = this._nextNativePromiseID++;
+
+      this._nativePromises.set(id, {resolve, reject});
+
+      try {
+        window.callNative(name, id, ...args);
+      } catch (e) {
+        this._nativePromises.delete(id);
+        reject(e);
+      }
+    });
+  }
+
+  /**
+   * Resolves a pending native-call Promise. This is called from C++.
+   *
+   * @param id {number}
+   * @param value {*}
+   */
+  resolveNativePromise(id, value) {
+    const promise = this._nativePromises.get(id);
+
+    if (promise !== undefined) {
+      promise.resolve(value);
+      this._nativePromises.delete(id);
+    }
+  }
+
+  /**
+   * Rejects a pending native-call Promise. This is called from C++.
+   *
+   * @param id {number}
+   * @param message {string}
+   */
+  rejectNativePromise(id, message) {
+    const promise = this._nativePromises.get(id);
+
+    if (promise !== undefined) {
+      promise.reject(new Error(message));
+      this._nativePromises.delete(id);
+    }
+  }
+
+  /**
    * Use this to access read-only state variables which are set from C++.
    * activePlanetCenter
    * activePlanetFrame

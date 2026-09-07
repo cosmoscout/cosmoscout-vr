@@ -159,6 +159,9 @@ SPDX-License-Identifier: MIT
       </div>
 
       <div id="plugin-buttons">
+        <a class="btn light-glass" data-toggle="tooltip" title="Main Menu" onclick="document.getElementById('cs-main-menu').showModal()">
+          <i class="material-icons">menu</i>
+        </a>
         <a class="btn light-glass" data-toggle="tooltip" title="Turn north up"
           onclick="CosmoScout.callbacks.navigation.northUp()">
           <span id="compass-arrow"></span>
@@ -177,6 +180,26 @@ SPDX-License-Identifier: MIT
         </a>
       </div>
     </div>
+
+    <dialog class="dialog" id="cs-main-menu">
+      <div class="dialog-wrapper">
+        <div class="dialog-header">
+          <span class="dialog-title">
+            <i class="material-icons" id="main-menu-icon">menu</i>
+            <span id="main-menu-title">Main Menu</span>
+          </span>
+          <a class="btn light-glass" id="main-menu-back-button" hidden>
+            <i class="material-icons">arrow_back</i>
+          </a>
+          <a class="btn light-glass" data-action="close" data-toggle="tooltip" title="Close"
+             onclick="document.getElementById('cs-main-menu').close()">
+            <i class="material-icons">close</i>
+          </a>
+        </div>
+        <div class="dialog-body" id="main-menu-body">
+        </div>
+      </div>
+    </dialog>
 
     <div id="sidebar">
       <div class="accordion" id="sidebar-accordion">
@@ -885,6 +908,7 @@ SPDX-License-Identifier: MIT
   <script type="text/javascript" src="js/apis/geocode.js"></script>
   <script type="text/javascript" src="js/apis/utils.js"></script>
   <script type="text/javascript" src="js/apis/bookmark_editor.js"></script>
+  <script type="text/javascript" src="js/apis/main_menu.js"></script>
 
   <script type="text/javascript">
 
@@ -901,7 +925,8 @@ SPDX-License-Identifier: MIT
         CalendarApi,
         GeoCodeApi,
         BookmarkEditorApi,
-        TimelineApi
+        TimelineApi,
+        MainMenuApi
       );
 
       const slider = document.querySelector('[data-callback="graphics.setShadowmapResolution"]');
@@ -1009,6 +1034,136 @@ SPDX-License-Identifier: MIT
         %CONTENT%
       </div>
     </div>
+  </template>
+
+  <template id="main-menu-item-template">
+    <a class="btn light-glass col-12 main-menu-item" data-index="0">
+      <i class="material-icons main-menu-item-icon"></i>
+      <span class="main-menu-item-label"></span>
+    </a>
+  </template>
+
+  <template id="main-menu-plugin-template">
+    <div class="plugin-manager container">
+      <div class="plugin-manager-items"></div>
+    </div>
+  </template>
+
+  <template id="main-menu-save-template">
+    <div class="save-menu container"></div>
+  </template>
+
+  <template id="main-menu-save-item-template">
+    <a class="btn light-glass col-12 main-menu-item save-item" data-save-action="overwrite">
+      <div class="row align-items-center">
+        <div class="col-10">
+          <small class="text-muted save-item-path"></small>
+          <div class="save-item-name">Save Name</div>
+          <small class="text-muted save-item-date">Date</small>
+        </div>
+        <div class="col-2 text-end">
+          <i class="material-icons">save</i>
+        </div>
+      </div>
+    </a>
+  </template>
+
+  <template id="main-menu-load-template">
+    <div class="load-menu container"></div>
+  </template>
+
+  <template id="main-menu-load-item-template">
+    <a class="btn light-glass col-12 main-menu-item load-item" data-load-action="load">
+      <div class="row align-items-center">
+        <div class="col-10">
+          <small class="text-muted load-item-path"></small>
+          <div class="load-item-name">Load Name</div>
+          <small class="text-muted load-item-date">Date</small>
+        </div>
+        <div class="col-2 text-end">
+          <i class="material-icons">folder_open</i>
+        </div>
+      </div>
+    </a>
+  </template>
+
+  <template id="main-menu-plugin-item-active-template">
+    <div class="plugin-manager-item row">
+      <span class="plugin-manager-item-name col-10"></span>
+      <a class="btn light-glass plugin-manager-item-action col-1" data-plugin-action="reload">
+        <i class="material-icons">refresh</i>
+      </a>
+      <a class="btn light-glass plugin-manager-item-action col-1" data-plugin-action="unload">
+        <i class="material-icons">extension_off</i>
+      </a>
+    </div>
+  </template>
+
+  <template id="main-menu-plugin-item-inactive-template">
+    <div class="plugin-manager-item row">
+      <span class="plugin-manager-item-name col-10"></span>
+      <a class="btn light-glass plugin-manager-item-action col-2" data-plugin-action="load">
+        <i class="material-icons">extension</i>
+      </a>
+    </div>
+  </template>
+
+  <template id="main-menu-save-new-template">
+    <div class="save-new-file mb-3">
+      <div class="row mb-2">
+        <div class="col-12">
+          <label class="form-label">Save New Scene</label>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-8">
+          <input type="text" class="form-control" id="save-new-filename" placeholder="Enter file name...">
+        </div>
+        <div class="col-4">
+          <button class="btn glass block" id="save-new-button">
+            <i class="material-icons">save</i> Save
+          </button>
+        </div>
+      </div>
+    </div>
+  </template>
+
+  <template id="main-menu-save-existing-template">
+    <div class="save-existing-files">
+      <div class="row mb-2">
+        <div class="col-12">
+          <label class="form-label">Overwrite Existing Scene</label>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-12">
+          <div class="save-list"></div>
+        </div>
+      </div>
+    </div>
+  </template>
+
+  <template id="main-menu-save-empty-template">
+    <div class="text-muted text-center py-3">No saved scenes found</div>
+  </template>
+
+  <template id="main-menu-load-existing-template">
+    <div class="load-existing-files">
+      <div class="row mb-2">
+        <div class="col-12">
+          <label class="form-label">Load Scene</label>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-12">
+          <div class="load-list"></div>
+        </div>
+      </div>
+    </div>
+  </template>
+
+  <template id="main-menu-load-empty-template">
+    <div class="text-muted text-center py-3">No saved scenes found</div>
   </template>
 
 </body>

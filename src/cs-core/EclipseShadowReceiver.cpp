@@ -26,8 +26,7 @@ EclipseShadowReceiver::EclipseShadowReceiver(std::shared_ptr<Settings> settings,
     std::shared_ptr<SolarSystem> solarSystem, bool allowSelfShadowing)
     : mSettings(std::move(settings))
     , mSolarSystem(std::move(solarSystem))
-    , mAllowSelfShadowing(allowSelfShadowing) {
-}
+    , mAllowSelfShadowing(allowSelfShadowing) {}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 

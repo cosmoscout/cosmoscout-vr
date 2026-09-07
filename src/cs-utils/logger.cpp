@@ -22,8 +22,7 @@ template <spdlog::level::level_enum level>
 class SpdlogBuffer : public std::streambuf {
  public:
   explicit SpdlogBuffer(std::shared_ptr<spdlog::logger> logger)
-      : mLogger(std::move(logger)) {
-  }
+      : mLogger(std::move(logger)) {}
 
  private:
   // Whenever vista prints a '\n', a new log message is emitted.
@@ -55,8 +54,7 @@ class SignalSink : public spdlog::sinks::base_sink<std::mutex> {
         std::string(msg.payload.begin(), msg.payload.end()));
   }
 
-  void flush_() override {
-  }
+  void flush_() override {}
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

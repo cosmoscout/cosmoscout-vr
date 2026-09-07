@@ -22,8 +22,7 @@ Breakpoint::Breakpoint(Arc* left, Arc* right, VoronoiGenerator* generator)
     , mRightChild(nullptr)
     , mParent(nullptr)
     , mGenerator(generator)
-    , mStart(position()) {
-}
+    , mStart(position()) {}
 
 Vector2f const& Breakpoint::position() const {
   double currentSweepLine = mGenerator->sweepLine();

@@ -31,8 +31,7 @@ struct Bounds {
       : mMinLon(minLon)
       , mMaxLon(maxLon)
       , mMinLat(minLat)
-      , mMaxLat(maxLat) {
-  }
+      , mMaxLat(maxLat) {}
 
   inline bool operator!=(const Bounds& rhs) const {
     return mMinLon != rhs.mMinLon || mMaxLon != rhs.mMaxLon || mMinLat != rhs.mMinLat ||

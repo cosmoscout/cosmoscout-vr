@@ -25,8 +25,7 @@ namespace cs::graphics {
 
 HDRBuffer::HDRBuffer(uint32_t multiSamples, bool highPrecision)
     : mMultiSamples(multiSamples)
-    , mHighPrecision(highPrecision) {
-}
+    , mHighPrecision(highPrecision) {}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 

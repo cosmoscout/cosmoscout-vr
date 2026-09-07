@@ -108,7 +108,7 @@ void Plugin::init() {
   // Register a callback to toggle the minimap.
   std::string callback = "minimap.toggle";
   mGuiManager->getGui()->registerCallback(callback, "Toggles the Minimap.", std::function([this]() {
-    mGuiManager->getGui()->executeJavascript(
+    mGuiManager->getGui()->executeJavaScript(
         "document.querySelector('#minimap').classList.toggle('visible')");
   }));
 
@@ -124,25 +124,25 @@ void Plugin::init() {
   // Remove deleted bookmarks.
   mOnBookmarkRemovedConnection = mGuiManager->onBookmarkRemoved().connect(
       [this](uint32_t bookmarkID, cs::core::Settings::Bookmark const& /*bookmark*/) {
-        mGuiManager->getGui()->callJavascript("CosmoScout.minimap.removeBookmark", bookmarkID);
+        mGuiManager->getGui()->callJavaScript("CosmoScout.minimap.removeBookmark", bookmarkID);
       });
 
   // Update bookmarks and map layers if active body changes.
   mActiveObjectConnection = mSolarSystem->pActiveObject.connectAndTouch(
       [this](std::shared_ptr<const cs::scene::CelestialObject> const& body) {
         // First remove all bookmarks.
-        mGuiManager->getGui()->callJavascript("CosmoScout.minimap.removeBookmarks");
-        mGuiManager->getGui()->callJavascript("CosmoScout.minimap.configure", "");
+        mGuiManager->getGui()->callJavaScript("CosmoScout.minimap.removeBookmarks");
+        mGuiManager->getGui()->callJavaScript("CosmoScout.minimap.configure", "");
 
         if (body) {
           // Add all layers configured for this body.
           auto mapSettings = mPluginSettings.mMaps.find(body->getCenterName());
           if (mapSettings != mPluginSettings.mMaps.end()) {
             nlohmann::json json = mapSettings->second;
-            mGuiManager->getGui()->callJavascript("CosmoScout.minimap.configure", json.dump());
+            mGuiManager->getGui()->callJavaScript("CosmoScout.minimap.configure", json.dump());
           } else if (mPluginSettings.mDefaultMap.has_value()) {
             nlohmann::json json = mPluginSettings.mDefaultMap.value();
-            mGuiManager->getGui()->callJavascript("CosmoScout.minimap.configure", json.dump());
+            mGuiManager->getGui()->callJavaScript("CosmoScout.minimap.configure", json.dump());
           }
 
           // Add all bookmarks with positions for this body.
@@ -172,7 +172,7 @@ void Plugin::deInit() {
   mGuiManager->onBookmarkAdded().disconnect(mOnBookmarkAddedConnection);
   mGuiManager->onBookmarkRemoved().disconnect(mOnBookmarkRemovedConnection);
 
-  mGuiManager->getGui()->callJavascript("CosmoScout.minimap.deinit");
+  mGuiManager->getGui()->callJavaScript("CosmoScout.minimap.deinit");
   mGuiManager->removeTemplate("minimap-template");
   mGuiManager->removeCSS("css/csp-minimap.css");
   mGuiManager->removeCSS("third-party/css/leaflet.css");
@@ -195,10 +195,10 @@ void Plugin::onAddBookmark(std::shared_ptr<const cs::scene::CelestialObject> con
     if (activeObject && activeObject->getCenterName() == bookmark.mLocation.value().mCenter) {
       auto radii = activeObject->getRadii();
       auto p     = cs::utils::convert::cartesianToLngLat(
-              bookmark.mLocation.value().mPosition.value(), radii);
+          bookmark.mLocation.value().mPosition.value(), radii);
       p      = cs::utils::convert::toDegrees(p);
       auto c = bookmark.mColor.value_or(glm::vec3(0.8F, 0.8F, 1.0F)) * 255.F;
-      mGuiManager->getGui()->callJavascript("CosmoScout.minimap.addBookmark", bookmarkID,
+      mGuiManager->getGui()->callJavaScript("CosmoScout.minimap.addBookmark", bookmarkID,
           std::format("rgb({}, {}, {})", c.r, c.g, c.b), p.x, p.y);
     }
   }

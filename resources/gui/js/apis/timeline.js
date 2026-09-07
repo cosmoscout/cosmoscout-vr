@@ -529,10 +529,7 @@ class TimelineApi extends IApi {
       return;
     }
 
-    const direction = Math.sign(sliderValue);
-    const speed     = Math.pow(sliderValue, 25.0);
-
-    CosmoScout.callbacks.time.setSpeed(direction * speed);
+    CosmoScout.callbacks.time.setSpeed(Math.pow(sliderValue, 25.0));
   }
 
   /**
@@ -596,7 +593,7 @@ class TimelineApi extends IApi {
     let   startDate = new Date(this._centerTime.getTime());
     let   endDate   = new Date(this._centerTime.getTime());
     startDate       = CosmoScout.utils.decreaseDate(
-              startDate, step.days, step.hours, step.minutes, step.seconds, step.milliSec);
+        startDate, step.days, step.hours, step.minutes, step.seconds, step.milliSec);
     endDate = CosmoScout.utils.increaseDate(
         endDate, step.days, step.hours, step.minutes, step.seconds, step.milliSec);
     this._updateOverviewLens();
@@ -666,7 +663,7 @@ class TimelineApi extends IApi {
       this._centerTime = new Date(properties.start.getTime() / 2 + properties.end.getTime() / 2);
       this._timeline.setCustomTime(this._centerTime, this._timeId);
 
-      window.callNative("time.setDate", this._centerTime.toISOString());
+      CosmoScout.callbacks.time.setDate(this._centerTime.toISOString());
     }
   }
 

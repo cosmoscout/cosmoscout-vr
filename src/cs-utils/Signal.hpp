@@ -29,13 +29,11 @@ class Signal {
   Signal() = default;
 
   /// Copy creates new signal.
-  Signal(Signal const& /*unused*/) {
-  }
+  Signal(Signal const& /*unused*/) {}
 
   Signal(Signal&& other) noexcept
       : mSlots(std::move(other.mSlots))
-      , mCurrentID(other.mCurrentID) {
-  }
+      , mCurrentID(other.mCurrentID) {}
 
   Signal& operator=(Signal&& other) noexcept {
     if (this != &other) {

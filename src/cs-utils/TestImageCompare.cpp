@@ -79,8 +79,7 @@ float TestImageCompare::doComparison() {
 
 TestImageCompare::FrameCapture::FrameCapture(std::string fileName, int32_t frame)
     : mFileName(std::move(fileName))
-    , mFrame(frame) {
-}
+    , mFrame(frame) {}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 

@@ -14,8 +14,7 @@ namespace csp::measurementtools {
 
 Beachline::Beachline(VoronoiGenerator* parent)
     : mParent(parent)
-    , mRoot(nullptr) {
-}
+    , mRoot(nullptr) {}
 
 Arc* Beachline::insertArcFor(Site const& site) {
   // if site creates the very first Arc of the Beachline

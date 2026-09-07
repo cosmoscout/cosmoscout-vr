@@ -14,8 +14,7 @@ Arc::Arc(Site const& s)
     : mSite(s)
     , mLeftBreak(nullptr)
     , mRightBreak(nullptr)
-    , mEvent(nullptr) {
-}
+    , mEvent(nullptr) {}
 
 void Arc::invalidateEvent() {
 

@@ -41,7 +41,12 @@ SPDX-License-Identifier: MIT
 </head>
 
 <body>
-  <div id="anchor-label" onclick="window.callNative('flyToBody')">
+  <script type="text/javascript" src="js/cosmoscout.js"></script>
+  <script type="text/javascript">
+    var CosmoScout = new CosmoScoutAPI();
+  </script>
+
+  <div id="anchor-label" onclick="CosmoScout.callbacks.flyToBody()">
     PLACEHOLDER
   </div>
 

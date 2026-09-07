@@ -33,8 +33,6 @@ class CSL_TOOLS_EXPORT DeletableMark : public Mark {
   ~DeletableMark() override;
 
  private:
-  void initData();
-
   VistaOpenGLNode*                            mGuiNode = nullptr;
   std::unique_ptr<cs::gui::WorldSpaceGuiArea> mGuiArea;
   std::unique_ptr<cs::gui::GuiItem>           mGuiItem;

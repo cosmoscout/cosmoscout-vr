@@ -61,8 +61,7 @@ struct TreeManager::AgeLess {
 
 /* explicit */
 TreeManager::AgeLess::AgeLess(int frame)
-    : mFrame(frame) {
-}
+    : mFrame(frame) {}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -86,8 +85,7 @@ bool TreeManager::AgeLess::operator()(TileNode const* lhs, TileNode const* rhs) 
 /* explicit */
 TreeManager::NodeAge::NodeAge(TileNode* node, int frame)
     : mNode(node)
-    , mFrame(frame) {
-}
+    , mFrame(frame) {}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 

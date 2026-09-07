@@ -77,8 +77,7 @@ TileTextureArray::TileTextureArray(TileDataType dataType, int maxLayerCount, uin
     , mType()
     , mDataType(dataType)
     , mResolution(resolution)
-    , mNumLayers(maxLayerCount) {
-}
+    , mNumLayers(maxLayerCount) {}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -132,8 +131,7 @@ void TileTextureArray::processQueue(int maxItems) {
   if (mFreeLayers.size() < upload) {
     // XXX TODO This is bad for performance and visuals, since *all* tiles
     // must be (re)-uploaded to the larger texture
-    vstr::warnp() << "[TileTextureArray::processQueue]"
-                  << " Pre-allocated GPU storage exhausted!"
+    vstr::warnp() << "[TileTextureArray::processQueue]" << " Pre-allocated GPU storage exhausted!"
                   << " [" << getUsedLayerCount() << " | " << getTotalLayerCount() << "]"
                   << std::endl;
   }
@@ -161,10 +159,9 @@ void TileTextureArray::processQueue(int maxItems) {
 
   if (count > 0) {
 #if !defined(NDEBUG) && !defined(VISTAPLANET_NO_VERBOSE)
-    vstr::outi() << "[TileTextureArray::processQueue]"
-                 << " uploaded/pending/used/free layers " << count << " / " << mUploadQueue.size()
-                 << " / " << (mNumLayers - mFreeLayers.size()) << " / " << mFreeLayers.size()
-                 << std::endl;
+    vstr::outi() << "[TileTextureArray::processQueue]" << " uploaded/pending/used/free layers "
+                 << count << " / " << mUploadQueue.size() << " / "
+                 << (mNumLayers - mFreeLayers.size()) << " / " << mFreeLayers.size() << std::endl;
 #endif
   }
 }

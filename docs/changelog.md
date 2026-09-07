@@ -13,11 +13,16 @@ SPDX-License-Identifier: CC-BY-4.0
 
 #### New Features
 
+- A new main menu system has been added, providing a user-friendly interface for loading and saving scenes.
+  - A plugin manager has been introduced in the main menu to enable easy plugin configuration and management.
+- Native JavaScript calls now support promises, improving asynchronous operations in the GUI.
+- MaterialSymbols font has replaced MaterialIcons for a more modern icon set.
 - BRDFs for simple bodies now can be configured via `"graphics": "shading"`.
 - Default BRDFs for simple and LOD bodies now can be configured via `"graphics": "defaultShading"`.
 
 #### Other Changes
 
+- The GUI native calls have been migrated to the unified `CosmoScout.callbacks` API for better consistency and maintainability.
 - Improved rendering performance on some systems by uploading GUI textures using a staging buffer instead of using persistently mapped buffers.
 - The draggable markers of `csp-measurement-tools` are now tiny spheres instead of cubes.
 - Small improvement of rendering performance in HDR mode, by optimizing the computation of the screens' brightness.
@@ -27,6 +32,7 @@ SPDX-License-Identifier: CC-BY-4.0
 
 #### Bug Fixes
 
+- Fixed the time slider only going forward.
 - Fix an issue which caused some flickering above the horizon at nighttime if refraction was enabled and lighting was disabled.
 - Fix energy conservation when HDR but no lighting are enabled.
 

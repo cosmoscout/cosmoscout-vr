@@ -221,7 +221,7 @@ void Plugin::deInit() {
 
   mGuiManager->removeSettingsSection("Stars");
 
-  mGuiManager->getGui()->callJavascript("CosmoScout.removeApi", "stars");
+  mGuiManager->getGui()->callJavaScript("CosmoScout.removeApi", "stars");
 
   mGuiManager->getGui()->unregisterCallback("stars.setLuminanceBoost");
   mGuiManager->getGui()->unregisterCallback("stars.setSize");
@@ -233,6 +233,7 @@ void Plugin::deInit() {
   mGuiManager->getGui()->unregisterCallback("stars.setDrawMode4");
   mGuiManager->getGui()->unregisterCallback("stars.setDrawMode5");
   mGuiManager->getGui()->unregisterCallback("stars.setDrawMode6");
+  mGuiManager->getGui()->unregisterCallback("stars.setDrawMode7");
   mGuiManager->getGui()->unregisterCallback("stars.setEnabled");
   mGuiManager->getGui()->unregisterCallback("stars.setEnableGrid");
   mGuiManager->getGui()->unregisterCallback("stars.setEnableFigures");

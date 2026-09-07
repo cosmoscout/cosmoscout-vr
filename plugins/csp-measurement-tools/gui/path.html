@@ -18,7 +18,10 @@ SPDX-License-Identifier: MIT
   <script type="text/javascript" src="third-party/js/bootstrap.bundle.min.js"></script>
   <script type="text/javascript" src="third-party/js/d3.min.js"></script>
 
+  <script type="text/javascript" src="js/cosmoscout.js"></script>
+
   <script type="text/javascript">
+    var CosmoScout = new CosmoScoutAPI();
 
     var graph = null;
     var line = null;
@@ -203,7 +206,7 @@ SPDX-License-Identifier: MIT
     $(document).ready(function () {
       initProfileLineGraph();
       $('[data-toggle="tooltip"]').tooltip({ delay: 500, placement: "auto", html: false });
-      $(".text-input").on("input", () => window.callNative("onSetText", $(".text-input").val()));
+      $(".text-input").on("input", () => CosmoScout.callbacks.onSetText($(".text-input").val()));
     });
 
   </script>
@@ -215,10 +218,10 @@ SPDX-License-Identifier: MIT
     <div class="d-flex mb-1">
       <input type='text' class='text-input form-control flex-grow-1' value='Path' />
       <a class="btn light-glass" data-toggle="tooltip" title='Add new Points'
-        onclick="window.callNative('setAddPointMode', true)">
+        onclick="CosmoScout.callbacks.setAddPointMode(true)">
         <i class=" material-icons">add_circle</i>
       </a>
-      <a class="btn light-glass" data-toggle="tooltip" title='Delete' onclick="window.callNative('deleteMe')">
+      <a class="btn light-glass" data-toggle="tooltip" title='Delete' onclick="CosmoScout.callbacks.deleteMe()">
         <i class=" material-icons">close</i>
       </a>
     </div>

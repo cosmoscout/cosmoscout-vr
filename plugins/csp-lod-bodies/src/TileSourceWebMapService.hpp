@@ -32,11 +32,9 @@ class TileSourceWebMapService : public TileSource {
 
   ~TileSourceWebMapService() override = default;
 
-  void init() override {
-  }
+  void init() override {}
 
-  void fini() override {
-  }
+  void fini() override {}
 
   std::shared_ptr<BaseTileData> loadTile(TileId const& tileId) override;
 

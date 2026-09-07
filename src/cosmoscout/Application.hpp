@@ -198,6 +198,8 @@ class Application : public VistaFrameLoop {
 
   // For deferred writing of settings.
   std::string mSettingsToSave;
+
+  bool mQuitRequested = false;
 };
 
 #endif // CS_APPLICATION_HPP

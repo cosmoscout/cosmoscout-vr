@@ -38,8 +38,7 @@ class AnimatedValue {
   /// DocTODO why would anyone create an AnimatedValue, with the same value for start and end?
   explicit AnimatedValue(T const& val = T{})
       : mStartValue(val)
-      , mEndValue(val) {
-  }
+      , mEndValue(val) {}
 
   /// Creates a new AnimatedValue.
   /// @param startValue The value at the beginning of the animation.
@@ -55,8 +54,7 @@ class AnimatedValue {
       , mStartTime(startTime)
       , mEndTime(endTime)
       , mDirection(direction)
-      , mExponent(exponent) {
-  }
+      , mExponent(exponent) {}
 
   /// @return Gives back an interpolated result according to the current settings and given time.
   T get(double time) {
