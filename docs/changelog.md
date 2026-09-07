@@ -35,6 +35,7 @@ SPDX-License-Identifier: CC-BY-4.0
 - Fixed the time slider only going forward.
 - Fix an issue which caused some flickering above the horizon at nighttime if refraction was enabled and lighting was disabled.
 - Fix energy conservation when HDR but no lighting are enabled.
+- Fix an issue where sharad profiles were rendered black without HDR enabled.
 
 #### For developers
 

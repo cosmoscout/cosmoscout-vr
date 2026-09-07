@@ -59,8 +59,7 @@ vec3 toCartesian(vec2 lonLat, float height) {
   return k / gamma + height * n;
 }
 
-void main()
-{
+void main() {
     vTexCoords = iTexCoords;
     vTime      = iTime;
 
@@ -95,28 +94,27 @@ layout(location = 0) out vec4 oColor;
 
 void main()
 {
-    if (vTime > uTime)
-    {
+    if (vTime > uTime) {
         discard;
     }
 
-    float fDepth = texture(uDepthBuffer, (gl_FragCoord.xy - uViewportPos) / textureSize(uDepthBuffer, 0)).r;
-    vec4 surfacePos = inverse(uMatProjection) * vec4(vPositionSS.xy / vPositionSS.w, 2*fDepth-1, 1);
+    vec2 depthCoords = (gl_FragCoord.xy - uViewportPos) / textureSize(uDepthBuffer, 0);
+    float fDepth = texture(uDepthBuffer, depthCoords).r;
+    vec4 surfacePos = inverse(uMatProjection) * vec4(vPositionSS.xy / vPositionSS.w, 2.0 * fDepth - 1.0, 1.0);
     float surfaceDistance = length(surfacePos.xyz / surfacePos.w);
     float sharadDistance  = length(vPositionVS);
     
-    if (sharadDistance < surfaceDistance)
-    {
+    if (sharadDistance < surfaceDistance) {
         discard;
     }
 
     float val = texture(uSharadTexture, vTexCoords).r;
-    val = mix(1, val, clamp((uTime - vTime), 0, 1));
+    val = mix(1.0, val, clamp((uTime - vTime), 0.0, 1.0));
 
     oColor.r = pow(val,  0.5);
     oColor.g = pow(val,  2.0);
     oColor.b = pow(val, 10.0);
-    oColor.a = 1.0 - clamp((sharadDistance - surfaceDistance) * uSceneScale / 30000, 0.1, 1.0);
+    oColor.a = 1.0 - clamp((sharadDistance - surfaceDistance) * uSceneScale / 30000.0, 0.1, 1.0);
 }
 )";
 
