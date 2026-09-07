@@ -91,7 +91,7 @@ const std::string TextureOverlayRenderer::SURFACE_FRAG = R"(
     // ===========================================================================
     vec2 surfaceToLngLat(vec3 cartesian, vec3 radii) {
         vec3 geodeticNormal = surfaceToNormal(cartesian, radii);
-        return vec2(atan(geodeticNormal.x, geodeticNormal.z), asin(geodeticNormal.y));
+        return vec2(atan(geodeticNormal.y, geodeticNormal.x), asin(geodeticNormal.z));
     }
 
     // ===========================================================================

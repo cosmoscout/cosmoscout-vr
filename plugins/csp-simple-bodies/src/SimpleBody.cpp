@@ -55,8 +55,7 @@ out vec3 vSunDirection;
 const float PI = 3.141592654;
 
 vec3 geodeticSurfaceNormal(vec2 lngLat) {
-  return vec3(cos(lngLat.y) * sin(lngLat.x), sin(lngLat.y),
-      cos(lngLat.y) * cos(lngLat.x));
+  return vec3(cos(lngLat.y) * cos(lngLat.x), cos(lngLat.y) * sin(lngLat.x), sin(lngLat.y));
 }
 
 vec3 toCartesian(vec2 lonLat) {
@@ -77,7 +76,7 @@ void main() {
   vPosition = toCartesian(vLngLat);
   vNormal       = (uMatModel * vec4(geodeticSurfaceNormal(vLngLat), 0.0)).xyz;
   vPosition     = (uMatModel * vec4(vPosition, 1.0)).xyz;
-  vNorth        = (uMatModel * vec4(0.0, 1.0, 0.0, 0.0)).xyz;
+  vNorth        = (uMatModel * vec4(0.0, 0.0, 1.0, 0.0)).xyz;
   vSunDirection = (uMatModel * vec4(uSunDirection, 0.0)).xyz;
   vCenter       = (uMatModel * vec4(0.0, 0.0, 0.0, 1.0)).xyz;
   gl_Position   = uMatProjection * uMatView * vec4(vPosition, 1);

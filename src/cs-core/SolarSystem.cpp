@@ -477,7 +477,7 @@ void SolarSystem::flyObserverTo(std::string const& sCenter, std::string const& s
 void SolarSystem::flyObserverTo(std::string const& sCenter, std::string const& sFrame,
     glm::dvec3 const& position, double duration) {
 
-  glm::dvec3 y = glm::dvec3(0, -1, 0);
+  glm::dvec3 y = glm::dvec3(0, 0, -1);
   glm::dvec3 z = position;
   glm::dvec3 x = glm::cross(z, y);
   y            = glm::cross(z, x);

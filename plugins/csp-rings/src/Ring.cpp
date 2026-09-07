@@ -53,7 +53,7 @@ void main() {
   vec2 vDir = vec2(sin(iGridPos.x * 2.0 * PI), cos(iGridPos.x * 2.0 * PI));
   vec2 vPos = mix(vDir * uRadii.x, vDir * uRadii.y, iGridPos.y);
 
-  vPosition   = uMatModel * vec4(vPos.x, 0, vPos.y, 1.0);
+  vPosition   = uMatModel * vec4(vPos.x, vPos.y, 0, 1.0);
   gl_Position =  uMatProjection * uMatView * vPosition;
 }
 )";

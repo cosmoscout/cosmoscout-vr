@@ -871,9 +871,9 @@ void Stars::buildStarVAO() {
       fDist = 1000.F / it->mParallax;
     }
 
-    glm::vec3 starPos = glm::vec3(glm::cos(it->mDeclination) * glm::cos(it->mAscension) * fDist,
-        glm::sin(it->mDeclination) * fDist,
-        glm::cos(it->mDeclination) * glm::sin(it->mAscension) * fDist);
+    glm::vec3 starPos = glm::vec3(glm::cos(it->mDeclination) * glm::sin(it->mAscension) * fDist,
+        glm::cos(it->mDeclination) * glm::cos(it->mAscension) * fDist,
+        glm::sin(it->mDeclination) * fDist);
 
     data[index]     = starPos[0];
     data[index + 1] = starPos[1];

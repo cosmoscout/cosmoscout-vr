@@ -55,7 +55,7 @@ glm::dvec3 scaleToGeodeticSurface(glm::dvec3 const& cartesian, glm::dvec3 const&
 
 glm::dvec2 surfaceToLngLat(glm::dvec3 const& cartesian, glm::dvec3 const& radii) {
   auto geodeticNormal = surfaceToNormal(cartesian, radii);
-  return glm::dvec2(std::atan2(geodeticNormal.x, geodeticNormal.z), std::asin(geodeticNormal.y));
+  return glm::dvec2(std::atan2(geodeticNormal.y, geodeticNormal.x), std::asin(geodeticNormal.z));
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -89,8 +89,8 @@ glm::dvec3 toCartesian(glm::dvec2 const& lngLat, glm::dvec3 const& radii, double
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 glm::dvec3 lngLatToNormal(glm::dvec2 const& lngLat) {
-  return glm::dvec3(std::cos(lngLat.y) * std::sin(lngLat.x), std::sin(lngLat.y),
-      std::cos(lngLat.y) * std::cos(lngLat.x));
+  return glm::dvec3(std::cos(lngLat.y) * std::cos(lngLat.x),
+      std::cos(lngLat.y) * std::sin(lngLat.x), std::sin(lngLat.y));
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

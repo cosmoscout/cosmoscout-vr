@@ -307,7 +307,7 @@ void DipStrikeTool::calculateDipAndStrike() {
     mMip                   = glm::normalize(glm::cross(mNormal, strike));
 
     // calculate dip and strike values
-    glm::vec3 north(0, 1, 0);
+    glm::vec3 north(0, 0, 1);
     float     fDip    = std::acos(glm::dot(mMip, dipDirection)) * 180 / glm::pi<float>();
     float     fStrike = std::acos(glm::dot(north, strike)) * 180 / glm::pi<float>();
 

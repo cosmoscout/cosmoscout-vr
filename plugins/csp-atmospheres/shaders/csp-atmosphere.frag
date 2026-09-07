@@ -238,8 +238,8 @@ vec2 intersectOceansphere(vec3 rayOrigin, vec3 rayDir) {
 // centered at the origin.
 vec2 getLngLat(vec3 position) {
   vec2 result;
-  result.x = atan(position.x, position.z);
-  result.y = asin(position.y / length(position));
+  result.x = atan(position.y, position.x);
+  result.y = asin(position.z / length(position));
   return result;
 }
 
