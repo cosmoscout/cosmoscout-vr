@@ -41,8 +41,6 @@
 #include <VistaKernel/VistaSystem.h>
 #include <VistaOGLExt/VistaShaderRegistry.h>
 
-#include <curlpp/cURLpp.hpp>
-
 #include <chrono>
 #include <format>
 #include <memory>
