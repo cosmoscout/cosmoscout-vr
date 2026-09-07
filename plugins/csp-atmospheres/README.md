@@ -78,6 +78,7 @@ They are not physically based but provide some plausible results.
   "topAltitude": 80000,
   "bottomAltitude": 0,
   "cloudTexture": "../share/resources/textures/earth-clouds.jpg",
+  "cloudTypeTexture": "../share/resources/textures/cloudTop.jpg",
   "model": "CosmoScoutVR",
   "modelSettings": {
     "mieAnisotropy": 0.76,

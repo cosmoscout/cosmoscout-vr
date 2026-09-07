@@ -50,9 +50,27 @@ class Plugin : public cs::core::PluginBase {
       cs::utils::DefaultProperty<float>  mWaterLevel{0.F}; ///< In meters.
       cs::utils::DefaultProperty<bool>   mEnableClouds{true};
       std::optional<std::string>         mCloudTexture;          ///< Path to the cloud texture.
+      std::optional<std::string>         mCloudTypeTexture;
       cs::utils::DefaultProperty<float>  mCloudAltitude{3000.F}; ///< In meters.
       cs::utils::DefaultProperty<bool>   mEnableLimbLuminance{true};
+      cs::utils::DefaultProperty<bool>   mAdvancedClouds{false};
       std::optional<std::string> mLimbLuminanceTexture; ///< Path to the limb luminance texture.
+
+      /// advanced cloud model additional parameters
+      cs::utils::DefaultProperty<float> mCloudQuality{1.f};
+      cs::utils::DefaultProperty<float> mCloudMaxSamples{400.f};
+      cs::utils::DefaultProperty<float> mCloudJitter{.5f};
+      cs::utils::DefaultProperty<float> mCloudTypeExponent{1.f};
+      cs::utils::DefaultProperty<float> mCloudRangeMin{0.f};
+      cs::utils::DefaultProperty<float> mCloudRangeMax{1.f};
+      cs::utils::DefaultProperty<float> mCloudTypeMin{0.f};
+      cs::utils::DefaultProperty<float> mCloudTypeMax{1.f};
+      cs::utils::DefaultProperty<float> mCloudDensityMultiplier{1.f};
+      cs::utils::DefaultProperty<float> mCloudAbsorption{0.f};
+      cs::utils::DefaultProperty<float> mCloudCoverageExponent{1.f};
+      cs::utils::DefaultProperty<float> mCloudCutoff{.1f};
+      cs::utils::DefaultProperty<float> mCloudLFRepetitionScale{5000.f};
+      cs::utils::DefaultProperty<float> mCloudHFRepetitionScale{1231.f};
 
       /// If this is set to true, the plugin will save a fish-eye view of the sky to a file one
       /// the preprocessing is done.
