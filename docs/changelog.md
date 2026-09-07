@@ -19,6 +19,7 @@ SPDX-License-Identifier: CC-BY-4.0
 - MaterialSymbols font has replaced MaterialIcons for a more modern icon set.
 - BRDFs for simple bodies now can be configured via `"graphics": "shading"`.
 - Default BRDFs for simple and LOD bodies now can be configured via `"graphics": "defaultShading"`.
+- Add `csp-orientation-tools` plugin which can visualize the orientation of an object with arrows and its axes.
 
 #### Other Changes
 

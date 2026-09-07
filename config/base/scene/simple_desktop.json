@@ -1305,6 +1305,25 @@
         "useDynamicRadius": false,
         "useVerticalOnly": false
       }
+    },
+    "csp-orientation-tools": {
+      "arrows": {
+        "Moon": {
+          "size": 0.1
+        }
+      },
+      "axes": {
+        "Earth": {
+          "size": 15000,
+          "color": [
+            1.0,
+            1.0,
+            0.5
+          ],
+          "disableX": true,
+          "disableZ": true
+        }
+      }
     }
   }
 }
