@@ -25,6 +25,9 @@ file(GLOB SHADER_FILES ${CSP_STARS_SHADER_DIR}* ${CSP_STARS_SHADER_DIR}*/*)
 
 source_group("src/shaders" FILES ${SHADER_FILES})
 
+#stars-newrenderer subrepo
+add_subdirectory(stars-newrenderer)
+
 add_library(csp-stars SHARED
   ${SOURCE_FILES}
   ${HEADER_FILES}
@@ -35,6 +38,8 @@ add_library(csp-stars SHARED
 target_link_libraries(csp-stars
   PUBLIC
     cs-core
+  PRIVATE
+    NewStarRenderer
 )
 
 # Add this Plugin to a "plugins" folder in your IDE.
