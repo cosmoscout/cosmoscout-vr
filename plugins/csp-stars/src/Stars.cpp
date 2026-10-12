@@ -85,7 +85,10 @@ Stars::Stars() {
     }
   }
 
-  newstarInit(glm::ivec2{width, height});
+  newstarInit(glm::ivec2{width, height},
+  "../share/resources/stars-newrenderer/shaders/",
+  "./"
+  );
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -349,17 +352,21 @@ bool Stars::Do() {
   VistaTransformMatrix matProjection(glMat.data(), true);
 
   if (mDrawMode == DrawMode::eNewStarRenderer) {
+      glDepthMask(GL_TRUE);
+      glPopAttrib();
+    
       glm::mat4 matMV = glm::make_mat4(matModelView.GetData());
       glm::mat4 matInvMV = glm::inverse(glm::dmat4(matMV));
 
       glm::mat4 matP = glm::make_mat4(matProjection.GetData());
       glm::mat4 matInvP = glm::inverse(glm::dmat4(matP));
 
-      float fadeOut = mEnableHDR ? 1.F : sceneBrightness;
+      //float fadeOut = mEnableHDR ? 1.F : sceneBrightness;
   
-      newstarRender(matMV, matInvMV, matP, matInvP, fadeOut * mLuminanceMultiplicator, mEnableHDR);
-      glDepthMask(GL_TRUE);
-      glPopAttrib();
+      newstarRender(matMV, matInvMV, matP, matInvP,
+        0.0001f,//fadeOut * mLuminanceMultiplicator,
+        mEnableHDR);
+
       return true;
   }
 

@@ -58,4 +58,5 @@ source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}" FILES
 install(TARGETS csp-stars    DESTINATION "share/plugins")
 install(DIRECTORY "gui"      DESTINATION "share/resources")
 install(DIRECTORY "shaders"  DESTINATION "share/resources")
+install(DIRECTORY "stars-newrenderer/src/shaders" DESTINATION "share/resources/stars-newrenderer")
 install(DIRECTORY "textures" DESTINATION "share/resources")
