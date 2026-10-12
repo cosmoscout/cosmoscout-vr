@@ -56,7 +56,8 @@ class Stars : public IVistaOpenGLDraw {
     eScaledDisc,
     eGlareDisc,
     eSprite,
-    eSRPoint
+    eSRPoint,
+    eNewStarRenderer
   };
 
   Stars();

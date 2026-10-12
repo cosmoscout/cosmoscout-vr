@@ -35,6 +35,8 @@
 #include <fstream>
 #include <glm/glm.hpp>
 
+#include <newstar.hpp>
+
 namespace csp::stars {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -72,9 +74,18 @@ const int Stars::cCacheVersion = 4;
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 Stars::Stars() {
+  int width, height;
+  bool firstViewportDone = false;
+  
   for (auto const& viewport : GetVistaSystem()->GetDisplayManager()->GetViewports()) {
     mSRTargets[viewport.second] = {};
+    if(!firstViewportDone) {
+      viewport.second->GetViewportProperties()->GetSize(width, height);
+      firstViewportDone = true;  
+    }
   }
+
+  newstarInit(glm::ivec2{width, height});
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -336,6 +347,21 @@ bool Stars::Do() {
 
   glGetFloatv(GL_PROJECTION_MATRIX, glMat.data());
   VistaTransformMatrix matProjection(glMat.data(), true);
+
+  if (mDrawMode == DrawMode::eNewStarRenderer) {
+      glm::mat4 matMV = glm::make_mat4(matModelView.GetData());
+      glm::mat4 matInvMV = glm::inverse(glm::dmat4(matMV));
+
+      glm::mat4 matP = glm::make_mat4(matProjection.GetData());
+      glm::mat4 matInvP = glm::inverse(glm::dmat4(matP));
+
+      float fadeOut = mEnableHDR ? 1.F : sceneBrightness;
+  
+      newstarRender(matMV, matInvMV, matP, matInvP, fadeOut * mLuminanceMultiplicator, mEnableHDR);
+      glDepthMask(GL_TRUE);
+      glPopAttrib();
+      return true;
+  }
 
   if (mShaderDirty) {
     std::string defines;
@@ -863,6 +889,8 @@ void Stars::buildStarVAO() {
   const int          iElementCount(5);
   std::vector<float> data(iElementCount * mStars.size());
 
+  std::vector<RawStar> rawStars{};
+
   for (auto it = mStars.begin(); it != mStars.end(); ++it, index += iElementCount) {
     // Distance in parsec --- some have parallax of zero; assume a large distance in those cases.
     float fDist = 1000.F;
@@ -880,6 +908,8 @@ void Stars::buildStarVAO() {
     data[index + 2] = starPos[2];
     data[index + 3] = it->mTEff;
     data[index + 4] = it->mMagnitude - 5.F * std::log10(fDist / 10.F);
+
+    rawStars.emplace_back(it->mTEff, it->mMagnitude, starPos);
   }
 
   mStarVBO.Bind(GL_ARRAY_BUFFER);
@@ -900,6 +930,8 @@ void Stars::buildStarVAO() {
   mStarVAO.EnableAttributeArray(2);
   mStarVAO.SpecifyAttributeArrayFloat(
       2, 1, GL_FLOAT, GL_FALSE, iElementCount * sizeof(float), 4 * sizeof(float), &mStarVBO);
+
+  newstarSetdata(rawStars);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
