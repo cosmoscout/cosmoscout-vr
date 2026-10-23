@@ -178,6 +178,10 @@ void Plugin::init() {
   mGuiManager->getGui()->registerCallback("stars.setDrawMode7",
       "Enables software rasterized point draw mode for the stars.",
       std::function([this]() { mPluginSettings.mDrawMode = Stars::DrawMode::eSRPoint; }));
+  mGuiManager->getGui()->registerCallback("stars.setDrawMode8",
+      "Enables new renderer mode for the stars.",
+      std::function([this]() {
+        mPluginSettings.mDrawMode = Stars::DrawMode::eNewStarRenderer;}));
   mPluginSettings.mDrawMode.connectAndTouch([this](Stars::DrawMode drawMode) {
     if (drawMode == Stars::DrawMode::ePoint) {
       mGuiManager->setRadioChecked("stars.setDrawMode0");
@@ -195,6 +199,8 @@ void Plugin::init() {
       mGuiManager->setRadioChecked("stars.setDrawMode6");
     } else if (drawMode == Stars::DrawMode::eSRPoint) {
       mGuiManager->setRadioChecked("stars.setDrawMode7");
+    } else if (drawMode == Stars::DrawMode::eNewStarRenderer) {
+      mGuiManager->setRadioChecked("stars.setDrawMode8");
     }
   });
 
@@ -234,6 +240,7 @@ void Plugin::deInit() {
   mGuiManager->getGui()->unregisterCallback("stars.setDrawMode5");
   mGuiManager->getGui()->unregisterCallback("stars.setDrawMode6");
   mGuiManager->getGui()->unregisterCallback("stars.setDrawMode7");
+  mGuiManager->getGui()->unregisterCallback("stars.setDrawMode8");
   mGuiManager->getGui()->unregisterCallback("stars.setEnabled");
   mGuiManager->getGui()->unregisterCallback("stars.setEnableGrid");
   mGuiManager->getGui()->unregisterCallback("stars.setEnableFigures");
