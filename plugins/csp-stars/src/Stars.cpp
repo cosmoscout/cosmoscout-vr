@@ -88,7 +88,9 @@ Stars::Stars() {
 
   newstarInit(glm::ivec2{width, height},
   "../share/resources/stars-newrenderer/shaders/",
-  "./" //data directory
+  "./", //data directory
+  [](std::string const& s){logger().info("[newstar]", s);},
+  [](std::string const& s){logger().error("[newstar]", s);}
   );
 }
 
@@ -364,7 +366,6 @@ bool Stars::Do() {
         glm::ivec2 newScreenSize;
         viewport->GetViewportProperties()->GetSize(newScreenSize.x, newScreenSize.y);
         if (previousScreenSize != newScreenSize) {
-          logger().info("screen size changed", newScreenSize.x, newScreenSize.y);
           newstarResizeWindow(newScreenSize);
         }
       }
