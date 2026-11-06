@@ -56,7 +56,8 @@ void from_json(nlohmann::json const& j, Plugin::Settings& o) {
   cs::core::Settings::deserialize(j, "size", o.mSize);
   cs::core::Settings::deserialize(j, "magnitudeRange", o.mMagnitudeRange);
 
-  cs::core::Settings::deserialize(j, "gpuAccumulationLanes", o.newStarProperties.mGpuAccumulationLanes);
+  cs::core::Settings::deserialize(
+      j, "gpuAccumulationLanes", o.newStarProperties.mGpuAccumulationLanes);
   cs::core::Settings::deserialize(j, "gpuTileSizePx", o.newStarProperties.mGpuTileSizePx);
   cs::core::Settings::deserialize(j, "gpuMaxJobChunks", o.newStarProperties.mGpuMaxJobChunks);
   cs::core::Settings::deserialize(j, "gpuMaxJobs", o.newStarProperties.mGpuMaxJobs);
@@ -82,7 +83,8 @@ void to_json(nlohmann::json& j, Plugin::Settings const& o) {
   cs::core::Settings::serialize(j, "size", o.mSize);
   cs::core::Settings::serialize(j, "magnitudeRange", o.mMagnitudeRange);
 
-  cs::core::Settings::serialize(j, "gpuAccumulationLanes", o.newStarProperties.mGpuAccumulationLanes);
+  cs::core::Settings::serialize(
+      j, "gpuAccumulationLanes", o.newStarProperties.mGpuAccumulationLanes);
   cs::core::Settings::serialize(j, "gpuTileSizePx", o.newStarProperties.mGpuTileSizePx);
   cs::core::Settings::serialize(j, "gpuMaxJobChunks", o.newStarProperties.mGpuMaxJobChunks);
   cs::core::Settings::serialize(j, "gpuMaxJobs", o.newStarProperties.mGpuMaxJobs);
@@ -192,8 +194,7 @@ void Plugin::init() {
       std::function([this]() { mPluginSettings.mDrawMode = Stars::DrawMode::eSRPoint; }));
   mGuiManager->getGui()->registerCallback("stars.setDrawMode8",
       "Enables new renderer mode for the stars.",
-      std::function([this]() {
-        mPluginSettings.mDrawMode = Stars::DrawMode::eNewStarRenderer;}));
+      std::function([this]() { mPluginSettings.mDrawMode = Stars::DrawMode::eNewStarRenderer; }));
   mPluginSettings.mDrawMode.connectAndTouch([this](Stars::DrawMode drawMode) {
     if (drawMode == Stars::DrawMode::ePoint) {
       mGuiManager->setRadioChecked("stars.setDrawMode0");

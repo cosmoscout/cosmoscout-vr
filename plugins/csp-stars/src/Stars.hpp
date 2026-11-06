@@ -61,11 +61,11 @@ class Stars : public IVistaOpenGLDraw {
   };
 
   struct NewStarGPUProperties {
-      size_t mGpuAccumulationLanes;
-      size_t mGpuTileSizePx;
-      size_t mGpuMaxJobChunks;
-      size_t mGpuMaxJobs;
-      double mChunkSize; 
+    size_t mGpuAccumulationLanes;
+    size_t mGpuTileSizePx;
+    size_t mGpuMaxJobChunks;
+    size_t mGpuMaxJobs;
+    double mChunkSize;
   };
 
   Stars();

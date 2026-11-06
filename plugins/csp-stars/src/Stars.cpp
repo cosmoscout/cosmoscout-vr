@@ -74,24 +74,23 @@ const int Stars::cCacheVersion = 4;
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 Stars::Stars() {
-  //TODO: handle multi-viewport rendering in new star renderer
-  int width, height;
+  // TODO: handle multi-viewport rendering in new star renderer
+  int  width, height;
   bool firstViewportDone = false;
-  
+
   for (auto const& viewport : GetVistaSystem()->GetDisplayManager()->GetViewports()) {
     mSRTargets[viewport.second] = {};
-    if(!firstViewportDone) {
+    if (!firstViewportDone) {
       viewport.second->GetViewportProperties()->GetSize(width, height);
-      firstViewportDone = true;  
+      firstViewportDone = true;
     }
   }
 
-  newstarInit(glm::ivec2{width, height},
-  "../share/resources/stars-newrenderer/shaders/",
-  "./", //data directory
-  [](std::string const& s){logger().info("[newstar]", s);},
-  [](std::string const& s){logger().error("[newstar]", s);}
-  );
+  newstarInit(
+      glm::ivec2{width, height}, "../share/resources/stars-newrenderer/shaders/",
+      "./", // data directory
+      [](std::string const& s) { logger().info("[newstar]", s); },
+      [](std::string const& s) { logger().error("[newstar]", s); });
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -355,35 +354,34 @@ bool Stars::Do() {
   VistaTransformMatrix matProjection(glMat.data(), true);
 
   if (mDrawMode == DrawMode::eNewStarRenderer) {
-      glDepthMask(GL_TRUE);
-      glPopAttrib();
+    glDepthMask(GL_TRUE);
+    glPopAttrib();
 
-      {
-        auto* viewport = GetVistaSystem()->GetDisplayManager()->GetCurrentRenderInfo()->m_pViewport;
-        auto& data     = mSRTargets[viewport];
-        glm::ivec2 previousScreenSize{data.mWidth, data.mHeight};
-        
-        glm::ivec2 newScreenSize;
-        viewport->GetViewportProperties()->GetSize(newScreenSize.x, newScreenSize.y);
-        if (previousScreenSize != newScreenSize) {
-          newstarResizeWindow(newScreenSize);
-        }
+    {
+      auto* viewport = GetVistaSystem()->GetDisplayManager()->GetCurrentRenderInfo()->m_pViewport;
+      auto& data     = mSRTargets[viewport];
+      glm::ivec2 previousScreenSize{data.mWidth, data.mHeight};
+
+      glm::ivec2 newScreenSize;
+      viewport->GetViewportProperties()->GetSize(newScreenSize.x, newScreenSize.y);
+      if (previousScreenSize != newScreenSize) {
+        newstarResizeWindow(newScreenSize);
       }
+    }
 
-    
-      glm::mat4 matMV = glm::make_mat4(matModelView.GetData());
-      glm::mat4 matInvMV = glm::inverse(glm::dmat4(matMV));
+    glm::mat4 matMV    = glm::make_mat4(matModelView.GetData());
+    glm::mat4 matInvMV = glm::inverse(glm::dmat4(matMV));
 
-      glm::mat4 matP = glm::make_mat4(matProjection.GetData());
-      glm::mat4 matInvP = glm::inverse(glm::dmat4(matP));
+    glm::mat4 matP    = glm::make_mat4(matProjection.GetData());
+    glm::mat4 matInvP = glm::inverse(glm::dmat4(matP));
 
-      //float fadeOut = mEnableHDR ? 1.F : sceneBrightness;
-  
-      newstarRender(matMV, matInvMV, matP, matInvP,
-        0.0001f,//fadeOut * mLuminanceMultiplicator,
+    // float fadeOut = mEnableHDR ? 1.F : sceneBrightness;
+
+    newstarRender(matMV, matInvMV, matP, matInvP,
+        0.0001f, // fadeOut * mLuminanceMultiplicator,
         mEnableHDR);
 
-      return true;
+    return true;
   }
 
   if (mShaderDirty) {
@@ -598,8 +596,7 @@ bool Stars::Do() {
     int width, height;
     viewport->GetViewportProperties()->GetSize(width, height);
 
-    if (data.mWidth != width || data
-      .mHeight != height) {
+    if (data.mWidth != width || data.mHeight != height) {
       data.mWidth  = width;
       data.mHeight = height;
 
@@ -699,7 +696,7 @@ bool Stars::readStarsFromCatalog(CatalogType type, std::string const& filename) 
         if (type != CatalogType::eHipparcos && loadHipparcos) {
           int  hippID{};
           bool read = fromString<int>(items[cColumnMapping.at(cs::utils::enumCast(type))
-                                                .at(cs::utils::enumCast(CatalogColumn::eHipp))],
+                                              .at(cs::utils::enumCast(CatalogColumn::eHipp))],
               hippID);
           if (read && hippID >= 0) {
             continue;
@@ -725,7 +722,7 @@ bool Stars::readStarsFromCatalog(CatalogType type, std::string const& filename) 
         if (cColumnMapping.at(
                 cs::utils::enumCast(type))[cs::utils::enumCast(CatalogColumn::ePara)] > 0) {
           if (!fromString<float>(items[cColumnMapping.at(cs::utils::enumCast(type))
-                                           .at(cs::utils::enumCast(CatalogColumn::ePara))],
+                                         .at(cs::utils::enumCast(CatalogColumn::ePara))],
                   star.mParallax)) {
             star.mParallax = 0;
           }
@@ -741,7 +738,7 @@ bool Stars::readStarsFromCatalog(CatalogType type, std::string const& filename) 
           // https://doi.org/10.1051/0004-6361/201015441
           float logTeff = 3.999F - 0.654F * GbpMinusGrp + 0.709F * std::pow(GbpMinusGrp, 2.F) -
                           0.316F * std::pow(GbpMinusGrp, 3.F);
-          star.mTEff = std::pow(10.F, logTeff);
+          star.mTEff    = std::pow(10.F, logTeff);
 
         } else {
           float bv = 0;
