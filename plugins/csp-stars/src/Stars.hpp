@@ -60,6 +60,14 @@ class Stars : public IVistaOpenGLDraw {
     eNewStarRenderer
   };
 
+  struct NewStarGPUProperties {
+      size_t mGpuAccumulationLanes;
+      size_t mGpuTileSizePx;
+      size_t mGpuMaxJobChunks;
+      size_t mGpuMaxJobs;
+      double mChunkSize; 
+  };
+
   Stars();
   ~Stars() = default;
 
