@@ -74,6 +74,7 @@ const int Stars::cCacheVersion = 4;
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 Stars::Stars() {
+  //TODO: handle multi-viewport rendering in new star renderer
   int width, height;
   bool firstViewportDone = false;
   
@@ -87,7 +88,7 @@ Stars::Stars() {
 
   newstarInit(glm::ivec2{width, height},
   "../share/resources/stars-newrenderer/shaders/",
-  "./"
+  "./" //data directory
   );
 }
 
@@ -354,6 +355,20 @@ bool Stars::Do() {
   if (mDrawMode == DrawMode::eNewStarRenderer) {
       glDepthMask(GL_TRUE);
       glPopAttrib();
+
+      {
+        auto* viewport = GetVistaSystem()->GetDisplayManager()->GetCurrentRenderInfo()->m_pViewport;
+        auto& data     = mSRTargets[viewport];
+        glm::ivec2 previousScreenSize{data.mWidth, data.mHeight};
+        
+        glm::ivec2 newScreenSize;
+        viewport->GetViewportProperties()->GetSize(newScreenSize.x, newScreenSize.y);
+        if (previousScreenSize != newScreenSize) {
+          logger().info("screen size changed", newScreenSize.x, newScreenSize.y);
+          newstarResizeWindow(newScreenSize);
+        }
+      }
+
     
       glm::mat4 matMV = glm::make_mat4(matModelView.GetData());
       glm::mat4 matInvMV = glm::inverse(glm::dmat4(matMV));
@@ -582,7 +597,8 @@ bool Stars::Do() {
     int width, height;
     viewport->GetViewportProperties()->GetSize(width, height);
 
-    if (data.mWidth != width || data.mHeight != height) {
+    if (data.mWidth != width || data
+      .mHeight != height) {
       data.mWidth  = width;
       data.mHeight = height;
 
