@@ -89,8 +89,8 @@ Stars::Stars() {
   newstarInit(
       glm::ivec2{width, height}, "../share/resources/stars-newrenderer/shaders/",
       "./", // data directory
-      [](std::string const& s) { logger().info("[newstar]", s); },
-      [](std::string const& s) { logger().error("[newstar]", s); });
+      [](std::string const& s) { logger().info("[newstar] " + s); },
+      [](std::string const& s) { logger().error("[newstar] " + s); });
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
