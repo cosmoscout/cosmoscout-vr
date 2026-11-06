@@ -41,6 +41,17 @@ class Plugin : public cs::core::PluginBase {
     cs::utils::DefaultProperty<Stars::DrawMode> mDrawMode{Stars::DrawMode::eSRPoint};
     cs::utils::DefaultProperty<float>           mSize{0.05F};
     cs::utils::DefaultProperty<glm::vec2>       mMagnitudeRange{glm::vec2(-10.F, 13.F)};
+
+    // TODO: should we also include shadeBase and cacheBase paths of newStarRenderer here?
+    // TODO JSON/struct wrapper?
+    struct {
+      cs::utils::DefaultProperty<size_t> mGpuAccumulationLanes{2};
+      cs::utils::DefaultProperty<size_t> mGpuTileSizePx{64};
+      cs::utils::DefaultProperty<size_t> mGpuMaxJobChunks{10};
+      cs::utils::DefaultProperty<size_t> mGpuMaxJobs{10000};
+      cs::utils::DefaultProperty<double> mChunkSize{
+          12000.0 / 64.0}; // 64 steps in chunk grid for 12kpc
+    } newStarProperties;
   };
 
   void init() override;

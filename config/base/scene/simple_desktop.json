@@ -773,7 +773,12 @@
       ],
       "starTexture": "../share/resources/textures/star.png",
       "hipparcosCatalog": "../share/download/stars/hip_main.dat",
-      "gaiaCatalog": "../share/download/stars/gaia_5m.csv"
+      "gaiaCatalog": "../share/download/stars/gaia_5m.csv",
+      "gpuAccumulationLanes" : 2,
+      "gpuTileSizePx" : 64,
+      "gpuMaxJobChunks" : 10,
+      "gpuMaxJobs" : 100000,
+      "chunkSizeParsecs" : 187.5
     },
     "csp-atmospheres": {
       "atmospheres": {
